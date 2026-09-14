@@ -12,7 +12,7 @@ Opciones:
 
 Hasta que se aplique una de las dos, la protección de `main` es solo disciplina: nadie hace `git push` directo y todo entra por PR con CI en verde, pero GitHub no lo impide.
 
-El workflow `.github/workflows/ci.yml` publica cuatro checks con estos nombres exactos: **`lint`**, **`typecheck`**, **`test`**, **`build`**. Son los que se exigen abajo. Si se renombra un job en el workflow hay que actualizar la regla.
+El workflow `.github/workflows/ci.yml` publica cinco checks con estos nombres exactos: **`lint`**, **`typecheck`**, **`test`**, **`build`**, **`audit`**. Son los que se exigen abajo. Si se renombra un job en el workflow hay que actualizar la regla.
 
 ## 1. Método de merge (Settings → General → Pull Requests)
 
@@ -44,7 +44,7 @@ Reglas a marcar:
   - Allowed merge methods: solo *Squash*.
 - **Require status checks to pass**: activado.
   - Require branches to be up to date before merging: activado.
-  - Status checks required: `lint`, `typecheck`, `test`, `build` (aparecen en el buscador una vez que el workflow ha corrido al menos una vez en un PR).
+  - Status checks required: `lint`, `typecheck`, `test`, `build`, `audit` (aparecen en el buscador una vez que el workflow ha corrido al menos una vez en un PR).
 - **Block force pushes**: activado.
 
 Todo lo demás desactivado.
@@ -85,7 +85,8 @@ gh api --method POST repos/jams-robotics/trayectoria/rulesets \
           { "context": "lint" },
           { "context": "typecheck" },
           { "context": "test" },
-          { "context": "build" }
+          { "context": "build" },
+          { "context": "audit" }
         ]
       }
     }
@@ -108,11 +109,11 @@ gh api --method PATCH repos/jams-robotics/trayectoria \
 
 ## 4. Verificación
 
-1. Abrir un PR de prueba con un cambio trivial: deben aparecer los cuatro checks y el botón de merge debe quedar bloqueado hasta que pasen.
+1. Abrir un PR de prueba con un cambio trivial: deben aparecer los cinco checks y el botón de merge debe quedar bloqueado hasta que pasen.
 2. `git push origin main` directo desde una copia local debe ser rechazado con `GH013: Repository rule violations`.
 3. En el PR de prueba solo debe ofrecerse *Squash and merge*.
 
 ## 5. Qué no cubre
 
 - Despliegue (F7-05b añade su propio workflow; no es un check requerido).
-- `STANDARDS.md` §12 pide además `content:check`, cobertura en `test` y `pnpm audit --audit-level=high`. F0-02 los deja fuera por alcance: `content:check` no existe hasta F0-05/F2-13; la cobertura se configura con los primeros tests (F1); `pnpm audit` es un comando integrado de pnpm y se puede añadir en cualquier momento. Cuando entren al workflow hay que añadirlos también a la lista de checks requeridos del ruleset.
+- `STANDARDS.md` §12 pide además `content:check` y cobertura en `test`. Quedan fuera hasta que existan: `content:check` no existe hasta F0-05/F2-13; la cobertura se configura con los primeros tests (F1). Cuando entren al workflow hay que añadirlos también a la lista de checks requeridos del ruleset. `pnpm audit --audit-level=high` ya corre como check `audit` (F0-02b).
