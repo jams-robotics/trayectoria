@@ -116,11 +116,8 @@ enabled = true
 # The maximum file size allowed (e.g. "5MB", "500KB").
 file_size_limit = "50MiB"
 
-# Private bucket for user robot models (docs/ARCHITECTURE.md §5.2, §6). Objects live at
-# `{uid}/*`; policies are in supabase/migrations/0003_functions.sql.
-[storage.buckets.urdf]
-public = false
-file_size_limit = "20MiB"
+# The private bucket `urdf` (docs/ARCHITECTURE.md §5.2, §6) is created by
+# supabase/migrations/0003_functions.sql, the single source for every environment.
 
 # Allow connections via S3 compatible clients
 [storage.s3_protocol]

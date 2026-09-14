@@ -16,7 +16,7 @@ Desde la raíz del repositorio:
 pnpm dlx supabase@2.117.0 start
 ```
 
-La primera vez descarga las imágenes (varios minutos). Al terminar imprime la URL de la API, la clave `anon` y la del Studio (`http://127.0.0.1:54323`). `start` ya aplica las migraciones de `supabase/migrations/` en orden, ejecuta `seed.sql` y crea el bucket `urdf` declarado en `config.toml`.
+La primera vez descarga las imágenes (varios minutos). Al terminar imprime la URL de la API, la clave `anon` y la del Studio (`http://127.0.0.1:54323`). En el primer arranque, o tras `stop --no-backup`, `start` aplica todas las migraciones de `supabase/migrations/` en orden y ejecuta `seed.sql` (el bucket `urdf` lo crea la migración `0003`). Si existe un backup de un `stop` anterior, `start` lo restaura **sin reaplicar migraciones**: ejecuta `db reset` (sección "Aplicar migraciones").
 
 Copia las variables públicas para la app:
 
@@ -40,7 +40,7 @@ Cambios en `supabase/migrations/` (solo desde un ticket de infra que lo autorice
 pnpm dlx supabase@2.117.0 db reset
 ```
 
-`db reset` borra la base, aplica las tres migraciones y ejecuta `seed.sql`. Las migraciones nuevas siguen la numeración `000N_nombre.sql`.
+`db reset` borra la base, aplica todas las migraciones de `supabase/migrations/` en orden y ejecuta `seed.sql`. Las migraciones nuevas siguen la numeración `000N_nombre.sql`.
 
 ## Regenerar los tipos
 
@@ -77,7 +77,7 @@ pnpm dlx supabase@2.117.0 db reset
 pnpm dlx supabase@2.117.0 stop
 ```
 
-Los datos locales se conservan entre `stop` y `start`. Para descartarlos también: `pnpm dlx supabase@2.117.0 stop --no-backup`.
+Los datos locales se conservan entre `stop` y `start`; ese `start` restaura el backup y no reaplica migraciones (ver "Aplicar migraciones"). Para descartarlos también: `pnpm dlx supabase@2.117.0 stop --no-backup`.
 
 ## Qué hay en cada migración
 
