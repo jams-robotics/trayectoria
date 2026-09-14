@@ -2,7 +2,6 @@
 name: Bug
 about: Algo que ya está mergeado no se comporta como dice su spec
 title: 'bug · '
-labels: ''
 ---
 
 <!-- Si el comportamiento esperado no está escrito en docs/ o en el ticket original, no es un bug: es un spec gap. -->

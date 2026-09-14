@@ -2,10 +2,9 @@
 name: Ticket
 about: Tarea del backlog de docs/PLAN.md o tema de docs/CURRICULUM.md
 title: 'F1-04 · Título del ticket'
-labels: status:ready
 ---
 
-<!-- Ningún campo se deja vacío; si no aplica, escribir "ninguno". Añade las etiquetas type:*, size:* y module:* al crear el issue. -->
+<!-- Ningún campo se deja vacío; si no aplica, escribir "ninguno". Etiquetas: type:*, size:* y module:* al crear el issue; status:ready solo cuando sus dependencias estén en Done (docs/ops/LABELS.md). -->
 
 ```
 ID: F1-04                      (o T-4.2 para temas, C-M4 para auditorías)

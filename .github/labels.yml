@@ -60,13 +60,13 @@
 
 # Estado en el tablero (docs/PLAN.md §5)
 - name: status:ready
-  color: 0e8a16
+  color: 2da44e
   description: Listo para asignar
 - name: status:blocked
-  color: b60205
+  color: e11d48
   description: Bloqueado por un spec gap o una dependencia
 - name: status:qa
-  color: fbca04
+  color: f59e0b
   description: PR abierto, en verificación de QA
 - name: status:audit
   color: d93f0b
