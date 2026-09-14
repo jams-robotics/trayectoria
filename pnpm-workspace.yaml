@@ -2,5 +2,7 @@ packages:
   - 'apps/*'
   - 'packages/*'
 allowBuilds:
+  # esbuild's postinstall only validates the platform binary that already arrives as an optional dependency.
+  esbuild: false
   # unrs-resolver ships prebuilt binaries; its postinstall is only a download fallback.
   unrs-resolver: false

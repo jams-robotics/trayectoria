@@ -1,0 +1,163 @@
+/* tokens.css must stay unlayered and before tailwindcss: the `@theme inline`
+   self-references below (--color-bg: var(--color-bg)) resolve to it only
+   because unlayered declarations beat everything inside @layer theme. */
+@import './tokens.css';
+@import 'tailwindcss';
+
+/* Tailwind only exposes the D-01 tokens: every default scale is cleared and
+   redefined from tokens.css, so a literal color or size has no utility class. */
+@theme {
+  --color-*: initial;
+  --font-*: initial;
+  --font-weight-*: initial;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --text-*: initial;
+  --leading-*: initial;
+  --spacing: initial;
+  --spacing-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --breakpoint-*: initial;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
+
+@theme inline {
+  --color-bg: var(--color-bg);
+  --color-bg-raised: var(--color-bg-raised);
+  --color-fg: var(--color-fg);
+  --color-fg-muted: var(--color-fg-muted);
+  --color-border: var(--color-border);
+  --color-primary: var(--color-primary);
+  --color-primary-fg: var(--color-primary-fg);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-physical: var(--color-physical);
+  --color-physical-fg: var(--color-physical-fg);
+  --color-success: var(--color-success);
+  --color-error: var(--color-error);
+  --color-warning: var(--color-warning);
+  --color-focus: var(--color-focus);
+  --color-data-1: var(--color-data-1);
+  --color-data-2: var(--color-data-2);
+  --color-data-3: var(--color-data-3);
+  --color-data-4: var(--color-data-4);
+  --color-data-5: var(--color-data-5);
+  --color-data-6: var(--color-data-6);
+  --color-vector-velocity: var(--color-vector-velocity);
+  --color-vector-force: var(--color-vector-force);
+  --color-sim-grid: var(--sim-grid);
+  --color-sim-axis: var(--sim-axis);
+  --color-sim-track: var(--sim-track);
+  --color-sim-robot: var(--sim-robot);
+  --color-sim-sensor-on: var(--sim-sensor-on);
+  --color-sim-sensor-off: var(--sim-sensor-off);
+  --color-sim-trace: var(--sim-trace);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --text-xs: var(--text-xs);
+  --text-sm: var(--text-sm);
+  --text-base: var(--text-base);
+  --text-lg: var(--text-lg);
+  --text-xl: var(--text-xl);
+  --text-2xl: var(--text-2xl);
+  --text-3xl: var(--text-3xl);
+  --leading-body: var(--leading-body);
+  --leading-tight: var(--leading-tight);
+
+  --spacing-0: 0px;
+  --spacing-1: var(--space-1);
+  --spacing-2: var(--space-2);
+  --spacing-3: var(--space-3);
+  --spacing-4: var(--space-4);
+  --spacing-5: var(--space-5);
+  --spacing-6: var(--space-6);
+  --spacing-7: var(--space-7);
+  --spacing-8: var(--space-8);
+  --spacing-9: var(--space-9);
+  --spacing-10: var(--space-10);
+  --spacing-11: var(--space-11);
+  --spacing-12: var(--space-12);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: 999px;
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+}
+
+@font-face {
+  font-family: 'Source Sans 3';
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url('/fonts/source-sans-3-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Source Sans 3';
+  font-style: italic;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url('/fonts/source-sans-3-latin-italic.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Source Code Pro';
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url('/fonts/source-code-pro-latin.woff2') format('woff2');
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--leading-body);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  [data-theme='dark'] {
+    color-scheme: dark;
+  }
+
+  body {
+    min-height: 100dvh;
+    margin: 0;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  a {
+    color: var(--color-primary);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+
+  a:hover {
+    color: var(--color-primary-hover);
+  }
+}
