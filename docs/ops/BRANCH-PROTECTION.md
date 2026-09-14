@@ -115,4 +115,4 @@ gh api --method PATCH repos/jams-robotics/trayectoria \
 ## 5. Qué no cubre
 
 - Despliegue (F7-05b añade su propio workflow; no es un check requerido).
-- `pnpm content:check` y `pnpm audit`: se añaden al workflow y a la lista de checks requeridos cuando existan sus scripts (F0-05/F2-13 y un ticket posterior).
+- `STANDARDS.md` §12 pide además `content:check`, cobertura en `test` y `pnpm audit --audit-level=high`. F0-02 los deja fuera por alcance: `content:check` no existe hasta F0-05/F2-13; la cobertura se configura con los primeros tests (F1); `pnpm audit` es un comando integrado de pnpm y se puede añadir en cualquier momento. Cuando entren al workflow hay que añadirlos también a la lista de checks requeridos del ruleset.
