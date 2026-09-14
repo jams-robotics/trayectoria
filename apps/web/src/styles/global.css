@@ -4,6 +4,9 @@
 @import './tokens.css';
 @import 'tailwindcss';
 
+/* `dark:` follows the data-theme attribute set by the theme store, not the OS preference. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
 /* Tailwind only exposes the D-01 tokens: every default scale is cleared and
    redefined from tokens.css, so a literal color or size has no utility class. */
 @theme {

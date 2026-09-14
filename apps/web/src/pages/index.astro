@@ -1,14 +1,148 @@
 ---
+import ChassisIcon from '../components/ChassisIcon.astro';
 import Base from '../layouts/Base.astro';
+
+// Route 1 as specified in docs/PLAN.md §2 (7 modules, 27 topics).
+const modules = [
+  { name: 'Herramientas', topics: 3 },
+  { name: 'Cinemática de la partícula', topics: 4 },
+  { name: 'Dinámica', topics: 3 },
+  { name: 'Energía', topics: 2 },
+  { name: 'Rotación', topics: 5 },
+  { name: 'Robot diferencial', topics: 5 },
+  { name: 'Seguidor de línea', topics: 5 },
+] as const;
+
+const features = [
+  {
+    icon: 'circle',
+    title: 'Visualizaciones manipulables',
+    text: 'Cada concepto va junto a un widget: mueves un parámetro y ves qué cambia, con el número y su unidad.',
+  },
+  {
+    icon: 'chassis',
+    title: 'Dos simuladores',
+    text: 'Un robot móvil 2D con sensores y controlador, y un brazo 3D con cinemática directa. Corren en laptops modestas.',
+  },
+  {
+    icon: 'square',
+    title: 'Mi robot, de principio a fin',
+    text: 'Los parámetros que defines en el módulo 0 (masa, radio de rueda, sensores) acompañan cada ejercicio y simulación.',
+  },
+] as const;
 ---
 
 <Base title="Inicio">
-  <h1 class="text-3xl leading-tight font-semibold">Trayectoria</h1>
-  <p class="text-fg-muted mt-4">
-    Plataforma en construcción. Esta página es un marcador de F0-04a; la página de inicio real llega
-    con F0-04b.
-  </p>
-  <p class="mt-6">
-    Velocidad de referencia: <code>0.69 m/s</code>.
-  </p>
+  <section class="mx-auto max-w-[1120px] px-5 pt-11 pb-9 md:px-8">
+    <div class="grid items-start gap-9 lg:grid-cols-[1fr_500px] lg:gap-10">
+      <div>
+        <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
+          Física · Matemática · Mecánica → Robótica
+        </p>
+        <h1 class="text-3xl leading-tight mt-4 max-w-[72ch] font-semibold">
+          Aprende la teoría manipulándola, y aplícala a un robot que puedes simular.
+        </h1>
+        <p class="text-fg-muted text-lg leading-body mt-6 max-w-[72ch]">
+          Una ruta de 7 módulos para ingeniería. Cada tema termina en tu robot: primero un móvil 2D,
+          después un brazo articulado.
+        </p>
+        <div class="mt-7 flex flex-wrap gap-3">
+          <a
+            href="/ruta/ruta-1"
+            class="bg-primary text-primary-fg border-primary hover:bg-primary-hover rounded-md inline-flex h-[44px] items-center border px-5 font-semibold no-underline"
+          >
+            Empezar la ruta
+          </a>
+          <a
+            href="/simuladores/movil"
+            class="bg-bg-raised text-fg border-border hover:border-fg-muted rounded-md inline-flex h-[44px] items-center border px-5 font-semibold no-underline"
+          >
+            Abrir simuladores
+          </a>
+        </div>
+        <p class="text-fg-muted mt-5 text-sm">Open source · en español · sin cuenta para empezar</p>
+      </div>
+
+      <aside class="bg-bg-raised border-border rounded-lg border p-6" aria-labelledby="ruta-titulo">
+        <h2
+          id="ruta-titulo"
+          class="text-fg-muted m-0 font-mono text-xs font-normal tracking-[0.06em] uppercase"
+        >
+          La ruta
+        </h2>
+        <ol class="border-border mt-5 ml-2 list-none border-l-2 p-0">
+          {modules.map(({ name, topics }) => (
+            <li class="relative flex items-center justify-between py-2 pl-6">
+              <span
+                class="bg-primary absolute top-1/2 -left-[7px] h-3 w-3 -translate-y-1/2 rounded-full"
+                aria-hidden="true"
+              />
+              <span>{name}</span>
+              <span class="text-fg-muted font-mono text-xs">{topics} temas</span>
+            </li>
+          ))}
+          <li class="relative flex items-center gap-3 py-2 pl-6 font-semibold">
+            <span
+              class="bg-physical rounded-sm absolute top-1/2 -left-[7px] h-3 w-3 -translate-y-1/2"
+              aria-hidden="true"
+            ></span>
+            <ChassisIcon />
+            Tu robot, simulado y controlado
+          </li>
+        </ol>
+      </aside>
+    </div>
+
+    <ul class="mt-9 grid list-none gap-5 p-0 md:grid-cols-3">
+      {features.map(({ icon, title, text }) => (
+        <li class="bg-bg-raised border-border rounded-lg border p-6">
+          <span
+            class="border-border rounded-md text-primary flex h-8 w-8 items-center justify-center border"
+            aria-hidden="true"
+          >
+            {icon === 'circle' && (
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="2" />
+              </svg>
+            )}
+            {icon === 'square' && (
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <rect
+                  x="3"
+                  y="3"
+                  width="14"
+                  height="14"
+                  rx="2"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+              </svg>
+            )}
+            {icon === 'chassis' && <ChassisIcon />}
+          </span>
+          <h2 class="text-lg leading-tight mt-5 font-semibold">{title}</h2>
+          <p class="text-fg-muted mt-3">{text}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="bg-bg-raised border-border border-y">
+    <div class="mx-auto flex max-w-[1120px] flex-wrap items-center justify-between gap-7 px-5 py-10 md:px-8">
+      <div class="max-w-[72ch]">
+        <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">Para docentes</p>
+        <h2 class="text-xl leading-tight mt-3 font-semibold">Modo aula</h2>
+        <p class="text-fg-muted mt-4">
+          Crea un grupo con un código de invitación, sigue el avance por tema y estudiante, y
+          exporta los resultados en CSV. Sin puntos ni medallas: solo qué está hecho y qué falta.
+        </p>
+      </div>
+      <a
+        href="/docentes"
+        class="bg-bg-raised text-fg border-border hover:border-fg-muted rounded-md inline-flex h-[44px] items-center border px-5 font-semibold no-underline"
+      >
+        Ver el aula
+      </a>
+    </div>
+  </section>
 </Base>
