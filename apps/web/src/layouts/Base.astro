@@ -10,6 +10,9 @@ interface Props {
 
 const { title, description = 'Aprende ingeniería aplicada a robótica manipulando cada concepto.' } =
   Astro.props;
+
+// The inline script in <head> applies the saved or system theme before first paint.
+// Its storage key mirrors stores/theme.ts; an inline script cannot import the store.
 ---
 
 <!doctype html>
@@ -18,7 +21,6 @@ const { title, description = 'Aprende ingeniería aplicada a robótica manipulan
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <!-- Applies the saved or system theme before first paint; key mirrors stores/theme.ts. -->
     <script is:inline>
       (function () {
         var theme = null;

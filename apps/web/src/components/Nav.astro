@@ -2,17 +2,18 @@
 import ChassisIcon from './ChassisIcon.astro';
 import { ThemeToggle } from './ThemeToggle';
 
+// `section` is the route prefix that marks the link active (ARCHITECTURE.md §3.2).
 const links = [
-  { href: '/', label: 'Inicio' },
-  { href: '/ruta/ruta-1', label: 'Ruta' },
-  { href: '/simuladores/movil', label: 'Simuladores' },
-  { href: '/brazos', label: 'Brazos' },
-  { href: '/cuenta', label: 'Cuenta' },
+  { href: '/', label: 'Inicio', section: '/' },
+  { href: '/ruta/ruta-1', label: 'Ruta', section: '/ruta' },
+  { href: '/simuladores/movil', label: 'Simuladores', section: '/simuladores' },
+  { href: '/brazos', label: 'Brazos', section: '/brazos' },
+  { href: '/cuenta', label: 'Cuenta', section: '/cuenta' },
 ] as const;
 
 const { pathname } = Astro.url;
-const isActive = (href: string): boolean =>
-  href === '/' ? pathname === '/' : pathname.startsWith(href);
+const isActive = (section: string): boolean =>
+  section === '/' ? pathname === '/' : pathname === section || pathname.startsWith(`${section}/`);
 ---
 
 <header class="bg-bg-raised border-border border-b">
@@ -25,16 +26,16 @@ const isActive = (href: string): boolean =>
     <nav aria-label="Principal" class="contents">
       <ul
         id="nav-links"
-        class="bg-bg-raised border-border shadow-md fixed inset-x-0 bottom-0 z-10 m-0 hidden list-none flex-col gap-1 border-t p-5 md:static md:flex md:h-full md:flex-row md:gap-6 md:border-0 md:p-0 md:shadow-none"
+        class="bg-bg-raised border-border fixed inset-x-0 bottom-0 z-10 m-0 hidden list-none flex-col gap-1 border-t p-5 md:static md:flex md:h-full md:flex-row md:gap-6 md:border-0 md:p-0"
       >
-        {links.map(({ href, label }) => (
+        {links.map(({ href, label, section }) => (
           <li class="md:h-full">
             <a
               href={href}
-              aria-current={isActive(href) ? 'page' : undefined}
+              aria-current={isActive(section) ? 'page' : undefined}
               class:list={[
-                'flex h-8 items-center border-b-2 font-medium no-underline md:h-full',
-                isActive(href)
+                'flex h-[44px] items-center border-b-2 font-medium no-underline md:h-full',
+                isActive(section)
                   ? 'text-primary border-primary'
                   : 'text-fg-muted hover:text-fg border-transparent',
               ]}
@@ -47,7 +48,7 @@ const isActive = (href: string): boolean =>
     </nav>
 
     <div class="ml-auto flex items-center gap-3">
-      <ThemeToggle client:idle />
+      <ThemeToggle client:load />
       <button
         type="button"
         id="nav-menu"
@@ -65,11 +66,21 @@ const isActive = (href: string): boolean =>
   const button = document.getElementById('nav-menu');
   const list = document.getElementById('nav-links');
   if (button && list) {
+    const setOpen = (open: boolean): void => {
+      button.setAttribute('aria-expanded', String(open));
+      list.classList.toggle('hidden', !open);
+      list.classList.toggle('flex', open);
+    };
     button.addEventListener('click', () => {
-      const open = button.getAttribute('aria-expanded') === 'true';
-      button.setAttribute('aria-expanded', String(!open));
-      list.classList.toggle('hidden', open);
-      list.classList.toggle('flex', !open);
+      const open = button.getAttribute('aria-expanded') !== 'true';
+      setOpen(open);
+      if (open) list.querySelector('a')?.focus();
+    });
+    list.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && button.getAttribute('aria-expanded') === 'true') {
+        setOpen(false);
+        button.focus();
+      }
     });
   }
 </script>

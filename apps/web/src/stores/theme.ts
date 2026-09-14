@@ -5,11 +5,23 @@ export type Theme = 'light' | 'dark';
 // Also read by the inline anti-flash script in layouts/Base.astro; keep both in sync.
 export const THEME_STORAGE_KEY = 'trayectoria:theme';
 
-export const $theme = atom<Theme>('light');
+function isBrowser(): boolean {
+  return typeof window !== 'undefined' && typeof document !== 'undefined';
+}
 
 function systemTheme(): Theme {
+  if (!isBrowser()) return 'light';
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
+
+// The inline script in Base.astro has already set data-theme when this module runs in the
+// browser; starting from it keeps the store consistent with the page from the first read.
+function initialTheme(): Theme {
+  if (!isBrowser()) return 'light';
+  return document.documentElement.dataset['theme'] === 'dark' ? 'dark' : 'light';
+}
+
+export const $theme = atom<Theme>(initialTheme());
 
 function storedTheme(): Theme | null {
   try {
@@ -25,6 +37,7 @@ function applyTheme(theme: Theme): void {
 }
 
 onMount($theme, () => {
+  if (!isBrowser()) return;
   $theme.set(storedTheme() ?? systemTheme());
   const media = window.matchMedia('(prefers-color-scheme: dark)');
   const followSystem = (): void => {
