@@ -1,3 +1,6 @@
+/* tokens.css must stay unlayered and before tailwindcss: the `@theme inline`
+   self-references below (--color-bg: var(--color-bg)) resolve to it only
+   because unlayered declarations beat everything inside @layer theme. */
 @import './tokens.css';
 @import 'tailwindcss';
 
@@ -6,6 +9,11 @@
 @theme {
   --color-*: initial;
   --font-*: initial;
+  --font-weight-*: initial;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
   --text-*: initial;
   --leading-*: initial;
   --spacing: initial;
