@@ -1,0 +1,81 @@
+# Etiquetas del repositorio. Se aplican con el comando de docs/ops/LABELS.md.
+# Formato: una entrada por etiqueta con name, color (hex sin #) y description.
+
+# Tipo de ticket (docs/PLAN.md §6)
+- name: type:infra
+  color: 0052cc
+  description: Monorepo, CI, Supabase, despliegue, autoalojado
+- name: type:core
+  color: 1d76db
+  description: sim-core y robot-spec (TS puro, sin DOM)
+- name: type:widget
+  color: 5319e7
+  description: Componentes React del catálogo de widgets
+- name: type:sim
+  color: 006b75
+  description: Simuladores, cuenta, progreso, aula
+- name: type:content
+  color: 0e8a16
+  description: Temas de docs/CURRICULUM.md y catálogo
+- name: type:qa
+  color: fbca04
+  description: Accesibilidad, rendimiento, QA global
+- name: type:docs
+  color: c5def5
+  description: Documentación y cambios en docs/
+
+# Módulo de la ruta 1 (docs/CURRICULUM.md)
+- name: module:M0
+  color: bfd4f2
+  description: M0 Herramientas
+- name: module:M1
+  color: bfd4f2
+  description: M1 Cinemática de la partícula
+- name: module:M2
+  color: bfd4f2
+  description: M2 Dinámica
+- name: module:M3
+  color: bfd4f2
+  description: M3 Energía
+- name: module:M4
+  color: bfd4f2
+  description: M4 Rotación
+- name: module:M5
+  color: bfd4f2
+  description: M5 Robot diferencial
+- name: module:M6
+  color: bfd4f2
+  description: M6 Seguidor de línea
+
+# Tamaño (docs/PLAN.md §6)
+- name: size:S
+  color: c2e0c6
+  description: Hasta 2 h de agente
+- name: size:M
+  color: fef2c0
+  description: Hasta medio día de agente
+- name: size:L
+  color: f9d0c4
+  description: Hasta 1 día de agente; se divide si excede
+
+# Estado en el tablero (docs/PLAN.md §5)
+- name: status:ready
+  color: 0e8a16
+  description: Listo para asignar
+- name: status:blocked
+  color: b60205
+  description: Bloqueado por un spec gap o una dependencia
+- name: status:qa
+  color: fbca04
+  description: PR abierto, en verificación de QA
+- name: status:audit
+  color: d93f0b
+  description: QA en PASS, en auditoría de código
+
+# Transversales
+- name: spec-gap
+  color: 8b5cf6
+  description: Falta información en docs/ para completar un ticket
+- name: security
+  color: b60205
+  description: Toca RLS, auth, subidas o dependencias; revisa seguridad
