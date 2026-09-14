@@ -1,0 +1,41 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'Aprende ingeniería aplicada a robótica manipulando cada concepto.' } =
+  Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link
+      rel="preload"
+      href="/fonts/source-sans-3-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/source-code-pro-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <title>{title} · Trayectoria</title>
+    <slot name="head" />
+  </head>
+  <body class="bg-bg text-fg font-sans">
+    <main class="mx-auto max-w-[72ch] px-5 py-8">
+      <slot />
+    </main>
+  </body>
+</html>

@@ -4,3 +4,6 @@ CLAUDE.md
 pnpm-lock.yaml
 LICENSE-CONTENT
 CODE_OF_CONDUCT.md
+# Verbatim copy of docs/design/tokens.css (D-01) and third-party font licenses.
+apps/web/src/styles/tokens.css
+apps/web/public/fonts/
