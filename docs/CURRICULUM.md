@@ -1,0 +1,329 @@
+# Currículo — Ruta 1: De la física al robot móvil
+
+Especificación de los 27 temas. Cada tema es un ticket `T-m.n` de tipo `content`, tamaño M (L los marcados). El agente lo convierte en `content/es/ruta-1/mMM-tNN/index.mdx` + `ejercicios.ts` siguiendo `CONTENT-STANDARDS.md`; no diseña pedagogía. Los valores dorados son obligatorios como tests. Todo usa el **robot de referencia** de `ROBOT-SPEC.md` §3 (r = 0.032 m, L = 0.15 m, 6000 rpm, i = 30, N_e = 360, m = 0.9 kg, 5 sensores a 12 mm, d = 0.09 m, τ_bloqueo = 0.012 N·m, η = 0.6, 6 V, 11.1 Wh) y `g = 9.81 m/s²`.
+
+## Cómo leer una spec
+
+- **Widgets**: nombre y props exactas (`WIDGETS.md`). Un tema no usa otros.
+- **Concepto (guion)**: puntos que el texto debe cubrir, en orden; el agente redacta dentro de los límites de longitud.
+- **Explora**: experimentos con la forma cambia → observa → por qué. La "respuesta" es lo que el desplegable dice.
+- **Al robot**: el cálculo que se hace con `useMyRobot()`; el ejemplo numérico usa el robot de referencia.
+- **Verifica**: `e1`…`e5`. Los tres primeros son obligatorios salvo indicación. Cada línea: enunciado, rango de generación, valor dorado para los parámetros fijos indicados, tolerancia (defecto: relativa 2 %).
+- **Dependencias de widgets**: tickets de F2 que deben estar en Done.
+
+Orden en `ruta.json`: M0 (0.1, 0.2, 0.3) · M1 (1.1–1.4) · M2 (2.1–2.3) · M3 (3.1, 3.2) · M4 (4.1–4.5) · M5 (5.1–5.5) · M6 (6.1–6.5).
+
+---
+
+## Módulo 0 — Herramientas
+
+### T-0.1 · Unidades y magnitudes
+- Tiempo: 20 min · Prerrequisitos: ninguno · Referencias: `young-freedman-1`, `serway-1` · Widgets: RotationWidget, MyRobotWidget, ExerciseWidget · Depende de: F2-06, F2-11, F2-10
+- Objetivos: convertir rpm ↔ rad/s y m ↔ cm ↔ mm; leer una hoja de datos de motor; verificar unidades en una fórmula.
+- Gancho: "La hoja de datos de tu motor dice 6000 rpm, 0.012 N·m, 6 V y 1.2 A. ¿Cuántos radianes por segundo son 6000 rpm, y cuántos vatios consume?"
+- Concepto (guion): el SI y por qué la plataforma trabaja siempre en SI internamente; magnitud = número × unidad; las tres conversiones que aparecen en todo robot: rpm → rad/s (×2π/60), mm → m (÷1000), minutos → s; análisis dimensional como prueba rápida de que una fórmula es posible; lectura de hoja de datos: velocidad sin carga, torque de bloqueo, voltaje nominal, corriente.
+- Fórmulas: `\omega = n \cdot \frac{2\pi}{60}` (n en rpm, ω en rad/s) · `1\ \text{m} = 100\ \text{cm} = 1000\ \text{mm}` · `P = V \cdot I` (adelanto de 3.2, solo como conversión de unidades) · `[v] = \text{m/s} = \frac{\text{m}}{\text{s}}`.
+- Explora: `RotationWidget mode="disc" inputUnit="rpm" initial={{ omega_radps: 20.94, r_m: 0.032 }}`. Experimentos: (1) cambia rpm de 200 a 400 → observa el valor en rad/s → se duplica porque la conversión es un factor constante. (2) cambia a 60 rpm → observa ω → ≈ 6.28 rad/s = 2π, una vuelta por segundo. (3) cambia el radio de 32 mm a 64 mm dejando ω → observa que ω no cambia → ω es propiedad del giro, no del tamaño.
+- Al robot: `MyRobotWidget mode="form"` aparece por primera vez: el estudiante crea "Mi robot". El texto calcula `ω_motor` y `ω_rueda = ω_motor / i` con sus datos. Ejemplo de referencia: `6000·2π/60 = 628.3 rad/s`; `628.3/30 = 20.94 rad/s`.
+- Verifica: e1 · "Convierte n rpm a rad/s" · n ∈ [50, 8000] · n = 6000 → **628.3 rad/s** · e2 · "Convierte n rpm a rad/s" con n de motorreductor · n ∈ [30, 600] · n = 200 → **20.94 rad/s** · e3 · "Un robot recorre x m en t s. Expresa su rapidez en cm/s" · x ∈ [0.5, 5], t ∈ [1, 10] · x = 1.5, t = 2.5 → **60 cm/s** · e4 (opcional) · "Motor a V voltios y I amperios: potencia en W" · V ∈ {3, 5, 6, 7.4, 12}, I ∈ [0.2, 3] · V = 6, I = 1.2 → **7.2 W**.
+
+### T-0.2 · Vectores
+- Tiempo: 30 min · Prerrequisitos: 0.1 · Referencias: `young-freedman-1` · Widgets: VectorWidget, ExerciseWidget · Depende de: F2-03, F2-10
+- Objetivos: descomponer un vector en componentes y recomponerlo; sumar vectores; usar el producto escalar para el ángulo entre dos vectores.
+- Gancho: "Tu robot avanza a 0.5 m/s apuntando 30° respecto al eje x de la mesa. ¿Cuánto avanza en x y cuánto en y cada segundo?"
+- Concepto (guion): magnitud y dirección; componentes `v_x = v cosθ`, `v_y = v sinθ`; recomposición `v = \sqrt{v_x^2+v_y^2}`, `θ = atan2(v_y, v_x)` (usar atan2, explicar por qué no atan); suma por componentes; producto escalar y ángulo; la velocidad del robot es un vector: rapidez y rumbo.
+- Fórmulas: `v_x = v\cos\theta,\quad v_y = v\sin\theta` · `|\vec v| = \sqrt{v_x^2+v_y^2}` · `\theta = \operatorname{atan2}(v_y, v_x)` · `\vec a + \vec b = (a_x+b_x,\ a_y+b_y)` · `\vec a\cdot\vec b = a_xb_x+a_yb_y = |\vec a||\vec b|\cos\varphi`.
+- Explora: `VectorWidget initialA={[0.433, 0.25]} initialB={[0.2, -0.1]} show={['components','sum','angle','dot']} unit="m/s"`. Experimentos: (1) arrastra la punta de A manteniendo su longitud → observa las componentes → una crece mientras la otra decrece, la magnitud no cambia. (2) pon B opuesto a A → observa la suma → se acerca a cero. (3) pon B perpendicular a A → observa el producto escalar → es cero.
+- Al robot: con "Mi robot" no hay parámetro nuevo; el texto toma `v_max` del perfil (`ω_max·r`, calculado en 0.1) y muestra sus componentes a 30°. Referencia: `v_max = 0.670 m/s` → `v_x = 0.580`, `v_y = 0.335 m/s`.
+- Verifica: e1 · "v = v m/s a θ°: componentes" · v ∈ [0.1, 1.5], θ ∈ [0°, 90°] · v = 0.5, θ = 30° → **v_x = 0.433, v_y = 0.25 m/s** (respuesta vectorial) · e2 · "Vector (a, b): magnitud y ángulo" · a, b ∈ [−1, 1] · (0.3, 0.4) → **0.5 m/s; 53.13°** (tolerancia ángulo 0.5°) · e3 · "Suma de desplazamientos (a) + (b): magnitud" · componentes ∈ [−2, 2] · (1.2, 0.5) + (−0.4, 0.8) → **1.526 m** · e4 (opcional) · "Ángulo entre (0.3, 0.4) y (0.5, 0)" → **53.13°**.
+
+### T-0.3 · La derivada como razón de cambio
+- Tiempo: 30 min · Prerrequisitos: 0.1 · Referencias: `young-freedman-2`, `serway-2` · Widgets: KinematicsWidget, ExerciseWidget · Depende de: F2-04, F2-10
+- Objetivos: distinguir velocidad media e instantánea; leer la velocidad como pendiente de x–t; derivar polinomios simples de posición.
+- Gancho: "Cada 0.1 s tu robot reporta su posición: 0.00, 0.05, 0.12, 0.21 m. ¿Va a velocidad constante? ¿Cuál es su velocidad en el último tramo?"
+- Concepto (guion): velocidad media `Δx/Δt`; al reducir Δt la media tiende a la pendiente de la curva x–t: la derivada; `v = dx/dt`, `a = dv/dt`; derivada de `t^n`; signo de la velocidad = dirección; de la tabla del gancho: 0.5, 0.7, 0.9 m/s, el robot acelera.
+- Fórmulas: `\bar v = \frac{\Delta x}{\Delta t}` · `v = \frac{dx}{dt},\quad a = \frac{dv}{dt}` · `\frac{d}{dt}(c\,t^n) = c\,n\,t^{n-1}`.
+- Explora: `KinematicsWidget initial={{ x0_m: 0, v0_mps: 0.5, a_mps2: 0.2 }} editable={['v0','a']} duration_s={5} showTangent`. Experimentos: (1) arrastra el marcador de tiempo → observa la tangente en x–t → su pendiente es exactamente el valor de v–t en ese instante. (2) pon a = 0 → observa x–t → es una recta: pendiente constante = velocidad constante. (3) pon a negativa con v0 positiva → observa dónde v cruza cero → x alcanza un máximo justo ahí.
+- Al robot: el encoder del perfil entrega posiciones cada Δt; la velocidad que el simulador muestra es esta derivada aproximada. Referencia: `Δx = 0.09 m` en `Δt = 0.1 s` → `0.9 m/s`.
+- Verifica: e1 · "Δx m en Δt s: velocidad media" · Δx ∈ [0.01, 1], Δt ∈ [0.05, 2] · 0.09, 0.1 → **0.9 m/s** · e2 · "x(t) = c·t²: velocidad en t" · c ∈ [0.05, 0.5], t ∈ [1, 5] · c = 0.2, t = 2 → **0.8 m/s** · e3 · "v pasa de v1 a v2 en Δt: aceleración media" · v ∈ [0, 1], Δt ∈ [0.2, 3] · 0.3 → 0.6 en 0.5 s → **0.6 m/s²** · e4 (opcional) · "x(t) = a·t + b·t²: v en t = 3" · a = 0.5, b = 0.1 → **1.1 m/s**.
+
+---
+
+## Módulo 1 — Cinemática de la partícula
+
+### T-1.1 · Movimiento rectilíneo uniforme
+- Tiempo: 20 min · Prerrequisitos: 0.3 · Referencias: `young-freedman-2` · Widgets: KinematicsWidget, ExerciseWidget · Depende de: F2-04, F2-10
+- Objetivos: usar `x = x_0 + vt`; leer v de una gráfica x–t; resolver encuentros de dos móviles.
+- Gancho: "Tu robot avanza a 0.4 m/s por una pista recta de 4 m. ¿Cuánto tarda?"
+- Concepto (guion): velocidad constante ⇒ x lineal en t; gráfica x–t recta, v–t horizontal; el área bajo v–t es el desplazamiento; dos móviles: igualar posiciones.
+- Fórmulas: `x = x_0 + v\,t` · `\Delta x = v\,\Delta t`.
+- Explora: `KinematicsWidget initial={{ x0_m: 0, v0_mps: 0.4, a_mps2: 0 }} editable={['x0','v0']} duration_s={10}`. Experimentos: (1) duplica v → observa el tiempo en llegar a 4 m → se reduce a la mitad. (2) cambia x0 a 1 m → observa la recta → misma pendiente, desplazada. (3) pon v negativa → observa → el robot retrocede; la pendiente es negativa.
+- Al robot: tiempo de la pista de 4 m a `v_max` del perfil. Referencia: `4/0.670 = 5.97 s`.
+- Verifica: e1 · "Pista de D m a v m/s: tiempo" · D ∈ [1, 10], v ∈ [0.1, 1] · 4, 0.4 → **10 s** · e2 · "Distancia en t s a v m/s" · t ∈ [2, 30] · 12 s, 0.35 → **4.2 m** · e3 · "Robot A parte de 0 a vA; B parte D m adelante a vB (vA > vB). ¿Cuándo y dónde se encuentran?" · D ∈ [1, 5] · vA = 0.5, vB = 0.3, D = 3 → **t = 15 s, x = 7.5 m** (vectorial) · e4 (opcional) · "De una gráfica x–t que pasa por (1 s, 0.4 m) y (3 s, 1.2 m): v" → **0.4 m/s**.
+
+### T-1.2 · Movimiento uniformemente acelerado
+- Tiempo: 30 min · Prerrequisitos: 1.1 · Referencias: `young-freedman-2`, `serway-2` · Widgets: KinematicsWidget, ExerciseWidget · Depende de: F2-04, F2-10
+- Objetivos: usar las tres ecuaciones del MRUA; calcular distancia de frenado; componer tramos acelerado + uniforme.
+- Gancho: "Tu robot arranca desde el reposo y llega a 0.6 m/s en 1.5 s. ¿Qué aceleración tuvo y cuánto avanzó mientras aceleraba?"
+- Concepto (guion): aceleración constante; v lineal, x parabólica; las tres ecuaciones y cuándo usar cada una (sin x, sin t, sin v); frenado como aceleración negativa; distancia de frenado crece con v²; trayecto real de un robot = rampa + crucero + frenado.
+- Fórmulas: `v = v_0 + a\,t` · `x = x_0 + v_0\,t + \tfrac12 a\,t^2` · `v^2 = v_0^2 + 2a\,\Delta x`.
+- Explora: `KinematicsWidget initial={{ x0_m: 0, v0_mps: 0, a_mps2: 0.4 }} editable={['v0','a']} duration_s={4}`. Experimentos: (1) duplica a → observa x en t = 1.5 s → se duplica (x ∝ a). (2) pon v0 = 0.6 y a = −1.2 → observa dónde v = 0 → el robot se detiene a 0.15 m. (3) duplica v0 con la misma a negativa → observa la distancia de frenado → se cuadruplica.
+- Al robot: con `maxAccel_radps2` del perfil, `a = α·r`; rampa hasta `v_max`: `t = v_max/a`, `x = v_max²/(2a)`. Referencia: `a = 40·0.032 = 1.28 m/s²`, `t = 0.524 s`, `x = 0.175 m`.
+- Verifica: e1 · "De 0 a v en t: aceleración y distancia" · v ∈ [0.2, 1], t ∈ [0.5, 3] · 0.6, 1.5 → **0.4 m/s²; 0.45 m** (vectorial) · e2 · "Frena de v con a = −|a|: distancia" · v ∈ [0.2, 1], |a| ∈ [0.5, 3] · 0.6, 1.2 → **0.15 m** · e3 · "Desde el reposo con a: tiempo para recorrer D" · a ∈ [0.2, 2], D ∈ [0.2, 2] · 0.4, 0.5 → **1.581 s** · e4 (opcional) · "Pista de 4 m: acelera con 0.4 m/s² hasta 0.6 m/s y sigue constante. Tiempo total" → **7.417 s**.
+
+### T-1.3 · Caída libre
+- Tiempo: 20 min · Prerrequisitos: 1.2 · Referencias: `young-freedman-2` · Widgets: ProjectileWidget, ExerciseWidget · Depende de: F2-05, F2-10
+- Objetivos: aplicar MRUA con `a = −g`; calcular tiempo de caída y velocidad de impacto; entender que la masa no importa.
+- Gancho: "La pinza de tu robot suelta una pieza a 0.25 m sobre la banda. ¿Cuánto tarda en caer y a qué velocidad llega?"
+- Concepto (guion): caída libre = MRUA vertical con `a = −g`; independencia de la masa (sin aire); tiempo de caída desde h; velocidad de impacto; por qué importa en un robot: sincronizar la apertura de la pinza con la banda o el contenedor.
+- Fórmulas: `y = h - \tfrac12 g t^2` · `v = g\,t` · `t_{caída} = \sqrt{2h/g}` · `v_{impacto} = \sqrt{2gh}`.
+- Explora: `ProjectileWidget mode="drop" initial={{ h_m: 0.25 }} showVectors={['v']}`. Experimentos: (1) cuadruplica h → observa t → solo se duplica (raíz cuadrada). (2) compara dos alturas superpuestas (`overlay`) → observa las velocidades → la de impacto crece con √h. (3) cambia la masa si el widget lo expone (no lo expone: el desplegable explica que por eso no hay control de masa).
+- Al robot: `dropFromRobot` se ve en 1.4; aquí el cálculo usa la altura de la pinza (dato del enunciado, no del perfil). Referencia: `t = 0.2258 s`, `v = 2.215 m/s`.
+- Verifica: e1 · "Caída desde h: tiempo" · h ∈ [0.05, 2] · 0.25 → **0.2258 s** (tolerancia absoluta 0.01 s) · e2 · "Velocidad de impacto desde h" · 0.25 → **2.215 m/s** · e3 · "Tardó t s en caer: altura" · t ∈ [0.1, 1] · 0.4 → **0.7848 m** · e4 (opcional, adelanto de 1.4) · "Robot a v m/s suelta desde 0.25 m: ¿a qué distancia horizontal de donde soltó cae la pieza?" · v = 0.5 → **0.1129 m**.
+
+### T-1.4 · Tiro parabólico · L
+- Tiempo: 40 min · Prerrequisitos: 0.2, 1.3 · Referencias: `young-freedman-3`, `serway-4` · Widgets: ProjectileWidget, ExerciseWidget · Depende de: F2-05, F2-10
+- Objetivos: separar el movimiento en x (MRU) e y (MRUA); calcular alcance, altura máxima y tiempo de vuelo con altura inicial; aplicar al lanzador y al objeto soltado desde un robot en movimiento.
+- Gancho: "Un robot lanzador dispara una pelota a 4 m/s con 40° desde 0.3 m de altura. ¿Dónde cae? ¿Y si el robot avanza mientras suelta una pieza, dónde cae la pieza?"
+- Concepto (guion): independencia de componentes: `v_x` constante, `v_y` con `−g`; ecuaciones paramétricas; tiempo de vuelo con `h ≠ 0` (cuadrática, raíz positiva); alcance y altura máxima; el objeto soltado desde un robot en movimiento hereda `v_x` del robot; la energía se ve en 3.1.
+- Fórmulas: `x = v_0\cos\alpha\ t` · `y = h + v_0\sin\alpha\ t - \tfrac12 g t^2` · `t_v = \frac{v_0\sin\alpha + \sqrt{(v_0\sin\alpha)^2 + 2gh}}{g}` · `R = v_0\cos\alpha\ t_v` · `H = h + \frac{(v_0\sin\alpha)^2}{2g}` · con `h = 0`: `R = \frac{v_0^2\sin 2\alpha}{g}`.
+- Explora: `ProjectileWidget mode="launch" initial={{ v0_mps: 4, launchAngle_rad: 0.698, h_m: 0.3 }} showVectors={['v','vx','vy']} overlay`. Experimentos: (1) sube v0 → observa el alcance → crece con v0² (con h = 0). (2) compara 30° y 60° superpuestos con h = 0 → observa los alcances → iguales: ángulos complementarios. (3) observa el vector v_x durante todo el vuelo → nunca cambia. (4) cambia a `mode="dropFromRobot"` con `vRobot_mps: 0.6, h_m: 0.25` → observa que la pieza cae adelante del punto de suelta → hereda la velocidad horizontal del robot.
+- Al robot: `dropFromRobot` con `v_max` del perfil y altura de pinza 0.25 m: distancia de adelanto `v_max·√(2h/g)`. Referencia: `0.670·0.2258 = 0.151 m`.
+- Verifica: e1 · "v0, α, h = 0: alcance" · v0 ∈ [1, 8], α ∈ [15°, 75°] · 4, 40° → **1.606 m** · e2 · "v0, α, h: altura máxima" · h ∈ [0, 1] · 4, 40°, 0.3 → **0.6369 m** · e3 · "v0, α, h: tiempo de vuelo" · 4, 40°, 0.3 → **0.6224 s** (tolerancia absoluta 0.01 s) · e4 · "v0, α, h: alcance" · 4, 40°, 0.3 → **1.907 m** · e5 (opcional) · "Robot a 0.6 m/s suelta a 0.25 m: adelanto horizontal" → **0.1355 m**.
+
+---
+
+## Módulo 2 — Dinámica
+
+### T-2.1 · Leyes de Newton y diagrama de cuerpo libre
+- Tiempo: 30 min · Prerrequisitos: 0.2, 1.2 · Referencias: `young-freedman-4`, `serway-5` · Widgets: FreeBodyWidget, ExerciseWidget · Depende de: F2-03, F2-10
+- Objetivos: dibujar el diagrama de cuerpo libre de un robot en plano y en rampa; aplicar `ΣF = ma`; descomponer el peso en una pendiente.
+- Gancho: "Tu robot de 0.9 kg debe acelerar a 0.8 m/s². ¿Qué fuerza neta necesitan sus ruedas?"
+- Concepto (guion): primera ley (velocidad constante ⇔ fuerza neta cero); segunda ley como vector; tercera ley: la rueda empuja el suelo, el suelo empuja la rueda; diagrama de cuerpo libre: peso, normal, tracción, fricción de rodadura; en rampa: `mg sinφ` a lo largo, `mg cosφ` normal.
+- Fórmulas: `\sum\vec F = m\vec a` · plano: `N = mg` · rampa: `N = mg\cos\varphi,\quad F_{\parallel} = mg\sin\varphi`.
+- Explora: `FreeBodyWidget mass_kg={0.9} forces={[{ key:'traction', label:'Tracción', magnitude_N:1.5, angle_rad:0, editable:true },{ key:'friction', label:'Fricción de rodadura', magnitude_N:0.4, angle_rad:3.1416, editable:true }]} slope_rad={0} showResultant`. Experimentos: (1) iguala tracción y fricción → observa la resultante → cero: velocidad constante, no reposo. (2) sube la rampa a 15° → observa la componente del peso → aparece una fuerza en contra de 2.29 N. (3) duplica la masa con la misma tracción → observa a → se reduce a la mitad.
+- Al robot: `m` del perfil; fuerza neta para `a = maxAccel·r` del perfil; normal en plano. Referencia: `F = 0.9·1.28 = 1.152 N`; `N = 8.83 N`.
+- Verifica: e1 · "m kg a a m/s²: fuerza neta" · m ∈ [0.2, 3], a ∈ [0.2, 3] · 0.9, 0.8 → **0.72 N** · e2 · "Normal en plano" · 0.9 → **8.829 N** · e3 · "Rampa de φ°: componente del peso a lo largo y normal" · φ ∈ [5°, 30°] · 0.9, 15° → **2.285 N; 8.528 N** (vectorial) · e4 (opcional) · "Tracción 1.5 N, fricción 0.4 N, m = 0.9: aceleración" → **1.222 m/s²**.
+
+### T-2.2 · Fricción
+- Tiempo: 30 min · Prerrequisitos: 2.1 · Referencias: `young-freedman-5`, `serway-5` · Widgets: FreeBodyWidget, EnergyWidget, ExerciseWidget · Depende de: F2-03, F2-07, F2-10
+- Objetivos: distinguir fricción estática y cinética; calcular la aceleración máxima sin patinar y la pendiente máxima; entender que la tracción limita al robot antes que el motor.
+- Gancho: "Con ruedas de μs = 0.6, ¿cuál es la aceleración máxima que tu robot puede lograr sin patinar, sin importar cuánto torque tenga el motor?"
+- Concepto (guion): fricción estática como límite `f ≤ μ_s N`; la rueda que no desliza usa fricción estática; deslizar = cinética, menor; aceleración máxima `μ_s g` cuando todo el peso está sobre ruedas motrices, y fracción cuando hay ruedas locas; pendiente máxima `tanφ = μ_s`; frenado por deslizamiento con `μ_k`.
+- Fórmulas: `f_{max} = \mu_s N` · `a_{max} = \mu_s g` (todo el peso sobre ruedas motrices) · `a_{max} = \mu_s g\,\beta` (β = fracción del peso sobre ruedas motrices) · `\tan\varphi_{max} = \mu_s` · `d_{frenado} = \frac{v^2}{2\mu_k g}`.
+- Explora: `FreeBodyWidget mass_kg={0.9} forces={[{ key:'traction', label:'Tracción', magnitude_N:3, angle_rad:0, editable:true }]} slope_rad={0.26} showResultant` con el desplegable de μs en el panel (prop `frictionStatic` si el widget la expone; si no, el texto la fija en 0.6). Experimentos: (1) sube la tracción por encima de μs·N → observa el aviso de deslizamiento → la fuerza real se limita a μs·N. (2) sube la rampa hasta que el robot no se sostiene → observa el ángulo → ≈ 31° para μs = 0.6. (3) cambia μs a 0.3 (goma dura) → observa la aceleración máxima → se reduce a la mitad.
+- Al robot: `a_max` con μs = 0.6 y β = 0.6 (robot con rueda loca): el simulador móvil no modela deslizamiento, y este cálculo dice hasta dónde es válido. Referencia: `a_max = 0.6·9.81·0.6 = 3.53 m/s²`, mayor que `1.28` del perfil: el perfil no patina.
+- Verifica: e1 · "μs: aceleración máxima con todo el peso en ruedas motrices" · μs ∈ [0.2, 1] · 0.6 → **5.886 m/s²** · e2 · "μs: pendiente máxima" · 0.6 → **30.96°** (tolerancia 0.5°) · e3 · "μs con β del peso sobre ruedas motrices: aceleración máxima" · β ∈ [0.4, 1] · 0.6, 0.6 → **3.532 m/s²** · e4 (opcional) · "Frena deslizando desde v con μk" · v = 0.6, μk = 0.45 → **0.04077 m**.
+
+### T-2.3 · Torque
+- Tiempo: 30 min · Prerrequisitos: 2.1 · Referencias: `young-freedman-10`, `serway-10` · Widgets: GearWidget, FreeBodyWidget, ExerciseWidget · Depende de: F2-08, F2-03, F2-10
+- Objetivos: relacionar torque, fuerza y radio; convertir el torque del motor en fuerza en la rueda pasando por la reducción; calcular el torque para sostener una carga (adelanto del brazo).
+- Gancho: "El motor entrega 0.012 N·m en bloqueo y la reducción es 30:1. ¿Cuánta fuerza puede empujar cada rueda contra el suelo?"
+- Concepto (guion): torque = fuerza × brazo; unidades N·m; en la rueda `F = τ/r`; la reducción multiplica el torque y divide la velocidad (detalle en 4.4); eficiencia; el torque que necesita subir una pendiente a velocidad constante; torque estático en la articulación de un brazo que sostiene una masa.
+- Fórmulas: `\tau = F\,r` · `F_{rueda} = \frac{\tau_{rueda}}{r}` · `\tau_{rueda} = \tau_{motor}\,i\,\eta` · rampa a velocidad constante: `\tau_{rueda} = \frac{mg\sin\varphi}{2}\,r` (dos ruedas motrices) · brazo: `\tau = m g\,\ell`.
+- Explora: `GearWidget stages={1} initial={{ z1: 10, z2: 300, nIn_rpm: 6000, torqueIn_Nm: 0.012, efficiency: 0.6 }}` (la relación 30 se muestra como z2/z1 = 30). Experimentos: (1) sube la reducción → observa torque y velocidad de salida → uno sube y el otro baja en la misma proporción. (2) pon η = 1 → observa el torque de salida → sube de 0.216 a 0.36 N·m: la eficiencia se pierde en la caja. (3) `FreeBodyWidget mass_kg={0.9} forces={[]} slope_rad={0.349}` → observa la componente del peso a lo largo de la rampa → 3.02 N que las dos ruedas deben vencer entre las dos.
+- Al robot: torque de rueda y fuerza de tracción máxima del perfil; comparar con el límite de fricción de 2.2: el mínimo de los dos manda. Referencia: `τ_rueda = 0.216 N·m`, `F = 6.75 N` por rueda, `13.5 N` en total, frente a `f_max = μ_s β m g = 3.18 N`: manda la fricción.
+- Verifica: e1 · "τ_motor, i, η: torque en rueda" · τ ∈ [0.005, 0.1], i ∈ [5, 100], η ∈ [0.5, 0.9] · 0.012, 30, 0.6 → **0.216 N·m** · e2 · "Torque en rueda y radio: fuerza en el suelo" · 0.216, 0.032 → **6.75 N** · e3 · "Torque por rueda para subir φ° a velocidad constante (dos ruedas motrices)" · φ ∈ [5°, 30°] · 0.9 kg, 20°, 0.032 → **0.04832 N·m** · e4 (opcional) · "Brazo horizontal de ℓ m sostiene m kg en la punta: torque en la articulación" · 0.2, 0.5 → **0.981 N·m**.
+
+---
+
+## Módulo 3 — Energía
+
+### T-3.1 · Trabajo y energía
+- Tiempo: 30 min · Prerrequisitos: 2.1 · Referencias: `young-freedman-6`, `young-freedman-7` · Widgets: EnergyWidget, ExerciseWidget · Depende de: F2-07, F2-10
+- Objetivos: calcular trabajo, energía cinética y potencial; aplicar conservación con y sin fricción; relacionar trabajo neto con cambio de energía cinética.
+- Gancho: "Tu robot de 0.9 kg va a 0.6 m/s y se le corta el motor al pie de una rampa. ¿Hasta qué altura sube?"
+- Concepto (guion): trabajo de una fuerza `F d cosθ`; teorema trabajo–energía; energía cinética y potencial gravitatoria; conservación en ausencia de fricción; la fricción disipa: `E_mec` cae; en el tiro parabólico de 1.4, `E_k + E_p` es constante (cierra el bucle de 1.4).
+- Fórmulas: `W = F\,d\cos\theta` · `E_k = \tfrac12 m v^2` · `E_p = m g h` · `W_{neto} = \Delta E_k` · `E_k + E_p = \text{const}` (sin fricción) · `h_{max} = \frac{v^2}{2g}`.
+- Explora: `EnergyWidget mode="ramp" initial={{ mass_kg: 0.9, v0_mps: 0.6, slope_rad: 0.26 }}`. Experimentos: (1) duplica v0 → observa la altura alcanzada → se cuadruplica. (2) duplica la masa → observa la altura → no cambia. (3) activa μk = 0.05 → observa la barra de energía mecánica → decrece a lo largo de la rampa y la altura es menor.
+- Al robot: energía cinética del perfil a `v_max` y altura que alcanzaría por inercia. Referencia: `E_k = 0.5·0.9·0.670² = 0.202 J`, `h = 0.0229 m`.
+- Verifica: e1 · "m a v: energía cinética" · m ∈ [0.2, 3], v ∈ [0.1, 1.5] · 0.9, 0.6 → **0.162 J** · e2 · "Altura por inercia desde v sin fricción" · 0.6 → **0.01835 m** · e3 · "Trabajo neto para llevar m de 0 a v" · 0.9, 0.6 → **0.162 J** · e4 (opcional) · "Fricción de rodadura f N a lo largo de D m: energía disipada" · 0.4, 4 → **1.6 J**.
+
+### T-3.2 · Potencia
+- Tiempo: 30 min · Prerrequisitos: 3.1, 2.3 · Referencias: `young-freedman-6` · Widgets: EnergyWidget, ExerciseWidget · Depende de: F2-07, F2-10
+- Objetivos: calcular potencia mecánica `τω` y `Fv`; relacionar potencia eléctrica y mecánica con la eficiencia; estimar autonomía desde la capacidad de la batería.
+- Gancho: "Tu motor entrega 0.03 N·m a 5000 rpm. ¿Cuántos vatios mecánicos son? Y con una batería de 11.1 Wh, ¿cuántos minutos corre el robot?"
+- Concepto (guion): potencia = energía por unidad de tiempo; mecánica rotacional `P = τω` y lineal `P = Fv`; eléctrica `P = VI`; eficiencia `η = P_mec/P_el`; energía de batería en Wh y su conversión a J; autonomía `t = C/P`; por qué el motor rinde máxima potencia a la mitad de su velocidad sin carga (mención, sin derivación).
+- Fórmulas: `P = \frac{W}{t}` · `P = \tau\,\omega` · `P = F\,v` · `P_{el} = V I` · `\eta = \frac{P_{mec}}{P_{el}}` · `t_{autonomía} = \frac{C_{Wh}}{P_{W}}` (horas) · `1\ \text{Wh} = 3600\ \text{J}`.
+- Explora: `EnergyWidget mode="power" power={{ torque_Nm: 0.03, omega_radps: 523.6, voltage_V: 6, current_A: 1.2, battery_Wh: 11.1 }}`. Experimentos: (1) sube la corriente → observa P eléctrica y autonomía → una sube, la otra baja en la misma proporción. (2) baja η → observa la potencia mecánica → cae aunque la eléctrica no cambie. (3) duplica la capacidad → observa la autonomía → se duplica.
+- Al robot: potencia eléctrica de dos motores y autonomía con `battery.capacity_Wh` del perfil. Referencia: `2·6·1.2 = 14.4 W`, `11.1/14.4 = 0.771 h = 46.3 min`.
+- Verifica: e1 · "τ a n rpm: potencia mecánica" · τ ∈ [0.005, 0.1], n ∈ [500, 8000] · 0.03, 5000 → **15.71 W** · e2 · "V, I, η: potencia mecánica" · 6, 1.2, 0.6 → **4.32 W** · e3 · "C Wh, dos motores a V·I: autonomía en minutos" · C ∈ [3, 40] · 11.1, 6, 1.2 → **46.25 min** · e4 (opcional) · "F N a v m/s: potencia" · 1.2, 0.5 → **0.6 W**.
+
+---
+
+## Módulo 4 — Rotación
+
+### T-4.1 · Movimiento circular y velocidad angular
+- Tiempo: 25 min · Prerrequisitos: 0.1 · Referencias: `young-freedman-9`, `serway-10` · Widgets: RotationWidget, ExerciseWidget · Depende de: F2-06, F2-10
+- Objetivos: medir ángulos en radianes; relacionar ω, período, frecuencia y rpm; calcular ángulo girado y número de vueltas.
+- Gancho: "Tu motorreductor gira a 200 rpm. ¿Cuántos radianes por segundo son, cuánto dura una vuelta y cuántas vueltas da en 10 s?"
+- Concepto (guion): radián como arco/radio; una vuelta = 2π; velocidad angular como razón de cambio del ángulo (paralelo con 0.3); período y frecuencia; rpm como unidad de la industria y su conversión; ángulo acumulado `θ = ω t`; ω es la misma para todos los puntos del disco.
+- Fórmulas: `\theta = \frac{s}{r}` · `\omega = \frac{d\theta}{dt}` · `\omega = \frac{2\pi}{T} = 2\pi f` · `\omega = n\frac{2\pi}{60}` · `\theta = \theta_0 + \omega t`.
+- Explora: `RotationWidget mode="disc" inputUnit="rpm" initial={{ omega_radps: 20.94, r_m: 0.032 }}`. Experimentos: (1) reproduce 1 s a 200 rpm → observa el contador de vueltas → 3.33. (2) cambia a 60 rpm → observa el período → 1 s exacto. (3) mueve el radio → observa ω y el período → no cambian; solo cambia la rapidez del punto del borde (tema 4.2).
+- Al robot: ω de rueda del perfil y su período. Referencia: `20.94 rad/s`, `T = 0.3 s`.
+- Verifica: e1 · "n rpm → rad/s" · n ∈ [30, 600] · 200 → **20.94 rad/s** · e2 · "n rpm: período" · 200 → **0.3 s** · e3 · "n rpm durante t s: vueltas" · t ∈ [1, 60] · 200, 10 → **33.33** · e4 (opcional) · "Ángulo girado en rad" · 200, 10 → **209.4 rad**.
+
+### T-4.2 · v = ω·r: la velocidad del robot
+- Tiempo: 25 min · Prerrequisitos: 4.1, 0.1 · Referencias: `young-freedman-9`, `siegwart-3` · Widgets: RotationWidget, MyRobotWidget, ExerciseWidget · Depende de: F2-06, F2-11, F2-10
+- Objetivos: convertir velocidad angular de rueda en velocidad lineal del robot; invertir para obtener las rpm necesarias; componer motor → reducción → rueda → robot.
+- Gancho: "Tu motor gira a 6000 rpm, la reducción es 30:1 y la rueda mide 32 mm de radio. ¿A qué velocidad avanza tu robot? Este es el cálculo al que apuntaba toda la ruta hasta aquí."
+- Concepto (guion): el punto de contacto de una rueda que no desliza está en reposo respecto al suelo; el centro avanza `ω r`; por cada vuelta el robot avanza un perímetro `2πr`; cadena completa `n_motor → n_rueda = n_motor/i → ω = n_rueda·2π/60 → v = ω r`; inversa: rpm necesarias para una velocidad; qué pasa si la rueda patina (`v < ωr`).
+- Fórmulas: `v = \omega\,r` · `v = \frac{2\pi r\,n_{rueda}}{60}` · `n_{rueda} = \frac{n_{motor}}{i}` · `v = \frac{2\pi r\,n_{motor}}{60\,i}` · inversa: `\omega = \frac{v}{r}`.
+- Explora: `RotationWidget mode="rolling" inputUnit="rpm" initial={{ omega_radps: 20.94, r_m: 0.032 }}`. Experimentos: (1) reproduce una vuelta → observa el avance del centro → exactamente 2πr = 0.201 m. (2) duplica r con la misma ω → observa v → se duplica. (3) fija v = 1 m/s (modo inverso del widget) → observa ω → 31.25 rad/s = 298 rpm.
+- Al robot: **el cálculo central de la ruta**: `v_max` del perfil con la cadena completa y la fórmula sustituida paso a paso; `MyRobotWidget mode="card"` al lado. Referencia: `6000/30 = 200 rpm`; `200·2π/60 = 20.94 rad/s`; `20.94·0.032 = 0.670 m/s`; pista de 4 m en `5.97 s`.
+- Verifica: e1 · "ω rad/s, r m: v" · ω ∈ [5, 60], r ∈ [0.015, 0.05] · 20.94, 0.032 → **0.6702 m/s** · e2 · "v m/s con r m: ω necesaria y rpm de rueda" · v ∈ [0.2, 1.5] · 1, 0.032 → **31.25 rad/s; 298.4 rpm** (vectorial) · e3 · "n_motor rpm, i, r: v del robot" · n ∈ [1000, 12000], i ∈ [10, 100] · 6000, 30, 0.032 → **0.6702 m/s** · e4 (opcional) · "Tiempo para una pista de D m a esa v" · D = 4 → **5.968 s**.
+
+### T-4.3 · Aceleración angular y centrípeta
+- Tiempo: 30 min · Prerrequisitos: 4.2, 2.2 · Referencias: `young-freedman-9`, `serway-10` · Widgets: RotationWidget, ExerciseWidget · Depende de: F2-06, F2-10
+- Objetivos: calcular aceleración angular y tangencial; calcular aceleración centrípeta de un robot en curva; relacionar velocidad máxima en curva con la fricción.
+- Gancho: "Tu rueda pasa de 0 a 200 rpm en 0.5 s. ¿Qué aceleración angular es? Y si el robot toma una curva de 0.5 m de radio a 0.6 m/s, ¿qué aceleración centrípeta sufre?"
+- Concepto (guion): aceleración angular `α = Δω/Δt`, paralelo exacto del MRUA; aceleración tangencial `a_t = α r`; en una curva la velocidad cambia de dirección: aceleración centrípeta `v²/R`; la fricción provee esa aceleración: `v_max = √(μ_s g R)`; conexión con la rampa de aceleración del perfil (`maxAccel_radps2`).
+- Fórmulas: `\alpha = \frac{\Delta\omega}{\Delta t}` · `\omega = \omega_0 + \alpha t` · `a_t = \alpha\,r` · `a_c = \frac{v^2}{R} = \omega^2 R` · `v_{max,curva} = \sqrt{\mu_s g R}`.
+- Explora: `RotationWidget mode="angularAccel" initial={{ omega_radps: 0, r_m: 0.032, alpha_radps2: 41.89 }}`. Experimentos: (1) reproduce 0.5 s → observa ω → llega a 20.9 rad/s. (2) duplica α → observa el tiempo en llegar a 200 rpm → se reduce a la mitad. (3) en el panel de curva, reduce R a la mitad con la misma v → observa a_c → se duplica.
+- Al robot: `α = maxAccel_radps2` del perfil y `a_t = α r`; velocidad máxima en la curva cerrada de la pista preset (R = 0.15 m) con μs = 0.6. Referencia: `a_t = 40·0.032 = 1.28 m/s²`; `v_max,curva = √(0.6·9.81·0.15) = 0.94 m/s` (mayor que `v_max` del perfil: no patina).
+- Verifica: e1 · "0 a n rpm en t s: α" · n ∈ [60, 600], t ∈ [0.1, 2] · 200, 0.5 → **41.89 rad/s²** · e2 · "v en curva de R: a_c" · v ∈ [0.2, 1.5], R ∈ [0.1, 2] · 0.6, 0.5 → **0.72 m/s²** · e3 · "α y r: a_t del borde" · 41.89, 0.032 → **1.34 m/s²** · e4 (opcional) · "μs y R: v máxima en curva" · 0.6, 0.3 → **1.329 m/s**.
+
+### T-4.4 · Transmisión y reducción
+- Tiempo: 25 min · Prerrequisitos: 4.2, 2.3 · Referencias: `young-freedman-10` · Widgets: GearWidget, ExerciseWidget · Depende de: F2-08, F2-10
+- Objetivos: calcular la relación de transmisión por dientes o por velocidades; obtener torque y velocidad de salida con eficiencia; componer trenes de dos etapas.
+- Gancho: "Tu motor gira a 6000 rpm pero la rueda debe girar a 200 rpm. ¿Qué reducción necesitas y qué gana el torque a cambio?"
+- Concepto (guion): dos engranajes engranados comparten velocidad lineal en el punto de contacto (misma idea que `v = ωr`); relación `i = z_2/z_1 = n_1/n_2`; el torque se multiplica por `i` (ideal) y por `η` (real); sentido de giro alterna en cada par; trenes: las relaciones se multiplican; el motorreductor del perfil es exactamente esto.
+- Fórmulas: `i = \frac{z_2}{z_1} = \frac{n_1}{n_2} = \frac{\omega_1}{\omega_2}` · `\tau_2 = \tau_1\,i\,\eta` · `i_{total} = i_1 i_2` · `P_2 = P_1\,\eta`.
+- Explora: `GearWidget stages={2} initial={{ z1: 12, z2: 60, z3: 10, z4: 50, nIn_rpm: 6000, torqueIn_Nm: 0.012, efficiency: 0.6 }}`. Experimentos: (1) cambia z2 → observa la relación total → cambia solo la primera etapa; el producto manda. (2) invierte z1 y z2 → observa → ahora multiplica velocidad y divide torque. (3) observa los sentidos de giro → alternan en cada par.
+- Al robot: `i` del perfil y `τ_rueda`; `v` del robot para un `i` distinto. Referencia: `i = 30`, `τ_rueda = 0.216 N·m`; con `i = 25`: `n_rueda = 240 rpm`, `v = 0.804 m/s`.
+- Verifica: e1 · "n_motor y n_rueda: i" · 6000, 200 → **30** · e2 · "τ_motor, i, η: τ_salida" · 0.012, 30, 0.6 → **0.216 N·m** · e3 · "Tren 12:60 y 10:50: i total" · z ∈ [8, 80] · → **25** · e4 (opcional) · "Con i = 25, 6000 rpm y r = 0.032: v" → **0.8042 m/s**.
+
+### T-4.5 · Encoders
+- Tiempo: 30 min · Prerrequisitos: 4.2, 0.3 · Referencias: `siegwart-4` · Widgets: RotationWidget, DiffDriveWidget, ExerciseWidget · Depende de: F2-06, F2-09, F2-10
+- Objetivos: convertir ticks en ángulo, distancia y velocidad; calcular la resolución de un encoder; reconocer la cuantización como fuente de error.
+- Gancho: "Tu encoder da 360 ticks por vuelta de rueda. En 0.1 s cuentas 45 ticks. ¿A qué velocidad va el robot?"
+- Concepto (guion): el encoder cuenta fracciones de vuelta; resolución angular `2π/N_e` y lineal `2πr/N_e`; distancia y velocidad desde Δticks; la velocidad es una derivada aproximada (0.3) y a baja velocidad pocos ticks por muestra dan una lectura escalonada; esto es lo que el simulador hace con `encoderTicksPerRev`.
+- Fórmulas: `\theta = \frac{2\pi\,\text{ticks}}{N_e}` · `s = \frac{2\pi r\,\text{ticks}}{N_e}` · `v \approx \frac{2\pi r\,\Delta\text{ticks}}{N_e\,\Delta t}` · `\text{res} = \frac{2\pi r}{N_e}`.
+- Explora: `DiffDriveWidget mode="odometry" show={['trace','wheelVelocities']} initial={{ omegaL_radps: 7.85, omegaR_radps: 7.85 }} duration_s={5}` con el panel de encoders visible (ticks por rueda y velocidad estimada). Experimentos: (1) baja la velocidad a 1 rad/s → observa la velocidad estimada → salta en escalones. (2) cambia `encoderTicksPerRev` de Mi robot a 20 → observa → los escalones son enormes. (3) sube a 2000 → observa → la estimada sigue a la real.
+- Al robot: resolución lineal del perfil y ticks por metro. Referencia: `2π·0.032/360 = 0.5585 mm`; `1790 ticks/m`.
+- Verifica: e1 · "N_e y r: resolución lineal" · N_e ∈ {12, 20, 48, 100, 360, 1024, 2048}, r ∈ [0.015, 0.05] · 360, 0.032 → **0.0005585 m** · e2 · "Δticks en Δt: ω y v" · Δticks ∈ [5, 500], Δt ∈ {0.01, 0.02, 0.05, 0.1} · 45, 0.1 → **7.854 rad/s; 0.2513 m/s** (vectorial) · e3 · "Ticks para recorrer D m" · D ∈ [0.5, 5] · 1 → **1790** (tolerancia relativa 2 %) · e4 (opcional) · "Distancia para T ticks" · 5000 → **2.793 m**.
+
+---
+
+## Módulo 5 — Cinemática del robot diferencial
+
+### T-5.1 · Pose y marcos de referencia
+- Tiempo: 35 min · Prerrequisitos: 0.2 · Referencias: `siegwart-3`, `craig-2` · Widgets: DiffDriveWidget, ExerciseWidget · Depende de: F2-09, F2-10
+- Objetivos: describir la pose `(x, y, θ)`; transformar puntos del marco del robot al global con la matriz de rotación 2D y viceversa; calcular el rumbo hacia un punto.
+- Gancho: "Tu robot está en (1.2, 0.5) m apuntando a 30°, y su sensor central está 0.09 m delante del eje. ¿Dónde está el sensor sobre la mesa?"
+- Concepto (guion): marco global {G} y marco del robot {R} (convenciones de `GLOSSARY.md`); pose = posición + orientación; rotación 2D como matriz; transformación de un punto: rotar y trasladar; inversa: trasladar y rotar con `−θ`; rumbo a un objetivo con `atan2`; este es el mismo mecanismo que en 3D usa el brazo (adelanto de la ruta 2).
+- Fórmulas: `R(\theta) = \begin{pmatrix}\cos\theta & -\sin\theta\\ \sin\theta & \cos\theta\end{pmatrix}` · `\vec p_G = \vec p_{R,0} + R(\theta)\,\vec p_R` · `\vec p_R = R(-\theta)\,(\vec p_G - \vec p_{R,0})` · `\theta_{objetivo} = \operatorname{atan2}(y_o - y, x_o - x)`.
+- Explora: `DiffDriveWidget mode="forward" show={['frames','trace']} initial={{ omegaL_radps: 6, omegaR_radps: 8 }} duration_s={6}`. Experimentos: (1) pausa y arrastra el robot → observa los ejes de {R} → giran con el robot; los de {G} no. (2) selecciona el sensor izquierdo → observa sus coordenadas en {R} y en {G} → en {R} nunca cambian. (3) pon θ = 90° → observa la matriz → cos = 0, sin = 1: x del robot es y del mundo.
+- Al robot: coordenadas globales de los sensores del perfil a una pose dada, usando `forwardOffset_m` y `spacing_m`. Referencia (pose 1.2, 0.5, 30°): sensor central `(1.278, 0.545)`; sensor izquierdo extremo (0.09, 0.024) → `(1.266, 0.5658)`.
+- Verifica: e1 · "Pose (x, y, θ), punto (d, 0) en {R}: coordenadas globales" · x, y ∈ [0, 2], θ ∈ [0°, 360°], d ∈ [0.05, 0.2] · (1.2, 0.5, 30°), 0.09 → **(1.278, 0.545)** (vectorial) · e2 · "Punto (0.09, 0.024) en {R}: globales" · → **(1.266, 0.5658)** · e3 · "Rumbo desde (0, 0) hacia (1, 1)" · objetivo ∈ [−2, 2]² · → **45°** (tolerancia 0.5°) · e4 (opcional) · "Punto global (1.5, 0.9) en {R} con pose (1.2, 0.5, 30°)" → **(0.4598, 0.1964)**.
+
+### T-5.2 · Cinemática directa del robot diferencial
+- Tiempo: 35 min · Prerrequisitos: 4.2, 5.1 · Referencias: `siegwart-3`, `corke-4` · Widgets: DiffDriveWidget, ExerciseWidget · Depende de: F2-09, F2-10
+- Objetivos: obtener v y ω del robot a partir de las velocidades de rueda; calcular el radio de giro y el centro instantáneo de rotación; predecir la trayectoria.
+- Gancho: "Mandas 15 rad/s a la rueda izquierda y 20 rad/s a la derecha. ¿Qué hace el robot: a qué velocidad avanza, cuánto gira y con qué radio?"
+- Concepto (guion): cada rueda avanza `ω r`; el centro del eje avanza el promedio; la diferencia dividida por L es la velocidad angular; centro instantáneo de rotación sobre la línea del eje; radio de giro; casos: iguales (recta), opuestas (giro en el lugar), una en cero (pivote); es exactamente lo que el simulador integra paso a paso.
+- Fórmulas: `v_L = \omega_L r,\quad v_R = \omega_R r` · `v = \frac{v_R + v_L}{2}` · `\omega = \frac{v_R - v_L}{L}` · `R = \frac{v}{\omega} = \frac{L}{2}\,\frac{v_R+v_L}{v_R-v_L}` · `\theta(t) = \theta_0 + \omega t`.
+- Explora: `DiffDriveWidget mode="forward" show={['icr','radius','trace','wheelVelocities']} initial={{ omegaL_radps: 15, omegaR_radps: 20 }} duration_s={8}`. Experimentos: (1) iguala las dos → observa el CIR → se va al infinito, recta. (2) pon ωL = −ωR → observa el CIR → en el centro del eje, radio cero. (3) pon ωL = 0 → observa → el CIR está sobre la rueda izquierda, R = L/2.
+- Al robot: `v`, `ω` y `R` del perfil para el par del gancho; giro en el lugar a media velocidad. Referencia: `v = 0.56 m/s`, `ω = 1.067 rad/s`, `R = 0.525 m`; giro en el lugar con `±10 rad/s`: `ω = 4.267 rad/s`.
+- Verifica: e1 · "ωL, ωR, r, L: v y ω" · ω ∈ [0, 20] · 15, 20, 0.032, 0.15 → **0.56 m/s; 1.067 rad/s** (vectorial) · e2 · "Mismos datos: radio de giro" → **0.525 m** · e3 · "ωL = −ωR = ω0: velocidad angular del robot" · ω0 ∈ [2, 20] · 10 → **4.267 rad/s** · e4 (opcional) · "Ángulo girado en 2 s" → **8.533 rad**.
+
+### T-5.3 · Cinemática inversa del robot diferencial
+- Tiempo: 30 min · Prerrequisitos: 5.2 · Referencias: `siegwart-3` · Widgets: DiffDriveWidget, ExerciseWidget · Depende de: F2-09, F2-10
+- Objetivos: obtener las velocidades de rueda para una v y ω deseadas; verificar contra el límite del motor; diseñar giros en el lugar y pivotes.
+- Gancho: "Quieres que tu robot avance a 0.4 m/s girando a 1.5 rad/s. ¿Qué velocidad angular mandas a cada rueda?"
+- Concepto (guion): invertir las dos ecuaciones de 5.2; la rueda exterior siempre va más rápido; saturación: si alguna rueda supera `ω_max` el comando no es realizable y hay que reducir v o ω; pivote sobre una rueda; esto es lo que hace un controlador de línea al final: convierte una corrección en dos comandos de rueda.
+- Fórmulas: `v_R = v + \frac{\omega L}{2},\quad v_L = v - \frac{\omega L}{2}` · `\omega_R = \frac{v_R}{r},\quad \omega_L = \frac{v_L}{r}` · realizable si `\max(|\omega_L|,|\omega_R|) \le \omega_{max}`.
+- Explora: `DiffDriveWidget mode="inverse" show={['icr','radius','wheelVelocities']} initial={{ v_mps: 0.4, omega_radps: 1.5 }} duration_s={6}`. Experimentos: (1) sube ω con v fija → observa las ruedas → se separan simétricamente. (2) sube v hasta que una rueda se pinta de error → observa → el comando supera ω_max y el simulador satura. (3) pon v = ωL/2 → observa → la rueda interior se detiene: pivote.
+- Al robot: comandos de rueda para el gancho y comprobación contra `ω_max` del perfil. Referencia: `ω_R = 16.02`, `ω_L = 8.98 rad/s`, ambos < 20.94: realizable. `v = 0.6, ω = 2` → `v_R = 0.75 m/s > 0.670`: no realizable.
+- Verifica: e1 · "v, ω, r, L: ωL y ωR" · v ∈ [0.1, 0.6], ω ∈ [0, 3] · 0.4, 1.5 → **8.984; 16.02 rad/s** (vectorial, orden L, R) · e2 · "Círculo de radio R a v: vL y vR" · R ∈ [0.2, 1] · 0.4, 0.3 → **0.2437; 0.3562 m/s** · e3 · "Pivote con vL = 0 y vR: ω y R" · 0.5 → **3.333 rad/s; 0.075 m** · e4 (opcional) · "¿Es realizable v = 0.6, ω = 2 con ω_max = 20.94 y r = 0.032? Da la v_R requerida" → **0.75 m/s** (el enunciado pide el número; el texto explica que supera 0.670).
+
+### T-5.4 · Odometría
+- Tiempo: 35 min · Prerrequisitos: 4.5, 5.2 · Referencias: `siegwart-3`, `siegwart-4` · Widgets: DiffDriveWidget, ExerciseWidget · Depende de: F2-09, F2-10
+- Objetivos: estimar la pose integrando encoders; aplicar la actualización por paso con el ángulo medio; cuantificar cómo un error de calibración crece con la distancia.
+- Gancho: "En un intervalo tu encoder izquierdo contó 400 ticks y el derecho 440. ¿Cuánto avanzó y giró tu robot, y dónde está ahora?"
+- Concepto (guion): de ticks a arcos de rueda; avance y giro del paso; actualización de pose usando el ángulo medio del paso (más exacto que el inicial); acumulación: el error de radio o de L crece sin límite con la distancia (por eso hace falta un sensor externo); el simulador muestra pose real y estimada.
+- Fórmulas: `\Delta s_L = \frac{2\pi r\,\Delta\text{ticks}_L}{N_e}` (ídem R) · `\Delta s = \frac{\Delta s_R + \Delta s_L}{2},\quad \Delta\theta = \frac{\Delta s_R - \Delta s_L}{L}` · `x \mathrel{+}= \Delta s\cos(\theta + \tfrac{\Delta\theta}{2}),\quad y \mathrel{+}= \Delta s\sin(\theta + \tfrac{\Delta\theta}{2}),\quad \theta \mathrel{+}= \Delta\theta`.
+- Explora: `DiffDriveWidget mode="odometry" show={['trace','frames']} initial={{ omegaL_radps: 12, omegaR_radps: 13 }} duration_s={20}` (el widget expone "radio creído" y "L creída" para introducir error de calibración). Experimentos: (1) reproduce 20 s con calibración exacta → observa las dos trazas → coinciden salvo cuantización. (2) pon el radio creído 1 mm mayor → observa → la estimada se adelanta y el error crece linealmente con la distancia. (3) pon L creída 5 mm mayor → observa → el rumbo estimado se desvía; en un círculo completo el error es de grados.
+- Al robot: pose tras el paso del gancho con el perfil; error por 1 mm de radio a lo largo de 10 m. Referencia: `Δs_L = 0.2234`, `Δs_R = 0.2457 m`, `Δs = 0.2346 m`, `Δθ = 0.1489 rad`; desde (0, 0, 0): `(0.2339, 0.01745, 0.1489)`; error de distancia `0.3125 m` en 10 m.
+- Verifica: e1 · "ticks L y R, r, N_e, L: Δs y Δθ" · ticks ∈ [50, 1000] · 400, 440 → **0.2346 m; 0.1489 rad** (vectorial) · e2 · "Pose nueva desde (0, 0, 0)" → **(0.2339, 0.01745)** (vectorial, x e y) · e3 · "Radio real 0.033 con radio creído 0.032, tras 10 m recorridos: error de distancia" · Δr ∈ [0.0005, 0.003] · → **0.3125 m** · e4 (opcional) · "L real 0.155, creída 0.150: error de rumbo tras girar 360° reales" → **−11.61°** (tolerancia 0.5°).
+
+### T-5.5 · Restricción no holonómica
+- Tiempo: 25 min · Prerrequisitos: 5.2, 5.3 · Referencias: `siegwart-3`, `corke-4` · Widgets: DiffDriveWidget, ExerciseWidget · Depende de: F2-09, F2-10
+- Objetivos: enunciar la restricción de rodadura sin deslizamiento lateral; comprobar si una velocidad es admisible; planificar maniobras en tres movimientos.
+- Gancho: "¿Por qué tu robot no puede estacionarse de lado como un cangrejo, si sus dos ruedas pueden girar en cualquier sentido?"
+- Concepto (guion): la velocidad del robot siempre apunta a lo largo de su rumbo; la restricción como ecuación en velocidades que no se integra a una restricción de posición (por eso "no holonómica": puede llegar a cualquier pose, pero no por cualquier camino); consecuencia práctica: para moverse lateralmente hay que girar, avanzar, girar; comparación breve con ruedas omnidireccionales (v2).
+- Fórmulas: `\dot x\sin\theta - \dot y\cos\theta = 0` · `\dot x = v\cos\theta,\quad \dot y = v\sin\theta,\quad \dot\theta = \omega`.
+- Explora: `DiffDriveWidget mode="inverse" show={['frames','trace']} initial={{ v_mps: 0.3, omega_radps: 0 }} duration_s={6}`. Experimentos: (1) intenta mover el robot lateralmente arrastrando la meta → observa que el widget solo permite v y ω → no existe comando lateral. (2) ejecuta la secuencia girar 90°, avanzar 0.2 m, girar −90° → observa → el robot se desplazó de lado, con tres movimientos. (3) comprueba una velocidad (0.3, 0.3) con θ = 45° en el panel → observa → admisible: cumple la ecuación.
+- Al robot: tiempo de la maniobra de "estacionamiento" con el perfil (giro en el lugar a 4 rad/s y avance a 0.5 m/s). Referencia: `1.185 s`.
+- Verifica: e1 · "θ = 45°, velocidad (0.3, 0.3): valor de ẋ sinθ − ẏ cosθ" → **0** (tolerancia absoluta 0.01) · e2 · "θ = 0°, velocidad (0, 0.2): ¿admisible? Da el valor de la restricción" → **−0.2** (no admisible) · e3 · "Maniobra lateral de D m: giro 90° a ω, avance a v, giro −90°: tiempo total" · D ∈ [0.1, 0.5], ω ∈ [2, 6], v ∈ [0.2, 0.6] · 0.2, 4, 0.5 → **1.185 s**. (Solo 3 ejercicios.)
+
+---
+
+## Módulo 6 — El seguidor de línea
+
+### T-6.1 · El sensor de línea · L (incluye construir `LineSensorWidget`, excepción documentada en `WIDGETS.md`)
+- Tiempo: 30 min · Prerrequisitos: 5.1 · Referencias: `siegwart-4` · Widgets: LineSensorWidget, MyRobotWidget, ExerciseWidget · Depende de: F1-06, F2-02, F2-11, F2-10
+- Objetivos: leer un arreglo de sensores de reflectancia; calcular la posición de la línea por promedio ponderado; elegir un umbral para lectura binaria; entender cuándo se pierde la línea.
+- Gancho: "Tus 5 sensores leen 0, 0.2, 0.9, 0.3 y 0. ¿Dónde está la línea respecto al centro de tu robot?"
+- Concepto (guion): sensor de reflectancia: emisor y receptor, línea oscura refleja menos; normalización a [0, 1] con 1 = "veo línea"; arreglo lineal con índice 0 a la izquierda; posición ponderada y normalización a [−1, 1]; umbral para binario; línea perdida cuando la suma es pequeña, y por qué se guarda el último signo; distancia física de la línea al centro; ruido.
+- Fórmulas: `\bar k = \frac{\sum_k k\,v_k}{\sum_k v_k}` · `p = \frac{\bar k - \frac{N-1}{2}}{\frac{N-1}{2}} \in [-1, 1]` · `y_{línea} = p\,\frac{N-1}{2}\,e_s` · binario: `b_k = 1 \iff v_k \ge u`.
+- Explora: `LineSensorWidget initialOffset_m={0} showBinary noiseSigma={0.03}`. Experimentos: (1) desliza la línea hacia la izquierda → observa p → se vuelve negativo y las barras se mueven con ella. (2) desliza hasta que ningún sensor la vea → observa → "línea perdida" y p conserva el último signo. (3) sube el ruido → observa la lectura binaria con umbral 0.5 → algunos sensores parpadean: el umbral necesita margen.
+- Al robot: ancho del arreglo del perfil (`(N−1)/2·e_s`) y desplazamiento máximo detectable. Referencia: semiancho `0.024 m`; con línea de 18 mm, se pierde a partir de `0.033 m`.
+- Verifica: e1 · "Lecturas [0, 0.2, 0.9, 0.3, 0]: p" · lecturas generadas con un pico gaussiano de posición aleatoria · → **0.03571** (tolerancia absoluta 0.01) · e2 · "Lecturas [0.8, 0.6, 0, 0, 0]: p" → **−0.7857** · e3 · "p = 0.03571, N = 5, e_s = 12 mm: desplazamiento físico de la línea" → **0.000857 m** (tolerancia absoluta 0.0002) · e4 (opcional) · "Umbral 0.5 sobre [0, 0.2, 0.9, 0.3, 0]: ¿cuántos sensores en 1?" → **1**.
+- Aceptación adicional del ticket: `LineSensorWidget` cumple `DEFINITION-OF-DONE.md` tipo `widget` y queda registrado en `WIDGETS.md` con sus props finales.
+
+### T-6.2 · Control on/off y proporcional
+- Tiempo: 35 min · Prerrequisitos: 6.1, 5.3 · Referencias: `astrom-murray-11` · Widgets: LineFollowerWidget, ExerciseWidget · Depende de: F4-02, F4-03, F2-10
+- Objetivos: cerrar el lazo: de la posición de la línea a los comandos de rueda; entender por qué on/off oscila; sintonizar una ganancia proporcional y reconocer la saturación.
+- Gancho: "Tu robot ve la línea a la derecha (p = +0.4). ¿Cuánto más rápido debe ir la rueda izquierda que la derecha para volver a centrarla?"
+- Concepto (guion): error `e = p`; lazo cerrado; on/off: giro fijo según el signo, oscilación permanente; proporcional: corrección proporcional al error, `ω_L = ω_b + u`, `ω_R = ω_b − u` (signos según `GLOSSARY.md`); efecto de `K_p`: bajo, lento y se sale en curvas; alto, oscila; saturación: `ω_b + K_p|e| ≤ ω_max`; la velocidad angular del robot que resulta (cierra 5.2).
+- Fórmulas: `e = p` · on/off: `u = u_0\,\operatorname{sgn}(e)` · P: `u = K_p\,e` · `\omega_L = \omega_b + u,\quad \omega_R = \omega_b - u` · `\omega_{robot} = \frac{(\omega_R - \omega_L)\,r}{L} = -\frac{2ur}{L}` · saturación: `K_p \le \frac{\omega_{max} - \omega_b}{|e|_{max}}`.
+- Explora: `LineFollowerWidget track="oval" controller="p" initialParams={{ Kp: 8, omegaBase_radps: 15 }} showPlots={['error','omega']} compact`. Experimentos: (1) cambia a `onoff` → observa la traza y el error → zigzag permanente aunque la recta sea perfecta. (2) con P, pon Kp = 2 → observa la curva cerrada → el robot se sale. (3) pon Kp = 20 → observa la recta → oscila y las ruedas saturan.
+- Al robot: los comandos del gancho con el perfil y la `ω_robot` resultante; `K_p` máxima sin saturar con `ω_b = 15`. Referencia: `u = 3.2`, `ω_L = 18.2`, `ω_R = 11.8 rad/s`, `ω_robot = −1.365 rad/s` (gira a la derecha, hacia la línea); `K_p ≤ 5.94`.
+- Verifica: e1 · "Kp, e, ωb: u, ωL, ωR" · Kp ∈ [1, 20], e ∈ [−1, 1], ωb ∈ [5, 18] · 8, 0.4, 15 → **3.2; 18.2; 11.8 rad/s** (vectorial) · e2 · "Con esos comandos, r = 0.032, L = 0.15: ω del robot" → **−1.365 rad/s** · e3 · "ωb = 15, ωmax = 20.94, |e|max = 1: Kp máxima sin saturar" → **5.944**. (Solo 3 ejercicios.)
+
+### T-6.3 · Control PID
+- Tiempo: 40 min · Prerrequisitos: 6.2 · Referencias: `astrom-murray-11` · Widgets: LineFollowerWidget, ExerciseWidget · Depende de: F4-02, F4-03, F2-10
+- Objetivos: calcular los tres términos del PID discreto; entender qué corrige cada uno (I: error persistente en curvas; D: amortigua la oscilación); sintonizar por el método manual P → D → I; elegir `ω_b` según la curva más cerrada.
+- Gancho: "Sigues la línea, pero en las rectas oscilas y en las curvas te vas hacia afuera. ¿Qué término del PID arregla cada cosa?"
+- Concepto (guion): PID discreto con paso Δt; término P (presente), I (acumulado, corrige el sesgo de una curva larga, y por qué se limita: anti-windup), D (tendencia, frena la oscilación, amplifica ruido); sintonización manual: subir Kp hasta oscilar, añadir Kd hasta amortiguar, añadir Ki pequeño; los tres términos se ven por separado en la gráfica; elección de `ω_b`: la rueda exterior en la curva más cerrada no debe saturar.
+- Fórmulas: `u_k = K_p e_k + K_i \sum_{j\le k} e_j\,\Delta t + K_d\frac{e_k - e_{k-1}}{\Delta t}` · anti-windup: `|I| \le I_{max}` · rueda exterior en curva de radio R: `v_{ext} = v\left(1 + \frac{L}{2R}\right) \le v_{max}` ⇒ `\omega_b \le \frac{v_{max}}{r\,(1 + L/2R)}`.
+- Explora: `LineFollowerWidget track="tight" controller="pid" initialParams={{ Kp: 8, Ki: 0, Kd: 0, omegaBase_radps: 15 }} showPlots={['error','pid']} compact`. Experimentos: (1) sube Kd de 0 a 0.05 → observa el error en la recta → la oscilación se amortigua. (2) observa el término I en la curva larga con Ki = 0 → el error tiene un sesgo constante; pon Ki = 2 → el sesgo desaparece. (3) sube Ki a 20 → observa → el término I se dispara y el robot sobrepasa: windup.
+- Al robot: `ω_b` máxima del perfil para la curva más cerrada de la pista `tight` (R = 0.3 m en el texto; el widget usa el radio real de la preset). Referencia: `v ≤ 0.670/(1 + 0.15/0.6) = 0.536 m/s`, `ω_b ≤ 16.76 rad/s`.
+- Verifica: e1 · "Kp = 8, Ki = 2, Kd = 0.05, Δt = 0.01, e_k = 0.3, e_{k−1} = 0.5, Σe·Δt = 0.02: u_k" · valores generados en rangos realistas · → **1.44** · e2 · "Ki = 2, error constante 0.1 durante 2 s: término I" → **0.4** · e3 · "Kd = 0.05, e pasa de 0.3 a 0.35 en 0.01 s: término D" → **0.25** · e4 · "v_max = 0.670, r = 0.032, L = 0.15, curva R = 0.3: ω_b máxima" · R ∈ [0.15, 1] · → **16.76 rad/s**.
+
+### T-6.4 · Geometría del robot y desempeño
+- Tiempo: 35 min · Prerrequisitos: 6.3, 5.2 · Referencias: `siegwart-2`, `siegwart-3` · Widgets: LineFollowerWidget, MyRobotWidget, ExerciseWidget · Depende de: F4-02, F4-03, F2-11, F2-10
+- Objetivos: relacionar la distancia sensores–eje con la sensibilidad y la anticipación; relacionar el ancho del arreglo con la pérdida de línea; relacionar L y r con la curva mínima y la velocidad; tomar decisiones de diseño con números.
+- Gancho: "¿Qué pasa si montas los sensores más lejos del eje? ¿Y si acercas las ruedas entre sí? Cada medida de tu robot cambia cómo sigue la línea."
+- Concepto (guion): sensibilidad: un error de rumbo Δθ produce un desplazamiento lateral `d·Δθ` en el arreglo: más d = detecta antes pero exagera; ancho del arreglo `(N−1)/2·e_s` frente al desplazamiento máximo antes de perder la línea (más el semiancho de la línea); distancia recorrida por ciclo de control `v·Δt_c`: la velocidad máxima está limitada por la frecuencia del lazo; relación de velocidades de rueda en una curva `(R − L/2)/(R + L/2)`: L grande exige más diferencia; radio de rueda: más v pero menos torque (4.4); todo esto son parámetros de "Mi robot".
+- Fórmulas: `y_{sensor} \approx d\,\Delta\theta` · `p \approx \frac{d\,\Delta\theta}{\frac{N-1}{2}e_s}` · `y_{perdida} = \frac{N-1}{2}e_s + \frac{w}{2}` · `\Delta s_{ciclo} = v\,\Delta t_c` · `\frac{v_{int}}{v_{ext}} = \frac{R - L/2}{R + L/2}`.
+- Explora: `LineFollowerWidget track="tight" controller="pid" initialParams={{ Kp: 8, Ki: 1, Kd: 0.05, omegaBase_radps: 14 }} showPlots={['error']} compact` con `MyRobotWidget mode="form"` al lado (el widget lee el perfil en vivo). Experimentos: (1) sube `forwardOffset_m` de 0.09 a 0.15 → observa el error → reacciona antes pero con más amplitud; hay que bajar Kp. (2) baja `count` a 3 → observa la curva cerrada → pierde la línea antes. (3) sube `wheelBase_m` a 0.25 → observa las ruedas en curva → la diferencia necesaria crece y satura antes.
+- Al robot: desplazamiento de pérdida de línea, avance por ciclo a `v_max` con Δt_c = 20 ms, y sensibilidad `p` para Δθ = 0.1 rad con el `d` del perfil. Referencia: `0.033 m`; `0.0134 m` por ciclo; `p = 0.375`.
+- Verifica: e1 · "N, e_s, ancho de línea w: desplazamiento al que se pierde la línea" · w ∈ [0.01, 0.03] · 5, 0.012, 0.018 → **0.033 m** (tolerancia absoluta 0.001) · e2 · "v y Δt_c: avance por ciclo" · Δt ∈ {0.005, 0.01, 0.02, 0.05} · 0.5, 0.02 → **0.01 m** · e3 · "d, Δθ, N, e_s: p" · d ∈ [0.03, 0.2], Δθ ∈ [0.02, 0.3] · 0.09, 0.1 → **0.375** y con d = 0.05 → **0.2083** (dos respuestas) · e4 (opcional) · "R = 0.2, L = 0.15: relación v_int/v_ext" → **0.4545**.
+
+### T-6.5 · Proyecto final: tu robot completa la pista · L
+- Tiempo: 60 min · Prerrequisitos: 6.4, 4.2, 1.1 · Referencias: `siegwart-3`, `astrom-murray-11` · Widgets: LineFollowerWidget (modo completo, no `compact`), MyRobotWidget, ExerciseWidget · Depende de: F4 completo, F3-01, F2-11, F2-10
+- Objetivos: configurar "Mi robot" con datos reales, sintonizar el PID y completar la pista `oval`; comparar la velocidad medida con la predicha por `v = ω_b r`; explicar la diferencia.
+- Gancho: "Todo lo que calculaste en la ruta se junta aquí: tu robot, tus medidas, tu controlador. Complétala, mide, y compara con la teoría."
+- Concepto (guion): no hay concepto nuevo; el texto es un guion de trabajo en 5 pasos: (1) revisa "Mi robot" con tus medidas reales (o el robot de referencia); (2) predice la velocidad de avance con `ω_b` elegido según 6.3; (3) sintoniza P → D → I en `oval`; (4) completa 3 vueltas sin perder la línea y anota tiempo de vuelta y velocidad promedio; (5) compara con la predicción y explica la diferencia (el robot zigzaguea: recorre más que la pista; la corrección `u` reduce la velocidad promedio del centro). Los ejercicios se responden con los números medidos en el simulador, por eso su tolerancia es amplia.
+- Fórmulas: `v_{pred} = \omega_b\,r` · `t_{pred} = \frac{\ell_{pista}}{v_{pred}}` · `\Delta\% = 100\,\frac{v_{pred} - v_{med}}{v_{pred}}`.
+- Explora: `LineFollowerWidget track="oval" controller="pid" initialParams={{ Kp: 8, Ki: 1, Kd: 0.05, omegaBase_radps: 15 }} showPlots={['error','v','pid']}` (la longitud de `oval` la expone el widget; el robot de referencia con esos parámetros debe completar la vuelta: es también un criterio de aceptación de F4-02). Experimentos: los 5 pasos del guion.
+- Al robot: la predicción con el perfil del estudiante. Referencia: `ω_b = 15` → `v_pred = 0.48 m/s`; `oval` de 4.00 m → `t_pred = 8.33 s`.
+- Verifica (obligatorios los tres; el estudiante ingresa sus propios valores, el enunciado muestra la fórmula): e1 · "Tu ω_b y tu r: v_pred" · → con referencia **0.48 m/s** · e2 · "Longitud de la pista y v_pred: t_pred" · → **8.333 s** · e3 · "Tu t_vuelta medido y ℓ_pista: v_med, y Δ% respecto a v_pred" · tolerancia relativa 10 % sobre el cálculo con los valores que el estudiante escribe (el verificador recalcula con sus entradas; no hay valor único) · e4 (opcional, cualitativo numérico) · "¿Cuántas vueltas completaste sin perder la línea?" · aceptado ≥ 3.
+- Aceptación adicional del ticket: al terminar el tema, el índice de la ruta muestra "Ruta completada" cuando los 27 temas están en `completed`.
+
+---
+
+## Auditorías de coherencia (C-M0 … C-M6)
+
+Una por módulo, al cerrar su último tema, con `templates/AUDIT-COHERENCE.md`. Lista mínima de verificación:
+1. Cada símbolo usado existe en `GLOSSARY.md` con la misma unidad.
+2. Cada fórmula de esta spec aparece en el tema con las mismas variables (no reordenadas ni renombradas).
+3. Cada widget se usa con las props de esta spec; ningún widget nuevo ni modificado.
+4. La sección "Al robot" usa `useMyRobot()` y su ejemplo coincide con la referencia de esta spec.
+5. Los tests de `ejercicios.ts` contienen los valores dorados de esta spec con la tolerancia indicada.
+6. Tono, longitudes y forma de los experimentos según `CONTENT-STANDARDS.md`.
+7. Comparación con el módulo anterior auditado: mismo nivel, mismo estilo de gancho, misma densidad de fórmulas.
+
+Los hallazgos bloqueantes generan tickets `content` de corrección antes de publicar el módulo.

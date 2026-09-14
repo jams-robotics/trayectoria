@@ -1,0 +1,104 @@
+/* Trayectoria — tokens de diseño. Fuente única de verdad; DESIGN.md los documenta. */
+:root {
+  /* color — superficie y texto */
+  --color-bg: #f5f7f9;
+  --color-bg-raised: #ffffff;
+  --color-fg: #1a242f;
+  --color-fg-muted: #526475;
+  --color-border: #d5dde5;
+  /* color — acción (teoría / interfaz) */
+  --color-primary: #0d6a8e;
+  --color-primary-fg: #ffffff;
+  --color-primary-hover: #0a5471;
+  /* color — mundo físico (robot, "Al robot", simulador) */
+  --color-physical: #a25607; /* D-01 revisión: era #b35f08 (4.29:1, fallaba AA texto); #a25607 = 5.05:1 sobre bg */
+  --color-physical-fg: #ffffff;
+  /* color — estado */
+  --color-success: #1c7a4e;
+  --color-error: #bf3a2b;
+  --color-warning: #9c6400;
+  --color-focus: #2f8fd8;
+  /* color — datos (Okabe-Ito, segura para deuteranopia/protanopia) */
+  --color-data-1: #0072b2;
+  --color-data-2: #d55e00;
+  --color-data-3: #009e73;
+  --color-data-4: #b8578f;
+  --color-data-5: #2d8fc4;
+  --color-data-6: #6a5acd;
+  --color-vector-velocity: #a85a05;
+  --color-vector-force: #7b3fb8;
+
+  /* tipografía */
+  --font-sans: 'Source Sans 3', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Source Code Pro', ui-monospace, 'SF Mono', Menlo, monospace;
+  --text-xs: 13px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 20px;
+  --text-xl: 25px;
+  --text-2xl: 31px;
+  --text-3xl: 39px;
+  --leading-body: 1.6;
+  --leading-tight: 1.2;
+
+  /* espaciado (base 4) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 48px;
+  --space-10: 64px;
+  --space-11: 80px;
+  --space-12: 96px;
+
+  /* forma */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(20, 30, 40, 0.06);
+  --shadow-md: 0 4px 16px rgba(20, 30, 40, 0.08);
+
+  /* simulación */
+  --sim-grid: #e4eaef;
+  --sim-axis: #9fb0c0;
+  --sim-track: #2a3540;
+  --sim-robot: var(--color-physical);
+  --sim-sensor-on: var(--color-success);
+  --sim-sensor-off: #b7c2cc;
+  --sim-trace: var(--color-data-1);
+}
+
+[data-theme="dark"] {
+  --color-bg: #121820;
+  --color-bg-raised: #1a222c;
+  --color-fg: #e4eaf0;
+  --color-fg-muted: #9dadbd;
+  --color-border: #2c3845;
+  --color-primary: #5fc1dd;
+  --color-primary-fg: #0a1a22;
+  --color-primary-hover: #88d4ea;
+  --color-physical: #f0a742;
+  --color-physical-fg: #1f1300;
+  --color-success: #4fc487;
+  --color-error: #f07a6d;
+  --color-warning: #e6b84a;
+  --color-focus: #7cc4f5;
+  --color-data-1: #5aa9e6;
+  --color-data-2: #ff8c42;
+  --color-data-3: #3ccf9a;
+  --color-data-4: #e79fc7;
+  --color-data-5: #8fd3f8;
+  --color-data-6: #a190f0;
+  --color-vector-velocity: #f0a742;
+  --color-vector-force: #b48ae8;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --sim-grid: #222d39;
+  --sim-axis: #4b5b6c;
+  --sim-track: #d3dbe3;
+  --sim-sensor-off: #3b4856;
+}

@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--color-bg:#f5f7f9;--color-bg-raised:#ffffff;--color-fg:#1a242f;--color-fg-muted:#526475;--color-border:#d5dde5;--color-primary:#0d6a8e;--color-primary-fg:#ffffff;--color-primary-hover:#0a5471;--color-physical:#b35f08;--color-physical-fg:#ffffff;--color-success:#1c7a4e;--color-error:#bf3a2b;--color-warning:#9c6400;--color-focus:#2f8fd8;--color-data-1:#0072b2;--color-data-2:#d55e00;--color-data-3:#009e73;--color-data-4:#b8578f;--color-data-5:#2d8fc4;--color-data-6:#6a5acd;--color-vector-velocity:#a85a05;--color-vector-force:#7b3fb8;--font-sans:'Source Sans 3',system-ui,sans-serif;--font-mono:'Source Code Pro',ui-monospace,monospace;--text-xs:13px;--text-sm:14px;--text-base:16px;--text-lg:20px;--text-xl:25px;--text-2xl:31px;--text-3xl:39px;--leading-body:1.6;--leading-tight:1.2;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-7:32px;--space-8:40px;--space-9:48px;--space-10:64px;--space-11:80px;--space-12:96px;--radius-sm:4px;--radius-md:8px;--radius-lg:12px;--shadow-sm:0 1px 2px rgba(20,30,40,.06);--shadow-md:0 4px 16px rgba(20,30,40,.08);--sim-grid:#e4eaef;--sim-axis:#9fb0c0;--sim-track:#2a3540;--sim-robot:var(--color-physical);--sim-sensor-on:var(--color-success);--sim-sensor-off:#b7c2cc;--sim-trace:var(--color-data-1)}
+[data-theme="dark"]{--color-bg:#121820;--color-bg-raised:#1a222c;--color-fg:#e4eaf0;--color-fg-muted:#9dadbd;--color-border:#2c3845;--color-primary:#5fc1dd;--color-primary-fg:#0a1a22;--color-primary-hover:#88d4ea;--color-physical:#f0a742;--color-physical-fg:#1f1300;--color-success:#4fc487;--color-error:#f07a6d;--color-warning:#e6b84a;--color-focus:#7cc4f5;--color-data-1:#5aa9e6;--color-data-2:#ff8c42;--color-data-3:#3ccf9a;--color-data-4:#e79fc7;--color-data-5:#8fd3f8;--color-data-6:#a190f0;--color-vector-velocity:#f0a742;--color-vector-force:#b48ae8;--shadow-sm:0 1px 2px rgba(0,0,0,.3);--shadow-md:0 4px 16px rgba(0,0,0,.35);--sim-grid:#222d39;--sim-axis:#4b5b6c;--sim-track:#d3dbe3;--sim-sensor-off:#3b4856}
+html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(--font-sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--color-primary)}a:hover{color:var(--color-primary-hover)}
+button{font:inherit;cursor:pointer}
+*:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}
+[data-active="true"]{color:var(--color-primary)!important;border-bottom-color:var(--color-primary)!important}
+[data-pill="true"]{background:var(--color-fg)!important;color:var(--color-bg)!important;border-color:var(--color-fg)!important}
+</style>
+</helmet>
+
+<div style="min-height:100vh;display:flex;flex-direction:column">
+
+<!-- barra de maqueta -->
+<div style="display:flex;align-items:center;gap:8px;padding:8px 20px;background:var(--color-bg-raised);border-bottom:1px solid var(--color-border);font-size:13px;color:var(--color-fg-muted);flex-wrap:wrap">
+  <span style="font-family:var(--font-mono);font-size:12px;letter-spacing:.04em;text-transform:uppercase">Maqueta D-01</span>
+  <span style="width:1px;height:16px;background:var(--color-border);margin:0 6px"></span>
+  <div style="display:flex;gap:4px;flex-wrap:wrap">
+    <button onClick="{{ goInicio }}" data-pill="{{ isInicio }}" style="border:1px solid var(--color-border);background:transparent;color:var(--color-fg-muted);border-radius:999px;padding:3px 10px;font-size:13px">1 Inicio</button>
+    <button onClick="{{ goRuta }}" data-pill="{{ isRuta }}" style="border:1px solid var(--color-border);background:transparent;color:var(--color-fg-muted);border-radius:999px;padding:3px 10px;font-size:13px">2 Ruta</button>
+    <button onClick="{{ goTema }}" data-pill="{{ isTema }}" style="border:1px solid var(--color-border);background:transparent;color:var(--color-fg-muted);border-radius:999px;padding:3px 10px;font-size:13px">3 Tema</button>
+    <button onClick="{{ goSim }}" data-pill="{{ isSim }}" style="border:1px solid var(--color-border);background:transparent;color:var(--color-fg-muted);border-radius:999px;padding:3px 10px;font-size:13px">4 Simulador 2D</button>
+    <button onClick="{{ goBrazo }}" data-pill="{{ isBrazo }}" style="border:1px solid var(--color-border);background:transparent;color:var(--color-fg-muted);border-radius:999px;padding:3px 10px;font-size:13px">5 Brazo 3D</button>
+    <button onClick="{{ goAula }}" data-pill="{{ isAula }}" style="border:1px solid var(--color-border);background:transparent;color:var(--color-fg-muted);border-radius:999px;padding:3px 10px;font-size:13px">6 Aula</button>
+  </div>
+  <button onClick="{{ toggleTheme }}" style="margin-left:auto;border:1px solid var(--color-border);background:transparent;color:var(--color-fg);border-radius:999px;padding:3px 12px;font-size:13px;display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:var(--color-fg);display:inline-block"></span>{{ themeLabel }}</button>
+</div>
+
+<!-- navegación del producto -->
+<header style="display:flex;align-items:center;gap:32px;padding:0 40px;height:56px;background:var(--color-bg-raised);border-bottom:1px solid var(--color-border)">
+  <a href="#" onClick="{{ goInicio }}" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--color-fg);font-weight:600;font-size:18px">
+    <span style="width:22px;height:14px;border-radius:3px;background:var(--color-physical);display:inline-block;position:relative"><span style="position:absolute;left:-3px;top:2px;width:3px;height:10px;background:var(--color-fg);border-radius:1px"></span><span style="position:absolute;right:-3px;top:2px;width:3px;height:10px;background:var(--color-fg);border-radius:1px"></span></span>
+    Trayectoria
+  </a>
+  <nav style="display:flex;gap:4px;height:100%">
+    <a href="#" onClick="{{ goInicio }}" data-active="{{ isInicio }}" style="display:flex;align-items:center;padding:0 12px;text-decoration:none;color:var(--color-fg-muted);border-bottom:2px solid transparent;font-weight:500">Inicio</a>
+    <a href="#" onClick="{{ goRuta }}" data-active="{{ navRuta }}" style="display:flex;align-items:center;padding:0 12px;text-decoration:none;color:var(--color-fg-muted);border-bottom:2px solid transparent;font-weight:500">Ruta</a>
+    <a href="#" onClick="{{ goSim }}" data-active="{{ isSim }}" style="display:flex;align-items:center;padding:0 12px;text-decoration:none;color:var(--color-fg-muted);border-bottom:2px solid transparent;font-weight:500">Simuladores</a>
+    <a href="#" onClick="{{ goBrazo }}" data-active="{{ isBrazo }}" style="display:flex;align-items:center;padding:0 12px;text-decoration:none;color:var(--color-fg-muted);border-bottom:2px solid transparent;font-weight:500">Brazos</a>
+    <a href="#" onClick="{{ goAula }}" data-active="{{ isAula }}" style="display:flex;align-items:center;padding:0 12px;text-decoration:none;color:var(--color-fg-muted);border-bottom:2px solid transparent;font-weight:500">Cuenta</a>
+  </nav>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:16px">
+    <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--color-fg-muted)"><span style="width:96px;height:4px;border-radius:2px;background:var(--color-border);overflow:hidden;display:inline-block"><span style="display:block;width:31%;height:100%;background:var(--color-primary)"></span></span><span style="font-family:var(--font-mono)">9/29</span></div>
+    <span style="width:32px;height:32px;border-radius:50%;background:var(--color-border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--color-fg)">MA</span>
+  </div>
+</header>
+
+<!-- ============ 1 INICIO ============ -->
+<sc-if value="{{ isInicio }}" hint-placeholder-val="{{ true }}">
+<main data-screen-label="01 Inicio" style="flex:1">
+  <section style="max-width:1120px;margin:0 auto;padding:80px 40px 56px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:64px;align-items:center">
+    <div>
+      <p style="margin:0 0 16px;font-family:var(--font-mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted)">Física · Matemática · Mecánica → Robótica</p>
+      <h1 style="margin:0 0 20px;font-size:var(--text-3xl);line-height:1.15;font-weight:600;letter-spacing:-.01em;text-wrap:pretty">Aprende la teoría manipulándola, y aplícala a un robot que puedes simular.</h1>
+      <p style="margin:0 0 32px;font-size:var(--text-lg);color:var(--color-fg-muted);max-width:52ch;text-wrap:pretty">Una ruta de 7 módulos para ingeniería. Cada tema termina en tu robot: primero un móvil 2D, después un brazo articulado.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button onClick="{{ goRuta }}" style="height:44px;padding:0 20px;border-radius:var(--radius-md);border:1px solid var(--color-primary);background:var(--color-primary);color:var(--color-primary-fg);font-weight:600;font-size:16px">Empezar la ruta</button>
+        <button onClick="{{ goSim }}" style="height:44px;padding:0 20px;border-radius:var(--radius-md);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-weight:600;font-size:16px">Abrir simuladores</button>
+      </div>
+      <p style="margin:20px 0 0;font-size:14px;color:var(--color-fg-muted)">Open source · en español · sin cuenta para empezar</p>
+    </div>
+    <!-- hilo de la ruta -->
+    <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:28px;box-shadow:var(--shadow-sm)">
+      <p style="margin:0 0 20px;font-size:13px;font-family:var(--font-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--color-fg-muted)">La ruta</p>
+      <div style="display:grid;grid-template-columns:20px 1fr;column-gap:16px;row-gap:0">
+        <sc-for list="{{ modulos }}" as="m" hint-placeholder-count="7">
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <span style="width:10px;height:10px;border-radius:50%;background:var(--color-primary);flex:none;margin-top:6px"></span>
+            <span style="width:2px;flex:1;background:var(--color-border);min-height:22px"></span>
+          </div>
+          <div style="padding-bottom:14px;display:flex;justify-content:space-between;gap:12px;align-items:baseline">
+            <span style="font-size:15px;font-weight:500">{{ m.nombre }}</span>
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--color-fg-muted)">{{ m.temasN }} temas</span>
+          </div>
+        </sc-for>
+        <div style="display:flex;justify-content:center"><span style="width:10px;height:10px;border-radius:2px;background:var(--color-physical);margin-top:8px"></span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding-top:4px">
+          <span style="width:34px;height:22px;border-radius:4px;background:var(--color-physical);position:relative;flex:none"><span style="position:absolute;left:-4px;top:4px;width:4px;height:14px;background:var(--color-fg);border-radius:1px"></span><span style="position:absolute;right:-4px;top:4px;width:4px;height:14px;background:var(--color-fg);border-radius:1px"></span></span>
+          <span style="font-weight:600">Tu robot, simulado y controlado</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="max-width:1120px;margin:0 auto;padding:0 40px 64px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px">
+    <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:24px">
+      <div style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--color-bg);border:1px solid var(--color-border);display:flex;align-items:center;justify-content:center;margin-bottom:16px"><span style="width:14px;height:14px;border-radius:50%;border:2px solid var(--color-primary)"></span></div>
+      <h3 style="margin:0 0 6px;font-size:var(--text-lg);font-weight:600">Visualizaciones manipulables</h3>
+      <p style="margin:0;color:var(--color-fg-muted);text-wrap:pretty">Cada concepto va junto a un widget: mueves un parámetro y ves qué cambia, con el número y su unidad.</p>
+    </div>
+    <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:24px">
+      <div style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--color-bg);border:1px solid var(--color-border);display:flex;align-items:center;justify-content:center;margin-bottom:16px"><span style="width:16px;height:10px;border-radius:2px;background:var(--color-physical)"></span></div>
+      <h3 style="margin:0 0 6px;font-size:var(--text-lg);font-weight:600">Dos simuladores</h3>
+      <p style="margin:0;color:var(--color-fg-muted);text-wrap:pretty">Un robot móvil 2D con sensores y controlador, y un brazo 3D con cinemática directa e inversa. Corren en laptops modestas.</p>
+    </div>
+    <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:24px">
+      <div style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--color-bg);border:1px solid var(--color-border);display:flex;align-items:center;justify-content:center;margin-bottom:16px"><span style="width:14px;height:14px;border:2px solid var(--color-primary);border-radius:2px"></span></div>
+      <h3 style="margin:0 0 6px;font-size:var(--text-lg);font-weight:600">Mi robot, de principio a fin</h3>
+      <p style="margin:0;color:var(--color-fg-muted);text-wrap:pretty">Los parámetros que defines en el módulo 1 (masa, radio de rueda, sensores) acompañan cada ejercicio y simulación.</p>
+    </div>
+  </section>
+
+  <section style="border-top:1px solid var(--color-border);background:var(--color-bg-raised)">
+    <div style="max-width:1120px;margin:0 auto;padding:56px 40px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:40px;align-items:center">
+      <div>
+        <p style="margin:0 0 8px;font-family:var(--font-mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted)">Para docentes</p>
+        <h2 style="margin:0 0 12px;font-size:var(--text-xl);font-weight:600">Modo aula</h2>
+        <p style="margin:0;color:var(--color-fg-muted);max-width:60ch;text-wrap:pretty">Crea un grupo con un código de invitación, sigue el avance por tema y estudiante, y exporta los resultados en CSV. Sin puntos ni medallas: solo qué está hecho y qué falta.</p>
+      </div>
+      <button onClick="{{ goAula }}" style="height:44px;padding:0 20px;border-radius:var(--radius-md);border:1px solid var(--color-border);background:transparent;color:var(--color-fg);font-weight:600;font-size:16px">Ver el aula</button>
+    </div>
+  </section>
+  <footer style="max-width:1120px;margin:0 auto;padding:24px 40px;display:flex;justify-content:space-between;gap:16px;font-size:14px;color:var(--color-fg-muted);flex-wrap:wrap">
+    <span>Trayectoria · Licencia MIT · Contenido CC BY-SA</span>
+    <div style="display:flex;gap:20px"><a href="#" style="text-decoration:none">Repositorio</a><a href="#" style="text-decoration:none">Contribuir</a><a href="#" style="text-decoration:none">Accesibilidad</a></div>
+  </footer>
+</main>
+</sc-if>
+
+<!-- ============ 2 RUTA ============ -->
+<sc-if value="{{ isRuta }}" hint-placeholder-val="{{ false }}">
+<main data-screen-label="02 Ruta" style="flex:1;max-width:1120px;width:100%;margin:0 auto;padding:40px 40px 64px;box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:40px;align-items:start">
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:8px">
+      <h1 style="margin:0;font-size:var(--text-2xl);font-weight:600">Ruta</h1>
+      <span style="font-family:var(--font-mono);font-size:14px;color:var(--color-fg-muted)">9 de 29 temas · 31 %</span>
+    </div>
+    <div style="height:4px;border-radius:2px;background:var(--color-border);overflow:hidden;margin-bottom:32px"><div style="width:31%;height:100%;background:var(--color-primary)"></div></div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <sc-for list="{{ modulos }}" as="m" hint-placeholder-count="7">
+        <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:20px 24px">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+            <span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted);width:20px">{{ m.num }}</span>
+            <h2 style="margin:0;font-size:var(--text-lg);font-weight:600;flex:1">{{ m.nombre }}</h2>
+            <span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted)">{{ m.tiempo }}</span>
+            <span style="font-size:13px;font-weight:600;padding:2px 10px;border-radius:999px;border:1px solid {{ m.estadoColor }};color:{{ m.estadoColor }}">{{ m.estado }}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px 20px;padding-left:34px">
+            <sc-for list="{{ m.temas }}" as="t" hint-placeholder-count="3">
+              <a href="#" onClick="{{ goTema }}" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--color-fg);font-size:15px;min-height:32px">
+                <span style="width:8px;height:8px;border-radius:50%;background:{{ t.color }};flex:none;border:1px solid {{ t.border }}"></span>
+                <span style="flex:1">{{ t.nombre }}</span>
+                <span style="font-family:var(--font-mono);font-size:12px;color:var(--color-fg-muted)">{{ t.min }}</span>
+              </a>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  <aside style="position:sticky;top:24px;display:flex;flex-direction:column;gap:16px">
+    <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="margin:0;font-size:16px;font-weight:600">Mi robot</h3>
+        <a href="#" style="font-size:14px;text-decoration:none">Editar</a>
+      </div>
+      <div style="height:96px;border-radius:var(--radius-md);background:var(--color-bg);border:1px solid var(--color-border);display:flex;align-items:center;justify-content:center;margin-bottom:16px;background-image:linear-gradient(var(--sim-grid) 1px,transparent 1px),linear-gradient(90deg,var(--sim-grid) 1px,transparent 1px);background-size:16px 16px">
+        <span style="width:56px;height:36px;border-radius:5px;background:var(--color-physical);position:relative;display:block"><span style="position:absolute;left:-6px;top:6px;width:6px;height:24px;background:var(--color-fg);border-radius:2px"></span><span style="position:absolute;right:-6px;top:6px;width:6px;height:24px;background:var(--color-fg);border-radius:2px"></span><span style="position:absolute;top:-5px;left:14px;width:8px;height:8px;border-radius:50%;background:var(--sim-sensor-on)"></span><span style="position:absolute;top:-5px;right:14px;width:8px;height:8px;border-radius:50%;background:var(--sim-sensor-on)"></span></span>
+      </div>
+      <dl style="margin:0;display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:14px">
+        <dt style="color:var(--color-fg-muted)">Masa</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">0.85 kg</dd>
+        <dt style="color:var(--color-fg-muted)">Radio de rueda</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">0.033 m</dd>
+        <dt style="color:var(--color-fg-muted)">Distancia entre ruedas</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">0.140 m</dd>
+        <dt style="color:var(--color-fg-muted)">Sensores</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">2 ópticos</dd>
+        <dt style="color:var(--color-fg-muted)">Controlador</dt><dd style="margin:0;font-family:var(--font-mono)">PID</dd>
+      </dl>
+    </div>
+    <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:20px">
+      <p style="margin:0 0 6px;font-size:13px;color:var(--color-fg-muted)">Continuar</p>
+      <p style="margin:0 0 12px;font-weight:600">2.2 Fricción y torque en la rueda</p>
+      <button onClick="{{ goTema }}" style="width:100%;height:40px;border-radius:var(--radius-md);border:1px solid var(--color-primary);background:var(--color-primary);color:var(--color-primary-fg);font-weight:600">Retomar · 25 min</button>
+    </div>
+  </aside>
+</main>
+</sc-if>
+
+<!-- ============ 3 TEMA ============ -->
+<sc-if value="{{ isTema }}" hint-placeholder-val="{{ false }}">
+<main data-screen-label="03 Tema" style="flex:1;max-width:1200px;width:100%;margin:0 auto;padding:32px 40px 64px;box-sizing:border-box;display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;align-items:start">
+  <aside style="position:sticky;top:24px">
+    <a href="#" onClick="{{ goRuta }}" style="font-size:14px;text-decoration:none;display:block;margin-bottom:16px">← Ruta · Módulo 1</a>
+    <p style="margin:0 0 10px;font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted)">Secciones</p>
+    <ol style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border-left:2px solid var(--color-border)">
+      <li style="padding:6px 0 6px 14px;margin-left:-2px;border-left:2px solid transparent;color:var(--color-fg-muted);font-size:15px">Gancho</li>
+      <li style="padding:6px 0 6px 14px;margin-left:-2px;border-left:2px solid transparent;color:var(--color-fg-muted);font-size:15px">Concepto</li>
+      <li style="padding:6px 0 6px 14px;margin-left:-2px;border-left:2px solid transparent;color:var(--color-fg-muted);font-size:15px">Fórmulas</li>
+      <li style="padding:6px 0 6px 14px;margin-left:-2px;border-left:2px solid var(--color-primary);color:var(--color-primary);font-weight:600;font-size:15px">Explora</li>
+      <li style="padding:6px 0 6px 14px;margin-left:-2px;border-left:2px solid transparent;color:var(--color-fg-muted);font-size:15px">Al robot</li>
+      <li style="padding:6px 0 6px 14px;margin-left:-2px;border-left:2px solid transparent;color:var(--color-fg-muted);font-size:15px">Verifica</li>
+      <li style="padding:6px 0 6px 14px;margin-left:-2px;border-left:2px solid transparent;color:var(--color-fg-muted);font-size:15px">Profundiza</li>
+    </ol>
+    <div style="margin-top:24px;font-size:13px;color:var(--color-fg-muted);display:flex;flex-direction:column;gap:4px"><span>Tema 3 de 4</span><span style="font-family:var(--font-mono)">≈ 30 min</span></div>
+  </aside>
+
+  <article style="min-width:0">
+    <p style="margin:0 0 8px;font-family:var(--font-mono);font-size:13px;letter-spacing:.04em;color:var(--color-fg-muted)">1.3 · Cinemática</p>
+    <h1 style="margin:0 0 40px;font-size:var(--text-2xl);line-height:1.2;font-weight:600;text-wrap:pretty;max-width:30ch">Velocidad angular y velocidad lineal de una rueda</h1>
+
+    <section style="margin-bottom:48px;max-width:72ch">
+      <h2 style="margin:0 0 12px;font-size:var(--text-lg);font-weight:600;display:flex;gap:12px;align-items:baseline"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted);font-weight:400">01</span>Gancho</h2>
+      <p style="margin:0;font-size:17px;text-wrap:pretty">Tu robot tiene ruedas de 33 mm de radio. Si el motor gira a 200 rpm, ¿alcanza a recorrer la pista de 4 m en menos de 10 segundos? Al final de este tema vas a poder responderlo con una fórmula y verificarlo en el simulador.</p>
+    </section>
+
+    <section style="margin-bottom:48px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:start">
+      <div style="max-width:72ch">
+        <h2 style="margin:0 0 12px;font-size:var(--text-lg);font-weight:600;display:flex;gap:12px;align-items:baseline"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted);font-weight:400">02</span>Concepto</h2>
+        <p style="margin:0 0 12px;text-wrap:pretty">Una rueda que gira sin deslizar convierte rotación en traslación. La <strong>velocidad angular</strong> ω mide cuántos radianes gira por segundo; la <strong>velocidad lineal</strong> v del punto de contacto (y del centro de la rueda) es esa rotación multiplicada por el radio.</p>
+        <p style="margin:0;text-wrap:pretty">La relación es lineal: duplicar el radio duplica la velocidad para la misma ω. Por eso el radio de la rueda es uno de los parámetros de <em>Mi robot</em>.</p>
+      </div>
+      <div>
+        <h2 style="margin:0 0 12px;font-size:var(--text-lg);font-weight:600;display:flex;gap:12px;align-items:baseline"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted);font-weight:400">03</span>Fórmulas</h2>
+        <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:20px 24px">
+          <div style="font-family:'Latin Modern Math','STIX Two Math','Cambria Math',serif;font-size:28px;text-align:center;padding:12px 0 20px;font-style:italic">v = ω · r</div>
+          <dl style="margin:0;display:grid;grid-template-columns:auto 1fr auto;gap:6px 16px;font-size:14px;border-top:1px solid var(--color-border);padding-top:14px">
+            <dt style="font-family:var(--font-mono);font-style:italic">v</dt><dd style="margin:0;color:var(--color-fg-muted)">velocidad lineal</dd><dd style="margin:0;font-family:var(--font-mono);color:var(--color-fg-muted)">m/s</dd>
+            <dt style="font-family:var(--font-mono);font-style:italic">ω</dt><dd style="margin:0;color:var(--color-fg-muted)">velocidad angular</dd><dd style="margin:0;font-family:var(--font-mono);color:var(--color-fg-muted)">rad/s</dd>
+            <dt style="font-family:var(--font-mono);font-style:italic">r</dt><dd style="margin:0;color:var(--color-fg-muted)">radio de la rueda</dd><dd style="margin:0;font-family:var(--font-mono);color:var(--color-fg-muted)">m</dd>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-bottom:48px">
+      <h2 style="margin:0 0 12px;font-size:var(--text-lg);font-weight:600;display:flex;gap:12px;align-items:baseline"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted);font-weight:400">04</span>Explora</h2>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 300px;background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden">
+        <div style="position:relative;min-height:320px;background-image:linear-gradient(var(--sim-grid) 1px,transparent 1px),linear-gradient(90deg,var(--sim-grid) 1px,transparent 1px);background-size:24px 24px;display:flex;align-items:center;justify-content:center;border-right:1px solid var(--color-border)">
+          <svg viewBox="0 0 360 240" style="width:100%;max-width:360px;height:auto;padding:0 12px;box-sizing:border-box">
+            <line x1="0" y1="200" x2="360" y2="200" stroke="var(--sim-axis)" stroke-width="1.5"></line>
+            <circle cx="120" cy="120" r="80" fill="none" stroke="var(--color-physical)" stroke-width="6"></circle>
+            <circle cx="120" cy="120" r="6" fill="var(--color-fg)"></circle>
+            <line x1="120" y1="120" x2="176" y2="63" stroke="var(--color-fg-muted)" stroke-width="2"></line>
+            <line x1="120" y1="120" x2="63" y2="177" stroke="var(--color-fg-muted)" stroke-width="2"></line>
+            <line x1="120" y1="120" x2="176" y2="177" stroke="var(--color-fg-muted)" stroke-width="2"></line>
+            <line x1="120" y1="120" x2="63" y2="63" stroke="var(--color-fg-muted)" stroke-width="2"></line>
+            <path d="M 200 120 A 80 80 0 0 0 120 40" fill="none" stroke="var(--color-data-1)" stroke-width="2" stroke-dasharray="4 4"></path>
+            <line x1="120" y1="120" x2="300" y2="120" stroke="var(--color-vector-velocity)" stroke-width="3"></line>
+            <polygon points="300,112 316,120 300,128" fill="var(--color-vector-velocity)"></polygon>
+            <text x="250" y="108" font-family="var(--font-mono)" font-size="14" fill="var(--color-vector-velocity)">v = 0.69 m/s</text>
+            <text x="140" y="34" font-family="var(--font-mono)" font-size="14" fill="var(--color-data-1)">ω = 20.9 rad/s</text>
+            <text x="126" y="150" font-family="var(--font-mono)" font-size="13" fill="var(--color-fg-muted)">r</text>
+          </svg>
+          <div style="position:absolute;left:16px;bottom:12px;display:flex;gap:6px;align-items:center">
+            <button style="height:36px;padding:0 12px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-size:14px;font-weight:500">Reproducir</button>
+            <button style="height:36px;padding:0 12px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-size:14px;font-weight:500">Paso</button>
+            <button style="height:36px;padding:0 12px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-size:14px;font-weight:500">Reiniciar</button>
+            <span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted);margin-left:8px">1×</span>
+          </div>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:20px">
+          <label style="display:block">
+            <span style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px"><span>Velocidad angular <span style="font-family:var(--font-mono);font-style:italic">ω</span></span><span style="font-family:var(--font-mono);font-variant-numeric:tabular-nums;border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:0 6px;background:var(--color-bg)">20.9 <span style="color:var(--color-fg-muted)">rad/s</span></span></span>
+            <span style="display:block;position:relative;height:24px"><span style="position:absolute;top:10px;left:0;right:0;height:4px;border-radius:2px;background:var(--color-border)"></span><span style="position:absolute;top:10px;left:0;width:42%;height:4px;border-radius:2px;background:var(--color-primary)"></span><span style="position:absolute;top:2px;left:calc(42% - 10px);width:20px;height:20px;border-radius:50%;background:var(--color-bg-raised);border:2px solid var(--color-primary);box-sizing:border-box;box-shadow:var(--shadow-sm)"></span></span>
+            <span style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:12px;color:var(--color-fg-muted)"><span>0</span><span>50</span></span>
+          </label>
+          <label style="display:block">
+            <span style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px"><span>Radio <span style="font-family:var(--font-mono);font-style:italic">r</span></span><span style="font-family:var(--font-mono);font-variant-numeric:tabular-nums;border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:0 6px;background:var(--color-bg)">0.033 <span style="color:var(--color-fg-muted)">m</span></span></span>
+            <span style="display:block;position:relative;height:24px"><span style="position:absolute;top:10px;left:0;right:0;height:4px;border-radius:2px;background:var(--color-border)"></span><span style="position:absolute;top:10px;left:0;width:28%;height:4px;border-radius:2px;background:var(--color-primary)"></span><span style="position:absolute;top:2px;left:calc(28% - 10px);width:20px;height:20px;border-radius:50%;background:var(--color-bg-raised);border:2px solid var(--color-primary);box-sizing:border-box;box-shadow:var(--shadow-sm)"></span></span>
+            <span style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:12px;color:var(--color-fg-muted)"><span>0.010</span><span>0.100</span></span>
+          </label>
+          <div style="border-top:1px solid var(--color-border);padding-top:16px;margin-top:auto">
+            <p style="margin:0 0 4px;font-size:13px;color:var(--color-fg-muted)">Velocidad lineal</p>
+            <p style="margin:0;font-family:var(--font-mono);font-size:var(--text-xl);font-weight:500;font-variant-numeric:tabular-nums;color:var(--color-vector-velocity)">0.69 <span style="font-size:16px;color:var(--color-fg-muted)">m/s</span></p>
+          </div>
+          <a href="#" style="font-size:14px;text-decoration:none">Usar los valores de Mi robot</a>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-bottom:48px;max-width:72ch">
+      <h2 style="margin:0 0 12px;font-size:var(--text-lg);font-weight:600;display:flex;gap:12px;align-items:baseline"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted);font-weight:400">05</span>Al robot</h2>
+      <p style="margin:0 0 16px;text-wrap:pretty">Con las ruedas de tu robot (r = 0.033 m) y el motor a 200 rpm (ω = 20.9 rad/s), la velocidad lineal es 0.69 m/s: la pista de 4 m se recorre en 5.8 s si no hay curvas. Compruébalo en el simulador con el controlador desactivado.</p>
+      <button onClick="{{ goSim }}" style="height:44px;padding:0 20px;border-radius:var(--radius-md);border:1px solid var(--color-physical);background:var(--color-physical);color:var(--color-physical-fg);font-weight:600;font-size:16px;display:inline-flex;align-items:center;gap:10px"><span style="width:14px;height:9px;border-radius:2px;background:var(--color-physical-fg);opacity:.9"></span>Abrir en simulador</button>
+    </section>
+
+    <section style="margin-bottom:48px;max-width:72ch">
+      <h2 style="margin:0 0 12px;font-size:var(--text-lg);font-weight:600;display:flex;gap:12px;align-items:baseline"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted);font-weight:400">06</span>Verifica</h2>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:20px 24px">
+          <p style="margin:0 0 12px"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted);margin-right:8px">E1</span>Una rueda de r = 0.05 m gira a ω = 12 rad/s. ¿Cuál es v?</p>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <span style="display:inline-flex;align-items:center;height:40px;border:1px solid var(--color-success);border-radius:var(--radius-md);padding:0 12px;font-family:var(--font-mono);font-variant-numeric:tabular-nums;background:var(--color-bg)">0.6 <span style="color:var(--color-fg-muted);margin-left:6px">m/s</span></span>
+            <button style="height:40px;padding:0 16px;border-radius:var(--radius-md);border:1px solid var(--color-border);background:transparent;color:var(--color-fg-muted);font-weight:500">Comprobar</button>
+            <span style="display:inline-flex;align-items:center;gap:8px;color:var(--color-success);font-weight:600;font-size:15px"><span style="width:18px;height:18px;border-radius:50%;border:2px solid var(--color-success);display:inline-flex;align-items:center;justify-content:center;font-size:12px;line-height:1">✓</span>Correcto</span>
+          </div>
+        </div>
+        <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:20px 24px">
+          <p style="margin:0 0 12px"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted);margin-right:8px">E2</span>Tu robot debe ir a 1 m/s con r = 0.033 m. ¿Qué ω necesita el motor?</p>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <span style="display:inline-flex;align-items:center;height:40px;border:1px solid var(--color-error);border-radius:var(--radius-md);padding:0 12px;font-family:var(--font-mono);font-variant-numeric:tabular-nums;background:var(--color-bg)">26.5 <span style="color:var(--color-fg-muted);margin-left:6px">rad/s</span></span>
+            <button style="height:40px;padding:0 16px;border-radius:var(--radius-md);border:1px solid var(--color-primary);background:var(--color-primary);color:var(--color-primary-fg);font-weight:600">Comprobar</button>
+            <span style="display:inline-flex;align-items:center;gap:8px;color:var(--color-error);font-weight:600;font-size:15px"><span style="width:18px;height:18px;border-radius:50%;border:2px solid var(--color-error);display:inline-flex;align-items:center;justify-content:center;font-size:12px;line-height:1">✕</span>Incorrecto · fuera por 12 %</span>
+          </div>
+          <p style="margin:12px 0 0;font-size:14px;color:var(--color-fg-muted)">Revisa la operación: ω = v / r. Intento 1 de 3.</p>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-bottom:48px;max-width:72ch">
+      <h2 style="margin:0 0 12px;font-size:var(--text-lg);font-weight:600;display:flex;gap:12px;align-items:baseline"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted);font-weight:400">07</span>Profundiza</h2>
+      <ul style="margin:0;padding-left:20px;color:var(--color-fg-muted);display:flex;flex-direction:column;gap:6px">
+        <li><a href="#" style="text-decoration:none">Deslizamiento: cuándo v ≠ ω·r</a></li>
+        <li><a href="#" style="text-decoration:none">Conversión rpm → rad/s, con ejemplos de motores comunes</a></li>
+        <li><a href="#" style="text-decoration:none">Encoders: medir ω en el robot real</a></li>
+      </ul>
+    </section>
+
+    <nav style="display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--color-border);padding-top:24px">
+      <a href="#" style="text-decoration:none;display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;color:var(--color-fg-muted)">← Anterior</span><span style="font-weight:600">1.2 Posición y desplazamiento</span></a>
+      <a href="#" style="text-decoration:none;display:flex;flex-direction:column;gap:2px;text-align:right"><span style="font-size:13px;color:var(--color-fg-muted)">Siguiente →</span><span style="font-weight:600">1.4 Cinemática diferencial</span></a>
+    </nav>
+  </article>
+</main>
+</sc-if>
+
+<!-- ============ 4 SIMULADOR 2D ============ -->
+<sc-if value="{{ isSim }}" hint-placeholder-val="{{ false }}">
+<main data-screen-label="04 Simulador 2D" style="flex:1;padding:24px 32px 40px;display:grid;grid-template-columns:minmax(0,1fr) 340px;grid-template-rows:auto 1fr;gap:20px 24px;box-sizing:border-box">
+  <div style="grid-column:1 / -1;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <h1 style="margin:0;font-size:var(--text-xl);font-weight:600">Simulador móvil 2D</h1>
+    <span style="font-size:14px;color:var(--color-fg-muted)">Pista: óvalo 4 m · Seguidor de línea</span>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+      <button style="height:40px;padding:0 14px;border-radius:var(--radius-sm);border:1px solid var(--color-primary);background:var(--color-primary);color:var(--color-primary-fg);font-size:14px;font-weight:600">Reproducir</button>
+      <button style="height:40px;padding:0 14px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-size:14px;font-weight:500">Pausa</button>
+      <button style="height:40px;padding:0 14px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-size:14px;font-weight:500">Paso</button>
+      <button style="height:40px;padding:0 14px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-size:14px;font-weight:500">Reiniciar</button>
+      <span style="display:inline-flex;align-items:center;height:40px;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-bg-raised);padding:0 10px;font-family:var(--font-mono);font-size:14px;gap:8px;margin-left:8px"><span style="color:var(--color-fg-muted)">Velocidad</span>1×</span>
+      <span style="display:inline-flex;align-items:center;height:40px;padding:0 12px;font-family:var(--font-mono);font-size:14px;font-variant-numeric:tabular-nums;color:var(--color-fg-muted);gap:8px">t <span style="color:var(--color-fg)">07.42 s</span></span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-rows:minmax(0,1fr) 200px;gap:20px;min-width:0">
+    <div style="position:relative;background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden;min-height:420px;background-image:linear-gradient(var(--sim-grid) 1px,transparent 1px),linear-gradient(90deg,var(--sim-grid) 1px,transparent 1px);background-size:40px 40px">
+      <svg viewBox="0 0 800 460" style="position:absolute;inset:0;width:100%;height:100%">
+        <rect x="120" y="70" width="560" height="320" rx="160" fill="none" stroke="var(--sim-track)" stroke-width="10"></rect>
+        <path d="M 400 70 A 280 160 0 0 1 680 230" fill="none" stroke="var(--sim-trace)" stroke-width="2" stroke-dasharray="5 5"></path>
+        <line x1="40" y1="420" x2="120" y2="420" stroke="var(--sim-axis)" stroke-width="2"></line>
+        <text x="130" y="425" font-family="var(--font-mono)" font-size="12" fill="var(--sim-axis)">0.5 m</text>
+        <g transform="translate(672,226) rotate(70)">
+          <rect x="-34" y="-22" width="68" height="44" rx="6" fill="var(--sim-robot)"></rect>
+          <rect x="-14" y="-30" width="28" height="8" rx="2" fill="var(--color-fg)"></rect>
+          <rect x="-14" y="22" width="28" height="8" rx="2" fill="var(--color-fg)"></rect>
+          <circle cx="30" cy="-12" r="5" fill="var(--sim-sensor-on)"></circle>
+          <circle cx="30" cy="12" r="5" fill="var(--sim-sensor-off)"></circle>
+          <line x1="0" y1="0" x2="80" y2="0" stroke="var(--color-vector-velocity)" stroke-width="3"></line>
+          <polygon points="80,-6 92,0 80,6" fill="var(--color-vector-velocity)"></polygon>
+        </g>
+      </svg>
+      <div style="position:absolute;left:16px;top:14px;display:flex;gap:16px;font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted)">
+        <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:var(--sim-sensor-on)"></span>S izq · 1</span>
+        <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:var(--sim-sensor-off)"></span>S der · 0</span>
+        <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:3px;background:var(--color-vector-velocity)"></span>v</span>
+        <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:0;border-top:2px dashed var(--sim-trace)"></span>traza</span>
+      </div>
+      <div style="position:absolute;right:16px;bottom:14px;background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:10px 14px;box-shadow:var(--shadow-sm)">
+        <p style="margin:0;font-size:12px;color:var(--color-fg-muted)">Tiempo de vuelta</p>
+        <p style="margin:0;font-family:var(--font-mono);font-size:var(--text-xl);font-weight:500;font-variant-numeric:tabular-nums;line-height:1.2">12.84 <span style="font-size:14px;color:var(--color-fg-muted)">s</span></p>
+        <p style="margin:2px 0 0;font-family:var(--font-mono);font-size:12px;color:var(--color-fg-muted)">mejor 12.31 s · vuelta 3</p>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px">
+      <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:14px 16px;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="font-weight:600">Error de línea</span><span style="font-family:var(--font-mono);color:var(--color-fg-muted)">e(t) · m</span></div>
+        <svg viewBox="0 0 400 110" preserveAspectRatio="none" style="flex:1;width:100%">
+          <line x1="0" y1="55" x2="400" y2="55" stroke="var(--sim-axis)" stroke-width="1"></line>
+          <line x1="0" y1="10" x2="400" y2="10" stroke="var(--sim-grid)" stroke-width="1"></line>
+          <line x1="0" y1="100" x2="400" y2="100" stroke="var(--sim-grid)" stroke-width="1"></line>
+          <polyline points="0,55 30,20 60,80 90,40 120,64 150,48 180,60 210,52 240,57 270,53 300,56 330,54 360,55 400,55" fill="none" stroke="var(--color-data-1)" stroke-width="2" stroke-linejoin="round"></polyline>
+        </svg>
+        <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--color-fg-muted)"><span>0 s</span><span>8 s</span></div>
+      </div>
+      <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:14px 16px;display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="font-weight:600">Velocidad de ruedas</span><span style="display:flex;gap:10px;font-family:var(--font-mono);color:var(--color-fg-muted)"><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:3px;background:var(--color-data-2)"></span>izq</span><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:3px;background:var(--color-data-3)"></span>der</span></span></div>
+        <svg viewBox="0 0 400 110" preserveAspectRatio="none" style="flex:1;width:100%">
+          <line x1="0" y1="100" x2="400" y2="100" stroke="var(--sim-axis)" stroke-width="1"></line>
+          <line x1="0" y1="55" x2="400" y2="55" stroke="var(--sim-grid)" stroke-width="1"></line>
+          <polyline points="0,100 40,40 80,30 120,50 160,36 200,42 240,38 280,44 320,40 360,42 400,41" fill="none" stroke="var(--color-data-2)" stroke-width="2" stroke-linejoin="round"></polyline>
+          <polyline points="0,100 40,60 80,66 120,44 160,58 200,52 240,56 280,50 320,54 360,52 400,53" fill="none" stroke="var(--color-data-3)" stroke-width="2" stroke-linejoin="round"></polyline>
+        </svg>
+        <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--color-fg-muted)"><span>0 s</span><span>8 s</span></div>
+      </div>
+    </div>
+  </div>
+
+  <aside style="display:flex;flex-direction:column;gap:16px;min-width:0">
+    <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:16px 20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2 style="margin:0;font-size:15px;font-weight:600">Robot</h2><span style="font-size:13px;color:var(--color-fg-muted)">Mi robot</span></div>
+      <dl style="margin:0;display:grid;grid-template-columns:1fr auto;gap:8px 12px;font-size:14px">
+        <dt style="color:var(--color-fg-muted)">Masa</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">0.85 kg</dd>
+        <dt style="color:var(--color-fg-muted)">Radio de rueda</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">0.033 m</dd>
+        <dt style="color:var(--color-fg-muted)">Separación</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">0.140 m</dd>
+        <dt style="color:var(--color-fg-muted)">v máx</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">0.90 m/s</dd>
+        <dt style="color:var(--color-fg-muted)">Sensores</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">2 · 18 mm</dd>
+      </dl>
+    </div>
+    <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:16px 20px">
+      <h2 style="margin:0 0 12px;font-size:15px;font-weight:600">Controlador</h2>
+      <div style="display:flex;border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden;margin-bottom:16px;font-size:14px;font-weight:500">
+        <span style="flex:1;text-align:center;padding:8px 0;color:var(--color-fg-muted)">Ninguno</span>
+        <span style="flex:1;text-align:center;padding:8px 0;color:var(--color-fg-muted);border-left:1px solid var(--color-border)">P</span>
+        <span style="flex:1;text-align:center;padding:8px 0;background:var(--color-primary);color:var(--color-primary-fg)">PID</span>
+        <span style="flex:1;text-align:center;padding:8px 0;color:var(--color-fg-muted);border-left:1px solid var(--color-border)">Propio</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{ ganancias }}" as="g" hint-placeholder-count="3">
+          <label style="display:block">
+            <span style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span style="font-family:var(--font-mono)">{{ g.nombre }}</span><span style="font-family:var(--font-mono);font-variant-numeric:tabular-nums;border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:0 6px;background:var(--color-bg)">{{ g.valor }}</span></span>
+            <span style="display:block;position:relative;height:20px"><span style="position:absolute;top:8px;left:0;right:0;height:4px;border-radius:2px;background:var(--color-border)"></span><span style="position:absolute;top:8px;left:0;width:{{ g.pct }};height:4px;border-radius:2px;background:var(--color-primary)"></span><span style="position:absolute;top:0;left:calc({{ g.pct }} - 10px);width:20px;height:20px;border-radius:50%;background:var(--color-bg-raised);border:2px solid var(--color-primary);box-sizing:border-box"></span></span>
+          </label>
+        </sc-for>
+      </div>
+    </div>
+    <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:16px 20px">
+      <h2 style="margin:0 0 10px;font-size:15px;font-weight:600">Lecturas</h2>
+      <dl style="margin:0;display:grid;grid-template-columns:1fr auto;gap:8px 12px;font-size:14px">
+        <dt style="color:var(--color-fg-muted)">Posición (x, y)</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">(1.62, 0.41) m</dd>
+        <dt style="color:var(--color-fg-muted)">Orientación θ</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">70.3°</dd>
+        <dt style="color:var(--color-fg-muted)">v</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--color-vector-velocity)">0.64 m/s</dd>
+        <dt style="color:var(--color-fg-muted)">Error e</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">−0.004 m</dd>
+      </dl>
+    </div>
+  </aside>
+</main>
+</sc-if>
+
+<!-- ============ 5 BRAZO 3D ============ -->
+<sc-if value="{{ isBrazo }}" hint-placeholder-val="{{ false }}">
+<main data-screen-label="05 Brazo 3D" style="flex:1;padding:24px 32px 40px;display:grid;grid-template-columns:minmax(0,1fr) 360px;grid-template-rows:auto 1fr;gap:20px 24px;box-sizing:border-box">
+  <div style="grid-column:1 / -1;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <h1 style="margin:0;font-size:var(--text-xl);font-weight:600">Simulador de brazo 3D</h1>
+    <span style="font-size:14px;color:var(--color-fg-muted)">3 GDL · planar + base giratoria</span>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+      <button style="height:40px;padding:0 14px;border-radius:var(--radius-sm);border:1px solid var(--color-primary);background:var(--color-primary);color:var(--color-primary-fg);font-size:14px;font-weight:600">Reproducir</button>
+      <button style="height:40px;padding:0 14px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-size:14px;font-weight:500">Pausa</button>
+      <button style="height:40px;padding:0 14px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-size:14px;font-weight:500">Paso</button>
+      <button style="height:40px;padding:0 14px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-size:14px;font-weight:500">Reiniciar</button>
+      <span style="display:inline-flex;align-items:center;height:40px;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-bg-raised);padding:0 10px;font-family:var(--font-mono);font-size:14px;gap:8px;margin-left:8px"><span style="color:var(--color-fg-muted)">Velocidad</span>1×</span>
+    </div>
+  </div>
+
+  <div style="position:relative;background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden;min-height:520px;background-image:linear-gradient(var(--sim-grid) 1px,transparent 1px),linear-gradient(90deg,var(--sim-grid) 1px,transparent 1px);background-size:40px 40px">
+    <svg viewBox="0 0 800 520" style="position:absolute;inset:0;width:100%;height:100%">
+      <line x1="120" y1="440" x2="700" y2="440" stroke="var(--sim-axis)" stroke-width="1.5"></line>
+      <ellipse cx="300" cy="440" rx="220" ry="40" fill="none" stroke="var(--sim-axis)" stroke-width="1" stroke-dasharray="4 6"></ellipse>
+      <g transform="translate(300,440)">
+        <line x1="0" y1="0" x2="70" y2="0" stroke="var(--color-error)" stroke-width="2.5"></line><text x="76" y="4" font-family="var(--font-mono)" font-size="12" fill="var(--color-error)">x</text>
+        <line x1="0" y1="0" x2="-40" y2="26" stroke="var(--color-success)" stroke-width="2.5"></line><text x="-54" y="38" font-family="var(--font-mono)" font-size="12" fill="var(--color-success)">y</text>
+        <line x1="0" y1="0" x2="0" y2="-70" stroke="var(--color-data-1)" stroke-width="2.5"></line><text x="6" y="-74" font-family="var(--font-mono)" font-size="12" fill="var(--color-data-1)">z</text>
+      </g>
+      <rect x="260" y="420" width="80" height="24" rx="4" fill="var(--color-fg-muted)"></rect>
+      <rect x="284" y="380" width="32" height="44" rx="4" fill="var(--color-fg-muted)"></rect>
+      <line x1="300" y1="380" x2="420" y2="200" stroke="var(--color-physical)" stroke-width="22" stroke-linecap="round"></line>
+      <line x1="420" y1="200" x2="580" y2="240" stroke="var(--color-physical)" stroke-width="18" stroke-linecap="round"></line>
+      <line x1="580" y1="240" x2="640" y2="300" stroke="var(--color-physical)" stroke-width="14" stroke-linecap="round"></line>
+      <circle cx="300" cy="380" r="10" fill="var(--color-fg)"></circle>
+      <circle cx="420" cy="200" r="9" fill="var(--color-fg)"></circle>
+      <circle cx="580" cy="240" r="8" fill="var(--color-fg)"></circle>
+      <g transform="translate(640,300)">
+        <line x1="0" y1="0" x2="40" y2="40" stroke="var(--color-error)" stroke-width="2"></line>
+        <line x1="0" y1="0" x2="-28" y2="20" stroke="var(--color-success)" stroke-width="2"></line>
+        <line x1="0" y1="0" x2="0" y2="-46" stroke="var(--color-data-1)" stroke-width="2"></line>
+        <circle cx="0" cy="0" r="5" fill="var(--color-data-1)"></circle>
+      </g>
+      <text x="300" y="300" font-family="var(--font-mono)" font-size="13" fill="var(--color-fg-muted)">L₁ = 0.30 m</text>
+      <text x="470" y="192" font-family="var(--font-mono)" font-size="13" fill="var(--color-fg-muted)">L₂ = 0.25 m</text>
+      <text x="654" y="298" font-family="var(--font-mono)" font-size="13" fill="var(--color-fg)">efector</text>
+    </svg>
+    <div style="position:absolute;left:16px;top:14px;display:flex;gap:6px">
+      <button style="height:36px;padding:0 12px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-size:14px;font-weight:500">Espacio de trabajo</button>
+      <button style="height:36px;padding:0 12px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-size:14px;font-weight:500">Marcos</button>
+      <button style="height:36px;padding:0 12px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg-muted);font-size:14px;font-weight:500">Vista frontal</button>
+    </div>
+    <p style="position:absolute;left:16px;bottom:12px;margin:0;font-family:var(--font-mono);font-size:12px;color:var(--color-fg-muted)">arrastrar: orbitar · rueda: zoom · doble clic: centrar</p>
+  </div>
+
+  <aside style="display:flex;flex-direction:column;gap:16px;min-width:0">
+    <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:16px 20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><h2 style="margin:0;font-size:15px;font-weight:600">Articulaciones</h2><div style="display:flex;border:1px solid var(--color-border);border-radius:var(--radius-sm);overflow:hidden;font-size:13px;font-weight:500"><span style="padding:3px 10px;background:var(--color-primary);color:var(--color-primary-fg)">Directa</span><span style="padding:3px 10px;color:var(--color-fg-muted)">Inversa</span></div></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{ articulaciones }}" as="q" hint-placeholder-count="3">
+          <label style="display:block">
+            <span style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span><span style="font-family:var(--font-mono)">{{ q.nombre }}</span> <span style="color:var(--color-fg-muted)">{{ q.desc }}</span></span><span style="font-family:var(--font-mono);font-variant-numeric:tabular-nums;border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:0 6px;background:var(--color-bg)">{{ q.valor }} <span style="color:var(--color-fg-muted)">°</span></span></span>
+            <span style="display:block;position:relative;height:20px"><span style="position:absolute;top:8px;left:0;right:0;height:4px;border-radius:2px;background:var(--color-border)"></span><span style="position:absolute;top:8px;left:0;width:{{ q.pct }};height:4px;border-radius:2px;background:var(--color-primary)"></span><span style="position:absolute;top:0;left:calc({{ q.pct }} - 10px);width:20px;height:20px;border-radius:50%;background:var(--color-bg-raised);border:2px solid var(--color-primary);box-sizing:border-box"></span></span>
+            <span style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--color-fg-muted)"><span>{{ q.min }}</span><span>{{ q.max }}</span></span>
+          </label>
+        </sc-for>
+      </div>
+    </div>
+    <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:16px 20px">
+      <h2 style="margin:0 0 10px;font-size:15px;font-weight:600">Efector final</h2>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px">
+        <div style="background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:8px 10px"><p style="margin:0;font-size:12px;color:var(--color-fg-muted)">x</p><p style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:15px">0.412 <span style="font-size:11px;color:var(--color-fg-muted)">m</span></p></div>
+        <div style="background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:8px 10px"><p style="margin:0;font-size:12px;color:var(--color-fg-muted)">y</p><p style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:15px">0.148 <span style="font-size:11px;color:var(--color-fg-muted)">m</span></p></div>
+        <div style="background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:8px 10px"><p style="margin:0;font-size:12px;color:var(--color-fg-muted)">z</p><p style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:15px">0.226 <span style="font-size:11px;color:var(--color-fg-muted)">m</span></p></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+        <div style="background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:8px 10px"><p style="margin:0;font-size:12px;color:var(--color-fg-muted)">roll</p><p style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:15px">0.0<span style="font-size:11px;color:var(--color-fg-muted)">°</span></p></div>
+        <div style="background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:8px 10px"><p style="margin:0;font-size:12px;color:var(--color-fg-muted)">pitch</p><p style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:15px">−41.5<span style="font-size:11px;color:var(--color-fg-muted)">°</span></p></div>
+        <div style="background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:8px 10px"><p style="margin:0;font-size:12px;color:var(--color-fg-muted)">yaw</p><p style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:15px">20.0<span style="font-size:11px;color:var(--color-fg-muted)">°</span></p></div>
+      </div>
+    </div>
+    <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:16px 20px">
+      <button style="width:100%;display:flex;justify-content:space-between;align-items:center;border:0;background:transparent;padding:0;color:var(--color-fg);font-size:15px;font-weight:600;min-height:24px"><span>Matrices de transformación</span><span style="font-size:13px;color:var(--color-fg-muted);font-weight:400">ocultar ▴</span></button>
+      <p style="margin:12px 0 6px;font-family:var(--font-mono);font-size:12px;color:var(--color-fg-muted)">⁰T₃ = ⁰T₁ · ¹T₂ · ²T₃</p>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px 12px;font-family:var(--font-mono);font-size:13px;font-variant-numeric:tabular-nums;text-align:right;background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:10px 14px">
+        <span>0.712</span><span>−0.342</span><span>0.612</span><span style="color:var(--color-data-1)">0.412</span>
+        <span>0.259</span><span>0.940</span><span>0.224</span><span style="color:var(--color-data-1)">0.148</span>
+        <span>−0.652</span><span>0.000</span><span>0.758</span><span style="color:var(--color-data-1)">0.226</span>
+        <span style="color:var(--color-fg-muted)">0</span><span style="color:var(--color-fg-muted)">0</span><span style="color:var(--color-fg-muted)">0</span><span style="color:var(--color-fg-muted)">1</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px;font-size:13px"><span style="padding:2px 8px;border-radius:999px;background:var(--color-bg);border:1px solid var(--color-border);color:var(--color-fg-muted)">⁰T₁</span><span style="padding:2px 8px;border-radius:999px;background:var(--color-bg);border:1px solid var(--color-border);color:var(--color-fg-muted)">¹T₂</span><span style="padding:2px 8px;border-radius:999px;background:var(--color-bg);border:1px solid var(--color-border);color:var(--color-fg-muted)">²T₃</span><span style="padding:2px 8px;border-radius:999px;background:var(--color-fg);color:var(--color-bg)">⁰T₃</span></div>
+    </div>
+  </aside>
+</main>
+</sc-if>
+
+<!-- ============ 6 AULA ============ -->
+<sc-if value="{{ isAula }}" hint-placeholder-val="{{ false }}">
+<main data-screen-label="06 Aula" style="flex:1;max-width:1240px;width:100%;margin:0 auto;padding:32px 40px 64px;box-sizing:border-box;display:grid;grid-template-columns:260px minmax(0,1fr);gap:32px;align-items:start">
+  <aside style="display:flex;flex-direction:column;gap:16px">
+    <div>
+      <p style="margin:0 0 8px;font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted)">Grupos</p>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <sc-for list="{{ grupos }}" as="g" hint-placeholder-count="3">
+          <a href="#" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-radius:var(--radius-md);text-decoration:none;color:var(--color-fg);background:{{ g.bg }};border:1px solid {{ g.border }};min-height:44px;box-sizing:border-box"><span style="font-weight:500;font-size:15px">{{ g.nombre }}</span><span style="font-family:var(--font-mono);font-size:12px;color:var(--color-fg-muted)">{{ g.n }}</span></a>
+        </sc-for>
+      </div>
+      <button style="margin-top:8px;width:100%;height:40px;border-radius:var(--radius-md);border:1px dashed var(--color-border);background:transparent;color:var(--color-fg-muted);font-size:14px">+ Nuevo grupo</button>
+    </div>
+    <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:16px 20px">
+      <p style="margin:0 0 6px;font-size:13px;color:var(--color-fg-muted)">Código de invitación</p>
+      <p style="margin:0 0 10px;font-family:var(--font-mono);font-size:var(--text-xl);letter-spacing:.08em;font-weight:500">TRY-4K2P</p>
+      <div style="display:flex;gap:8px"><button style="flex:1;height:36px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg);color:var(--color-fg);font-size:14px;font-weight:500">Copiar</button><button style="flex:1;height:36px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg);color:var(--color-fg);font-size:14px;font-weight:500">Regenerar</button></div>
+      <p style="margin:10px 0 0;font-size:13px;color:var(--color-fg-muted)">Vence en 6 días · 24 unidos</p>
+    </div>
+  </aside>
+
+  <section style="min-width:0">
+    <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:4px;flex-wrap:wrap">
+      <h1 style="margin:0;font-size:var(--text-2xl);font-weight:600">Mecatrónica 2026-2 · Grupo A</h1>
+      <span style="font-size:14px;color:var(--color-fg-muted)">24 estudiantes · actualizado hace 3 min</span>
+      <button style="margin-left:auto;height:40px;padding:0 16px;border-radius:var(--radius-md);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-size:14px;font-weight:600">Exportar CSV</button>
+    </div>
+    <div style="display:flex;gap:20px;font-size:14px;color:var(--color-fg-muted);margin:12px 0 20px;flex-wrap:wrap">
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:var(--color-success)"></span>Completado</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:var(--color-primary)"></span>En curso</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:var(--color-error)"></span>Con errores (≥3 intentos)</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;border:1px solid var(--color-border);box-sizing:border-box"></span>Pendiente</span>
+    </div>
+    <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:auto">
+      <table style="border-collapse:collapse;width:100%;font-size:14px;min-width:760px">
+        <thead>
+          <tr style="border-bottom:1px solid var(--color-border)">
+            <th style="text-align:left;padding:12px 16px;font-weight:600;position:sticky;left:0;background:var(--color-bg-raised)">Estudiante</th>
+            <sc-for list="{{ temasAula }}" as="t" hint-placeholder-count="8">
+              <th style="padding:12px 6px;font-family:var(--font-mono);font-weight:500;font-size:12px;color:var(--color-fg-muted);text-align:center;white-space:nowrap">{{ t }}</th>
+            </sc-for>
+            <th style="text-align:right;padding:12px 16px;font-weight:600">Avance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <sc-for list="{{ estudiantes }}" as="e" hint-placeholder-count="8">
+            <tr style="border-bottom:1px solid var(--color-border)">
+              <td style="padding:0 16px;height:44px;position:sticky;left:0;background:var(--color-bg-raised);white-space:nowrap">{{ e.nombre }}</td>
+              <sc-for list="{{ e.estados }}" as="s" hint-placeholder-count="8">
+                <td style="padding:0 6px;text-align:center"><span title="{{ s.title }}" style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:var(--radius-sm);background:{{ s.bg }};border:1px solid {{ s.border }};color:{{ s.fg }};font-size:12px;font-weight:700;font-family:var(--font-mono)">{{ s.glifo }}</span></td>
+              </sc-for>
+              <td style="padding:0 16px;text-align:right;font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--color-fg-muted)">{{ e.avance }}</td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin:12px 0 0;font-size:13px;color:var(--color-fg-muted)">Mostrando 8 de 24 · módulos 1–2. Los estados se leen también con letra: C completado, E en curso, ✕ con errores.</p>
+  </section>
+</main>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { screen: 'inicio', theme: 'light' };
+  componentDidMount() { document.documentElement.setAttribute('data-theme', this.state.theme); window.__tray = (screen, theme) => this.setState({ screen, theme }); }
+  componentDidUpdate() { document.documentElement.setAttribute('data-theme', this.state.theme); }
+  go(s) { return (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ screen: s }); window.scrollTo(0, 0); }; }
+  renderVals() {
+    const s = this.state.screen;
+    const c = (v) => `var(--color-${v})`;
+    const estadoColor = { 'Completado': c('success'), 'En curso': c('primary'), 'Pendiente': c('fg-muted') };
+    const tema = (nombre, min, st) => ({ nombre, min: min + ' min', color: st === 'c' ? c('success') : st === 'e' ? c('primary') : 'transparent', border: st === 'p' ? c('border') : 'transparent' });
+    const modulos = [
+      { num: '01', nombre: 'Cinemática', tiempo: '2 h', estado: 'Completado', temas: [tema('Vectores y marcos', 25, 'c'), tema('Posición y desplazamiento', 30, 'c'), tema('Velocidad angular y lineal', 30, 'c'), tema('Cinemática diferencial', 35, 'c')] },
+      { num: '02', nombre: 'Dinámica', tiempo: '2.5 h', estado: 'En curso', temas: [tema('Leyes de Newton en el robot', 30, 'c'), tema('Fricción y torque en la rueda', 25, 'e'), tema('Energía y potencia del motor', 30, 'p'), tema('Momento de inercia', 35, 'p'), tema('Modelo dinámico completo', 40, 'p')] },
+      { num: '03', nombre: 'Sensores y señales', tiempo: '2 h', estado: 'Pendiente', temas: [tema('Sensor óptico de línea', 25, 'p'), tema('Muestreo y ruido', 30, 'p'), tema('Filtros simples', 30, 'p'), tema('Encoders y odometría', 35, 'p')] },
+      { num: '04', nombre: 'Control', tiempo: '3 h', estado: 'Pendiente', temas: [tema('Lazo abierto y cerrado', 25, 'p'), tema('Control proporcional', 30, 'p'), tema('PID: integral y derivativo', 40, 'p'), tema('Sintonización', 35, 'p'), tema('Seguidor de línea completo', 40, 'p')] },
+      { num: '05', nombre: 'Álgebra lineal y transformaciones', tiempo: '2.5 h', estado: 'Pendiente', temas: [tema('Matrices y vectores', 30, 'p'), tema('Rotaciones en 2D y 3D', 35, 'p'), tema('Transformaciones homogéneas', 40, 'p')] },
+      { num: '06', nombre: 'Cinemática de brazos', tiempo: '3 h', estado: 'Pendiente', temas: [tema('Articulaciones y eslabones', 25, 'p'), tema('Cinemática directa (DH)', 40, 'p'), tema('Cinemática inversa', 45, 'p'), tema('Espacio de trabajo', 30, 'p'), tema('Jacobiano y velocidades', 40, 'p')] },
+      { num: '07', nombre: 'Proyecto: robot completo', tiempo: '4 h', estado: 'Pendiente', temas: [tema('Integración móvil + brazo', 60, 'p'), tema('Tarea: recoger y depositar', 90, 'p'), tema('Informe y entrega', 60, 'p')] },
+    ].map(m => ({ ...m, temasN: m.temas.length, estadoColor: estadoColor[m.estado] }));
+    const ganancias = [{ nombre: 'Kp', valor: '2.40', pct: '48%' }, { nombre: 'Ki', valor: '0.15', pct: '15%' }, { nombre: 'Kd', valor: '0.60', pct: '30%' }];
+    const articulaciones = [
+      { nombre: 'q₁', desc: 'base', valor: '20.0', pct: '55%', min: '−180°', max: '180°' },
+      { nombre: 'q₂', desc: 'hombro', valor: '56.3', pct: '62%', min: '0°', max: '90°' },
+      { nombre: 'q₃', desc: 'codo', valor: '−97.8', pct: '18%', min: '−150°', max: '0°' },
+    ];
+    const grupos = [
+      { nombre: 'Mecatrónica 2026-2 · A', n: '24', bg: c('bg-raised'), border: c('border') },
+      { nombre: 'Mecatrónica 2026-2 · B', n: '21', bg: 'transparent', border: 'transparent' },
+      { nombre: 'Física II · Nocturno', n: '37', bg: 'transparent', border: 'transparent' },
+    ];
+    const temasAula = ['1.1', '1.2', '1.3', '1.4', '2.1', '2.2', '2.3', '2.4', '2.5'];
+    const est = (k) => ({
+      c: { glifo: 'C', bg: c('success'), border: c('success'), fg: c('bg-raised'), title: 'Completado' },
+      e: { glifo: 'E', bg: c('primary'), border: c('primary'), fg: c('primary-fg'), title: 'En curso' },
+      x: { glifo: '✕', bg: c('error'), border: c('error'), fg: c('bg-raised'), title: 'Con errores' },
+      p: { glifo: '', bg: 'transparent', border: c('border'), fg: c('fg-muted'), title: 'Pendiente' },
+    })[k];
+    const fila = (nombre, pat) => { const arr = pat.split('').map(est); const done = pat.split('').filter(k => k === 'c').length; return { nombre, estados: arr, avance: `${done}/29` }; };
+    const estudiantes = [
+      fila('Ana Lucía Ramírez', 'cccccce pp'.replace(' ', '')), fila('Bruno Castañeda', 'ccccepppp'), fila('Camila Ortiz', 'cccccccce'),
+      fila('Diego Fernández', 'cccxepppp'), fila('Elena Vargas', 'ccccccepp'), fila('Felipe Ñáñez', 'ccepppppp'),
+      fila('Gabriela Suárez', 'ccccccccc'), fila('Héctor Medina', 'cxxpppppp'),
+    ];
+    return {
+      isInicio: s === 'inicio', isRuta: s === 'ruta', isTema: s === 'tema', isSim: s === 'sim', isBrazo: s === 'brazo', isAula: s === 'aula',
+      navRuta: s === 'ruta' || s === 'tema',
+      goInicio: this.go('inicio'), goRuta: this.go('ruta'), goTema: this.go('tema'), goSim: this.go('sim'), goBrazo: this.go('brazo'), goAula: this.go('aula'),
+      toggleTheme: () => this.setState(st => ({ theme: st.theme === 'light' ? 'dark' : 'light' })),
+      themeLabel: this.state.theme === 'light' ? 'Claro' : 'Oscuro',
+      modulos, ganancias, articulaciones, grupos, temasAula, estudiantes,
+    };
+  }
+}
+</script>
+</body>
+</html>
