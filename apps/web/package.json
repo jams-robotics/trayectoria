@@ -16,6 +16,7 @@
     "@astrojs/mdx": "8.0.1",
     "@astrojs/react": "6.0.5",
     "@nanostores/react": "2.0.1",
+    "@trayectoria/i18n": "workspace:*",
     "astro": "7.3.2",
     "nanostores": "1.5.3",
     "react": "19.3.0",

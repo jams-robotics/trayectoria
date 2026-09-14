@@ -1,6 +1,7 @@
 ---
 import type { GetStaticPaths } from 'astro';
 import { getCollection } from 'astro:content';
+import { t } from '@trayectoria/i18n';
 
 import Base from '../../../layouts/Base.astro';
 
@@ -14,7 +15,9 @@ const topics = await getCollection('topics');
 const publishedIds = new Set(topics.map((topic) => topic.id));
 
 // Progress is a placeholder until F3-01: every topic is pending.
-const status = 'Pendiente';
+const status = t('route.pending');
+// The route schema validates data.id as ruta-N; route.id (from the directory) is only for URLs.
+const routeNumber = route.data.id.slice('ruta-'.length);
 const topicCount = route.data.modules.reduce((total, module) => total + module.topics.length, 0);
 const topicHref = (moduleId: string, topicId: string): string =>
   `/ruta/${route.id}/${moduleId}/${topicId.slice(moduleId.length + 1)}`;
@@ -22,20 +25,24 @@ const topicHref = (moduleId: string, topicId: string): string =>
 
 <Base title={route.data.title}>
   <section class="mx-auto max-w-[1120px] px-5 py-9 md:px-8">
-    <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">Ruta 1</p>
+    <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
+      {t('route.eyebrow', { number: routeNumber })}
+    </p>
     <h1 class="text-2xl leading-tight mt-3 max-w-[72ch] font-semibold">{route.data.title}</h1>
     <p class="text-fg-muted mt-3">
       <span class="font-mono">{route.data.modules.length}</span>
-      {' módulos · '}
+      {` ${t('route.modules')} · `}
       <span class="font-mono">{topicCount}</span>
-      {' temas'}
+      {` ${t('route.topics')}`}
     </p>
 
     <ol class="mt-8 grid list-none gap-5 p-0">
       {route.data.modules.map((module) => (
         <li class="bg-bg-raised border-border rounded-lg border p-6">
           <h2 class="text-lg leading-tight m-0 flex items-baseline gap-3 font-semibold">
-            <span class="text-fg-muted font-mono text-xs font-normal">M{module.number}</span>
+            <span class="text-fg-muted font-mono text-xs font-normal">
+              {t('route.moduleNumber', { number: module.number })}
+            </span>
             {module.title}
           </h2>
           <ol class="mt-4 grid list-none gap-2 p-0">

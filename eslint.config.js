@@ -61,6 +61,52 @@ const architectureBoundaries = Object.entries(ALLOWED_IMPORTS).map(([dir, allowe
   };
 });
 
+// docs/ops/I18N.md: widgets render no UI literals; visible text comes from t()/useT() keys.
+const UI_TEXT_ATTRIBUTES = new Set(['aria-label', 'title', 'placeholder', 'alt']);
+
+// Text of a string literal or of a template without expressions; null for anything else.
+function literalText(node) {
+  if (node.type === 'Literal') return typeof node.value === 'string' ? node.value : null;
+  if (node.type === 'TemplateLiteral' && node.expressions.length === 0) {
+    return node.quasis[0]?.value.cooked ?? null;
+  }
+  return null;
+}
+
+const HAS_LETTERS = /\p{L}/u;
+
+const i18nPlugin = {
+  rules: {
+    'no-ui-literals': {
+      meta: {
+        type: 'problem',
+        schema: [],
+        messages: {
+          literal:
+            'UI text must come from t()/useT() with a key in common.json (docs/ops/I18N.md).',
+        },
+      },
+      create(context) {
+        return {
+          JSXText(node) {
+            if (HAS_LETTERS.test(node.value)) context.report({ node, messageId: 'literal' });
+          },
+          JSXAttribute(node) {
+            const name = node.name.type === 'JSXIdentifier' ? node.name.name : '';
+            if (!UI_TEXT_ATTRIBUTES.has(name) || node.value === null) return;
+            const value =
+              node.value.type === 'JSXExpressionContainer' ? node.value.expression : node.value;
+            const text = literalText(value);
+            if (text !== null && HAS_LETTERS.test(text)) {
+              context.report({ node: node.value, messageId: 'literal' });
+            }
+          },
+        };
+      },
+    },
+  },
+};
+
 export default tseslint.config(
   {
     ignores: [
@@ -164,6 +210,11 @@ export default tseslint.config(
     },
   },
   ...architectureBoundaries,
+  {
+    files: ['packages/widgets/**/*.tsx'],
+    plugins: { i18n: i18nPlugin },
+    rules: { 'i18n/no-ui-literals': 'error' },
+  },
   {
     files: ['**/*.test.{ts,tsx}', '**/*.stories.tsx', '**/e2e/**/*.ts'],
     rules: {

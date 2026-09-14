@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "title": "{{title}} · Trayectoria",
+    "description": "Aprende ingeniería aplicada a robótica manipulando cada concepto."
+  },
+  "nav": {
+    "main": "Principal",
+    "home": "Inicio",
+    "route": "Ruta",
+    "simulators": "Simuladores",
+    "arms": "Brazos",
+    "account": "Cuenta",
+    "menu": "Menú"
+  },
+  "theme": {
+    "toggle": "Cambiar entre tema claro y oscuro"
+  },
+  "footer": {
+    "license": "Trayectoria · Licencia MIT · Contenido CC BY-SA",
+    "repository": "Repositorio",
+    "contribute": "Contribuir",
+    "about": "Acerca"
+  },
+  "home": {
+    "title": "Inicio",
+    "eyebrow": "Física · Matemática · Mecánica → Robótica",
+    "headline": "Aprende la teoría manipulándola, y aplícala a un robot que puedes simular.",
+    "lead": "Una ruta de 7 módulos para ingeniería. Cada tema termina en tu robot: primero un móvil 2D, después un brazo articulado.",
+    "startRoute": "Empezar la ruta",
+    "openSimulators": "Abrir simuladores",
+    "tagline": "Open source · en español · sin cuenta para empezar",
+    "route": {
+      "title": "La ruta",
+      "topicCount": "{{topics}} temas",
+      "robot": "Tu robot, simulado y controlado"
+    },
+    "modules": {
+      "tools": "Herramientas",
+      "particleKinematics": "Cinemática de la partícula",
+      "dynamics": "Dinámica",
+      "energy": "Energía",
+      "rotation": "Rotación",
+      "differentialRobot": "Robot diferencial",
+      "lineFollower": "Seguidor de línea"
+    },
+    "features": {
+      "widgets": {
+        "title": "Visualizaciones manipulables",
+        "text": "Cada concepto va junto a un widget: mueves un parámetro y ves qué cambia, con el número y su unidad."
+      },
+      "simulators": {
+        "title": "Dos simuladores",
+        "text": "Un robot móvil 2D con sensores y controlador, y un brazo 3D con cinemática directa. Corren en laptops modestas."
+      },
+      "myRobot": {
+        "title": "Mi robot, de principio a fin",
+        "text": "Los parámetros que defines en el módulo 0 (masa, radio de rueda, sensores) acompañan cada ejercicio y simulación."
+      }
+    },
+    "teachers": {
+      "eyebrow": "Para docentes",
+      "title": "Modo aula",
+      "text": "Crea un grupo con un código de invitación, sigue el avance por tema y estudiante, y exporta los resultados en CSV. Sin puntos ni medallas: solo qué está hecho y qué falta.",
+      "cta": "Ver el aula"
+    }
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "eyebrow": "Error 404",
+    "body": "La dirección no corresponde a ningún tema, simulador ni página de Trayectoria. Puede que el enlace esté mal escrito o que la página todavía no exista.",
+    "home": "Ir al inicio",
+    "route": "Ver la ruta"
+  },
+  "route": {
+    "eyebrow": "Ruta {{number}}",
+    "modules": "módulos",
+    "topics": "temas",
+    "moduleNumber": "M{{number}}",
+    "pending": "Pendiente"
+  },
+  "topic": {
+    "number": "Tema {{module}}.{{order}}",
+    "estimatedTime": "Tiempo estimado",
+    "minutes": "{{minutes}} min",
+    "prerequisites": "Prerrequisitos",
+    "noPrerequisites": "ninguno",
+    "pagination": "Temas anterior y siguiente",
+    "previous": "Anterior",
+    "next": "Siguiente"
+  }
+}

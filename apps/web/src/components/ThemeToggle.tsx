@@ -1,4 +1,5 @@
 import { useStore } from '@nanostores/react';
+import { useT } from '@trayectoria/i18n';
 import type { JSX } from 'react';
 
 import { $theme, toggleTheme } from '../stores/theme';
@@ -48,11 +49,12 @@ function SunIcon(): JSX.Element {
 // and CSS (`dark:` variant on [data-theme]) shows the right one; the label names both states.
 export function ThemeToggle(): JSX.Element {
   useStore($theme);
+  const t = useT();
   return (
     <button
       type="button"
       onClick={toggleTheme}
-      aria-label="Cambiar entre tema claro y oscuro"
+      aria-label={t('theme.toggle')}
       className="text-fg-muted hover:text-fg border-border hover:border-fg-muted bg-bg-raised rounded-md inline-flex h-[44px] w-[44px] items-center justify-center border md:h-8 md:w-8"
     >
       <MoonIcon />

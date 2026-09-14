@@ -1,66 +1,63 @@
 ---
+import { t } from '@trayectoria/i18n';
+
 import ChassisIcon from '../components/ChassisIcon.astro';
 import Base from '../layouts/Base.astro';
 
 // Route 1 as specified in docs/PLAN.md §2 (7 modules, 27 topics).
 const modules = [
-  { name: 'Herramientas', topics: 3 },
-  { name: 'Cinemática de la partícula', topics: 4 },
-  { name: 'Dinámica', topics: 3 },
-  { name: 'Energía', topics: 2 },
-  { name: 'Rotación', topics: 5 },
-  { name: 'Robot diferencial', topics: 5 },
-  { name: 'Seguidor de línea', topics: 5 },
+  { name: t('home.modules.tools'), topics: 3 },
+  { name: t('home.modules.particleKinematics'), topics: 4 },
+  { name: t('home.modules.dynamics'), topics: 3 },
+  { name: t('home.modules.energy'), topics: 2 },
+  { name: t('home.modules.rotation'), topics: 5 },
+  { name: t('home.modules.differentialRobot'), topics: 5 },
+  { name: t('home.modules.lineFollower'), topics: 5 },
 ] as const;
 
 const features = [
   {
     icon: 'circle',
-    title: 'Visualizaciones manipulables',
-    text: 'Cada concepto va junto a un widget: mueves un parámetro y ves qué cambia, con el número y su unidad.',
+    title: t('home.features.widgets.title'),
+    text: t('home.features.widgets.text'),
   },
   {
     icon: 'chassis',
-    title: 'Dos simuladores',
-    text: 'Un robot móvil 2D con sensores y controlador, y un brazo 3D con cinemática directa. Corren en laptops modestas.',
+    title: t('home.features.simulators.title'),
+    text: t('home.features.simulators.text'),
   },
   {
     icon: 'square',
-    title: 'Mi robot, de principio a fin',
-    text: 'Los parámetros que defines en el módulo 0 (masa, radio de rueda, sensores) acompañan cada ejercicio y simulación.',
+    title: t('home.features.myRobot.title'),
+    text: t('home.features.myRobot.text'),
   },
 ] as const;
 ---
 
-<Base title="Inicio">
+<Base title={t('home.title')}>
   <section class="mx-auto max-w-[1120px] px-5 pt-11 pb-9 md:px-8">
     <div class="grid items-start gap-9 lg:grid-cols-[1fr_500px] lg:gap-10">
       <div>
         <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
-          Física · Matemática · Mecánica → Robótica
+          {t('home.eyebrow')}
         </p>
-        <h1 class="text-3xl leading-tight mt-4 max-w-[72ch] font-semibold">
-          Aprende la teoría manipulándola, y aplícala a un robot que puedes simular.
-        </h1>
-        <p class="text-fg-muted text-lg leading-body mt-6 max-w-[72ch]">
-          Una ruta de 7 módulos para ingeniería. Cada tema termina en tu robot: primero un móvil 2D,
-          después un brazo articulado.
-        </p>
+        <h1 class="text-3xl leading-tight mt-4 max-w-[72ch] font-semibold">{t('home.headline')}</h1>
+        <p class="text-fg-muted text-lg leading-body mt-6 max-w-[72ch]">{t('home.lead')}</p>
         <div class="mt-7 flex flex-wrap gap-3">
           <a
             href="/ruta/ruta-1"
             class="bg-primary text-primary-fg border-primary hover:bg-primary-hover rounded-md inline-flex h-[44px] items-center border px-5 font-semibold no-underline"
           >
-            Empezar la ruta
+            {t('home.startRoute')}
           </a>
           <a
             href="/simuladores/movil"
             class="bg-bg-raised text-fg border-border hover:border-fg-muted rounded-md inline-flex h-[44px] items-center border px-5 font-semibold no-underline"
           >
-            Abrir simuladores
+            {t('home.openSimulators')}
           </a>
         </div>
-        <p class="text-fg-muted mt-5 text-sm">Open source · en español · sin cuenta para empezar</p>
+        <p class="text-fg-muted mt-5 text-sm">{t('home.tagline')}</p>
       </div>
 
       <aside class="bg-bg-raised border-border rounded-lg border p-6" aria-labelledby="ruta-titulo">
@@ -68,7 +65,7 @@ const features = [
           id="ruta-titulo"
           class="text-fg-muted m-0 font-mono text-xs font-normal tracking-[0.06em] uppercase"
         >
-          La ruta
+          {t('home.route.title')}
         </h2>
         <ol class="border-border mt-5 ml-2 list-none border-l-2 p-0">
           {modules.map(({ name, topics }) => (
@@ -78,7 +75,9 @@ const features = [
                 aria-hidden="true"
               />
               <span>{name}</span>
-              <span class="text-fg-muted font-mono text-xs">{topics} temas</span>
+              <span class="text-fg-muted font-mono text-xs">
+                {t('home.route.topicCount', { topics })}
+              </span>
             </li>
           ))}
           <li class="relative flex items-center gap-3 py-2 pl-6 font-semibold">
@@ -87,7 +86,7 @@ const features = [
               aria-hidden="true"
             ></span>
             <ChassisIcon />
-            Tu robot, simulado y controlado
+            {t('home.route.robot')}
           </li>
         </ol>
       </aside>
@@ -130,18 +129,17 @@ const features = [
   <section class="bg-bg-raised border-border border-y">
     <div class="mx-auto flex max-w-[1120px] flex-wrap items-center justify-between gap-7 px-5 py-10 md:px-8">
       <div class="max-w-[72ch]">
-        <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">Para docentes</p>
-        <h2 class="text-xl leading-tight mt-3 font-semibold">Modo aula</h2>
-        <p class="text-fg-muted mt-4">
-          Crea un grupo con un código de invitación, sigue el avance por tema y estudiante, y
-          exporta los resultados en CSV. Sin puntos ni medallas: solo qué está hecho y qué falta.
+        <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
+          {t('home.teachers.eyebrow')}
         </p>
+        <h2 class="text-xl leading-tight mt-3 font-semibold">{t('home.teachers.title')}</h2>
+        <p class="text-fg-muted mt-4">{t('home.teachers.text')}</p>
       </div>
       <a
         href="/docentes"
         class="bg-bg-raised text-fg border-border hover:border-fg-muted rounded-md inline-flex h-[44px] items-center border px-5 font-semibold no-underline"
       >
-        Ver el aula
+        {t('home.teachers.cta')}
       </a>
     </div>
   </section>

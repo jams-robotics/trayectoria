@@ -1,4 +1,6 @@
 ---
+import { t } from '@trayectoria/i18n';
+
 import Footer from '../components/Footer.astro';
 import Nav from '../components/Nav.astro';
 import '../styles/global.css';
@@ -8,8 +10,7 @@ interface Props {
   description?: string;
 }
 
-const { title, description = 'Aprende ingeniería aplicada a robótica manipulando cada concepto.' } =
-  Astro.props;
+const { title, description = t('meta.description') } = Astro.props;
 
 // The inline script in <head> applies the saved or system theme before first paint.
 // Its storage key mirrors stores/theme.ts; an inline script cannot import the store.
@@ -49,7 +50,7 @@ const { title, description = 'Aprende ingeniería aplicada a robótica manipulan
       type="font/woff2"
       crossorigin
     />
-    <title>{title} · Trayectoria</title>
+    <title>{t('meta.title', { title })}</title>
     <slot name="head" />
   </head>
   <body class="bg-bg text-fg font-sans flex min-h-dvh flex-col">
