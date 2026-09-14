@@ -122,12 +122,18 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/stores/**/*.{ts,tsx}'],
+    files: ['packages/**/stores/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-globals': [
         'error',
         { name: 'window', message: 'window is only allowed in apps/web.' },
       ],
+    },
+  },
+  {
+    files: ['apps/**/stores/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-globals': 'off',
     },
   },
   {

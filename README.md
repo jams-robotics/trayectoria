@@ -45,14 +45,14 @@ Las dependencias permitidas entre paquetes están en [`docs/ARCHITECTURE.md`](do
 
 ## Scripts
 
-| Comando          | Qué hace                                                                              |
-| ---------------- | ------------------------------------------------------------------------------------- |
-| `pnpm dev`       | Sitio en desarrollo (`apps/web`)                                                      |
-| `pnpm build`     | Build de todos los paquetes                                                           |
-| `pnpm test`      | Vitest en todos los paquetes (`pnpm test -- --filter @trayectoria/sim-core` para uno) |
-| `pnpm lint`      | ESLint                                                                                |
-| `pnpm typecheck` | `tsc --noEmit` en todos los paquetes                                                  |
-| `pnpm format`    | Prettier (`pnpm format:check` solo verifica)                                          |
+| Comando          | Qué hace                                                              |
+| ---------------- | --------------------------------------------------------------------- |
+| `pnpm dev`       | Sitio en desarrollo (`apps/web`)                                      |
+| `pnpm build`     | Build de todos los paquetes                                           |
+| `pnpm test`      | Vitest en todos los paquetes (`pnpm --filter sim-core test` para uno) |
+| `pnpm lint`      | ESLint                                                                |
+| `pnpm typecheck` | `tsc --noEmit` en todos los paquetes                                  |
+| `pnpm format`    | Prettier (`pnpm format:check` solo verifica)                          |
 
 ## Cómo se trabaja
 
