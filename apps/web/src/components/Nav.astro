@@ -1,0 +1,75 @@
+---
+import ChassisIcon from './ChassisIcon.astro';
+import { ThemeToggle } from './ThemeToggle';
+
+const links = [
+  { href: '/', label: 'Inicio' },
+  { href: '/ruta/ruta-1', label: 'Ruta' },
+  { href: '/simuladores/movil', label: 'Simuladores' },
+  { href: '/brazos', label: 'Brazos' },
+  { href: '/cuenta', label: 'Cuenta' },
+] as const;
+
+const { pathname } = Astro.url;
+const isActive = (href: string): boolean =>
+  href === '/' ? pathname === '/' : pathname.startsWith(href);
+---
+
+<header class="bg-bg-raised border-border border-b">
+  <div class="mx-auto flex h-[56px] max-w-[1120px] items-center gap-7 px-5 md:px-8">
+    <a href="/" class="text-fg flex items-center gap-2 text-lg font-semibold no-underline">
+      <ChassisIcon />
+      Trayectoria
+    </a>
+
+    <nav aria-label="Principal" class="contents">
+      <ul
+        id="nav-links"
+        class="bg-bg-raised border-border shadow-md fixed inset-x-0 bottom-0 z-10 m-0 hidden list-none flex-col gap-1 border-t p-5 md:static md:flex md:h-full md:flex-row md:gap-6 md:border-0 md:p-0 md:shadow-none"
+      >
+        {links.map(({ href, label }) => (
+          <li class="md:h-full">
+            <a
+              href={href}
+              aria-current={isActive(href) ? 'page' : undefined}
+              class:list={[
+                'flex h-8 items-center border-b-2 font-medium no-underline md:h-full',
+                isActive(href)
+                  ? 'text-primary border-primary'
+                  : 'text-fg-muted hover:text-fg border-transparent',
+              ]}
+            >
+              {label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="ml-auto flex items-center gap-3">
+      <ThemeToggle client:idle />
+      <button
+        type="button"
+        id="nav-menu"
+        class="text-fg-muted hover:text-fg border-border rounded-md inline-flex h-[44px] items-center border px-3 font-medium md:hidden"
+        aria-expanded="false"
+        aria-controls="nav-links"
+      >
+        Menú
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  const button = document.getElementById('nav-menu');
+  const list = document.getElementById('nav-links');
+  if (button && list) {
+    button.addEventListener('click', () => {
+      const open = button.getAttribute('aria-expanded') === 'true';
+      button.setAttribute('aria-expanded', String(!open));
+      list.classList.toggle('hidden', open);
+      list.classList.toggle('flex', !open);
+    });
+  }
+</script>

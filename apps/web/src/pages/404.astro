@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Página no encontrada">
+  <section class="mx-auto max-w-[1120px] px-5 py-11 md:px-8">
+    <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">Error 404</p>
+    <h1 class="text-2xl leading-tight mt-4 max-w-[72ch] font-semibold">Página no encontrada</h1>
+    <p class="text-fg-muted mt-4 max-w-[72ch]">
+      La dirección no corresponde a ningún tema, simulador ni página de Trayectoria. Puede que el
+      enlace esté mal escrito o que la página todavía no exista.
+    </p>
+    <div class="mt-7 flex flex-wrap gap-3">
+      <a
+        href="/"
+        class="bg-primary text-primary-fg border-primary hover:bg-primary-hover rounded-md inline-flex h-9 items-center border px-5 font-semibold no-underline"
+      >
+        Ir al inicio
+      </a>
+      <a
+        href="/ruta/ruta-1"
+        class="bg-bg-raised text-fg border-border hover:border-fg-muted rounded-md inline-flex h-9 items-center border px-5 font-semibold no-underline"
+      >
+        Ver la ruta
+      </a>
+    </div>
+  </section>
+</Base>
