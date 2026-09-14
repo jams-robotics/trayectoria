@@ -1,5 +1,6 @@
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 // Content lives outside apps/web ("currículo como código", ADR-0005).
 const CONTENT_BASE = '../../content/es';
