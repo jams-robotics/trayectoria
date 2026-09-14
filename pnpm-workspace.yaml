@@ -1,0 +1,6 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+allowBuilds:
+  # unrs-resolver ships prebuilt binaries; its postinstall is only a download fallback.
+  unrs-resolver: false

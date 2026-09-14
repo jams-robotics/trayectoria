@@ -1,0 +1,6 @@
+# Documentation is written by humans and is not reformatted by tooling.
+docs/
+CLAUDE.md
+pnpm-lock.yaml
+LICENSE-CONTENT
+CODE_OF_CONDUCT.md
