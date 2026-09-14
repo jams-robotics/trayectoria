@@ -25,8 +25,10 @@ const topicHref = (moduleId: string, topicId: string): string =>
     <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">Ruta 1</p>
     <h1 class="text-2xl leading-tight mt-3 max-w-[72ch] font-semibold">{route.data.title}</h1>
     <p class="text-fg-muted mt-3">
-      <span class="font-mono">{route.data.modules.length}</span> módulos ·
-      <span class="font-mono">{topicCount}</span> temas
+      <span class="font-mono">{route.data.modules.length}</span>
+      {' módulos · '}
+      <span class="font-mono">{topicCount}</span>
+      {' temas'}
     </p>
 
     <ol class="mt-8 grid list-none gap-5 p-0">
@@ -47,10 +49,7 @@ const topicHref = (moduleId: string, topicId: string): string =>
                 ) : (
                   <span class="text-fg-muted">{topic.title}</span>
                 )}
-                <span
-                  class="border-border text-fg-muted rounded-sm ml-auto border px-2 py-1 font-mono text-xs"
-                  title={status}
-                >
+                <span class="border-border text-fg-muted rounded-sm ml-auto border px-2 py-1 font-mono text-xs">
                   {status}
                 </span>
               </li>
