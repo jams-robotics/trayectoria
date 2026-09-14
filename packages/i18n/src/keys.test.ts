@@ -2,9 +2,10 @@ import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, test } from 'vitest';
 
-import es from '../locales/es/common.json';
+import { resources } from './t';
 
-// Static check (F0-06): every key passed to t('…') in the UI code exists in common.json.
+// Static check (F0-06): every key passed to t('…') in the UI code exists in the `es` resources
+// (common.json plus auth.json under `auth`, F0-08).
 // It only sees literal keys, so keys are always written as literals (docs/ops/I18N.md).
 const ROOT = path.resolve(import.meta.dirname, '../../..');
 const SOURCE_EXTENSIONS = new Set(['.astro', '.ts', '.tsx']);
@@ -57,16 +58,16 @@ function findKeyUsages(): KeyUsage[] {
 }
 
 describe('F0-06 i18n keys', () => {
-  const definedKeys = new Set(flattenKeys(es, ''));
+  const definedKeys = new Set(flattenKeys(resources.es.common, ''));
   const usages = findKeyUsages();
 
   test('the scan finds t() calls in apps/web', () => {
     expect(usages.some(({ file }) => file.startsWith('apps/web/src/'))).toBe(true);
   });
 
-  test('every key used in the code exists in locales/es/common.json', () => {
+  test('every key used in the code exists in locales/es (common.json + auth.json)', () => {
     const missing = usages.filter(({ key }) => !definedKeys.has(key));
     const report = missing.map(({ file, key }) => `${file}: missing key "${key}"`).join('\n');
-    expect(missing, `Keys used but not defined in common.json:\n${report}`).toEqual([]);
+    expect(missing, `Keys used but not defined in locales/es:\n${report}`).toEqual([]);
   });
 });
