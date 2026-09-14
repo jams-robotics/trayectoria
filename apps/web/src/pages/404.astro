@@ -1,27 +1,28 @@
 ---
+import { t } from '@trayectoria/i18n';
+
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="Página no encontrada">
+<Base title={t('notFound.title')}>
   <section class="mx-auto max-w-[1120px] px-5 py-11 md:px-8">
-    <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">Error 404</p>
-    <h1 class="text-2xl leading-tight mt-4 max-w-[72ch] font-semibold">Página no encontrada</h1>
-    <p class="text-fg-muted mt-4 max-w-[72ch]">
-      La dirección no corresponde a ningún tema, simulador ni página de Trayectoria. Puede que el
-      enlace esté mal escrito o que la página todavía no exista.
+    <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
+      {t('notFound.eyebrow')}
     </p>
+    <h1 class="text-2xl leading-tight mt-4 max-w-[72ch] font-semibold">{t('notFound.title')}</h1>
+    <p class="text-fg-muted mt-4 max-w-[72ch]">{t('notFound.body')}</p>
     <div class="mt-7 flex flex-wrap gap-3">
       <a
         href="/"
         class="bg-primary text-primary-fg border-primary hover:bg-primary-hover rounded-md inline-flex h-[44px] items-center border px-5 font-semibold no-underline"
       >
-        Ir al inicio
+        {t('notFound.home')}
       </a>
       <a
         href="/ruta/ruta-1"
         class="bg-bg-raised text-fg border-border hover:border-fg-muted rounded-md inline-flex h-[44px] items-center border px-5 font-semibold no-underline"
       >
-        Ver la ruta
+        {t('notFound.route')}
       </a>
     </div>
   </section>

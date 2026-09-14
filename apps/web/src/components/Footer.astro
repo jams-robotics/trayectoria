@@ -1,14 +1,16 @@
 ---
+import { t } from '@trayectoria/i18n';
+
 const links = [
-  { href: 'https://github.com/jams-robotics/trayectoria', label: 'Repositorio' },
-  { href: '/contribuir', label: 'Contribuir' },
-  { href: '/acerca', label: 'Acerca' },
+  { href: 'https://github.com/jams-robotics/trayectoria', label: t('footer.repository') },
+  { href: '/contribuir', label: t('footer.contribute') },
+  { href: '/acerca', label: t('footer.about') },
 ] as const;
 ---
 
 <footer class="border-border border-t">
   <div class="text-fg-muted mx-auto flex max-w-[1120px] flex-wrap items-center justify-between gap-3 px-5 py-6 text-sm md:px-8">
-    <p class="m-0">Trayectoria · Licencia MIT · Contenido CC BY-SA</p>
+    <p class="m-0">{t('footer.license')}</p>
     <ul class="m-0 flex list-none gap-5 p-0">
       {links.map(({ href, label }) => (
         <li>

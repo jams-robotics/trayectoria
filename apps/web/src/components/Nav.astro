@@ -1,14 +1,16 @@
 ---
+import { t } from '@trayectoria/i18n';
+
 import ChassisIcon from './ChassisIcon.astro';
 import { ThemeToggle } from './ThemeToggle';
 
 // `section` is the route prefix that marks the link active (ARCHITECTURE.md §3.2).
 const links = [
-  { href: '/', label: 'Inicio', section: '/' },
-  { href: '/ruta/ruta-1', label: 'Ruta', section: '/ruta' },
-  { href: '/simuladores/movil', label: 'Simuladores', section: '/simuladores' },
-  { href: '/brazos', label: 'Brazos', section: '/brazos' },
-  { href: '/cuenta', label: 'Cuenta', section: '/cuenta' },
+  { href: '/', label: t('nav.home'), section: '/' },
+  { href: '/ruta/ruta-1', label: t('nav.route'), section: '/ruta' },
+  { href: '/simuladores/movil', label: t('nav.simulators'), section: '/simuladores' },
+  { href: '/brazos', label: t('nav.arms'), section: '/brazos' },
+  { href: '/cuenta', label: t('nav.account'), section: '/cuenta' },
 ] as const;
 
 const { pathname } = Astro.url;
@@ -23,7 +25,7 @@ const isActive = (section: string): boolean =>
       Trayectoria
     </a>
 
-    <nav aria-label="Principal" class="contents">
+    <nav aria-label={t('nav.main')} class="contents">
       <ul
         id="nav-links"
         class="bg-bg-raised border-border fixed inset-x-0 bottom-0 z-10 m-0 hidden list-none flex-col gap-1 border-t p-5 md:static md:flex md:h-full md:flex-row md:gap-6 md:border-0 md:p-0"
@@ -56,7 +58,7 @@ const isActive = (section: string): boolean =>
         aria-expanded="false"
         aria-controls="nav-links"
       >
-        Menú
+        {t('nav.menu')}
       </button>
     </div>
   </div>

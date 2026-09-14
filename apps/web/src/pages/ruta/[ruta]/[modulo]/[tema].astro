@@ -1,6 +1,7 @@
 ---
 import type { GetStaticPaths } from 'astro';
 import { getCollection, getEntry, render } from 'astro:content';
+import { t } from '@trayectoria/i18n';
 
 import Base from '../../../../layouts/Base.astro';
 
@@ -70,18 +71,18 @@ const { title, estimatedMinutes, prerequisites } = topic.data;
       <a href={`/ruta/${route.id}`} class="no-underline hover:underline">
         {route.data.title}
       </a>
-      {` · Tema ${topic.data.module}.${topic.data.order}`}
+      {` · ${t('topic.number', { module: topic.data.module, order: topic.data.order })}`}
     </p>
     <h1 class="text-2xl leading-tight mt-3 max-w-[72ch] font-semibold">{title}</h1>
     <dl class="text-fg-muted mt-4 flex flex-wrap gap-6 text-sm">
       <div class="flex gap-2">
-        <dt>Tiempo estimado</dt>
-        <dd class="m-0 font-mono">{estimatedMinutes} min</dd>
+        <dt>{t('topic.estimatedTime')}</dt>
+        <dd class="m-0 font-mono">{t('topic.minutes', { minutes: estimatedMinutes })}</dd>
       </div>
       <div class="flex gap-2">
-        <dt>Prerrequisitos</dt>
+        <dt>{t('topic.prerequisites')}</dt>
         <dd class="m-0 font-mono">
-          {prerequisites.length === 0 ? 'ninguno' : prerequisites.join(', ')}
+          {prerequisites.length === 0 ? t('topic.noPrerequisites') : prerequisites.join(', ')}
         </dd>
       </div>
     </dl>
@@ -90,11 +91,11 @@ const { title, estimatedMinutes, prerequisites } = topic.data;
       <Content />
     </div>
 
-    <nav aria-label="Temas anterior y siguiente" class="border-border mt-10 border-t pt-6">
+    <nav aria-label={t('topic.pagination')} class="border-border mt-10 border-t pt-6">
       <ul class="m-0 flex list-none justify-between gap-5 p-0">
         {previous !== undefined && (
           <li>
-            <span class="text-fg-muted block text-sm">Anterior</span>
+            <span class="text-fg-muted block text-sm">{t('topic.previous')}</span>
             {previous.href !== undefined ? (
               <a href={previous.href} rel="prev">
                 {previous.title}
@@ -106,7 +107,7 @@ const { title, estimatedMinutes, prerequisites } = topic.data;
         )}
         {next !== undefined && (
           <li class="ml-auto text-right">
-            <span class="text-fg-muted block text-sm">Siguiente</span>
+            <span class="text-fg-muted block text-sm">{t('topic.next')}</span>
             {next.href !== undefined ? (
               <a href={next.href} rel="next">
                 {next.title}
