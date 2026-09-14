@@ -94,7 +94,7 @@ Cualquier otra importación es un error de arquitectura (regla de ESLint `import
 
 | Necesidad | Librería | Envoltorio propio |
 |---|---|---|
-| Framework de páginas | Astro | — |
+| Framework de páginas | Astro, con sus integraciones oficiales `@astrojs/mdx` (temas) y `@astrojs/react` (islas); `@astrojs/check` como comprobador de tipos | — |
 | UI interactiva | React | — |
 | Estilos | Tailwind + tokens CSS | `apps/web/src/styles/tokens.css` |
 | Estado entre islas | nanostores | `packages/*/src/stores` |
