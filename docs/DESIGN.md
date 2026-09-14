@@ -71,6 +71,7 @@ Oscuro: todo texto ≥ 5.9; primary-fg/primary 8.6; physical-fg/physical 9.0.
 
 - `--font-sans`: **Source Sans 3** (OFL). Humanista, ancha, con números claros; excelente proyectada. Pesos: 400 cuerpo, 500 etiquetas/nav, 600 títulos y botones, 700 solo glifos de estado. Itálica 400 para variables en prosa.
 - `--font-mono`: **Source Code Pro** (OFL). Todo número con unidad, símbolos de variable (`ω`, `r`, `q₁`), lecturas, matrices, códigos, encabezados de columna de tema (`1.3`).
+- Subconjuntos autoalojados (spec gap #27): **latín** y **griego** de cada familia, con `unicode-range` para que el griego solo se descargue cuando aparece. Los subíndices se escriben con `<sub>1</sub>` (no con el glifo `₁`) y las flechas (`→`) se aceptan en la fuente de respaldo del sistema; ambos quedan fuera de los subconjuntos disponibles.
 - Fórmulas de bloque: `'Latin Modern Math', 'STIX Two Math', 'Cambria Math', serif`, itálica, 28 px, centradas. (En producción: KaTeX con los mismos colores.)
 
 Escala (1.25, base 16): `--text-xs` 13 · `--text-sm` 14 · `--text-base` 16 · `--text-lg` 20 · `--text-xl` 25 · `--text-2xl` 31 · `--text-3xl` 39. Interlineado `--leading-body` 1.6 en prosa, `--leading-tight` 1.2 en títulos y cifras grandes.
