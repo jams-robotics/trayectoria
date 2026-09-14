@@ -1,0 +1,82 @@
+{
+  "id": "ruta-1",
+  "title": "De la física al robot móvil",
+  "modules": [
+    {
+      "id": "m00",
+      "number": 0,
+      "title": "Herramientas",
+      "topics": [
+        { "id": "m00-t01", "title": "Unidades y magnitudes" },
+        { "id": "m00-t02", "title": "Vectores" },
+        { "id": "m00-t03", "title": "La derivada como razón de cambio" }
+      ]
+    },
+    {
+      "id": "m01",
+      "number": 1,
+      "title": "Cinemática de la partícula",
+      "topics": [
+        { "id": "m01-t01", "title": "Movimiento rectilíneo uniforme" },
+        { "id": "m01-t02", "title": "Movimiento uniformemente acelerado" },
+        { "id": "m01-t03", "title": "Caída libre" },
+        { "id": "m01-t04", "title": "Tiro parabólico" }
+      ]
+    },
+    {
+      "id": "m02",
+      "number": 2,
+      "title": "Dinámica",
+      "topics": [
+        { "id": "m02-t01", "title": "Leyes de Newton y diagrama de cuerpo libre" },
+        { "id": "m02-t02", "title": "Fricción" },
+        { "id": "m02-t03", "title": "Torque" }
+      ]
+    },
+    {
+      "id": "m03",
+      "number": 3,
+      "title": "Energía",
+      "topics": [
+        { "id": "m03-t01", "title": "Trabajo y energía" },
+        { "id": "m03-t02", "title": "Potencia" }
+      ]
+    },
+    {
+      "id": "m04",
+      "number": 4,
+      "title": "Rotación",
+      "topics": [
+        { "id": "m04-t01", "title": "Movimiento circular y velocidad angular" },
+        { "id": "m04-t02", "title": "v = ω·r: la velocidad del robot" },
+        { "id": "m04-t03", "title": "Aceleración angular y centrípeta" },
+        { "id": "m04-t04", "title": "Transmisión y reducción" },
+        { "id": "m04-t05", "title": "Encoders" }
+      ]
+    },
+    {
+      "id": "m05",
+      "number": 5,
+      "title": "Robot diferencial",
+      "topics": [
+        { "id": "m05-t01", "title": "Pose y marcos de referencia" },
+        { "id": "m05-t02", "title": "Cinemática directa del robot diferencial" },
+        { "id": "m05-t03", "title": "Cinemática inversa del robot diferencial" },
+        { "id": "m05-t04", "title": "Odometría" },
+        { "id": "m05-t05", "title": "Restricción no holonómica" }
+      ]
+    },
+    {
+      "id": "m06",
+      "number": 6,
+      "title": "Seguidor de línea",
+      "topics": [
+        { "id": "m06-t01", "title": "El sensor de línea" },
+        { "id": "m06-t02", "title": "Control on/off y proporcional" },
+        { "id": "m06-t03", "title": "Control PID" },
+        { "id": "m06-t04", "title": "Geometría del robot y desempeño" },
+        { "id": "m06-t05", "title": "Proyecto final: tu robot completa la pista" }
+      ]
+    }
+  ]
+}

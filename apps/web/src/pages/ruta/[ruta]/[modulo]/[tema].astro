@@ -1,0 +1,107 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection, getEntry, render } from 'astro:content';
+
+import Base from '../../../../layouts/Base.astro';
+
+export const getStaticPaths = (async () => {
+  const topics = await getCollection('topics');
+  return topics.map((topic) => {
+    const [ruta, slug] = topic.id.split('/');
+    if (ruta === undefined || slug === undefined || topic.data.id !== topic.id) {
+      throw new Error(
+        `content/es/${topic.id}/index.mdx: el frontmatter "id" (${topic.data.id}) debe coincidir con el directorio (${topic.id})`,
+      );
+    }
+    const [modulo, tema] = slug.split('-');
+    return { params: { ruta, modulo, tema }, props: { topic } };
+  });
+}) satisfies GetStaticPaths;
+
+const { topic } = Astro.props;
+const { ruta } = Astro.params;
+const route = await getEntry('routes', ruta);
+if (route === undefined) {
+  throw new Error(`content/es/${ruta}/ruta.json no existe para el tema ${topic.id}`);
+}
+
+// Flat topic order across modules, from ruta.json.
+const ordered = route.data.modules.flatMap((module) =>
+  module.topics.map((entry) => ({
+    id: `${route.id}/${entry.id}`,
+    title: entry.title,
+    href: `/ruta/${route.id}/${module.id}/${entry.id.slice(module.id.length + 1)}`,
+  })),
+);
+const position = ordered.findIndex((entry) => entry.id === topic.id);
+if (position === -1) {
+  throw new Error(`content/es/${ruta}/ruta.json no lista el tema ${topic.id}`);
+}
+const previous = ordered[position - 1];
+const next = ordered[position + 1];
+
+const { Content } = await render(topic);
+const { title, estimatedMinutes, prerequisites } = topic.data;
+---
+
+<Base title={title}>
+  <article class="mx-auto max-w-[1120px] px-5 py-9 md:px-8">
+    <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
+      <a href={`/ruta/${route.id}`} class="no-underline hover:underline">
+        {route.data.title}
+      </a>
+      · Tema {topic.data.module}.{topic.data.order}
+    </p>
+    <h1 class="text-2xl leading-tight mt-3 max-w-[72ch] font-semibold">{title}</h1>
+    <dl class="text-fg-muted mt-4 flex flex-wrap gap-6 text-sm">
+      <div class="flex gap-2">
+        <dt>Tiempo estimado</dt>
+        <dd class="m-0 font-mono">{estimatedMinutes} min</dd>
+      </div>
+      <div class="flex gap-2">
+        <dt>Prerrequisitos</dt>
+        <dd class="m-0 font-mono">
+          {prerequisites.length === 0 ? 'ninguno' : prerequisites.join(', ')}
+        </dd>
+      </div>
+    </dl>
+
+    <div class="prose-topic leading-body mt-8 max-w-[72ch]">
+      <Content />
+    </div>
+
+    <nav aria-label="Temas anterior y siguiente" class="border-border mt-10 border-t pt-6">
+      <ul class="m-0 flex list-none justify-between gap-5 p-0">
+        <li>
+          {previous !== undefined && (
+            <a href={previous.href} rel="prev">
+              <span class="text-fg-muted block text-sm">Anterior</span>
+              {previous.title}
+            </a>
+          )}
+        </li>
+        <li class="text-right">
+          {next !== undefined && (
+            <a href={next.href} rel="next">
+              <span class="text-fg-muted block text-sm">Siguiente</span>
+              {next.title}
+            </a>
+          )}
+        </li>
+      </ul>
+    </nav>
+  </article>
+</Base>
+
+<style>
+  /* Minimal reading styles until F2-13 delivers the section components. */
+  .prose-topic :global(h2) {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    line-height: var(--leading-tight);
+    margin-top: var(--space-9);
+  }
+  .prose-topic :global(p) {
+    margin-top: var(--space-4);
+  }
+</style>

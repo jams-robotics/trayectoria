@@ -1,0 +1,63 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+
+import Base from '../../../layouts/Base.astro';
+
+export const getStaticPaths = (async () => {
+  const routes = await getCollection('routes');
+  return routes.map((route) => ({ params: { ruta: route.id }, props: { route } }));
+}) satisfies GetStaticPaths;
+
+const { route } = Astro.props;
+const topics = await getCollection('topics');
+const publishedIds = new Set(topics.map((topic) => topic.id));
+
+// Progress is a placeholder until F3-01: every topic is pending.
+const status = 'Pendiente';
+const topicCount = route.data.modules.reduce((total, module) => total + module.topics.length, 0);
+const topicHref = (moduleId: string, topicId: string): string =>
+  `/ruta/${route.id}/${moduleId}/${topicId.slice(moduleId.length + 1)}`;
+---
+
+<Base title={route.data.title}>
+  <section class="mx-auto max-w-[1120px] px-5 py-9 md:px-8">
+    <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">Ruta 1</p>
+    <h1 class="text-2xl leading-tight mt-3 max-w-[72ch] font-semibold">{route.data.title}</h1>
+    <p class="text-fg-muted mt-3">
+      <span class="font-mono">{route.data.modules.length}</span> módulos ·
+      <span class="font-mono">{topicCount}</span> temas
+    </p>
+
+    <ol class="mt-8 grid list-none gap-5 p-0">
+      {route.data.modules.map((module) => (
+        <li class="bg-bg-raised border-border rounded-lg border p-6">
+          <h2 class="text-lg leading-tight m-0 flex items-baseline gap-3 font-semibold">
+            <span class="text-fg-muted font-mono text-xs font-normal">M{module.number}</span>
+            {module.title}
+          </h2>
+          <ol class="mt-4 grid list-none gap-2 p-0">
+            {module.topics.map((topic, index) => (
+              <li class="flex items-center gap-3">
+                <span class="text-fg-muted font-mono text-xs">
+                  {module.number}.{index + 1}
+                </span>
+                {publishedIds.has(`${route.id}/${topic.id}`) ? (
+                  <a href={topicHref(module.id, topic.id)}>{topic.title}</a>
+                ) : (
+                  <span class="text-fg-muted">{topic.title}</span>
+                )}
+                <span
+                  class="border-border text-fg-muted rounded-sm ml-auto border px-2 py-1 font-mono text-xs"
+                  title={status}
+                >
+                  {status}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </li>
+      ))}
+    </ol>
+  </section>
+</Base>
