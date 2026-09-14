@@ -1,6 +1,6 @@
 import { signUp, type UserRole } from '@trayectoria/auth';
 import { useT } from '@trayectoria/i18n';
-import { useState, type FormEvent, type JSX } from 'react';
+import { useState, type JSX, type SubmitEvent } from 'react';
 
 import {
   absoluteUrl,
@@ -84,7 +84,7 @@ export function RegisterForm(): JSX.Element {
   const [values, setValues] = useState<RegisterValues>(EMPTY);
   const { state, run } = useAuthAction();
 
-  function submit(event: FormEvent<HTMLFormElement>): void {
+  function submit(event: SubmitEvent<HTMLFormElement>): void {
     event.preventDefault();
     void run(
       () => signUp({ ...values, redirectTo: absoluteUrl('/cuenta') }),

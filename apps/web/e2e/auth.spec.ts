@@ -3,13 +3,13 @@ import { expect, test, type Page } from '@playwright/test';
 import auth from '../../../packages/i18n/locales/es/auth.json' with { type: 'json' };
 
 // F0-08 acceptance criteria. Runs against the local Supabase stack, where email confirmations
-// are disabled (supabase/config.toml): sign-up returns a session directly. Date.now() is only
-// used to make the email unique per run.
+// are disabled (supabase/config.toml): sign-up returns a session directly. Date.now() plus the
+// worker index make the email unique per run and per parallel worker.
 const PASSWORD = 'trayectoria-e2e-2026';
 const DISPLAY_NAME = 'Docente E2E';
 
 function uniqueEmail(): string {
-  return `test+${Date.now()}@example.com`;
+  return `test+${Date.now()}-${test.info().workerIndex}@example.com`;
 }
 
 // Astro removes the `ssr` attribute of an island once React has hydrated it; typing before that

@@ -1,6 +1,6 @@
 import { signIn, signInWithOtp } from '@trayectoria/auth';
 import { useT } from '@trayectoria/i18n';
-import { useState, type FormEvent, type JSX } from 'react';
+import { useState, type JSX, type SubmitEvent } from 'react';
 
 import {
   absoluteUrl,
@@ -35,7 +35,7 @@ export function LoginForm(): JSX.Element {
   const [password, setPassword] = useState('');
   const { state, run } = useAuthAction();
 
-  function submit(event: FormEvent<HTMLFormElement>): void {
+  function submit(event: SubmitEvent<HTMLFormElement>): void {
     event.preventDefault();
     void run(
       () => signIn(email, password),

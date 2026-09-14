@@ -1,7 +1,7 @@
 import { useStore } from '@nanostores/react';
 import { $passwordRecovery, resetPassword, updatePassword, useSession } from '@trayectoria/auth';
 import { useT } from '@trayectoria/i18n';
-import { useState, type FormEvent, type JSX } from 'react';
+import { useEffect, useState, type JSX, type SubmitEvent } from 'react';
 
 import {
   absoluteUrl,
@@ -15,10 +15,15 @@ import {
 const MIN_PASSWORD_LENGTH = 6;
 
 // The recovery link comes back to this page with `#access_token=…&type=recovery`; supabase-js
-// turns it into a session and emits PASSWORD_RECOVERY. The hash is read as well so the new
-// password form shows even if the event was emitted before the store subscribed.
-function arrivedFromRecoveryLink(): boolean {
-  return typeof window !== 'undefined' && window.location.hash.includes('type=recovery');
+// turns it into a session, clears the fragment and emits PASSWORD_RECOVERY, which sets
+// $passwordRecovery. The hash is read once after hydration as a fallback for the case where the
+// client had already consumed the fragment before the store subscribed.
+function useArrivedFromRecoveryLink(): boolean {
+  const [fromLink, setFromLink] = useState(false);
+  useEffect(() => {
+    if (window.location.hash.includes('type=recovery')) setFromLink(true);
+  }, []);
+  return fromLink;
 }
 
 function RequestLinkForm(): JSX.Element {
@@ -26,7 +31,7 @@ function RequestLinkForm(): JSX.Element {
   const [email, setEmail] = useState('');
   const { state, run } = useAuthAction();
 
-  function submit(event: FormEvent<HTMLFormElement>): void {
+  function submit(event: SubmitEvent<HTMLFormElement>): void {
     event.preventDefault();
     void run(
       () => resetPassword(email, absoluteUrl('/auth/recuperar')),
@@ -61,7 +66,7 @@ function NewPasswordForm(): JSX.Element {
   const [password, setPassword] = useState('');
   const { state, run } = useAuthAction();
 
-  function submit(event: FormEvent<HTMLFormElement>): void {
+  function submit(event: SubmitEvent<HTMLFormElement>): void {
     event.preventDefault();
     void run(
       () => updatePassword(password),
@@ -95,10 +100,11 @@ function NewPasswordForm(): JSX.Element {
 // Mounted with client:load: it must process the recovery token in the URL as soon as the page
 // opens, before the user scrolls to it. Subscribing to the session mounts the store, which
 // initialises the Supabase client: it consumes the token, clears it from the URL fragment and
-// emits PASSWORD_RECOVERY right away instead of waiting for the first form submit.
+// emits PASSWORD_RECOVERY right away instead of waiting for the first form submit. Server and
+// first client render both show the request form, so hydration never mismatches.
 export function RecoverForm(): JSX.Element {
   useSession();
   const recovering = useStore($passwordRecovery);
-  const [fromLink] = useState(arrivedFromRecoveryLink);
+  const fromLink = useArrivedFromRecoveryLink();
   return recovering || fromLink ? <NewPasswordForm /> : <RequestLinkForm />;
 }
