@@ -84,7 +84,7 @@ function headingSlugs(filePath) {
   for (const line of linesWithoutFences(readFileSync(filePath, 'utf8'))) {
     const match = /^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$/.exec(line);
     if (!match) continue;
-    const base = slugify(match[1].replace(/[`*_~]/g, ''));
+    const base = slugify(match[1].replace(/[`*~]/g, ''));
     const seen = counts.get(base) ?? 0;
     counts.set(base, seen + 1);
     slugs.add(seen === 0 ? base : `${base}-${seen}`);
