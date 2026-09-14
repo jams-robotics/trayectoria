@@ -1,0 +1,3 @@
+-- Trayectoria · local seed (F0-07).
+-- Intentionally empty: there is no public data and profiles are created by the auth trigger.
+-- Test fixtures live in supabase/tests/ and are rolled back after each run.
