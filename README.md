@@ -22,6 +22,8 @@ pnpm dev
 
 Si `corepack enable` falla por permisos sobre el directorio de Node, usa `corepack enable --install-directory <carpeta-en-tu-PATH>` o `npm install -g pnpm@12.4.1` (la versión fijada en `package.json`).
 
+Los archivos de texto se normalizan a LF en cualquier sistema (`.gitattributes`). En un clon anterior a esa regla, ejecuta una vez `git add --renormalize . && git checkout -- .` para que el árbol de trabajo pase a LF.
+
 ## Estructura
 
 ```
