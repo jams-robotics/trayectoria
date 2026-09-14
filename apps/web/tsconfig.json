@@ -11,6 +11,6 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "noEmit": true
   },
-  "include": [".astro/types.d.ts", "src"],
+  "include": [".astro/types.d.ts", "src", "e2e", "playwright.config.ts", "vitest.config.ts"],
   "exclude": ["dist"]
 }

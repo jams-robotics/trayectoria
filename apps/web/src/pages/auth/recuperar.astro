@@ -1,0 +1,21 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import { RecoverForm } from '../../components/auth/RecoverForm';
+import Base from '../../layouts/Base.astro';
+
+// RecoverForm hydrates with client:load: the recovery link returns here with a token in the
+// URL hash that must be handled as soon as the page opens (decision 6 of F0-08).
+---
+
+<Base title={t('auth.recover.title')}>
+  <section class="mx-auto max-w-[1120px] px-5 py-11 md:px-8">
+    <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
+      {t('auth.recover.eyebrow')}
+    </p>
+    <h1 class="text-2xl leading-tight mt-4 font-semibold">{t('auth.recover.title')}</h1>
+    <div class="mt-7 max-w-[480px]">
+      <RecoverForm client:load />
+    </div>
+  </section>
+</Base>

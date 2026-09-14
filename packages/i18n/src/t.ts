@@ -1,6 +1,10 @@
 import { createInstance } from 'i18next';
 
+import auth from '../locales/es/auth.json';
 import es from '../locales/es/common.json';
+
+// Namespace `common` = common.json plus auth.json mounted under the root key `auth` (F0-08).
+export const resources = { es: { common: { ...es, auth } } };
 
 export const DEFAULT_LANGUAGE = 'es';
 
@@ -18,7 +22,7 @@ void i18n.init({
   lng: DEFAULT_LANGUAGE,
   fallbackLng: DEFAULT_LANGUAGE,
   defaultNS: 'common',
-  resources: { es: { common: es } },
+  resources,
   initAsync: false,
   // Astro and React already escape rendered text; escaping here too would double-escape titles.
   interpolation: { escapeValue: false },

@@ -4,6 +4,9 @@
 @import './tokens.css';
 @import 'tailwindcss';
 
+/* Islands shipped by workspace packages (AuthGate) live outside apps/web: Tailwind must scan them. */
+@source '../../../../packages/auth/src';
+
 /* `dark:` follows the data-theme attribute set by the theme store, not the OS preference. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
