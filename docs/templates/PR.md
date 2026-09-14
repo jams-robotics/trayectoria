@@ -7,7 +7,7 @@ ID · título · rol
 
 ## Cómo probarlo
 ```
-pnpm test -- --filter sim-core
+pnpm --filter sim-core test
 ```
 
 ## Evidencia por criterio de aceptación
