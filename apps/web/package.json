@@ -4,10 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
+    "dev": "astro dev",
     "lint": "eslint .",
+    "preview": "astro preview",
+    "sync": "astro sync",
     "test": "vitest run --passWithNoTests",
     "typecheck": "astro check"
   },

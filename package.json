@@ -13,7 +13,7 @@
     "dev": "pnpm --filter @trayectoria/web dev",
     "build": "pnpm -r --if-present run build",
     "test": "pnpm -r run test",
-    "lint": "eslint .",
+    "lint": "pnpm -r --if-present run sync && eslint .",
     "typecheck": "pnpm -r run typecheck",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
