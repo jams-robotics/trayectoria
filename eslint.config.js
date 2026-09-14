@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import { configs as astroConfigs } from 'eslint-plugin-astro';
 import prettier from 'eslint-config-prettier';
 import { createNodeResolver, flatConfigs as importX } from 'eslint-plugin-import-x';
 import globals from 'globals';
@@ -26,7 +27,7 @@ const architectureBoundaries = Object.entries(ALLOWED_IMPORTS).map(([dir, allowe
   );
   const message = `${dir} may only import ${allowed.length ? allowed.join(', ') : 'nothing internal'} (docs/ARCHITECTURE.md §2).`;
   return {
-    files: [`${dir}/**/*.{ts,tsx}`],
+    files: [`${dir}/**/*.{ts,tsx,astro}`],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -74,6 +75,7 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   importX.recommended,
+  ...astroConfigs['flat/recommended'],
   {
     languageOptions: {
       globals: { ...globals.node, ...globals.browser },
@@ -106,10 +108,15 @@ export default tseslint.config(
         },
       ],
       'import-x/no-unresolved': 'off',
+      // DESIGN.md §8: thin space (U+2009) before units in visible text.
+      'no-irregular-whitespace': [
+        'error',
+        { skipStrings: true, skipTemplates: true, skipJSXText: true },
+      ],
     },
   },
   {
-    files: ['packages/**/*.{ts,tsx}'],
+    files: ['packages/**/*.{ts,tsx,astro}'],
     rules: {
       'no-restricted-globals': [
         'error',
@@ -167,6 +174,16 @@ export default tseslint.config(
   {
     files: ['**/*.{js,mjs,cjs}'],
     ...tseslint.configs.disableTypeChecked,
+  },
+  {
+    // astro-eslint-parser has no stable TypeScript program; astro check covers types (ADR-0007).
+    files: ['**/*.astro'],
+    ...tseslint.configs.disableTypeChecked,
+    rules: {
+      ...tseslint.configs.disableTypeChecked.rules,
+      // Template text is content: thin spaces before units are required (DESIGN.md §8).
+      'no-irregular-whitespace': 'off',
+    },
   },
   prettier,
 );
