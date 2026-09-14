@@ -6,6 +6,7 @@
   "scripts": {
     "build": "astro build",
     "dev": "astro dev",
+    "e2e": "playwright test",
     "lint": "eslint .",
     "preview": "astro preview",
     "sync": "astro sync",
@@ -16,6 +17,8 @@
     "@astrojs/mdx": "8.0.1",
     "@astrojs/react": "6.0.5",
     "@nanostores/react": "2.0.1",
+    "@trayectoria/auth": "workspace:*",
+    "@trayectoria/db": "workspace:*",
     "@trayectoria/i18n": "workspace:*",
     "astro": "7.3.2",
     "nanostores": "1.5.3",
@@ -24,6 +27,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/vite": "4.3.3",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",

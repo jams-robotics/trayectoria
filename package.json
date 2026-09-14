@@ -16,7 +16,8 @@
     "lint": "pnpm -r --if-present run sync && eslint .",
     "typecheck": "pnpm -r run typecheck",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "e2e": "pnpm --filter @trayectoria/web e2e"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
