@@ -43,7 +43,7 @@ Si tu ticket es de tipo `content`: además `docs/CONTENT-STANDARDS.md`, `docs/GL
 pnpm install --frozen-lockfile
 pnpm dev              # apps/web
 pnpm test             # Vitest, todos los paquetes
-pnpm test -- --filter sim-core
+pnpm --filter sim-core test
 pnpm lint && pnpm typecheck
 pnpm build
 pnpm content:check    # valida temas
