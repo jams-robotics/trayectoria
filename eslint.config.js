@@ -64,10 +64,16 @@ const architectureBoundaries = Object.entries(ALLOWED_IMPORTS).map(([dir, allowe
 // docs/ops/I18N.md: widgets render no UI literals; visible text comes from t()/useT() keys.
 const UI_TEXT_ATTRIBUTES = new Set(['aria-label', 'title', 'placeholder', 'alt']);
 
-function isStringLiteral(node) {
-  if (node.type === 'Literal') return typeof node.value === 'string';
-  return node.type === 'TemplateLiteral' && node.expressions.length === 0;
+// Text of a string literal or of a template without expressions; null for anything else.
+function literalText(node) {
+  if (node.type === 'Literal') return typeof node.value === 'string' ? node.value : null;
+  if (node.type === 'TemplateLiteral' && node.expressions.length === 0) {
+    return node.quasis[0]?.value.cooked ?? null;
+  }
+  return null;
 }
+
+const HAS_LETTERS = /\p{L}/u;
 
 const i18nPlugin = {
   rules: {
@@ -83,14 +89,17 @@ const i18nPlugin = {
       create(context) {
         return {
           JSXText(node) {
-            if (/\p{L}/u.test(node.value)) context.report({ node, messageId: 'literal' });
+            if (HAS_LETTERS.test(node.value)) context.report({ node, messageId: 'literal' });
           },
           JSXAttribute(node) {
             const name = node.name.type === 'JSXIdentifier' ? node.name.name : '';
             if (!UI_TEXT_ATTRIBUTES.has(name) || node.value === null) return;
             const value =
               node.value.type === 'JSXExpressionContainer' ? node.value.expression : node.value;
-            if (isStringLiteral(value)) context.report({ node: node.value, messageId: 'literal' });
+            const text = literalText(value);
+            if (text !== null && HAS_LETTERS.test(text)) {
+              context.report({ node: node.value, messageId: 'literal' });
+            }
           },
         };
       },
