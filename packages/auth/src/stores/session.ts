@@ -55,6 +55,15 @@ onMount($session, () => {
 });
 
 const RATE_LIMIT_CODES = new Set(['over_request_rate_limit', 'over_email_send_rate_limit']);
+// Email flows: GoTrue only applies the per-address limit (over_email_send_rate_limit) to existing
+// accounts, and answers otp_disabled for an unknown email when shouldCreateUser is false. Both are
+// reported as success so neither reveals whether the address is registered; the per-IP limit
+// (over_request_rate_limit, plain 429) stays visible as rate-limited.
+const SILENT_EMAIL_CODES = new Set(['otp_disabled', 'over_email_send_rate_limit']);
+
+function isSilentEmailError(error: AuthError): boolean {
+  return error.code !== undefined && SILENT_EMAIL_CODES.has(error.code);
+}
 const SIGN_UP_CODES = new Set(['user_already_exists', 'email_exists', 'signup_disabled']);
 
 function toErrorCode(error: AuthError, fallback: AuthErrorCode): AuthErrorCode {
@@ -97,24 +106,20 @@ export async function signUp(input: SignUpInput): Promise<AuthResult> {
   return { ok: true, session: data.session };
 }
 
-/**
- * Sends a magic link to an existing account. An unknown email is reported as success
- * (`otp_disabled` is what Supabase answers when `shouldCreateUser` is false), so the form
- * never reveals whether the address is registered.
- */
+/** Sends a magic link to an existing account; see SILENT_EMAIL_CODES for what stays hidden. */
 export async function signInWithOtp(email: string, redirectTo: string): Promise<AuthResult> {
   const { error } = await getAuthClient().signInWithOtp({
     email,
     options: { emailRedirectTo: redirectTo, shouldCreateUser: false },
   });
-  if (error && error.code !== 'otp_disabled') return failure(error);
+  if (error && !isSilentEmailError(error)) return failure(error);
   return { ok: true, session: null };
 }
 
 /** Sends the password-recovery email; the link returns to `redirectTo` with the recovery token. */
 export async function resetPassword(email: string, redirectTo: string): Promise<AuthResult> {
   const { error } = await getAuthClient().resetPasswordForEmail(email, { redirectTo });
-  if (error) return failure(error);
+  if (error && !isSilentEmailError(error)) return failure(error);
   return { ok: true, session: null };
 }
 

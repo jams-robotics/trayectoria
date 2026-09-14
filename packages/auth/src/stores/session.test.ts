@@ -17,7 +17,8 @@ const auth = {
 
 vi.mock('@trayectoria/db', () => ({ getDbClient: () => ({ auth }) }));
 
-const { $session, signIn, signInWithOtp, signOut, signUp } = await import('./session');
+const { $session, resetPassword, signIn, signInWithOtp, signOut, signUp } =
+  await import('./session');
 
 // Only the fields the store touches; the cast is confined to this test.
 function fakeSession(id: string): Session {
@@ -98,16 +99,41 @@ describe('$session store', () => {
   });
 
   it('signInWithOtp never reveals whether the email exists', async () => {
+    const neutral = { ok: true, session: null };
     auth.signInWithOtp.mockResolvedValueOnce({ data: {}, error: apiError('otp_disabled', 422) });
-    await expect(signInWithOtp('nobody@example.com', 'http://x/cuenta')).resolves.toEqual({
-      ok: true,
-      session: null,
-    });
+    await expect(signInWithOtp('nobody@example.com', 'http://x/cuenta')).resolves.toEqual(neutral);
+    // The per-address email limit only fires for existing accounts: it must look like success.
     auth.signInWithOtp.mockResolvedValueOnce({
       data: {},
       error: apiError('over_email_send_rate_limit', 429),
     });
+    await expect(signInWithOtp('a@example.com', 'http://x/cuenta')).resolves.toEqual(neutral);
+    // The per-IP limit reveals nothing about the address and stays visible.
+    auth.signInWithOtp.mockResolvedValueOnce({
+      data: {},
+      error: apiError('over_request_rate_limit', 429),
+    });
     await expect(signInWithOtp('a@example.com', 'http://x/cuenta')).resolves.toEqual({
+      ok: false,
+      code: 'rate-limited',
+    });
+  });
+
+  it('resetPassword never reveals whether the email exists', async () => {
+    const neutral = { ok: true, session: null };
+    auth.resetPasswordForEmail.mockResolvedValueOnce({ data: {}, error: null });
+    await expect(resetPassword('a@example.com', 'http://x/auth/recuperar')).resolves.toEqual(
+      neutral,
+    );
+    auth.resetPasswordForEmail.mockResolvedValueOnce({
+      data: {},
+      error: apiError('over_email_send_rate_limit', 429),
+    });
+    await expect(resetPassword('a@example.com', 'http://x/auth/recuperar')).resolves.toEqual(
+      neutral,
+    );
+    auth.resetPasswordForEmail.mockResolvedValueOnce({ data: {}, error: apiError('x', 429) });
+    await expect(resetPassword('a@example.com', 'http://x/auth/recuperar')).resolves.toEqual({
       ok: false,
       code: 'rate-limited',
     });

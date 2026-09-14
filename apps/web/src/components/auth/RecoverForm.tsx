@@ -1,5 +1,5 @@
 import { useStore } from '@nanostores/react';
-import { $passwordRecovery, resetPassword, updatePassword } from '@trayectoria/auth';
+import { $passwordRecovery, resetPassword, updatePassword, useSession } from '@trayectoria/auth';
 import { useT } from '@trayectoria/i18n';
 import { useState, type FormEvent, type JSX } from 'react';
 
@@ -93,8 +93,11 @@ function NewPasswordForm(): JSX.Element {
 }
 
 // Mounted with client:load: it must process the recovery token in the URL as soon as the page
-// opens, before the user scrolls to it.
+// opens, before the user scrolls to it. Subscribing to the session mounts the store, which
+// initialises the Supabase client: it consumes the token, clears it from the URL fragment and
+// emits PASSWORD_RECOVERY right away instead of waiting for the first form submit.
 export function RecoverForm(): JSX.Element {
+  useSession();
   const recovering = useStore($passwordRecovery);
   const [fromLink] = useState(arrivedFromRecoveryLink);
   return recovering || fromLink ? <NewPasswordForm /> : <RequestLinkForm />;
