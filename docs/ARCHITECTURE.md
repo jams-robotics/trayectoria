@@ -106,6 +106,7 @@ Cualquier otra importación es un error de arquitectura (regla de ESLint `import
 | i18n | i18next | `packages/i18n` |
 | Backend | @supabase/supabase-js | `packages/auth`, `packages/db` |
 | Tests | Vitest, @testing-library/react, Playwright | — |
+| Lint y formato de `.astro` | eslint-plugin-astro, prettier-plugin-astro (ADR-0007) | — |
 
 Añadir una librería requiere un ADR. Versiones fijadas sin `^`.
 
@@ -266,3 +267,4 @@ attempts      (id uuid pk, user_id uuid → profiles, topic_id text, exercise_id
 - ADR-0004 Sin motor de física en v1
 - ADR-0005 Currículo como código
 - ADR-0006 Controlador intercambiable
+- ADR-0007 ESLint y Prettier para archivos `.astro`
