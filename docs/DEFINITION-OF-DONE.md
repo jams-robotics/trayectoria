@@ -14,9 +14,9 @@ Un ticket está terminado cuando cumple **todo** lo de "Común" más lo de su ti
 
 ## Tipo `infra`
 
-- [ ] Documentación operativa en `docs/ops/` actualizada.
-- [ ] Reproducible desde cero siguiendo solo el documento.
-- [ ] Sin secretos en el repo; variables documentadas en `.env.example`.
+- [ ] Documentación operativa en `docs/ops/` actualizada, si el ticket lista un entregable en docs/ops/ o introduce variables de entorno; si no, marcar N/A en el PR
+- [ ] Reproducible desde cero siguiendo solo el documento, si el ticket lista un entregable en docs/ops/ o introduce variables de entorno; si no, marcar N/A en el PR
+- [ ] Sin secretos en el repo; variables documentadas en `.env.example`, si el ticket lista un entregable en docs/ops/ o introduce variables de entorno; si no, marcar N/A en el PR
 - [ ] Mergea el humano.
 
 ## Tipo `core` (sim-core, robot-spec)
