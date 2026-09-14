@@ -16,8 +16,8 @@ const publishedIds = new Set(topics.map((topic) => topic.id));
 
 // Progress is a placeholder until F3-01: every topic is pending.
 const status = t('route.pending');
-// The route schema guarantees ids of the form ruta-N.
-const routeNumber = route.id.slice('ruta-'.length);
+// The route schema validates data.id as ruta-N; route.id (from the directory) is only for URLs.
+const routeNumber = route.data.id.slice('ruta-'.length);
 const topicCount = route.data.modules.reduce((total, module) => total + module.topics.length, 0);
 const topicHref = (moduleId: string, topicId: string): string =>
   `/ruta/${route.id}/${moduleId}/${topicId.slice(moduleId.length + 1)}`;
