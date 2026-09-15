@@ -35,11 +35,16 @@ button{font:inherit;cursor:pointer}
     <button onClick="{{ goSim }}" data-pill="{{ isSim }}" style="border:1px solid var(--color-border);background:transparent;color:var(--color-fg-muted);border-radius:999px;padding:3px 10px;font-size:13px">4 Simulador 2D</button>
     <button onClick="{{ goBrazo }}" data-pill="{{ isBrazo }}" style="border:1px solid var(--color-border);background:transparent;color:var(--color-fg-muted);border-radius:999px;padding:3px 10px;font-size:13px">5 Brazo 3D</button>
     <button onClick="{{ goAula }}" data-pill="{{ isAula }}" style="border:1px solid var(--color-border);background:transparent;color:var(--color-fg-muted);border-radius:999px;padding:3px 10px;font-size:13px">6 Aula</button>
+    <span style="width:1px;height:16px;background:var(--color-border);margin:0 6px;align-self:center"></span>
+    <button onClick="{{ goTemaM }}" data-pill="{{ isTemaM }}" style="border:1px solid var(--color-border);background:transparent;color:var(--color-fg-muted);border-radius:999px;padding:3px 10px;font-size:13px">7 Tema móvil</button>
+    <button onClick="{{ goSimM }}" data-pill="{{ isSimM }}" style="border:1px solid var(--color-border);background:transparent;color:var(--color-fg-muted);border-radius:999px;padding:3px 10px;font-size:13px">8 Simulador 2D móvil</button>
+    <button onClick="{{ goRutaM }}" data-pill="{{ isRutaM }}" style="border:1px solid var(--color-border);background:transparent;color:var(--color-fg-muted);border-radius:999px;padding:3px 10px;font-size:13px">9 Ruta móvil</button>
   </div>
   <button onClick="{{ toggleTheme }}" style="margin-left:auto;border:1px solid var(--color-border);background:transparent;color:var(--color-fg);border-radius:999px;padding:3px 12px;font-size:13px;display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:var(--color-fg);display:inline-block"></span>{{ themeLabel }}</button>
 </div>
 
 <!-- navegación del producto -->
+<sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
 <header style="display:flex;align-items:center;gap:32px;padding:0 40px;height:56px;background:var(--color-bg-raised);border-bottom:1px solid var(--color-border)">
   <a href="#" onClick="{{ goInicio }}" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--color-fg);font-weight:600;font-size:18px">
     <span style="width:22px;height:14px;border-radius:3px;background:var(--color-physical);display:inline-block;position:relative"><span style="position:absolute;left:-3px;top:2px;width:3px;height:10px;background:var(--color-fg);border-radius:1px"></span><span style="position:absolute;right:-3px;top:2px;width:3px;height:10px;background:var(--color-fg);border-radius:1px"></span></span>
@@ -57,6 +62,7 @@ button{font:inherit;cursor:pointer}
     <span style="width:32px;height:32px;border-radius:50%;background:var(--color-border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--color-fg)">MA</span>
   </div>
 </header>
+</sc-if>
 
 <!-- ============ 1 INICIO ============ -->
 <sc-if value="{{ isInicio }}" hint-placeholder-val="{{ true }}">
@@ -589,11 +595,371 @@ button{font:inherit;cursor:pointer}
 </main>
 </sc-if>
 
+<!-- ============ 7 TEMA MÓVIL ============ -->
+<sc-if value="{{ isTemaM }}" hint-placeholder-val="{{ false }}">
+<main style="flex:1;padding:32px 16px 64px;display:flex;flex-direction:column;align-items:center;gap:12px">
+  <p style="margin:0;font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted)">07 Tema móvil · 390 px · claro</p>
+  <div id="art-07" data-screen-label="07 Tema móvil" style="width:390px;flex:none;background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);overflow:hidden;color:var(--color-fg)">
+    <header style="display:flex;align-items:center;gap:8px;height:56px;padding:0 4px 0 16px;background:var(--color-bg-raised);border-bottom:1px solid var(--color-border)">
+      <a href="#" onClick="{{ goInicio }}" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--color-fg);font-weight:600;font-size:18px;min-height:44px">
+        <span style="width:22px;height:14px;border-radius:3px;background:var(--color-physical);display:inline-block;position:relative"><span style="position:absolute;left:-3px;top:2px;width:3px;height:10px;background:var(--color-fg);border-radius:1px"></span><span style="position:absolute;right:-3px;top:2px;width:3px;height:10px;background:var(--color-fg);border-radius:1px"></span></span>
+        Trayectoria
+      </a>
+      <span style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--color-fg-muted)"><span style="width:56px;height:4px;border-radius:2px;background:var(--color-border);overflow:hidden;display:inline-block"><span style="display:block;width:31%;height:100%;background:var(--color-primary)"></span></span><span style="font-family:var(--font-mono)">9/29</span></span>
+      <button aria-label="Menú" style="width:44px;height:44px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0"><span style="width:18px;height:2px;background:var(--color-fg);border-radius:1px"></span><span style="width:18px;height:2px;background:var(--color-fg);border-radius:1px"></span><span style="width:18px;height:2px;background:var(--color-fg);border-radius:1px"></span></button>
+    </header>
+
+    <article style="padding:16px 16px 32px">
+      <a href="#" onClick="{{ goRutaM }}" style="font-size:14px;text-decoration:none;display:inline-flex;align-items:center;min-height:44px">← Ruta · Módulo 1</a>
+      <p style="margin:4px 0 6px;font-family:var(--font-mono);font-size:13px;letter-spacing:.04em;color:var(--color-fg-muted)">1.3 · Cinemática</p>
+      <h1 style="margin:0 0 12px;font-size:var(--text-xl);line-height:1.2;font-weight:600;text-wrap:pretty">Velocidad angular y velocidad lineal de una rueda</h1>
+      <div style="display:flex;gap:12px;font-size:13px;color:var(--color-fg-muted);margin-bottom:20px"><span>Tema 3 de 4</span><span style="font-family:var(--font-mono)">≈ 30 min</span></div>
+      <p style="margin:0 0 8px;font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted)">Secciones</p>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <section style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden">
+          <button onClick="{{ tGo.gancho }}" style="width:100%;min-height:52px;display:flex;align-items:center;gap:12px;padding:0 16px;border:0;background:transparent;color:var(--color-fg);text-align:left"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted)">01</span><span style="flex:1;font-size:16px;font-weight:600">Gancho</span><span style="font-size:13px;color:var(--color-fg-muted)">{{ tChev.gancho }}</span></button>
+          <sc-if value="{{ tOpen.gancho }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:0 16px 16px;border-top:1px solid var(--color-border)"><p style="margin:12px 0 0;font-size:17px;text-wrap:pretty">Tu robot tiene ruedas de 33 mm de radio. Si el motor gira a 200 rpm, ¿alcanza a recorrer la pista de 4 m en menos de 10 segundos? Al final de este tema vas a poder responderlo con una fórmula y verificarlo en el simulador.</p></div>
+          </sc-if>
+        </section>
+        <section style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden">
+          <button onClick="{{ tGo.concepto }}" style="width:100%;min-height:52px;display:flex;align-items:center;gap:12px;padding:0 16px;border:0;background:transparent;color:var(--color-fg);text-align:left"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted)">02</span><span style="flex:1;font-size:16px;font-weight:600">Concepto</span><span style="font-size:13px;color:var(--color-fg-muted)">{{ tChev.concepto }}</span></button>
+          <sc-if value="{{ tOpen.concepto }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:0 16px 16px;border-top:1px solid var(--color-border)">
+            <p style="margin:12px 0 12px;text-wrap:pretty">Una rueda que gira sin deslizar convierte rotación en traslación. La <strong>velocidad angular</strong> ω mide cuántos radianes gira por segundo; la <strong>velocidad lineal</strong> v del punto de contacto (y del centro de la rueda) es esa rotación multiplicada por el radio.</p>
+            <p style="margin:0;text-wrap:pretty">La relación es lineal: duplicar el radio duplica la velocidad para la misma ω. Por eso el radio de la rueda es uno de los parámetros de <em>Mi robot</em>.</p>
+          </div>
+          </sc-if>
+        </section>
+        <section style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden">
+          <button onClick="{{ tGo.formulas }}" style="width:100%;min-height:52px;display:flex;align-items:center;gap:12px;padding:0 16px;border:0;background:transparent;color:var(--color-fg);text-align:left"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted)">03</span><span style="flex:1;font-size:16px;font-weight:600">Fórmulas</span><span style="font-size:13px;color:var(--color-fg-muted)">{{ tChev.formulas }}</span></button>
+          <sc-if value="{{ tOpen.formulas }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:0 16px 16px;border-top:1px solid var(--color-border)">
+            <div style="font-family:'Latin Modern Math','STIX Two Math','Cambria Math',serif;font-size:28px;text-align:center;padding:16px 0 20px;font-style:italic">v = ω · r</div>
+            <dl style="margin:0;display:grid;grid-template-columns:auto 1fr auto;gap:6px 16px;font-size:14px;border-top:1px solid var(--color-border);padding-top:14px">
+              <dt style="font-family:var(--font-mono);font-style:italic">v</dt><dd style="margin:0;color:var(--color-fg-muted)">velocidad lineal</dd><dd style="margin:0;font-family:var(--font-mono);color:var(--color-fg-muted)">m/s</dd>
+              <dt style="font-family:var(--font-mono);font-style:italic">ω</dt><dd style="margin:0;color:var(--color-fg-muted)">velocidad angular</dd><dd style="margin:0;font-family:var(--font-mono);color:var(--color-fg-muted)">rad/s</dd>
+              <dt style="font-family:var(--font-mono);font-style:italic">r</dt><dd style="margin:0;color:var(--color-fg-muted)">radio de la rueda</dd><dd style="margin:0;font-family:var(--font-mono);color:var(--color-fg-muted)">m</dd>
+            </dl>
+          </div>
+          </sc-if>
+        </section>
+        <section style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden">
+          <button onClick="{{ tGo.explora }}" style="width:100%;min-height:52px;display:flex;align-items:center;gap:12px;padding:0 16px;border:0;background:transparent;color:var(--color-fg);text-align:left"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted)">04</span><span style="flex:1;font-size:16px;font-weight:600">Explora</span><span style="font-size:13px;color:var(--color-fg-muted)">{{ tChev.explora }}</span></button>
+          <sc-if value="{{ tOpen.explora }}" hint-placeholder-val="{{ true }}">
+          <div style="border-top:1px solid var(--color-border)">
+            <div style="position:relative;height:240px;background-image:linear-gradient(var(--sim-grid) 1px,transparent 1px),linear-gradient(90deg,var(--sim-grid) 1px,transparent 1px);background-size:24px 24px;border-bottom:1px solid var(--color-border)">
+              <svg viewBox="0 0 360 240" style="width:100%;height:100%;display:block">
+                <line x1="0" y1="200" x2="360" y2="200" stroke="var(--sim-axis)" stroke-width="1.5"></line>
+                <circle cx="120" cy="120" r="80" fill="none" stroke="var(--color-physical)" stroke-width="6"></circle>
+                <circle cx="120" cy="120" r="6" fill="var(--color-fg)"></circle>
+                <line x1="120" y1="120" x2="176" y2="63" stroke="var(--color-fg-muted)" stroke-width="2"></line>
+                <line x1="120" y1="120" x2="63" y2="177" stroke="var(--color-fg-muted)" stroke-width="2"></line>
+                <line x1="120" y1="120" x2="176" y2="177" stroke="var(--color-fg-muted)" stroke-width="2"></line>
+                <line x1="120" y1="120" x2="63" y2="63" stroke="var(--color-fg-muted)" stroke-width="2"></line>
+                <path d="M 200 120 A 80 80 0 0 0 120 40" fill="none" stroke="var(--color-data-1)" stroke-width="2" stroke-dasharray="4 4"></path>
+                <line x1="120" y1="120" x2="300" y2="120" stroke="var(--color-vector-velocity)" stroke-width="3"></line>
+                <polygon points="300,112 316,120 300,128" fill="var(--color-vector-velocity)"></polygon>
+                <text x="250" y="108" font-family="var(--font-mono)" font-size="14" fill="var(--color-vector-velocity)">v = 0.69 m/s</text>
+                <text x="140" y="34" font-family="var(--font-mono)" font-size="14" fill="var(--color-data-1)">ω = 20.9 rad/s</text>
+                <text x="126" y="150" font-family="var(--font-mono)" font-size="13" fill="var(--color-fg-muted)">r</text>
+              </svg>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--color-border)">
+              <button style="height:44px;padding:0 14px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-size:14px;font-weight:500">Reproducir</button>
+              <button style="height:44px;padding:0 14px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-size:14px;font-weight:500">Paso</button>
+              <button style="height:44px;padding:0 14px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-size:14px;font-weight:500">Reiniciar</button>
+              <span style="margin-left:auto;font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted)">1×</span>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:20px">
+              <label style="display:block">
+                <span style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px"><span>Velocidad angular <span style="font-family:var(--font-mono);font-style:italic">ω</span></span><span style="font-family:var(--font-mono);font-variant-numeric:tabular-nums;border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:0 6px;background:var(--color-bg)">20.9 <span style="color:var(--color-fg-muted)">rad/s</span></span></span>
+                <span style="display:block;position:relative;height:24px"><span style="position:absolute;top:10px;left:0;right:0;height:4px;border-radius:2px;background:var(--color-border)"></span><span style="position:absolute;top:10px;left:0;width:42%;height:4px;border-radius:2px;background:var(--color-primary)"></span><span style="position:absolute;top:0;left:calc(42% - 12px);width:24px;height:24px;border-radius:50%;background:var(--color-bg-raised);border:2px solid var(--color-primary);box-sizing:border-box;box-shadow:var(--shadow-sm)"></span></span>
+                <span style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:12px;color:var(--color-fg-muted);margin-top:4px"><span>0</span><span>50</span></span>
+              </label>
+              <label style="display:block">
+                <span style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px"><span>Radio <span style="font-family:var(--font-mono);font-style:italic">r</span></span><span style="font-family:var(--font-mono);font-variant-numeric:tabular-nums;border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:0 6px;background:var(--color-bg)">0.033 <span style="color:var(--color-fg-muted)">m</span></span></span>
+                <span style="display:block;position:relative;height:24px"><span style="position:absolute;top:10px;left:0;right:0;height:4px;border-radius:2px;background:var(--color-border)"></span><span style="position:absolute;top:10px;left:0;width:28%;height:4px;border-radius:2px;background:var(--color-primary)"></span><span style="position:absolute;top:0;left:calc(28% - 12px);width:24px;height:24px;border-radius:50%;background:var(--color-bg-raised);border:2px solid var(--color-primary);box-sizing:border-box;box-shadow:var(--shadow-sm)"></span></span>
+                <span style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:12px;color:var(--color-fg-muted);margin-top:4px"><span>0.010</span><span>0.100</span></span>
+              </label>
+              <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;border-top:1px solid var(--color-border);padding-top:16px">
+                <div><p style="margin:0 0 4px;font-size:13px;color:var(--color-fg-muted)">Velocidad lineal</p><p style="margin:0;font-family:var(--font-mono);font-size:var(--text-xl);font-weight:500;font-variant-numeric:tabular-nums;color:var(--color-vector-velocity)">0.69 <span style="font-size:16px;color:var(--color-fg-muted)">m/s</span></p></div>
+                <a href="#" style="font-size:14px;text-decoration:none;min-height:44px;display:inline-flex;align-items:center;text-align:right">Usar los valores de Mi robot</a>
+              </div>
+            </div>
+          </div>
+          </sc-if>
+        </section>
+        <section style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden">
+          <button onClick="{{ tGo.robot }}" style="width:100%;min-height:52px;display:flex;align-items:center;gap:12px;padding:0 16px;border:0;background:transparent;color:var(--color-fg);text-align:left"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted)">05</span><span style="flex:1;font-size:16px;font-weight:600">Al robot</span><span style="font-size:13px;color:var(--color-fg-muted)">{{ tChev.robot }}</span></button>
+          <sc-if value="{{ tOpen.robot }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:0 16px 16px;border-top:1px solid var(--color-border)">
+            <p style="margin:12px 0 16px;text-wrap:pretty">Con las ruedas de tu robot (r = 0.033 m) y el motor a 200 rpm (ω = 20.9 rad/s), la velocidad lineal es 0.69 m/s: la pista de 4 m se recorre en 5.8 s si no hay curvas. Compruébalo en el simulador con el controlador desactivado.</p>
+            <button onClick="{{ goSimM }}" style="width:100%;height:44px;padding:0 20px;border-radius:var(--radius-md);border:1px solid var(--color-physical);background:var(--color-physical);color:var(--color-physical-fg);font-weight:600;font-size:16px;display:inline-flex;align-items:center;justify-content:center;gap:10px"><span style="width:14px;height:9px;border-radius:2px;background:var(--color-physical-fg);opacity:.9"></span>Abrir en simulador</button>
+          </div>
+          </sc-if>
+        </section>
+        <section style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden">
+          <button onClick="{{ tGo.verifica }}" style="width:100%;min-height:52px;display:flex;align-items:center;gap:12px;padding:0 16px;border:0;background:transparent;color:var(--color-fg);text-align:left"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted)">06</span><span style="flex:1;font-size:16px;font-weight:600">Verifica</span><span style="font-size:13px;color:var(--color-fg-muted)">{{ tChev.verifica }}</span></button>
+          <sc-if value="{{ tOpen.verifica }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:0 16px 16px;border-top:1px solid var(--color-border);display:flex;flex-direction:column;gap:16px">
+            <div style="padding-top:12px">
+              <p style="margin:0 0 12px"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted);margin-right:8px">E1</span>Una rueda de r = 0.05 m gira a ω = 12 rad/s. ¿Cuál es v?</p>
+              <div style="display:flex;gap:8px;align-items:center"><span style="display:inline-flex;align-items:center;height:44px;flex:1;border:1px solid var(--color-success);border-radius:var(--radius-md);padding:0 12px;font-family:var(--font-mono);font-variant-numeric:tabular-nums;background:var(--color-bg);box-sizing:border-box">0.6 <span style="color:var(--color-fg-muted);margin-left:6px">m/s</span></span><button style="height:44px;padding:0 16px;border-radius:var(--radius-md);border:1px solid var(--color-border);background:transparent;color:var(--color-fg-muted);font-weight:500">Comprobar</button></div>
+              <p style="margin:10px 0 0;display:flex;align-items:center;gap:8px;color:var(--color-success);font-weight:600;font-size:15px"><span style="width:18px;height:18px;border-radius:50%;border:2px solid var(--color-success);display:inline-flex;align-items:center;justify-content:center;font-size:12px;line-height:1">✓</span>Correcto</p>
+            </div>
+            <div style="border-top:1px solid var(--color-border);padding-top:16px">
+              <p style="margin:0 0 12px"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted);margin-right:8px">E2</span>Tu robot debe ir a 1 m/s con r = 0.033 m. ¿Qué ω necesita el motor?</p>
+              <div style="display:flex;gap:8px;align-items:center"><span style="display:inline-flex;align-items:center;height:44px;flex:1;border:1px solid var(--color-error);border-radius:var(--radius-md);padding:0 12px;font-family:var(--font-mono);font-variant-numeric:tabular-nums;background:var(--color-bg);box-sizing:border-box">26.5 <span style="color:var(--color-fg-muted);margin-left:6px">rad/s</span></span><button style="height:44px;padding:0 16px;border-radius:var(--radius-md);border:1px solid var(--color-primary);background:var(--color-primary);color:var(--color-primary-fg);font-weight:600">Comprobar</button></div>
+              <p style="margin:10px 0 0;display:flex;align-items:center;gap:8px;color:var(--color-error);font-weight:600;font-size:15px"><span style="width:18px;height:18px;border-radius:50%;border:2px solid var(--color-error);display:inline-flex;align-items:center;justify-content:center;font-size:12px;line-height:1">✕</span>Incorrecto · fuera por 12 %</p>
+              <p style="margin:8px 0 0;font-size:14px;color:var(--color-fg-muted)">Revisa la operación: ω = v / r. Intento 1 de 3.</p>
+            </div>
+          </div>
+          </sc-if>
+        </section>
+        <section style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden">
+          <button onClick="{{ tGo.profundiza }}" style="width:100%;min-height:52px;display:flex;align-items:center;gap:12px;padding:0 16px;border:0;background:transparent;color:var(--color-fg);text-align:left"><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted)">07</span><span style="flex:1;font-size:16px;font-weight:600">Profundiza</span><span style="font-size:13px;color:var(--color-fg-muted)">{{ tChev.profundiza }}</span></button>
+          <sc-if value="{{ tOpen.profundiza }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:4px 16px 8px;border-top:1px solid var(--color-border)">
+            <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column">
+              <li><a href="#" style="text-decoration:none;display:flex;align-items:center;min-height:44px;font-size:15px">Deslizamiento: cuándo v ≠ ω·r</a></li>
+              <li><a href="#" style="text-decoration:none;display:flex;align-items:center;min-height:44px;font-size:15px">Conversión rpm → rad/s, con ejemplos de motores comunes</a></li>
+              <li><a href="#" style="text-decoration:none;display:flex;align-items:center;min-height:44px;font-size:15px">Encoders: medir ω en el robot real</a></li>
+            </ul>
+          </div>
+          </sc-if>
+        </section>
+      </div>
+
+      <nav style="display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--color-border);padding-top:20px;margin-top:24px">
+        <a href="#" style="text-decoration:none;display:flex;flex-direction:column;gap:2px;min-height:44px;justify-content:center"><span style="font-size:13px;color:var(--color-fg-muted)">← Anterior</span><span style="font-weight:600">1.2 Posición y desplazamiento</span></a>
+        <a href="#" style="text-decoration:none;display:flex;flex-direction:column;gap:2px;min-height:44px;justify-content:center;text-align:right"><span style="font-size:13px;color:var(--color-fg-muted)">Siguiente →</span><span style="font-weight:600">1.4 Cinemática diferencial</span></a>
+      </nav>
+    </article>
+  </div>
+</main>
+</sc-if>
+
+<!-- ============ 8 SIMULADOR 2D MÓVIL ============ -->
+<sc-if value="{{ isSimM }}" hint-placeholder-val="{{ false }}">
+<main style="flex:1;padding:32px 16px 64px;display:flex;flex-direction:column;align-items:center;gap:12px">
+  <p style="margin:0;font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted)">08 Simulador 2D móvil · 390 × 844 px · claro</p>
+  <div id="art-08" data-screen-label="08 Simulador 2D móvil" style="width:390px;height:844px;flex:none;display:flex;flex-direction:column;background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);overflow:hidden;color:var(--color-fg);box-sizing:border-box">
+    <header style="flex:none;display:flex;align-items:center;gap:8px;height:56px;padding:0 4px 0 16px;background:var(--color-bg-raised);border-bottom:1px solid var(--color-border)">
+      <a href="#" onClick="{{ goInicio }}" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--color-fg);font-weight:600;font-size:18px;min-height:44px">
+        <span style="width:22px;height:14px;border-radius:3px;background:var(--color-physical);display:inline-block;position:relative"><span style="position:absolute;left:-3px;top:2px;width:3px;height:10px;background:var(--color-fg);border-radius:1px"></span><span style="position:absolute;right:-3px;top:2px;width:3px;height:10px;background:var(--color-fg);border-radius:1px"></span></span>
+        Trayectoria
+      </a>
+      <span style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--color-fg-muted)"><span style="width:56px;height:4px;border-radius:2px;background:var(--color-border);overflow:hidden;display:inline-block"><span style="display:block;width:31%;height:100%;background:var(--color-primary)"></span></span><span style="font-family:var(--font-mono)">9/29</span></span>
+      <button aria-label="Menú" style="width:44px;height:44px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0"><span style="width:18px;height:2px;background:var(--color-fg);border-radius:1px"></span><span style="width:18px;height:2px;background:var(--color-fg);border-radius:1px"></span><span style="width:18px;height:2px;background:var(--color-fg);border-radius:1px"></span></button>
+    </header>
+
+    <div style="flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column">
+      <div style="padding:12px 16px 10px;display:flex;flex-direction:column;gap:2px">
+        <h1 style="margin:0;font-size:var(--text-lg);font-weight:600">Simulador móvil 2D</h1>
+        <span style="font-size:14px;color:var(--color-fg-muted)">Pista: óvalo 4 m · Seguidor de línea</span>
+      </div>
+
+      <div style="position:relative;height:240px;flex:none;background:var(--color-bg-raised);border-top:1px solid var(--color-border);border-bottom:1px solid var(--color-border);overflow:hidden;background-image:linear-gradient(var(--sim-grid) 1px,transparent 1px),linear-gradient(90deg,var(--sim-grid) 1px,transparent 1px);background-size:24px 24px">
+        <svg viewBox="0 0 390 240" style="position:absolute;inset:0;width:100%;height:100%">
+          <rect x="60" y="48" width="270" height="150" rx="75" fill="none" stroke="var(--sim-track)" stroke-width="8"></rect>
+          <path d="M 60 140 A 75 75 0 0 1 135 48 L 178 48" fill="none" stroke="var(--sim-trace)" stroke-width="2" stroke-dasharray="5 5"></path>
+          <line x1="14" y1="120" x2="54" y2="120" stroke="var(--sim-axis)" stroke-width="2"></line>
+          <text x="14" y="112" font-family="var(--font-mono)" font-size="11" fill="var(--sim-axis)">0.5 m</text>
+          <g transform="translate(182,48) scale(0.7)">
+            <rect x="-34" y="-22" width="68" height="44" rx="6" fill="var(--sim-robot)"></rect>
+            <rect x="-14" y="-30" width="28" height="8" rx="2" fill="var(--color-fg)"></rect>
+            <rect x="-14" y="22" width="28" height="8" rx="2" fill="var(--color-fg)"></rect>
+            <circle cx="30" cy="-12" r="5" fill="var(--sim-sensor-on)"></circle>
+            <circle cx="30" cy="12" r="5" fill="var(--sim-sensor-off)"></circle>
+            <line x1="0" y1="0" x2="80" y2="0" stroke="var(--color-vector-velocity)" stroke-width="3"></line>
+            <polygon points="80,-6 92,0 80,6" fill="var(--color-vector-velocity)"></polygon>
+          </g>
+        </svg>
+        <div style="position:absolute;left:16px;top:10px;display:flex;gap:12px;font-family:var(--font-mono);font-size:12px;color:var(--color-fg-muted)">
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:var(--sim-sensor-on)"></span>S izq · 1</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:var(--sim-sensor-off)"></span>S der · 0</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:3px;background:var(--color-vector-velocity)"></span>v</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:0;border-top:2px dashed var(--sim-trace)"></span>traza</span>
+        </div>
+        <span style="position:absolute;left:16px;bottom:12px;font-family:var(--font-mono);font-size:12px;font-variant-numeric:tabular-nums;color:var(--color-fg-muted)">t <span style="color:var(--color-fg)">07.42 s</span></span>
+        <div style="position:absolute;right:12px;bottom:10px;background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:8px 12px;box-shadow:var(--shadow-sm)">
+          <p style="margin:0;font-size:12px;color:var(--color-fg-muted)">Tiempo de vuelta</p>
+          <p style="margin:0;font-family:var(--font-mono);font-size:var(--text-lg);font-weight:500;font-variant-numeric:tabular-nums;line-height:1.2">12.84 <span style="font-size:13px;color:var(--color-fg-muted)">s</span></p>
+          <p style="margin:2px 0 0;font-family:var(--font-mono);font-size:11px;color:var(--color-fg-muted)">mejor 12.31 s · vuelta 3</p>
+        </div>
+      </div>
+
+      <div style="padding:12px 16px 16px;display:flex;flex-direction:column;gap:8px">
+        <section style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden">
+          <button onClick="{{ sGo.robot }}" style="width:100%;min-height:48px;display:flex;align-items:center;gap:12px;padding:0 16px;border:0;background:transparent;color:var(--color-fg);text-align:left"><span style="flex:1;font-size:15px;font-weight:600">Robot</span><span style="font-size:13px;color:var(--color-fg-muted)">Mi robot</span><span style="font-size:13px;color:var(--color-fg-muted)">{{ sChev.robot }}</span></button>
+          <sc-if value="{{ sOpen.robot }}" hint-placeholder-val="{{ false }}">
+          <dl style="margin:0;padding:12px 16px 16px;border-top:1px solid var(--color-border);display:grid;grid-template-columns:1fr auto;gap:8px 12px;font-size:14px">
+            <dt style="color:var(--color-fg-muted)">Masa</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">0.85 kg</dd>
+            <dt style="color:var(--color-fg-muted)">Radio de rueda</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">0.033 m</dd>
+            <dt style="color:var(--color-fg-muted)">Separación</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">0.140 m</dd>
+            <dt style="color:var(--color-fg-muted)">v máx</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">0.90 m/s</dd>
+            <dt style="color:var(--color-fg-muted)">Sensores</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">2 · 18 mm</dd>
+          </dl>
+          </sc-if>
+        </section>
+        <section style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden">
+          <button onClick="{{ sGo.ctrl }}" style="width:100%;min-height:48px;display:flex;align-items:center;gap:12px;padding:0 16px;border:0;background:transparent;color:var(--color-fg);text-align:left"><span style="flex:1;font-size:15px;font-weight:600">Controlador</span><span style="font-size:13px;color:var(--color-fg-muted)">PID</span><span style="font-size:13px;color:var(--color-fg-muted)">{{ sChev.ctrl }}</span></button>
+          <sc-if value="{{ sOpen.ctrl }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:12px 16px 16px;border-top:1px solid var(--color-border)">
+            <div style="display:flex;border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden;margin-bottom:16px;font-size:14px;font-weight:500">
+              <span style="flex:1;text-align:center;line-height:44px;color:var(--color-fg-muted)">Ninguno</span>
+              <span style="flex:1;text-align:center;line-height:44px;color:var(--color-fg-muted);border-left:1px solid var(--color-border)">P</span>
+              <span style="flex:1;text-align:center;line-height:44px;background:var(--color-primary);color:var(--color-primary-fg)">PID</span>
+              <span style="flex:1;text-align:center;line-height:44px;color:var(--color-fg-muted);border-left:1px solid var(--color-border)">Propio</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <sc-for list="{{ ganancias }}" as="g" hint-placeholder-count="3">
+                <label style="display:block">
+                  <span style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px"><span style="font-family:var(--font-mono)">{{ g.nombre }}</span><span style="font-family:var(--font-mono);font-variant-numeric:tabular-nums;border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:0 6px;background:var(--color-bg)">{{ g.valor }}</span></span>
+                  <span style="display:block;position:relative;height:24px"><span style="position:absolute;top:10px;left:0;right:0;height:4px;border-radius:2px;background:var(--color-border)"></span><span style="position:absolute;top:10px;left:0;width:{{ g.pct }};height:4px;border-radius:2px;background:var(--color-primary)"></span><span style="position:absolute;top:0;left:calc({{ g.pct }} - 12px);width:24px;height:24px;border-radius:50%;background:var(--color-bg-raised);border:2px solid var(--color-primary);box-sizing:border-box;box-shadow:var(--shadow-sm)"></span></span>
+                </label>
+              </sc-for>
+            </div>
+          </div>
+          </sc-if>
+        </section>
+        <section style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden">
+          <button onClick="{{ sGo.lecturas }}" style="width:100%;min-height:48px;display:flex;align-items:center;gap:12px;padding:0 16px;border:0;background:transparent;color:var(--color-fg);text-align:left"><span style="flex:1;font-size:15px;font-weight:600">Lecturas</span><span style="font-family:var(--font-mono);font-size:13px;color:var(--color-vector-velocity)">v 0.64 m/s</span><span style="font-size:13px;color:var(--color-fg-muted)">{{ sChev.lecturas }}</span></button>
+          <sc-if value="{{ sOpen.lecturas }}" hint-placeholder-val="{{ false }}">
+          <dl style="margin:0;padding:12px 16px 16px;border-top:1px solid var(--color-border);display:grid;grid-template-columns:1fr auto;gap:8px 12px;font-size:14px">
+            <dt style="color:var(--color-fg-muted)">Posición (x, y)</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">(1.62, 0.41) m</dd>
+            <dt style="color:var(--color-fg-muted)">Orientación θ</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">70.3°</dd>
+            <dt style="color:var(--color-fg-muted)">v</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--color-vector-velocity)">0.64 m/s</dd>
+            <dt style="color:var(--color-fg-muted)">Error e</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">−0.004 m</dd>
+          </dl>
+          </sc-if>
+        </section>
+        <section style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden">
+          <button onClick="{{ sGo.graficas }}" style="width:100%;min-height:48px;display:flex;align-items:center;gap:12px;padding:0 16px;border:0;background:transparent;color:var(--color-fg);text-align:left"><span style="flex:1;font-size:15px;font-weight:600">Gráficas</span><span style="font-size:13px;color:var(--color-fg-muted)">Error de línea · Velocidad de ruedas</span><span style="font-size:13px;color:var(--color-fg-muted)">{{ sChev.graficas }}</span></button>
+          <sc-if value="{{ sOpen.graficas }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:12px 16px 16px;border-top:1px solid var(--color-border);display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;flex-direction:column;height:120px">
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="font-weight:600">Error de línea</span><span style="font-family:var(--font-mono);color:var(--color-fg-muted)">e(t) · m</span></div>
+              <svg viewBox="0 0 400 110" preserveAspectRatio="none" style="flex:1;width:100%"><line x1="0" y1="55" x2="400" y2="55" stroke="var(--sim-axis)" stroke-width="1"></line><polyline points="0,55 30,20 60,80 90,40 120,64 150,48 180,60 210,52 240,57 270,53 300,56 330,54 360,55 400,55" fill="none" stroke="var(--color-data-1)" stroke-width="2" stroke-linejoin="round"></polyline></svg>
+              <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--color-fg-muted)"><span>0 s</span><span>8 s</span></div>
+            </div>
+            <div style="display:flex;flex-direction:column;height:120px">
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="font-weight:600">Velocidad de ruedas</span><span style="display:flex;gap:10px;font-family:var(--font-mono);color:var(--color-fg-muted)"><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:3px;background:var(--color-data-2)"></span>izq</span><span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:3px;background:var(--color-data-3)"></span>der</span></span></div>
+              <svg viewBox="0 0 400 110" preserveAspectRatio="none" style="flex:1;width:100%"><line x1="0" y1="100" x2="400" y2="100" stroke="var(--sim-axis)" stroke-width="1"></line><polyline points="0,100 40,40 80,30 120,50 160,36 200,42 240,38 280,44 320,40 360,42 400,41" fill="none" stroke="var(--color-data-2)" stroke-width="2" stroke-linejoin="round"></polyline><polyline points="0,100 40,60 80,66 120,44 160,58 200,52 240,56 280,50 320,54 360,52 400,53" fill="none" stroke="var(--color-data-3)" stroke-width="2" stroke-linejoin="round"></polyline></svg>
+              <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--color-fg-muted)"><span>0 s</span><span>8 s</span></div>
+            </div>
+          </div>
+          </sc-if>
+        </section>
+      </div>
+    </div>
+
+    <div style="flex:none;height:56px;display:flex;align-items:center;gap:6px;padding:0 16px;background:var(--color-bg-raised);border-top:1px solid var(--color-border);box-sizing:border-box">
+      <button style="height:44px;flex:1;border-radius:var(--radius-sm);border:1px solid var(--color-primary);background:var(--color-primary);color:var(--color-primary-fg);font-size:14px;font-weight:600">Reproducir</button>
+      <button style="height:44px;padding:0 12px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-size:14px;font-weight:500">Pausa</button>
+      <button style="height:44px;padding:0 12px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-size:14px;font-weight:500">Reiniciar</button>
+      <button aria-label="Velocidad" style="height:44px;min-width:48px;padding:0 8px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-bg-raised);color:var(--color-fg);font-family:var(--font-mono);font-size:14px">1×</button>
+    </div>
+  </div>
+</main>
+</sc-if>
+
+<!-- ============ 9 RUTA MÓVIL ============ -->
+<sc-if value="{{ isRutaM }}" hint-placeholder-val="{{ false }}">
+<main style="flex:1;padding:32px 16px 64px;display:flex;flex-direction:column;align-items:center;gap:12px">
+  <p style="margin:0;font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted)">09 Ruta móvil · 390 px · claro</p>
+  <div id="art-09" data-screen-label="09 Ruta móvil" style="width:390px;flex:none;background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);overflow:hidden;color:var(--color-fg)">
+    <header style="display:flex;align-items:center;gap:8px;height:56px;padding:0 4px 0 16px;background:var(--color-bg-raised);border-bottom:1px solid var(--color-border)">
+      <a href="#" onClick="{{ goInicio }}" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--color-fg);font-weight:600;font-size:18px;min-height:44px">
+        <span style="width:22px;height:14px;border-radius:3px;background:var(--color-physical);display:inline-block;position:relative"><span style="position:absolute;left:-3px;top:2px;width:3px;height:10px;background:var(--color-fg);border-radius:1px"></span><span style="position:absolute;right:-3px;top:2px;width:3px;height:10px;background:var(--color-fg);border-radius:1px"></span></span>
+        Trayectoria
+      </a>
+      <span style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--color-fg-muted)"><span style="width:56px;height:4px;border-radius:2px;background:var(--color-border);overflow:hidden;display:inline-block"><span style="display:block;width:31%;height:100%;background:var(--color-primary)"></span></span><span style="font-family:var(--font-mono)">9/29</span></span>
+      <button aria-label="Menú" style="width:44px;height:44px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0"><span style="width:18px;height:2px;background:var(--color-fg);border-radius:1px"></span><span style="width:18px;height:2px;background:var(--color-fg);border-radius:1px"></span><span style="width:18px;height:2px;background:var(--color-fg);border-radius:1px"></span></button>
+    </header>
+
+    <div style="padding:20px 16px 32px;display:flex;flex-direction:column;gap:16px">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:8px">
+          <h1 style="margin:0;font-size:var(--text-xl);font-weight:600">Ruta</h1>
+          <span style="font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted)">9 de 29 temas · 31 %</span>
+        </div>
+        <div style="height:4px;border-radius:2px;background:var(--color-border);overflow:hidden"><div style="width:31%;height:100%;background:var(--color-primary)"></div></div>
+      </div>
+
+      <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:16px">
+        <p style="margin:0 0 4px;font-size:13px;color:var(--color-fg-muted)">Continuar</p>
+        <p style="margin:0 0 12px;font-weight:600">2.2 Fricción y torque en la rueda</p>
+        <button onClick="{{ goTemaM }}" style="width:100%;height:44px;border-radius:var(--radius-md);border:1px solid var(--color-primary);background:var(--color-primary);color:var(--color-primary-fg);font-weight:600;font-size:16px">Retomar · 25 min</button>
+      </div>
+
+      <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow-x:auto;overflow-y:hidden">
+        <table style="border-collapse:separate;border-spacing:0;font-size:14px;min-width:580px;width:100%">
+          <thead>
+            <tr>
+              <th style="text-align:left;padding:0 16px;height:44px;font-weight:600;position:sticky;left:0;z-index:2;background:var(--color-bg-raised);border-bottom:1px solid var(--color-border);border-right:1px solid var(--color-border);width:196px;min-width:196px;max-width:196px;box-sizing:border-box">Tema</th>
+              <th style="text-align:left;padding:0 12px;height:44px;font-weight:600;border-bottom:1px solid var(--color-border);white-space:nowrap">Estado</th>
+              <th style="text-align:left;padding:0 12px;height:44px;font-weight:600;border-bottom:1px solid var(--color-border);white-space:nowrap">Progreso</th>
+              <th style="text-align:right;padding:0 16px 0 12px;height:44px;font-weight:600;border-bottom:1px solid var(--color-border);white-space:nowrap">Duración</th>
+            </tr>
+          </thead>
+          <sc-for list="{{ modulos }}" as="m" hint-placeholder-count="7">
+            <tbody>
+              <tr>
+                <th style="text-align:left;padding:0 16px;height:44px;position:sticky;left:0;z-index:2;background:var(--color-bg);border-bottom:1px solid var(--color-border);border-right:1px solid var(--color-border);box-sizing:border-box;width:196px;min-width:196px;max-width:196px;font-weight:600;font-size:14px;line-height:1.3"><span style="font-family:var(--font-mono);font-weight:400;color:var(--color-fg-muted);margin-right:8px">{{ m.num }}</span>{{ m.nombre }}</th>
+                <td style="padding:0 12px;height:44px;background:var(--color-bg);border-bottom:1px solid var(--color-border);white-space:nowrap"><span style="font-size:13px;font-weight:600;padding:2px 10px;border-radius:999px;border:1px solid {{ m.estadoColor }};color:{{ m.estadoColor }}">{{ m.estado }}</span></td>
+                <td style="padding:0 12px;height:44px;background:var(--color-bg);border-bottom:1px solid var(--color-border);font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted);white-space:nowrap">{{ m.hechos }}/{{ m.temasN }} temas</td>
+                <td style="padding:0 16px 0 12px;height:44px;background:var(--color-bg);border-bottom:1px solid var(--color-border);text-align:right;font-family:var(--font-mono);font-size:13px;color:var(--color-fg-muted);white-space:nowrap">{{ m.tiempo }}</td>
+              </tr>
+              <sc-for list="{{ m.temas }}" as="t" hint-placeholder-count="3">
+                <tr>
+                  <td style="padding:0 16px;height:44px;position:sticky;left:0;z-index:1;background:var(--color-bg-raised);border-bottom:1px solid var(--color-border);border-right:1px solid var(--color-border);box-sizing:border-box;width:196px;min-width:196px;max-width:196px"><a href="#" onClick="{{ goTemaM }}" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--color-fg);font-size:15px;min-height:44px"><span style="width:8px;height:8px;border-radius:50%;background:{{ t.color }};flex:none;border:1px solid {{ t.border }}"></span><span style="flex:1;line-height:1.3;padding:6px 0">{{ t.nombre }}</span></a></td>
+                  <td style="padding:0 12px;height:44px;border-bottom:1px solid var(--color-border);white-space:nowrap;font-size:14px;color:{{ t.estadoColor }};font-weight:500">{{ t.estado }}</td>
+                  <td style="padding:0 12px;height:44px;border-bottom:1px solid var(--color-border);white-space:nowrap"><span style="display:inline-flex;align-items:center;gap:8px"><span style="width:72px;height:4px;border-radius:2px;background:var(--color-border);overflow:hidden;display:inline-block"><span style="display:block;width:{{ t.pct }};height:100%;background:{{ t.barColor }}"></span></span><span style="font-family:var(--font-mono);font-size:12px;color:var(--color-fg-muted);font-variant-numeric:tabular-nums">{{ t.pct }}</span></span></td>
+                  <td style="padding:0 16px 0 12px;height:44px;border-bottom:1px solid var(--color-border);text-align:right;font-family:var(--font-mono);font-size:12px;color:var(--color-fg-muted);white-space:nowrap">{{ t.min }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </sc-for>
+        </table>
+      </div>
+      <p style="margin:-8px 0 0;font-size:13px;color:var(--color-fg-muted)">Desliza la tabla hacia la derecha para ver estado, progreso y duración.</p>
+
+      <div style="background:var(--color-bg-raised);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <h3 style="margin:0;font-size:16px;font-weight:600">Mi robot</h3>
+          <a href="#" style="font-size:14px;text-decoration:none;min-height:44px;display:inline-flex;align-items:center">Editar</a>
+        </div>
+        <div style="display:grid;grid-template-columns:96px minmax(0,1fr);gap:16px;align-items:center">
+          <div style="height:96px;border-radius:var(--radius-md);background:var(--color-bg);border:1px solid var(--color-border);display:flex;align-items:center;justify-content:center;background-image:linear-gradient(var(--sim-grid) 1px,transparent 1px),linear-gradient(90deg,var(--sim-grid) 1px,transparent 1px);background-size:16px 16px">
+            <span style="width:48px;height:30px;border-radius:5px;background:var(--color-physical);position:relative;display:block"><span style="position:absolute;left:-5px;top:5px;width:5px;height:20px;background:var(--color-fg);border-radius:2px"></span><span style="position:absolute;right:-5px;top:5px;width:5px;height:20px;background:var(--color-fg);border-radius:2px"></span><span style="position:absolute;top:-4px;left:12px;width:7px;height:7px;border-radius:50%;background:var(--sim-sensor-on)"></span><span style="position:absolute;top:-4px;right:12px;width:7px;height:7px;border-radius:50%;background:var(--sim-sensor-on)"></span></span>
+          </div>
+          <dl style="margin:0;display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:14px">
+            <dt style="color:var(--color-fg-muted)">Masa</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">0.85 kg</dd>
+            <dt style="color:var(--color-fg-muted)">Radio de rueda</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">0.033 m</dd>
+            <dt style="color:var(--color-fg-muted)">Sensores</dt><dd style="margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums">2 ópticos</dd>
+            <dt style="color:var(--color-fg-muted)">Controlador</dt><dd style="margin:0;font-family:var(--font-mono)">PID</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+</sc-if>
+
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { screen: 'inicio', theme: 'light' };
+  state = { screen: 'inicio', theme: 'light', accT: 'explora', accS: 'ctrl' };
+  acc(field, keys) {
+    const cur = this.state[field];
+    const open = {}, chev = {}, go = {};
+    keys.forEach(k => { open[k] = cur === k; chev[k] = cur === k ? 'ocultar ▴' : 'ver ▾'; go[k] = () => this.setState({ [field]: cur === k ? null : k }); });
+    return { open, chev, go };
+  }
   componentDidMount() { document.documentElement.setAttribute('data-theme', this.state.theme); window.__tray = (screen, theme) => this.setState({ screen, theme }); }
   componentDidUpdate() { document.documentElement.setAttribute('data-theme', this.state.theme); }
   go(s) { return (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ screen: s }); window.scrollTo(0, 0); }; }
@@ -601,7 +967,9 @@ class Component extends DCLogic {
     const s = this.state.screen;
     const c = (v) => `var(--color-${v})`;
     const estadoColor = { 'Completado': c('success'), 'En curso': c('primary'), 'Pendiente': c('fg-muted') };
-    const tema = (nombre, min, st) => ({ nombre, min: min + ' min', color: st === 'c' ? c('success') : st === 'e' ? c('primary') : 'transparent', border: st === 'p' ? c('border') : 'transparent' });
+    const tema = (nombre, min, st) => ({ nombre, st, min: min + ' min', color: st === 'c' ? c('success') : st === 'e' ? c('primary') : 'transparent', border: st === 'p' ? c('border') : 'transparent',
+      estado: st === 'c' ? 'Completado' : st === 'e' ? 'En curso' : 'Pendiente', estadoColor: st === 'c' ? c('success') : st === 'e' ? c('primary') : c('fg-muted'),
+      pct: st === 'c' ? '100%' : st === 'e' ? '40%' : '0%', barColor: st === 'c' ? c('success') : c('primary') });
     const modulos = [
       { num: '01', nombre: 'Cinemática', tiempo: '2 h', estado: 'Completado', temas: [tema('Vectores y marcos', 25, 'c'), tema('Posición y desplazamiento', 30, 'c'), tema('Velocidad angular y lineal', 30, 'c'), tema('Cinemática diferencial', 35, 'c')] },
       { num: '02', nombre: 'Dinámica', tiempo: '2.5 h', estado: 'En curso', temas: [tema('Leyes de Newton en el robot', 30, 'c'), tema('Fricción y torque en la rueda', 25, 'e'), tema('Energía y potencia del motor', 30, 'p'), tema('Momento de inercia', 35, 'p'), tema('Modelo dinámico completo', 40, 'p')] },
@@ -610,7 +978,9 @@ class Component extends DCLogic {
       { num: '05', nombre: 'Álgebra lineal y transformaciones', tiempo: '2.5 h', estado: 'Pendiente', temas: [tema('Matrices y vectores', 30, 'p'), tema('Rotaciones en 2D y 3D', 35, 'p'), tema('Transformaciones homogéneas', 40, 'p')] },
       { num: '06', nombre: 'Cinemática de brazos', tiempo: '3 h', estado: 'Pendiente', temas: [tema('Articulaciones y eslabones', 25, 'p'), tema('Cinemática directa (DH)', 40, 'p'), tema('Cinemática inversa', 45, 'p'), tema('Espacio de trabajo', 30, 'p'), tema('Jacobiano y velocidades', 40, 'p')] },
       { num: '07', nombre: 'Proyecto: robot completo', tiempo: '4 h', estado: 'Pendiente', temas: [tema('Integración móvil + brazo', 60, 'p'), tema('Tarea: recoger y depositar', 90, 'p'), tema('Informe y entrega', 60, 'p')] },
-    ].map(m => ({ ...m, temasN: m.temas.length, estadoColor: estadoColor[m.estado] }));
+    ].map(m => ({ ...m, temasN: m.temas.length, hechos: m.temas.filter(t => t.st === 'c').length, estadoColor: estadoColor[m.estado] }));
+    const T = this.acc('accT', ['gancho', 'concepto', 'formulas', 'explora', 'robot', 'verifica', 'profundiza']);
+    const S = this.acc('accS', ['robot', 'ctrl', 'lecturas', 'graficas']);
     const ganancias = [{ nombre: 'Kp', valor: '2.40', pct: '48%' }, { nombre: 'Ki', valor: '0.15', pct: '15%' }, { nombre: 'Kd', valor: '0.60', pct: '30%' }];
     const articulaciones = [
       { nombre: 'q₁', desc: 'base', valor: '20.0', pct: '55%', min: '−180°', max: '180°' },
@@ -637,8 +1007,11 @@ class Component extends DCLogic {
     ];
     return {
       isInicio: s === 'inicio', isRuta: s === 'ruta', isTema: s === 'tema', isSim: s === 'sim', isBrazo: s === 'brazo', isAula: s === 'aula',
+      isTemaM: s === 'temaM', isSimM: s === 'simM', isRutaM: s === 'rutaM', isDesktop: !['temaM', 'simM', 'rutaM'].includes(s),
+      tOpen: T.open, tChev: T.chev, tGo: T.go, sOpen: S.open, sChev: S.chev, sGo: S.go,
       navRuta: s === 'ruta' || s === 'tema',
       goInicio: this.go('inicio'), goRuta: this.go('ruta'), goTema: this.go('tema'), goSim: this.go('sim'), goBrazo: this.go('brazo'), goAula: this.go('aula'),
+      goTemaM: this.go('temaM'), goSimM: this.go('simM'), goRutaM: this.go('rutaM'),
       toggleTheme: () => this.setState(st => ({ theme: st.theme === 'light' ? 'dark' : 'light' })),
       themeLabel: this.state.theme === 'light' ? 'Claro' : 'Oscuro',
       modulos, ganancias, articulaciones, grupos, temasAula, estudiantes,

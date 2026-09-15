@@ -182,6 +182,19 @@ Brazo 3D: base `fg-muted`, eslabones `physical` con grosor decreciente (22/18/14
 
 ---
 
-## 9. Móvil (pendiente de maqueta)
+## 9. Móvil (390 px)
 
-Una columna; paneles laterales pasan debajo del visor como acordeones; controles de simulación en barra fija inferior 56 px; tabla del aula con scroll horizontal y primera columna sticky; sliders con thumb 24 px.
+Maquetas: `docs/design/07-tema-movil-claro.png`, `08-simulador-2d-movil-claro.png`, `09-ruta-movil-claro.png`. Solo tema claro; el oscuro aplica los mismos tokens (§7).
+
+1. **Rejilla.** Una columna, gutter lateral 16 px. Cabecera de 56 px: logo, progreso `9/29` y botón de menú 44×44 px. La navegación horizontal de escritorio se oculta tras el menú.
+2. **Tipografía.** Sin reducir la escala: cuerpo 16 px; H1 móvil usa `--text-xl` en lugar de `--text-2xl`. Mínimo 12 px solo en etiquetas de eje y unidades mono.
+3. **Objetivos táctiles.** 44 px mínimo en enlaces, botones y filas; cabeceras de acordeón 48–52 px.
+4. **Acordeones (tema).** La barra lateral de secciones desaparece; cada sección es un acordeón, solo uno abierto a la vez (por defecto "Explora"). Cabecera: número mono, título y control "ver ▾ / ocultar ▴" con texto además del glifo. Navegación anterior/siguiente en vertical.
+5. **Sliders.** Thumb 24 px, pista 4 px, mínimo y máximo en mono bajo la pista; el valor en cápsula a la derecha de la etiqueta.
+6. **Visor del simulador.** Ancho completo, 240 px de alto, sin radio en los bordes. Leyenda de sensores arriba-izquierda, reloj `t` abajo-izquierda, escala dentro del visor, tarjeta "Tiempo de vuelta" abajo-derecha. Robot escalado a 0.7.
+7. **Barra inferior de controles.** Fija al borde inferior del viewport, 56 px: Reproducir (primario, ancho flexible), Pausa, Reiniciar y velocidad `1×`; todos de 44 px de alto. "Paso" no aparece en móvil. El contenido lleva 56 px de padding inferior para no quedar oculto.
+8. **Paneles del simulador.** Robot, Controlador, Lecturas y Gráficas pasan a acordeones entre el visor y la barra; cada cabecera muestra un resumen en línea (`PID`, `v 0.64 m/s`) legible cerrada. Las gráficas se apilan a 120 px cada una.
+9. **Tabla de la ruta.** Scroll horizontal con primera columna sticky de 196 px (nombre del tema y punto de estado); columnas Estado (texto y color), Progreso (barra 72 px y %) y Duración. Las filas de módulo son `<th>` sticky con fondo `--color-bg`; las de tema usan `--color-bg-raised`. Línea de ayuda bajo la tabla anunciando el scroll lateral.
+10. **Orden de la ruta.** Progreso global arriba, tarjeta "Continuar" antes de la tabla, "Mi robot" al final en horizontal (miniatura 96 px y lista de parámetros).
+11. **Estado y color.** Solo tokens. El estado nunca se codifica solo por color: siempre lleva texto (Completado / En curso / Pendiente).
+12. **Tabla del aula.** Sin maqueta propia; sigue el mismo patrón que la tabla de la ruta (scroll horizontal, primera columna sticky).
