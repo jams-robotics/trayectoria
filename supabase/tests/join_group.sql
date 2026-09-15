@@ -4,7 +4,7 @@
 -- Users: teacher A owns group G (code 'abc123abc123'); students B and C.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(9);
+select plan(13);
 
 create function pg_temp.act_as(target_user_id uuid) returns void language sql as $$
   select set_config(
@@ -79,6 +79,35 @@ select throws_ok(
   'P0001',
   'invalid invite code',
   'the owner joining their own group fails with the generic error'
+);
+
+-- Only the owner removes members (F0-07b). RLS filters the row out of the other users'
+-- deletes (0 rows affected, no error).
+select pg_temp.act_as('00000000-0000-4000-8000-00000000000b');
+delete from public.group_members where user_id = '00000000-0000-4000-8000-00000000000b';
+select results_eq(
+  $$ select user_id from public.group_members $$,
+  $$ values ('00000000-0000-4000-8000-00000000000b'::uuid) $$,
+  'a student cannot remove their own membership'
+);
+select pg_temp.act_as('00000000-0000-4000-8000-00000000000c');
+delete from public.group_members where user_id = '00000000-0000-4000-8000-00000000000b';
+select pg_temp.act_as('00000000-0000-4000-8000-00000000000a');
+select results_eq(
+  $$ select user_id from public.group_members
+     where group_id = '00000000-0000-4000-8000-0000000000a1' $$,
+  $$ values ('00000000-0000-4000-8000-00000000000b'::uuid) $$,
+  'the owner reads the members of their group and another student cannot remove them'
+);
+select lives_ok(
+  $$ delete from public.group_members
+     where group_id = '00000000-0000-4000-8000-0000000000a1'
+       and user_id = '00000000-0000-4000-8000-00000000000b' $$,
+  'the owner removes a member'
+);
+select is_empty(
+  $$ select * from public.group_members $$,
+  'the membership is gone'
 );
 
 -- anon cannot even call the function.

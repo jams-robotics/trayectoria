@@ -12,7 +12,7 @@ Opciones:
 
 Hasta que se aplique una de las dos, la protección de `main` es solo disciplina: nadie hace `git push` directo y todo entra por PR con CI en verde, pero GitHub no lo impide.
 
-El workflow `.github/workflows/ci.yml` publica cinco checks con estos nombres exactos: **`lint`**, **`typecheck`**, **`test`**, **`build`**, **`audit`**. Son los que se exigen abajo. Si se renombra un job en el workflow hay que actualizar la regla.
+El workflow `.github/workflows/ci.yml` publica seis checks con estos nombres exactos: **`lint`**, **`typecheck`**, **`test`**, **`build`**, **`audit`**, **`db`**. Son los que se exigen abajo. Si se renombra un job en el workflow hay que actualizar la regla.
 
 ## 1. Método de merge (Settings → General → Pull Requests)
 
@@ -44,7 +44,7 @@ Reglas a marcar:
   - Allowed merge methods: solo *Squash*.
 - **Require status checks to pass**: activado.
   - Require branches to be up to date before merging: activado.
-  - Status checks required: `lint`, `typecheck`, `test`, `build`, `audit` (aparecen en el buscador una vez que el workflow ha corrido al menos una vez en un PR).
+  - Status checks required: `lint`, `typecheck`, `test`, `build`, `audit`, `db` (aparecen en el buscador una vez que el workflow ha corrido al menos una vez en un PR).
 - **Block force pushes**: activado.
 
 Todo lo demás desactivado.
@@ -86,7 +86,8 @@ gh api --method POST repos/jams-robotics/trayectoria/rulesets \
           { "context": "typecheck" },
           { "context": "test" },
           { "context": "build" },
-          { "context": "audit" }
+          { "context": "audit" },
+          { "context": "db" }
         ]
       }
     }
@@ -109,7 +110,7 @@ gh api --method PATCH repos/jams-robotics/trayectoria \
 
 ## 4. Verificación
 
-1. Abrir un PR de prueba con un cambio trivial: deben aparecer los cinco checks y el botón de merge debe quedar bloqueado hasta que pasen.
+1. Abrir un PR de prueba con un cambio trivial: deben aparecer los seis checks y el botón de merge debe quedar bloqueado hasta que pasen.
 2. `git push origin main` directo desde una copia local debe ser rechazado con `GH013: Repository rule violations`.
 3. En el PR de prueba solo debe ofrecerse *Squash and merge*.
 

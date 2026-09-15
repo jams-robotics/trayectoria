@@ -221,7 +221,7 @@ attempts      (id uuid pk, user_id uuid → profiles, topic_id text, exercise_id
 
 | Tabla | Estudiante | Docente |
 |---|---|---|
-| profiles | lee y edita el propio | además lee perfiles de miembros de sus grupos |
+| profiles | lee el propio y edita su `display_name` | además lee perfiles de miembros de sus grupos |
 | groups | lee los grupos donde es miembro (sin `invite_code`) | CRUD de los propios |
 | group_members | inserta solo vía `join_group()`; lee sus membresías | lee y borra en sus grupos |
 | robots | CRUD propios | igual |
