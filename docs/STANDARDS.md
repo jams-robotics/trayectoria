@@ -100,4 +100,6 @@ Cuando falta información para completar el ticket:
 
 ## 12. CI
 
-Todo PR ejecuta: `pnpm install --frozen-lockfile`, `lint`, `typecheck`, `test` (con cobertura), `build`, `content:check`, `audit`. Todo en verde antes de pasar a QA.
+Todo PR ejecuta: `pnpm install --frozen-lockfile`, `lint`, `typecheck`, `test` (con cobertura), `build`, `content:check`, `audit`, `db`. Todo en verde antes de pasar a QA.
+
+El check `db` ejecuta `supabase db reset` y `supabase test db` (pgTAP) en CI; corre en todo PR y es bloqueante para los que tocan `supabase/`.

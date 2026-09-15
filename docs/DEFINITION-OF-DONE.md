@@ -6,6 +6,7 @@ Un ticket está terminado cuando cumple **todo** lo de "Común" más lo de su ti
 
 - [ ] Todos los entregables del ticket existen en las rutas indicadas; ningún archivo fuera de los entregables fue modificado.
 - [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm content:check` en verde en CI.
+- [ ] Check `db` de CI (`supabase db reset` + `supabase test db`, pgTAP) en verde; bloqueante si el PR toca `supabase/`.
 - [ ] Cada criterio de aceptación del ticket tiene evidencia en el PR (comando + salida, o captura).
 - [ ] Sin dependencias nuevas.
 - [ ] Sin `TODO`, `FIXME`, código comentado ni `console.log`.
