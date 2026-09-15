@@ -3,7 +3,7 @@
 -- Users: teacher A owns group G; student B is a member of G; student C is not.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(11);
+select plan(13);
 
 create function pg_temp.act_as(target_user_id uuid) returns void language sql as $$
   select set_config(
@@ -66,6 +66,12 @@ select is_empty(
   $$ select * from public.profiles where id = '00000000-0000-4000-8000-00000000000b' $$,
   'a student cannot read another student''s profile'
 );
+-- C (not a member of any of A's groups) has progress of their own (F0-07b).
+select lives_ok(
+  $$ insert into public.progress (user_id, topic_id, status, best_score, attempts)
+     values ('00000000-0000-4000-8000-00000000000c', 'ruta-1/m04-t02', 'completed', 1, 2) $$,
+  'a student outside the group inserts their own progress'
+);
 
 -- A (teacher) reads the progress of members of their groups and nothing else.
 select pg_temp.act_as('00000000-0000-4000-8000-00000000000a');
@@ -73,6 +79,10 @@ select results_eq(
   $$ select user_id, topic_id from public.progress $$,
   $$ values ('00000000-0000-4000-8000-00000000000b'::uuid, 'ruta-1/m04-t02') $$,
   'a teacher reads the progress of the members of their groups'
+);
+select is_empty(
+  $$ select * from public.progress where user_id = '00000000-0000-4000-8000-00000000000c' $$,
+  'a teacher cannot read the progress of a student who is not in their groups'
 );
 select results_eq(
   $$ select display_name from public.profiles order by display_name $$,
