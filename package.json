@@ -17,6 +17,7 @@
     "typecheck": "pnpm -r run typecheck",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "docs:check": "node scripts/docs-check.mjs",
     "e2e": "pnpm --filter @trayectoria/web e2e"
   },
   "devDependencies": {
