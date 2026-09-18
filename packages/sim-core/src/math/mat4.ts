@@ -7,12 +7,12 @@ import type { Vec3 } from './vec3';
  */
 export type Mat4 = readonly number[];
 
-/** Orientation as roll (X), pitch (Y) and yaw (Z) about fixed axes, URDF convention. */
-export interface Rpy {
-  readonly roll_rad: number;
-  readonly pitch_rad: number;
-  readonly yaw_rad: number;
-}
+/**
+ * Orientation as `[roll_rad, pitch_rad, yaw_rad]` about fixed axes X, Y and Z, URDF convention.
+ * The tuple layout matches `rpy_rad` in `docs/GLOSSARY.md` and `Origin.rpy` in
+ * `docs/ROBOT-SPEC.md` §1.2.
+ */
+export type Rpy = readonly [number, number, number];
 
 /** Below this the pitch is treated as +-90 deg and roll and yaw stop being separable. */
 const GIMBAL_EPSILON = 1e-9;
@@ -50,12 +50,13 @@ export function translate(x_m: number, y_m: number, z_m: number): Mat4 {
  * `docs/ARCHITECTURE.md` §4.5: `R = Rz(yaw) · Ry(pitch) · Rx(roll)` about fixed axes.
  */
 export function fromRpy(rpy: Rpy): Mat4 {
-  const cr = Math.cos(rpy.roll_rad);
-  const sr = Math.sin(rpy.roll_rad);
-  const cp = Math.cos(rpy.pitch_rad);
-  const sp = Math.sin(rpy.pitch_rad);
-  const cy = Math.cos(rpy.yaw_rad);
-  const sy = Math.sin(rpy.yaw_rad);
+  const [roll_rad, pitch_rad, yaw_rad] = rpy;
+  const cr = Math.cos(roll_rad);
+  const sr = Math.sin(roll_rad);
+  const cp = Math.cos(pitch_rad);
+  const sp = Math.sin(pitch_rad);
+  const cy = Math.cos(yaw_rad);
+  const sy = Math.sin(yaw_rad);
 
   // Rows of Rz(yaw) . Ry(pitch) . Rx(roll), written out in column-major order.
   return [
@@ -89,18 +90,14 @@ export function toRpy(m: Mat4): Rpy {
   const pitch_rad = Math.asin(clamped);
 
   if (Math.abs(clamped) >= 1 - GIMBAL_EPSILON) {
-    return {
-      roll_rad: 0,
-      pitch_rad,
-      yaw_rad: Math.atan2(-at(m, 0, 1), at(m, 1, 1)) * (clamped > 0 ? 1 : -1),
-    };
+    return [0, pitch_rad, Math.atan2(-at(m, 0, 1), at(m, 1, 1)) * (clamped > 0 ? 1 : -1)];
   }
 
-  return {
-    roll_rad: Math.atan2(at(m, 2, 1), at(m, 2, 2)),
+  return [
+    Math.atan2(at(m, 2, 1), at(m, 2, 2)),
     pitch_rad,
-    yaw_rad: Math.atan2(at(m, 1, 0), at(m, 0, 0)),
-  };
+    Math.atan2(at(m, 1, 0), at(m, 0, 0)),
+  ];
 }
 
 /**

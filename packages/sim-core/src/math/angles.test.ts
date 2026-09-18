@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { angleDiff, degToRad, radToDeg, wrapPi } from './angles';
+import { degToRad, radToDeg, wrapPi } from './angles';
 
 describe('F1-03 angles', () => {
   test('wrapPi(3*PI) returns +PI (half-open range is (-PI, PI])', () => {
@@ -46,9 +46,4 @@ describe('F1-03 angles', () => {
     expect(radToDeg(degToRad(37.5))).toBeCloseTo(37.5, 12);
   });
 
-  test('angleDiff returns the shortest signed difference', () => {
-    expect(angleDiff(0.1, -0.1)).toBeCloseTo(0.2, 12);
-    expect(angleDiff(-3, 3)).toBeCloseTo(2 * Math.PI - 6, 12);
-    expect(angleDiff(0, 0)).toBe(0);
-  });
 });

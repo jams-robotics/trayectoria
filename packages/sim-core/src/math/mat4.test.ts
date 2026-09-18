@@ -38,7 +38,7 @@ describe('F1-03 mat4', () => {
   });
 
   test('golden value: fromRpy(0, 0, PI/2) applied to (1, 0, 0) gives (0, 1, 0)', () => {
-    const rpy: Rpy = { roll_rad: 0, pitch_rad: 0, yaw_rad: Math.PI / 2 };
+    const rpy: Rpy = [0, 0, Math.PI / 2];
     expectVec3Close(transformPoint(fromRpy(rpy), [1, 0, 0]), [0, 1, 0]);
   });
 
@@ -49,23 +49,21 @@ describe('F1-03 mat4', () => {
   });
 
   test('a 90 deg roll (X) maps (0, 1, 0) to (0, 0, 1)', () => {
-    const m = fromRpy({ roll_rad: Math.PI / 2, pitch_rad: 0, yaw_rad: 0 });
+    const m = fromRpy([Math.PI / 2, 0, 0]);
     expectVec3Close(transformPoint(m, [0, 1, 0]), [0, 0, 1]);
   });
 
   test('a 90 deg pitch (Y) maps (0, 0, 1) to (1, 0, 0)', () => {
-    const m = fromRpy({ roll_rad: 0, pitch_rad: Math.PI / 2, yaw_rad: 0 });
+    const m = fromRpy([0, Math.PI / 2, 0]);
     expectVec3Close(transformPoint(m, [0, 0, 1]), [1, 0, 0]);
   });
 
   test('fromRpy follows the URDF convention R = Rz(yaw) . Ry(pitch) . Rx(roll)', () => {
-    const rpy: Rpy = { roll_rad: 0.3, pitch_rad: -0.7, yaw_rad: 1.1 };
+    const rpy: Rpy = [0.3, -0.7, 1.1];
+    const [roll_rad, pitch_rad, yaw_rad] = rpy;
     const composed = multiply(
-      multiply(
-        fromRpy({ roll_rad: 0, pitch_rad: 0, yaw_rad: rpy.yaw_rad }),
-        fromRpy({ roll_rad: 0, pitch_rad: rpy.pitch_rad, yaw_rad: 0 }),
-      ),
-      fromRpy({ roll_rad: rpy.roll_rad, pitch_rad: 0, yaw_rad: 0 }),
+      multiply(fromRpy([0, 0, yaw_rad]), fromRpy([0, pitch_rad, 0])),
+      fromRpy([roll_rad, 0, 0]),
     );
     const direct = fromRpy(rpy);
     for (let i = 0; i < 16; i++) expect(direct[i]).toBeCloseTo(composed[i] as number, 12);
@@ -73,7 +71,7 @@ describe('F1-03 mat4', () => {
 
   test('fromAxisAngle around Z by 90 deg matches fromRpy with that yaw', () => {
     const a = fromAxisAngle([0, 0, 1], Math.PI / 2);
-    const b = fromRpy({ roll_rad: 0, pitch_rad: 0, yaw_rad: Math.PI / 2 });
+    const b = fromRpy([0, 0, Math.PI / 2]);
     for (let i = 0; i < 16; i++) expect(a[i]).toBeCloseTo(b[i] as number, 12);
   });
 
@@ -91,39 +89,39 @@ describe('F1-03 mat4', () => {
   });
 
   test('multiply applies the right-hand matrix first', () => {
-    const m = multiply(translate(1, 0, 0), fromRpy({ roll_rad: 0, pitch_rad: 0, yaw_rad: Math.PI / 2 }));
+    const m = multiply(translate(1, 0, 0), fromRpy([0, 0, Math.PI / 2]));
     expectVec3Close(transformPoint(m, [1, 0, 0]), [1, 1, 0]);
   });
 
   test('toRpy inverts fromRpy away from the pitch singularity', () => {
     const samples: readonly Rpy[] = [
-      { roll_rad: 0, pitch_rad: 0, yaw_rad: 0 },
-      { roll_rad: 0.3, pitch_rad: -0.7, yaw_rad: 1.1 },
-      { roll_rad: -2.5, pitch_rad: 1.2, yaw_rad: 3 },
-      { roll_rad: 1.5, pitch_rad: -1.4, yaw_rad: -2.8 },
+      [0, 0, 0],
+      [0.3, -0.7, 1.1],
+      [-2.5, 1.2, 3],
+      [1.5, -1.4, -2.8],
     ];
     for (const rpy of samples) {
       const back = toRpy(fromRpy(rpy));
-      expect(back.roll_rad).toBeCloseTo(rpy.roll_rad, 9);
-      expect(back.pitch_rad).toBeCloseTo(rpy.pitch_rad, 9);
-      expect(back.yaw_rad).toBeCloseTo(rpy.yaw_rad, 9);
+      expect(back[0]).toBeCloseTo(rpy[0], 9);
+      expect(back[1]).toBeCloseTo(rpy[1], 9);
+      expect(back[2]).toBeCloseTo(rpy[2], 9);
     }
   });
 
   test('toRpy ignores the translation part', () => {
-    const rpy: Rpy = { roll_rad: 0.2, pitch_rad: 0.4, yaw_rad: -0.6 };
+    const rpy: Rpy = [0.2, 0.4, -0.6];
     const back = toRpy(multiply(translate(9, -3, 2), fromRpy(rpy)));
-    expect(back.roll_rad).toBeCloseTo(rpy.roll_rad, 9);
-    expect(back.pitch_rad).toBeCloseTo(rpy.pitch_rad, 9);
-    expect(back.yaw_rad).toBeCloseTo(rpy.yaw_rad, 9);
+    expect(back[0]).toBeCloseTo(rpy[0], 9);
+    expect(back[1]).toBeCloseTo(rpy[1], 9);
+    expect(back[2]).toBeCloseTo(rpy[2], 9);
   });
 
   test('toRpy at the pitch singularity returns roll 0 and a yaw reproducing the rotation', () => {
-    const rpy: Rpy = { roll_rad: 0.5, pitch_rad: Math.PI / 2, yaw_rad: 0.9 };
+    const rpy: Rpy = [0.5, Math.PI / 2, 0.9];
     const m = fromRpy(rpy);
     const back = toRpy(m);
-    expect(back.roll_rad).toBe(0);
-    expect(back.pitch_rad).toBeCloseTo(Math.PI / 2, 9);
+    expect(back[0]).toBe(0);
+    expect(back[1]).toBeCloseTo(Math.PI / 2, 9);
     const rebuilt = fromRpy(back);
     for (let i = 0; i < 16; i++) expect(rebuilt[i]).toBeCloseTo(m[i] as number, 9);
   });

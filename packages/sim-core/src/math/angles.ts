@@ -20,8 +20,3 @@ export function degToRad(angle_deg: number): number {
 export function radToDeg(angle_rad: number): number {
   return (angle_rad * 180) / Math.PI;
 }
-
-/** Shortest signed difference `a - b`, wrapped to `(-PI, PI]`. */
-export function angleDiff(a_rad: number, b_rad: number): number {
-  return wrapPi(a_rad - b_rad);
-}

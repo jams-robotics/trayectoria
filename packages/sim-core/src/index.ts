@@ -8,7 +8,7 @@ export {
   Simulation,
 } from './loop/Simulation';
 export type { Model, SimulationListener, SimulationOptions } from './loop/Simulation';
-export { angleDiff, degToRad, radToDeg, wrapPi } from './math/angles';
+export { degToRad, radToDeg, wrapPi } from './math/angles';
 export { euler, rk4 } from './math/integrators';
 export type { Derivative } from './math/integrators';
 export {
