@@ -33,6 +33,8 @@ export function migrateRobotSpec(raw: unknown): unknown {
   while (version !== undefined && version < CURRENT_SPEC_VERSION) {
     const step = MIGRATIONS[version];
     if (step === undefined) return spec;
+    // unreachable until the first migration is registered
+    /* v8 ignore next 2 */
     spec = { ...step(spec), specVersion: version + 1 };
     version = readVersion(spec);
   }
