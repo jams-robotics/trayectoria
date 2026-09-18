@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!-- Brazo plano 2 GDL de docs/ROBOT-SPEC.md §4, escrito a mano con los mismos valores que el
+     ejemplo `planar2dof` de robot-spec: l1 = 0.20 m, l2 = 0.15 m, límites [-pi, pi]. -->
+<robot name="Brazo plano 2 GDL">
+
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.03" length="0.02"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.03" length="0.02"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+    </inertial>
+  </link>
+
+  <link name="link1">
+    <visual>
+      <origin xyz="0.1 0 0" rpy="0 1.5707963267948966 0"/>
+      <geometry>
+        <cylinder radius="0.01" length="0.2"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="link2">
+    <visual>
+      <origin xyz="0.075 0 0" rpy="0 1.5707963267948966 0"/>
+      <geometry>
+        <cylinder radius="0.01" length="0.15"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="tool0"/>
+
+  <joint name="joint1" type="revolute">
+    <parent link="base_link"/>
+    <child link="link1"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.141592653589793" upper="3.141592653589793" velocity="2.0" effort="10.0"/>
+  </joint>
+
+  <joint name="joint2" type="revolute">
+    <parent link="link1"/>
+    <child link="link2"/>
+    <origin xyz="0.2 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.141592653589793" upper="3.141592653589793" velocity="2.0" effort="10.0"/>
+  </joint>
+
+  <joint name="tool0_joint" type="fixed">
+    <parent link="link2"/>
+    <child link="tool0"/>
+    <origin xyz="0.15 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <transmission name="trans1">
+    <type>transmission_interface/SimpleTransmission</type>
+  </transmission>
+  <gazebo reference="link1">
+    <material>Gazebo/Blue</material>
+  </gazebo>
+
+</robot>

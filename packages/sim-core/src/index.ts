@@ -118,3 +118,15 @@ export {
 export type { ArcSegment, LineSegment, Track, TrackSegment } from './track/Track';
 export { TRACK_FORMAT_VERSION, parseTrack, serializeTrack } from './track/serialize';
 export type { Result } from './track/serialize';
+export { parseUrdf } from './urdf/parseUrdf';
+export type {
+  DOMParserLike,
+  ParseUrdfOptions,
+  UrdfDocument,
+  UrdfElement,
+  UrdfFailure,
+  UrdfOk,
+  UrdfResult,
+} from './urdf/parseUrdf';
+export { validate as validateUrdf } from './urdf/validate';
+export type { UrdfError, UrdfErrorCode } from './urdf/validate';

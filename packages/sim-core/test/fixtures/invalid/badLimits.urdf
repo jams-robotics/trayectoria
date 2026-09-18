@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!-- Un joint revolute con lower mayor que upper. -->
+<robot name="limites invalidos">
+  <link name="base_link"/>
+  <link name="link1"/>
+  <joint name="joint1" type="revolute">
+    <parent link="base_link"/>
+    <child link="link1"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="1.0" upper="-1.0"/>
+  </joint>
+</robot>
