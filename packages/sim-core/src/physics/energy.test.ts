@@ -108,4 +108,9 @@ describe('power_W', () => {
   it('is zero work over any positive time', () => {
     expect(power_W(0, 2)).toBe(0);
   });
+
+  it('F0-02c: throws RangeError when t_s is not positive', () => {
+    expect(() => power_W(1, 0)).toThrow(RangeError);
+    expect(() => power_W(1, -1)).toThrow(RangeError);
+  });
 });

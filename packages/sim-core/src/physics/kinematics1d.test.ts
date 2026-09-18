@@ -114,6 +114,10 @@ describe('freeFallTime', () => {
   it('is zero for a zero drop', () => {
     expect(freeFallTime(0)).toBe(0);
   });
+
+  it('F0-02c: throws RangeError for a negative height', () => {
+    expect(() => freeFallTime(-1)).toThrow(RangeError);
+  });
 });
 
 describe('free fall velocity', () => {
