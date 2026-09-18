@@ -33,6 +33,15 @@ export type { Vec2 } from './math/vec2';
 export { add3, cross3, distance3, dot3, length3, normalize3, scale3, sub3 } from './math/vec3';
 export type { Vec3 } from './math/vec3';
 export {
+  createDiffDriveModel,
+  forwardKinematics,
+  inverseKinematics,
+  maxWheelSpeed_radps,
+} from './mobile/diffDrive';
+export type { DiffDriveState, Twist, WheelCommand } from './mobile/diffDrive';
+export { encoderTicks, readEncoders } from './mobile/encoders';
+export type { EncoderReading } from './mobile/encoders';
+export {
   kineticEnergy_J,
   mechanicalEnergy_J,
   potentialEnergy_J,

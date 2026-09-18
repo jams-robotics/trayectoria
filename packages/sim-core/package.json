@@ -6,6 +6,9 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "dependencies": {
+    "@trayectoria/robot-spec": "workspace:*"
+  },
   "scripts": {
     "lint": "eslint .",
     "test": "vitest run --coverage",
