@@ -163,7 +163,7 @@ Se asume línea oscura sobre fondo claro; 1 = "veo línea".
 
 ### 4.3 Sensores de línea
 
-`N` sensores, índice 0 el más a la izquierda, en `(forwardOffset_m, spacing_m·(k − (N−1)/2))` en el marco del robot. Lectura analógica `[0,1]` con ruido gaussiano opcional (σ, RNG con semilla). Binaria con umbral.
+`N` sensores, índice 0 el más a la izquierda, en `(forwardOffset_m, spacing_m·((N−1)/2 − k))` en el marco del robot. Lectura analógica `[0,1]` con ruido gaussiano opcional (σ, RNG con semilla). Binaria con umbral.
 
 ```
 linePosition = Σ(k·v_k) / Σ v_k, normalizado a [−1, 1]   (negativo = línea a la izquierda)
