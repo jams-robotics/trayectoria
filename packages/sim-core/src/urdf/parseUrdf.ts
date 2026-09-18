@@ -232,11 +232,26 @@ interface JointsResult {
   readonly errors: readonly UrdfError[];
 }
 
+/**
+ * `<transmission>` repeats the actuated joint by name in its own `<joint name>` (no `type`
+ * attribute, ROS control convention); `getElementsByTagName` returns descendants at any depth, so
+ * those references would otherwise be misread as unsupported joints.
+ */
+function transmissionJointNames(robot: UrdfElement): ReadonlySet<UrdfElement> {
+  const nested = new Set<UrdfElement>();
+  for (const transmission of childrenByTag(robot, 'transmission')) {
+    for (const joint of childrenByTag(transmission, 'joint')) nested.add(joint);
+  }
+  return nested;
+}
+
 /** Every `<joint>` of the document; `floating` and `planar` are reported as unsupported. */
 function readJoints(robot: UrdfElement): JointsResult {
   const joints: JointInput[] = [];
   const errors: UrdfError[] = [];
+  const transmissionJoints = transmissionJointNames(robot);
   for (const element of childrenByTag(robot, 'joint')) {
+    if (transmissionJoints.has(element)) continue;
     const name = element.getAttribute('name') ?? '';
     const type = element.getAttribute('type') ?? '';
     if (!isSupportedJointType(type)) {
