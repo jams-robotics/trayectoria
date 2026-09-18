@@ -1,3 +1,12 @@
+export type { Controller } from './control/Controller';
+export { createManualController } from './control/manual';
+export type { ManualParams } from './control/manual';
+export { createOnOffController } from './control/onOff';
+export type { OnOffParams } from './control/onOff';
+export { REFERENCE_PID_PARAMS, createPidController } from './control/pid';
+export type { PidParams } from './control/pid';
+export { createProportionalController } from './control/proportional';
+export type { ProportionalParams } from './control/proportional';
 export { check } from './exercises/check';
 export type { CheckResult } from './exercises/check';
 export { defineExercise } from './exercises/defineExercise';
@@ -75,6 +84,13 @@ export type {
 } from './physics/projectile';
 export { createRng } from './random/SeededRng';
 export type { SeededRng } from './random/SeededRng';
+export {
+  DEFAULT_LOST_THRESHOLD,
+  binarize,
+  readLineArray,
+  sensorPositions,
+} from './sensors/lineArray';
+export type { LineArrayOptions, LineReading } from './sensors/lineArray';
 export {
   PRESET_LINE_WIDTH_M,
   crossing,
