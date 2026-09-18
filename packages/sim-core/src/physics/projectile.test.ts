@@ -109,7 +109,7 @@ describe('ProjectileModel', () => {
 
   it('init returns the launch state', () => {
     const model = new ProjectileModel({ v0_mps: 4, angle_rad: ANGLE_40_RAD, h0_m: 0.3 });
-    const s = model.init(0);
+    const s = model.init();
     expect(s.t_s).toBe(0);
     expect(s.x_m).toBeCloseTo(0, 12);
     expect(s.y_m).toBeCloseTo(0.3, 12);
@@ -124,7 +124,7 @@ describe('ProjectileModel', () => {
     ];
     for (const params of cases) {
       const model = new ProjectileModel(params);
-      let state = model.init(0);
+      let state = model.init();
       while (!state.landed) state = model.step(state, null, dt_s);
       const expected_m = range_m(params.v0_mps, params.angle_rad, params.h0_m);
       expect(Math.abs(state.x_m - expected_m)).toBeLessThan(1e-4);
@@ -133,14 +133,14 @@ describe('ProjectileModel', () => {
 
   it('matches the analytic time of flight within one step', () => {
     const model = new ProjectileModel({ v0_mps: 4, angle_rad: ANGLE_40_RAD, h0_m: 0.3 });
-    let state = model.init(0);
+    let state = model.init();
     while (!state.landed) state = model.step(state, null, dt_s);
     expect(state.t_s).toBeCloseTo(timeOfFlight_s(4, ANGLE_40_RAD, 0.3), 2);
   });
 
   it('reproduces the analytic state at mid flight', () => {
     const model = new ProjectileModel({ v0_mps: 4, angle_rad: ANGLE_40_RAD, h0_m: 0.3 });
-    let state = model.init(0);
+    let state = model.init();
     for (let i = 0; i < 300; i++) state = model.step(state, null, dt_s);
     const analytic = projectileState(4, ANGLE_40_RAD, 0.3, 0.3);
     expect(state.x_m).toBeCloseTo(analytic.x_m, 6);
@@ -150,17 +150,17 @@ describe('ProjectileModel', () => {
 
   it('freezes the state once it has landed', () => {
     const model = new ProjectileModel({ v0_mps: 4, angle_rad: ANGLE_40_RAD, h0_m: 0.3 });
-    let state = model.init(0);
+    let state = model.init();
     while (!state.landed) state = model.step(state, null, dt_s);
     const landedState = state;
     for (let i = 0; i < 10; i++) state = model.step(state, null, dt_s);
     expect(state).toEqual(landedState);
   });
 
-  it('is deterministic: the same seed yields the same trajectory', () => {
+  it('is deterministic: two runs of the same model yield the same trajectory', () => {
     const model = new ProjectileModel({ v0_mps: 4, angle_rad: ANGLE_40_RAD, h0_m: 0.3 });
-    const a = model.step(model.init(7), null, dt_s);
-    const b = model.step(model.init(7), null, dt_s);
+    const a = model.step(model.init(), null, dt_s);
+    const b = model.step(model.init(), null, dt_s);
     expect(a).toEqual(b);
   });
 
