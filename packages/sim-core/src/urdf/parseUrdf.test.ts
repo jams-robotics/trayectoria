@@ -218,3 +218,37 @@ describe('parseUrdf, document level errors', () => {
     ]);
   });
 });
+
+describe('parseUrdf, transmission regression (F1-09b)', () => {
+  // <transmission> repeats the actuated joint by name in its own <joint name> without a `type`
+  // attribute (ROS control convention, present in the SO-101 fixture). getElementsByTagName
+  // returns descendants at any depth, so that reference must not be read as a second, unsupported
+  // joint definition.
+  it('ignores <joint> references nested inside <transmission>', () => {
+    const xml = `<?xml version="1.0"?>
+<robot name="test robot">
+  <link name="base_link"/>
+  <link name="link1"/>
+  <joint name="joint1" type="revolute">
+    <parent link="base_link"/>
+    <child link="link1"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1" upper="1" velocity="1" effort="1"/>
+  </joint>
+  <transmission name="joint1_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="joint1">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor1">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+</robot>`;
+    const result = parseXml(xml);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(JSON.stringify(result.errors));
+    expect(result.value.arm?.joints.map((joint) => joint.name)).toEqual(['joint1']);
+  });
+});
