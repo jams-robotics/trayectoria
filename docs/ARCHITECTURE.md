@@ -51,7 +51,7 @@ sims     → sim-core, widgets, robot-spec, i18n, progress
 widgets  → sim-core, robot-spec, i18n
 progress → db, auth
 auth     → db
-sim-core → (nada interno)   robot-spec → (nada interno)
+sim-core → robot-spec (solo tipos)   robot-spec → (nada interno)
 ```
 
 Cualquier otra importación es un error de arquitectura (regla de ESLint `import/no-restricted-paths`).
