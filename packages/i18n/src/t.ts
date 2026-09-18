@@ -2,9 +2,11 @@ import { createInstance } from 'i18next';
 
 import auth from '../locales/es/auth.json';
 import es from '../locales/es/common.json';
+import widgets from '../locales/es/widgets.json';
 
-// Namespace `common` = common.json plus auth.json mounted under the root key `auth` (F0-08).
-export const resources = { es: { common: { ...es, auth } } };
+// Namespace `common` = common.json plus auth.json under the root key `auth` (F0-08) and
+// widgets.json under the root key `widgets` (F2-01a).
+export const resources = { es: { common: { ...es, auth, widgets } } };
 
 export const DEFAULT_LANGUAGE = 'es';
 

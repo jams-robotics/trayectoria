@@ -1,0 +1,17 @@
+{
+  "ParamPanel": {
+    "title": "Parámetros",
+    "value": "Valor de {{label}}",
+    "slider": "{{label}} en {{unit}}",
+    "valueText": "{{value}} {{unit}}",
+    "status": "{{label}}: {{value}} {{unit}}"
+  },
+  "Formula": {
+    "label": "Fórmula",
+    "substituted": "Con tus valores"
+  },
+  "playground": {
+    "title": "Catálogo de widgets",
+    "lead": "Cada widget del catálogo con sus configuraciones de ejemplo. Página de desarrollo: no se enlaza desde la navegación."
+  }
+}
