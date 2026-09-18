@@ -1,3 +1,10 @@
+export {
+  endEffectorPose,
+  forwardKinematics as armForwardKinematics,
+} from './arm/forwardKinematics';
+export type { EndEffectorPose } from './arm/forwardKinematics';
+export { jacobianNumeric } from './arm/jacobianNumeric';
+export { sampleWorkspace } from './arm/workspace';
 export type { Controller } from './control/Controller';
 export { createManualController } from './control/manual';
 export type { ManualParams } from './control/manual';
