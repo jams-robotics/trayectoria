@@ -2,7 +2,9 @@ import type { JSX } from 'react';
 
 import { Formula } from './Formula';
 
-export default { title: 'Formula' };
+// `order` fixes the story sequence rendered by the /dev/widgets playground explicitly,
+// independent of module export iteration order (docs/audits F2-01a: hydration mismatch).
+export default { title: 'Formula', order: ['Inline', 'Block', 'Highlighted', 'Substituted'] };
 
 const WHEEL_SPEED = 'v = \\omega \\cdot r';
 const DIFF_DRIVE = 'v = \\frac{v_R + v_L}{2} \\qquad \\omega = \\frac{v_R - v_L}{L}';

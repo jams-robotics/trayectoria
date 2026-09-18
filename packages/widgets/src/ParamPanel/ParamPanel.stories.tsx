@@ -4,7 +4,9 @@ import type { JSX } from 'react';
 import { ParamPanel } from './ParamPanel';
 import type { ParamPanelParam } from './ParamPanel';
 
-export default { title: 'ParamPanel' };
+// `order` fixes the story sequence rendered by the /dev/widgets playground explicitly,
+// independent of module export iteration order (docs/audits F2-01a: hydration mismatch).
+export default { title: 'ParamPanel', order: ['Stack', 'Inline', 'Single'] };
 
 const PID: readonly ParamPanelParam[] = [
   { key: 'kp', label: 'Ganancia proporcional', unit: '1/m', min: 0, max: 20, step: 0.5, value: 8 },

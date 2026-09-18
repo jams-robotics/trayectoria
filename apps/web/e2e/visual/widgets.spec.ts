@@ -32,8 +32,15 @@ test('the playground renders without console errors', async ({ page }) => {
   });
   page.on('pageerror', (error) => errors.push(error.message));
   await openPlayground(page);
-  await expect(
-    page.locator('[data-widget="ParamPanel"] input[type="range"]').first(),
-  ).toBeVisible();
+  // Waiting for the element to be visible is not enough: a hydration mismatch discards and
+  // re-renders the client tree asynchronously, after the initial paint (F2-01a, ronda 1). Wait
+  // for the slider to actually respond to input, which only happens once React has attached its
+  // event handlers post-hydration, before asserting no console/pageerror was raised.
+  const slider = page.locator('[data-widget="ParamPanel"] input[type="range"]').first();
+  await expect(slider).toBeVisible();
+  const initialValue = await slider.inputValue();
+  await slider.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(slider).not.toHaveValue(initialValue);
   expect(errors).toEqual([]);
 });
