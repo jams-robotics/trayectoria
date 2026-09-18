@@ -335,7 +335,7 @@ export function parseUrdf(xml: string, options: ParseUrdfOptions): UrdfResult {
 
   const robot = findRobot(document);
   if (robot === undefined) {
-    return { ok: false, errors: [urdfError('parse', 'falta el elemento <robot>')] };
+    return { ok: false, errors: [urdfError('parse', 'missing <robot> element')] };
   }
 
   const { links, errors: linkErrors } = readLinks(robot);

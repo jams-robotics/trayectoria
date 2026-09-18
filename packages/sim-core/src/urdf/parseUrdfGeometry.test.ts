@@ -23,14 +23,14 @@ function parseXml(xml: string): UrdfResult {
 }
 
 function codesOf(result: UrdfResult): readonly UrdfErrorCode[] {
-  if (result.ok) throw new Error('se esperaba un fallo de parseo');
+  if (result.ok) throw new Error('expected the parse to fail');
   return result.errors.map((error) => error.code);
 }
 
 /** Builds a minimal one-joint robot whose `<link name="link1">` carries `linkBody`. */
 function robotWith(linkBody: string, jointBody = ''): string {
   return `<?xml version="1.0"?>
-<robot name="prueba">
+<robot name="test robot">
   <link name="base_link"/>
   <link name="link1">${linkBody}</link>
   <joint name="joint1" type="fixed">
@@ -44,7 +44,7 @@ function robotWith(linkBody: string, jointBody = ''): string {
 describe('parseUrdf, mesh paths and primitives', () => {
   function visualOf(xml: string): Visual | undefined {
     const result = parseXml(xml);
-    if (!result.ok) throw new Error(`debería parsear: ${JSON.stringify(codesOf(result))}`);
+    if (!result.ok) throw new Error(`should parse: ${JSON.stringify(codesOf(result))}`);
     return result.value.arm?.links[1]?.visual;
   }
 
@@ -120,7 +120,7 @@ describe('parseUrdf, mesh paths and primitives', () => {
 describe('parseUrdf, joint attributes', () => {
   function jointOf(jointBody: string): Joint | undefined {
     const result = parseXml(robotWith('', jointBody));
-    if (!result.ok) throw new Error(`debería parsear: ${JSON.stringify(codesOf(result))}`);
+    if (!result.ok) throw new Error(`should parse: ${JSON.stringify(codesOf(result))}`);
     return result.value.arm?.joints[0];
   }
 
@@ -159,7 +159,7 @@ describe('parseUrdf, joint attributes', () => {
 
   it('treats a joint with no parent or child element as a missing link', () => {
     const xml = `<?xml version="1.0"?>
-<robot name="prueba">
+<robot name="test robot">
   <link name="base_link"/>
   <joint name="joint1" type="fixed"/>
 </robot>`;
@@ -168,7 +168,7 @@ describe('parseUrdf, joint attributes', () => {
 
   it('rejects planar joints as unsupported', () => {
     const xml = `<?xml version="1.0"?>
-<robot name="prueba">
+<robot name="test robot">
   <link name="base_link"/>
   <link name="link1"/>
   <joint name="joint1" type="planar">
@@ -191,12 +191,12 @@ describe('parseUrdf, end effector rule', () => {
           `<joint name="j${String(index)}" type="fixed"><parent link="base_link"/><child link="${name}"/></joint>`,
       )
       .join('');
-    return `<?xml version="1.0"?><robot name="prueba">${links}${joints}</robot>`;
+    return `<?xml version="1.0"?><robot name="test robot">${links}${joints}</robot>`;
   }
 
   function endEffectorOf(xml: string): string | undefined {
     const result = parseXml(xml);
-    if (!result.ok) throw new Error(`debería parsear: ${JSON.stringify(codesOf(result))}`);
+    if (!result.ok) throw new Error(`should parse: ${JSON.stringify(codesOf(result))}`);
     return result.value.arm?.endEffectorLink;
   }
 
@@ -213,7 +213,7 @@ describe('parseUrdf, end effector rule', () => {
   });
 
   it('falls back to the deepest leaf when no name matches', () => {
-    const xml = `<?xml version="1.0"?><robot name="prueba">
+    const xml = `<?xml version="1.0"?><robot name="test robot">
   <link name="base_link"/><link name="a"/><link name="b"/><link name="c"/>
   <joint name="j0" type="fixed"><parent link="base_link"/><child link="a"/></joint>
   <joint name="j1" type="fixed"><parent link="base_link"/><child link="b"/></joint>
@@ -223,7 +223,7 @@ describe('parseUrdf, end effector rule', () => {
   });
 
   it('uses the single link itself when the robot has no joints', () => {
-    const xml = '<?xml version="1.0"?><robot name="prueba"><link name="base_link"/></robot>';
+    const xml = '<?xml version="1.0"?><robot name="test robot"><link name="base_link"/></robot>';
     expect(endEffectorOf(xml)).toBe('base_link');
   });
 });

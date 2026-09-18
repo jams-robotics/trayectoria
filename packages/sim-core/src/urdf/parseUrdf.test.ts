@@ -34,14 +34,14 @@ function parseXml(xml: string): UrdfResult {
 }
 
 function codesOf(result: UrdfResult): readonly UrdfErrorCode[] {
-  if (result.ok) throw new Error('se esperaba un fallo de parseo');
+  if (result.ok) throw new Error('expected the parse to fail');
   return result.errors.map((error) => error.code);
 }
 
 /** Builds a minimal one-joint robot whose `<link name="link1">` carries `linkBody`. */
 function robotWith(linkBody: string, jointBody = ''): string {
   return `<?xml version="1.0"?>
-<robot name="prueba">
+<robot name="test robot">
   <link name="base_link"/>
   <link name="link1">${linkBody}</link>
   <joint name="joint1" type="fixed">
@@ -66,9 +66,9 @@ describe('parseUrdf, planar2dof fixture', () => {
   });
 
   it('extracts two revolute joints with l1 = 0.20 and l2 = 0.15', () => {
-    if (!result.ok) throw new Error('el fixture debe parsear');
+    if (!result.ok) throw new Error('the fixture must parse');
     const arm = result.value.arm;
-    if (arm === undefined) throw new Error('falta la sección arm');
+    if (arm === undefined) throw new Error('the arm section is missing');
     const revolute = arm.joints.filter((joint) => joint.type === 'revolute');
     expect(revolute.map((joint) => joint.name)).toEqual(['joint1', 'joint2']);
     expect(arm.joints[1]?.origin.xyz).toEqual([0.2, 0, 0]);
@@ -82,13 +82,13 @@ describe('parseUrdf, planar2dof fixture', () => {
   });
 
   it('detects base_link as the root and tool0 as the end effector', () => {
-    if (!result.ok) throw new Error('el fixture debe parsear');
+    if (!result.ok) throw new Error('the fixture must parse');
     expect(result.value.arm?.baseLink).toBe('base_link');
     expect(result.value.arm?.endEffectorLink).toBe('tool0');
   });
 
   it('ignores collision, inertial, transmission and gazebo', () => {
-    if (!result.ok) throw new Error('el fixture debe parsear');
+    if (!result.ok) throw new Error('the fixture must parse');
     const arm = result.value.arm;
     expect(arm?.links.map((link) => link.name)).toEqual([
       'base_link',
@@ -104,9 +104,9 @@ describe('parseUrdf, planar2dof fixture', () => {
   });
 
   it('reproduces the golden forward kinematics of F1-08a to better than 1e-9 m', () => {
-    if (!result.ok) throw new Error('el fixture debe parsear');
+    if (!result.ok) throw new Error('the fixture must parse');
     const arm = result.value.arm;
-    if (arm === undefined) throw new Error('falta la sección arm');
+    if (arm === undefined) throw new Error('the arm section is missing');
     const cases: readonly [readonly number[], readonly number[]][] = [
       [[0, 0], [0.35, 0, 0]],
       [[Math.PI / 2, 0], [0, 0.35, 0]],
@@ -142,26 +142,26 @@ describe('parseUrdf, invalid fixtures', () => {
   it('gives every error the i18n key urdf.<code>', () => {
     for (const [file] of expected) {
       const result = parseFixture(`invalid/${file}`);
-      if (result.ok) throw new Error(`${file} debería fallar`);
+      if (result.ok) throw new Error(`${file} should fail`);
       for (const error of result.errors) expect(error.key).toBe(`urdf.${error.code}`);
     }
   });
 
   it('names the affected joint in badLimits and unsupportedJoint', () => {
     const limits = parseFixture('invalid/badLimits.urdf');
-    if (limits.ok) throw new Error('badLimits debería fallar');
+    if (limits.ok) throw new Error('badLimits should fail');
     expect(limits.errors[0]?.detail).toBe('joint1');
     const unsupported = parseFixture('invalid/unsupportedJoint.urdf');
-    if (unsupported.ok) throw new Error('unsupportedJoint debería fallar');
+    if (unsupported.ok) throw new Error('unsupportedJoint should fail');
     expect(unsupported.errors[0]?.detail).toBe('joint1: floating');
   });
 
   it('names the affected link in missingMesh and missingLink', () => {
     const mesh = parseFixture('invalid/missingMesh.urdf');
-    if (mesh.ok) throw new Error('missingMesh debería fallar');
+    if (mesh.ok) throw new Error('missingMesh should fail');
     expect(mesh.errors[0]?.detail).toBe('link1');
     const missing = parseFixture('invalid/missingLink.urdf');
-    if (missing.ok) throw new Error('missingLink debería fallar');
+    if (missing.ok) throw new Error('missingLink should fail');
     expect(missing.errors[0]?.detail).toBe('link_fantasma');
   });
 });
@@ -174,15 +174,15 @@ describe('parseUrdf, document level errors', () => {
   it('reports parse when the DOM implementation throws', () => {
     const throwing: DOMParserLike = {
       parseFromString(): UrdfDocument {
-        throw new Error('implementación rota');
+        throw new Error('broken implementation');
       },
     };
     const result = parseUrdf('<robot/>', { domParser: throwing, robotId: ROBOT_ID });
-    if (result.ok) throw new Error('debería fallar');
+    if (result.ok) throw new Error('the parse should fail');
     expect(result.errors[0]).toEqual({
       code: 'parse',
       key: 'urdf.parse',
-      detail: 'implementación rota',
+      detail: 'broken implementation',
     });
   });
 
@@ -191,17 +191,17 @@ describe('parseUrdf, document level errors', () => {
       parseFromString(): UrdfDocument {
         // A broken DOM implementation may throw anything; the parser must survive it.
         // eslint-disable-next-line @typescript-eslint/only-throw-error
-        throw 'roto';
+        throw 'broken';
       },
     };
     const result = parseUrdf('<robot/>', { domParser: throwing, robotId: ROBOT_ID });
-    if (result.ok) throw new Error('debería fallar');
+    if (result.ok) throw new Error('the parse should fail');
     expect(result.errors[0]).toEqual({ code: 'parse', key: 'urdf.parse' });
   });
 
   it('maps a schema failure of parseRobotSpec to the parse code', () => {
     const result = parseUrdf(robotWith(''), { domParser, robotId: 'no-es-un-uuid' });
-    if (result.ok) throw new Error('un id no UUID debería fallar');
+    if (result.ok) throw new Error('a non-UUID id should fail');
     expect(result.errors[0]?.code).toBe('parse');
     expect(result.errors[0]?.detail).toContain('id');
   });
