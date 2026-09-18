@@ -18,10 +18,12 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "docs:check": "node scripts/docs-check.mjs",
-    "e2e": "pnpm --filter @trayectoria/web e2e"
+    "e2e": "pnpm --filter @trayectoria/web e2e",
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
+    "@vitest/coverage-v8": "4.1.11",
     "eslint": "9.39.5",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-astro": "1.7.0",
