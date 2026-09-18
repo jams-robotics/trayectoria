@@ -34,3 +34,23 @@ export { add3, cross3, distance3, dot3, length3, normalize3, scale3, sub3 } from
 export type { Vec3 } from './math/vec3';
 export { createRng } from './random/SeededRng';
 export type { SeededRng } from './random/SeededRng';
+export {
+  PRESET_LINE_WIDTH_M,
+  crossing,
+  oval,
+  presets,
+  sCurve,
+  tightCurves,
+} from './track/presets';
+export type { PresetName } from './track/presets';
+export {
+  arcSweep_rad,
+  distanceToCenterline,
+  pointAt,
+  reflectance,
+  segmentLength_m,
+  trackLength_m,
+} from './track/Track';
+export type { ArcSegment, LineSegment, Track, TrackSegment } from './track/Track';
+export { TRACK_FORMAT_VERSION, parseTrack, serializeTrack } from './track/serialize';
+export type { Result } from './track/serialize';
