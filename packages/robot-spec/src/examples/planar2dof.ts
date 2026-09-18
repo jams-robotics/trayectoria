@@ -11,7 +11,7 @@ const JOINT_LIMIT_RAD = Math.PI;
 // URDF cylinders extend along their local Z; a pitch of pi/2 lays them along the link's X.
 const CYLINDER_ALONG_X_RPY_RAD: [number, number, number] = [0, Math.PI / 2, 0];
 
-export const planar2dof: RobotSpecInput = {
+export const planar2dof: Readonly<RobotSpecInput> = {
   specVersion: 1,
   id: '7d2e3b7e-6b2a-4c6e-9a5f-2b1c6a1f0002',
   name: 'Brazo plano 2 GDL',

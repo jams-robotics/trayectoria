@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
 import { parseRobotSpec, planar2dof, referenceMobile } from './index';
+import type { ValidationError } from './index';
 
 const RPM_TO_RADPS = (2 * Math.PI) / 60;
 
@@ -17,7 +18,7 @@ function withValue(base: unknown, path: string[], value: unknown): unknown {
   return root;
 }
 
-function errorsOf(input: unknown): { path: string; key: string; message: string }[] {
+function errorsOf(input: unknown): readonly ValidationError[] {
   const result = parseRobotSpec(input);
   if (result.ok) throw new Error('expected the spec to be rejected');
   return result.errors;

@@ -12,19 +12,19 @@ export type { RobotSpecInput } from './schema';
 /** One validation problem: `key` is the i18n key (prefix `robotSpec.`), `message` its Spanish text. */
 export interface ValidationError {
   /** Dotted path with array indices, e.g. `mobile.lineSensors.count`, `arm.joints[1].limits`. */
-  path: string;
-  key: string;
-  message: string;
+  readonly path: string;
+  readonly key: string;
+  readonly message: string;
 }
 
 export interface ParseOk {
-  ok: true;
-  value: RobotSpec;
+  readonly ok: true;
+  readonly value: RobotSpec;
 }
 
 export interface ParseFailure {
-  ok: false;
-  errors: ValidationError[];
+  readonly ok: false;
+  readonly errors: readonly ValidationError[];
 }
 
 export type Result = ParseOk | ParseFailure;

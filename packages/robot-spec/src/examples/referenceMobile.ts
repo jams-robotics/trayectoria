@@ -1,7 +1,7 @@
 import type { RobotSpecInput } from '../schema';
 
 /** Reference robot of docs/ROBOT-SPEC.md §3: the default values of "Mi robot". */
-export const referenceMobile: RobotSpecInput = {
+export const referenceMobile: Readonly<RobotSpecInput> = {
   specVersion: 1,
   id: '7d2e3b7e-6b2a-4c6e-9a5f-2b1c6a1f0001',
   name: 'Robot de referencia',
