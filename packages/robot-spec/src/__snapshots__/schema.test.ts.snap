@@ -1,0 +1,559 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`F1-01 RobotSpec schema > exports the JSON Schema of the parsed spec (snapshot) 1`] = `
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "arm": {
+      "additionalProperties": false,
+      "properties": {
+        "baseLink": {
+          "type": "string",
+        },
+        "endEffectorLink": {
+          "type": "string",
+        },
+        "joints": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "axis": {
+                "default": [
+                  1,
+                  0,
+                  0,
+                ],
+                "items": false,
+                "maxItems": 3,
+                "minItems": 3,
+                "prefixItems": [
+                  {
+                    "type": "number",
+                  },
+                  {
+                    "type": "number",
+                  },
+                  {
+                    "type": "number",
+                  },
+                ],
+                "type": "array",
+              },
+              "child": {
+                "type": "string",
+              },
+              "limits": {
+                "additionalProperties": false,
+                "properties": {
+                  "effort": {
+                    "type": "number",
+                  },
+                  "lower": {
+                    "type": "number",
+                  },
+                  "upper": {
+                    "type": "number",
+                  },
+                  "velocity": {
+                    "type": "number",
+                  },
+                },
+                "required": [
+                  "lower",
+                  "upper",
+                ],
+                "type": "object",
+              },
+              "name": {
+                "type": "string",
+              },
+              "origin": {
+                "additionalProperties": false,
+                "properties": {
+                  "rpy": {
+                    "items": false,
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "prefixItems": [
+                      {
+                        "type": "number",
+                      },
+                      {
+                        "type": "number",
+                      },
+                      {
+                        "type": "number",
+                      },
+                    ],
+                    "type": "array",
+                  },
+                  "xyz": {
+                    "items": false,
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "prefixItems": [
+                      {
+                        "type": "number",
+                      },
+                      {
+                        "type": "number",
+                      },
+                      {
+                        "type": "number",
+                      },
+                    ],
+                    "type": "array",
+                  },
+                },
+                "required": [
+                  "xyz",
+                  "rpy",
+                ],
+                "type": "object",
+              },
+              "parent": {
+                "type": "string",
+              },
+              "type": {
+                "enum": [
+                  "revolute",
+                  "continuous",
+                  "prismatic",
+                  "fixed",
+                ],
+                "type": "string",
+              },
+            },
+            "required": [
+              "name",
+              "type",
+              "parent",
+              "child",
+              "origin",
+              "axis",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+        "links": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+              },
+              "visual": {
+                "additionalProperties": false,
+                "properties": {
+                  "meshPath": {
+                    "type": "string",
+                  },
+                  "origin": {
+                    "additionalProperties": false,
+                    "default": {
+                      "rpy": [
+                        0,
+                        0,
+                        0,
+                      ],
+                      "xyz": [
+                        0,
+                        0,
+                        0,
+                      ],
+                    },
+                    "properties": {
+                      "rpy": {
+                        "items": false,
+                        "maxItems": 3,
+                        "minItems": 3,
+                        "prefixItems": [
+                          {
+                            "type": "number",
+                          },
+                          {
+                            "type": "number",
+                          },
+                          {
+                            "type": "number",
+                          },
+                        ],
+                        "type": "array",
+                      },
+                      "xyz": {
+                        "items": false,
+                        "maxItems": 3,
+                        "minItems": 3,
+                        "prefixItems": [
+                          {
+                            "type": "number",
+                          },
+                          {
+                            "type": "number",
+                          },
+                          {
+                            "type": "number",
+                          },
+                        ],
+                        "type": "array",
+                      },
+                    },
+                    "required": [
+                      "xyz",
+                      "rpy",
+                    ],
+                    "type": "object",
+                  },
+                  "primitive": {
+                    "oneOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "size": {
+                            "items": false,
+                            "maxItems": 3,
+                            "minItems": 3,
+                            "prefixItems": [
+                              {
+                                "type": "number",
+                              },
+                              {
+                                "type": "number",
+                              },
+                              {
+                                "type": "number",
+                              },
+                            ],
+                            "type": "array",
+                          },
+                          "type": {
+                            "const": "box",
+                            "type": "string",
+                          },
+                        },
+                        "required": [
+                          "type",
+                          "size",
+                        ],
+                        "type": "object",
+                      },
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "length_m": {
+                            "type": "number",
+                          },
+                          "radius_m": {
+                            "type": "number",
+                          },
+                          "type": {
+                            "const": "cylinder",
+                            "type": "string",
+                          },
+                        },
+                        "required": [
+                          "type",
+                          "radius_m",
+                          "length_m",
+                        ],
+                        "type": "object",
+                      },
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "radius_m": {
+                            "type": "number",
+                          },
+                          "type": {
+                            "const": "sphere",
+                            "type": "string",
+                          },
+                        },
+                        "required": [
+                          "type",
+                          "radius_m",
+                        ],
+                        "type": "object",
+                      },
+                    ],
+                  },
+                  "scale": {
+                    "default": [
+                      1,
+                      1,
+                      1,
+                    ],
+                    "items": false,
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "prefixItems": [
+                      {
+                        "type": "number",
+                      },
+                      {
+                        "type": "number",
+                      },
+                      {
+                        "type": "number",
+                      },
+                    ],
+                    "type": "array",
+                  },
+                },
+                "required": [
+                  "scale",
+                  "origin",
+                ],
+                "type": "object",
+              },
+            },
+            "required": [
+              "name",
+            ],
+            "type": "object",
+          },
+          "type": "array",
+        },
+      },
+      "required": [
+        "baseLink",
+        "endEffectorLink",
+        "links",
+        "joints",
+      ],
+      "type": "object",
+    },
+    "id": {
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+      "type": "string",
+    },
+    "kind": {
+      "enum": [
+        "mobile-diff",
+        "arm-serial",
+      ],
+      "type": "string",
+    },
+    "mobile": {
+      "additionalProperties": false,
+      "properties": {
+        "battery": {
+          "additionalProperties": false,
+          "properties": {
+            "capacity_Wh": {
+              "exclusiveMinimum": 0,
+              "type": "number",
+            },
+          },
+          "required": [
+            "capacity_Wh",
+          ],
+          "type": "object",
+        },
+        "encoderTicksPerRev": {
+          "maximum": 9007199254740991,
+          "minimum": 1,
+          "type": "integer",
+        },
+        "gearRatio": {
+          "maximum": 1000,
+          "minimum": 1,
+          "type": "number",
+        },
+        "length_m": {
+          "exclusiveMinimum": 0,
+          "type": "number",
+        },
+        "lineSensors": {
+          "additionalProperties": false,
+          "properties": {
+            "count": {
+              "maximum": 16,
+              "minimum": 1,
+              "type": "integer",
+            },
+            "footprint_m": {
+              "default": 0.004,
+              "exclusiveMinimum": 0,
+              "type": "number",
+            },
+            "forwardOffset_m": {
+              "type": "number",
+            },
+            "spacing_m": {
+              "exclusiveMinimum": 0,
+              "type": "number",
+            },
+          },
+          "required": [
+            "count",
+            "spacing_m",
+            "forwardOffset_m",
+            "footprint_m",
+          ],
+          "type": "object",
+        },
+        "mass_kg": {
+          "maximum": 50,
+          "minimum": 0.05,
+          "type": "number",
+        },
+        "maxAccel_radps2": {
+          "exclusiveMinimum": 0,
+          "type": "number",
+        },
+        "maxMotorSpeed_rpm": {
+          "maximum": 30000,
+          "minimum": 1,
+          "type": "number",
+        },
+        "motor": {
+          "additionalProperties": false,
+          "properties": {
+            "efficiency": {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number",
+            },
+            "nominalVoltage_V": {
+              "exclusiveMinimum": 0,
+              "type": "number",
+            },
+            "stallTorque_Nm": {
+              "exclusiveMinimum": 0,
+              "type": "number",
+            },
+          },
+          "required": [
+            "stallTorque_Nm",
+            "nominalVoltage_V",
+            "efficiency",
+          ],
+          "type": "object",
+        },
+        "wheelBase_m": {
+          "maximum": 1,
+          "minimum": 0.03,
+          "type": "number",
+        },
+        "wheelRadius_m": {
+          "maximum": 0.3,
+          "minimum": 0.005,
+          "type": "number",
+        },
+        "width_m": {
+          "exclusiveMinimum": 0,
+          "type": "number",
+        },
+      },
+      "required": [
+        "wheelRadius_m",
+        "wheelBase_m",
+        "maxMotorSpeed_rpm",
+        "gearRatio",
+        "mass_kg",
+        "length_m",
+        "width_m",
+        "lineSensors",
+      ],
+      "type": "object",
+    },
+    "name": {
+      "maxLength": 80,
+      "minLength": 1,
+      "type": "string",
+    },
+    "simConfigs": {
+      "default": [],
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "controller": {
+            "enum": [
+              "manual",
+              "onoff",
+              "p",
+              "pid",
+            ],
+            "type": "string",
+          },
+          "id": {
+            "type": "string",
+          },
+          "name": {
+            "type": "string",
+          },
+          "params": {
+            "additionalProperties": {
+              "type": "number",
+            },
+            "propertyNames": {
+              "type": "string",
+            },
+            "type": "object",
+          },
+          "seed": {
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer",
+          },
+          "track": {},
+        },
+        "required": [
+          "id",
+          "name",
+          "controller",
+          "params",
+          "seed",
+        ],
+        "type": "object",
+      },
+      "type": "array",
+    },
+    "source": {
+      "additionalProperties": false,
+      "properties": {
+        "catalogId": {
+          "type": "string",
+        },
+        "type": {
+          "enum": [
+            "form",
+            "urdf",
+            "catalog",
+          ],
+          "type": "string",
+        },
+        "urdfPath": {
+          "type": "string",
+        },
+        "verifiedAt": {
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+          "type": "string",
+        },
+      },
+      "required": [
+        "type",
+      ],
+      "type": "object",
+    },
+    "specVersion": {
+      "const": 1,
+      "type": "number",
+    },
+  },
+  "required": [
+    "specVersion",
+    "id",
+    "name",
+    "kind",
+    "source",
+    "simConfigs",
+  ],
+  "type": "object",
+}
+`;
