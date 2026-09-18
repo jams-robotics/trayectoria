@@ -37,6 +37,8 @@ function webServerEnv(): Record<string, string> {
 
 export default defineConfig({
   testDir: 'e2e',
+  // Visual snapshots of /dev/widgets are committed as e2e/visual/<name>.png (F2-01a).
+  snapshotPathTemplate: '{testDir}/visual/{arg}{ext}',
   fullyParallel: true,
   forbidOnly: true,
   retries: 0,
