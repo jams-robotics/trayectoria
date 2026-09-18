@@ -1,3 +1,8 @@
+export { check } from './exercises/check';
+export type { CheckResult } from './exercises/check';
+export { defineExercise } from './exercises/defineExercise';
+export type { Exercise, GeneratedExercise, Tolerance } from './exercises/defineExercise';
+export { format } from './exercises/format';
 export { createManualClock } from './loop/Clock';
 export type { Clock, ManualClock } from './loop/Clock';
 export {
