@@ -1,6 +1,6 @@
 /**
- * Source of real (wall) time in seconds. `Simulation` never reads `Date.now` or
- * `performance.now`; the external render driver injects a clock backed by them.
+ * Source of real (wall) time in seconds. `Simulation` never reads the platform clock APIs
+ * itself; the external render driver injects a clock backed by them.
  */
 export interface Clock {
   /** Current time in seconds. Only differences between calls are meaningful. */
