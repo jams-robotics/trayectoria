@@ -1,0 +1,20 @@
+---
+import { t } from '@trayectoria/i18n';
+import { StoryGallery } from '@trayectoria/widgets';
+
+import Base from '../../layouts/Base.astro';
+
+// F2-01a playground: one section per widget with its stories, rendered by the StoryGallery
+// island of @trayectoria/widgets. Not linked from Nav.astro; it exists for manual review and
+// for the visual regression snapshots of e2e/visual.
+---
+
+<Base title={t('widgets.playground.title')}>
+  <section class="mx-auto max-w-[1120px] px-5 pt-11 pb-9 md:px-8">
+    <h1 class="text-2xl leading-tight max-w-[72ch] font-semibold">
+      {t('widgets.playground.title')}
+    </h1>
+    <p class="text-fg-muted mt-4 max-w-[72ch]">{t('widgets.playground.lead')}</p>
+    <StoryGallery client:load />
+  </section>
+</Base>
