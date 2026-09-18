@@ -295,7 +295,11 @@ importers:
 
   packages/progress: {}
 
-  packages/robot-spec: {}
+  packages/robot-spec:
+    dependencies:
+      zod:
+        specifier: 4.6.4
+        version: 4.6.4
 
   packages/sim-core: {}
 
