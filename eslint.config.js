@@ -15,7 +15,7 @@ const ALLOWED_IMPORTS = {
   'packages/widgets': ['sim-core', 'robot-spec', 'i18n'],
   'packages/progress': ['db', 'auth'],
   'packages/auth': ['db'],
-  'packages/sim-core': [],
+  'packages/sim-core': ['robot-spec'],
   'packages/robot-spec': [],
   'packages/db': [],
   'packages/i18n': [],
