@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!-- Todo link tiene padre: el ciclo base_link -> link1 -> base_link no deja raíz. -->
+<robot name="sin raiz">
+  <link name="base_link"/>
+  <link name="link1"/>
+  <joint name="joint1" type="revolute">
+    <parent link="base_link"/>
+    <child link="link1"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1.0" upper="1.0"/>
+  </joint>
+  <joint name="joint2" type="revolute">
+    <parent link="link1"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1.0" upper="1.0"/>
+  </joint>
+</robot>

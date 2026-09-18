@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!-- base_link es raíz, pero link1 -> link2 -> link1 forma un ciclo desconectado del árbol. -->
+<robot name="con ciclo">
+  <link name="base_link"/>
+  <link name="link0"/>
+  <link name="link1"/>
+  <link name="link2"/>
+  <joint name="joint0" type="revolute">
+    <parent link="base_link"/>
+    <child link="link0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1.0" upper="1.0"/>
+  </joint>
+  <joint name="joint1" type="revolute">
+    <parent link="link1"/>
+    <child link="link2"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1.0" upper="1.0"/>
+  </joint>
+  <joint name="joint2" type="revolute">
+    <parent link="link2"/>
+    <child link="link1"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1.0" upper="1.0"/>
+  </joint>
+</robot>

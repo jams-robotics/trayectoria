@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!-- Dos links sin padre: base_a y base_b. -->
+<robot name="dos raices">
+  <link name="base_a"/>
+  <link name="link_a"/>
+  <link name="base_b"/>
+  <joint name="joint_a" type="revolute">
+    <parent link="base_a"/>
+    <child link="link_a"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1.0" upper="1.0"/>
+  </joint>
+</robot>
