@@ -1,7 +1,7 @@
 ---
 import { t } from '@trayectoria/i18n';
-import { StoryGallery } from '@trayectoria/widgets';
 
+import { WidgetsPlayground } from '../../components/dev/WidgetsPlayground';
 import Base from '../../layouts/Base.astro';
 
 // F2-01a playground: one section per widget with its stories, rendered by the StoryGallery
@@ -10,9 +10,11 @@ import Base from '../../layouts/Base.astro';
 //
 // `?section=<Nombre>` narrows the page to that widget's section, so a snapshot of e2e/visual is
 // taken over a page that only holds its own widget and does not move when a story is added to
-// another one (#108, decision 2). The search parameter is read here because `window` is off
-// limits inside @trayectoria/widgets (CLAUDE.md, prohibiciones); the island takes it as a prop.
-const section = Astro.url.searchParams.get('section');
+// another one (#108, decision 2). This page is prerendered, so `Astro.url.searchParams` cannot
+// see a query string added at request time (QA #108, PR #140: the island hydrated with
+// `section: null` in `astro dev`, and every section rendered regardless of the query string).
+// `WidgetsPlayground` reads it on the client instead, with `client:only` so there is no SSR pass
+// to mismatch against.
 ---
 
 <Base title={t('widgets.playground.title')}>
@@ -21,6 +23,6 @@ const section = Astro.url.searchParams.get('section');
       {t('widgets.playground.title')}
     </h1>
     <p class="text-fg-muted mt-4 max-w-[72ch]">{t('widgets.playground.lead')}</p>
-    <StoryGallery section={section} client:load />
+    <WidgetsPlayground client:only="react" />
   </section>
 </Base>

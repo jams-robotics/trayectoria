@@ -94,6 +94,11 @@ const INTRINSIC_CANVAS_WIDTH_PX = 300;
  * its own widget, so adding a story to another widget no longer shifts it down the page and
  * invalidates its snapshot (spec gap #117). Without it the whole catalogue is rendered, which
  * is what the interaction tests below need.
+ *
+ * The gallery is a `client:only` island (QA #108, PR #140: with SSR, `Astro.url.searchParams`
+ * never saw the query string and every section rendered regardless of it), so there is no `ssr`
+ * attribute to wait out — the DOM is simply empty until React mounts. Waiting for a `[data-story]`
+ * to become visible is the equivalent hydration gate for this page.
  */
 async function openPlayground(page: Page, section?: string): Promise<void> {
   // With nothing stored, the inline script of Base.astro follows the system preference; the
@@ -103,6 +108,13 @@ async function openPlayground(page: Page, section?: string): Promise<void> {
   await page.goto(`/dev/widgets${query}`);
   // The Astro dev toolbar floats over the page in `astro dev`; it is not part of any widget.
   await page.addStyleTag({ content: 'astro-dev-toolbar { display: none !important; }' });
+  await expect(page.locator('[data-story]').first()).toBeVisible();
+  if (section !== undefined) {
+    // The whole point of the filter (#108, decision 2): only the requested widget's section
+    // is in the DOM, so this page never moves when a story is added to another widget.
+    await expect(page.locator('[data-widget]')).toHaveCount(1);
+    await expect(page.locator('[data-widget]')).toHaveAttribute('data-widget', section);
+  }
   // Fonts settle before the screenshot, otherwise the fallback face is captured.
   await page.evaluate(() => document.fonts.ready);
 }
@@ -277,11 +289,9 @@ async function answerScalar(page: Page, response_s: number): Promise<Locator> {
   const story = page.locator('[data-widget="ExerciseWidget"] [data-story="Scalar"]');
   const field = story.getByRole('textbox');
   await expect(field).toBeVisible();
-  // Astro quita el atributo `ssr` de una isla cuando React la hidrata; antes de eso la escritura
-  // y el clic se pierden en silencio (e2e/auth.spec.ts, F2-01a ronda 1).
-  await page.waitForFunction(() =>
-    [...document.querySelectorAll('astro-island')].every((island) => !island.hasAttribute('ssr')),
-  );
+  // `openPlayground` ya esperó a que el primer `[data-story]` fuera visible, lo que en un
+  // island `client:only` (QA #108, PR #140) ya implica que React lo hidrató: no hay atributo
+  // `ssr` que esperar aquí.
   await expect
     .poll(async () => {
       await field.fill(String(response_s));
@@ -309,11 +319,9 @@ test('DiffDriveWidget-odometry looks as approved', async ({ page }) => {
   await openPlayground(page, 'DiffDriveWidget');
   const story = page.locator('[data-widget="DiffDriveWidget"] [data-story="Odometry54"]');
   await expect(story).toBeVisible();
-  // Astro quita el atributo `ssr` de una isla cuando React la hidrata; antes de eso lo que se
-  // escriba en el campo se pierde en silencio (e2e/auth.spec.ts, F2-01a ronda 1).
-  await page.waitForFunction(() =>
-    [...document.querySelectorAll('astro-island')].every((island) => !island.hasAttribute('ssr')),
-  );
+  // `openPlayground` ya esperó a que el primer `[data-story]` fuera visible, lo que en un
+  // island `client:only` (QA #108, PR #140) ya implica que React lo hidrató: no hay atributo
+  // `ssr` que esperar aquí.
   const believedRadius = story.getByRole('textbox', { name: /Radio de rueda creído/ });
   await expect
     .poll(async () => {

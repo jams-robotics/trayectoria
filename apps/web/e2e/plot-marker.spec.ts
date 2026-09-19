@@ -19,11 +19,10 @@ const DRAG_STEPS = 8;
 /** Opens the playground and waits for React to hydrate every island before interacting. */
 async function openPlayground(page: Page): Promise<void> {
   await page.goto('/dev/widgets');
-  // Astro removes the `ssr` attribute of an island once React has hydrated it; a drag landing
-  // before that is silently a no-op (e2e/exercise.spec.ts, F2-01a ronda 1).
-  await page.waitForFunction(() =>
-    [...document.querySelectorAll('astro-island')].every((island) => !island.hasAttribute('ssr')),
-  );
+  // The gallery is a `client:only` island (QA #108, PR #140), so there is no `ssr` attribute to
+  // wait out — the DOM is simply empty until React mounts. A drag landing before that is
+  // silently a no-op (e2e/exercise.spec.ts, F2-01a ronda 1), so wait for a story to be visible.
+  await expect(page.locator('[data-story]').first()).toBeVisible();
 }
 
 function marker(page: Page, widget: string, story: string): Locator {
