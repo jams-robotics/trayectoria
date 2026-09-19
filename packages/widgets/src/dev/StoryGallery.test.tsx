@@ -86,6 +86,14 @@ describe('stories catalogue', () => {
           ['AngularAccel', expect.any(Function)],
         ],
       },
+      {
+        title: 'EnergyWidget',
+        stories: [
+          ['Ramp', expect.any(Function)],
+          ['RampFriction', expect.any(Function)],
+          ['Power', expect.any(Function)],
+        ],
+      },
     ]);
   });
 
