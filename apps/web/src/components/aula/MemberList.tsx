@@ -104,7 +104,7 @@ function MemberRow({
           aria-label={t('aula.members.remove', { name })}
           className={GHOST_BUTTON}
         >
-          {t('aula.members.removeYes')}
+          {t('aula.members.remove', { name })}
         </button>
       )}
     </li>
