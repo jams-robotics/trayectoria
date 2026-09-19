@@ -30,3 +30,27 @@ export type {
   History,
   TrackGap,
 } from './mobile/trackEditor';
+export {
+  ARC_RADIUS_FACTOR,
+  PICK_TOLERANCE_M,
+  TRACK_FILE_NAME,
+  TrackEditor,
+  arcFromDrag,
+  downloadJson,
+  readFileText,
+  useTrackEditor,
+} from './mobile/trackEditor';
+export type {
+  DownloadTrigger,
+  DragArc,
+  TrackDraft,
+  TrackEditorApi,
+  TrackEditorProps,
+  TrackTool,
+  UseTrackEditorOptions,
+} from './mobile/trackEditor';
+
+// Playground-only discovery/rendering (docs/STANDARDS.md §4: index.ts reexports the public
+// API only); the implementation lives in ./dev/SimGallery.
+export { SimGallery, stories } from './dev/SimGallery';
+export type { SimGalleryProps, SimStories, SimStory } from './dev/SimGallery';

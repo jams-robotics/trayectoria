@@ -213,7 +213,9 @@ export default tseslint.config(
   },
   ...architectureBoundaries,
   {
-    files: ['packages/widgets/**/*.tsx'],
+    // docs/ops/I18N.md §6. `packages/sims` renders UI too (F4-01b, decision 3 of #126), so the
+    // same rule covers both packages.
+    files: ['packages/widgets/**/*.tsx', 'packages/sims/**/*.tsx'],
     plugins: { i18n: i18nPlugin },
     rules: { 'i18n/no-ui-literals': 'error' },
   },
