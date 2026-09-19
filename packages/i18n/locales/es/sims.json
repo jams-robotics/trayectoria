@@ -1,0 +1,56 @@
+{
+  "trackEditor": {
+    "scene": "Lienzo del editor de pista: la pista dibujada y la previsualización de la herramienta activa.",
+    "tools": "Herramienta",
+    "tool": {
+      "select": "Seleccionar",
+      "line": "Recta",
+      "arc": "Arco",
+      "erase": "Borrar"
+    },
+    "undo": "Deshacer",
+    "redo": "Rehacer",
+    "save": "Guardar",
+    "load": "Cargar",
+    "loadInput": "Archivo de pista en JSON",
+    "preset": "Preset",
+    "presetApply": "Aplicar preset",
+    "presetName": {
+      "oval": "Óvalo",
+      "sCurve": "Curva en S",
+      "tightCurves": "Curvas cerradas",
+      "crossing": "Cruce"
+    },
+    "presetConfirm": "Hay cambios sin guardar. ¿Sustituir la pista por el preset?",
+    "presetConfirmAccept": "Sustituir",
+    "presetConfirmCancel": "Cancelar",
+    "segment": "Segmento seleccionado",
+    "noSegment": "Ningún segmento seleccionado.",
+    "field": {
+      "fromX": "Inicio x (m)",
+      "fromY": "Inicio y (m)",
+      "toX": "Fin x (m)",
+      "toY": "Fin y (m)",
+      "radius": "Radio (m)",
+      "ccw": "Sentido antihorario",
+      "lineWidth": "Ancho de línea (m)"
+    },
+    "continuity": {
+      "ok": "Pista continua",
+      "gap": "Hueco tras el segmento {{index}}: {{gap}} mm",
+      "open": "Pista abierta",
+      "gapsTitle": "Huecos en la pista"
+    },
+    "loadError": "El archivo no es una pista válida: {{reason}}",
+    "saved": "Pista descargada como pista.json",
+    "loaded": "Pista cargada",
+    "segments": "Segmentos de la pista",
+    "segmentLine": "Segmento {{index}}: recta",
+    "segmentArc": "Segmento {{index}}: arco",
+    "noSegments": "La pista no tiene segmentos."
+  },
+  "playground": {
+    "title": "Catálogo de simuladores",
+    "lead": "Cada componente de simulación con sus configuraciones de ejemplo. Página de desarrollo: no se enlaza desde la navegación."
+  }
+}

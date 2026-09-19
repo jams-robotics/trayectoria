@@ -21,6 +21,7 @@
     "@trayectoria/db": "workspace:*",
     "@trayectoria/i18n": "workspace:*",
     "@trayectoria/progress": "workspace:*",
+    "@trayectoria/sims": "workspace:*",
     "@trayectoria/widgets": "workspace:*",
     "astro": "7.3.2",
     "nanostores": "1.5.3",

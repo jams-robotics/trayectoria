@@ -1,0 +1,23 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import { SimsPlayground } from '../../components/dev/SimsPlayground';
+import Base from '../../layouts/Base.astro';
+
+// F4-01b playground: one section per component of `packages/sims` with its stories, rendered by
+// the SimGallery island. Not linked from Nav.astro; it exists for manual review, for the visual
+// regression snapshots of e2e/visual/sims.spec.ts and for e2e/track-editor.spec.ts.
+//
+// `?section=<Nombre>` narrows the page to that component's section, like `/dev/widgets` after
+// PR #140. The page is prerendered, so `Astro.url.searchParams` cannot see a query string added
+// at request time; `SimsPlayground` reads it on the client instead, with `client:only` so there
+// is no SSR pass to mismatch against.
+---
+
+<Base title={t('sims.playground.title')}>
+  <section class="mx-auto max-w-[1120px] px-5 pt-11 pb-9 md:px-8">
+    <h1 class="text-2xl leading-tight max-w-[72ch] font-semibold">{t('sims.playground.title')}</h1>
+    <p class="text-fg-muted mt-4 max-w-[72ch]">{t('sims.playground.lead')}</p>
+    <SimsPlayground client:only="react" />
+  </section>
+</Base>
