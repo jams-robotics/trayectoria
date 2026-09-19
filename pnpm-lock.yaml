@@ -223,6 +223,9 @@ importers:
       '@trayectoria/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@trayectoria/progress':
+        specifier: workspace:*
+        version: link:../../packages/progress
       '@trayectoria/widgets':
         specifier: workspace:*
         version: link:../../packages/widgets
@@ -299,7 +302,39 @@ importers:
         specifier: 19.3.0
         version: 19.3.0
 
-  packages/progress: {}
+  packages/progress:
+    dependencies:
+      '@nanostores/react':
+        specifier: 2.0.1
+        version: 2.0.1(nanostores@1.5.3)(react@19.3.0)
+      '@trayectoria/auth':
+        specifier: workspace:*
+        version: link:../auth
+      '@trayectoria/db':
+        specifier: workspace:*
+        version: link:../db
+      nanostores:
+        specifier: 1.5.3
+        version: 1.5.3
+    devDependencies:
+      '@testing-library/jest-dom':
+        specifier: 7.0.1
+        version: 7.0.1(@testing-library/dom@10.4.2)(vitest@4.1.11)
+      '@testing-library/react':
+        specifier: 16.3.3
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      jsdom:
+        specifier: 30.1.0
+        version: 30.1.0
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+      react-dom:
+        specifier: 19.3.0
+        version: 19.3.0(react@19.3.0)
 
   packages/robot-spec:
     dependencies:

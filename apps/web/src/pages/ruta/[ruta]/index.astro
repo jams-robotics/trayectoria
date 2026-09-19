@@ -3,6 +3,8 @@ import type { GetStaticPaths } from 'astro';
 import { getCollection } from 'astro:content';
 import { t } from '@trayectoria/i18n';
 
+import { ProgressSession } from '../../../components/progress/ProgressSession';
+import { RouteProgress, TopicStatus } from '../../../components/progress/RouteProgress';
 import Base from '../../../layouts/Base.astro';
 
 export const getStaticPaths = (async () => {
@@ -14,11 +16,14 @@ const { route } = Astro.props;
 const topics = await getCollection('topics');
 const publishedIds = new Set(topics.map((topic) => topic.id));
 
-// Progress is a placeholder until F3-01: every topic is pending.
-const status = t('route.pending');
 // The route schema validates data.id as ruta-N; route.id (from the directory) is only for URLs.
 const routeNumber = route.data.id.slice('ruta-'.length);
 const topicCount = route.data.modules.reduce((total, module) => total + module.topics.length, 0);
+// Ids of every topic of the route, in the order of ruta.json: what RouteProgress counts and
+// what each TopicStatus island reads from `$progress` (#120, decision 4).
+const topicIds = route.data.modules.flatMap((module) =>
+  module.topics.map((topic) => `${route.id}/${topic.id}`),
+);
 const topicHref = (moduleId: string, topicId: string): string =>
   `/ruta/${route.id}/${moduleId}/${topicId.slice(moduleId.length + 1)}`;
 ---
@@ -35,6 +40,9 @@ const topicHref = (moduleId: string, topicId: string): string =>
       <span class="font-mono">{topicCount}</span>
       {` ${t('route.topics')}`}
     </p>
+
+    <ProgressSession client:load />
+    <RouteProgress client:load topicIds={topicIds} />
 
     <ol class="mt-8 grid list-none gap-5 p-0">
       {route.data.modules.map((module) => (
@@ -56,9 +64,7 @@ const topicHref = (moduleId: string, topicId: string): string =>
                 ) : (
                   <span class="text-fg-muted">{topic.title}</span>
                 )}
-                <span class="border-border text-fg-muted rounded-sm ml-auto border px-2 py-1 font-mono text-xs">
-                  {status}
-                </span>
+                <TopicStatus client:load topicId={`${route.id}/${topic.id}`} />
               </li>
             ))}
           </ol>
