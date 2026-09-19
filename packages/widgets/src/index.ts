@@ -242,6 +242,46 @@ export type {
   TrackTime,
 } from './ExerciseWidget';
 
+export {
+  MyRobotWidget,
+  MY_ROBOT_STORAGE_KEY,
+  $myRobot,
+  ALL_FIELDS,
+  FIELD_GROUPS,
+  FieldRow,
+  RobotCard,
+  cardItems,
+  configureMyRobotPersistence,
+  draftOf,
+  labelKey,
+  omegaMax_radps,
+  parseCell,
+  parseStoredRobot,
+  readStoredRobot,
+  referenceRobot,
+  resetMyRobot,
+  setMyRobot,
+  specFromDraft,
+  useMyRobot,
+  useMyRobotForm,
+  vMax_mps,
+} from './MyRobotWidget';
+export type {
+  FieldErrors,
+  FormNotice,
+  MyRobotFormState,
+  MyRobotMode,
+  MyRobotWidgetProps,
+  RobotDraft,
+  RobotField,
+  RobotFieldGroup,
+  RobotPersistence,
+  RobotSpec,
+  SaveResult,
+} from './MyRobotWidget';
+export { TOAST_TIMEOUT_MS, Toast } from './shared/Toast';
+export type { ToastProps, ToastTone } from './shared/Toast';
+
 // Playground-only discovery/rendering (docs/STANDARDS.md §4: index.ts reexports the public
 // API only); the implementation lives in ./dev/StoryGallery.
 export { StoryGallery, stories } from './dev/StoryGallery';

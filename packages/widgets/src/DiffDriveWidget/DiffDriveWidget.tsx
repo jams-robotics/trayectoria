@@ -4,11 +4,11 @@ import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 import type { MobileSpec, RobotSpec } from '@trayectoria/robot-spec';
 
+import { useMyRobot } from '../MyRobotWidget/useMyRobot';
 import { ParamPanel } from '../ParamPanel/ParamPanel';
 import { SimControls } from '../SimControls/SimControls';
 import { LiveStatus } from '../shared/ReadoutPanel';
 import {
-  defaultRobot,
   forwardKinematics,
   inverseKinematics,
   mobileOf,
@@ -38,7 +38,7 @@ const DEFAULT_DURATION_S = 10;
 
 export interface DiffDriveWidgetProps {
   mode: DiffDriveMode;
-  /** Robot simulated; defaults to the reference robot until F2-11 brings `useMyRobot()`. */
+  /** Robot simulated; «Mi robot» of the learner when it is not given (#95, decision 6). */
   robot?: RobotSpec;
   show: DiffDriveShow[];
   initial: {
@@ -196,14 +196,18 @@ function useCommand(
  */
 export function DiffDriveWidget({
   mode,
-  robot = defaultRobot(),
+  robot,
   show,
   initial,
   duration_s = DEFAULT_DURATION_S,
   initialTime_s = 0,
 }: DiffDriveWidgetProps): JSX.Element {
   const t = useT();
-  const spec = useMemo(() => mobileOf(robot), [robot]);
+  // «Mi robot» is the default, so a saved change reaches the simulator with no reload
+  // (#95, decision 6); an explicit `robot` still wins, which is what the stories use.
+  const myRobot = useMyRobot();
+  const applicable = robot ?? myRobot;
+  const spec = useMemo(() => mobileOf(applicable), [applicable]);
   const { command, params, onSlider } = useCommand(mode, initial, spec, t);
   const applied = saturate(command, spec);
   const timeline = useTimeline(spec, applied, duration_s, initialTime_s);
@@ -216,7 +220,8 @@ export function DiffDriveWidget({
         timeline={timeline}
         scene={
           <DiffDriveScene
-            {...{ robot, spec, twist, command, show, t }}
+            {...{ spec, twist, command, show, t }}
+            robot={applicable}
             pose={timeline.pose}
             feasible={readout.feasible}
             trace_m={timeline.trace_m}
