@@ -2,8 +2,13 @@ import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
+import { fichaSchema } from './lib/ficha';
+
 // Content lives outside apps/web ("currículo como código", ADR-0005).
 const CONTENT_BASE = '../../content/es';
+
+// Reference arms live outside apps/web too (docs/ARCHITECTURE.md §2).
+const ARMS_BASE = '../../catalog/arms';
 
 const topicId = z
   .string()
@@ -89,4 +94,13 @@ const routes = defineCollection({
   schema: routeSchema,
 });
 
-export const collections = { topics, routes };
+const arms = defineCollection({
+  loader: glob({
+    pattern: '*/ficha.json',
+    base: ARMS_BASE,
+    generateId: ({ entry }) => entry.replace(/\/ficha\.json$/, ''),
+  }),
+  schema: fichaSchema,
+});
+
+export const collections = { topics, routes, arms };

@@ -1,0 +1,74 @@
+---
+import { getCollection } from 'astro:content';
+import { t } from '@trayectoria/i18n';
+
+import Base from '../../layouts/Base.astro';
+import { armHref, formatMetres } from '../../lib/catalog';
+
+const arms = [...(await getCollection('arms'))].sort((a, b) =>
+  a.data.name.localeCompare(b.data.name, 'es'),
+);
+
+// The catalog photos live outside apps/web, so they are imported as Astro assets: the
+// integration that serves /catalog/** only arrives in F5-01a (decision 5 of the assignment).
+const photos = import.meta.glob<{ default: { src: string } | string }>(
+  '../../../../../catalog/arms/*/foto.{jpg,svg}',
+  { eager: true },
+);
+
+/** The bundled URL of `foto.*` of an arm, keyed by the id of its directory. */
+function photoUrl(id: string, photo: string): string {
+  const entry = photos[`../../../../../catalog/arms/${id}/${photo}`];
+  if (entry === undefined) throw new Error(`Falta la foto ${photo} del brazo ${id}`);
+  const value = entry.default;
+  return typeof value === 'string' ? value : value.src;
+}
+---
+
+<Base title={t('catalog.title')}>
+  <section class="mx-auto max-w-[1120px] px-5 py-9 md:px-8">
+    <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
+      {t('catalog.eyebrow')}
+    </p>
+    <h1 class="text-2xl leading-tight mt-3 font-semibold">{t('catalog.title')}</h1>
+    <p class="text-fg-muted mt-3 max-w-[72ch]">{t('catalog.lead')}</p>
+    <p class="text-fg-muted mt-3 font-mono text-sm">
+      {t('catalog.armCount', { count: arms.length })}
+    </p>
+
+    <ul class="mt-8 grid list-none gap-5 p-0 sm:grid-cols-2">
+      {
+        arms.map((arm) => (
+          <li class="bg-bg-raised border-border rounded-lg border p-6">
+            <img
+              src={photoUrl(arm.id, arm.data.photo)}
+              alt={arm.data.name}
+              width="640"
+              height="480"
+              loading="lazy"
+              class="bg-bg aspect-4/3 w-full rounded-md object-contain"
+            />
+            <h2 class="text-lg leading-tight mt-4 font-semibold">
+              <a href={armHref(arm.id)}>{arm.data.name}</a>
+            </h2>
+            <dl class="mt-3 grid grid-cols-[1fr_auto] gap-x-3 gap-y-2 text-sm">
+              <dt class="text-fg-muted">{t('catalog.dof')}</dt>
+              <dd class="m-0 text-right font-mono tabular-nums">{arm.data.dof}</dd>
+              <dt class="text-fg-muted">{t('catalog.reach')}</dt>
+              <dd class="m-0 text-right font-mono tabular-nums">
+                {formatMetres(arm.data.reach_m)}
+              </dd>
+            </dl>
+            <p class="text-fg-muted mt-3 text-sm">{arm.data.summary}</p>
+            <a
+              href={armHref(arm.id)}
+              class="border-border bg-bg-raised text-fg mt-4 inline-flex h-10 items-center rounded-md border px-4 font-semibold hover:border-fg-muted"
+            >
+              {t('catalog.openArm', { name: arm.data.name })}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Base>

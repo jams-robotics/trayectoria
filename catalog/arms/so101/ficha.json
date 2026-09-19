@@ -1,0 +1,21 @@
+{
+  "id": "so101",
+  "name": "SO-101 (brazo seguidor)",
+  "dof": 6,
+  "reach_m": 0.48,
+  "payload_kg": null,
+  "cost_usd_approx": 122,
+  "license": {
+    "hardware": "Apache-2.0",
+    "software": "Apache-2.0"
+  },
+  "links": {
+    "repo": "https://github.com/TheRobotStudio/SO-ARM100",
+    "plans": "https://github.com/TheRobotStudio/SO-ARM100/tree/main/stl_files_for_3dprinting",
+    "bom": "https://github.com/TheRobotStudio/SO-ARM100#sourcing-parts",
+    "buy": "https://github.com/TheRobotStudio/SO-ARM100#kits"
+  },
+  "verifiedAt": "2026-09-19",
+  "photo": "foto.jpg",
+  "summary": "Brazo articulado de 6 grados de libertad imprimible en 3D, movido por servos STS3215. Es el brazo seguidor del proyecto SO-ARM100 de The Robot Studio, pensado para aprender manipulación con un presupuesto de aficionado."
+}
