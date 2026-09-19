@@ -1,5 +1,6 @@
 import type { JSX } from 'react';
 import { Html } from '@react-three/drei';
+import { tokenColor } from '../shared/theme';
 
 /**
  * Token of each axis of the triad (docs/DESIGN.md §6: «marco del efector en RGB (x error,
@@ -12,20 +13,13 @@ export const AXIS_TOKENS: readonly [string, string, string] = [
 ];
 
 /**
- * Light value of each axis token, used only where no stylesheet is attached (jsdom, or a scene
- * built before the first paint). `shared/theme.ts` carries the fallbacks of the tokens Scene2D
- * paints with, and `--color-error` and `--color-success` are not among them; the real value
- * always comes from `getComputedStyle`, so the theme still drives the colours in the browser.
+ * Resolves one axis token against `<html>` through `shared/theme.ts`'s `tokenColor`, which
+ * falls back to the token's light value where no stylesheet is attached (jsdom, or a scene
+ * built before the first paint); the real value always comes from `getComputedStyle`, so the
+ * theme still drives the colours in the browser.
  */
-const AXIS_FALLBACKS: readonly [string, string, string] = ['#bf3a2b', '#1c7a4e', '#0072b2'];
-
-/** Resolves one axis token against `<html>`, falling back to its light value. */
 function axisColor(element: Element | null, index: number): string {
-  const name = `--${AXIS_TOKENS[index] ?? ''}`;
-  const fallback = AXIS_FALLBACKS[index] ?? '';
-  if (element === null || typeof getComputedStyle !== 'function') return fallback;
-  const value = getComputedStyle(element).getPropertyValue(name).trim();
-  return value === '' ? fallback : value;
+  return tokenColor(element, AXIS_TOKENS[index] ?? '');
 }
 
 /** Unit direction of each axis of the triad, in the same order as `AXIS_TOKENS`. */

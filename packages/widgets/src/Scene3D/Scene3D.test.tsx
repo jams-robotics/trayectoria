@@ -24,11 +24,12 @@ vi.mock('@react-three/drei', () => ({
   Html: ({ children }: { children: ReactNode }) => <div data-testid="html">{children}</div>,
 }));
 
+import { tokenColor } from '../shared/theme';
 import { AXIS_TOKENS, Frame } from './Frame';
 import { Scene3D } from './Scene3D';
 
-/** Light values of the axis tokens (`shared/theme.ts` fallbacks; docs/DESIGN.md §2.2, §6). */
-const AXIS_COLORS = ['#bf3a2b', '#1c7a4e', '#0072b2'] as const;
+/** Light values of the axis tokens, resolved the same way `Frame` resolves them at runtime. */
+const AXIS_COLORS = AXIS_TOKENS.map((token) => tokenColor(null, token));
 
 /** Renders a scene with the given props and the triad of the origin. */
 function renderScene(props: Partial<Parameters<typeof Scene3D>[0]> = {}): HTMLElement {
