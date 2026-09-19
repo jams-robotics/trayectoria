@@ -321,6 +321,25 @@
     "storyForward52": "Arco de T-5.2 con ω_L = 15 y ω_R = 20 rad/s, con el CIR y el radio",
     "storyInverse53": "Cinemática inversa de T-5.3 con v = 0.4 m/s y ω = 1.5 rad/s"
   },
+  "ExerciseWidget": {
+    "title": "Ejercicio",
+    "number": "E{{n}}",
+    "required": "obligatorio",
+    "answer": "Respuesta en {{unit}}",
+    "component": "Componente {{index}} en {{unit}}",
+    "componentShort": "{{index}}",
+    "verify": "Comprobar",
+    "checking": "Verificando…",
+    "correct": "Correcto",
+    "incorrect": "Incorrecto · fuera por {{percent}} %",
+    "attempt": "Intento {{n}}",
+    "invalid": "Escribe un número.",
+    "regenerate": "Nuevos valores",
+    "demo": {
+      "trackTime": "Tu robot recorre una pista de {{distance_m}} m a {{speed_mps}} m/s. ¿Cuánto tiempo tarda, en segundos?",
+      "components": "La velocidad del robot es de {{speed_mps}} m/s a {{angle_deg}}° sobre el eje x. ¿Cuáles son sus componentes v_x y v_y, en m/s?"
+    }
+  },
   "playground": {
     "title": "Catálogo de widgets",
     "lead": "Cada widget del catálogo con sus configuraciones de ejemplo. Página de desarrollo: no se enlaza desde la navegación."

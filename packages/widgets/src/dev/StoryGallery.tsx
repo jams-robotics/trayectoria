@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 
 import * as diffDriveStories from '../DiffDriveWidget/DiffDriveWidget.stories';
 import * as energyStories from '../EnergyWidget/EnergyWidget.stories';
+import * as exerciseStories from '../ExerciseWidget/ExerciseWidget.stories';
 import * as formulaStories from '../Formula/Formula.stories';
 import * as freeBodyStories from '../FreeBodyWidget/FreeBodyWidget.stories';
 import * as gearStories from '../GearWidget/GearWidget.stories';
@@ -62,6 +63,7 @@ export const stories: readonly WidgetStories[] = [
   collect(energyStories),
   collect(gearStories),
   collect(diffDriveStories),
+  collect(exerciseStories),
 ];
 
 function storyCase([name, Story]: readonly [string, WidgetStory]): JSX.Element {

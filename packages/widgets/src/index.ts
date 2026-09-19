@@ -218,6 +218,30 @@ export type {
   Readout,
 } from './DiffDriveWidget';
 
+export {
+  ExerciseWidget,
+  ProgressAdapterProvider,
+  componentsExercise,
+  nullProgressAdapter,
+  parseResponse,
+  randomSeed,
+  seedFor,
+  statementParams,
+  trackTimeExercise,
+  useExercise,
+  useProgressAdapter,
+} from './ExerciseWidget';
+export type {
+  ExerciseAttempt,
+  ExerciseState,
+  ExerciseStatus,
+  ExerciseWidgetProps,
+  ProgressAdapter,
+  ProgressAdapterProviderProps,
+  SpeedComponents,
+  TrackTime,
+} from './ExerciseWidget';
+
 // Playground-only discovery/rendering (docs/STANDARDS.md §4: index.ts reexports the public
 // API only); the implementation lives in ./dev/StoryGallery.
 export { StoryGallery, stories } from './dev/StoryGallery';
