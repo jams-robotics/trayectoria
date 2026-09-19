@@ -45,6 +45,22 @@ export type {
 } from './Scene2D';
 export { SPEEDS, SimControls, formatTime } from './SimControls';
 export type { SimControlsProps } from './SimControls';
+export { VectorWidget, angleBetween, componentsOf, polarOf, readVectors } from './VectorWidget';
+export type { Polar, VectorReadout, VectorShow, VectorWidgetProps } from './VectorWidget';
+export {
+  FreeBodyWidget,
+  NORMAL_KEY,
+  WEIGHT_KEY,
+  forceComponents,
+  readFreeBody,
+  weightComponents,
+} from './FreeBodyWidget';
+export type {
+  ForceInput,
+  FreeBodyReadout,
+  FreeBodyWidgetProps,
+  ResolvedForce,
+} from './FreeBodyWidget';
 
 // Playground-only discovery/rendering (docs/STANDARDS.md §4: index.ts reexports the public
 // API only); the implementation lives in ./dev/StoryGallery.

@@ -75,11 +75,26 @@ function useThemeRedraw(requestDraw: () => void): void {
   }, [requestDraw]);
 }
 
+/** The context value the scene shares with its children; stable across repaints. */
+function useSceneContext(
+  register: Scene2DContextValue['register'],
+  requestDraw: () => void,
+  transformRef: React.RefObject<Transform | null>,
+): Scene2DContextValue {
+  return useMemo<Scene2DContextValue>(
+    () => ({ register, requestDraw, transformRef }),
+    [register, requestDraw, transformRef],
+  );
+}
+
 /**
  * Registry of the child painters plus the coalescing scheduler: every change of a frame ends in
  * a single `requestAnimationFrame` repaint, and there is no continuous loop (#84, decision 2).
  */
-function useSceneRegistry(paint: () => void): {
+function useSceneRegistry(
+  paint: () => void,
+  transformRef: React.RefObject<Transform | null>,
+): {
   painters: React.RefObject<Map<string, DrawFn>>;
   context: Scene2DContextValue;
   requestDraw: () => void;
@@ -117,11 +132,7 @@ function useSceneRegistry(paint: () => void): {
     [],
   );
 
-  const context = useMemo<Scene2DContextValue>(
-    () => ({ register, requestDraw }),
-    [register, requestDraw],
-  );
-  return { painters, context, requestDraw };
+  return { painters, context: useSceneContext(register, requestDraw, transformRef), requestDraw };
 }
 
 /** Scale bar of the bottom-left corner: `0.5 m` measured on the canvas (docs/DESIGN.md §6). */
@@ -237,7 +248,7 @@ export function Scene2D({
   const scaleCaption = t('widgets.Scene2D.scale', { length: SCALE_BAR_M });
   const paintersRef = useRef<Map<string, DrawFn> | null>(null);
   const paint = usePainter(canvasRef, transformRef, paintersRef, scaleCaption);
-  const { painters, context, requestDraw } = useSceneRegistry(paint);
+  const { painters, context, requestDraw } = useSceneRegistry(paint, transformRef);
   paintersRef.current = painters.current;
   const height_px = useSceneView(
     hostRef,

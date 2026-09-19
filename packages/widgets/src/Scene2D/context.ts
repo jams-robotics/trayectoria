@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useId } from 'react';
+import type { RefObject } from 'react';
 
 import type { Transform } from './transform';
 
@@ -16,6 +17,12 @@ export interface Scene2DContextValue {
   register(id: string, draw: DrawFn): () => void;
   /** Schedules a single redraw of the canvas on the next frame; repeated calls coalesce. */
   requestDraw(): void;
+  /**
+   * The mapping currently in use, or null before the canvas has been measured. It is a ref, not
+   * a value, so exposing it does not re-render the children on every resize (#86, decision 3):
+   * an overlay that converts pointer pixels to metres reads it inside its own event handler.
+   */
+  transformRef: RefObject<Transform | null>;
 }
 
 /** Null outside a `Scene2D`, so a primitive rendered on its own can say so instead of crashing. */

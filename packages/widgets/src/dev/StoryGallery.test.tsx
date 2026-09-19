@@ -51,6 +51,17 @@ describe('stories catalogue', () => {
           ['Compact', expect.any(Function)],
         ],
       },
+      {
+        title: 'VectorWidget',
+        stories: [['Curriculum', expect.any(Function)]],
+      },
+      {
+        title: 'FreeBodyWidget',
+        stories: [
+          ['Plane', expect.any(Function)],
+          ['Ramp15', expect.any(Function)],
+        ],
+      },
     ]);
   });
 
