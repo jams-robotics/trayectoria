@@ -28,6 +28,10 @@ const WIDGETS = [
   // (#87, decision 8). Its playback only advances on «Reproducir», so the three charts, the
   // tangent and the particle are static and comparable frame to frame.
   { name: 'KinematicsWidget', story: 'Curriculum03', shot: 'KinematicsWidget' },
+  // The «Explora» of T-1.4 with the overlaid second launch, opened at t = 0.3 s: the approved
+  // case of F2-05 (#88, decision 9). Its playback only advances on «Reproducir», so the scene
+  // is static and comparable frame to frame.
+  { name: 'ProjectileWidget', story: 'Launch', shot: 'ProjectileWidget' },
 ] as const;
 
 /** Widgets drawn on a `Scene2D`: their canvas needs the measure-and-paint wait below. */
@@ -36,6 +40,7 @@ const SCENE_WIDGETS: readonly string[] = [
   'VectorWidget',
   'FreeBodyWidget',
   'KinematicsWidget',
+  'ProjectileWidget',
 ];
 
 /** Default width of a `<canvas>` with no `width` attribute yet; a scene past it has been sized. */
