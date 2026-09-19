@@ -3,7 +3,17 @@ import { degToRad } from '@trayectoria/sim-core';
 import type { Translate } from '@trayectoria/i18n';
 
 import { defaultRobot, mobileOf } from './compute';
-import { applyTheta, applyTwist, applyWheel, thetaParam, twistParams, wheelParams } from './panels';
+import {
+  applyCalibration,
+  applyTheta,
+  applyTwist,
+  applyWheel,
+  calibrationParams,
+  thetaParam,
+  twistParams,
+  wheelParams,
+} from './panels';
+import { calibrationOf } from './odometry';
 import type { Pose } from './compute';
 
 const SPEC = mobileOf(defaultRobot());
@@ -50,5 +60,37 @@ describe('DiffDriveWidget panels (F2-09a)', () => {
 
   it('mobileOf rechaza un robot sin perfil móvil', () => {
     expect(() => mobileOf({ ...defaultRobot(), mobile: undefined })).toThrow(/mobile-diff/);
+  });
+});
+
+describe('DiffDriveWidget panels de odometría (F2-09b)', () => {
+  const CALIBRATION = calibrationOf(SPEC);
+
+  it('los tres sliders de calibración usan los rangos de la asignación (#93, decisión 3)', () => {
+    const [ticks, radius, base] = calibrationParams(CALIBRATION, t);
+    expect(ticks?.min).toBe(16);
+    expect(ticks?.max).toBe(4096);
+    expect(ticks?.step).toBe(1);
+    expect(ticks?.value).toBe(360);
+    expect(radius?.min).toBe(0.02);
+    expect(radius?.max).toBe(0.05);
+    expect(radius?.step).toBe(0.0005);
+    expect(radius?.value).toBe(0.032);
+    expect(base?.min).toBe(0.1);
+    expect(base?.max).toBe(0.25);
+    expect(base?.value).toBe(0.15);
+  });
+
+  it('cada cambio de calibración toca solo su valor y N_e se redondea a entero', () => {
+    expect(applyCalibration(CALIBRATION, 'believedRadius', 0.033)).toEqual({
+      ...CALIBRATION,
+      wheelRadius_m: 0.033,
+    });
+    expect(applyCalibration(CALIBRATION, 'believedBase', 0.155)).toEqual({
+      ...CALIBRATION,
+      wheelBase_m: 0.155,
+    });
+    expect(applyCalibration(CALIBRATION, 'ticksPerRev', 512.6).ticksPerRev).toBe(513);
+    expect(applyCalibration(CALIBRATION, 'omegaL', 5)).toBe(CALIBRATION);
   });
 });

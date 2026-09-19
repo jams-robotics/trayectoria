@@ -8,8 +8,9 @@ import type { ParamPanelParam } from '../ParamPanel/ParamPanel';
 import { ReadoutPanel } from '../shared/ReadoutPanel';
 import { maxSpeed_mps, maxWheelSpeed_radps } from './compute';
 import type { DiffDriveMode, Pose, WheelCommand } from './compute';
-import { frameRows, poseRows } from './rows';
-import type { Readout } from './rows';
+import type { Calibration } from './odometry';
+import { frameRows, odometryRows, poseRows } from './rows';
+import type { OdometryReadout, Readout } from './rows';
 
 export { radiusText, readDiffDrive, statusOf } from './rows';
 export type { Readout } from './rows';
@@ -20,6 +21,15 @@ const OMEGA_STEP_RADPS = 0.1;
 const V_STEP_MPS = 0.01;
 /** Range of the `ω` slider of `inverse`, in rad/s (#92, decision 4). */
 const OMEGA_RANGE_RADPS = { min: -5, max: 5, step: 0.05 };
+/** Range of the `N_e` slider, in ticks per wheel revolution (#93, decision 3). */
+const TICKS_RANGE = { min: 16, max: 4096, step: 1 };
+/** Range of the believed wheel radius slider, in metres (#93, decision 3). */
+const BELIEVED_RADIUS_RANGE_M = { min: 0.02, max: 0.05, step: 0.0005 };
+/** Range of the believed track width slider, in metres (#93, decision 3). */
+const BELIEVED_BASE_RANGE_M = { min: 0.1, max: 0.25, step: 0.0005 };
+/** Decimals a calibration length is rounded to, so the 0.5 mm step reaches the panel exactly. */
+const CALIBRATION_DECIMALS = 4;
+
 /** Range of the `θ` slider of the pose panel, in degrees (#92, decision 6). */
 const THETA_RANGE_DEG = { min: -180, max: 180, step: 1 };
 /** Decimals a slider value is rounded to before it reaches the panel. */
@@ -125,7 +135,72 @@ export function applyTwist(twist: TwistInput, key: string, value: number): Twist
   return twist;
 }
 
-/** A short notice line: the saturation warning and the `odometry` placeholder of decision 9. */
+/**
+ * The three calibration sliders of `odometry`: the ticks per revolution that quantise the
+ * encoders and the radius and track width the estimator believes (#93, decision 3).
+ */
+export function calibrationParams(
+  calibration: Calibration,
+  t: Translate,
+): readonly ParamPanelParam[] {
+  const unitM = t('widgets.DiffDriveWidget.unitM');
+  const length = (value: number): number => Number(value.toFixed(CALIBRATION_DECIMALS));
+  return [
+    {
+      key: 'ticksPerRev',
+      label: t('widgets.DiffDriveWidget.paramTicksPerRev'),
+      unit: t('widgets.DiffDriveWidget.unitTicks'),
+      value: calibration.ticksPerRev,
+      ...TICKS_RANGE,
+    },
+    {
+      key: 'believedRadius',
+      label: t('widgets.DiffDriveWidget.paramBelievedRadius'),
+      unit: unitM,
+      value: length(calibration.wheelRadius_m),
+      ...BELIEVED_RADIUS_RANGE_M,
+    },
+    {
+      key: 'believedBase',
+      label: t('widgets.DiffDriveWidget.paramBelievedBase'),
+      unit: unitM,
+      value: length(calibration.wheelBase_m),
+      ...BELIEVED_BASE_RANGE_M,
+    },
+  ];
+}
+
+/** Applies a change of one calibration slider (#93, decision 3). */
+export function applyCalibration(
+  calibration: Calibration,
+  key: string,
+  value: number,
+): Calibration {
+  if (key === 'ticksPerRev') return { ...calibration, ticksPerRev: Math.round(value) };
+  if (key === 'believedRadius') return { ...calibration, wheelRadius_m: value };
+  if (key === 'believedBase') return { ...calibration, wheelBase_m: value };
+  return calibration;
+}
+
+/** The odometry panel: the step, the estimated pose and the two errors (#93, decision 3). */
+export function OdometryPanel({
+  odometry,
+  real,
+  t,
+}: {
+  odometry: OdometryReadout;
+  real: Pose;
+  t: Translate;
+}): JSX.Element {
+  return (
+    <ReadoutPanel
+      title={t('widgets.DiffDriveWidget.odometryPanel')}
+      rows={odometryRows(odometry, real, t)}
+    />
+  );
+}
+
+/** A short notice line: the saturation warning of decision 4. */
 export function Notice({ text, tone }: { text: string; tone: 'error' | 'muted' }): JSX.Element {
   const color = tone === 'error' ? 'text-error' : 'text-fg-muted';
   return (
