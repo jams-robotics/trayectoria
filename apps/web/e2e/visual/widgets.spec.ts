@@ -140,6 +140,32 @@ test('RobotOnTrack: Reproducir advances the clock and Paso moves it by one step'
   await expect.poll(async () => clock.textContent()).not.toMatch(/00\.00/);
 });
 
+// QA de PR #110, ronda 1: en la story Disc, «Reproducir» parecía no arrancar la animación (el
+// reloj quedaba en 00.00 y «Pausa» seguía deshabilitado). La causa no era del modo disc sino la
+// misma carrera de hidratación de la nota de arriba — Disc es la primera story del playground
+// (order de RotationWidget.stories.tsx), así que un clic en «Reproducir» nada más cargar la
+// página es el caso más propenso a llegar antes de que React conecte el manejador. Se reintenta
+// el clic como con «Paso» de RobotOnTrack, en vez de solo reintentar la lectura del reloj.
+test('Disc: Reproducir advances the clock even right after the page loads', async ({ page }) => {
+  await openPlayground(page);
+  const story = page.locator('[data-widget="RotationWidget"] [data-story="Disc"]');
+  const clock = story.locator('[data-testid="sim-clock"]');
+  await expect(clock).toHaveText(/00\.00/);
+
+  const playButton = story.getByRole('button', { name: /reproducir/i });
+  await expect
+    .poll(
+      async () => {
+        await playButton.click();
+        return clock.textContent();
+      },
+      { message: 'Reproducir should move the clock off 00.00 once the island is hydrated' },
+    )
+    .not.toMatch(/00\.00/);
+
+  await story.getByRole('button', { name: /pausa/i }).click();
+});
+
 test('the playground renders without console errors', async ({ page }) => {
   const errors: string[] = [];
   page.on('console', (message) => {

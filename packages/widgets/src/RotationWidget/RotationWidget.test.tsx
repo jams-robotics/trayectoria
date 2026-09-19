@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 
 import { RotationWidget } from './RotationWidget';
 
@@ -221,5 +221,29 @@ describe('RotationWidget (F2-06)', () => {
 
     await user.click(screen.getByRole('button', { name: 'Reiniciar' }));
     expect(valueOf('Avance del centro')).toBe('0.00 m');
+  });
+
+  // QA de PR #110, ronda 1: en /dev/widgets, story Disc, «Reproducir» parecía no arrancar la
+  // animación. La causa real era ajena al modo disc (una carrera de hidratación del propio
+  // playground, ya cubierta en widgets.spec.ts con un retry-poll como en RobotOnTrack); este
+  // test usa el rAF real de jsdom (sin mock) para dejar constancia de que, una vez montado el
+  // widget, «Reproducir» en disc sí avanza t_s y las vueltas.
+  test('Reproducir en disc avanza t_s y las vueltas con el rAF real de jsdom', async () => {
+    const user = userEvent.setup({ delay: null });
+    render(<RotationWidget mode="disc" inputUnit="rpm" initial={WHEEL} />);
+
+    expect(screen.getByTestId('sim-clock')).toHaveTextContent(/00\.00/);
+    const turnsBefore = valueOf('Vueltas');
+    const angleBefore = valueOf('Ángulo girado');
+
+    await user.click(screen.getByRole('button', { name: 'Reproducir' }));
+
+    await vi.waitFor(() => {
+      expect(screen.getByTestId('sim-clock')).not.toHaveTextContent(/00\.00/);
+    });
+    expect(valueOf('Vueltas')).not.toBe(turnsBefore);
+    expect(valueOf('Ángulo girado')).not.toBe(angleBefore);
+
+    await user.click(screen.getByRole('button', { name: 'Pausa' }));
   });
 });
