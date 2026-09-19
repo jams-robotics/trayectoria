@@ -1,0 +1,134 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+import { t } from '@trayectoria/i18n';
+
+import Base from '../../layouts/Base.astro';
+import { formatKilograms, formatMetres, formatUsd, simulatorHref } from '../../lib/catalog';
+
+export const getStaticPaths = (async () => {
+  const arms = await getCollection('arms');
+  return arms.map((arm) => ({ params: { id: arm.id }, props: { arm } }));
+}) satisfies GetStaticPaths;
+
+const { arm } = Astro.props;
+const ficha = arm.data;
+
+// See the note in brazos/index.astro: /catalog/** is only served from F5-01a onwards.
+const photos = import.meta.glob<{ default: { src: string } | string }>(
+  '../../../../../catalog/arms/*/foto.{jpg,svg}',
+  { eager: true },
+);
+const entry = photos[`../../../../../catalog/arms/${arm.id}/${ficha.photo}`];
+if (entry === undefined) throw new Error(`Falta la foto ${ficha.photo} del brazo ${arm.id}`);
+const photoSrc = typeof entry.default === 'string' ? entry.default : entry.default.src;
+
+const payload = formatKilograms(ficha.payload_kg);
+
+const links = [
+  { href: ficha.links.repo, label: t('catalog.linkRepo') },
+  { href: ficha.links.plans, label: t('catalog.linkPlans') },
+  { href: ficha.links.bom, label: t('catalog.linkBom') },
+  { href: ficha.links.buy, label: t('catalog.linkBuy') },
+].filter((link): link is { href: string; label: string } => link.href !== undefined);
+---
+
+<Base title={ficha.name} description={ficha.summary}>
+  <section class="mx-auto max-w-[1120px] px-5 py-9 md:px-8">
+    <a href="/brazos" class="text-fg-muted text-sm hover:text-fg">{t('catalog.back')}</a>
+    <h1 class="text-2xl leading-tight mt-3 font-semibold">{ficha.name}</h1>
+    <p class="text-fg-muted mt-3 max-w-[72ch]">{ficha.summary}</p>
+
+    <div class="mt-6 grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <img
+        src={photoSrc}
+        alt={ficha.name}
+        width="640"
+        height="480"
+        class="bg-bg-raised border-border aspect-4/3 w-full rounded-lg border object-contain"
+      />
+
+      <div>
+        <h2 class="text-lg leading-tight font-semibold">{t('catalog.specs')}</h2>
+        <div class="bg-bg-raised border-border mt-3 overflow-auto rounded-lg border">
+          <table class="w-full border-collapse text-sm">
+            <tbody>
+              <tr class="border-border border-b">
+                <th scope="row" class="text-fg-muted p-3 text-left font-normal">
+                  {t('catalog.dof')}
+                </th>
+                <td class="p-3 text-right font-mono tabular-nums">{ficha.dof}</td>
+              </tr>
+              <tr class="border-border border-b">
+                <th scope="row" class="text-fg-muted p-3 text-left font-normal">
+                  {t('catalog.reach')}
+                </th>
+                <td class="p-3 text-right font-mono tabular-nums">
+                  {formatMetres(ficha.reach_m)}
+                </td>
+              </tr>
+              <tr class="border-border border-b">
+                <th scope="row" class="text-fg-muted p-3 text-left font-normal">
+                  {t('catalog.payload')}
+                </th>
+                <td class="p-3 text-right font-mono tabular-nums">
+                  {payload ?? t('catalog.noData')}
+                </td>
+              </tr>
+              <tr class="border-border border-b">
+                <th scope="row" class="text-fg-muted p-3 text-left font-normal">
+                  {t('catalog.cost')}
+                </th>
+                <td class="p-3 text-right font-mono tabular-nums">
+                  {formatUsd(ficha.cost_usd_approx)}
+                </td>
+              </tr>
+              <tr class="border-border border-b">
+                <th scope="row" class="text-fg-muted p-3 text-left font-normal">
+                  {`${t('catalog.license')} · ${t('catalog.licenseHardware')}`}
+                </th>
+                <td class="p-3 text-right font-mono">{ficha.license.hardware}</td>
+              </tr>
+              <tr class="border-border border-b">
+                <th scope="row" class="text-fg-muted p-3 text-left font-normal">
+                  {`${t('catalog.license')} · ${t('catalog.licenseSoftware')}`}
+                </th>
+                <td class="p-3 text-right font-mono">{ficha.license.software}</td>
+              </tr>
+              <tr>
+                <th scope="row" class="text-fg-muted p-3 text-left font-normal">
+                  {t('catalog.verifiedAt')}
+                </th>
+                <td class="p-3 text-right font-mono tabular-nums">{ficha.verifiedAt}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 class="text-lg leading-tight mt-6 font-semibold">{t('catalog.links')}</h2>
+        <ul class="mt-3 grid list-none gap-2 p-0 text-sm">
+          {links.map((link) => (
+            <li>
+              <a href={link.href} rel="noreferrer noopener" target="_blank">
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <a
+          href={simulatorHref(arm.id)}
+          class="bg-physical text-physical-fg mt-6 inline-flex h-11 items-center gap-2 rounded-md px-5 font-semibold"
+        >
+          <svg width="28" height="16" viewBox="0 0 28 16" fill="none" aria-hidden="true">
+            <rect x="3" y="2" width="22" height="12" rx="3" fill="currentColor" opacity="0.35"
+            ></rect>
+            <rect x="0" y="4" width="4" height="8" rx="1" fill="currentColor"></rect>
+            <rect x="24" y="4" width="4" height="8" rx="1" fill="currentColor"></rect>
+          </svg>
+          {t('catalog.openInSimulator')}
+        </a>
+      </div>
+    </div>
+  </section>
+</Base>

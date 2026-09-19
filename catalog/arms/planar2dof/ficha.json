@@ -1,0 +1,18 @@
+{
+  "id": "planar2dof",
+  "name": "Brazo plano 2 GDL",
+  "dof": 2,
+  "reach_m": 0.35,
+  "payload_kg": null,
+  "cost_usd_approx": 0,
+  "license": {
+    "hardware": "MIT",
+    "software": "MIT"
+  },
+  "links": {
+    "repo": "https://github.com/jams-robotics/trayectoria"
+  },
+  "verifiedAt": "2026-09-19",
+  "photo": "foto.svg",
+  "summary": "Brazo didáctico de dos eslabones en el plano, con l₁ = 0,20 m y l₂ = 0,15 m y dos articulaciones de rotación sobre Z. Es el modelo con el que se estudia la cinemática directa e inversa antes de pasar a un brazo real."
+}
