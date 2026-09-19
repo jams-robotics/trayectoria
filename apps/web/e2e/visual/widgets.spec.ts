@@ -19,7 +19,15 @@ const WIDGETS = [
   { name: 'Scene2D', story: 'RobotOnTrack', shot: 'Scene2D-robot' },
   // SimControls is static too: the clock only moves while the simulation is running.
   { name: 'SimControls', story: 'Full', shot: 'SimControls' },
+  // The «Explora» of T-0.2, the approved case of F2-03 (#86, decision 7). Both widgets paint on
+  // a Scene2D, which repaints only on a change, so they are comparable frame to frame.
+  { name: 'VectorWidget', story: 'Curriculum', shot: 'VectorWidget' },
+  // The same body of T-2.1 on the 15° ramp of experiment 2 (#86, decision 7).
+  { name: 'FreeBodyWidget', story: 'Ramp15', shot: 'FreeBodyWidget' },
 ] as const;
+
+/** Widgets drawn on a `Scene2D`: their canvas needs the measure-and-paint wait below. */
+const SCENE_WIDGETS: readonly string[] = ['Scene2D', 'VectorWidget', 'FreeBodyWidget'];
 
 /** Default width of a `<canvas>` with no `width` attribute yet; a scene past it has been sized. */
 const INTRINSIC_CANVAS_WIDTH_PX = 300;
@@ -49,7 +57,7 @@ for (const widget of WIDGETS) {
     // Scene2D measures its container with a `ResizeObserver` and then paints inside a
     // `requestAnimationFrame`, so the canvas is still at its intrinsic 300 x 150 and blank when
     // it first becomes visible: wait until it has been resized to its container and painted.
-    if (widget.name === 'Scene2D') {
+    if (SCENE_WIDGETS.includes(widget.name)) {
       const canvas = target.locator('canvas');
       await expect(canvas).toBeVisible();
       await expect

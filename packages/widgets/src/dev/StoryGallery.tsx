@@ -2,10 +2,12 @@ import { createElement } from 'react';
 import type { JSX } from 'react';
 
 import * as formulaStories from '../Formula/Formula.stories';
+import * as freeBodyStories from '../FreeBodyWidget/FreeBodyWidget.stories';
 import * as paramPanelStories from '../ParamPanel/ParamPanel.stories';
 import * as plotStories from '../Plot/Plot.stories';
 import * as scene2DStories from '../Scene2D/Scene2D.stories';
 import * as simControlsStories from '../SimControls/SimControls.stories';
+import * as vectorStories from '../VectorWidget/VectorWidget.stories';
 
 /** One named export of a `*.stories.tsx` file: a demo component with no props. */
 export type WidgetStory = () => JSX.Element;
@@ -46,6 +48,8 @@ export const stories: readonly WidgetStories[] = [
   collect(plotStories),
   collect(scene2DStories),
   collect(simControlsStories),
+  collect(vectorStories),
+  collect(freeBodyStories),
 ];
 
 function storyCase([name, Story]: readonly [string, WidgetStory]): JSX.Element {
