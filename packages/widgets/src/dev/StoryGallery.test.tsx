@@ -101,6 +101,14 @@ describe('stories catalogue', () => {
           ['TwoStage', expect.any(Function)],
         ],
       },
+      {
+        title: 'DiffDriveWidget',
+        stories: [
+          ['Forward51', expect.any(Function)],
+          ['Forward52', expect.any(Function)],
+          ['Inverse53', expect.any(Function)],
+        ],
+      },
     ]);
   });
 

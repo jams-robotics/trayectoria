@@ -1,0 +1,148 @@
+/**
+ * Playback of `DiffDriveWidget`: the differential-drive model of sim-core advanced by
+ * `useSimulationDriver`, exactly as the `RobotOnTrack` story of `Scene2D` does (#92,
+ * decision 3). The widget owns no integration of its own.
+ */
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Simulation, createDiffDriveModel } from '@trayectoria/sim-core';
+import type { DiffDriveState, WheelCommand } from '@trayectoria/sim-core';
+import type { MobileSpec } from '@trayectoria/robot-spec';
+
+import { createFrameClock, useSimulationDriver } from '../Scene2D/useSimulationDriver';
+import type { FrameClock, SimulationDriver } from '../Scene2D/useSimulationDriver';
+import type { Pose } from './compute';
+
+/** Integration step of the simulation, in seconds (#92, decision 3). */
+export const DT_S = 0.01;
+/** Samples of the trace kept while the robot moves; one every `TRACE_PERIOD_S`. */
+const TRACE_LIMIT = 600;
+/** Period at which the trace records the pose, in seconds. */
+const TRACE_PERIOD_S = 0.05;
+
+/** A path in world metres: the trace the robot leaves behind. */
+export type Path = ReadonlyArray<readonly [number, number]>;
+
+/** Pose the robot starts from and returns to on «Reiniciar» (#92, decision 6). */
+export const INITIAL_POSE: Pose = { x_m: 0, y_m: 0, theta_rad: 0 };
+
+/** The state of the playback plus everything `SimControls` needs to move it. */
+export interface Timeline {
+  /** Pose the scene draws: the integrated one, or the one the learner set while paused. */
+  pose: Pose;
+  t_s: number;
+  driver: SimulationDriver<DiffDriveState>;
+  /** Playback actions that drop the manual pose before handing the time back to the driver. */
+  controls: Pick<SimulationDriver<DiffDriveState>, 'play' | 'step' | 'reset'>;
+  /** Path the robot has travelled since the last reset, in world metres. */
+  trace_m: Path;
+  /** Moves the robot while it is paused; ignored while it is running (#92, decision 6). */
+  setPose: (next: (current: Pose) => Pose) => void;
+}
+
+/**
+ * Keeps the travelled path, sampled every `TRACE_PERIOD_S` and capped at `TRACE_LIMIT`. It
+ * records while the time advances, by playback or by «Paso», and empties itself whenever the
+ * time goes back, which is «Reiniciar» (#92, decision 5).
+ */
+function useTrace(pose: Pose, t_s: number, preroll: Path): Path {
+  const trace = useRef<Array<readonly [number, number]>>([...preroll]);
+  const lastAt_s = useRef(t_s);
+  if (t_s < lastAt_s.current) {
+    trace.current = [];
+    lastAt_s.current = Number.NEGATIVE_INFINITY;
+  } else if (t_s - lastAt_s.current >= TRACE_PERIOD_S) {
+    lastAt_s.current = t_s;
+    trace.current = [...trace.current.slice(-TRACE_LIMIT), [pose.x_m, pose.y_m]];
+  }
+  return trace.current;
+}
+
+/**
+ * The simulation of the widget, built once per spec. The initial command only seeds it: the
+ * current one is pushed in on every render, so moving a slider must not rebuild the simulation
+ * and throw away the pose the learner has reached. `initialTime_s` steps it before the first
+ * paint with the opening command, so the story and the snapshot show a pose the model itself
+ * produced (#92, decision 3).
+ */
+function useSim(
+  spec: MobileSpec,
+  clock: FrameClock,
+  initialTime_s: number,
+  command: WheelCommand,
+): { sim: Simulation<DiffDriveState, WheelCommand>; preroll: Path } {
+  // The preroll runs on the command the widget opens with; later ones arrive through `setInput`,
+  // so this ref never makes the simulation rebuild when a slider moves.
+  const opening = useRef(command);
+  return useMemo(() => {
+    const sim = new Simulation<DiffDriveState, WheelCommand>(createDiffDriveModel(spec), {
+      dt_s: DT_S,
+      seed: 0,
+      clock,
+      input: opening.current,
+    });
+    const preroll: Array<readonly [number, number]> = [];
+    const steps = Math.round(initialTime_s / DT_S);
+    const perSample = Math.round(TRACE_PERIOD_S / DT_S);
+    for (let done = 0; done < steps; done += perSample) {
+      sim.step(Math.min(perSample, steps - done));
+      preroll.push([sim.state.x_m, sim.state.y_m]);
+    }
+    return { sim, preroll };
+  }, [clock, spec, initialTime_s]);
+}
+
+/** The pose the model has integrated, without the wheel angles and the twist beside it. */
+function poseOf(state: DiffDriveState): Pose {
+  return { x_m: state.x_m, y_m: state.y_m, theta_rad: state.theta_rad };
+}
+
+/** Pauses the playback on its own once `duration_s` is reached (#92, decision 3). */
+function usePauseAt(driver: SimulationDriver<DiffDriveState>, duration_s: number): void {
+  useEffect(() => {
+    if (driver.running && driver.t_s >= duration_s) driver.pause();
+  }, [driver, duration_s]);
+}
+
+/**
+ * Owns the simulation of the widget. `initialTime_s` opens it at a fixed instant by stepping
+ * the model before the first paint, which the stories and the visual snapshot use (#92,
+ * decision 3); it pauses on its own once `duration_s` is reached.
+ */
+export function useTimeline(
+  spec: MobileSpec,
+  command: WheelCommand,
+  duration_s: number,
+  initialTime_s: number,
+): Timeline {
+  const clock = useMemo(() => createFrameClock(), []);
+  const { sim, preroll } = useSim(spec, clock, initialTime_s, command);
+  sim.setInput(command);
+
+  const driver = useSimulationDriver(sim, { clock });
+  const [manual, setManual] = useState<Pose | null>(null);
+  usePauseAt(driver, duration_s);
+
+  const integrated = poseOf(driver.state);
+  const pose = manual ?? integrated;
+  const trace_m = useTrace(pose, driver.t_s, preroll);
+
+  const live = (action: () => void) => () => {
+    setManual(null);
+    action();
+  };
+  return {
+    pose,
+    t_s: driver.t_s,
+    driver,
+    controls: {
+      play: live(driver.play),
+      step: live(driver.step),
+      reset: live(driver.reset),
+    },
+    trace_m,
+    setPose: (next) => {
+      if (driver.running) return;
+      setManual((current) => next(current ?? integrated));
+    },
+  };
+}
