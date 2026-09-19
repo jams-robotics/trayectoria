@@ -71,6 +71,12 @@ export function buildSeries(series: readonly PlotSeries[], theme: PlotTheme): uP
   ];
 }
 
+/** Left offset and width of the plot area, in CSS pixels (#104). */
+export interface PlotArea {
+  left_px: number;
+  width_px: number;
+}
+
 export interface BuildOptionsInput {
   x: PlotAxis;
   y: PlotAxis;
@@ -83,6 +89,33 @@ export interface BuildOptionsInput {
   segments?: readonly PlotSegment[];
   /** Fixed x range of the sliding window in live mode; omitted for a static plot. */
   xRange?: readonly [number, number];
+  /**
+   * Reports the plot area's geometry in CSS pixels whenever it can change: the axis label
+   * channel and the padding shift it in from the card's edge, so `MarkerLayer` needs it rather
+   * than a percentage of the card (#104).
+   */
+  onPlotArea?: (area: PlotArea) => void;
+}
+
+/** `self.bbox` is in canvas pixels; the layout consumers of `onPlotArea` want CSS pixels. */
+function reportPlotArea(self: uPlot, onPlotArea: (area: PlotArea) => void): void {
+  const ratio = self.width === 0 ? 1 : self.ctx.canvas.width / self.width;
+  onPlotArea({ left_px: self.bbox.left / ratio, width_px: self.bbox.width / ratio });
+}
+
+/**
+ * Plugin-shaped hooks that keep `onPlotArea` in sync with uPlot's own layout: `ready` for the
+ * first paint, `setSize` for a `ResizeObserver` width change, and `setScale`/`draw` because a
+ * wider y-axis label (a live window scrolling into more digits) can widen the axis channel and
+ * shift the plot area without the container resizing (#104).
+ */
+function plotAreaPlugin(onPlotArea: (area: PlotArea) => void): uPlot.Plugin {
+  const report = (self: uPlot): void => {
+    reportPlotArea(self, onPlotArea);
+  };
+  return {
+    hooks: { ready: report, setSize: report, setScale: report, draw: report },
+  };
 }
 
 /**
@@ -91,11 +124,16 @@ export interface BuildOptionsInput {
  * reference line above every sample stays visible.
  */
 export function buildOptions(input: BuildOptionsInput): uPlot.Options {
-  const { x, y, series, theme, width_px, height_px, refLines, segments, xRange } = input;
+  const { x, y, series, theme, width_px, height_px, refLines, segments, xRange, onPlotArea } = input;
   const scales: uPlot.Scales = {
     x: xRange === undefined ? { time: false } : { time: false, range: [xRange[0], xRange[1]] },
     y: { range: yRange(refLines) },
   };
+  const plugins = [
+    refLinesPlugin(refLines, theme),
+    ...(segments === undefined || segments.length === 0 ? [] : [segmentsPlugin(segments, theme)]),
+    ...(onPlotArea === undefined ? [] : [plotAreaPlugin(onPlotArea)]),
+  ];
   return {
     width: width_px,
     height: height_px,
@@ -106,12 +144,7 @@ export function buildOptions(input: BuildOptionsInput): uPlot.Options {
     series: buildSeries(series, theme),
     scales,
     padding: [8, 12, 0, 0],
-    // The segments plugin is registered only when there is something to draw, so a chart
-    // without `segments` keeps exactly the plugins F2-01b gave it.
-    plugins:
-      segments === undefined || segments.length === 0
-        ? [refLinesPlugin(refLines, theme)]
-        : [refLinesPlugin(refLines, theme), segmentsPlugin(segments, theme)],
+    plugins,
   };
 }
 

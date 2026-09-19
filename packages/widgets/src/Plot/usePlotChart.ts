@@ -4,9 +4,13 @@ import type UPlot from 'uplot';
 import type { Translate } from '@trayectoria/i18n';
 
 import { buildOptions } from './options';
+import type { PlotArea } from './options';
 import { readTheme, sameTheme } from '../shared/theme';
 import type { PlotTheme } from '../shared/theme';
 import type { PlotAxis, PlotLive, PlotProps, PlotSeries } from './types';
+
+/** Plot area before uPlot has reported its first layout (docs/DESIGN.md §5 padding, #104). */
+const INITIAL_PLOT_AREA: PlotArea = { left_px: 0, width_px: 0 };
 
 /** Default plot area height in CSS pixels (docs/DESIGN.md §5: 200 en simulador). */
 export const DEFAULT_HEIGHT_PX = 200;
@@ -173,12 +177,65 @@ function useChart(
   return chartRef;
 }
 
+/**
+ * Real plot-area geometry reported by uPlot itself (`plotAreaPlugin` in `options.ts`), plus the
+ * stable callback `buildOptions` calls it through. Kept out of `usePlotChart` so that function
+ * stays under the line limit of `docs/STANDARDS.md` §4.
+ */
+function usePlotArea(): { plotArea: PlotArea; onPlotArea: (area: PlotArea) => void } {
+  const [plotArea, setPlotArea] = useState<PlotArea>(INITIAL_PLOT_AREA);
+  const onPlotArea = useCallback((area: PlotArea): void => {
+    setPlotArea((current) =>
+      current.left_px === area.left_px && current.width_px === area.width_px ? current : area,
+    );
+  }, []);
+  return { plotArea, onPlotArea };
+}
+
+interface ChartOptionsInput {
+  x: PlotAxis;
+  y: PlotAxis;
+  series: readonly PlotSeries[];
+  theme: PlotTheme;
+  width_px: number;
+  height_px: number;
+  lines: readonly NonNullable<PlotProps['refLines']>[number][];
+  marks: readonly NonNullable<PlotProps['segments']>[number][];
+}
+
+/**
+ * Builds the uPlot options and wires them to the plot-area tracker, kept out of `usePlotChart`
+ * so that function stays under the line limit of `docs/STANDARDS.md` §4.
+ */
+function useChartOptions(input: ChartOptionsInput): { options: UPlot.Options; plotArea: PlotArea } {
+  const { x, y, series, theme, width_px, height_px, lines, marks } = input;
+  const { plotArea, onPlotArea } = usePlotArea();
+  const options = useMemo(
+    () =>
+      buildOptions({
+        x,
+        y,
+        series,
+        theme,
+        width_px,
+        height_px,
+        refLines: lines,
+        segments: marks,
+        onPlotArea,
+      }),
+    [x, y, series, theme, width_px, height_px, lines, marks, onPlotArea],
+  );
+  return { options, plotArea };
+}
+
 export interface ChartState {
   cardRef: RefObject<HTMLDivElement | null>;
   hostRef: RefObject<HTMLDivElement | null>;
   theme: PlotTheme;
   xRange: readonly [number, number];
   y: PlotAxis;
+  /** Real geometry of uPlot's plot area, in CSS pixels; `MarkerLayer` draws against it (#104). */
+  plotArea: PlotArea;
 }
 
 /**
@@ -205,11 +262,7 @@ export function usePlotChart(props: PlotProps, t: Translate): ChartState {
     [live, x, series, frame],
   );
 
-  const options = useMemo(
-    () =>
-      buildOptions({ x, y, series, theme, width_px, height_px, refLines: lines, segments: marks }),
-    [x, y, series, theme, width_px, height_px, lines, marks],
-  );
+  const { options, plotArea } = useChartOptions({ x, y, series, theme, width_px, height_px, lines, marks });
 
   const windowRef = useRef({ data, xRange, isLive });
   windowRef.current = { data, xRange, isLive };
@@ -229,5 +282,5 @@ export function usePlotChart(props: PlotProps, t: Translate): ChartState {
     push(chartRef.current);
   }, [chartRef, push, data, isLive, xRange, options]);
 
-  return { cardRef, hostRef, theme, xRange, y };
+  return { cardRef, hostRef, theme, xRange, y, plotArea };
 }
