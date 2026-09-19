@@ -80,8 +80,15 @@ export function OffCentre(): JSX.Element {
 const REFERENCE = referenceMobile as RobotSpec;
 const REFERENCE_MOBILE = REFERENCE.mobile as MobileSpec;
 
-/** Fixed step of the demo simulation, in seconds. */
-const DT_S = 0.002;
+// The driver never reads Date.now (decision 4 of the assignment): while playing, the clock is
+// visibly correct at any dt_s because it is fed real rAF timestamps regardless of step size
+// (verified with real frames, not the requestAnimationFrame mock). But `SimControls`'s clock
+// only shows two decimals, so a single "Paso" of a too-small dt_s rounds to `t 00.00 s` and
+// looks like the button does nothing (QA of #85, round 1: "Paso avanza exactamente un dt" FAIL,
+// reproduced with real rAF: 30 clicks of a 0.002 s step accumulate but never move the display
+// past 00.00 until several were pressed). 0.01 s matches the step already used by the
+// SimControls story and is visible after one click.
+const DT_S = 0.01;
 
 /**
  * Unequal wheel speeds, so the kinematics of sim-core trace an arc rather than a straight line

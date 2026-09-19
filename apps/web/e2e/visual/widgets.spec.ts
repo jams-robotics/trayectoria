@@ -71,6 +71,41 @@ for (const widget of WIDGETS) {
   });
 }
 
+// F2-02b, QA round 1: unit tests mocked requestAnimationFrame and passed while the real browser
+// looked frozen. "Paso" was the reproducible half of that report — the story used a dt_s too
+// small for the clock's two decimals to show a single step — so this checks both controls
+// against the real clock text, not a mock.
+test('RobotOnTrack: Reproducir advances the clock and Paso moves it by one step', async ({
+  page,
+}) => {
+  await openPlayground(page);
+  const story = page.locator('[data-widget="Scene2D"] [data-story="RobotOnTrack"]');
+  const clock = story.locator('[data-testid="sim-clock"]');
+  await expect(clock).toHaveText(/00\.00/);
+
+  // The island hydrates asynchronously after the SSR markup is already in the DOM (F2-01a,
+  // ronda 1): a click that lands before React attaches its handlers is silently a no-op, and a
+  // single check right after it cannot tell a dropped click from a real bug. Retrying the click
+  // survives that window without weakening what it proves: once it succeeds, the clock has
+  // genuinely moved off `00.00`.
+  const stepButton = story.getByRole('button', { name: /paso/i });
+  await expect
+    .poll(
+      async () => {
+        await stepButton.click();
+        return clock.textContent();
+      },
+      { message: 'Paso should move the clock off 00.00 once the island is hydrated' },
+    )
+    .not.toMatch(/00\.00/);
+
+  await story.getByRole('button', { name: /reiniciar/i }).click();
+  await expect(clock).toHaveText(/00\.00/);
+
+  await story.getByRole('button', { name: /reproducir/i }).click();
+  await expect.poll(async () => clock.textContent()).not.toMatch(/00\.00/);
+});
+
 test('the playground renders without console errors', async ({ page }) => {
   const errors: string[] = [];
   page.on('console', (message) => {
