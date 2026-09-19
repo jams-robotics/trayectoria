@@ -85,9 +85,9 @@ describe('SceneOverlay (F2-03)', () => {
     render(<Harness onChange={vi.fn()} />);
 
     const handle = screen.getByRole('button', { name: 'punta' });
-    // (0.2, 0.1) m from the centre of a 400 x 225 px canvas at 200 px/m, minus half the 28 px box.
-    expect(handle.style.left).toBe(`${String(WIDTH_PX / 2 + 0.2 * PX_PER_M - 14)}px`);
-    expect(handle.style.top).toBe(`${String(HEIGHT_PX / 2 - 0.1 * PX_PER_M - 14)}px`);
+    // (0.2, 0.1) m from the centre of a 400 x 225 px canvas at 200 px/m, minus half the 24 px box.
+    expect(handle.style.left).toBe(`${String(WIDTH_PX / 2 + 0.2 * PX_PER_M - 12)}px`);
+    expect(handle.style.top).toBe(`${String(HEIGHT_PX / 2 - 0.1 * PX_PER_M - 12)}px`);
     expect(handle.style.visibility).toBe('visible');
   });
 
