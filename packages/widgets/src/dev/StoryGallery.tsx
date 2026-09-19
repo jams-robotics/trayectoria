@@ -4,6 +4,7 @@ import type { JSX } from 'react';
 import * as formulaStories from '../Formula/Formula.stories';
 import * as paramPanelStories from '../ParamPanel/ParamPanel.stories';
 import * as plotStories from '../Plot/Plot.stories';
+import * as scene2DStories from '../Scene2D/Scene2D.stories';
 
 /** One named export of a `*.stories.tsx` file: a demo component with no props. */
 export type WidgetStory = () => JSX.Element;
@@ -42,6 +43,7 @@ export const stories: readonly WidgetStories[] = [
   collect(paramPanelStories),
   collect(formulaStories),
   collect(plotStories),
+  collect(scene2DStories),
 ];
 
 function storyCase([name, Story]: readonly [string, WidgetStory]): JSX.Element {

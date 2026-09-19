@@ -11,6 +11,21 @@ export type {
   PlotRefLine,
   PlotSeries,
 } from './Plot';
+export { Scene2D, Axes, Circle, Grid, Label, Rect, Trace, Vector } from './Scene2D';
+export { createTransform, lengthToPx, pxToWorld, worldToPx } from './Scene2D';
+export type {
+  AxesProps,
+  CircleProps,
+  GridProps,
+  LabelProps,
+  RectProps,
+  Scene2DProps,
+  TraceProps,
+  Transform,
+  TransformInput,
+  VectorProps,
+  WorldBounds,
+} from './Scene2D';
 
 // Playground-only discovery/rendering (docs/STANDARDS.md §4: index.ts reexports the public
 // API only); the implementation lives in ./dev/StoryGallery.

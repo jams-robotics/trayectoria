@@ -9,7 +9,14 @@ const WIDGETS = [
   { name: 'ParamPanel' },
   { name: 'Formula' },
   { name: 'Plot', story: 'Static' },
+  // Scene2D paints once per change with no continuous loop (F2-02a, decision 2 of the
+  // assignment of #84), so the whole section is comparable frame to frame; `Primitives` is the
+  // approved case of the ticket (grid, axes, two vectors, a trace, a circle, a rect, a label).
+  { name: 'Scene2D', story: 'Primitives' },
 ] as const;
+
+/** Default width of a `<canvas>` with no `width` attribute yet; a scene past it has been sized. */
+const INTRINSIC_CANVAS_WIDTH_PX = 300;
 
 async function openPlayground(page: Page): Promise<void> {
   // With nothing stored, the inline script of Base.astro follows the system preference; the
@@ -32,6 +39,27 @@ for (const widget of WIDGETS) {
     // Plot loads uPlot lazily (it needs a browser), so the canvas appears one tick after the
     // card: without this the shot would catch an empty chart area (F2-01b).
     if (widget.name === 'Plot') await expect(target.locator('canvas')).toBeVisible();
+    // Scene2D measures its container with a `ResizeObserver` and then paints inside a
+    // `requestAnimationFrame`, so the canvas is still at its intrinsic 300 x 150 and blank when
+    // it first becomes visible: wait until it has been resized to its container and painted.
+    if (widget.name === 'Scene2D') {
+      const canvas = target.locator('canvas');
+      await expect(canvas).toBeVisible();
+      await expect
+        .poll(async () =>
+          canvas.evaluate((element: HTMLCanvasElement, intrinsicWidth_px: number) => {
+            const ctx = element.getContext('2d');
+            if (ctx === null || element.width <= intrinsicWidth_px) return 0;
+            const { data } = ctx.getImageData(0, 0, element.width, element.height);
+            let painted = 0;
+            for (let i = 0; i < data.length; i += 4) {
+              if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255) painted += 1;
+            }
+            return painted;
+          }, INTRINSIC_CANVAS_WIDTH_PX),
+        )
+        .toBeGreaterThan(0);
+    }
     await expect(target).toHaveScreenshot(`${widget.name}.png`);
   });
 }

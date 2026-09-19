@@ -17,6 +17,16 @@
     "markerValue": "{{value}} {{unit}}",
     "status": "{{count}} series entre {{from}} y {{to}} en el eje horizontal"
   },
+  "Scene2D": {
+    "scale": "{{length}} m",
+    "axisX": "x",
+    "axisY": "y",
+    "primitives": "Escena con rejilla, ejes, dos vectores, una traza, un círculo, un rectángulo y una etiqueta",
+    "vectorVelocity": "v",
+    "vectorForce": "F",
+    "traceLabel": "traza",
+    "offCentre": "Escena centrada fuera del origen con una traza circular"
+  },
   "playground": {
     "title": "Catálogo de widgets",
     "lead": "Cada widget del catálogo con sus configuraciones de ejemplo. Página de desarrollo: no se enlaza desde la navegación."
