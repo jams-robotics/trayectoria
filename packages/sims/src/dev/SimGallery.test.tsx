@@ -31,6 +31,13 @@ describe('sims catalogue (F4-01b)', () => {
           ['Crossing', expect.any(Function)],
         ],
       },
+      {
+        title: 'LineFollowerWidget',
+        stories: [
+          ['Oval', expect.any(Function)],
+          ['Compact', expect.any(Function)],
+        ],
+      },
     ]);
   });
 
