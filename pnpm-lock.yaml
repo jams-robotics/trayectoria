@@ -327,6 +327,12 @@ importers:
       '@trayectoria/i18n':
         specifier: workspace:*
         version: link:../i18n
+      '@trayectoria/robot-spec':
+        specifier: workspace:*
+        version: link:../robot-spec
+      '@trayectoria/sim-core':
+        specifier: workspace:*
+        version: link:../sim-core
       katex:
         specifier: 0.18.7
         version: 0.18.7

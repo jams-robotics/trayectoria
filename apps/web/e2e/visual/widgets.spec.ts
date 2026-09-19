@@ -5,6 +5,7 @@ import { expect, test } from '@playwright/test';
 // Light theme and the default viewport of the chromium project; no Supabase needed.
 // `story` narrows the shot to one case: Plot animates in `Live` and `PlotStress`, so only the
 // static case is comparable frame to frame (F2-01b, decision 8 of the assignment of #83).
+// `shot` names the PNG when it is not the widget's own name (a second approved case).
 const WIDGETS = [
   { name: 'ParamPanel' },
   { name: 'Formula' },
@@ -13,6 +14,11 @@ const WIDGETS = [
   // assignment of #84), so the whole section is comparable frame to frame; `Primitives` is the
   // approved case of the ticket (grid, axes, two vectors, a trace, a circle, a rect, a label).
   { name: 'Scene2D', story: 'Primitives' },
+  // The reference robot on the `oval` preset, captured paused at t = 0: the driver only advances
+  // on «Reproducir», so the scene is static and comparable frame to frame (F2-02b, decision 6).
+  { name: 'Scene2D', story: 'RobotOnTrack', shot: 'Scene2D-robot' },
+  // SimControls is static too: the clock only moves while the simulation is running.
+  { name: 'SimControls', story: 'Full', shot: 'SimControls' },
 ] as const;
 
 /** Default width of a `<canvas>` with no `width` attribute yet; a scene past it has been sized. */
@@ -31,7 +37,8 @@ async function openPlayground(page: Page): Promise<void> {
 
 for (const widget of WIDGETS) {
   const story = 'story' in widget ? widget.story : undefined;
-  test(`${widget.name} looks as approved`, async ({ page }) => {
+  const shot = 'shot' in widget ? widget.shot : widget.name;
+  test(`${shot} looks as approved`, async ({ page }) => {
     await openPlayground(page);
     const section = page.locator(`[data-widget="${widget.name}"]`);
     const target = story === undefined ? section : section.locator(`[data-story="${story}"]`);
@@ -60,7 +67,7 @@ for (const widget of WIDGETS) {
         )
         .toBeGreaterThan(0);
     }
-    await expect(target).toHaveScreenshot(`${widget.name}.png`);
+    await expect(target).toHaveScreenshot(`${shot}.png`);
   });
 }
 

@@ -41,6 +41,14 @@ describe('stories catalogue', () => {
         stories: [
           ['Primitives', expect.any(Function)],
           ['OffCentre', expect.any(Function)],
+          ['RobotOnTrack', expect.any(Function)],
+        ],
+      },
+      {
+        title: 'SimControls',
+        stories: [
+          ['Full', expect.any(Function)],
+          ['Compact', expect.any(Function)],
         ],
       },
     ]);
