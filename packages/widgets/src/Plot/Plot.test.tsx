@@ -151,7 +151,8 @@ describe('Plot: mapeo de props a opciones de uPlot', () => {
   it('registers the reference lines as a plugin and widens the y range to fit them', async () => {
     render(<Plot x={X} series={[ERROR]} refLines={[{ y: 5, label: 'Límite' }]} />);
 
-    expect((await lastOptions()).plugins).toHaveLength(1);
+    // The ref-lines plugin plus the plot-area tracker `usePlotChart` always registers (#104).
+    expect((await lastOptions()).plugins).toHaveLength(2);
     const scales = (await lastOptions()).scales as {
       y?: { range?: (self: unknown, min: number, max: number, key: string) => [number, number] };
     };

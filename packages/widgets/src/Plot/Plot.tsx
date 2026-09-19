@@ -59,7 +59,7 @@ function useThrottledStatus(text: string): string {
 export function Plot(props: PlotProps): JSX.Element {
   const { x, series, live, marker } = props;
   const t = useT();
-  const { cardRef, hostRef, theme, xRange, y } = usePlotChart(props, t);
+  const { cardRef, hostRef, theme, xRange, y, plotArea } = usePlotChart(props, t);
 
   const status = useThrottledStatus(
     t('widgets.Plot.status', {
@@ -82,7 +82,7 @@ export function Plot(props: PlotProps): JSX.Element {
       <div className="relative">
         <div ref={hostRef} data-testid="plot-canvas" />
         {marker === undefined ? null : (
-          <MarkerLayer marker={marker} xRange={xRange} unit={x.unit} t={t} />
+          <MarkerLayer marker={marker} xRange={xRange} plotArea={plotArea} unit={x.unit} t={t} />
         )}
       </div>
       <p className="sr-only" role="status" aria-live="polite">
