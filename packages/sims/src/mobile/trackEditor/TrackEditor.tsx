@@ -11,11 +11,21 @@ import type { TrackEditorApi } from './useTrackEditor';
 import { ContinuityNotice, EditorToast } from './notices';
 import { PresetDialog, useTrackFiles } from './useTrackFiles';
 
-/** World width the editor shows, in metres: the presets of sim-core fit inside it. */
-const WORLD_WIDTH_M = 1.4;
+/**
+ * World width the editor shows, in metres. The four presets of sim-core are the widest thing it
+ * has to hold: together they span x ∈ [-0.25, 1.20] and y ∈ [-0.40, 0.50], that is 1.45 × 0.90 m.
+ * At the 16:9 aspect of `Scene2D` a width of 1.8 m gives 1.01 m of height, so the whole of every
+ * preset fits with a margin on the four sides.
+ */
+const WORLD_WIDTH_M = 1.8;
 
-/** World point at the centre of the canvas, in metres; the default of `Scene2D`. */
-const SCENE_CENTER_M: [number, number] = [0, 0];
+/**
+ * World point at the centre of the canvas, in metres. The presets are not laid out around the
+ * origin — `oval` spans x ∈ [-0.25, 0.85] and y ∈ [0, 0.5] — so a view centred on (0,0) would
+ * push them off the canvas. This is the centre of their combined extent, and being a constant it
+ * also keeps the pointer mapping fixed: the view never shifts under the learner mid-stroke.
+ */
+const SCENE_CENTER_M: [number, number] = [0.475, 0.05];
 
 /** Radius of the marker drawn at the snapped end of the stroke, in metres (spec of #126). */
 const SNAP_MARKER_RADIUS_M = 0.015;
@@ -46,7 +56,11 @@ function EditorCanvas({ editor }: { editor: TrackEditorApi }): JSX.Element {
   const t = useT();
   const { draft } = editor;
   return (
-    <Scene2D worldWidth_m={WORLD_WIDTH_M} description={t('sims.trackEditor.scene')}>
+    <Scene2D
+      worldWidth_m={WORLD_WIDTH_M}
+      center_m={SCENE_CENTER_M}
+      description={t('sims.trackEditor.scene')}
+    >
       <TrackLayer track={editor.state.track} />
       {draft === null ? null : (
         <>
@@ -140,6 +154,21 @@ function EditorBody({
   );
 }
 
+/** El error de la última carga fallida, en una región `aria-live` asertiva (spec de #126). */
+function LoadError({ message }: { message: string | null }): JSX.Element | null {
+  if (message === null) return null;
+  return (
+    <p
+      role="alert"
+      aria-live="assertive"
+      data-testid="track-editor-error"
+      className="text-error text-sm"
+    >
+      {message}
+    </p>
+  );
+}
+
 export interface TrackEditorProps {
   /** Track the editor opens on. Defaults to an empty one. */
   initialTrack?: Track;
@@ -178,16 +207,7 @@ export function TrackEditor({ initialTrack, onChange }: TrackEditorProps = {}): 
       />
       <EditorBody editor={editor} hostRef={hostRef} />
       <ContinuityNotice report={editor.continuity} />
-      {files.error === null ? null : (
-        <p
-          role="alert"
-          aria-live="assertive"
-          data-testid="track-editor-error"
-          className="text-error text-sm"
-        >
-          {files.error}
-        </p>
-      )}
+      <LoadError message={files.error} />
       <PresetDialog
         pending={files.pending}
         onConfirm={files.confirmPreset}

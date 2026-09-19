@@ -226,6 +226,9 @@ importers:
       '@trayectoria/progress':
         specifier: workspace:*
         version: link:../../packages/progress
+      '@trayectoria/sims':
+        specifier: workspace:*
+        version: link:../../packages/sims
       '@trayectoria/widgets':
         specifier: workspace:*
         version: link:../../packages/widgets

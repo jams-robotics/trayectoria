@@ -12,19 +12,28 @@ import { TrackEditor } from './TrackEditor';
 // (docs/STANDARDS.md §4).
 describe('TrackEditor con el puntero (F4-01b)', () => {
   // jsdom gives every element a zero-sized box, so `createTransform` would map nothing: the
-  // canvas is given the 560 × 315 box a laid-out `Scene2D` of `worldWidth_m = 1.4` would have,
-  // which puts the origin at its centre and makes 1 m exactly 400 px. The drawing itself is
-  // exercised end to end against a real browser in apps/web/e2e/track-editor.spec.ts.
+  // canvas is given a 720 × 405 box, which over `worldWidth_m = 1.8` makes 1 m exactly 400 px.
+  // `SCENE_CENTER_M` = (0.475, 0.05) sits at the centre of that box, (360, 202.5), and every
+  // metre is 400 px from there. The drawing itself is exercised end to end against a real
+  // browser in apps/web/e2e/track-editor.spec.ts.
   const CANVAS_BOX = {
     x: 0,
     y: 0,
     top: 0,
     left: 0,
-    right: 560,
-    bottom: 315,
-    width: 560,
-    height: 315,
+    right: 720,
+    bottom: 405,
+    width: 720,
+    height: 405,
   };
+
+  /** Píxeles del lienzo del punto `p_m`, con el mismo mapeo que usa el editor. */
+  function px(p_m: readonly [number, number]): { clientX: number; clientY: number } {
+    return {
+      clientX: 360 + (p_m[0] - 0.475) * 400,
+      clientY: 202.5 - (p_m[1] - 0.05) * 400,
+    };
+  }
 
   /** Lays out the canvas of the editor and returns the container the pointer events go to. */
   function layOutCanvas(): HTMLElement {
@@ -45,16 +54,17 @@ describe('TrackEditor con el puntero (F4-01b)', () => {
     render(<TrackEditor onChange={(track) => changes.push(track)} />);
     const host = layOutCanvas();
     // (0,0) is the centre of the 560 × 315 box; 0.2 m to the right is 80 px.
-    fireEvent.pointerDown(host, { pointerId: 1, clientX: 280, clientY: 157.5 });
-    fireEvent.pointerMove(host, { pointerId: 1, clientX: 360, clientY: 157.5 });
-    fireEvent.pointerUp(host, { pointerId: 1, clientX: 360, clientY: 157.5 });
+    // Sin herramienta de dibujo, «Seleccionar» no añade nada.
+    fireEvent.pointerDown(host, { pointerId: 1, ...px([0, 0]) });
+    fireEvent.pointerMove(host, { pointerId: 1, ...px([0.2, 0]) });
+    fireEvent.pointerUp(host, { pointerId: 1, ...px([0.2, 0]) });
     expect(changes).toEqual([]);
     await userEvent
       .setup()
       .click(screen.getByRole('radio', { name: t('sims.trackEditor.tool.line') }));
-    fireEvent.pointerDown(host, { pointerId: 1, clientX: 280, clientY: 157.5 });
-    fireEvent.pointerMove(host, { pointerId: 1, clientX: 360, clientY: 157.5 });
-    fireEvent.pointerUp(host, { pointerId: 1, clientX: 360, clientY: 157.5 });
+    fireEvent.pointerDown(host, { pointerId: 1, ...px([0, 0]) });
+    fireEvent.pointerMove(host, { pointerId: 1, ...px([0.2, 0]) });
+    fireEvent.pointerUp(host, { pointerId: 1, ...px([0.2, 0]) });
     const segment = changes[changes.length - 1]?.segments[0];
     if (segment?.type !== 'line') throw new Error('expected a straight segment');
     expect(segment.from[0]).toBeCloseTo(0, 9);
@@ -68,10 +78,10 @@ describe('TrackEditor con el puntero (F4-01b)', () => {
     await userEvent
       .setup()
       .click(screen.getByRole('radio', { name: t('sims.trackEditor.tool.arc') }));
-    // Canvas y grows downwards, so a smaller clientY is above the chord.
-    fireEvent.pointerDown(host, { pointerId: 1, clientX: 280, clientY: 157.5 });
-    fireEvent.pointerMove(host, { pointerId: 1, clientX: 320, clientY: 137.5 });
-    fireEvent.pointerUp(host, { pointerId: 1, clientX: 360, clientY: 157.5 });
+    // El arrastre dorado del ticket: (0,0) → (0.2,0) pasando por encima de la cuerda.
+    fireEvent.pointerDown(host, { pointerId: 1, ...px([0, 0]) });
+    fireEvent.pointerMove(host, { pointerId: 1, ...px([0.1, 0.05]) });
+    fireEvent.pointerUp(host, { pointerId: 1, ...px([0.2, 0]) });
     const segment = changes[changes.length - 1]?.segments[0];
     if (segment?.type !== 'arc') throw new Error('expected an arc');
     expect(segment.radius_m).toBeCloseTo(0.125, 9);
