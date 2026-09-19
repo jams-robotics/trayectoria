@@ -43,6 +43,11 @@
     "robotOnTrack": "Robot de referencia sobre la pista oval, con los sensores de línea y los controles de simulación",
     "robotLabel": "robot"
   },
+  "Scene3D": {
+    "basic": "Escena 3D con rejilla, la tríada de ejes del origen y una caja",
+    "yUp": "Escena 3D sin rejilla con el eje Y hacia arriba y la tríada de ejes del origen",
+    "originLabel": "origen"
+  },
   "VectorWidget": {
     "panel": "Valores",
     "scene": "Dos vectores arrastrables desde el origen, con su suma",

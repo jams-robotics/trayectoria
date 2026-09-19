@@ -55,7 +55,22 @@ const WIDGETS = [
   // DiffDriveWidget que el e2e de my-robot.spec.ts mueve.
   { name: 'MyRobotWidget', story: 'Form', shot: 'MyRobotWidget-form' },
   { name: 'MyRobotWidget', story: 'Card', shot: 'MyRobotWidget-card' },
+  // El caso aprobado de F2-12 (#96, decisión 7): rejilla, la tríada de ejes del origen con su
+  // etiqueta y una caja, con `up: 'z'`. Es la única captura sobre WebGL, así que se compara con
+  // `maxDiffPixelRatio` (ver abajo): el renderizado de three en Chromium headless no es
+  // idéntico píxel a píxel entre máquinas. La escena no anima: no hay bucle de render más allá
+  // del que dispara la órbita, y nadie la orbita durante la captura.
+  { name: 'Scene3D', story: 'Basic', shot: 'Scene3D' },
 ] as const;
+
+/**
+ * Widgets pintados sobre WebGL: su canvas se espera con la comprobación de más abajo y su
+ * captura admite una diferencia mínima (#96, decisión 7).
+ */
+const WEBGL_WIDGETS: readonly string[] = ['Scene3D'];
+
+/** Diferencia admitida en las capturas de WebGL, en fracción de píxeles del recorte. */
+const WEBGL_MAX_DIFF_PIXEL_RATIO = 0.02;
 
 /** Widgets drawn on a `Scene2D`: their canvas needs the measure-and-paint wait below. */
 const SCENE_WIDGETS: readonly string[] = [
@@ -122,6 +137,41 @@ for (const widget of WIDGETS) {
           }, INTRINSIC_CANVAS_WIDTH_PX),
         )
         .toBeGreaterThan(0);
+    }
+    // Scene3D llega en un chunk aparte con `React.lazy` para que `three` no entre en el bundle
+    // de las páginas de tema (#96, decisión 2): su sección aparece un tick después del resto, y
+    // el canvas de WebGL necesita un fotograma más para tener la escena dibujada.
+    if (WEBGL_WIDGETS.includes(widget.name)) {
+      const canvas = target.locator('canvas');
+      await expect(canvas).toBeVisible();
+      // La escena se declara con `preserveDrawingBuffer`, así que el búfer sobrevive al
+      // fotograma en el que se dibujó y la captura lo recoge. Se espera a que haya píxeles
+      // dibujados de verdad —no solo a que el canvas esté dimensionado—, porque el chunk de
+      // Scene3D llega con `React.lazy` y three necesita un fotograma más para el primer
+      // render; leer el búfer aquí además fuerza la composición antes de la captura.
+      await expect
+        .poll(async () =>
+          canvas.evaluate((element: HTMLCanvasElement) => {
+            if (element.width === 0) return 0;
+            const copy = document.createElement('canvas');
+            copy.width = element.width;
+            copy.height = element.height;
+            const ctx = copy.getContext('2d');
+            if (ctx === null) return 0;
+            ctx.drawImage(element, 0, 0);
+            const { data } = ctx.getImageData(0, 0, copy.width, copy.height);
+            let painted = 0;
+            for (let i = 3; i < data.length; i += 4) {
+              if (data[i] !== 0) painted += 1;
+            }
+            return painted;
+          }),
+        )
+        .toBeGreaterThan(0);
+      await expect(target).toHaveScreenshot(`${shot}.png`, {
+        maxDiffPixelRatio: WEBGL_MAX_DIFF_PIXEL_RATIO,
+      });
+      return;
     }
     await expect(target).toHaveScreenshot(`${shot}.png`);
   });
