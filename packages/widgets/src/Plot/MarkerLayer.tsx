@@ -22,6 +22,12 @@ const MARKER_ARROW_FRACTION = 0.02;
 const MARKER_SHIFT_FACTOR = 5;
 /** Decimals shown for the marker position. */
 const READOUT_DECIMALS = 2;
+/**
+ * Width of the invisible grab zone centred on the line, in CSS pixels (#107). The visible line
+ * is 2 px wide, so a real mouse press two pixels off it used to miss the element altogether and
+ * land on uPlot's `.u-over` layer; docs/DESIGN.md §5 fixes no width for the hit area.
+ */
+const MARKER_GRAB_PX = 12;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
@@ -94,8 +100,17 @@ export function MarkerLayer({ marker, xRange, plotArea, unit, t }: MarkerLayerPr
         unit,
       })}
       data-testid="plot-marker"
-      className="bg-fg-muted absolute top-0 bottom-0 w-[2px] cursor-ew-resize focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus)]"
-      style={{ left: `${String(left_px)}px` }}
+      // A transparent grab zone centred on the line, so a real mouse press near it starts the
+      // drag instead of falling through to uPlot's `.u-over` layer (#107). `touch-action: none`
+      // keeps the browser from turning the drag into a scroll gesture on a touch screen.
+      className="absolute top-0 bottom-0 cursor-ew-resize touch-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus)]"
+      // `left` stays the line's own position; the box is pulled half its width to the left so
+      // the grab zone straddles it (#104 keeps `left_px` as the meaningful geometry).
+      style={{
+        left: `${String(left_px)}px`,
+        width: `${String(MARKER_GRAB_PX)}px`,
+        marginLeft: `${String(-MARKER_GRAB_PX / 2)}px`,
+      }}
       onKeyDown={onKeyDown}
       onPointerDown={(event) => {
         // Pointer capture keeps the drag alive outside the 2 px line; jsdom does not
@@ -106,7 +121,17 @@ export function MarkerLayer({ marker, xRange, plotArea, unit, t }: MarkerLayerPr
       onPointerUp={(event) => {
         event.currentTarget.releasePointerCapture?.(event.pointerId);
       }}
-    />
+    >
+      {/*
+        The line itself: 2 px wide, at an exact whole-pixel offset inside the grab zone so it
+        lands on the same column it occupied before the zone existed (the visual snapshots).
+      */}
+      <span
+        aria-hidden="true"
+        className="bg-fg-muted absolute top-0 bottom-0 w-[2px]"
+        style={{ left: `${String(MARKER_GRAB_PX / 2)}px` }}
+      />
+    </div>
   );
 }
 

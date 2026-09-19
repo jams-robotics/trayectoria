@@ -178,6 +178,19 @@ describe('MarkerLayer', () => {
     expect(marker.style.left).toBe('140px');
   });
 
+  it('offers a grab zone wider than the line so a real mouse press hits it (#107)', () => {
+    // Before the fix the element was the 2 px line itself: a press two pixels off it fell
+    // through to uPlot's `.u-over` layer and no drag ever started.
+    const marker = renderMarker(1, undefined, { left_px: 40, width_px: 200 });
+
+    expect(marker.style.width).toBe('12px');
+    // `left` still names the line; the box is pulled half its width to the left around it.
+    expect(marker.style.left).toBe('140px');
+    expect(marker.style.marginLeft).toBe('-6px');
+    // The browser must not turn the drag into a scroll gesture on a touch screen.
+    expect(marker.className).toContain('touch-none');
+  });
+
   it('converts a pointer position back to x using the plot area, not the whole card', async () => {
     const onDrag = vi.fn();
     const marker = renderMarker(1, onDrag, { left_px: 40, width_px: 200 });
