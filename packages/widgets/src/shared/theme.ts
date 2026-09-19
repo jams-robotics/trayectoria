@@ -106,6 +106,8 @@ const SCENE_FALLBACKS: Readonly<Record<string, string>> = {
   '--color-fg': '#1a242f',
   '--color-fg-muted': '#526475',
   '--color-border': '#d5dde5',
+  '--color-error': '#bf3a2b',
+  '--color-success': '#1c7a4e',
   '--color-vector-velocity': '#a85a05',
   '--color-vector-force': '#7b3fb8',
   '--sim-grid': '#e4eaef',

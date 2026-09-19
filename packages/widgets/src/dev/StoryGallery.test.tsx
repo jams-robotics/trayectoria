@@ -1,6 +1,18 @@
 import '@testing-library/jest-dom/vitest';
-import { render } from '@testing-library/react';
-import { describe, expect, test } from 'vitest';
+import { render, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { describe, expect, test, vi } from 'vitest';
+
+// The `Scene3D` section is loaded lazily by the gallery, and no WebGL renderer runs in jsdom:
+// the `Canvas` of fiber and the drei helpers are mocked exactly as in `Scene3D.test.tsx` (#96,
+// decision 6), so this file checks where the section lands, not what it paints.
+vi.mock('@react-three/fiber', () => ({
+  Canvas: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+}));
+vi.mock('@react-three/drei', () => ({
+  OrbitControls: () => null,
+  Html: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+}));
 
 import { StoryGallery, stories } from './StoryGallery';
 
@@ -128,13 +140,43 @@ describe('stories catalogue', () => {
     ]);
   });
 
+  // #96, decision 2: `Scene3D` is not in `stories` on purpose. Importing its stories statically
+  // would pull `three` into the main playground chunk, so the section is loaded with
+  // `React.lazy` and only its own chunk carries `three` (docs/ARCHITECTURE.md §8).
+  test('leaves `Scene3D` out of the statically imported catalogue', () => {
+    expect(stories.map(({ title }) => title)).not.toContain('Scene3D');
+  });
+
+  // 30 s: the lazy chunk is resolved by a real dynamic `import()` of the stories module, which
+  // pulls in fiber and drei; under coverage instrumentation that is well past the default 5 s.
+  test('renders the `Scene3D` section lazily, after the statically imported ones', async () => {
+    const { container } = render(<StoryGallery />);
+    await waitFor(
+      () => {
+        expect(container.querySelector('[data-widget="Scene3D"]')).not.toBeNull();
+      },
+      { timeout: 25000 },
+    );
+    const titles = Array.from(container.querySelectorAll('[data-widget]')).map((element) =>
+      element.getAttribute('data-widget'),
+    );
+    expect(titles[titles.length - 1]).toBe('Scene3D');
+  }, 30000);
+
   test('renders the same story order on every call, matching `stories`', () => {
     const { container: first } = render(<StoryGallery />);
     const { container: second } = render(<StoryGallery />);
+    // Only the statically imported sections: the lazy `Scene3D` one resolves on its own
+    // microtask, so whether its stories are already in the DOM depends on timing (#96).
+    const staticTitles = new Set(stories.map(({ title }) => title));
     const namesOf = (container: HTMLElement): readonly string[] =>
-      Array.from(container.querySelectorAll('[data-story]')).map(
-        (element) => element.getAttribute('data-story') ?? '',
-      );
+      Array.from(container.querySelectorAll('[data-widget]'))
+        .filter((section) => staticTitles.has(section.getAttribute('data-widget') ?? ''))
+        .flatMap((section) =>
+          Array.from(section.querySelectorAll('[data-story]')).map(
+            (element) => element.getAttribute('data-story') ?? '',
+          ),
+        );
     const expected = stories.flatMap(({ stories: cases }) => cases.map(([name]) => name));
     expect(namesOf(first)).toEqual(expected);
     expect(namesOf(second)).toEqual(expected);

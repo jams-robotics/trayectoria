@@ -1,4 +1,4 @@
-import { createElement } from 'react';
+import { Suspense, createElement, lazy } from 'react';
 import type { JSX } from 'react';
 
 import * as diffDriveStories from '../DiffDriveWidget/DiffDriveWidget.stories';
@@ -91,10 +91,38 @@ function widgetSection({ title, stories: cases }: WidgetStories): JSX.Element {
 }
 
 /**
+ * The `Scene3D` section, resolved only when the browser renders it. Its stories are not
+ * imported statically: that would pull `three` into the main playground chunk and, from there,
+ * into every page that hydrates an island of this package (docs/ARCHITECTURE.md §8: «three solo
+ * en páginas 3D, con `client:only` y `import()` dinámico»). Behind this single dynamic
+ * `import()` the whole section lands in its own chunk, which no `/ruta/**` page references
+ * (#96, decision 2). It keeps the `default.order` of its own module, like every other section.
+ */
+const SCENE_3D_TITLE = 'Scene3D';
+
+const LazyScene3DSection = lazy(async () => {
+  const module: StoriesModule = await import('../Scene3D/Scene3D.stories');
+  const section = collect(module);
+  return { default: (): JSX.Element => widgetSection(section) };
+});
+
+/**
  * Renders every story of the catalogue, one section per widget. It is a single island so the
  * `/dev/widgets` page can hydrate it with `client:load` (Astro resolves islands statically).
  * Built with `createElement` because this file is consumed as a plain module by the barrel.
+ *
+ * `Scene3D` comes last and lazily: its chunk carries `three` and must stay out of the bundle of
+ * every other page (docs/ARCHITECTURE.md §8).
  */
 export function StoryGallery(): JSX.Element {
-  return createElement('div', null, stories.map(widgetSection));
+  return createElement(
+    'div',
+    null,
+    stories.map(widgetSection),
+    createElement(
+      Suspense,
+      { key: SCENE_3D_TITLE, fallback: null },
+      createElement(LazyScene3DSection),
+    ),
+  );
 }
