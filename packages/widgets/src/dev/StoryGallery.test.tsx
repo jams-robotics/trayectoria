@@ -78,6 +78,14 @@ describe('stories catalogue', () => {
           ['DropFromRobot', expect.any(Function)],
         ],
       },
+      {
+        title: 'RotationWidget',
+        stories: [
+          ['Disc', expect.any(Function)],
+          ['Rolling', expect.any(Function)],
+          ['AngularAccel', expect.any(Function)],
+        ],
+      },
     ]);
   });
 

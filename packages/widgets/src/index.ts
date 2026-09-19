@@ -102,6 +102,32 @@ export type {
   VectorKind,
 } from './ProjectileWidget';
 
+export {
+  RotationWidget,
+  angleAt,
+  angularAccel,
+  centripetalAccel,
+  frequency,
+  maxCurveSpeed,
+  omegaAt,
+  omegaFor,
+  period,
+  rimSpeed,
+  rollingAdvance,
+  sampleOmega,
+  tangentialAccel,
+  timeToOmega,
+  turnAdvance,
+  turnsAt,
+} from './RotationWidget';
+export type {
+  Curve,
+  Rotation,
+  RotationInputUnit,
+  RotationMode,
+  RotationWidgetProps,
+} from './RotationWidget';
+
 // Playground-only discovery/rendering (docs/STANDARDS.md §4: index.ts reexports the public
 // API only); the implementation lives in ./dev/StoryGallery.
 export { StoryGallery, stories } from './dev/StoryGallery';

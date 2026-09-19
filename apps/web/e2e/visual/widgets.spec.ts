@@ -32,6 +32,10 @@ const WIDGETS = [
   // case of F2-05 (#88, decision 9). Its playback only advances on «Reproducir», so the scene
   // is static and comparable frame to frame.
   { name: 'ProjectileWidget', story: 'Launch', shot: 'ProjectileWidget' },
+  // The «Explora» of T-4.2 opened at t = 0.15 s: the approved case of F2-06 (#89, decision 8).
+  // Its playback only advances on «Reproducir», so the rolling wheel is static and comparable
+  // frame to frame.
+  { name: 'RotationWidget', story: 'Rolling', shot: 'RotationWidget' },
 ] as const;
 
 /** Widgets drawn on a `Scene2D`: their canvas needs the measure-and-paint wait below. */
@@ -41,6 +45,7 @@ const SCENE_WIDGETS: readonly string[] = [
   'FreeBodyWidget',
   'KinematicsWidget',
   'ProjectileWidget',
+  'RotationWidget',
 ];
 
 /** Default width of a `<canvas>` with no `width` attribute yet; a scene past it has been sized. */
