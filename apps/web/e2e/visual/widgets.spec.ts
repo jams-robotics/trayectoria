@@ -44,6 +44,11 @@ const WIDGETS = [
   // (#91, decisión 6). La reproducción solo avanza con «Reproducir», así que los cuatro
   // engranajes están quietos y la escena es comparable fotograma a fotograma.
   { name: 'GearWidget', story: 'TwoStage', shot: 'GearWidget' },
+  // La «Explora» de T-5.2 (ω_L = 15, ω_R = 20 rad/s) abierta en t = 3 s: el caso aprobado de
+  // F2-09a (#92, decisión 7). Lleva el CIR, el radio, los marcos, la traza y los vectores de
+  // rueda, y como la reproducción solo avanza con «Reproducir», la escena es comparable
+  // fotograma a fotograma.
+  { name: 'DiffDriveWidget', story: 'Forward52', shot: 'DiffDriveWidget' },
 ] as const;
 
 /** Widgets drawn on a `Scene2D`: their canvas needs the measure-and-paint wait below. */
@@ -56,6 +61,7 @@ const SCENE_WIDGETS: readonly string[] = [
   'RotationWidget',
   'EnergyWidget',
   'GearWidget',
+  'DiffDriveWidget',
 ];
 
 /** Default width of a `<canvas>` with no `width` attribute yet; a scene past it has been sized. */

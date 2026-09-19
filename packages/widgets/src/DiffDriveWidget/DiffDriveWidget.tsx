@@ -1,0 +1,230 @@
+import { useMemo, useState } from 'react';
+import type { JSX } from 'react';
+import { useT } from '@trayectoria/i18n';
+import type { Translate } from '@trayectoria/i18n';
+import type { MobileSpec, RobotSpec } from '@trayectoria/robot-spec';
+
+import { ParamPanel } from '../ParamPanel/ParamPanel';
+import { SimControls } from '../SimControls/SimControls';
+import { LiveStatus } from '../shared/ReadoutPanel';
+import {
+  defaultRobot,
+  forwardKinematics,
+  inverseKinematics,
+  mobileOf,
+  saturate,
+} from './compute';
+import type { DiffDriveMode, DiffDriveShow, WheelCommand } from './compute';
+import {
+  Notice,
+  PosePanel,
+  applyTheta,
+  applyTwist,
+  applyWheel,
+  readDiffDrive,
+  statusOf,
+  twistParams,
+  wheelParams,
+} from './panels';
+import type { Readout, TwistInput } from './panels';
+import { DiffDriveScene } from './scene';
+import { useTimeline } from './timeline';
+import type { Timeline } from './timeline';
+
+export type { DiffDriveMode, DiffDriveShow } from './compute';
+
+/** Seconds the animation runs before it pauses on its own (#92, decision 3). */
+const DEFAULT_DURATION_S = 10;
+
+export interface DiffDriveWidgetProps {
+  mode: DiffDriveMode;
+  /** Robot simulated; defaults to the reference robot until F2-11 brings `useMyRobot()`. */
+  robot?: RobotSpec;
+  show: DiffDriveShow[];
+  initial: {
+    omegaL_radps?: number;
+    omegaR_radps?: number;
+    v_mps?: number;
+    omega_radps?: number;
+  };
+  duration_s?: number;
+  /** Time the widget opens at, in seconds. Defaults to the start of the run. */
+  initialTime_s?: number;
+}
+
+/** The wheel commands the widget starts from, in either mode (docs/WIDGETS.md, `initial`). */
+function initialCommand(initial: DiffDriveWidgetProps['initial']): WheelCommand {
+  return {
+    omegaL_radps: initial.omegaL_radps ?? 0,
+    omegaR_radps: initial.omegaR_radps ?? 0,
+  };
+}
+
+/** The twist the widget starts from in `inverse` (docs/WIDGETS.md, `initial`). */
+function initialTwist(initial: DiffDriveWidgetProps['initial']): TwistInput {
+  return { v_mps: initial.v_mps ?? 0, omega_radps: initial.omega_radps ?? 0 };
+}
+
+/** The viewer column: the scene and the playback controls. */
+function Viewer({
+  scene,
+  timeline,
+}: {
+  scene: JSX.Element;
+  timeline: Timeline;
+}): JSX.Element {
+  return (
+    <div className="flex min-w-0 flex-1 flex-col gap-3">
+      {scene}
+      <SimControls {...timeline.driver} {...timeline.controls} t_s={timeline.t_s} />
+    </div>
+  );
+}
+
+/** The sliders of the mode, with the notices that belong above them (#92, decisions 4 and 9). */
+function Sliders({
+  mode,
+  params,
+  onChange,
+  feasible,
+  t,
+}: {
+  mode: DiffDriveMode;
+  params: ReturnType<typeof wheelParams>;
+  onChange: (key: string, value: number) => void;
+  feasible: boolean;
+  t: Translate;
+}): JSX.Element {
+  return (
+    <div className="flex flex-col gap-3">
+      {mode === 'odometry' ? <Notice text={t('widgets.DiffDriveWidget.odometrySoon')} tone="muted" /> : null}
+      {feasible ? null : <Notice text={t('widgets.DiffDriveWidget.saturated')} tone="error" />}
+      <ParamPanel params={params} onChange={onChange} />
+    </div>
+  );
+}
+
+/** Drags the chassis to set `x, y`; absent while the simulation runs (#92, decision 6). */
+function dragHandler(
+  timeline: Timeline,
+): ((point_m: readonly [number, number]) => void) | undefined {
+  if (timeline.driver.running) return undefined;
+  return (point_m) => {
+    timeline.setPose((current) => ({ ...current, x_m: point_m[0], y_m: point_m[1] }));
+  };
+}
+
+/** Turns the `θ` slider of the pose panel into a pose change (#92, decision 6). */
+function thetaHandler(timeline: Timeline): (value_deg: number) => void {
+  return (value_deg) => {
+    timeline.setPose((current) => applyTheta(current, value_deg));
+  };
+}
+
+/** The whole right-hand column: the pose panel, the live description and the sliders. */
+function Panels({
+  mode,
+  readout,
+  spec,
+  show,
+  timeline,
+  params,
+  onSlider,
+  t,
+}: {
+  mode: DiffDriveMode;
+  readout: Readout;
+  spec: MobileSpec;
+  show: readonly DiffDriveShow[];
+  timeline: Timeline;
+  params: ReturnType<typeof wheelParams>;
+  onSlider: (key: string, value: number) => void;
+  t: Translate;
+}): JSX.Element {
+  return (
+    <div className="flex flex-col gap-4 lg:w-80">
+      <PosePanel
+        mode={mode}
+        readout={readout}
+        spec={spec}
+        withFrames={show.includes('frames')}
+        onTheta={thetaHandler(timeline)}
+        t={t}
+      />
+      <LiveStatus text={statusOf(readout, t)} />
+      <Sliders mode={mode} params={params} onChange={onSlider} feasible={readout.feasible} t={t} />
+    </div>
+  );
+}
+
+/**
+ * The wheel commands the model is fed, the sliders of the mode and their handler: `forward`
+ * edits the two wheels directly and `inverse` derives them from `v, ω` with the inverse
+ * kinematics of sim-core (#92, decisions 1 and 4).
+ */
+function useCommand(
+  mode: DiffDriveMode,
+  initial: DiffDriveWidgetProps['initial'],
+  spec: MobileSpec,
+  t: Translate,
+): {
+  command: WheelCommand;
+  params: ReturnType<typeof wheelParams>;
+  onSlider: (key: string, value: number) => void;
+} {
+  const [wheels, setWheels] = useState<WheelCommand>(() => initialCommand(initial));
+  const [twist, setTwist] = useState<TwistInput>(() => initialTwist(initial));
+  const inverse = mode === 'inverse';
+  return {
+    command: inverse ? inverseKinematics(twist.v_mps, twist.omega_radps, spec) : wheels,
+    params: inverse ? twistParams(twist, spec, t) : wheelParams(wheels, spec, t),
+    onSlider: (key, value) => {
+      if (inverse) setTwist((current) => applyTwist(current, key, value));
+      else setWheels((current) => applyWheel(current, key, value));
+    },
+  };
+}
+
+/**
+ * Mini simulator of the differential-drive robot (docs/WIDGETS.md, DiffDriveWidget;
+ * docs/CURRICULUM.md T-5.1, T-5.2, T-5.3): two wheel speeds or a `v, ω` pair drive the model of
+ * sim-core, and the scene shows the ICR, the turning radius, the two reference frames, the
+ * trace and an arrow per wheel.
+ *
+ * `mode: 'odometry'` belongs to F2-09b: until then it renders as `forward` with a notice
+ * (#92, decision 9).
+ */
+export function DiffDriveWidget({
+  mode,
+  robot = defaultRobot(),
+  show,
+  initial,
+  duration_s = DEFAULT_DURATION_S,
+  initialTime_s = 0,
+}: DiffDriveWidgetProps): JSX.Element {
+  const t = useT();
+  const spec = useMemo(() => mobileOf(robot), [robot]);
+  const { command, params, onSlider } = useCommand(mode, initial, spec, t);
+  const applied = saturate(command, spec);
+  const timeline = useTimeline(spec, applied, duration_s, initialTime_s);
+  const twist = forwardKinematics(applied.omegaL_radps, applied.omegaR_radps, spec);
+  const readout = readDiffDrive(timeline.pose, command, twist, spec);
+
+  return (
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+      <Viewer
+        timeline={timeline}
+        scene={
+          <DiffDriveScene
+            {...{ robot, spec, twist, command, show, t }}
+            pose={timeline.pose}
+            feasible={readout.feasible}
+            trace_m={timeline.trace_m}
+            onDrag={dragHandler(timeline)}
+          />
+        }
+      />
+      <Panels {...{ mode, readout, spec, show, timeline, params, onSlider, t }} />
+    </div>
+  );
+}

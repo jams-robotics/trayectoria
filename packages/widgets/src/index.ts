@@ -185,6 +185,39 @@ export {
 } from './GearWidget';
 export type { GearStages, GearWidgetProps, ShaftSpeeds, Train } from './GearWidget';
 
+export {
+  DiffDriveWidget,
+  DT_S as DIFF_DRIVE_DT_S,
+  INITIAL_POSE,
+  defaultRobot,
+  frameRows,
+  headingTo,
+  icrOf,
+  isFeasible,
+  maxSpeed_mps,
+  mobileOf,
+  poseRows,
+  radiusText,
+  readDiffDrive,
+  rotationMatrix,
+  saturate,
+  // `statusOf` of the other widgets builds their own `aria-live` sentence; this one describes
+  // the pose of the differential robot, so the barrel keeps them apart.
+  statusOf as diffDriveStatusOf,
+  toGlobal,
+  toRobot,
+  turningRadius_m,
+  wheelCentres,
+  wheelSpeed_mps,
+} from './DiffDriveWidget';
+export type {
+  DiffDriveMode,
+  DiffDriveShow,
+  DiffDriveWidgetProps,
+  Pose,
+  Readout,
+} from './DiffDriveWidget';
+
 // Playground-only discovery/rendering (docs/STANDARDS.md §4: index.ts reexports the public
 // API only); the implementation lives in ./dev/StoryGallery.
 export { StoryGallery, stories } from './dev/StoryGallery';

@@ -1,6 +1,7 @@
 import { createElement } from 'react';
 import type { JSX } from 'react';
 
+import * as diffDriveStories from '../DiffDriveWidget/DiffDriveWidget.stories';
 import * as energyStories from '../EnergyWidget/EnergyWidget.stories';
 import * as formulaStories from '../Formula/Formula.stories';
 import * as freeBodyStories from '../FreeBodyWidget/FreeBodyWidget.stories';
@@ -60,6 +61,7 @@ export const stories: readonly WidgetStories[] = [
   collect(rotationStories),
   collect(energyStories),
   collect(gearStories),
+  collect(diffDriveStories),
 ];
 
 function storyCase([name, Story]: readonly [string, WidgetStory]): JSX.Element {
