@@ -1,13 +1,15 @@
 import { createInstance } from 'i18next';
 
 import auth from '../locales/es/auth.json';
+import aula from '../locales/es/aula.json';
 import es from '../locales/es/common.json';
 import progress from '../locales/es/progress.json';
 import widgets from '../locales/es/widgets.json';
 
 // Namespace `common` = common.json plus auth.json under the root key `auth` (F0-08),
-// widgets.json under the root key `widgets` (F2-01a) and progress.json under `progress` (F3-01).
-export const resources = { es: { common: { ...es, auth, progress, widgets } } };
+// widgets.json under the root key `widgets` (F2-01a), progress.json under `progress` (F3-01)
+// and aula.json under `aula` (F3-02a).
+export const resources = { es: { common: { ...es, auth, aula, progress, widgets } } };
 
 export const DEFAULT_LANGUAGE = 'es';
 
