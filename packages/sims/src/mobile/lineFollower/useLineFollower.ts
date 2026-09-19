@@ -3,7 +3,7 @@ import { DEFAULT_DT_S, Simulation } from '@trayectoria/sim-core';
 import type { Track } from '@trayectoria/sim-core';
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import { createFrameClock, useSimulationDriver } from '@trayectoria/widgets';
-import type { SimulationDriver } from '@trayectoria/widgets';
+import type { FrameClock, SimulationDriver } from '@trayectoria/widgets';
 
 import { CONTROLLERS } from './controllers';
 import type { ControllerId, ControllerParams } from './controllers';
@@ -45,8 +45,13 @@ function appended(
 }
 
 /**
- * The `Simulation` of a run, rebuilt whenever anything that defines it changes. `params` is a
- * fresh object on every render, so the run is keyed by its contents rather than its identity.
+ * The `Simulation` of a run, rebuilt whenever anything that defines it changes, together with the
+ * `FrameClock` it was built with. `params` is a fresh object on every render, so the run is keyed
+ * by its contents rather than its identity.
+ *
+ * The clock is returned because the driver has to be handed the very same one: it is the driver
+ * that advances it from the timestamp of each animation frame, and a `FrameClock` nobody feeds
+ * stays at `t = 0` forever, which leaves `Simulation.tick()` integrating no elapsed time at all.
  */
 function useSimulationOf({
   spec,
@@ -55,10 +60,13 @@ function useSimulationOf({
   params,
   noiseSigma,
   startPose,
-}: UseLineFollowerOptions): Simulation<LineFollowerState, LineFollowerInput> {
+}: UseLineFollowerOptions): {
+  sim: Simulation<LineFollowerState, LineFollowerInput>;
+  clock: FrameClock;
+} {
   const clock = useMemo(createFrameClock, []);
   const key = `${controller}:${JSON.stringify(params)}`;
-  return useMemo(
+  const sim = useMemo(
     () =>
       new Simulation<LineFollowerState, LineFollowerInput>(
         createLineFollowerModel({
@@ -72,6 +80,7 @@ function useSimulationOf({
       ),
     [spec, track, controller, key, noiseSigma, startPose, clock],
   );
+  return { sim, clock };
 }
 
 /**
@@ -84,8 +93,8 @@ function useSimulationOf({
  * than splicing a new controller into a state it never produced.
  */
 export function useLineFollower(options: UseLineFollowerOptions): LineFollowerApi {
-  const sim = useSimulationOf(options);
-  const published = useSimulationDriver(sim);
+  const { sim, clock } = useSimulationOf(options);
+  const published = useSimulationDriver(sim, { clock });
   // `useSimulationDriver` seeds its snapshot once and only refreshes it on a tick, a step or a
   // reset; a brand-new simulation therefore renders with the previous one's state until
   // something advances it. While its snapshot still belongs to an older run, the state is read
