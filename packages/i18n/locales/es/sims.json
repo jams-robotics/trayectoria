@@ -108,6 +108,20 @@
     "loadError": "No se pudo cargar el brazo «{{id}}» del catálogo.",
     "unsupportedMesh": "Formato de malla no soportado; solo se cargan archivos STL."
   },
+  "armPage": {
+    "title": "Simulador de brazo 3D",
+    "lead": "Mueve las articulaciones y observa dónde queda el efector. La posición y la orientación las calcula el motor de cinemática, no el dibujo.",
+    "loading": "Cargando el simulador de brazo…",
+    "source": "Brazo",
+    "sourceHelp": "Elige un brazo del catálogo.",
+    "fallback": "No hay ningún brazo con ese identificador; se muestra «{{name}}».",
+    "soon": "Disponible más adelante",
+    "view": "Controles de vista",
+    "workspace": "Espacio de trabajo",
+    "matrices": "Matrices",
+    "expand": "ver",
+    "collapse": "ocultar"
+  },
   "playground": {
     "title": "Catálogo de simuladores",
     "lead": "Cada componente de simulación con sus configuraciones de ejemplo. Página de desarrollo: no se enlaza desde la navegación."
