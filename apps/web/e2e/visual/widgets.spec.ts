@@ -49,6 +49,12 @@ const WIDGETS = [
   // rueda, y como la reproducción solo avanza con «Reproducir», la escena es comparable
   // fotograma a fotograma.
   { name: 'DiffDriveWidget', story: 'Forward52', shot: 'DiffDriveWidget' },
+  // Los dos casos aprobados de F2-11 (#95, decisión 8): el formulario con el robot de
+  // referencia y la tarjeta que lo resume. Ninguno de los dos anima ni pinta sobre un canvas,
+  // así que son comparables fotograma a fotograma. La story `Live` no se captura: lleva un
+  // DiffDriveWidget que el e2e de my-robot.spec.ts mueve.
+  { name: 'MyRobotWidget', story: 'Form', shot: 'MyRobotWidget-form' },
+  { name: 'MyRobotWidget', story: 'Card', shot: 'MyRobotWidget-card' },
 ] as const;
 
 /** Widgets drawn on a `Scene2D`: their canvas needs the measure-and-paint wait below. */

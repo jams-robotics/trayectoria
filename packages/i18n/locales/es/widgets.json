@@ -340,6 +340,55 @@
       "components": "La velocidad del robot es de {{speed_mps}} m/s a {{angle_deg}}° sobre el eje x. ¿Cuáles son sus componentes v_x y v_y, en m/s?"
     }
   },
+  "MyRobotWidget": {
+    "title": "Tu robot",
+    "formTitle": "Mi robot",
+    "name": "Nombre",
+    "groupChassis": "Chasis",
+    "groupDrive": "Tracción",
+    "groupSensors": "Sensores de línea",
+    "groupOptional": "Motor y batería (opcional)",
+    "save": "Guardar",
+    "reset": "Restablecer al robot de referencia",
+    "saved": "Parámetros de Mi robot aplicados",
+    "resetDone": "Robot de referencia restablecido",
+    "invalid": "Revisa los campos marcados: el robot no se ha guardado",
+    "derived": "Valores derivados",
+    "omegaMax": "ω máxima de rueda",
+    "vMax": "v máxima",
+    "edit": "Editar",
+    "field": "{{label}} ({{unit}})",
+    "fieldValue": "{{label}} en {{unit}}",
+    "unitM": "m",
+    "unitRadps": "rad/s",
+    "unitMps": "m/s",
+    "unitKg": "kg",
+    "labels": {
+      "length_m": "Largo",
+      "width_m": "Ancho",
+      "mass_kg": "Masa",
+      "wheelRadius_m": "Radio de rueda",
+      "wheelBase_m": "Distancia entre ruedas",
+      "maxMotorSpeed_rpm": "Velocidad máxima del motor",
+      "gearRatio": "Relación de reducción",
+      "maxAccel_radps2": "Aceleración angular máxima",
+      "encoderTicksPerRev": "Pulsos de encoder por vuelta",
+      "lineSensors_count": "Número de sensores",
+      "lineSensors_spacing_m": "Separación entre sensores",
+      "lineSensors_forwardOffset_m": "Adelanto respecto al eje",
+      "lineSensors_footprint_m": "Huella del sensor",
+      "motor_stallTorque_Nm": "Par de bloqueo del motor",
+      "motor_nominalVoltage_V": "Tensión nominal",
+      "motor_efficiency": "Rendimiento",
+      "battery_capacity_Wh": "Capacidad de la batería"
+    },
+    "errors": {
+      "nameRequired": "El nombre no puede estar vacío"
+    },
+    "storyForm": "Formulario de Mi robot con el robot de referencia",
+    "storyCard": "Tarjeta de Mi robot con el robot de referencia",
+    "storyLive": "Formulario de Mi robot junto a un DiffDriveWidget que lo lee"
+  },
   "playground": {
     "title": "Catálogo de widgets",
     "lead": "Cada widget del catálogo con sus configuraciones de ejemplo. Página de desarrollo: no se enlaza desde la navegación."

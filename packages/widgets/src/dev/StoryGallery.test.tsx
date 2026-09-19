@@ -117,6 +117,14 @@ describe('stories catalogue', () => {
           ['Anonymous', expect.any(Function)],
         ],
       },
+      {
+        title: 'MyRobotWidget',
+        stories: [
+          ['Form', expect.any(Function)],
+          ['Card', expect.any(Function)],
+          ['Live', expect.any(Function)],
+        ],
+      },
     ]);
   });
 

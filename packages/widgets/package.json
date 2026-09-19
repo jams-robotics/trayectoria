@@ -12,10 +12,12 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@nanostores/react": "2.0.1",
     "@trayectoria/i18n": "workspace:*",
     "@trayectoria/robot-spec": "workspace:*",
     "@trayectoria/sim-core": "workspace:*",
     "katex": "0.18.7",
+    "nanostores": "1.5.3",
     "uplot": "1.6.32"
   },
   "peerDependencies": {
