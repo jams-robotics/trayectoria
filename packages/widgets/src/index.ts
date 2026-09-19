@@ -128,6 +128,42 @@ export type {
   RotationWidgetProps,
 } from './RotationWidget';
 
+export {
+  EnergyWidget,
+  DT_S as ENERGY_DT_S,
+  FLAT_LENGTH_M,
+  MIN_SLOPE_RAD,
+  // `accelAt` of KinematicsWidget is the acceleration of a 1-D motion; this one is the
+  // acceleration along the ramp of the energy model, so the barrel keeps the two apart.
+  accelAt as rampAccelAt,
+  autonomy_min,
+  electricalPower,
+  energiesOf,
+  heightAt,
+  kineticEnergy,
+  linearPower,
+  mechanicalPower,
+  netWork,
+  onRamp,
+  potentialEnergy,
+  rampModel,
+  readElectrical,
+  readMechanical,
+  shaftPower,
+  trackLength_m,
+  work,
+} from './EnergyWidget';
+export type {
+  Electrical,
+  Energies,
+  EnergyMode,
+  EnergyWidgetProps,
+  Mechanical,
+  MotorCount,
+  Ramp,
+  RampState,
+} from './EnergyWidget';
+
 // Playground-only discovery/rendering (docs/STANDARDS.md §4: index.ts reexports the public
 // API only); the implementation lives in ./dev/StoryGallery.
 export { StoryGallery, stories } from './dev/StoryGallery';

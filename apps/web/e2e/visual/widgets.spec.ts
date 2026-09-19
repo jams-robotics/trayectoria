@@ -36,6 +36,10 @@ const WIDGETS = [
   // Its playback only advances on «Reproducir», so the rolling wheel is static and comparable
   // frame to frame.
   { name: 'RotationWidget', story: 'Rolling', shot: 'RotationWidget' },
+  // La «Explora» de T-3.1 abierta en t = 0.6 s: el caso aprobado de F2-07 (#90, decisión 7). El
+  // cuerpo ya va por la rampa y las cuatro barras tienen valor, y como la reproducción solo
+  // avanza con «Reproducir», la escena y las barras son comparables fotograma a fotograma.
+  { name: 'EnergyWidget', story: 'Ramp', shot: 'EnergyWidget' },
 ] as const;
 
 /** Widgets drawn on a `Scene2D`: their canvas needs the measure-and-paint wait below. */
@@ -46,6 +50,7 @@ const SCENE_WIDGETS: readonly string[] = [
   'KinematicsWidget',
   'ProjectileWidget',
   'RotationWidget',
+  'EnergyWidget',
 ];
 
 /** Default width of a `<canvas>` with no `width` attribute yet; a scene past it has been sized. */
