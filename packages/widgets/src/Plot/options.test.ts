@@ -2,7 +2,7 @@ import type uPlot from 'uplot';
 import { describe, expect, it, vi } from 'vitest';
 
 import { axisTitle, buildOptions, refLinesPlugin } from './options';
-import { readTheme } from './theme';
+import { readTheme } from '../shared/theme';
 import type { PlotRefLine } from './types';
 
 const THEME = readTheme(null);

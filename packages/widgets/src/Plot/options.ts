@@ -1,8 +1,8 @@
 import type uPlot from 'uplot';
 
 import type { PlotRefLine, PlotSeries, PlotAxis } from './types';
-import { SERIES_DASHES, seriesColor } from './theme';
-import type { PlotTheme } from './theme';
+import { SERIES_DASHES, seriesColor } from '../shared/theme';
+import type { PlotTheme } from '../shared/theme';
 
 /** Line width of every series, docs/DESIGN.md §5 ("líneas 2 px `round`"). */
 export const SERIES_WIDTH_PX = 2;

@@ -4,8 +4,8 @@ import 'uplot/dist/uPlot.min.css';
 import { useT } from '@trayectoria/i18n';
 
 import { MarkerLayer } from './MarkerLayer';
-import { seriesColor, SERIES_DASHES } from './theme';
-import type { PlotTheme } from './theme';
+import { seriesColor, SERIES_DASHES } from '../shared/theme';
+import type { PlotTheme } from '../shared/theme';
 import type { PlotProps, PlotSeries } from './types';
 import { usePlotChart } from './usePlotChart';
 

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { DATA_TOKENS, readTheme, sameTheme, seriesColor } from './theme';
+import { DATA_TOKENS, readTheme, sameTheme, seriesColor, tokenColor } from './theme';
 
 /** Attaches a stylesheet with the chart tokens and returns the element to read them from. */
 function withTokens(css: string): HTMLElement {
@@ -87,5 +87,29 @@ describe('seriesColor', () => {
     expect(seriesColor(theme, '--color-vector-velocity', 0)).toBe('#a85a05');
     // An undefined token falls back to the palette slot, never to a literal.
     expect(seriesColor(theme, '--color-missing', 1)).toBe(theme.data[1]);
+  });
+});
+
+describe('tokenColor (Scene2D primitives, #84)', () => {
+  it('resolves a simulation token by name, with or without the leading dashes', () => {
+    const host = withTokens(':root { --sim-trace: #0072b2; --sim-axis: #9fb0c0; }');
+
+    expect(tokenColor(host, 'sim-trace')).toBe('#0072b2');
+    expect(tokenColor(host, '--sim-axis')).toBe('#9fb0c0');
+  });
+
+  it('honours the theme in force, not the light value', () => {
+    const host = withTokens(':root { --sim-grid: #222d39; }');
+
+    expect(tokenColor(host, 'sim-grid')).toBe('#222d39');
+  });
+
+  it('falls back to the light value of the token where no stylesheet is attached', () => {
+    expect(tokenColor(null, 'color-vector-velocity')).toBe('#a85a05');
+    expect(tokenColor(null, 'sim-axis')).toBe('#9fb0c0');
+  });
+
+  it('never returns a colour outside the palette for an unknown token', () => {
+    expect(tokenColor(null, 'color-does-not-exist')).toBe('#526475');
   });
 });
