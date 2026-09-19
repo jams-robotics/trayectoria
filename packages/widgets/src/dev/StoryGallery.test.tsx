@@ -70,6 +70,14 @@ describe('stories catalogue', () => {
           ['Mrua', expect.any(Function)],
         ],
       },
+      {
+        title: 'ProjectileWidget',
+        stories: [
+          ['Launch', expect.any(Function)],
+          ['Drop', expect.any(Function)],
+          ['DropFromRobot', expect.any(Function)],
+        ],
+      },
     ]);
   });
 

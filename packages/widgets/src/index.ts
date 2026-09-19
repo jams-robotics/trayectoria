@@ -82,6 +82,26 @@ export type {
   TangentSegment,
 } from './KinematicsWidget';
 
+export {
+  ProjectileWidget,
+  PATH_PERIOD_S,
+  TRACE_PERIOD_S,
+  flightTime,
+  initialVelocity,
+  maxHeight,
+  range,
+  robotPositionAt,
+  samplePath,
+  speedAt,
+  traceDots,
+} from './ProjectileWidget';
+export type {
+  Launch,
+  ProjectileMode,
+  ProjectileWidgetProps,
+  VectorKind,
+} from './ProjectileWidget';
+
 // Playground-only discovery/rendering (docs/STANDARDS.md §4: index.ts reexports the public
 // API only); the implementation lives in ./dev/StoryGallery.
 export { StoryGallery, stories } from './dev/StoryGallery';
