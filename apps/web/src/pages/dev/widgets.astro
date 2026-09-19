@@ -7,6 +7,12 @@ import Base from '../../layouts/Base.astro';
 // F2-01a playground: one section per widget with its stories, rendered by the StoryGallery
 // island of @trayectoria/widgets. Not linked from Nav.astro; it exists for manual review and
 // for the visual regression snapshots of e2e/visual.
+//
+// `?section=<Nombre>` narrows the page to that widget's section, so a snapshot of e2e/visual is
+// taken over a page that only holds its own widget and does not move when a story is added to
+// another one (#108, decision 2). The search parameter is read here because `window` is off
+// limits inside @trayectoria/widgets (CLAUDE.md, prohibiciones); the island takes it as a prop.
+const section = Astro.url.searchParams.get('section');
 ---
 
 <Base title={t('widgets.playground.title')}>
@@ -15,6 +21,6 @@ import Base from '../../layouts/Base.astro';
       {t('widgets.playground.title')}
     </h1>
     <p class="text-fg-muted mt-4 max-w-[72ch]">{t('widgets.playground.lead')}</p>
-    <StoryGallery client:load />
+    <StoryGallery section={section} client:load />
   </section>
 </Base>

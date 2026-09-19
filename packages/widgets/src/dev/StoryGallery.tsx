@@ -106,23 +106,53 @@ const LazyScene3DSection = lazy(async () => {
   return { default: (): JSX.Element => widgetSection(section) };
 });
 
+export interface StoryGalleryProps {
+  /**
+   * Renders only the section of this widget, by its `title`. Unknown or absent, the whole
+   * catalogue is rendered (#108, decision 2). `/dev/widgets` fills it from the `section` search
+   * parameter of the URL — read in `apps/web`, never here: `window` is off limits outside that
+   * app (CLAUDE.md, prohibiciones). `null` is the shape a missing search parameter arrives in,
+   * and means the same as absent: the whole catalogue.
+   */
+  section?: string | null;
+}
+
+/** The statically imported sections a `section` filter keeps; empty when it matches none. */
+export function sectionsFor(section?: string | null): readonly WidgetStories[] {
+  if (section === undefined || section === null || section === '') return stories;
+  return stories.filter((widget) => widget.title === section);
+}
+
+/** Whether the lazy `Scene3D` section belongs in the output under a `section` filter. */
+export function includesScene3D(section?: string | null): boolean {
+  return (
+    section === undefined || section === null || section === '' || section === SCENE_3D_TITLE
+  );
+}
+
 /**
- * Renders every story of the catalogue, one section per widget. It is a single island so the
+ * Renders the stories of the catalogue, one section per widget. It is a single island so the
  * `/dev/widgets` page can hydrate it with `client:load` (Astro resolves islands statically).
  * Built with `createElement` because this file is consumed as a plain module by the barrel.
+ *
+ * With `section` only that widget is rendered, so the visual snapshots of a widget do not move
+ * when a story is added to another one (#108, decision 2; spec gap #117). Without it the
+ * playground keeps showing everything.
  *
  * `Scene3D` comes last and lazily: its chunk carries `three` and must stay out of the bundle of
  * every other page (docs/ARCHITECTURE.md §8).
  */
-export function StoryGallery(): JSX.Element {
+export function StoryGallery({ section }: StoryGalleryProps = {}): JSX.Element {
   return createElement(
     'div',
     null,
-    stories.map(widgetSection),
-    createElement(
-      Suspense,
-      { key: SCENE_3D_TITLE, fallback: null },
-      createElement(LazyScene3DSection),
-    ),
+    sectionsFor(section).map(widgetSection),
+    includesScene3D(section)
+      ? createElement(
+          Suspense,
+          { key: SCENE_3D_TITLE, fallback: null },
+          createElement(LazyScene3DSection),
+        )
+      : null,
   );
 }
