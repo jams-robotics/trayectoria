@@ -34,7 +34,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('useTimeline (#88)', () => {
+describe('useTimeline (F2-05)', () => {
   test('Paso avanza t exactamente dt_s = 0.01 s', () => {
     const { result } = renderHook(() => useTimeline(0.6224, 0));
 

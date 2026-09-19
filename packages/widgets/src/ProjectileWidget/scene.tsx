@@ -76,11 +76,14 @@ function VelocityArrows({
 }): JSX.Element {
   const [x_m, y_m] = at_m;
   const [vx_mps, vy_mps] = v_mps;
-  // `v` keeps the fixed velocity token of docs/DESIGN.md §2.2; its components take data tokens.
+  // `v` keeps the fixed velocity token of docs/DESIGN.md §2.2. Its components are not vectors
+  // with a fixed token in §2.2, so they take data tokens as a single channel; `data-3`/`data-4`
+  // avoid `data-1`/`data-2` (used by launches A/B, decision 7) and `data-5`/`data-6`, which
+  // §2.2 bans as a lone channel (confusable with `data-1` under deuteranopia).
   const arrows: ReadonlyArray<readonly [VectorKind, [number, number], string]> = [
     ['v', [x_m + vx_mps * M_PER_MPS, y_m + vy_mps * M_PER_MPS], 'color-vector-velocity'],
-    ['vx', [x_m + vx_mps * M_PER_MPS, y_m], 'color-data-5'],
-    ['vy', [x_m, y_m + vy_mps * M_PER_MPS], 'color-data-6'],
+    ['vx', [x_m + vx_mps * M_PER_MPS, y_m], 'color-data-3'],
+    ['vy', [x_m, y_m + vy_mps * M_PER_MPS], 'color-data-4'],
   ];
   return (
     <>
