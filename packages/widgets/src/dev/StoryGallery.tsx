@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 
 import * as formulaStories from '../Formula/Formula.stories';
 import * as paramPanelStories from '../ParamPanel/ParamPanel.stories';
+import * as plotStories from '../Plot/Plot.stories';
 
 /** One named export of a `*.stories.tsx` file: a demo component with no props. */
 export type WidgetStory = () => JSX.Element;
@@ -40,6 +41,7 @@ function collect(module: StoriesModule): WidgetStories {
 export const stories: readonly WidgetStories[] = [
   collect(paramPanelStories),
   collect(formulaStories),
+  collect(plotStories),
 ];
 
 function storyCase([name, Story]: readonly [string, WidgetStory]): JSX.Element {

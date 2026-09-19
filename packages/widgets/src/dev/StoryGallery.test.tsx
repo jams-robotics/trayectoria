@@ -28,6 +28,14 @@ describe('stories catalogue', () => {
           ['Substituted', expect.any(Function)],
         ],
       },
+      {
+        title: 'Plot',
+        stories: [
+          ['Static', expect.any(Function)],
+          ['Live', expect.any(Function)],
+          ['PlotStress', expect.any(Function)],
+        ],
+      },
     ]);
   });
 

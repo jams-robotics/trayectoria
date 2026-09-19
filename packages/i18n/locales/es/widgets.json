@@ -10,6 +10,13 @@
     "label": "Fórmula",
     "substituted": "Con tus valores"
   },
+  "Plot": {
+    "title": "Gráfica de {{label}}",
+    "value": "Valor",
+    "marker": "Marcador de tiempo",
+    "markerValue": "{{value}} {{unit}}",
+    "status": "{{count}} series entre {{from}} y {{to}} en el eje horizontal"
+  },
   "playground": {
     "title": "Catálogo de widgets",
     "lead": "Cada widget del catálogo con sus configuraciones de ejemplo. Página de desarrollo: no se enlaza desde la navegación."
