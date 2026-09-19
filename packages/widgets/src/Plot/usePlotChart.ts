@@ -4,8 +4,8 @@ import type UPlot from 'uplot';
 import type { Translate } from '@trayectoria/i18n';
 
 import { buildOptions } from './options';
-import { readTheme, sameTheme } from './theme';
-import type { PlotTheme } from './theme';
+import { readTheme, sameTheme } from '../shared/theme';
+import type { PlotTheme } from '../shared/theme';
 import type { PlotAxis, PlotLive, PlotProps, PlotSeries } from './types';
 
 /** Default plot area height in CSS pixels (docs/DESIGN.md §5: 200 en simulador). */

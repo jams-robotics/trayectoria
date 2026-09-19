@@ -94,3 +94,37 @@ export function seriesColor(theme: PlotTheme, color: string | undefined, index: 
   if (known >= 0) return theme.data[known] ?? byPosition;
   return token(styleOf(theme.element), color, byPosition);
 }
+
+/**
+ * Fallbacks for the tokens `Scene2D` paints with (docs/DESIGN.md §2, §6), token name to its
+ * light value. Used where no stylesheet is attached (jsdom, or a canvas drawn before paint);
+ * the real value always comes from `getComputedStyle` at draw time.
+ */
+const SCENE_FALLBACKS: Readonly<Record<string, string>> = {
+  ...DATA_PALETTE,
+  '--color-bg-raised': '#ffffff',
+  '--color-fg': '#1a242f',
+  '--color-fg-muted': '#526475',
+  '--color-border': '#d5dde5',
+  '--color-vector-velocity': '#a85a05',
+  '--color-vector-force': '#7b3fb8',
+  '--sim-grid': '#e4eaef',
+  '--sim-axis': '#9fb0c0',
+  '--sim-track': '#2a3540',
+  '--sim-robot': '#a25607',
+  '--sim-sensor-on': '#1c7a4e',
+  '--sim-sensor-off': '#b7c2cc',
+  '--sim-trace': '#0072b2',
+};
+
+/**
+ * Resolves a palette token by name against `element` (#84, decision 3 of the assignment).
+ * `name` is a CSS custom property name with or without the leading `--`; a literal colour is
+ * never accepted, so an unknown name falls back to the muted foreground rather than painting
+ * something outside the palette (docs/DESIGN.md §7: ningún hex en componentes).
+ */
+export function tokenColor(element: Element | null, name: string): string {
+  const property = name.startsWith('--') ? name : `--${name}`;
+  const fallback = SCENE_FALLBACKS[property] ?? SCENE_FALLBACKS['--color-fg-muted'] ?? '';
+  return token(styleOf(element), property, fallback);
+}

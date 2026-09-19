@@ -36,6 +36,13 @@ describe('stories catalogue', () => {
           ['PlotStress', expect.any(Function)],
         ],
       },
+      {
+        title: 'Scene2D',
+        stories: [
+          ['Primitives', expect.any(Function)],
+          ['OffCentre', expect.any(Function)],
+        ],
+      },
     ]);
   });
 
