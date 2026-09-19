@@ -1,4 +1,4 @@
-import { createElement } from 'react';
+import { Suspense, createElement, lazy } from 'react';
 import type { JSX } from 'react';
 
 import * as trackEditorStories from '../mobile/trackEditor/TrackEditor.stories';
@@ -59,6 +59,21 @@ function simSection({ title, stories: cases }: SimStories): JSX.Element {
   );
 }
 
+/**
+ * La sección `ArmViewer`, resuelta solo cuando el navegador la renderiza. Sus stories no se
+ * importan de forma estática: eso arrastraría `three` y `urdf-loader` al chunk principal del
+ * playground y, desde ahí, a toda página que hidrate una isla de este paquete
+ * (docs/ARCHITECTURE.md §8: «three solo en páginas 3D, con `client:only` y `import()` dinámico»).
+ * Tras este único `import()` dinámico la sección entera cae en su propio chunk (#133, decisión 2).
+ */
+const ARM_VIEWER_TITLE = 'ArmViewer';
+
+const LazyArmViewerSection = lazy(async () => {
+  const module: StoriesModule = await import('../arm/ArmViewer.stories');
+  const section = collect(module);
+  return { default: (): JSX.Element => simSection(section) };
+});
+
 export interface SimGalleryProps {
   /**
    * Renders only the section of this component, by its `title`. Unknown or absent, the whole
@@ -76,6 +91,13 @@ export function sectionsFor(section?: string | null): readonly SimStories[] {
   return stories.filter((entry) => entry.title === section);
 }
 
+/** Si la sección perezosa `ArmViewer` entra en la salida bajo un filtro `section`. */
+export function includesArmViewer(section?: string | null): boolean {
+  return (
+    section === undefined || section === null || section === '' || section === ARM_VIEWER_TITLE
+  );
+}
+
 /**
  * Renders the stories of the catalogue, one section per component. It is a single island so the
  * `/dev/sims` page can hydrate it with `client:only`, and it carries the same `data-section` /
@@ -83,5 +105,16 @@ export function sectionsFor(section?: string | null): readonly SimStories[] {
  * same way (#126, decision 2).
  */
 export function SimGallery({ section }: SimGalleryProps = {}): JSX.Element {
-  return createElement('div', null, sectionsFor(section).map(simSection));
+  return createElement(
+    'div',
+    null,
+    sectionsFor(section).map(simSection),
+    includesArmViewer(section)
+      ? createElement(
+          Suspense,
+          { key: ARM_VIEWER_TITLE, fallback: null },
+          createElement(LazyArmViewerSection),
+        )
+      : null,
+  );
 }

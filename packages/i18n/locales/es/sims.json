@@ -49,6 +49,24 @@
     "segmentArc": "Segmento {{index}}: arco",
     "noSegments": "La pista no tiene segmentos."
   },
+  "arm": {
+    "scene": "Escena 3D del brazo {{name}}: los eslabones, las articulaciones y los marcos de cada eslabón.",
+    "joints": "Articulaciones",
+    "effector": "Efector",
+    "frames": "Marcos",
+    "x": "x",
+    "y": "y",
+    "z": "z",
+    "roll": "alabeo",
+    "pitch": "cabeceo",
+    "yaw": "guiñada",
+    "unitM": "m",
+    "unitDeg": "°",
+    "readoutItem": "{{label}} {{value}} {{unit}}",
+    "loading": "Cargando el brazo…",
+    "loadError": "No se pudo cargar el brazo «{{id}}» del catálogo.",
+    "unsupportedMesh": "Formato de malla no soportado; solo se cargan archivos STL."
+  },
   "playground": {
     "title": "Catálogo de simuladores",
     "lead": "Cada componente de simulación con sus configuraciones de ejemplo. Página de desarrollo: no se enlaza desde la navegación."

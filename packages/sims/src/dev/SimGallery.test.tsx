@@ -1,8 +1,19 @@
 import '@testing-library/jest-dom/vitest';
-import { render } from '@testing-library/react';
-import { describe, expect, test } from 'vitest';
+import { render, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { describe, expect, test, vi } from 'vitest';
 
-import { SimGallery, sectionsFor, stories } from './SimGallery';
+// La sección perezosa `ArmViewer` monta `Scene3D`, que en jsdom no tiene WebGL ni
+// `ResizeObserver` (F2-12, #96, decisión 6): se sustituye por marcadores, como en
+// `arm/ArmViewer.test.tsx`. Aquí solo se comprueba que la sección se resuelve y en qué orden.
+vi.mock('@trayectoria/widgets/scene3d', () => ({
+  Scene3D: ({ children }: { children: ReactNode }): ReactNode => (
+    <div data-testid="canvas">{children}</div>
+  ),
+  Frame: (): ReactNode => <div data-testid="frame" />,
+}));
+
+import { SimGallery, includesArmViewer, sectionsFor, stories } from './SimGallery';
 
 // F4-01b, decisión 2 de #126: `/dev/sims` repite el patrón de `/dev/widgets` tras el PR #140 —
 // filtro `?section=` leído en `apps/web` y la misma convención `data-section` / `data-story`,
@@ -61,5 +72,28 @@ describe('sims catalogue (F4-01b)', () => {
     expect(sectionsFor('NoSuchSim')).toEqual([]);
     const { container } = render(<SimGallery section="NoSuchSim" />);
     expect(container.querySelectorAll('[data-section]')).toHaveLength(0);
+  });
+
+  // F5-01a (#133, decisión 2): la sección `ArmViewer` se carga con `React.lazy` para que `three`
+  // y `urdf-loader` no entren en el chunk principal del playground. No aparece en `stories`, que
+  // solo lista las secciones importadas de forma estática.
+  test('keeps the lazy `ArmViewer` section out of the static catalogue', () => {
+    expect(stories.map(({ title }) => title)).not.toContain('ArmViewer');
+    expect(includesArmViewer(undefined)).toBe(true);
+    expect(includesArmViewer(null)).toBe(true);
+    expect(includesArmViewer('')).toBe(true);
+    expect(includesArmViewer('ArmViewer')).toBe(true);
+    expect(includesArmViewer('TrackEditor')).toBe(false);
+  });
+
+  test('resolves the lazy `ArmViewer` section when it is the one requested', async () => {
+    const { container } = render(<SimGallery section="ArmViewer" />);
+    await waitFor(() => {
+      expect(container.querySelector('[data-section="ArmViewer"]')).not.toBeNull();
+    });
+    const names = Array.from(container.querySelectorAll('[data-story]')).map(
+      (element) => element.getAttribute('data-story') ?? '',
+    );
+    expect(names).toEqual(['Planar', 'So101']);
   });
 });

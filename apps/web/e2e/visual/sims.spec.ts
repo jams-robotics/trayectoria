@@ -65,3 +65,69 @@ for (const { story, shot } of STORIES) {
     await expect(target).toHaveScreenshot(`${shot}.png`);
   });
 }
+
+// F5-01a (#133, decisión 9): regresión visual de la story `Planar` de `ArmViewer` en /dev/sims.
+// Es una captura sobre WebGL, así que se compara con `maxDiffPixelRatio`: el renderizado de
+// three en Chromium headless no es idéntico píxel a píxel entre máquinas (mismo criterio que
+// `Scene3D` en F2-12, #96, decisión 7). La escena no anima: no hay bucle de render más allá del
+// que dispara la órbita, y nadie la orbita durante la captura.
+const ARM_SECTION = 'ArmViewer';
+
+/** Diferencia admitida en las capturas de WebGL, en fracción de píxeles del recorte. */
+const WEBGL_MAX_DIFF_PIXEL_RATIO = 0.02;
+
+/** Margen para la sección perezosa: su chunk arrastra three y urdf-loader. */
+const LAZY_SECTION_TIMEOUT_MS = 30_000;
+
+test('ArmViewer looks as approved', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto(`/dev/sims?section=${ARM_SECTION}`);
+  await page.addStyleTag({ content: 'astro-dev-toolbar { display: none !important; }' });
+  // La sección llega con `React.lazy` para que `three` y `urdf-loader` no entren en el chunk
+  // principal (#133, decisión 2). En `astro dev` ese chunk se transforma en la primera visita,
+  // así que aparece bastante después que el resto de la galería y necesita más margen que el
+  // tiempo de espera por defecto.
+  await expect(page.locator(`[data-section="${ARM_SECTION}"]`)).toBeVisible({
+    timeout: LAZY_SECTION_TIMEOUT_MS,
+  });
+  await page.evaluate(() => document.fonts.ready);
+
+  const target = page.locator(`[data-section="${ARM_SECTION}"] [data-story="Planar"]`);
+  await expect(target).toBeVisible();
+  // El panel del efector se rellena cuando el URDF ya está cargado y sim-core ha resuelto la
+  // pose: es la puerta de «el visor está listo» sin depender del canvas.
+  await expect(target.locator('[data-testid="sims.arm.x"]')).not.toBeEmpty({
+    timeout: LAZY_SECTION_TIMEOUT_MS,
+  });
+
+  const canvas = target.locator('canvas');
+  await expect(canvas).toBeVisible();
+  // `preserveDrawingBuffer` mantiene el búfer más allá del fotograma en que se dibujó, así que
+  // la captura lo recoge; leerlo aquí además fuerza la composición antes de la captura.
+  await expect
+    .poll(async () =>
+      canvas.evaluate((element: HTMLCanvasElement) => {
+        if (element.width === 0) return 0;
+        const copy = document.createElement('canvas');
+        copy.width = element.width;
+        copy.height = element.height;
+        const ctx = copy.getContext('2d');
+        if (ctx === null) return 0;
+        ctx.drawImage(element, 0, 0);
+        const { data } = ctx.getImageData(0, 0, copy.width, copy.height);
+        let painted = 0;
+        for (let i = 3; i < data.length; i += 4) {
+          if (data[i] !== 0) painted += 1;
+        }
+        return painted;
+      }),
+    )
+    .toBeGreaterThan(0);
+  await expect(target).toHaveScreenshot('ArmViewer.png', {
+    maxDiffPixelRatio: WEBGL_MAX_DIFF_PIXEL_RATIO,
+    // Playwright repite la captura hasta que dos consecutivas coinciden: sobre WebGL eso puede
+    // tardar más que el tiempo por defecto, porque el brazo aparece cuando la malla ya está
+    // cargada y el primer fotograma de three llega después.
+    timeout: LAZY_SECTION_TIMEOUT_MS,
+  });
+});
