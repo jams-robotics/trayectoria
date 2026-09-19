@@ -1,1 +1,32 @@
-export {};
+export {
+  DEFAULT_CONTINUITY_TOLERANCE_M,
+  DEFAULT_SNAP_TOLERANCE_M,
+  HISTORY_LIMIT,
+  addArc,
+  addLine,
+  canRedo,
+  canUndo,
+  continuity,
+  createHistory,
+  emptyEditor,
+  fromJson,
+  fromPreset,
+  moveEndpoint,
+  push,
+  redo,
+  removeSegment,
+  segmentEndpoints,
+  select,
+  setLineWidth,
+  setRadius,
+  snap,
+  toJson,
+  undo,
+} from './mobile/trackEditor';
+export type {
+  ContinuityReport,
+  EditorState,
+  Endpoint,
+  History,
+  TrackGap,
+} from './mobile/trackEditor';
