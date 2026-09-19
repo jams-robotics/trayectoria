@@ -116,3 +116,45 @@ test('Verifica monta un ExerciseWidget por ejercicio declarado', async ({ page }
   await expect(exercises).toHaveCount(1);
   await expect(exercises.first()).toHaveAttribute('data-status', 'pending');
 });
+
+test('Verifica se hidrata y responde sin errores de página', async ({ page }) => {
+  // La isla resuelve la clave del ejercicio en el cliente (#97, hallazgo alta de auditoría del
+  // PR #119): pasar el objeto `Exercise` completo revienta la hidratación con
+  // `TypeError: exercise.generate is not a function` porque Astro serializa a JSON las props de
+  // una isla `client:visible`, y las funciones no sobreviven. Este test lo habría detectado.
+  const pageErrors: Error[] = [];
+  page.on('pageerror', (error) => pageErrors.push(error));
+
+  await openTopic(page);
+  const exercise = page.getByTestId('exercise').first();
+  await exercise.scrollIntoViewIfNeeded();
+  // `client:visible` hidrata al entrar en el viewport; Astro quita el atributo `ssr` de la isla
+  // una vez React la hidrata, y un `fill` o un click anteriores se pierden en silencio
+  // (e2e/exercise.spec.ts, F2-01a ronda 1). Solo se espera la isla de Verifica: `Formulas` monta
+  // otra que no entra en el viewport de este test y nunca se hidrataría.
+  await page.waitForFunction(() => {
+    const node = document.querySelector('[data-testid="exercise"]');
+    return node?.closest('astro-island')?.hasAttribute('ssr') === false;
+  });
+  await expect(exercise).toHaveAttribute('data-status', 'pending');
+
+  // El ejercicio anónimo redibuja su instancia en un efecto tras la hidratación (`useSeed`,
+  // sesión nula), así que el `fill` se reintenta hasta que el valor se queda escrito.
+  const answer = exercise.getByRole('textbox');
+  await expect
+    .poll(async () => {
+      await answer.fill('1');
+      return answer.inputValue();
+    })
+    .toBe('1');
+
+  const verify = exercise.getByRole('button', { name: 'Comprobar' });
+  await expect
+    .poll(async () => {
+      await verify.click();
+      return exercise.getAttribute('data-status');
+    })
+    .not.toBe('pending');
+
+  expect(pageErrors).toEqual([]);
+});

@@ -1,22 +1,19 @@
 ---
 import { t } from '@trayectoria/i18n';
-import { ExerciseWidget, trackTimeExercise } from '@trayectoria/widgets';
 
+import { exerciseKeys, findExercise } from '../../lib/exercises';
 import Section from './Section.astro';
+import { VerificaExercise } from './VerificaExercise';
 
 // Sección 6 (docs/CONTENT-STANDARDS.md §2): de 3 a 5 ejercicios, uno por `ExerciseWidget`, con
 // el índice correlativo y `required` según `requiredExercises` del frontmatter (#97, decisión 2).
 //
 // El tema declara claves, no objetos: `content/` vive fuera de `apps/web` (ADR-0005) y un MDX no
-// resuelve los paquetes del workspace, así que la resolución ocurre aquí. Mientras no haya
-// `ejercicios.ts` por tema (llega con T-0.1), el único registrado es el escalar de demostración
-// de `ExerciseWidget/demo.ts` (#97, decisión 4).
-
-/** `sim-core` no es dependencia de apps/web; el tipo del ejercicio se toma del widget. */
-type TopicExercise = typeof trackTimeExercise;
-
-/** Registro de los ejercicios que un tema puede montar por clave. */
-const EXERCISES = new Map<string, TopicExercise>([['demo/track-time', trackTimeExercise]]);
+// resuelve los paquetes del workspace, así que la resolución ocurre aquí. La isla recibe solo la
+// clave (string serializable): Astro serializa a JSON las props de una isla `client:visible`, y
+// las funciones `generate`/`check` de `Exercise` no sobreviven esa serialización (#97, hallazgo
+// alta de auditoría del PR #119) — el objeto se resuelve en `VerificaExercise` desde el mismo
+// registro (`apps/web/src/lib/exercises.ts`).
 
 interface Props {
   /** Claves de los ejercicios del tema, en orden de dificultad creciente. */
@@ -31,25 +28,29 @@ const { ejercicios, topicId, obligatorios = [] } = Astro.props;
 const required = new Set(obligatorios);
 
 // Una clave desconocida detiene el build nombrando el tema y la clave, igual que las referencias.
-const exercises: TopicExercise[] = ejercicios.map((key) => {
-  const exercise = EXERCISES.get(key);
-  if (exercise === undefined) {
-    throw new Error(`${topicId}: unknown exercise key "${key}" (components/tema/Verifica.astro)`);
+for (const key of ejercicios) {
+  if (findExercise(key) === undefined) {
+    throw new Error(
+      `${topicId}: unknown exercise key "${key}" (components/tema/Verifica.astro); ` +
+        `known keys: ${exerciseKeys().join(', ')}`,
+    );
   }
-  return exercise;
-});
+}
 ---
 
 <Section id="verifica" title={t('topic.sections.verifica')} number={6}>
   <div class="grid gap-5">
-    {exercises.map((exercise, position) => (
-      <ExerciseWidget
-        client:visible
-        exercise={exercise}
-        topicId={topicId}
-        index={position + 1}
-        required={required.has(exercise.id)}
-      />
-    ))}
+    {ejercicios.map((key, position) => {
+      const exercise = findExercise(key)!;
+      return (
+        <VerificaExercise
+          client:visible
+          exerciseKey={key}
+          topicId={topicId}
+          index={position + 1}
+          required={required.has(exercise.id)}
+        />
+      );
+    })}
   </div>
 </Section>
