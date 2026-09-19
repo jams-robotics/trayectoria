@@ -1,0 +1,130 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import TopicOutline from '../components/tema/Outline.astro';
+import Base from './Base.astro';
+
+// Layout de una página de tema (#97, decisión 5): cabecera con título, tiempo y prerrequisitos,
+// barra de progreso de la ruta, índice lateral sticky y anterior/siguiente.
+// Referencia visual: docs/design/03-tema-claro.png y 07-tema-movil-claro.png.
+
+/** Un tema vecino o un prerrequisito; sin `href` cuando todavía no está publicado. */
+export interface TopicLink {
+  title: string;
+  /** `undefined` cuando el tema todavía no está publicado: se muestra sin enlace. */
+  href: string | undefined;
+}
+
+interface Props {
+  title: string;
+  /** Ruta a la que pertenece el tema, para la miga y la barra de progreso. */
+  route: TopicLink & { title: string };
+  /** Línea mono sobre el título: «Ruta … · Tema 4.2». */
+  eyebrow: string;
+  estimatedMinutes: number;
+  prerequisites: TopicLink[];
+  /** Temas completados de la ruta; 0 hasta F3-01. */
+  done: number;
+  /** Temas de la ruta. */
+  total: number;
+  previous: TopicLink | undefined;
+  next: TopicLink | undefined;
+}
+
+const { title, route, eyebrow, estimatedMinutes, prerequisites, done, total, previous, next } =
+  Astro.props;
+const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+---
+
+<Base title={title}>
+  <div class="mx-auto max-w-[1200px] px-5 py-9 md:px-8">
+    <div class="md:flex md:items-start md:gap-10">
+      <div class="md:order-2 md:min-w-0 md:flex-1">
+        <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
+          {route.href === undefined ? (
+            route.title
+          ) : (
+            <a href={route.href} class="no-underline hover:underline">
+              {route.title}
+            </a>
+          )}
+          {` · ${eyebrow}`}
+        </p>
+        <h1 class="text-xl leading-tight md:text-2xl mt-3 max-w-[72ch] font-semibold">{title}</h1>
+
+        <dl class="text-fg-muted mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+          <div class="flex gap-2">
+            <dt>{t('topic.estimatedTime')}</dt>
+            <dd class="m-0 font-mono">{t('topic.minutes', { minutes: estimatedMinutes })}</dd>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <dt>{t('topic.prerequisites')}</dt>
+            <dd class="m-0 flex flex-wrap gap-2">
+              {prerequisites.length === 0 ? <span>{t('topic.noPrerequisites')}</span> : null}
+              {prerequisites.map((item) =>
+                item.href === undefined ? (
+                  <span>{item.title}</span>
+                ) : (
+                  <a href={item.href}>{item.title}</a>
+                ),
+              )}
+            </dd>
+          </div>
+        </dl>
+
+        <div class="mt-5 flex max-w-[320px] items-center gap-3">
+          <div
+            class="bg-border rounded-sm h-1 flex-1 overflow-hidden"
+            role="progressbar"
+            aria-label={t('topic.progress')}
+            aria-valuenow={done}
+            aria-valuemin={0}
+            aria-valuemax={total}
+          >
+            <div class="bg-primary h-full" style={`width: ${percent}%`}></div>
+          </div>
+          <span class="text-fg-muted font-mono text-xs" data-testid="route-progress">
+            {t('topic.progressCount', { done, total })}
+          </span>
+        </div>
+
+        <TopicOutline mobile />
+
+        <article class="mt-8 max-w-[72ch]">
+          <slot />
+        </article>
+
+        <nav aria-label={t('topic.pagination')} class="border-border mt-10 border-t pt-6">
+          <ul class="m-0 flex list-none flex-col gap-5 p-0 md:flex-row md:justify-between">
+            {previous !== undefined && (
+              <li>
+                <span class="text-fg-muted block text-sm">{t('topic.previous')}</span>
+                {previous.href === undefined ? (
+                  <span class="text-fg-muted">{previous.title}</span>
+                ) : (
+                  <a href={previous.href} rel="prev">
+                    {previous.title}
+                  </a>
+                )}
+              </li>
+            )}
+            {next !== undefined && (
+              <li class="md:ml-auto md:text-right">
+                <span class="text-fg-muted block text-sm">{t('topic.next')}</span>
+                {next.href === undefined ? (
+                  <span class="text-fg-muted">{next.title}</span>
+                ) : (
+                  <a href={next.href} rel="next">
+                    {next.title}
+                  </a>
+                )}
+              </li>
+            )}
+          </ul>
+        </nav>
+      </div>
+
+      <TopicOutline />
+    </div>
+  </div>
+</Base>

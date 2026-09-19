@@ -8,39 +8,57 @@ prerequisites: []
 objectives:
   - Expresar cualquier magnitud del robot en unidades SI con su símbolo
   - Convertir rpm, cm y minutos a rad/s, m y s sin perder factores
-widgets: []
-requiredExercises: []
-references: []
+widgets: [Formula, ExerciseWidget]
+requiredExercises: [e1]
+references: [young-freedman-1]
 status: draft
 ---
 
-## Gancho
-
+<Gancho>
 Tu motor gira a 200 rpm y tu rueda mide 3 cm de radio. ¿En qué unidades tienes que expresar cada
 dato antes de calcular a qué velocidad avanza tu robot?
+</Gancho>
 
-## Concepto
-
+<Concepto>
 Este tema es un marcador de posición de F0-05: comprueba que el contenido en `content/es/` se
-publica en `/ruta/ruta-1/m00/t01` con el layout base. El texto real y los widgets llegan con
-T-0.1 y F2-13.
+publica en `/ruta/ruta-1/m00/t01` con el layout de tema y sus siete secciones. El texto real y
+los widgets llegan con T-0.1.
 
-## Fórmulas
+Mientras tanto, la única idea que deja escrita es la que ordena el resto de la ruta: cada
+magnitud del robot se expresa en unidades SI antes de entrar en una fórmula.
+</Concepto>
 
-Pendiente (F2-13 aporta el componente `Formula`).
+<Formulas>
+<Formula latex="v = \omega\,r" />
 
-## Explora
+- `v` · velocidad lineal · m/s
+- `ω` · velocidad angular · rad/s
+- `r` · radio de la rueda · m
+</Formulas>
 
-Pendiente.
+<Explora>
+<Experimento
+  cambia="el radio de la rueda"
+  observa="la velocidad lineal"
+  porque="¿Por qué al duplicar el radio se duplica la velocidad si el motor no cambia?"
+>
+Contenido de marcador: la respuesta razonada llega con T-0.1.
+</Experimento>
 
-## Al robot
+<Experimento
+  cambia="las revoluciones del motor"
+  observa="la velocidad lineal"
+  porque="¿Por qué hay que pasar de rpm a rad/s antes de multiplicar por el radio?"
+>
+Contenido de marcador: la respuesta razonada llega con T-0.1.
+</Experimento>
+</Explora>
 
-Pendiente.
+<AlRobot>
+Contenido de marcador: con T-0.1 esta sección toma el radio de rueda de *Mi robot* y sustituye
+sus números en la fórmula de arriba.
+</AlRobot>
 
-## Verifica
+<Verifica ejercicios={['demo/track-time']} topicId="ruta-1/m00-t01" obligatorios={['e1']} />
 
-Pendiente (F2-10 aporta `ExerciseWidget`).
-
-## Profundiza
-
-Pendiente.
+<Profundiza referencias={['young-freedman-1']} topicId="ruta-1/m00-t01" />

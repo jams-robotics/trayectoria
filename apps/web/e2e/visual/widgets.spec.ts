@@ -346,3 +346,32 @@ test('ExerciseWidget-incorrect looks as approved', async ({ page }) => {
   );
   await expect(story).toHaveScreenshot('ExerciseWidget-incorrect.png');
 });
+
+// F2-13 (#97, decisión 7): la página de tema completa, en escritorio y a 390 px. Es estática —
+// la única isla es el `ExerciseWidget`, que no anima —, así que es comparable fotograma a
+// fotograma. Referencia de diseño: docs/design/03-tema-claro.png y 07-tema-movil-claro.png.
+const TOPIC_URL = '/ruta/ruta-1/m00/t01';
+const TOPIC_MOBILE_VIEWPORT = { width: 390, height: 844 };
+
+/** Abre el tema de ejemplo en tema claro y con las fuentes y la fórmula ya pintadas. */
+async function openTopic(page: Page): Promise<void> {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto(TOPIC_URL);
+  await page.addStyleTag({ content: 'astro-dev-toolbar { display: none !important; }' });
+  // `Formula` y `ExerciseWidget` son islas `client:visible`: sin esperar a que Astro las hidrate,
+  // la captura recogería el bloque de fórmula vacío (misma carrera que en /dev/widgets).
+  await expect(page.locator('[role="math"]')).toBeVisible();
+  await expect(page.getByTestId('exercise')).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+}
+
+test('Tema looks as approved', async ({ page }) => {
+  await openTopic(page);
+  await expect(page).toHaveScreenshot('Tema.png', { fullPage: true });
+});
+
+test('Tema-mobile looks as approved', async ({ page }) => {
+  await page.setViewportSize(TOPIC_MOBILE_VIEWPORT);
+  await openTopic(page);
+  await expect(page).toHaveScreenshot('Tema-mobile.png', { fullPage: true });
+});

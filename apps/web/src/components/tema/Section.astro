@@ -1,0 +1,48 @@
+---
+// Shell of every topic section (docs/CONTENT-STANDARDS.md §2): the MDX never writes its own
+// `## Gancho`, each section component paints its `h2` with the i18n title and a fixed anchor
+// (#97, decision 1), so the outline of Tema.astro always finds the same seven ids.
+interface Props {
+  /** Fixed anchor of the section: `gancho`, `concepto`, … */
+  id: string;
+  /** Title already translated by the section component. */
+  title: string;
+  /** Position in the topic, painted in mono before the title (docs/design/03-tema-claro.png). */
+  number: number;
+}
+
+const { id, title, number } = Astro.props;
+const label = String(number).padStart(2, '0');
+---
+
+<section id={id} data-section={id} class="scroll-mt-[72px] mt-9 first:mt-0">
+  <h2 class="text-lg leading-tight m-0 flex items-baseline gap-3 font-semibold">
+    <span class="text-fg-muted font-mono text-xs font-normal">{label}</span>
+    {title}
+  </h2>
+  <div class="prose leading-body mt-4">
+    <slot />
+  </div>
+</section>
+
+<style>
+  /* Estilos de lectura del cuerpo de una sección: el MDX escribe Markdown, no clases. */
+  .prose :global(p),
+  .prose :global(ul),
+  .prose :global(ol) {
+    margin: var(--space-4) 0 0;
+  }
+  .prose :global(> :first-child) {
+    margin-top: 0;
+  }
+  .prose :global(ul),
+  .prose :global(ol) {
+    padding-left: var(--space-5);
+  }
+  .prose :global(li) {
+    margin-top: var(--space-1);
+  }
+  .prose :global(strong) {
+    font-weight: 600;
+  }
+</style>

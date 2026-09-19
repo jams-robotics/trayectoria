@@ -1,0 +1,56 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import { exerciseKeys, findExercise } from '../../lib/exercises';
+import Section from './Section.astro';
+import { VerificaExercise } from './VerificaExercise';
+
+// Sección 6 (docs/CONTENT-STANDARDS.md §2): de 3 a 5 ejercicios, uno por `ExerciseWidget`, con
+// el índice correlativo y `required` según `requiredExercises` del frontmatter (#97, decisión 2).
+//
+// El tema declara claves, no objetos: `content/` vive fuera de `apps/web` (ADR-0005) y un MDX no
+// resuelve los paquetes del workspace, así que la resolución ocurre aquí. La isla recibe solo la
+// clave (string serializable): Astro serializa a JSON las props de una isla `client:visible`, y
+// las funciones `generate`/`check` de `Exercise` no sobreviven esa serialización (#97, hallazgo
+// alta de auditoría del PR #119) — el objeto se resuelve en `VerificaExercise` desde el mismo
+// registro (`apps/web/src/lib/exercises.ts`).
+
+interface Props {
+  /** Claves de los ejercicios del tema, en orden de dificultad creciente. */
+  ejercicios: readonly string[];
+  /** Id del tema (`ruta-N/mNN-tNN`), que el widget reporta al adaptador de progreso. */
+  topicId: string;
+  /** Ids de los ejercicios obligatorios; `requiredExercises` del frontmatter. */
+  obligatorios?: readonly string[];
+}
+
+const { ejercicios, topicId, obligatorios = [] } = Astro.props;
+const required = new Set(obligatorios);
+
+// Una clave desconocida detiene el build nombrando el tema y la clave, igual que las referencias.
+for (const key of ejercicios) {
+  if (findExercise(key) === undefined) {
+    throw new Error(
+      `${topicId}: unknown exercise key "${key}" (components/tema/Verifica.astro); ` +
+        `known keys: ${exerciseKeys().join(', ')}`,
+    );
+  }
+}
+---
+
+<Section id="verifica" title={t('topic.sections.verifica')} number={6}>
+  <div class="grid gap-5">
+    {ejercicios.map((key, position) => {
+      const exercise = findExercise(key)!;
+      return (
+        <VerificaExercise
+          client:visible
+          exerciseKey={key}
+          topicId={topicId}
+          index={position + 1}
+          required={required.has(exercise.id)}
+        />
+      );
+    })}
+  </div>
+</Section>

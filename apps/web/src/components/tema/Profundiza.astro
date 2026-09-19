@@ -1,0 +1,44 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import { resolveReferences } from '../../lib/references';
+
+import Section from './Section.astro';
+
+// Sección 7 (docs/CONTENT-STANDARDS.md §2 y §6): de 1 a 3 referencias. El tema solo declara las
+// claves; el texto sale de `docs/REFERENCES.md` en tiempo de build (#97, decisión 2). Los hijos,
+// opcionales, son el enlace a un tema posterior que usa este.
+interface Props {
+  /** Claves de `docs/REFERENCES.md`, las mismas del frontmatter. */
+  referencias: readonly string[];
+  /** Id del tema, para nombrarlo si una clave no existe. */
+  topicId: string;
+}
+
+const { referencias, topicId } = Astro.props;
+const references = resolveReferences(referencias, topicId);
+
+/**
+ * Parte el texto de una referencia en los tramos que el Markdown de la tabla marca en itálica
+ * (`*título*`). Se recorre por tramos en vez de inyectar HTML: `set:html` está prohibido en la
+ * plataforma (docs/ops/I18N.md §1).
+ */
+const emphasised = (text: string): { text: string; italic: boolean }[] =>
+  text.split(/\*([^*]+)\*/g).map((part, index) => ({ text: part, italic: index % 2 === 1 }));
+---
+
+<Section id="profundiza" title={t('topic.sections.profundiza')} number={7}>
+  <ul class="m-0 grid list-none gap-3 p-0" aria-label={t('topic.references')}>
+    {references.map(({ key, text }) => (
+      <li class="flex gap-3" data-reference={key}>
+        <span class="text-fg-muted font-mono text-xs">{key}</span>
+        <span>
+          {emphasised(text).map((part) =>
+            part.italic ? <em>{part.text}</em> : <Fragment>{part.text}</Fragment>,
+          )}
+        </span>
+      </li>
+    ))}
+  </ul>
+  <slot />
+</Section>

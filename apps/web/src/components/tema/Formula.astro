@@ -1,0 +1,24 @@
+---
+import { Formula as FormulaWidget } from '@trayectoria/widgets';
+
+// Un bloque de fórmula dentro de `Formulas` (docs/DESIGN.md §5, Bloque de fórmula). Va en el
+// mapa de componentes MDX en vez de importarse desde el tema: `content/` vive fuera de
+// `apps/web` (ADR-0005) y no resuelve los paquetes del workspace.
+interface Props {
+  latex: string;
+  /** Variable a resaltar en la fórmula. */
+  highlight?: string;
+  /** La misma fórmula con los números ya sustituidos, bajo un divisor. */
+  substituted?: string;
+}
+
+const { latex, highlight, substituted } = Astro.props;
+---
+
+<FormulaWidget
+  client:visible
+  block
+  latex={latex}
+  {...(highlight === undefined ? {} : { highlight })}
+  {...(substituted === undefined ? {} : { substituted })}
+/>

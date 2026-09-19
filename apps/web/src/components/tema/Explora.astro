@@ -1,0 +1,14 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import Section from './Section.astro';
+
+// Sección 4 (docs/CONTENT-STANDARDS.md §2): el widget grande y de 2 a 4 `Experimento`, que el
+// MDX pasa como hijos de esta sección (#97, decisión 2).
+---
+
+<Section id="explora" title={t('topic.sections.explora')} number={4}>
+  <div class="grid gap-5">
+    <slot />
+  </div>
+</Section>
