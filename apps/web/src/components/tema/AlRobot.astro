@@ -1,0 +1,11 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import Section from './Section.astro';
+
+// Sección 5 (docs/CONTENT-STANDARDS.md §2): el concepto con los datos de «Mi robot».
+---
+
+<Section id="al-robot" title={t('topic.sections.alRobot')} number={5}>
+  <slot />
+</Section>

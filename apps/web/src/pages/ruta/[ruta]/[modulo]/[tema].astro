@@ -3,7 +3,9 @@ import type { GetStaticPaths } from 'astro';
 import { getCollection, getEntry, render } from 'astro:content';
 import { t } from '@trayectoria/i18n';
 
-import Base from '../../../../layouts/Base.astro';
+import { temaComponents } from '../../../../components/tema';
+import Tema from '../../../../layouts/Tema.astro';
+import type { TopicLink } from '../../../../layouts/Tema.astro';
 
 export const getStaticPaths = (async () => {
   const topics = await getCollection('topics');
@@ -58,79 +60,32 @@ const position = ordered.findIndex((entry) => entry.id === topic.id);
 if (position === -1) {
   throw new Error(`content/es/${ruta}/ruta.json does not list topic ${topic.id}`);
 }
-const previous = ordered[position - 1];
-const next = ordered[position + 1];
+
+/** A prerequisite is shown by its title from ruta.json; unpublished ones carry no link. */
+const prerequisites: TopicLink[] = topic.data.prerequisites.map((id) => {
+  const entry = ordered.find((item) => item.id === id);
+  if (entry === undefined) {
+    throw new Error(`content/es/${topic.id}/index.mdx: prerequisite ${id} is not in ${ruta}`);
+  }
+  return { title: entry.title, href: entry.href };
+});
 
 const { Content } = await render(topic);
-const { title, estimatedMinutes, prerequisites } = topic.data;
+const { title, estimatedMinutes, module, order } = topic.data;
+// Real progress arrives with F3-01; until then every topic of the route counts as pending.
+const DONE_TOPICS = 0;
 ---
 
-<Base title={title}>
-  <article class="mx-auto max-w-[1200px] px-5 py-9 md:px-8">
-    <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
-      <a href={`/ruta/${route.id}`} class="no-underline hover:underline">
-        {route.data.title}
-      </a>
-      {` · ${t('topic.number', { module: topic.data.module, order: topic.data.order })}`}
-    </p>
-    <h1 class="text-2xl leading-tight mt-3 max-w-[72ch] font-semibold">{title}</h1>
-    <dl class="text-fg-muted mt-4 flex flex-wrap gap-6 text-sm">
-      <div class="flex gap-2">
-        <dt>{t('topic.estimatedTime')}</dt>
-        <dd class="m-0 font-mono">{t('topic.minutes', { minutes: estimatedMinutes })}</dd>
-      </div>
-      <div class="flex gap-2">
-        <dt>{t('topic.prerequisites')}</dt>
-        <dd class="m-0 font-mono">
-          {prerequisites.length === 0 ? t('topic.noPrerequisites') : prerequisites.join(', ')}
-        </dd>
-      </div>
-    </dl>
-
-    <div class="prose-topic leading-body mt-8 max-w-[72ch]">
-      <Content />
-    </div>
-
-    <nav aria-label={t('topic.pagination')} class="border-border mt-10 border-t pt-6">
-      <ul class="m-0 flex list-none justify-between gap-5 p-0">
-        {previous !== undefined && (
-          <li>
-            <span class="text-fg-muted block text-sm">{t('topic.previous')}</span>
-            {previous.href !== undefined ? (
-              <a href={previous.href} rel="prev">
-                {previous.title}
-              </a>
-            ) : (
-              <span class="text-fg-muted">{previous.title}</span>
-            )}
-          </li>
-        )}
-        {next !== undefined && (
-          <li class="ml-auto text-right">
-            <span class="text-fg-muted block text-sm">{t('topic.next')}</span>
-            {next.href !== undefined ? (
-              <a href={next.href} rel="next">
-                {next.title}
-              </a>
-            ) : (
-              <span class="text-fg-muted">{next.title}</span>
-            )}
-          </li>
-        )}
-      </ul>
-    </nav>
-  </article>
-</Base>
-
-<style>
-  /* Minimal reading styles until F2-13 delivers the section components. */
-  .prose-topic :global(h2) {
-    font-size: var(--text-lg);
-    font-weight: 600;
-    line-height: var(--leading-tight);
-    margin-top: var(--space-9);
-  }
-  .prose-topic :global(p) {
-    margin-top: var(--space-4);
-  }
-</style>
+<Tema
+  title={title}
+  route={{ title: route.data.title, href: `/ruta/${route.id}` }}
+  eyebrow={t('topic.number', { module, order })}
+  estimatedMinutes={estimatedMinutes}
+  prerequisites={prerequisites}
+  done={DONE_TOPICS}
+  total={ordered.length}
+  previous={ordered[position - 1]}
+  next={ordered[position + 1]}
+>
+  <Content components={temaComponents} />
+</Tema>

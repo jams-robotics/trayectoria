@@ -1,0 +1,14 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import Section from './Section.astro';
+
+// Sección 3 (docs/CONTENT-STANDARDS.md §2): cada fórmula en su bloque `Formula` seguida de la
+// lista de variables (símbolo, nombre, unidad SI), que el MDX pasa como hijos.
+---
+
+<Section id="formulas" title={t('topic.sections.formulas')} number={3}>
+  <div class="grid gap-6">
+    <slot />
+  </div>
+</Section>

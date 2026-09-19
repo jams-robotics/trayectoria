@@ -1,0 +1,11 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import Section from './Section.astro';
+
+// Sección 2 (docs/CONTENT-STANDARDS.md §2): 150 a 350 palabras con la visualización al lado.
+---
+
+<Section id="concepto" title={t('topic.sections.concepto')} number={2}>
+  <slot />
+</Section>

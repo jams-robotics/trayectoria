@@ -86,6 +86,26 @@
     "noPrerequisites": "ninguno",
     "pagination": "Temas anterior y siguiente",
     "previous": "Anterior",
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "progress": "Progreso de la ruta",
+    "progressCount": "{{done}}/{{total}}",
+    "outline": "Secciones",
+    "outlineOpen": "Ver las secciones",
+    "sections": {
+      "gancho": "Gancho",
+      "concepto": "Concepto",
+      "formulas": "Fórmulas",
+      "explora": "Explora",
+      "alRobot": "Al robot",
+      "verifica": "Verifica",
+      "profundiza": "Profundiza"
+    },
+    "experiment": {
+      "change": "Cambia",
+      "observe": "Observa",
+      "why": "¿Por qué?",
+      "answer": "Ver la respuesta"
+    },
+    "references": "Referencias"
   }
 }

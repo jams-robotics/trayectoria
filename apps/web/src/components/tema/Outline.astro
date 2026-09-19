@@ -1,0 +1,113 @@
+---
+import { t } from '@trayectoria/i18n';
+
+// Índice de las 7 secciones (#97, decisión 5). En escritorio es la lista lateral sticky de
+// 200 px de docs/DESIGN.md §5 (Navegación); en ≤ 390 px pasa al `<details>` plegado bajo la
+// cabecera de docs/design/07-tema-movil-claro.png.
+interface Props {
+  /** `true` pinta la variante plegable de móvil; por defecto, la lateral de escritorio. */
+  mobile?: boolean;
+}
+
+const { mobile = false } = Astro.props;
+
+// Las claves se escriben literales: el test estático de i18n solo ve literales (ops/I18N.md).
+const sections = [
+  { id: 'gancho', title: t('topic.sections.gancho') },
+  { id: 'concepto', title: t('topic.sections.concepto') },
+  { id: 'formulas', title: t('topic.sections.formulas') },
+  { id: 'explora', title: t('topic.sections.explora') },
+  { id: 'al-robot', title: t('topic.sections.alRobot') },
+  { id: 'verifica', title: t('topic.sections.verifica') },
+  { id: 'profundiza', title: t('topic.sections.profundiza') },
+];
+---
+
+{mobile ? (
+  <details
+    class="border-border rounded-lg bg-bg-raised mt-6 border md:hidden"
+    data-outline="mobile"
+  >
+    <summary class="min-h-11 text-fg-muted flex cursor-pointer items-center px-4 font-mono text-xs tracking-[0.06em] uppercase">
+      {t('topic.outline')}
+    </summary>
+    <nav aria-label={t('topic.outline')} class="px-4 pb-4">
+      <ol class="border-border m-0 grid list-none gap-0 border-l-2 p-0">
+        {sections.map(({ id, title }, index) => (
+          <li>
+            <a
+              href={`#${id}`}
+              data-outline-link={id}
+              class="text-fg-muted hover:text-fg min-h-11 -ml-0.5 flex items-center gap-3 border-l-2 border-transparent pl-3 no-underline"
+            >
+              <span class="font-mono text-xs">{String(index + 1).padStart(2, '0')}</span>
+              {title}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  </details>
+) : (
+  <nav
+    aria-label={t('topic.outline')}
+    data-outline="desktop"
+    class="sticky top-6 hidden w-[200px] shrink-0 md:order-1 md:block"
+  >
+    <p class="text-fg-muted m-0 font-mono text-xs tracking-[0.06em] uppercase">
+      {t('topic.outline')}
+    </p>
+    <ol class="border-border mt-3 grid list-none border-l-2 p-0">
+      {sections.map(({ id, title }) => (
+        <li>
+          <a
+            href={`#${id}`}
+            data-outline-link={id}
+            class="text-fg-muted hover:text-fg -ml-0.5 flex min-h-[40px] items-center border-l-2 border-transparent pl-3 text-sm no-underline"
+          >
+            {title}
+          </a>
+        </li>
+      ))}
+    </ol>
+  </nav>
+)}
+
+<style>
+  /* Sección actual del índice: borde y texto en `primary` (docs/DESIGN.md §5, Navegación). */
+  a[data-outline-link][aria-current='true'] {
+    border-left-color: var(--color-primary);
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+</style>
+
+<script>
+  // Marca la sección visible en el índice. `window` está permitido en apps/web (CLAUDE.md).
+  const sections = [...document.querySelectorAll<HTMLElement>('[data-section]')];
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-outline-link]')];
+  if (sections.length > 0 && links.length > 0 && 'IntersectionObserver' in window) {
+    const visible = new Set<string>();
+    const mark = (): void => {
+      const current = sections.find((section) => visible.has(section.dataset.section ?? ''));
+      for (const link of links) {
+        const active =
+          current !== undefined && link.dataset.outlineLink === current.dataset.section;
+        if (active) link.setAttribute('aria-current', 'true');
+        else link.removeAttribute('aria-current');
+      }
+    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const id = (entry.target as HTMLElement).dataset.section ?? '';
+          if (entry.isIntersecting) visible.add(id);
+          else visible.delete(id);
+        }
+        mark();
+      },
+      { rootMargin: '-72px 0px -60% 0px' },
+    );
+    for (const section of sections) observer.observe(section);
+  }
+</script>
