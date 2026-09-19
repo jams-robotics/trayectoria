@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" width="640" height="480"
+     role="img" aria-labelledby="titulo descripcion">
+  <title id="titulo">Brazo plano de 2 grados de libertad</title>
+  <desc id="descripcion">Esquema a escala del brazo plano: base fija, un primer eslabón de 0,20
+    metros girado 35 grados y un segundo eslabón de 0,15 metros girado 55 grados más, con el
+    efector tool0 en el extremo.</desc>
+
+  <!-- Escala: 1 m = 1000 px del sistema de coordenadas del dibujo, reducido a 0,001 por el
+       transform del grupo. El origen del brazo se sitúa en (170, 330) px. -->
+  <rect width="640" height="480" fill="#f7f7f5"/>
+
+  <!-- Rejilla de 0,05 m -->
+  <g stroke="#e3e3df" stroke-width="1">
+    <path d="M40 30V450M90 30V450M140 30V450M190 30V450M240 30V450M290 30V450M340 30V450M390 30V450M440 30V450M490 30V450M540 30V450M590 30V450"/>
+    <path d="M30 40H610M30 90H610M30 140H610M30 190H610M30 240H610M30 290H610M30 340H610M30 390H610M30 440H610"/>
+  </g>
+
+  <!-- Ejes del marco base -->
+  <g stroke="#9a9a93" stroke-width="1.5" fill="none">
+    <path d="M170 330H300" marker-end="url(#punta)"/>
+    <path d="M170 330V200" marker-end="url(#punta)"/>
+  </g>
+  <defs>
+    <marker id="punta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6"
+            orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#9a9a93"/>
+    </marker>
+  </defs>
+  <text x="306" y="335" font-family="ui-monospace, monospace" font-size="15" fill="#6b6b64">x</text>
+  <text x="163" y="192" font-family="ui-monospace, monospace" font-size="15" fill="#6b6b64">y</text>
+
+  <!-- Base: caja de 0,12 m de ancho -->
+  <rect x="110" y="330" width="120" height="20" rx="3" fill="#4a5462"/>
+
+  <!-- Eslabón 1: 0,20 m = 200 px a 35 grados sobre +X (en pantalla, y hacia arriba) -->
+  <line x1="170" y1="330" x2="333.8" y2="215.3" stroke="#f59e0b" stroke-width="12"
+        stroke-linecap="round"/>
+  <!-- Eslabón 2: 0,15 m = 150 px, a 35 + 55 = 90 grados -->
+  <line x1="333.8" y1="215.3" x2="333.8" y2="65.3" stroke="#f59e0b" stroke-width="12"
+        stroke-linecap="round"/>
+
+  <!-- Articulaciones -->
+  <circle cx="170" cy="330" r="13" fill="#f7f7f5" stroke="#4a5462" stroke-width="4"/>
+  <circle cx="333.8" cy="215.3" r="13" fill="#f7f7f5" stroke="#4a5462" stroke-width="4"/>
+  <!-- Efector -->
+  <circle cx="333.8" cy="65.3" r="7" fill="#4a5462"/>
+
+  <g font-family="ui-monospace, monospace" font-size="15" fill="#3a3a35">
+    <text x="196" y="288">l₁ = 0,20 m</text>
+    <text x="350" y="145">l₂ = 0,15 m</text>
+  </g>
+  <g font-family="ui-monospace, monospace" font-size="13" fill="#6b6b64">
+    <text x="139" y="372">joint1</text>
+    <text x="352" y="222">joint2</text>
+    <text x="352" y="62">tool0</text>
+    <text x="96" y="318">base_link</text>
+  </g>
+</svg>
