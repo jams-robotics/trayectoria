@@ -24,10 +24,19 @@ const WIDGETS = [
   { name: 'VectorWidget', story: 'Curriculum', shot: 'VectorWidget' },
   // The same body of T-2.1 on the 15° ramp of experiment 2 (#86, decision 7).
   { name: 'FreeBodyWidget', story: 'Ramp15', shot: 'FreeBodyWidget' },
+  // The «Explora» of T-0.3 opened with the time marker at t = 2 s, the approved case of F2-04
+  // (#87, decision 8). Its playback only advances on «Reproducir», so the three charts, the
+  // tangent and the particle are static and comparable frame to frame.
+  { name: 'KinematicsWidget', story: 'Curriculum03', shot: 'KinematicsWidget' },
 ] as const;
 
 /** Widgets drawn on a `Scene2D`: their canvas needs the measure-and-paint wait below. */
-const SCENE_WIDGETS: readonly string[] = ['Scene2D', 'VectorWidget', 'FreeBodyWidget'];
+const SCENE_WIDGETS: readonly string[] = [
+  'Scene2D',
+  'VectorWidget',
+  'FreeBodyWidget',
+  'KinematicsWidget',
+];
 
 /** Default width of a `<canvas>` with no `width` attribute yet; a scene past it has been sized. */
 const INTRINSIC_CANVAS_WIDTH_PX = 300;
@@ -54,11 +63,18 @@ for (const widget of WIDGETS) {
     // Plot loads uPlot lazily (it needs a browser), so the canvas appears one tick after the
     // card: without this the shot would catch an empty chart area (F2-01b).
     if (widget.name === 'Plot') await expect(target.locator('canvas')).toBeVisible();
+    // KinematicsWidget draws on a Scene2D and on three lazily loaded uPlot charts: wait for
+    // all four canvases, or the shot catches the charts still empty (F2-04).
+    if (widget.name === 'KinematicsWidget') {
+      await expect(target.locator('canvas')).toHaveCount(4);
+    }
     // Scene2D measures its container with a `ResizeObserver` and then paints inside a
     // `requestAnimationFrame`, so the canvas is still at its intrinsic 300 x 150 and blank when
     // it first becomes visible: wait until it has been resized to its container and painted.
     if (SCENE_WIDGETS.includes(widget.name)) {
-      const canvas = target.locator('canvas');
+      // A widget may draw on more than one canvas (KinematicsWidget has a scene and three
+      // charts); the scene is the one inside `[data-testid="scene2d"]`.
+      const canvas = target.locator('[data-testid="scene2d"] canvas');
       await expect(canvas).toBeVisible();
       await expect
         .poll(async () =>

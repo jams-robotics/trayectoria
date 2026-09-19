@@ -62,6 +62,14 @@ describe('stories catalogue', () => {
           ['Ramp15', expect.any(Function)],
         ],
       },
+      {
+        title: 'KinematicsWidget',
+        stories: [
+          ['Curriculum03', expect.any(Function)],
+          ['Mru', expect.any(Function)],
+          ['Mrua', expect.any(Function)],
+        ],
+      },
     ]);
   });
 

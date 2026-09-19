@@ -1,6 +1,6 @@
 import type uPlot from 'uplot';
 
-import type { PlotRefLine, PlotSeries, PlotAxis } from './types';
+import type { PlotRefLine, PlotSegment, PlotSeries, PlotAxis } from './types';
 import { SERIES_DASHES, seriesColor } from '../shared/theme';
 import type { PlotTheme } from '../shared/theme';
 
@@ -16,6 +16,12 @@ export const AXIS_LABEL_FONT = AXIS_FONT;
 const REF_LINE_DASH_PX = [6, 4];
 /** Gap between a reference line and its label, in CSS pixels. */
 const REF_LINE_LABEL_GAP_PX = 6;
+/** Stroke width of a segment, in CSS pixels; as thick as a series (docs/DESIGN.md §5). */
+const SEGMENT_WIDTH_PX = 2;
+/** Palette index a segment takes when it names no token (docs/DESIGN.md §2.2). */
+const SEGMENT_COLOR_INDEX = 1;
+/** Gap between a segment and its label, in CSS pixels. */
+const SEGMENT_LABEL_GAP_PX = 6;
 
 /** Axis title: label and unit, `t (s)` (docs/WIDGETS.md, docs/DESIGN.md §5). */
 export function axisTitle(axis: PlotAxis): string {
@@ -73,6 +79,8 @@ export interface BuildOptionsInput {
   width_px: number;
   height_px: number;
   refLines: readonly PlotRefLine[];
+  /** Straight segments drawn over the plot area (#87, decision 5). */
+  segments?: readonly PlotSegment[];
   /** Fixed x range of the sliding window in live mode; omitted for a static plot. */
   xRange?: readonly [number, number];
 }
@@ -83,7 +91,7 @@ export interface BuildOptionsInput {
  * reference line above every sample stays visible.
  */
 export function buildOptions(input: BuildOptionsInput): uPlot.Options {
-  const { x, y, series, theme, width_px, height_px, refLines, xRange } = input;
+  const { x, y, series, theme, width_px, height_px, refLines, segments, xRange } = input;
   const scales: uPlot.Scales = {
     x: xRange === undefined ? { time: false } : { time: false, range: [xRange[0], xRange[1]] },
     y: { range: yRange(refLines) },
@@ -98,7 +106,12 @@ export function buildOptions(input: BuildOptionsInput): uPlot.Options {
     series: buildSeries(series, theme),
     scales,
     padding: [8, 12, 0, 0],
-    plugins: [refLinesPlugin(refLines, theme)],
+    // The segments plugin is registered only when there is something to draw, so a chart
+    // without `segments` keeps exactly the plugins F2-01b gave it.
+    plugins:
+      segments === undefined || segments.length === 0
+        ? [refLinesPlugin(refLines, theme)]
+        : [refLinesPlugin(refLines, theme), segmentsPlugin(segments, theme)],
   };
 }
 
@@ -165,4 +178,63 @@ export function refLinesPlugin(refLines: readonly PlotRefLine[], theme: PlotThem
       },
     },
   };
+}
+
+/**
+ * Draws the straight segments over the plot area in data coordinates (#87, decision 5): the
+ * same clipped `draw` hook `refLines` uses, so a segment never spills over the axes. `label` is
+ * caller data, not UI text of the widget, so it is painted as given (docs/ops/I18N.md §6).
+ */
+export function segmentsPlugin(
+  segments: readonly PlotSegment[],
+  theme: PlotTheme,
+): uPlot.Plugin {
+  return {
+    hooks: {
+      draw: (self: uPlot) => {
+        if (segments.length === 0) return;
+        const { ctx } = self;
+        const { left, top, width, height } = self.bbox;
+        // `bbox` and `valToPos(…, true)` are in canvas pixels; the widths below are CSS pixels.
+        const ratio = self.width === 0 ? 1 : self.ctx.canvas.width / self.width;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(left, top, width, height);
+        ctx.clip();
+        ctx.setLineDash([]);
+        ctx.lineWidth = SEGMENT_WIDTH_PX * ratio;
+        ctx.lineCap = 'round';
+        ctx.font = `${AXIS_FONT_SIZE_PX * ratio}px ui-monospace, monospace`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        for (const segment of segments) drawSegment(self, ctx, segment, theme, ratio);
+        ctx.restore();
+      },
+    },
+  };
+}
+
+/** One segment: its stroke between both ends and, when given, its label at the far end. */
+function drawSegment(
+  self: uPlot,
+  ctx: CanvasRenderingContext2D,
+  segment: PlotSegment,
+  theme: PlotTheme,
+  ratio: number,
+): void {
+  const x0 = self.valToPos(segment.from[0], 'x', true);
+  const y0 = self.valToPos(segment.from[1], 'y', true);
+  const x1 = self.valToPos(segment.to[0], 'x', true);
+  const y1 = self.valToPos(segment.to[1], 'y', true);
+  if (![x0, y0, x1, y1].every((value) => Number.isFinite(value))) return;
+  const color = seriesColor(theme, segment.color, SEGMENT_COLOR_INDEX);
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x0, y0);
+  ctx.lineTo(x1, y1);
+  ctx.stroke();
+  if (segment.label !== undefined && segment.label !== '') {
+    ctx.fillText(segment.label, x1 + SEGMENT_LABEL_GAP_PX * ratio, y1 - SEGMENT_LABEL_GAP_PX * ratio);
+  }
 }

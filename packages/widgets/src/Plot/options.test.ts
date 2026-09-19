@@ -1,7 +1,7 @@
 import type uPlot from 'uplot';
 import { describe, expect, it, vi } from 'vitest';
 
-import { axisTitle, buildOptions, refLinesPlugin } from './options';
+import { axisTitle, buildOptions, refLinesPlugin, segmentsPlugin } from './options';
 import { readTheme } from '../shared/theme';
 import type { PlotRefLine } from './types';
 
@@ -143,5 +143,126 @@ describe('refLinesPlugin', () => {
     draw(refLinesPlugin([], THEME), chart);
 
     expect(ctx.save).not.toHaveBeenCalled();
+  });
+});
+
+// F2-04: `segments` is an additive extension of `Plot` (#87, decision 5) used to draw the
+// tangent to x(t); it must not alter anything `refLines` or the series already do.
+describe('segmentsPlugin (F2-04)', () => {
+  interface SegmentContext {
+    save: ReturnType<typeof vi.fn>;
+    restore: ReturnType<typeof vi.fn>;
+    beginPath: ReturnType<typeof vi.fn>;
+    rect: ReturnType<typeof vi.fn>;
+    clip: ReturnType<typeof vi.fn>;
+    setLineDash: ReturnType<typeof vi.fn>;
+    moveTo: ReturnType<typeof vi.fn>;
+    lineTo: ReturnType<typeof vi.fn>;
+    stroke: ReturnType<typeof vi.fn>;
+    fillText: ReturnType<typeof vi.fn>;
+    lineWidth: number;
+    strokeStyle: string;
+    textAlign: string;
+    textBaseline: string;
+  }
+
+  /** Minimal uPlot stand-in: x maps 1:1 to pixels, y is mirrored, an unknown value is NaN. */
+  function fakeChart(): { chart: uPlot; ctx: SegmentContext } {
+    const ctx = {
+      save: vi.fn(),
+      restore: vi.fn(),
+      beginPath: vi.fn(),
+      rect: vi.fn(),
+      clip: vi.fn(),
+      setLineDash: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      fillText: vi.fn(),
+      lineWidth: 0,
+      strokeStyle: '',
+      lineCap: '',
+      font: '',
+      fillStyle: '',
+      textAlign: '',
+      textBaseline: '',
+    };
+    const chart = {
+      ctx: { ...ctx, canvas: { width: 960 } },
+      width: 480,
+      bbox: { left: 0, top: 0, width: 480, height: 200 },
+      valToPos: (value: number, scale: string) =>
+        Number.isFinite(value) ? (scale === 'x' ? value * 10 : 200 - value * 10) : Number.NaN,
+    } as unknown as uPlot;
+    return { chart, ctx: (chart as unknown as { ctx: SegmentContext }).ctx };
+  }
+
+  function draw(plugin: uPlot.Plugin, chart: uPlot): void {
+    const hook = plugin.hooks.draw;
+    if (typeof hook !== 'function') throw new Error('the plugin has no draw hook');
+    hook(chart);
+  }
+
+  it('draws one solid stroke per segment, between both ends in data coordinates', () => {
+    const { chart, ctx } = fakeChart();
+    draw(segmentsPlugin([{ from: [1, 2], to: [3, 8] }], THEME), chart);
+
+    expect(ctx.moveTo).toHaveBeenCalledWith(10, 180);
+    expect(ctx.lineTo).toHaveBeenCalledWith(30, 120);
+    expect(ctx.stroke).toHaveBeenCalledTimes(1);
+    // Solid, unlike a reference line, and 2 px of CSS = 4 px on this 2x fake canvas.
+    expect(ctx.setLineDash).toHaveBeenCalledWith([]);
+    expect(ctx.lineWidth).toBe(4);
+    expect(ctx.clip).toHaveBeenCalled();
+    expect(ctx.restore).toHaveBeenCalled();
+  });
+
+  it('paints the label at the far end when the segment carries one', () => {
+    const { chart, ctx } = fakeChart();
+    draw(segmentsPlugin([{ from: [0, 0], to: [2, 2], label: 'v = 0.9 m/s' }], THEME), chart);
+
+    expect(ctx.fillText).toHaveBeenCalledWith('v = 0.9 m/s', 32, 168);
+    expect(ctx.textAlign).toBe('left');
+    expect(ctx.textBaseline).toBe('bottom');
+  });
+
+  it('skips a segment whose ends cannot be placed, and draws nothing without segments', () => {
+    const { chart, ctx } = fakeChart();
+    draw(segmentsPlugin([{ from: [Number.NaN, 0], to: [1, 1] }], THEME), chart);
+    expect(ctx.stroke).not.toHaveBeenCalled();
+
+    const empty = fakeChart();
+    draw(segmentsPlugin([], THEME), empty.chart);
+    expect(empty.ctx.save).not.toHaveBeenCalled();
+  });
+
+  it('registers the segments plugin next to the reference lines one, without replacing it', () => {
+    const built = buildOptions({
+      x: X,
+      y: Y,
+      series: SERIES,
+      theme: THEME,
+      width_px: 480,
+      height_px: 200,
+      refLines: [{ y: 0, label: 'Sin error' }],
+      segments: [{ from: [0, 0], to: [1, 1] }],
+    });
+    expect(built.plugins).toHaveLength(2);
+  });
+
+  it('leaves the plugin list of F2-01b untouched when no segment is given', () => {
+    expect(options().plugins).toHaveLength(1);
+    expect(
+      buildOptions({
+        x: X,
+        y: Y,
+        series: SERIES,
+        theme: THEME,
+        width_px: 480,
+        height_px: 200,
+        refLines: [],
+        segments: [],
+      }).plugins,
+    ).toHaveLength(1);
   });
 });
