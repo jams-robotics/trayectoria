@@ -94,6 +94,13 @@ describe('stories catalogue', () => {
           ['Power', expect.any(Function)],
         ],
       },
+      {
+        title: 'GearWidget',
+        stories: [
+          ['OneStage', expect.any(Function)],
+          ['TwoStage', expect.any(Function)],
+        ],
+      },
     ]);
   });
 
