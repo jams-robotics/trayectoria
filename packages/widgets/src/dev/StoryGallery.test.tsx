@@ -109,6 +109,14 @@ describe('stories catalogue', () => {
           ['Inverse53', expect.any(Function)],
         ],
       },
+      {
+        title: 'ExerciseWidget',
+        stories: [
+          ['Scalar', expect.any(Function)],
+          ['Vector', expect.any(Function)],
+          ['Anonymous', expect.any(Function)],
+        ],
+      },
     ]);
   });
 

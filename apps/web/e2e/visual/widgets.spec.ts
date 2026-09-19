@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
 // F2-01a: visual regression of every widget section of the /dev/widgets playground.
@@ -200,4 +200,53 @@ test('the playground renders without console errors', async ({ page }) => {
   await page.keyboard.press('ArrowRight');
   await expect(slider).not.toHaveValue(initialValue);
   expect(errors).toEqual([]);
+});
+
+// F2-10 (#94, decisión 7): las dos capturas aprobadas del ExerciseWidget son sus estados de
+// resultado, no el pendiente, así que se responde antes de disparar el tiro. La story `Scalar`
+// va con semilla fija, de modo que el enunciado y el porcentaje son los mismos en cada corrida.
+const EXERCISE_ANSWER_S = 7.608258 / 0.392499;
+
+/** Responde en la story `Scalar` del playground y devuelve su tarjeta ya verificada. */
+async function answerScalar(page: Page, response_s: number): Promise<Locator> {
+  await openPlayground(page);
+  const story = page.locator('[data-widget="ExerciseWidget"] [data-story="Scalar"]');
+  const field = story.getByRole('textbox');
+  await expect(field).toBeVisible();
+  // Astro quita el atributo `ssr` de una isla cuando React la hidrata; antes de eso la escritura
+  // y el clic se pierden en silencio (e2e/auth.spec.ts, F2-01a ronda 1).
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll('astro-island')].every((island) => !island.hasAttribute('ssr')),
+  );
+  await expect
+    .poll(async () => {
+      await field.fill(String(response_s));
+      return field.inputValue();
+    })
+    .toBe(String(response_s));
+  // El clic también puede llegar antes de que React conecte el manejador, así que se reintenta
+  // hasta que aparece la línea de resultado (misma carrera que en «Paso» de RobotOnTrack).
+  const verify = story.getByRole('button', { name: 'Comprobar' });
+  const resultLine = story.getByTestId('exercise-result');
+  await expect
+    .poll(async () => {
+      await verify.click();
+      return resultLine.count();
+    })
+    .toBeGreaterThan(0);
+  return story;
+}
+
+test('ExerciseWidget looks as approved', async ({ page }) => {
+  const story = await answerScalar(page, EXERCISE_ANSWER_S);
+  await expect(story.getByTestId('exercise-result')).toContainText('Correcto');
+  await expect(story).toHaveScreenshot('ExerciseWidget.png');
+});
+
+test('ExerciseWidget-incorrect looks as approved', async ({ page }) => {
+  const story = await answerScalar(page, 1.1 * EXERCISE_ANSWER_S);
+  await expect(story.getByTestId('exercise-result')).toContainText(
+    'Incorrecto · fuera por 10.0 %',
+  );
+  await expect(story).toHaveScreenshot('ExerciseWidget-incorrect.png');
 });
