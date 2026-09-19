@@ -122,8 +122,8 @@ function Panel({
  * The api object is rebuilt on every render — `useSimulationDriver` hands back a fresh one each
  * time — so reporting it by identity would loop: the page stores it, the store re-renders the
  * widget, and the widget reports another fresh object. It is therefore reported only when
- * something a consumer can observe actually changed: the state, whether the run is going, the
- * speed, and the trace the viewer draws.
+ * something a consumer can observe actually changed: the state of the model, whether the run is
+ * going and at what speed.
  */
 function useApiReport(
   api: LineFollowerApi,
@@ -131,10 +131,14 @@ function useApiReport(
 ): void {
   const latest = useRef(api);
   latest.current = api;
-  const { state, driver, trace_m } = api;
+  const { state, driver } = api;
+  // La traza no entra: `useLineFollower` la reconstruye en un efecto propio, así que durante una
+  // carrera rápida cada muestra publicaría una api nueva y el consumidor volvería a renderizar el
+  // widget en cadena. Quien quiera la traza la tiene en la api que recibe; lo que dispara el aviso
+  // es el estado del modelo, que ya cambia en cada tick.
   useEffect(() => {
     onApi?.(latest.current);
-  }, [onApi, state, driver.running, driver.speed, trace_m]);
+  }, [onApi, state, driver.running, driver.speed]);
 }
 
 export interface LineFollowerWidgetProps {

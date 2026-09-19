@@ -5,12 +5,21 @@ import { expect, test } from '@playwright/test';
 // guardados no entra aquí (lo cubre el test unitario de la consulta con cliente mockeado); lo que
 // se prueba es la vuelta completa con el preset óvalo y el PID por defecto, el determinismo de
 // dos cargas y la maqueta de 390 px.
+//
+// El determinismo se comprueba con pulsaciones de «Paso» y no sobre el instante en que el
+// contador de vueltas pasa a 1 (spec gap #155, resuelto): «Reproducir» integra en cada fotograma
+// el tiempo real transcurrido en pasos enteros de `dt_s`, así que el estado publicado al cruzar
+// la salida depende del reparto de fotogramas de la máquina. Un número fijo de pasos, en cambio,
+// es el mismo número de `model.step()` en cualquier parte, y el estado que sale es exacto.
 
 /** Tiempo simulado máximo admitido para la primera vuelta, en segundos (el modelo tarda ≈ 8,6 s). */
 const LAP_LIMIT_S = 60;
 
 /** Margen real para que la vuelta se complete a velocidad 4×, en milisegundos. */
 const LAP_TIMEOUT_MS = 30_000;
+
+/** Pulsaciones de «Paso» de la comprobación de determinismo (#155: «por ejemplo 200»). */
+const DETERMINISM_STEPS = 200;
 
 /** Viewport móvil de las maquetas (docs/DESIGN.md §9). */
 const MOBILE_VIEWPORT = { width: 390, height: 844 };
@@ -61,6 +70,48 @@ async function runOneLap(page: Page): Promise<string> {
   return lap_s;
 }
 
+/** Las lecturas que la página muestra, leídas en una sola evaluación del DOM. */
+interface Readout {
+  readonly t: string;
+  readonly x: string;
+  readonly y: string;
+  readonly theta: string;
+}
+
+/** Lee las lecturas del visor tal y como se ven. */
+async function readout(page: Page): Promise<Readout> {
+  return page.evaluate(() => {
+    const read = (id: string): string =>
+      document.querySelector(`[data-testid="line-follower-${id}"]`)?.textContent ?? '';
+    return { t: read('t'), x: read('x'), y: read('y'), theta: read('theta') };
+  });
+}
+
+/**
+ * Pulsa «Paso» `steps` veces y devuelve el estado resultante. «Paso» avanza exactamente un
+ * `dt_s` por pulsación sin arrancar el bucle de fotogramas, así que dos cargas que reciben el
+ * mismo número de pulsaciones pasan por la misma secuencia de estados (#155).
+ *
+ * Las pulsaciones se despachan dentro de la página y no con `locator.click()` una a una: son
+ * cientos, y el ida y vuelta del protocolo por cada una agota el tiempo del test sin probar
+ * nada más. El botón es el de verdad y el evento es el que React escucha; lo que se ahorra es
+ * la comprobación de accionabilidad, que la primera pulsación ya deja verificada.
+ */
+async function stepAndRead(page: Page, steps: number): Promise<Readout> {
+  const step = page.getByRole('button', { name: 'Paso' });
+  await expect(step).toBeEnabled();
+  await step.click();
+  await page.evaluate((remaining) => {
+    const buttons = [...document.querySelectorAll('button')];
+    const button = buttons.find((candidate) => candidate.textContent?.trim() === 'Paso');
+    if (button === undefined) throw new Error('no «Paso» button');
+    for (let k = 0; k < remaining; k += 1) button.click();
+  }, steps - 1);
+  // «Paso» no pone la simulación en marcha: nada la sigue avanzando mientras se leen las cifras.
+  await expect(page.getByRole('button', { name: 'Pausa' }).first()).toBeDisabled();
+  return readout(page);
+}
+
 test.describe('/simuladores/movil (F4-02b)', () => {
   test('el PID por defecto completa una vuelta sin perder la línea', async ({ page }) => {
     await open(page);
@@ -79,10 +130,22 @@ test.describe('/simuladores/movil (F4-02b)', () => {
     await expect(page.getByTestId('line-follower-lost')).toHaveCount(0);
   });
 
-  // El criterio «dos ejecuciones muestran el mismo `t` al completar la vuelta» está bloqueado por
-  // el spec gap #155: el modelo es determinista, pero el `t` que la interfaz muestra al cruzar la
-  // salida depende del reparto de pasos entre fotogramas de tiempo real (dispersión medida de
-  // ~0.14 s). El test se añadirá cuando el spec gap fije el observable y la tolerancia.
+  test('dos cargas con los mismos parámetros muestran el mismo estado tras N pasos', async ({
+    page,
+  }) => {
+    await open(page);
+    const first = await stepAndRead(page, DETERMINISM_STEPS);
+
+    await open(page);
+    const second = await stepAndRead(page, DETERMINISM_STEPS);
+
+    // Igualdad exacta, sin tolerancia: el mismo número de pasos sobre el mismo modelo, la misma
+    // semilla y la misma pose inicial produce los mismos estados (#155).
+    expect(second).toEqual(first);
+    // Y los pasos han avanzado de verdad: un estado congelado en el arranque también sería igual.
+    expect(Number.parseFloat(first.t)).toBeGreaterThan(0);
+    expect(first).not.toMatchObject({ x: '0.000 m', y: '0.000 m' });
+  });
 
   test('a 390 px los paneles son acordeones, hay barra inferior y no hay «Paso»', async ({
     page,

@@ -1,10 +1,12 @@
-import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 import type { LineFollowerApi, StartPose, TrackJson, TrackPreset } from '@trayectoria/sims';
 import type { RobotSpec } from '@trayectoria/widgets';
 
+import { useApi, useApiStore } from './apiStore';
+import type { ApiStore } from './apiStore';
 import { BOTTOM_BAR_HEIGHT_PX, BottomBar } from './BottomBar';
 import { MY_ROBOT_ID, RobotSource } from './RobotSource';
 import { SimAccordion } from './SimAccordion';
@@ -157,10 +159,21 @@ interface PageState {
   readonly choice: TrackChoice;
   readonly startPose: StartPose | null;
   readonly setStartPose: (pose: StartPose) => void;
-  readonly api: LineFollowerApi | null;
-  readonly setApi: (api: LineFollowerApi) => void;
   readonly onTrack: (track: TrackJson) => void;
   readonly onPreset: (preset: TrackPreset) => void;
+}
+
+/** Aplica la pose de apertura en cuanto el módulo del simulador está cargado. */
+function useOpeningPose(setStartPose: (pose: StartPose) => void): void {
+  useEffect(() => {
+    let live = true;
+    void initialPose(DEFAULT_PRESET).then((pose) => {
+      if (live) setStartPose(pose);
+    });
+    return () => {
+      live = false;
+    };
+  }, [setStartPose]);
 }
 
 /** El estado de la página: el robot, la pista, la pose inicial y la simulación en curso. */
@@ -172,7 +185,7 @@ function usePageState(): PageState {
     track: DEFAULT_PRESET,
   });
   const [startPose, setStartPose] = useState<StartPose | null>(null);
-  const [api, setApi] = useState<LineFollowerApi | null>(null);
+  useOpeningPose(setStartPose);
 
   // Cambiar la pista reinicia la simulación (el widget la reconstruye) y devuelve la pose inicial
   // al arranque del nuevo recorrido: la de la pista anterior no tiene sentido sobre esta.
@@ -181,33 +194,27 @@ function usePageState(): PageState {
     void initialPose(track).then(setStartPose);
   }, []);
 
-  // La pose de apertura, en cuanto el módulo del simulador esté cargado.
-  useEffect(() => {
-    let live = true;
-    void initialPose(DEFAULT_PRESET).then((pose) => {
-      if (live) setStartPose(pose);
-    });
-    return () => {
-      live = false;
-    };
-  }, []);
   const onPreset = useCallback((preset: TrackPreset): void => {
     setChoice((current) => ({ ...current, preset }));
   }, []);
 
-  return {
-    robotId,
-    setRobotId,
-    robot,
-    setRobot,
-    choice,
-    startPose,
-    setStartPose,
-    api,
-    setApi,
-    onTrack,
-    onPreset,
-  };
+  // Memoizado: `renderPanel` depende de este objeto, y uno nuevo en cada render hacía un bucle
+  // (nuevo `renderPanel` → el widget se vuelve a renderizar → `onApi` → `setApi` → otro objeto).
+  // Los `set*` de `useState` y los `useCallback` de arriba ya son estables.
+  return useMemo(
+    () => ({
+      robotId,
+      setRobotId,
+      robot,
+      setRobot,
+      choice,
+      startPose,
+      setStartPose,
+      onTrack,
+      onPreset,
+    }),
+    [robotId, robot, choice, startPose, onTrack, onPreset],
+  );
 }
 
 /** El origen de la pista, con lo que la página tiene elegido. */
@@ -219,6 +226,39 @@ function TrackPanel({ page }: { page: PageState }): JSX.Element {
       onTrack={page.onTrack}
       track={page.choice.track}
     />
+  );
+}
+
+/**
+ * «Lecturas»: el único panel que mira la simulación en vivo, y por eso el único que se vuelve a
+ * renderizar en cada tick. Se suscribe al store en lugar de recibir la api por props.
+ */
+function ReadoutsPanel({
+  store,
+  t,
+  mobile,
+  openId,
+  setOpenId,
+}: {
+  store: ApiStore;
+  t: Translate;
+  mobile: boolean;
+  openId: OpenPanelId;
+  setOpenId: (id: OpenPanelId) => void;
+}): JSX.Element {
+  const api = useApi(store);
+  const summary = lapSummary(api, t);
+  return (
+    <Panel
+      id="readouts"
+      title={t('sims.mobilePage.readouts')}
+      {...(summary === undefined ? {} : { summary })}
+      mobile={mobile}
+      openId={openId}
+      setOpenId={setOpenId}
+    >
+      <Readouts api={api} t={t} />
+    </Panel>
   );
 }
 
@@ -235,6 +275,7 @@ function SidePanels({
   setOpenId,
   t,
   controller,
+  store,
 }: {
   page: PageState;
   mobile: boolean;
@@ -242,8 +283,8 @@ function SidePanels({
   setOpenId: (id: OpenPanelId) => void;
   t: Translate;
   controller: ReactNode;
+  store: ApiStore;
 }): JSX.Element {
-  const summary = lapSummary(page.api, t);
   const shared = { mobile, openId, setOpenId };
   return (
     <div className="flex flex-col gap-4">
@@ -256,16 +297,15 @@ function SidePanels({
       <Panel id="track" title={t('sims.mobilePage.track')} {...shared}>
         <TrackPanel page={page} />
       </Panel>
-      <Panel
-        id="readouts"
-        title={t('sims.mobilePage.readouts')}
-        {...(summary === undefined ? {} : { summary })}
-        {...shared}
-      >
-        <Readouts api={page.api} t={t} />
-      </Panel>
+      <ReadoutsPanel store={store} t={t} {...shared} />
     </div>
   );
+}
+
+/** La barra inferior de móvil, conectada al driver en curso; se renderiza sola en cada tick. */
+function LiveBottomBar({ store }: { store: ApiStore }): JSX.Element | null {
+  const api = useApi(store);
+  return api === null ? null : <BottomBar driver={api.driver} />;
 }
 
 /** El simulador: el `LineFollowerWidget` de F4-02a con la pista, el robot y la pose de la página. */
@@ -273,10 +313,12 @@ function Simulator({
   page,
   mobile,
   renderPanel,
+  onApi,
 }: {
   page: PageState;
   mobile: boolean;
   renderPanel: (panel: ReactNode) => ReactNode;
+  onApi: (api: LineFollowerApi) => void;
 }): JSX.Element {
   const t = useT();
   return (
@@ -295,7 +337,7 @@ function Simulator({
           {...(page.robot === null ? {} : { robot: page.robot })}
           {...(page.startPose === null ? {} : { startPose: page.startPose })}
           onStartPoseChange={page.setStartPose}
-          onApi={page.setApi}
+          onApi={onApi}
           renderPanel={renderPanel}
           hideControls={mobile}
         />
@@ -315,21 +357,31 @@ export function MobileSimIsland(): JSX.Element {
   const mobile = useMounted() && narrow;
   const [openId, setOpenId] = useState<OpenPanelId>('robot');
   const page = usePageState();
+  const store = useApiStore();
 
   // El widget entrega su panel del controlador aquí y la página lo devuelve dentro de la columna
   // derecha completa (maqueta 04), con Robot, Pista y Lecturas debajo.
+  //
+  // `renderPanel` es una prop del widget, así que un `renderController` nuevo lo vuelve a
+  // renderizar; y el widget publica su estado con `onApi`, que actualiza esta página. Si el
+  // callback dependiera de `page`, cada estado publicado produciría un callback nuevo y con él
+  // otro render, es decir un bucle. Lo que cambia en cada estado se lee de un ref dentro del
+  // propio callback, de modo que su identidad solo depende de lo que cambia la maqueta.
+  const latest = useRef({ page, t });
+  latest.current = { page, t };
   const renderController = useCallback(
     (panel: ReactNode): ReactNode => (
       <SidePanels
-        page={page}
+        page={latest.current.page}
         mobile={mobile}
         openId={openId}
         setOpenId={setOpenId}
-        t={t}
+        t={latest.current.t}
         controller={panel}
+        store={store}
       />
     ),
-    [page, mobile, openId, t],
+    [mobile, openId, store],
   );
 
   // Maqueta 04: el visor a la izquierda y la columna de tarjetas a la derecha. El widget ocupa
@@ -340,8 +392,8 @@ export function MobileSimIsland(): JSX.Element {
       className="mt-6 flex flex-col gap-5"
       style={mobile ? { paddingBottom: `${String(BOTTOM_BAR_HEIGHT_PX)}px` } : undefined}
     >
-      <Simulator page={page} mobile={mobile} renderPanel={renderController} />
-      {mobile && page.api !== null ? <BottomBar driver={page.api.driver} /> : null}
+      <Simulator page={page} mobile={mobile} renderPanel={renderController} onApi={store.publish} />
+      {mobile ? <LiveBottomBar store={store} /> : null}
     </div>
   );
 }
