@@ -2,6 +2,8 @@
 import { t } from '@trayectoria/i18n';
 
 import { exerciseKeys, findExercise } from '../../lib/exercises';
+import { ProgressNotice } from '../progress/ProgressNotice';
+import { ProgressSession } from '../progress/ProgressSession';
 import Section from './Section.astro';
 import { VerificaExercise } from './VerificaExercise';
 
@@ -39,6 +41,8 @@ for (const key of ejercicios) {
 ---
 
 <Section id="verifica" title={t('topic.sections.verifica')} number={6}>
+  <ProgressSession client:load />
+  <ProgressNotice client:load />
   <div class="grid gap-5">
     {ejercicios.map((key, position) => {
       const exercise = findExercise(key)!;
@@ -49,6 +53,7 @@ for (const key of ejercicios) {
           topicId={topicId}
           index={position + 1}
           required={required.has(exercise.id)}
+          requiredExerciseIds={obligatorios}
         />
       );
     })}

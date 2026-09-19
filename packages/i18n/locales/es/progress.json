@@ -1,0 +1,15 @@
+{
+  "notice": {
+    "anonymous": "Crea una cuenta para guardar tu progreso",
+    "register": "Crear cuenta"
+  },
+  "status": {
+    "pending": "Pendiente",
+    "inProgress": "En curso",
+    "completed": "Completado"
+  },
+  "route": {
+    "label": "Progreso de la ruta",
+    "count": "{{done}}/{{total}}"
+  }
+}
