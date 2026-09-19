@@ -4,6 +4,7 @@ import type { JSX } from 'react';
 import * as energyStories from '../EnergyWidget/EnergyWidget.stories';
 import * as formulaStories from '../Formula/Formula.stories';
 import * as freeBodyStories from '../FreeBodyWidget/FreeBodyWidget.stories';
+import * as gearStories from '../GearWidget/GearWidget.stories';
 import * as kinematicsStories from '../KinematicsWidget/KinematicsWidget.stories';
 import * as paramPanelStories from '../ParamPanel/ParamPanel.stories';
 import * as plotStories from '../Plot/Plot.stories';
@@ -58,6 +59,7 @@ export const stories: readonly WidgetStories[] = [
   collect(projectileStories),
   collect(rotationStories),
   collect(energyStories),
+  collect(gearStories),
 ];
 
 function storyCase([name, Story]: readonly [string, WidgetStory]): JSX.Element {

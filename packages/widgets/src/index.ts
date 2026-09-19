@@ -164,6 +164,27 @@ export type {
   RampState,
 } from './EnergyWidget';
 
+export {
+  GearWidget,
+  MODULE_M as GEAR_MODULE_M,
+  // `angleAt` of RotationWidget sweeps an angle with a possible ramp; this one is the angle of
+  // a gear at constant speed, so the barrel keeps the two apart.
+  angleAt as gearAngleAt,
+  inputPower_W,
+  outputOmega_radps,
+  outputPower_W,
+  outputSign,
+  outputSpeed_rpm,
+  outputTorque_Nm,
+  pitchRadius_m,
+  ratioFromSpeeds,
+  shaftPower_W,
+  shaftSpeeds,
+  stageRatio,
+  totalRatio,
+} from './GearWidget';
+export type { GearStages, GearWidgetProps, ShaftSpeeds, Train } from './GearWidget';
+
 // Playground-only discovery/rendering (docs/STANDARDS.md §4: index.ts reexports the public
 // API only); the implementation lives in ./dev/StoryGallery.
 export { StoryGallery, stories } from './dev/StoryGallery';

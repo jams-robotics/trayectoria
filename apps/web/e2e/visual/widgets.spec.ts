@@ -40,6 +40,10 @@ const WIDGETS = [
   // cuerpo ya va por la rampa y las cuatro barras tienen valor, y como la reproducción solo
   // avanza con «Reproducir», la escena y las barras son comparables fotograma a fotograma.
   { name: 'EnergyWidget', story: 'Ramp', shot: 'EnergyWidget' },
+  // La «Explora» de T-4.4 (tren 12:60 y 10:50) abierta en t = 0: el caso aprobado de F2-08
+  // (#91, decisión 6). La reproducción solo avanza con «Reproducir», así que los cuatro
+  // engranajes están quietos y la escena es comparable fotograma a fotograma.
+  { name: 'GearWidget', story: 'TwoStage', shot: 'GearWidget' },
 ] as const;
 
 /** Widgets drawn on a `Scene2D`: their canvas needs the measure-and-paint wait below. */
@@ -51,6 +55,7 @@ const SCENE_WIDGETS: readonly string[] = [
   'ProjectileWidget',
   'RotationWidget',
   'EnergyWidget',
+  'GearWidget',
 ];
 
 /** Default width of a `<canvas>` with no `width` attribute yet; a scene past it has been sized. */
