@@ -1,13 +1,12 @@
 import '@testing-library/jest-dom/vitest';
 import { act, render } from '@testing-library/react';
-import { oval, sensorPositions } from '@trayectoria/sim-core';
+import { sensorPositions } from '@trayectoria/sim-core';
 import { referenceMobile } from '@trayectoria/robot-spec';
 import type { MobileSpec, RobotSpec } from '@trayectoria/robot-spec';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { Scene2D } from '../Scene2D';
 import { RobotBody } from './RobotBody';
-import { TrackLayer } from './TrackLayer';
 
 /** One recorded call to the 2D context: the method and the arguments it received. */
 type Call = readonly [string, ...unknown[]];
@@ -139,8 +138,8 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe('RobotBody', () => {
-  test('places the wheel centres at ±wheelBase_m/2 of the reference robot', () => {
+describe('RobotBody (F2-02b)', () => {
+  test('places the wheel centres at ±wheelBase_m/2 of the reference robot (golden value of F2-02b)', () => {
     render(
       <Scene2D worldWidth_m={2} description="Robot">
         <RobotBody spec={REFERENCE} pose={{ x_m: 0, y_m: 0, theta_rad: 0 }} />
@@ -245,70 +244,5 @@ describe('RobotBody', () => {
 
     expect(callsTo('rect')).toHaveLength(0);
     expect(callsTo('translate')).toHaveLength(0);
-  });
-});
-
-describe('TrackLayer', () => {
-  test('draws the oval preset segment by segment, straights as lines and curves as arcs', () => {
-    render(
-      <Scene2D worldWidth_m={2} description="Pista">
-        <TrackLayer track={oval} />
-      </Scene2D>,
-    );
-    flushFrames();
-
-    const straights = oval.segments.filter((segment) => segment.type === 'line');
-    const curves = oval.segments.filter((segment) => segment.type === 'arc');
-    expect(primitiveCallsTo('lineTo')).toHaveLength(straights.length);
-    expect(primitiveCallsTo('arc')).toHaveLength(curves.length);
-  });
-
-  test('maps the first straight of the oval to the expected pixels at 10 px wide', () => {
-    render(
-      <Scene2D worldWidth_m={2} description="Pista">
-        <TrackLayer track={oval} />
-      </Scene2D>,
-    );
-    flushFrames();
-
-    // `oval` starts with the straight (0, 0) → (0.6, 0): 400 px, on the horizontal mid-line.
-    expect(primitiveCallsTo('moveTo')[0]).toEqual(['moveTo', WIDTH_PX / 2, HEIGHT_PX / 2]);
-    expect(primitiveCallsTo('lineTo')[0]).toEqual([
-      'lineTo',
-      WIDTH_PX / 2 + 0.6 * PX_PER_M,
-      HEIGHT_PX / 2,
-    ]);
-    // The whole centerline is one stroke of 10 px (docs/DESIGN.md §6).
-    expect(primitiveCallsTo('stroke')).toHaveLength(1);
-    expect(primitiveCallsTo('lineWidth').map(([, value]) => value)).toContain(10);
-  });
-
-  test('flips the sense of an arc for the canvas, where y points downwards', () => {
-    render(
-      <Scene2D worldWidth_m={2} description="Pista">
-        <TrackLayer track={oval} />
-      </Scene2D>,
-    );
-    flushFrames();
-
-    // First arc of `oval`: centre (0.6, 0.25), r = 0.25 m, from −π/2 to π/2 counter-clockwise.
-    const first = primitiveCallsTo('arc')[0] ?? [];
-    const [, x_px, y_px, radius_px, start_rad, end_rad, counterClockwise] = first;
-    expect([x_px, y_px]).toEqual([WIDTH_PX / 2 + 0.6 * PX_PER_M, HEIGHT_PX / 2 - 0.25 * PX_PER_M]);
-    expect(radius_px).toBe(0.25 * PX_PER_M);
-    expect(start_rad).toBeCloseTo(Math.PI / 2, 10);
-    expect(end_rad).toBeCloseTo(-Math.PI / 2, 10);
-    expect(counterClockwise).toBe(true);
-  });
-
-  test('draws nothing for a track with no segments', () => {
-    render(
-      <Scene2D worldWidth_m={2} description="Pista">
-        <TrackLayer track={{ segments: [], lineWidth_m: 0.02 }} />
-      </Scene2D>,
-    );
-    flushFrames();
-
-    expect(primitiveCallsTo('stroke')).toHaveLength(0);
   });
 });

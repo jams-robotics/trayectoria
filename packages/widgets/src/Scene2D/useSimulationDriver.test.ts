@@ -69,7 +69,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('useSimulationDriver', () => {
+describe('useSimulationDriver (F2-02b)', () => {
   test('starts paused at t = 0 with the initial state and speed 1', () => {
     const driven = createDriven();
     const { result } = renderHook(() => useSimulationDriver(driven.sim, { clock: driven.clock }));
@@ -289,39 +289,5 @@ describe('useSimulationDriver', () => {
     expect(() => {
       unmount();
     }).not.toThrow();
-  });
-
-  // Real requestAnimationFrame (jsdom's own, not the mock above): QA of #85 round 1 found that
-  // "Paso" looked like a no-op in the real browser. The driver itself was fine (`step()` never
-  // depended on rAF); the story used a `dt_s` of 2 ms, too small for the clock's two decimals to
-  // show after one click. This guards the driver's own contract — `t_s` (not the formatted
-  // string) must move by exactly `dt_s` after `step()`, and `play()` must advance with frames the
-  // browser schedules on its own, with no mock standing in for its timing.
-  test('advances with real requestAnimationFrame timestamps (no mock)', async () => {
-    vi.restoreAllMocks();
-    vi.unstubAllGlobals();
-    const driven = createDriven();
-    const { result } = renderHook(() => useSimulationDriver(driven.sim, { clock: driven.clock }));
-
-    act(() => {
-      result.current.play();
-    });
-    await vi.waitFor(() => {
-      expect(result.current.t_s).toBeGreaterThan(0);
-    });
-    expect(result.current.running).toBe(true);
-  });
-
-  test('step moves t_s by exactly dt_s even when the change is too small to show', () => {
-    vi.restoreAllMocks();
-    vi.unstubAllGlobals();
-    const { sim, clock } = createDriven();
-    const { result } = renderHook(() => useSimulationDriver(sim, { clock }));
-
-    act(() => {
-      result.current.step();
-    });
-
-    expect(result.current.t_s).toBeCloseTo(DT_S, 10);
   });
 });

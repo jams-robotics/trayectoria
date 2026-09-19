@@ -22,7 +22,7 @@ function createDriver(overrides: Partial<SimulationDriver<unknown>> = {}): Simul
   };
 }
 
-describe('SimControls', () => {
+describe('SimControls (F2-02b)', () => {
   test('shows the controls in the order of the design: play, pause, step, reset', () => {
     render(<SimControls {...createDriver()} />);
 

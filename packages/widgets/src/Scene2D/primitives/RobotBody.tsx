@@ -12,9 +12,16 @@ import type { Transform } from '../transform';
 const CHASSIS_RADIUS_PX = 6;
 /** Radius of a sensor dot, in CSS pixels (docs/DESIGN.md §6). */
 const SENSOR_RADIUS_PX = 5;
-/** Outline width of the chassis, in CSS pixels; the same stroke every primitive uses. */
+/**
+ * Outline width of the chassis, in CSS pixels; the same stroke every primitive uses. Not a value
+ * fixed by docs/DESIGN.md §6 (which only sets the radii above) — chosen to match its stroke
+ * weight approximately.
+ */
 const STROKE_PX = 2;
-/** Opacity of the chassis fill, so the track underneath stays visible. */
+/**
+ * Opacity of the chassis fill, so the track underneath stays visible. Not a value fixed by
+ * docs/DESIGN.md §6 — chosen to keep the fill legible without hiding the track.
+ */
 const FILL_ALPHA = 0.18;
 /**
  * Thickness of a wheel as a share of its radius. `MobileSpec` does not carry a wheel width
