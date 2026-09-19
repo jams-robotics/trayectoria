@@ -1,4 +1,4 @@
-import type { JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 import { DEFAULT_LOST_THRESHOLD, binarize, pointAt, trackLength_m } from '@trayectoria/sim-core';
@@ -6,6 +6,8 @@ import type { Track } from '@trayectoria/sim-core';
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import { RobotBody, Scene2D, SimControls, Trace, TrackLayer } from '@trayectoria/widgets';
 
+import { StartPoseHandle, StartPoseMarker } from './StartPoseHandle';
+import type { StartPose } from './StartPoseHandle';
 import type { LineFollowerApi } from './useLineFollower';
 import type { LineFollowerState } from './model';
 
@@ -110,12 +112,25 @@ function LostNotice({ lost, t }: { lost: boolean; t: Translate }): JSX.Element |
   );
 }
 
+/**
+ * The draggable start pose (F4-02b, #128): the pose the marker sits at and the callback the drop
+ * publishes. Absent, the viewer draws no marker and behaves exactly as in F4-02a.
+ */
+export interface StartPoseControl {
+  readonly pose: StartPose;
+  readonly onStartPoseChange: (pose: StartPose) => void;
+}
+
 export interface LineFollowerViewProps {
   readonly api: LineFollowerApi;
   readonly spec: RobotSpec;
   readonly track: Track;
   /** Hides the legend and the readouts, for an embedded viewer (docs/WIDGETS.md). */
   readonly compact?: boolean;
+  /** Draggable start pose over the track (F4-02b); without it nothing changes. */
+  readonly startPose?: StartPoseControl;
+  /** Hides `SimControls`, so a page can put them in its own bar (F4-02b, docs/DESIGN.md §9.7). */
+  readonly hideControls?: boolean;
 }
 
 /**
@@ -124,31 +139,86 @@ export interface LineFollowerViewProps {
  * readings of the array and the pose, twist, lap and time readouts. It owns no state: every
  * number it prints comes from the model state the hook publishes.
  */
+/** The scene itself: track, trace, the start marker when there is one, and the robot. */
+function Viewer({
+  api,
+  spec,
+  track,
+  view,
+  marker,
+  t,
+}: {
+  api: LineFollowerApi;
+  spec: RobotSpec;
+  track: Track;
+  view: ReturnType<typeof viewOf>;
+  marker: ReactNode;
+  t: Translate;
+}): JSX.Element {
+  const { robot } = api.state;
+  return (
+    <Scene2D
+      worldWidth_m={view.worldWidth_m}
+      center_m={view.center_m}
+      description={t('sims.lineFollower.scene')}
+    >
+      <TrackLayer track={track} />
+      <Trace points_m={api.trace_m} />
+      {marker}
+      <RobotBody
+        spec={spec}
+        pose={{ x_m: robot.x_m, y_m: robot.y_m, theta_rad: robot.theta_rad }}
+        sensorStates={sensorStates(api.state)}
+      />
+    </Scene2D>
+  );
+}
+
 export function LineFollowerView({
   api,
   spec,
   track,
   compact = false,
+  startPose,
+  hideControls = false,
 }: LineFollowerViewProps): JSX.Element {
   const t = useT();
   const view = viewOf(track, compact);
-  const { state } = api;
+  const scene = (marker: ReactNode): JSX.Element => (
+    <Viewer api={api} spec={spec} track={track} view={view} marker={marker} t={t} />
+  );
   return (
     <div className="flex flex-col gap-3" data-testid="line-follower-view">
-      <Scene2D
-        worldWidth_m={view.worldWidth_m}
-        center_m={view.center_m}
-        description={t('sims.lineFollower.scene')}
-      >
-        <TrackLayer track={track} />
-        <Trace points_m={api.trace_m} />
-        <RobotBody
-          spec={spec}
-          pose={{ x_m: state.robot.x_m, y_m: state.robot.y_m, theta_rad: state.robot.theta_rad }}
-          sensorStates={sensorStates(state)}
-        />
-      </Scene2D>
-      <SimControls {...api.driver} compact={compact} />
+      {startPose === undefined ? (
+        scene(null)
+      ) : (
+        <StartPoseHandle
+          track={track}
+          pose={startPose.pose}
+          onStartPoseChange={startPose.onStartPoseChange}
+          view={view}
+        >
+          {(dragPose) => scene(<StartPoseMarker pose={dragPose} />)}
+        </StartPoseHandle>
+      )}
+      {hideControls ? null : <SimControls {...api.driver} compact={compact} />}
+      <Below state={api.state} compact={compact} t={t} />
+    </div>
+  );
+}
+
+/** The warning, the sensor legend and the readouts under the viewer. */
+function Below({
+  state,
+  compact,
+  t,
+}: {
+  state: LineFollowerState;
+  compact: boolean;
+  t: Translate;
+}): JSX.Element {
+  return (
+    <>
       <LostNotice lost={state.lineLost} t={t} />
       {compact ? null : (
         <>
@@ -156,6 +226,6 @@ export function LineFollowerView({
           <Readouts state={state} t={t} />
         </>
       )}
-    </div>
+    </>
   );
 }

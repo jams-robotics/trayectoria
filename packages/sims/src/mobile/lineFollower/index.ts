@@ -23,7 +23,16 @@ export type {
 export { useLineFollower } from './useLineFollower';
 export type { LineFollowerApi, UseLineFollowerOptions } from './useLineFollower';
 export { LineFollowerView, viewOf } from './LineFollowerView';
-export type { LineFollowerViewProps } from './LineFollowerView';
+export type { LineFollowerViewProps, StartPoseControl } from './LineFollowerView';
+export {
+  HANDLE_RADIUS_M,
+  S_STEP_M,
+  StartPoseHandle,
+  StartPoseMarker,
+  TANGENT_STEP_M,
+  poseOnTrack,
+} from './StartPoseHandle';
+export type { StartPose, StartPoseHandleProps } from './StartPoseHandle';
 export { ControllerPanel } from './ControllerPanel';
 export type { ControllerPanelProps } from './ControllerPanel';
 export { LineFollowerWidget, resolveTrack } from './LineFollowerWidget';

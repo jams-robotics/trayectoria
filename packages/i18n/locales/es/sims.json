@@ -125,5 +125,33 @@
   "playground": {
     "title": "Catálogo de simuladores",
     "lead": "Cada componente de simulación con sus configuraciones de ejemplo. Página de desarrollo: no se enlaza desde la navegación."
+  },
+  "mobilePage": {
+    "title": "Simulador móvil 2D",
+    "lead": "Elige el robot y la pista, ajusta el controlador y observa cómo sigue la línea. Los números salen del motor de simulación, no del dibujo.",
+    "robot": "Robot",
+    "robotSource": "Origen del robot",
+    "myRobot": "Mi robot",
+    "savedRobots": "Robots guardados",
+    "savedEmpty": "Todavía no tienes robots guardados.",
+    "savedError": "No se pudieron leer los robots guardados.",
+    "track": "Pista",
+    "trackSource": "Origen de la pista",
+    "preset": "Preset",
+    "edit": "Editar",
+    "editHide": "Ocultar el editor",
+    "loadJson": "Cargar JSON",
+    "loadInput": "Archivo de pista en JSON",
+    "loadError": "El archivo no es una pista válida: {{reason}}",
+    "startPose": "Pose inicial sobre la pista",
+    "startS": "Posición s (m)",
+    "controller": "Controlador",
+    "readouts": "Lecturas",
+    "controls": "Controles de simulación",
+    "expand": "ver",
+    "collapse": "ocultar",
+    "summaryLaps": "{{laps}} vueltas · t {{time}} s",
+    "readoutsEmpty": "Todavía no hay lecturas; pulsa Reproducir.",
+    "loading": "Cargando el simulador…"
   }
 }
