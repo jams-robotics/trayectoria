@@ -264,4 +264,4 @@ export type { ToastProps, ToastTone } from './shared/Toast';
 // Playground-only discovery/rendering (docs/STANDARDS.md §4: index.ts reexports the public
 // API only); the implementation lives in ./dev/StoryGallery.
 export { StoryGallery, stories } from './dev/StoryGallery';
-export type { WidgetStory, WidgetStories } from './dev/StoryGallery';
+export type { WidgetStory, WidgetStories, StoryGalleryProps } from './dev/StoryGallery';

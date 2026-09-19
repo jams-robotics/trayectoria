@@ -88,13 +88,33 @@ const SCENE_WIDGETS: readonly string[] = [
 /** Default width of a `<canvas>` with no `width` attribute yet; a scene past it has been sized. */
 const INTRINSIC_CANVAS_WIDTH_PX = 300;
 
-async function openPlayground(page: Page): Promise<void> {
+/**
+ * Opens the playground in the light theme. With `section` the page renders only that widget's
+ * section (#108, decision 2): every capture is then taken over a page that holds nothing but
+ * its own widget, so adding a story to another widget no longer shifts it down the page and
+ * invalidates its snapshot (spec gap #117). Without it the whole catalogue is rendered, which
+ * is what the interaction tests below need.
+ *
+ * The gallery is a `client:only` island (QA #108, PR #140: with SSR, `Astro.url.searchParams`
+ * never saw the query string and every section rendered regardless of it), so there is no `ssr`
+ * attribute to wait out — the DOM is simply empty until React mounts. Waiting for a `[data-story]`
+ * to become visible is the equivalent hydration gate for this page.
+ */
+async function openPlayground(page: Page, section?: string): Promise<void> {
   // With nothing stored, the inline script of Base.astro follows the system preference; the
   // snapshots are approved in the light theme (decision of the assignment comment of #82).
   await page.emulateMedia({ colorScheme: 'light' });
-  await page.goto('/dev/widgets');
+  const query = section === undefined ? '' : `?section=${encodeURIComponent(section)}`;
+  await page.goto(`/dev/widgets${query}`);
   // The Astro dev toolbar floats over the page in `astro dev`; it is not part of any widget.
   await page.addStyleTag({ content: 'astro-dev-toolbar { display: none !important; }' });
+  await expect(page.locator('[data-story]').first()).toBeVisible();
+  if (section !== undefined) {
+    // The whole point of the filter (#108, decision 2): only the requested widget's section
+    // is in the DOM, so this page never moves when a story is added to another widget.
+    await expect(page.locator('[data-widget]')).toHaveCount(1);
+    await expect(page.locator('[data-widget]')).toHaveAttribute('data-widget', section);
+  }
   // Fonts settle before the screenshot, otherwise the fallback face is captured.
   await page.evaluate(() => document.fonts.ready);
 }
@@ -103,7 +123,7 @@ for (const widget of WIDGETS) {
   const story = 'story' in widget ? widget.story : undefined;
   const shot = 'shot' in widget ? widget.shot : widget.name;
   test(`${shot} looks as approved`, async ({ page }) => {
-    await openPlayground(page);
+    await openPlayground(page, widget.name);
     const section = page.locator(`[data-widget="${widget.name}"]`);
     const target = story === undefined ? section : section.locator(`[data-story="${story}"]`);
     await expect(target).toBeVisible();
@@ -265,15 +285,13 @@ const EXERCISE_ANSWER_S = 7.608258 / 0.392499;
 
 /** Responde en la story `Scalar` del playground y devuelve su tarjeta ya verificada. */
 async function answerScalar(page: Page, response_s: number): Promise<Locator> {
-  await openPlayground(page);
+  await openPlayground(page, 'ExerciseWidget');
   const story = page.locator('[data-widget="ExerciseWidget"] [data-story="Scalar"]');
   const field = story.getByRole('textbox');
   await expect(field).toBeVisible();
-  // Astro quita el atributo `ssr` de una isla cuando React la hidrata; antes de eso la escritura
-  // y el clic se pierden en silencio (e2e/auth.spec.ts, F2-01a ronda 1).
-  await page.waitForFunction(() =>
-    [...document.querySelectorAll('astro-island')].every((island) => !island.hasAttribute('ssr')),
-  );
+  // `openPlayground` ya esperó a que el primer `[data-story]` fuera visible, lo que en un
+  // island `client:only` (QA #108, PR #140) ya implica que React lo hidrató: no hay atributo
+  // `ssr` que esperar aquí.
   await expect
     .poll(async () => {
       await field.fill(String(response_s));
@@ -298,14 +316,12 @@ async function answerScalar(page: Page, response_s: number): Promise<Locator> {
 // estimada de la real; con la calibración exacta las dos se superpondrían y la captura no
 // probaría nada. La reproducción solo avanza con «Reproducir», así que la escena está quieta.
 test('DiffDriveWidget-odometry looks as approved', async ({ page }) => {
-  await openPlayground(page);
+  await openPlayground(page, 'DiffDriveWidget');
   const story = page.locator('[data-widget="DiffDriveWidget"] [data-story="Odometry54"]');
   await expect(story).toBeVisible();
-  // Astro quita el atributo `ssr` de una isla cuando React la hidrata; antes de eso lo que se
-  // escriba en el campo se pierde en silencio (e2e/auth.spec.ts, F2-01a ronda 1).
-  await page.waitForFunction(() =>
-    [...document.querySelectorAll('astro-island')].every((island) => !island.hasAttribute('ssr')),
-  );
+  // `openPlayground` ya esperó a que el primer `[data-story]` fuera visible, lo que en un
+  // island `client:only` (QA #108, PR #140) ya implica que React lo hidrató: no hay atributo
+  // `ssr` que esperar aquí.
   const believedRadius = story.getByRole('textbox', { name: /Radio de rueda creído/ });
   await expect
     .poll(async () => {

@@ -14,7 +14,7 @@ vi.mock('@react-three/drei', () => ({
   Html: ({ children }: { children: ReactNode }) => <div>{children}</div>,
 }));
 
-import { StoryGallery, stories } from './StoryGallery';
+import { StoryGallery, includesScene3D, sectionsFor, stories } from './StoryGallery';
 
 // F2-01a (ronda 1): the story order must be fixed and explicit — it must not depend on the
 // iteration order of a stories module's export object, which differs between the server render
@@ -182,4 +182,69 @@ describe('stories catalogue', () => {
     expect(namesOf(first)).toEqual(expected);
     expect(namesOf(second)).toEqual(expected);
   });
+});
+
+// #108, decision 2: a snapshot of e2e/visual is taken over `/dev/widgets?section=<Nombre>`, so
+// adding a story to one widget no longer shifts the capture of another one down the page. The
+// URL is read in `apps/web` (`window` is off limits here) and arrives as the `section` prop.
+describe('section filter', () => {
+  test('renders only the requested section', () => {
+    const { container } = render(<StoryGallery section="SimControls" />);
+    const titles = Array.from(container.querySelectorAll('[data-widget]')).map((element) =>
+      element.getAttribute('data-widget'),
+    );
+    expect(titles).toEqual(['SimControls']);
+    const names = Array.from(container.querySelectorAll('[data-story]')).map((element) =>
+      element.getAttribute('data-story'),
+    );
+    expect(names).toEqual(['Full', 'Compact']);
+  });
+
+  // `null` is what `URLSearchParams.get` returns for a parameter that is not in the URL, so it
+  // is the value `/dev/widgets` passes when nobody asked for a section.
+  test('renders the whole catalogue without a section, with null and with an empty one', () => {
+    const all = stories.map(({ title }) => title);
+    expect(sectionsFor(undefined).map(({ title }) => title)).toEqual(all);
+    expect(sectionsFor(null).map(({ title }) => title)).toEqual(all);
+    expect(sectionsFor('').map(({ title }) => title)).toEqual(all);
+    const { container } = render(<StoryGallery />);
+    // Only the statically imported sections: the lazy `Scene3D` one resolves on its own
+    // microtask, so whether it is already in the DOM depends on timing (#96).
+    const titles = Array.from(container.querySelectorAll('[data-widget]'))
+      .map((element) => element.getAttribute('data-widget') ?? '')
+      .filter((title) => title !== 'Scene3D');
+    expect(titles).toEqual(all);
+  });
+
+  test('renders nothing for a section that is not in the catalogue', () => {
+    expect(sectionsFor('NoSuchWidget')).toEqual([]);
+    const { container } = render(<StoryGallery section="NoSuchWidget" />);
+    // `Scene3D` is behind the same filter, so an unknown section renders no section at all.
+    expect(container.querySelectorAll('[data-widget]')).toHaveLength(0);
+  });
+
+  // The `Scene3D` section is the lazy one, so the filter decides over its `Suspense` boundary
+  // instead of over the `stories` array: with another widget requested its chunk is not even
+  // imported, and `?section=Scene3D` still gets it.
+  test('keeps `Scene3D` only when it is the requested section or none is', () => {
+    expect(includesScene3D(undefined)).toBe(true);
+    expect(includesScene3D(null)).toBe(true);
+    expect(includesScene3D('')).toBe(true);
+    expect(includesScene3D('Scene3D')).toBe(true);
+    expect(includesScene3D('SimControls')).toBe(false);
+  });
+
+  test('resolves the lazy `Scene3D` section on its own', async () => {
+    const { container } = render(<StoryGallery section="Scene3D" />);
+    await waitFor(
+      () => {
+        expect(container.querySelector('[data-widget="Scene3D"]')).not.toBeNull();
+      },
+      { timeout: 25000 },
+    );
+    const titles = Array.from(container.querySelectorAll('[data-widget]')).map((element) =>
+      element.getAttribute('data-widget'),
+    );
+    expect(titles).toEqual(['Scene3D']);
+  }, 30000);
 });
