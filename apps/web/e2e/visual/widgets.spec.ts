@@ -293,6 +293,46 @@ async function answerScalar(page: Page, response_s: number): Promise<Locator> {
   return story;
 }
 
+// F2-09b (#93, decisión 4): la «Explora» de T-5.4 abierta en t = 10 s. La captura se toma con
+// el radio creído en 0.033 m, un milímetro por encima del real, que es lo que separa la traza
+// estimada de la real; con la calibración exacta las dos se superpondrían y la captura no
+// probaría nada. La reproducción solo avanza con «Reproducir», así que la escena está quieta.
+test('DiffDriveWidget-odometry looks as approved', async ({ page }) => {
+  await openPlayground(page);
+  const story = page.locator('[data-widget="DiffDriveWidget"] [data-story="Odometry54"]');
+  await expect(story).toBeVisible();
+  // Astro quita el atributo `ssr` de una isla cuando React la hidrata; antes de eso lo que se
+  // escriba en el campo se pierde en silencio (e2e/auth.spec.ts, F2-01a ronda 1).
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll('astro-island')].every((island) => !island.hasAttribute('ssr')),
+  );
+  const believedRadius = story.getByRole('textbox', { name: /Radio de rueda creído/ });
+  await expect
+    .poll(async () => {
+      await believedRadius.fill('0.033');
+      await believedRadius.press('Enter');
+      return believedRadius.inputValue();
+    })
+    .toBe('0.033');
+  const canvas = story.locator('[data-testid="scene2d"] canvas');
+  await expect(canvas).toBeVisible();
+  await expect
+    .poll(async () =>
+      canvas.evaluate((element: HTMLCanvasElement, intrinsicWidth_px: number) => {
+        const ctx = element.getContext('2d');
+        if (ctx === null || element.width <= intrinsicWidth_px) return 0;
+        const { data } = ctx.getImageData(0, 0, element.width, element.height);
+        let painted = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255) painted += 1;
+        }
+        return painted;
+      }, INTRINSIC_CANVAS_WIDTH_PX),
+    )
+    .toBeGreaterThan(0);
+  await expect(story).toHaveScreenshot('DiffDriveWidget-odometry.png');
+});
+
 test('ExerciseWidget looks as approved', async ({ page }) => {
   const story = await answerScalar(page, EXERCISE_ANSWER_S);
   await expect(story.getByTestId('exercise-result')).toContainText('Correcto');

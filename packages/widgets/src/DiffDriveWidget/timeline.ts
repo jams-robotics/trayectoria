@@ -22,6 +22,13 @@ const TRACE_PERIOD_S = 0.05;
 /** A path in world metres: the trace the robot leaves behind. */
 export type Path = ReadonlyArray<readonly [number, number]>;
 
+/**
+ * States the preroll of `initialTime_s` went through, from `t_s = 0` to the opening instant.
+ * The odometry of F2-09b replays them so the estimated trace opens as long as the real one
+ * (#93, decision 4).
+ */
+export type Preroll = readonly DiffDriveState[];
+
 /** Pose the robot starts from and returns to on «Reiniciar» (#92, decision 6). */
 export const INITIAL_POSE: Pose = { x_m: 0, y_m: 0, theta_rad: 0 };
 
@@ -37,6 +44,10 @@ export interface Timeline {
   trace_m: Path;
   /** Moves the robot while it is paused; ignored while it is running (#92, decision 6). */
   setPose: (next: (current: Pose) => Pose) => void;
+  /** State of the model, which the odometry of F2-09b reads the encoder angles from. */
+  state: DiffDriveState;
+  /** States the preroll went through, for an estimator that opens at `initialTime_s`. */
+  preroll: Preroll;
 }
 
 /**
@@ -69,7 +80,7 @@ function useSim(
   clock: FrameClock,
   initialTime_s: number,
   command: WheelCommand,
-): { sim: Simulation<DiffDriveState, WheelCommand>; preroll: Path } {
+): { sim: Simulation<DiffDriveState, WheelCommand>; preroll: Path; states: Preroll } {
   // The preroll runs on the command the widget opens with; later ones arrive through `setInput`,
   // so this ref never makes the simulation rebuild when a slider moves.
   const opening = useRef(command);
@@ -81,13 +92,15 @@ function useSim(
       input: opening.current,
     });
     const preroll: Array<readonly [number, number]> = [];
+    const states: DiffDriveState[] = [sim.state];
     const steps = Math.round(initialTime_s / DT_S);
     const perSample = Math.round(TRACE_PERIOD_S / DT_S);
     for (let done = 0; done < steps; done += perSample) {
       sim.step(Math.min(perSample, steps - done));
       preroll.push([sim.state.x_m, sim.state.y_m]);
+      states.push(sim.state);
     }
-    return { sim, preroll };
+    return { sim, preroll, states };
   }, [clock, spec, initialTime_s]);
 }
 
@@ -115,7 +128,7 @@ export function useTimeline(
   initialTime_s: number,
 ): Timeline {
   const clock = useMemo(() => createFrameClock(), []);
-  const { sim, preroll } = useSim(spec, clock, initialTime_s, command);
+  const { sim, preroll, states } = useSim(spec, clock, initialTime_s, command);
   sim.setInput(command);
 
   const driver = useSimulationDriver(sim, { clock });
@@ -140,6 +153,8 @@ export function useTimeline(
       reset: live(driver.reset),
     },
     trace_m,
+    state: driver.state,
+    preroll: states,
     setPose: (next) => {
       if (driver.running) return;
       setManual((current) => next(current ?? integrated));

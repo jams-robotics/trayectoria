@@ -4,10 +4,15 @@ import { DiffDriveWidget } from './DiffDriveWidget';
 
 // `order` fixes the story sequence rendered by the /dev/widgets playground explicitly,
 // independent of module export iteration order (docs/audits F2-01a: hydration mismatch).
-export default { title: 'DiffDriveWidget', order: ['Forward51', 'Forward52', 'Inverse53'] };
+export default {
+  title: 'DiffDriveWidget',
+  order: ['Forward51', 'Forward52', 'Inverse53', 'Odometry54'],
+};
 
 /** Time the captured story opens at, in seconds (#92, decision 7). */
 const CAPTURE_TIME_S = 3;
+/** Time the odometry story opens at, in seconds (#93, decision 4). */
+const ODOMETRY_CAPTURE_TIME_S = 10;
 
 /** The exact props of the «Explora» of T-5.1: the frames and the trace while it arcs. */
 export function Forward51(): JSX.Element {
@@ -45,6 +50,23 @@ export function Inverse53(): JSX.Element {
       show={['icr', 'radius', 'wheelVelocities']}
       initial={{ v_mps: 0.4, omega_radps: 1.5 }}
       duration_s={6}
+    />
+  );
+}
+
+/**
+ * The «Explora» of T-5.4, opened at t = 10 s: this is the case captured in
+ * `DiffDriveWidget-odometry.png` (#93, decision 4). The believed radius of the widget opens at
+ * the real one; the snapshot is taken after moving it to 0.033 m, which separates both traces.
+ */
+export function Odometry54(): JSX.Element {
+  return (
+    <DiffDriveWidget
+      mode="odometry"
+      show={['trace', 'frames']}
+      initial={{ omegaL_radps: 12, omegaR_radps: 13 }}
+      duration_s={20}
+      initialTime_s={ODOMETRY_CAPTURE_TIME_S}
     />
   );
 }

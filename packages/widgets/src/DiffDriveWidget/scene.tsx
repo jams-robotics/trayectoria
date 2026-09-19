@@ -7,6 +7,7 @@ import { Axes } from '../Scene2D/primitives/Axes';
 import { Circle } from '../Scene2D/primitives/Circle';
 import { Grid } from '../Scene2D/primitives/Grid';
 import { Label } from '../Scene2D/primitives/Label';
+import { Rect } from '../Scene2D/primitives/Rect';
 import { RobotBody } from '../Scene2D/primitives/RobotBody';
 import { Trace } from '../Scene2D/primitives/Trace';
 import { Vector } from '../Scene2D/primitives/Vector';
@@ -29,6 +30,8 @@ const ICR_RADIUS_M = 0.012;
 const AXIS_LENGTH_M = 0.09;
 /** Scene metres per m/s of a wheel arrow, so 0.67 m/s stays shorter than the chassis. */
 const M_PER_MPS = 0.2;
+/** Palette token of everything the odometry estimates (#93, decision 3). */
+const ODOMETRY_COLOR = 'color-data-2';
 
 /**
  * Width of the view in metres. The ICR sits `R` to the side of the robot, so the view has to be
@@ -51,6 +54,33 @@ export function viewCentre(pose: Pose, twist: Twist): [number, number] {
   return [(pose.x_m + icr_m[0]) / 2, (pose.y_m + icr_m[1]) / 2];
 }
 
+/**
+ * Narrowest view of `mode: 'odometry'`, in metres: wide enough for a stretch of both traces to
+ * read beside the two chassis, which `MIN_VIEW_M` alone is not.
+ */
+const MIN_ODOMETRY_VIEW_M = 1.2;
+
+/**
+ * View of `mode: 'odometry'`: it frames the two poses instead of the ICR, because what the
+ * learner compares there is how far the estimate has drifted from the real robot, and a view
+ * built around a 1.9 m turning radius leaves the two chassis a handful of pixels apart (#93,
+ * decision 3). The drift is centimetres next to a 0.18 m chassis, so the width follows the gap
+ * but never closes in past `MIN_ODOMETRY_VIEW_M`, where both traces still read.
+ */
+export function odometryView(
+  pose: Pose,
+  estimated: Pose,
+): { width_m: number; centre_m: [number, number] } {
+  const gap_m = Math.hypot(estimated.x_m - pose.x_m, estimated.y_m - pose.y_m);
+  return {
+    width_m: Math.min(
+      Math.max(4 * VIEW_MARGIN * gap_m * ASPECT, MIN_ODOMETRY_VIEW_M),
+      MAX_VIEW_M,
+    ),
+    centre_m: [(pose.x_m + estimated.x_m) / 2, (pose.y_m + estimated.y_m) / 2],
+  };
+}
+
 /** Axis colours of a frame: x in `error`, y in `success` (docs/DESIGN.md §2.2 and §6). */
 const AXIS_X_COLOR = 'color-error';
 const AXIS_Y_COLOR = 'color-success';
@@ -67,7 +97,40 @@ export interface DiffDriveSceneProps {
   trace_m: ReadonlyArray<readonly [number, number]>;
   /** Moves the robot while the simulation is paused; absent while it runs (#92, decision 6). */
   onDrag?: ((point_m: readonly [number, number]) => void) | undefined;
+  /** Pose the odometry estimates and its trace; absent outside `mode: 'odometry'`. */
+  odometry?: { pose: Pose; trace_m: ReadonlyArray<readonly [number, number]> } | undefined;
   t: Translate;
+}
+
+/**
+ * The estimated pose of `mode: 'odometry'`: the chassis of the spec as an outline in
+ * `color-data-2`, with the trace it has drawn, beside the real robot (#93, decision 3).
+ */
+function Odometry({
+  pose,
+  trace_m,
+  spec,
+  withTrace,
+}: {
+  pose: Pose;
+  trace_m: ReadonlyArray<readonly [number, number]>;
+  spec: MobileSpec;
+  withTrace: boolean;
+}): JSX.Element {
+  return (
+    <>
+      {withTrace && trace_m.length > 1 ? (
+        <Trace points_m={trace_m} color={ODOMETRY_COLOR} />
+      ) : null}
+      <Rect
+        center_m={[pose.x_m, pose.y_m]}
+        width_m={spec.length_m}
+        height_m={spec.width_m}
+        angle_rad={pose.theta_rad}
+        color={ODOMETRY_COLOR}
+      />
+    </>
+  );
 }
 
 /** The ICR dot and the line from the centre of the axle to it, with `R` beside it (T-5.2). */
@@ -174,6 +237,47 @@ function WheelVelocities({
   );
 }
 
+/** The view the scene opens on: around the ICR, or around the two poses in `odometry`. */
+function viewOf(
+  pose: Pose,
+  twist: Twist,
+  odometry: DiffDriveSceneProps['odometry'],
+): { width_m: number; centre_m: [number, number] } {
+  if (odometry === undefined) {
+    return { width_m: viewWidthOf(twist), centre_m: viewCentre(pose, twist) };
+  }
+  return odometryView(pose, odometry.pose);
+}
+
+/** Description of the scene; `odometry` adds the estimated pose and trace to it (T-5.4). */
+function sceneDescription(withOdometry: boolean, t: Translate): string {
+  return t(
+    withOdometry ? 'widgets.DiffDriveWidget.sceneOdometry' : 'widgets.DiffDriveWidget.scene',
+  );
+}
+
+/** The two frames and the wheel arrows, each drawn only when `show` asks for it. */
+function Annotations({
+  pose,
+  spec,
+  command,
+  feasible,
+  show,
+  t,
+}: Pick<
+  DiffDriveSceneProps,
+  'pose' | 'spec' | 'command' | 'feasible' | 'show' | 't'
+>): JSX.Element {
+  return (
+    <>
+      {show.includes('frames') ? <Frames pose={pose} t={t} /> : null}
+      {show.includes('wheelVelocities') ? (
+        <WheelVelocities pose={pose} spec={spec} command={command} feasible={feasible} t={t} />
+      ) : null}
+    </>
+  );
+}
+
 /** The handle that drags the chassis while the simulation is paused (#92, decision 6). */
 function DragLayer({
   pose,
@@ -211,25 +315,32 @@ export function DiffDriveScene({
   show,
   trace_m,
   onDrag,
+  odometry,
   t,
 }: DiffDriveSceneProps): JSX.Element {
   const has = (name: DiffDriveShow): boolean => show.includes(name);
+  const view = viewOf(pose, twist, odometry);
   return (
     <Scene2D
-      worldWidth_m={viewWidthOf(twist)}
-      center_m={viewCentre(pose, twist)}
+      worldWidth_m={view.width_m}
+      center_m={view.centre_m}
       aspect={ASPECT}
-      description={t('widgets.DiffDriveWidget.scene')}
+      description={sceneDescription(odometry !== undefined, t)}
     >
       <Grid />
       <Axes />
       {has('trace') && trace_m.length > 1 ? <Trace points_m={trace_m} /> : null}
+      {odometry === undefined ? null : (
+        <Odometry
+          pose={odometry.pose}
+          trace_m={odometry.trace_m}
+          spec={spec}
+          withTrace={has('trace')}
+        />
+      )}
       {has('icr') ? <Icr pose={pose} twist={twist} withRadius={has('radius')} t={t} /> : null}
       <RobotBody spec={robot} pose={pose} />
-      {has('frames') ? <Frames pose={pose} t={t} /> : null}
-      {has('wheelVelocities') ? (
-        <WheelVelocities pose={pose} spec={spec} command={command} feasible={feasible} t={t} />
-      ) : null}
+      <Annotations {...{ pose, spec, command, feasible, show, t }} />
       <DragLayer pose={pose} onDrag={onDrag} t={t} />
     </Scene2D>
   );

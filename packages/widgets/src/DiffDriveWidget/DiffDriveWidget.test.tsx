@@ -136,14 +136,6 @@ describe('DiffDriveWidget (F2-09a)', () => {
     expect(valueOf('Posición y')).toBe('0.00 m');
   });
 
-  test('el modo odometría avisa de que llega en F2-09b y se comporta como directo (decisión 9)', () => {
-    render(<DiffDriveWidget mode="odometry" show={ALL_SHOW} initial={T52} />);
-
-    expect(screen.getByTestId('diffdrive-notice')).toHaveTextContent('F2-09b');
-    expect(valueOf('Radio de giro')).toBe('0.525 m');
-    expect(sliderFor('Velocidad angular de la rueda izquierda')).toBeInTheDocument();
-  });
-
   test('describe el estado en una región aria-live y la escena tiene descripción (a11y)', () => {
     render(<DiffDriveWidget mode="forward" show={ALL_SHOW} initial={T52} />);
 
@@ -190,5 +182,123 @@ describe('DiffDriveWidget (F2-09a)', () => {
     // más de media vuelta del arco de R = 0.525 m.
     expect(valueOf('Orientación en radianes')).toBe('2.74 rad');
     expect(valueOf('Radio de giro')).toBe('0.525 m');
+  });
+});
+
+/** The «Explora» of T-5.4: 12 and 13 rad/s for 20 s. */
+const T54 = { omegaL_radps: 12, omegaR_radps: 13 } as const;
+
+describe('DiffDriveWidget odometría (F2-09b)', () => {
+  test('el modo odometría abre con la calibración real del perfil (#93, decisión 3)', () => {
+    render(<DiffDriveWidget mode="odometry" show={['trace', 'frames']} initial={T54} />);
+
+    expect(sliderFor('Ticks por vuelta de rueda')).toHaveAttribute('min', '16');
+    expect(sliderFor('Ticks por vuelta de rueda')).toHaveAttribute('max', '4096');
+    expect(sliderFor('Ticks por vuelta de rueda')).toHaveValue('360');
+    expect(sliderFor('Radio de rueda creído')).toHaveValue('0.032');
+    expect(sliderFor('Radio de rueda creído')).toHaveAttribute('step', '0.0005');
+    expect(sliderFor('Distancia entre ruedas creída')).toHaveValue('0.15');
+    expect(screen.queryByTestId('diffdrive-notice')).not.toBeInTheDocument();
+  });
+
+  test('en t = 0 la pose estimada está en el origen y los errores son nulos (T-5.4)', () => {
+    render(<DiffDriveWidget mode="odometry" show={['trace']} initial={T54} duration_s={20} />);
+
+    expect(valueOf('Posición x estimada')).toBe('0.00 m');
+    expect(valueOf('Orientación estimada')).toBe('0.00 °');
+    expect(valueOf('Error de posición')).toBe('0.00 m');
+    expect(valueOf('Error de rumbo')).toBe('0.00 °');
+    expect(valueOf('Avance del paso Δs')).toBe('0.00 m');
+  });
+
+  test('con la calibración exacta la estimación sigue a la real tras varios pasos', async () => {
+    const user = userEvent.setup();
+    render(<DiffDriveWidget mode="odometry" show={['trace']} initial={T54} duration_s={20} />);
+
+    for (let click = 0; click < 30; click += 1) {
+      await user.click(screen.getByRole('button', { name: 'Paso' }));
+    }
+    expect(Number.parseFloat(valueOf('Posición x estimada'))).toBeGreaterThan(0);
+    // La cuantización de 360 ticks por vuelta deja un error de milímetros, no de centímetros.
+    expect(Number.parseFloat(valueOf('Error de posición'))).toBeLessThan(0.01);
+  });
+
+  test('un radio creído mayor adelanta la pose estimada y el error crece (experimento 2)', async () => {
+    const user = userEvent.setup();
+    render(<DiffDriveWidget mode="odometry" show={['trace']} initial={T54} duration_s={20} />);
+
+    await typeValue(user, 'Radio de rueda creído', '0.04');
+    for (let click = 0; click < 30; click += 1) {
+      await user.click(screen.getByRole('button', { name: 'Paso' }));
+    }
+    expect(Number.parseFloat(valueOf('Posición x estimada'))).toBeGreaterThan(
+      Number.parseFloat(valueOf('Posición x')),
+    );
+    expect(Number.parseFloat(valueOf('Error de posición'))).toBeGreaterThan(0.01);
+  });
+
+  test('una L creída distinta desvía el rumbo estimado (experimento 3)', async () => {
+    const user = userEvent.setup();
+    render(<DiffDriveWidget mode="odometry" show={['trace']} initial={T54} duration_s={20} />);
+
+    await typeValue(user, 'Distancia entre ruedas creída', '0.2');
+    for (let click = 0; click < 40; click += 1) {
+      await user.click(screen.getByRole('button', { name: 'Paso' }));
+    }
+    // Con L creída 0.2 en vez de 0.15 el Δθ estimado es tres cuartos del real, así que el rumbo
+    // estimado se queda corto desde el primer paso y el error solo crece mientras el robot gire.
+    // El signo es lo que prueba la desviación: el margen exacto depende de cuánto haya avanzado
+    // la simulación, que no es lo que este caso comprueba.
+    expect(Number.parseFloat(valueOf('Error de rumbo'))).toBeLessThan(0);
+    expect(Math.abs(Number.parseFloat(valueOf('Error de rumbo')))).toBeGreaterThan(
+      Math.abs(Number.parseFloat(valueOf('Error de posición'))),
+    );
+  });
+
+  test('initialTime_s abre la odometría con su traza ya recorrida (#93, decisión 4)', () => {
+    render(
+      <DiffDriveWidget
+        mode="odometry"
+        show={['trace', 'frames']}
+        initial={T54}
+        duration_s={20}
+        initialTime_s={10}
+      />,
+    );
+
+    // A los 10 s el robot lleva recorridos unos 4 m, y la estimación con la calibración exacta
+    // los sigue: ambas x son del mismo orden y el error queda en milímetros.
+    expect(Number.parseFloat(valueOf('Posición x estimada'))).not.toBe(0);
+    expect(Number.parseFloat(valueOf('Error de posición'))).toBeLessThan(0.01);
+    // Los ticks se muestran como «(izquierda, derecha ticks)» y a los 10 s ya son millares.
+    expect(valueOf('Ticks acumulados (izquierda, derecha)')).toMatch(/^\(\d{4}, \d{4} ticks\)$/);
+  });
+
+  test('«Reiniciar» devuelve la pose estimada al origen (#93, decisión 3)', async () => {
+    const user = userEvent.setup();
+    render(<DiffDriveWidget mode="odometry" show={['trace']} initial={T54} duration_s={20} />);
+
+    for (let click = 0; click < 20; click += 1) {
+      await user.click(screen.getByRole('button', { name: 'Paso' }));
+    }
+    expect(Number.parseFloat(valueOf('Posición x estimada'))).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole('button', { name: 'Reiniciar' }));
+    expect(valueOf('Posición x estimada')).toBe('0.00 m');
+    expect(valueOf('Error de posición')).toBe('0.00 m');
+  });
+
+  test('la escena y la región aria-live describen las dos poses (a11y)', () => {
+    render(<DiffDriveWidget mode="odometry" show={['trace', 'frames']} initial={T54} />);
+
+    expect(
+      screen.getByRole('img', { name: /pose real y su traza y la pose y la traza estimadas/ }),
+    ).toBeInTheDocument();
+    const status = screen
+      .getAllByRole('status')
+      .find((node) => node.textContent?.startsWith('La pose estimada es'));
+    expect(status).toBeDefined();
+    expect(status).toHaveAttribute('aria-live', 'polite');
+    expect(status).toHaveTextContent('el error de posición es 0.00 m');
   });
 });

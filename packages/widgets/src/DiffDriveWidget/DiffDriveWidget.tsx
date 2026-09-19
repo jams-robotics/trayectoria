@@ -14,22 +14,30 @@ import {
   mobileOf,
   saturate,
 } from './compute';
-import type { DiffDriveMode, DiffDriveShow, WheelCommand } from './compute';
+import type { DiffDriveMode, DiffDriveShow, Pose, WheelCommand } from './compute';
 import {
   Notice,
+  OdometryPanel,
   PosePanel,
+  applyCalibration,
   applyTheta,
   applyTwist,
   applyWheel,
+  calibrationParams,
   readDiffDrive,
   statusOf,
   twistParams,
   wheelParams,
 } from './panels';
 import type { Readout, TwistInput } from './panels';
+import { calibrationOf } from './odometry';
+import type { Calibration } from './odometry';
+import { odometryStatusOf } from './rows';
 import { DiffDriveScene } from './scene';
 import { useTimeline } from './timeline';
 import type { Timeline } from './timeline';
+import { useOdometry } from './useOdometry';
+import type { Odometry } from './useOdometry';
 
 export type { DiffDriveMode, DiffDriveShow } from './compute';
 
@@ -81,15 +89,13 @@ function Viewer({
   );
 }
 
-/** The sliders of the mode, with the notices that belong above them (#92, decisions 4 and 9). */
+/** The sliders of the mode, with the saturation notice above them (#92, decision 4). */
 function Sliders({
-  mode,
   params,
   onChange,
   feasible,
   t,
 }: {
-  mode: DiffDriveMode;
   params: ReturnType<typeof wheelParams>;
   onChange: (key: string, value: number) => void;
   feasible: boolean;
@@ -97,11 +103,18 @@ function Sliders({
 }): JSX.Element {
   return (
     <div className="flex flex-col gap-3">
-      {mode === 'odometry' ? <Notice text={t('widgets.DiffDriveWidget.odometrySoon')} tone="muted" /> : null}
       {feasible ? null : <Notice text={t('widgets.DiffDriveWidget.saturated')} tone="error" />}
       <ParamPanel params={params} onChange={onChange} />
     </div>
   );
+}
+
+/** What the scene draws of the estimation: the estimated pose and its trace (#93, decision 3). */
+function sceneOdometry(
+  odometry: Odometry | null,
+): { pose: Pose; trace_m: ReadonlyArray<readonly [number, number]> } | undefined {
+  if (odometry === null) return undefined;
+  return { pose: odometry.estimated, trace_m: odometry.trace_m };
 }
 
 /** Drags the chassis to set `x, y`; absent while the simulation runs (#92, decision 6). */
@@ -121,6 +134,25 @@ function thetaHandler(timeline: Timeline): (value_deg: number) => void {
   };
 }
 
+/** The odometry panel and its live description; nothing outside `mode: 'odometry'`. */
+function OdometryReadouts({
+  odometry,
+  real,
+  t,
+}: {
+  odometry: Odometry | null;
+  real: Pose;
+  t: Translate;
+}): JSX.Element | null {
+  if (odometry === null) return null;
+  return (
+    <>
+      <OdometryPanel odometry={odometry} real={real} t={t} />
+      <LiveStatus text={odometryStatusOf(odometry, real, t)} />
+    </>
+  );
+}
+
 /** The whole right-hand column: the pose panel, the live description and the sliders. */
 function Panels({
   mode,
@@ -130,6 +162,7 @@ function Panels({
   timeline,
   params,
   onSlider,
+  odometry,
   t,
 }: {
   mode: DiffDriveMode;
@@ -139,6 +172,7 @@ function Panels({
   timeline: Timeline;
   params: ReturnType<typeof wheelParams>;
   onSlider: (key: string, value: number) => void;
+  odometry: Odometry | null;
   t: Translate;
 }): JSX.Element {
   return (
@@ -151,8 +185,9 @@ function Panels({
         onTheta={thetaHandler(timeline)}
         t={t}
       />
+      <OdometryReadouts odometry={odometry} real={readout.pose} t={t} />
       <LiveStatus text={statusOf(readout, t)} />
-      <Sliders mode={mode} params={params} onChange={onSlider} feasible={readout.feasible} t={t} />
+      <Sliders params={params} onChange={onSlider} feasible={readout.feasible} t={t} />
     </div>
   );
 }
@@ -171,28 +206,37 @@ function useCommand(
   command: WheelCommand;
   params: ReturnType<typeof wheelParams>;
   onSlider: (key: string, value: number) => void;
+  calibration: Calibration;
 } {
   const [wheels, setWheels] = useState<WheelCommand>(() => initialCommand(initial));
   const [twist, setTwist] = useState<TwistInput>(() => initialTwist(initial));
+  const [calibration, setCalibration] = useState<Calibration>(() => calibrationOf(spec));
   const inverse = mode === 'inverse';
+  const params = inverse ? twistParams(twist, spec, t) : wheelParams(wheels, spec, t);
   return {
     command: inverse ? inverseKinematics(twist.v_mps, twist.omega_radps, spec) : wheels,
-    params: inverse ? twistParams(twist, spec, t) : wheelParams(wheels, spec, t),
+    params:
+      mode === 'odometry' ? [...params, ...calibrationParams(calibration, t)] : params,
     onSlider: (key, value) => {
       if (inverse) setTwist((current) => applyTwist(current, key, value));
       else setWheels((current) => applyWheel(current, key, value));
+      if (mode === 'odometry') {
+        setCalibration((current) => applyCalibration(current, key, value));
+      }
     },
+    calibration,
   };
 }
 
 /**
  * Mini simulator of the differential-drive robot (docs/WIDGETS.md, DiffDriveWidget;
- * docs/CURRICULUM.md T-5.1, T-5.2, T-5.3): two wheel speeds or a `v, ω` pair drive the model of
+ * docs/CURRICULUM.md T-5.1 to T-5.4): two wheel speeds or a `v, ω` pair drive the model of
  * sim-core, and the scene shows the ICR, the turning radius, the two reference frames, the
  * trace and an arrow per wheel.
  *
- * `mode: 'odometry'` belongs to F2-09b: until then it renders as `forward` with a notice
- * (#92, decision 9).
+ * `mode: 'odometry'` adds the estimated pose: the encoders of sim-core are read at every step
+ * and integrated with the calibration the learner believes, so both poses and both traces are
+ * on screen with their errors beside them (T-5.4; #93, decision 3).
  */
 export function DiffDriveWidget({
   mode,
@@ -208,11 +252,13 @@ export function DiffDriveWidget({
   const myRobot = useMyRobot();
   const applicable = robot ?? myRobot;
   const spec = useMemo(() => mobileOf(applicable), [applicable]);
-  const { command, params, onSlider } = useCommand(mode, initial, spec, t);
+  const { command, params, onSlider, calibration } = useCommand(mode, initial, spec, t);
   const applied = saturate(command, spec);
   const timeline = useTimeline(spec, applied, duration_s, initialTime_s);
   const twist = forwardKinematics(applied.omegaL_radps, applied.omegaR_radps, spec);
   const readout = readDiffDrive(timeline.pose, command, twist, spec);
+  const estimator = useOdometry(timeline.state, timeline.preroll, calibration);
+  const odometry = mode === 'odometry' ? estimator : null;
 
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
@@ -226,10 +272,11 @@ export function DiffDriveWidget({
             feasible={readout.feasible}
             trace_m={timeline.trace_m}
             onDrag={dragHandler(timeline)}
+            odometry={sceneOdometry(odometry)}
           />
         }
       />
-      <Panels {...{ mode, readout, spec, show, timeline, params, onSlider, t }} />
+      <Panels {...{ mode, readout, spec, show, timeline, params, onSlider, odometry, t }} />
     </div>
   );
 }
