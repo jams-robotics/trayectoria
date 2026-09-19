@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
-import type { JSX } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
+import type { Translate } from '@trayectoria/i18n';
 import type { RobotSpec } from '@trayectoria/robot-spec';
+import { radToDeg } from '@trayectoria/sim-core';
 import type { Mat4 } from '@trayectoria/sim-core';
 import { Frame, Scene3D } from '@trayectoria/widgets/scene3d';
 import type { URDFRobot } from 'urdf-loader';
@@ -13,7 +15,7 @@ import { UrdfModel } from './UrdfModel';
 import { readArmColors } from './armColors';
 import { loadUrdf } from './loadUrdf';
 import { useArmSim } from './useArmSim';
-import type { ArmSim } from './useArmSim';
+import type { ActuatedJoint, ArmSim, EffectorReadout } from './useArmSim';
 
 // F5-01a (#133): visor URDF con las props de `ArmViewerWidget` (docs/WIDGETS.md). `show` acepta
 // las tres opciones del catálogo, pero solo `'frames'` es operativo en este ticket; las matrices
@@ -31,6 +33,47 @@ export function translationOf(transform: Mat4): readonly [number, number, number
   return [transform[12] ?? 0, transform[13] ?? 0, transform[14] ?? 0];
 }
 
+/** Uno de los dos paneles laterales del visor, listo para envolverlo desde fuera. */
+export interface ArmViewerPanel {
+  /** Cuál de los dos paneles es. */
+  readonly id: 'joints' | 'effector';
+  /** Título del panel, ya traducido. */
+  readonly title: string;
+  /** Resumen de una línea, legible con el panel plegado (por ejemplo `x 0.000 y 0.350 z 0.000 m`). */
+  readonly summary: string;
+  /** El panel tal cual lo pinta el visor. */
+  readonly content: ReactNode;
+}
+
+/** Decimales del resumen de las articulaciones, en grados (mismo formato que el panel del efector). */
+const JOINT_SUMMARY_DECIMALS = 1;
+
+/** Resumen de una línea de las articulaciones: `joint1 90.0° · joint2 0.0°`. */
+export function jointsSummary(
+  joints: readonly ActuatedJoint[],
+  q_rad: readonly number[],
+  unit_deg: string,
+): string {
+  return joints
+    .map(
+      (joint, index) =>
+        `${joint.name} ${radToDeg(q_rad[index] ?? 0).toFixed(JOINT_SUMMARY_DECIMALS)}${unit_deg}`,
+    )
+    .join(' · ');
+}
+
+/** Resumen de una línea del efector: `x 0.000 y 0.350 z 0.000 m`. */
+export function effectorPanelSummary(readout: EffectorReadout, t: Translate): string {
+  const axes = [
+    [t('sims.arm.x'), readout.x_m],
+    [t('sims.arm.y'), readout.y_m],
+    [t('sims.arm.z'), readout.z_m],
+  ]
+    .map(([label, value]) => `${label} ${value}`)
+    .join(' ');
+  return `${axes} ${t('sims.arm.unitM')}`;
+}
+
 export interface ArmViewerProps {
   /** Brazo del catálogo a cargar (`catalog/arms/{catalogId}`). */
   catalogId?: string;
@@ -41,6 +84,13 @@ export interface ArmViewerProps {
   /** Qué capas se muestran; en este ticket solo `'frames'` es operativa. */
   show: Array<'frames' | 'matrices' | 'workspace'>;
   compact?: boolean;
+  /**
+   * Envoltorio opcional de los paneles «Articulaciones» y «Efector» (F5-01b, #134). El visor
+   * llama a esta función una vez por panel, en ese orden, y pinta lo que devuelve en lugar del
+   * panel suelto. Sirve para que la página los pliegue en acordeones en móvil (docs/DESIGN.md
+   * §9.4) sin duplicar su contenido. Sin ella el marcado es exactamente el de F5-01a.
+   */
+  renderPanel?: (panel: ArmViewerPanel) => ReactNode;
 }
 
 /** El brazo cargado del catálogo, o `null` mientras se carga o si falla. */
@@ -117,6 +167,53 @@ function ArmScene({
   );
 }
 
+/** Los dos paneles laterales del visor, en el orden en que se muestran. */
+function armPanels(sim: ArmSim, t: Translate): readonly ArmViewerPanel[] {
+  return [
+    {
+      id: 'joints',
+      title: t('sims.arm.joints'),
+      summary: jointsSummary(sim.joints, sim.q_rad, t('sims.arm.unitDeg')),
+      content: <JointSliders joints={sim.joints} q_rad={sim.q_rad} onChange={sim.setJoint} />,
+    },
+    {
+      id: 'effector',
+      title: t('sims.arm.effector'),
+      summary: effectorPanelSummary(sim.readout, t),
+      content: <EffectorPanel readout={sim.readout} />,
+    },
+  ];
+}
+
+/** La columna de paneles, envuelta por el consumidor si pasó `renderPanel`. */
+function PanelColumn({
+  panels,
+  renderPanel,
+}: {
+  panels: readonly ArmViewerPanel[];
+  renderPanel: ((panel: ArmViewerPanel) => ReactNode) | undefined;
+}): JSX.Element {
+  return (
+    <div className="flex min-w-0 flex-col gap-5 md:w-72">
+      {panels.map((panel) => (
+        <Fragment key={panel.id}>
+          {renderPanel === undefined ? panel.content : renderPanel(panel)}
+        </Fragment>
+      ))}
+    </div>
+  );
+}
+
+/** Lo que `ArmViewerReady` necesita, ya resuelto por `ArmViewer`. */
+interface ArmViewerReadyProps {
+  spec: RobotSpec;
+  robot: URDFRobot | null;
+  initialQ: number[] | undefined;
+  showFrames: boolean;
+  compact: boolean;
+  renderPanel: ((panel: ArmViewerPanel) => ReactNode) | undefined;
+}
+
 /** El visor con un brazo ya resuelto: escena, sliders y panel del efector. */
 function ArmViewerReady({
   spec,
@@ -124,15 +221,12 @@ function ArmViewerReady({
   initialQ,
   showFrames,
   compact,
-}: {
-  spec: RobotSpec;
-  robot: URDFRobot | null;
-  initialQ: number[] | undefined;
-  showFrames: boolean;
-  compact: boolean;
-}): JSX.Element {
+  renderPanel,
+}: ArmViewerReadyProps): JSX.Element {
+  const t = useT();
   const sim = useArmSim(spec, initialQ);
   const [framesVisible, setFramesVisible] = useState(showFrames);
+  const panels = armPanels(sim, t);
   return (
     <div
       className={compact ? 'flex flex-col gap-4' : 'flex flex-col gap-5 md:flex-row'}
@@ -145,10 +239,7 @@ function ArmViewerReady({
         </div>
         <ArmScene spec={spec} sim={sim} robot={robot} framesVisible={framesVisible} />
       </div>
-      <div className="flex min-w-0 flex-col gap-5 md:w-72">
-        <JointSliders joints={sim.joints} q_rad={sim.q_rad} onChange={sim.setJoint} />
-        <EffectorPanel readout={sim.readout} />
-      </div>
+      <PanelColumn panels={panels} renderPanel={renderPanel} />
     </div>
   );
 }
@@ -163,6 +254,7 @@ export function ArmViewer({
   initialQ,
   show,
   compact = false,
+  renderPanel,
 }: ArmViewerProps): JSX.Element {
   const t = useT();
   // `catalogId` siempre se carga si viene: es de donde salen la jerarquía y las mallas. `robot`,
@@ -185,6 +277,7 @@ export function ArmViewer({
       initialQ={initialQ}
       showFrames={show.includes('frames')}
       compact={compact}
+      renderPanel={renderPanel}
     />
   );
 }
