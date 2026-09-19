@@ -52,6 +52,7 @@ function ToolGroup({ tool, onTool }: Pick<ToolbarProps, 'tool' | 'onTool'>): JSX
           type="button"
           role="radio"
           aria-checked={tool === name}
+          aria-label={t(`sims.trackEditor.tool.${name}`)}
           data-tool={name}
           onClick={() => {
             onTool(name);
@@ -98,7 +99,12 @@ function PresetPicker({ onPreset }: Pick<ToolbarProps, 'onPreset'>): JSX.Element
   return (
     <label className="text-fg-muted flex items-center gap-2 text-sm">
       {t('sims.trackEditor.preset')}
-      <select className={SELECT} defaultValue="" onChange={pickPreset}>
+      <select
+        aria-label={t('sims.trackEditor.preset')}
+        className={SELECT}
+        defaultValue=""
+        onChange={pickPreset}
+      >
         <option value="">{'—'}</option>
         {PRESET_NAMES.map((name) => (
           <option key={name} value={name}>
@@ -121,13 +127,30 @@ export function Toolbar(props: ToolbarProps): JSX.Element {
   return (
     <div className="flex flex-wrap items-center gap-3" data-testid="track-editor-toolbar">
       <ToolGroup tool={tool} onTool={onTool} />
-      <button type="button" className={BUTTON} onClick={onUndo} disabled={!canUndo}>
+      <button
+        type="button"
+        aria-label={t('sims.trackEditor.undo')}
+        className={BUTTON}
+        onClick={onUndo}
+        disabled={!canUndo}
+      >
         {t('sims.trackEditor.undo')}
       </button>
-      <button type="button" className={BUTTON} onClick={onRedo} disabled={!canRedo}>
+      <button
+        type="button"
+        aria-label={t('sims.trackEditor.redo')}
+        className={BUTTON}
+        onClick={onRedo}
+        disabled={!canRedo}
+      >
         {t('sims.trackEditor.redo')}
       </button>
-      <button type="button" className={BUTTON} onClick={onSave}>
+      <button
+        type="button"
+        aria-label={t('sims.trackEditor.save')}
+        className={BUTTON}
+        onClick={onSave}
+      >
         {t('sims.trackEditor.save')}
       </button>
       <LoadButton onLoad={onLoad} />

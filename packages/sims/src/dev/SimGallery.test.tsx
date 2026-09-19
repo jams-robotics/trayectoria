@@ -8,7 +8,7 @@ import { SimGallery, sectionsFor, stories } from './SimGallery';
 // filtro `?section=` leído en `apps/web` y la misma convención `data-section` / `data-story`,
 // de modo que una captura visual se toma sobre una página que solo lleva su propia sección.
 describe('sims catalogue (F4-01b)', () => {
-  test('orders each section´s stories per its declared `default.order`', () => {
+  test("orders each section's stories per its declared `default.order`", () => {
     expect(stories).toEqual([
       {
         title: 'TrackEditor',

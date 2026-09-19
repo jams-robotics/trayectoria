@@ -154,7 +154,7 @@ function EditorBody({
   );
 }
 
-/** El error de la última carga fallida, en una región `aria-live` asertiva (spec de #126). */
+/** The error of the last failed load, in an assertive `aria-live` region (spec of #126). */
 function LoadError({ message }: { message: string | null }): JSX.Element | null {
   if (message === null) return null;
   return (

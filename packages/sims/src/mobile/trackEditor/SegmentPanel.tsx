@@ -122,6 +122,9 @@ function SegmentList({
           <button
             type="button"
             aria-pressed={selected === index}
+            aria-label={t(`sims.trackEditor.segment${segment.type === 'arc' ? 'Arc' : 'Line'}`, {
+              index: index + 1,
+            })}
             onClick={() => {
               onSelect(index);
             }}
