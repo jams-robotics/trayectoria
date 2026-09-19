@@ -11,21 +11,40 @@ export type {
   PlotRefLine,
   PlotSeries,
 } from './Plot';
-export { Scene2D, Axes, Circle, Grid, Label, Rect, Trace, Vector } from './Scene2D';
-export { createTransform, lengthToPx, pxToWorld, worldToPx } from './Scene2D';
+export {
+  Scene2D,
+  Axes,
+  Circle,
+  Grid,
+  Label,
+  Rect,
+  RobotBody,
+  Trace,
+  TrackLayer,
+  Vector,
+} from './Scene2D';
+export { createFrameClock, createTransform, lengthToPx, pxToWorld, worldToPx, useSimulationDriver } from './Scene2D';
 export type {
   AxesProps,
   CircleProps,
+  FrameClock,
   GridProps,
   LabelProps,
   RectProps,
+  RobotBodyProps,
+  RobotPose,
   Scene2DProps,
+  SimulationDriver,
+  SimulationDriverOptions,
   TraceProps,
+  TrackLayerProps,
   Transform,
   TransformInput,
   VectorProps,
   WorldBounds,
 } from './Scene2D';
+export { SPEEDS, SimControls, formatTime } from './SimControls';
+export type { SimControlsProps } from './SimControls';
 
 // Playground-only discovery/rendering (docs/STANDARDS.md §4: index.ts reexports the public
 // API only); the implementation lives in ./dev/StoryGallery.

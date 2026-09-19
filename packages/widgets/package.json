@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@trayectoria/i18n": "workspace:*",
+    "@trayectoria/robot-spec": "workspace:*",
+    "@trayectoria/sim-core": "workspace:*",
     "katex": "0.18.7",
     "uplot": "1.6.32"
   },

@@ -17,6 +17,20 @@
     "markerValue": "{{value}} {{unit}}",
     "status": "{{count}} series entre {{from}} y {{to}} en el eje horizontal"
   },
+  "SimControls": {
+    "title": "Controles de simulación",
+    "play": "Reproducir",
+    "pause": "Pausa",
+    "step": "Paso",
+    "reset": "Reiniciar",
+    "speed": "Velocidad de reproducción",
+    "speedOption": "{{speed}}×",
+    "clock": "t {{time}} s",
+    "statusRunning": "En marcha, t {{time}} s",
+    "statusPaused": "En pausa, t {{time}} s",
+    "story": "Controles con reloj",
+    "storyCompact": "Controles sin reloj, para un visor pequeño"
+  },
   "Scene2D": {
     "scale": "{{length}} m",
     "axisX": "x",
@@ -25,7 +39,9 @@
     "vectorVelocity": "v",
     "vectorForce": "F",
     "traceLabel": "traza",
-    "offCentre": "Escena centrada fuera del origen con una traza circular"
+    "offCentre": "Escena centrada fuera del origen con una traza circular",
+    "robotOnTrack": "Robot de referencia sobre la pista oval, con los sensores de línea y los controles de simulación",
+    "robotLabel": "robot"
   },
   "playground": {
     "title": "Catálogo de widgets",

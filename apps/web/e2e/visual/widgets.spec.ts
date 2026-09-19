@@ -5,6 +5,7 @@ import { expect, test } from '@playwright/test';
 // Light theme and the default viewport of the chromium project; no Supabase needed.
 // `story` narrows the shot to one case: Plot animates in `Live` and `PlotStress`, so only the
 // static case is comparable frame to frame (F2-01b, decision 8 of the assignment of #83).
+// `shot` names the PNG when it is not the widget's own name (a second approved case).
 const WIDGETS = [
   { name: 'ParamPanel' },
   { name: 'Formula' },
@@ -13,6 +14,11 @@ const WIDGETS = [
   // assignment of #84), so the whole section is comparable frame to frame; `Primitives` is the
   // approved case of the ticket (grid, axes, two vectors, a trace, a circle, a rect, a label).
   { name: 'Scene2D', story: 'Primitives' },
+  // The reference robot on the `oval` preset, captured paused at t = 0: the driver only advances
+  // on «Reproducir», so the scene is static and comparable frame to frame (F2-02b, decision 6).
+  { name: 'Scene2D', story: 'RobotOnTrack', shot: 'Scene2D-robot' },
+  // SimControls is static too: the clock only moves while the simulation is running.
+  { name: 'SimControls', story: 'Full', shot: 'SimControls' },
 ] as const;
 
 /** Default width of a `<canvas>` with no `width` attribute yet; a scene past it has been sized. */
@@ -31,7 +37,8 @@ async function openPlayground(page: Page): Promise<void> {
 
 for (const widget of WIDGETS) {
   const story = 'story' in widget ? widget.story : undefined;
-  test(`${widget.name} looks as approved`, async ({ page }) => {
+  const shot = 'shot' in widget ? widget.shot : widget.name;
+  test(`${shot} looks as approved`, async ({ page }) => {
     await openPlayground(page);
     const section = page.locator(`[data-widget="${widget.name}"]`);
     const target = story === undefined ? section : section.locator(`[data-story="${story}"]`);
@@ -60,9 +67,44 @@ for (const widget of WIDGETS) {
         )
         .toBeGreaterThan(0);
     }
-    await expect(target).toHaveScreenshot(`${widget.name}.png`);
+    await expect(target).toHaveScreenshot(`${shot}.png`);
   });
 }
+
+// F2-02b, QA round 1: unit tests mocked requestAnimationFrame and passed while the real browser
+// looked frozen. "Paso" was the reproducible half of that report — the story used a dt_s too
+// small for the clock's two decimals to show a single step — so this checks both controls
+// against the real clock text, not a mock.
+test('RobotOnTrack: Reproducir advances the clock and Paso moves it by one step', async ({
+  page,
+}) => {
+  await openPlayground(page);
+  const story = page.locator('[data-widget="Scene2D"] [data-story="RobotOnTrack"]');
+  const clock = story.locator('[data-testid="sim-clock"]');
+  await expect(clock).toHaveText(/00\.00/);
+
+  // The island hydrates asynchronously after the SSR markup is already in the DOM (F2-01a,
+  // ronda 1): a click that lands before React attaches its handlers is silently a no-op, and a
+  // single check right after it cannot tell a dropped click from a real bug. Retrying the click
+  // survives that window without weakening what it proves: once it succeeds, the clock has
+  // genuinely moved off `00.00`.
+  const stepButton = story.getByRole('button', { name: /paso/i });
+  await expect
+    .poll(
+      async () => {
+        await stepButton.click();
+        return clock.textContent();
+      },
+      { message: 'Paso should move the clock off 00.00 once the island is hydrated' },
+    )
+    .not.toMatch(/00\.00/);
+
+  await story.getByRole('button', { name: /reiniciar/i }).click();
+  await expect(clock).toHaveText(/00\.00/);
+
+  await story.getByRole('button', { name: /reproducir/i }).click();
+  await expect.poll(async () => clock.textContent()).not.toMatch(/00\.00/);
+});
 
 test('the playground renders without console errors', async ({ page }) => {
   const errors: string[] = [];
