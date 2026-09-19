@@ -86,6 +86,32 @@
     "storyPlane": "Robot en plano con tracción y fricción de rodadura",
     "storyRamp": "El mismo robot en una rampa de 15°"
   },
+  "KinematicsWidget": {
+    "panel": "Valores",
+    "scene": "Partícula sobre un eje horizontal, con su vector velocidad",
+    "time": "Tiempo",
+    "position": "Posición",
+    "velocity": "Velocidad",
+    "accel": "Aceleración",
+    "slope": "Pendiente de la tangente",
+    "axisT": "t",
+    "axisX": "x",
+    "axisV": "v",
+    "axisA": "a",
+    "paramx0": "Posición inicial",
+    "paramv0": "Velocidad inicial",
+    "parama": "Aceleración",
+    "vectorV": "v",
+    "tangentLabel": "pendiente {{slope}} m/s",
+    "unitS": "s",
+    "unitM": "m",
+    "unitMps": "m/s",
+    "unitMps2": "m/s²",
+    "status": "En t {{time}} la posición es {{position}} y la velocidad {{velocity}}",
+    "storyCurriculum": "Partícula de T-0.3 con la tangente a x–t",
+    "storyMru": "Movimiento rectilíneo uniforme de T-1.1",
+    "storyMrua": "Movimiento uniformemente acelerado de T-1.2"
+  },
   "playground": {
     "title": "Catálogo de widgets",
     "lead": "Cada widget del catálogo con sus configuraciones de ejemplo. Página de desarrollo: no se enlaza desde la navegación."

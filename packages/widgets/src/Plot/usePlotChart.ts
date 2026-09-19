@@ -186,13 +186,14 @@ export interface ChartState {
  * instance. Only structural changes rebuild the chart; the live x window is patched in place.
  */
 export function usePlotChart(props: PlotProps, t: Translate): ChartState {
-  const { x, series, live, refLines, height } = props;
+  const { x, series, live, refLines, segments, height } = props;
   const cardRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const theme = usePlotTheme(cardRef);
   const width_px = useMeasuredWidth(cardRef);
   const height_px = height ?? DEFAULT_HEIGHT_PX;
   const lines = useMemo(() => refLines ?? [], [refLines]);
+  const marks = useMemo(() => segments ?? [], [segments]);
   const y = useMemo(() => yAxisOf(series, t), [series, t]);
   const isLive = live !== undefined;
 
@@ -205,8 +206,9 @@ export function usePlotChart(props: PlotProps, t: Translate): ChartState {
   );
 
   const options = useMemo(
-    () => buildOptions({ x, y, series, theme, width_px, height_px, refLines: lines }),
-    [x, y, series, theme, width_px, height_px, lines],
+    () =>
+      buildOptions({ x, y, series, theme, width_px, height_px, refLines: lines, segments: marks }),
+    [x, y, series, theme, width_px, height_px, lines, marks],
   );
 
   const windowRef = useRef({ data, xRange, isLive });

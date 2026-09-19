@@ -9,6 +9,7 @@ export type {
   PlotMarker,
   PlotProps,
   PlotRefLine,
+  PlotSegment,
   PlotSeries,
 } from './Plot';
 export {
@@ -61,6 +62,25 @@ export type {
   FreeBodyWidgetProps,
   ResolvedForce,
 } from './FreeBodyWidget';
+export {
+  KinematicsWidget,
+  SAMPLE_PERIOD_S,
+  TANGENT_HALF_WIDTH_S,
+  accelAt,
+  positionAt,
+  positionRange,
+  sampleMotion,
+  tangentSegment,
+  velocityAt,
+  worldWidthOf,
+} from './KinematicsWidget';
+export type {
+  KinematicsEditable,
+  KinematicsWidgetProps,
+  Motion,
+  MotionSamples,
+  TangentSegment,
+} from './KinematicsWidget';
 
 // Playground-only discovery/rendering (docs/STANDARDS.md §4: index.ts reexports the public
 // API only); the implementation lives in ./dev/StoryGallery.
