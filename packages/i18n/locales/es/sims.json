@@ -49,6 +49,47 @@
     "segmentArc": "Segmento {{index}}: arco",
     "noSegments": "La pista no tiene segmentos."
   },
+  "lineFollower": {
+    "scene": "Escena del seguidor de línea: la pista, el robot con sus sensores y la traza recorrida.",
+    "sensors": "Sensores",
+    "lost": "El arreglo ha perdido la línea.",
+    "controllerGroup": "Controlador",
+    "custom": "Propio",
+    "customBadge": "v2",
+    "controller": {
+      "manual": "Manual",
+      "onoff": "On/off",
+      "p": "P",
+      "pid": "PID"
+    },
+    "param": {
+      "omegaBase_radps": "Velocidad base",
+      "delta_radps": "Corrección",
+      "kp": "Kp",
+      "ki": "Ki",
+      "kd": "Kd",
+      "iMax": "Límite integral",
+      "threshold": "Umbral"
+    },
+    "unit": {
+      "omegaBase_radps": "rad/s",
+      "delta_radps": "rad/s",
+      "kp": "",
+      "ki": "",
+      "kd": "",
+      "iMax": "",
+      "threshold": ""
+    },
+    "readout": {
+      "x": "x",
+      "y": "y",
+      "theta": "θ",
+      "v": "v",
+      "omega": "ω",
+      "laps": "Vueltas",
+      "t": "t"
+    }
+  },
   "arm": {
     "scene": "Escena 3D del brazo {{name}}: los eslabones, las articulaciones y los marcos de cada eslabón.",
     "joints": "Articulaciones",

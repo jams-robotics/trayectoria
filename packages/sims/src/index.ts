@@ -50,6 +50,45 @@ export type {
   UseTrackEditorOptions,
 } from './mobile/trackEditor';
 
+export {
+  CONTROLLERS,
+  CONTROLLER_IDS,
+  ControllerPanel,
+  LineFollowerView,
+  LineFollowerWidget,
+  START_BAND_M,
+  TRACK_INDEX_STEP_M,
+  buildTrackIndex,
+  controllerParams,
+  createLineFollowerModel,
+  crossedStart,
+  isControllerId,
+  projectOnTrack,
+  resolveTrack,
+  startPoseOf,
+  useLineFollower,
+  viewOf,
+} from './mobile/lineFollower';
+export type {
+  ControllerDef,
+  ControllerId,
+  ControllerPanelProps,
+  ControllerParams,
+  LineFollowerApi,
+  LineFollowerInput,
+  LineFollowerOptions,
+  LineFollowerPlot,
+  LineFollowerState,
+  LineFollowerViewProps,
+  LineFollowerWidgetProps,
+  Pose,
+  TrackIndex,
+  TrackJson,
+  TrackPreset,
+  TrackSample,
+  UseLineFollowerOptions,
+} from './mobile/lineFollower';
+
 // Playground-only discovery/rendering (docs/STANDARDS.md §4: index.ts reexports the public
 // API only); the implementation lives in ./dev/SimGallery.
 export { SimGallery, stories } from './dev/SimGallery';

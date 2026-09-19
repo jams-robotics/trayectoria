@@ -1,6 +1,7 @@
 import { Suspense, createElement, lazy } from 'react';
 import type { JSX } from 'react';
 
+import * as lineFollowerStories from '../mobile/lineFollower/LineFollowerWidget.stories';
 import * as trackEditorStories from '../mobile/trackEditor/TrackEditor.stories';
 
 /** One named export of a `*.stories.tsx` file: a demo component with no props. */
@@ -35,7 +36,10 @@ function collect(module: StoriesModule): SimStories {
  * Catalogue rendered by the `/dev/sims` playground: the components of `packages/sims`, the same
  * way `StoryGallery` of `packages/widgets` renders the widget catalogue (#126, decision 2).
  */
-export const stories: readonly SimStories[] = [collect(trackEditorStories)];
+export const stories: readonly SimStories[] = [
+  collect(trackEditorStories),
+  collect(lineFollowerStories),
+];
 
 function storyCase([name, Story]: readonly [string, SimStory]): JSX.Element {
   return createElement(
