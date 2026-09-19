@@ -48,6 +48,24 @@ export function parseStoredRobot(input: unknown): RobotSpec | null {
   return parsed.ok ? parsed.value : null;
 }
 
+/** Any value `JSON.stringify` round-trips unchanged; structurally the `Json` of a jsonb column. */
+export type JsonValue = string | number | boolean | null | { [key: string]: JsonValue | undefined } | JsonValue[];
+
+/**
+ * A spec as plain JSON data, ready for a `jsonb` column or `localStorage`. A `RobotSpec` is
+ * plain JSON by construction (zod objects of numbers, strings and arrays), so the round-trip
+ * only re-types it; it never loses a field.
+ */
+export function robotSpecToJson(spec: RobotSpec): JsonValue {
+  const json: unknown = JSON.parse(JSON.stringify(spec));
+  return isJson(json) ? json : null;
+}
+
+/** Narrows the parsed value; `JSON.parse` of a stringified object is always one. */
+function isJson(value: unknown): value is JsonValue {
+  return typeof value === 'object' && value !== null;
+}
+
 /** The stored robot, or the reference one when nothing valid is stored (#95, decision 2). */
 export function readStoredRobot(): RobotSpec {
   const raw = storage()?.getItem(MY_ROBOT_STORAGE_KEY);
@@ -60,8 +78,29 @@ export function readStoredRobot(): RobotSpec {
   }
 }
 
-/** The robot every widget reads; always a valid spec. */
-export const $myRobot = atom<RobotSpec>(readStoredRobot());
+/**
+ * The robot every widget reads; always a valid spec.
+ *
+ * It starts from the reference robot, never from `localStorage`: Astro renders islands on the
+ * server too, so a stored robot read before hydration would make the server markup and the
+ * first client render differ, which React reports as a hydration mismatch (docs/audits
+ * F2-01a). `hydrateMyRobot()` adopts the stored robot afterwards, from an effect.
+ */
+export const $myRobot = atom<RobotSpec>(referenceRobot());
+
+let hydrated = false;
+
+/**
+ * Adopts the robot stored in this browser. `useMyRobot` calls it from an effect, which React
+ * runs only after hydration, so the first client render still matches the server markup. It is
+ * idempotent: the stored robot is read once per page.
+ */
+export function hydrateMyRobot(): void {
+  if (hydrated || typeof document === 'undefined') return;
+  hydrated = true;
+  const stored = readStoredRobot();
+  if (stored !== $myRobot.get()) $myRobot.set(stored);
+}
 
 let persistence: RobotPersistence | null = null;
 

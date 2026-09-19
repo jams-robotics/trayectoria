@@ -19,12 +19,14 @@ export {
   MY_ROBOT_STORAGE_KEY,
   $myRobot,
   configureMyRobotPersistence,
+  hydrateMyRobot,
   parseStoredRobot,
   readStoredRobot,
   referenceRobot,
+  robotSpecToJson,
   resetMyRobot,
   setMyRobot,
 } from '../stores/myRobot';
-export type { RobotPersistence, SaveResult } from '../stores/myRobot';
+export type { JsonValue, RobotPersistence, SaveResult } from '../stores/myRobot';
 // Re-exported so a consumer can type a spec without depending on robot-spec directly.
 export type { RobotSpec } from '@trayectoria/robot-spec';

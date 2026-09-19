@@ -11,7 +11,7 @@ import { $session, $sessionReady } from '@trayectoria/auth';
 import type { Session } from '@trayectoria/auth';
 import { getDbClient } from '@trayectoria/db';
 import type { DbClient, Json } from '@trayectoria/db';
-import { configureMyRobotPersistence, parseStoredRobot } from '@trayectoria/widgets';
+import { configureMyRobotPersistence, parseStoredRobot, robotSpecToJson } from '@trayectoria/widgets';
 import type { RobotPersistence, RobotSpec } from '@trayectoria/widgets';
 
 /** The one robot «Mi robot» reads and writes (#95, decision 3). */
@@ -50,9 +50,9 @@ export function robotPersistenceFor(session: Session): RobotPersistence {
     save: async (spec: RobotSpec) => {
       const db = getDbClient();
       const row = await readRow(db, ownerId);
-      // A `RobotSpec` is plain JSON by construction (zod objects of numbers, strings and
-      // arrays), so the round-trip is what types it as the `Json` the `spec` column holds.
-      const json: Json = JSON.parse(JSON.stringify(spec));
+      // `robotSpecToJson` hands the spec over as plain JSON data, which is what the `spec`
+      // jsonb column holds.
+      const json: Json = robotSpecToJson(spec);
       const values = { name: spec.name, kind: KIND, spec: json, spec_version: spec.specVersion };
       const { error } =
         row === null

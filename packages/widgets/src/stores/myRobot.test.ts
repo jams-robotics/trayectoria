@@ -6,7 +6,9 @@ import {
   MY_ROBOT_STORAGE_KEY,
   $myRobot,
   configureMyRobotPersistence,
+  hydrateMyRobot,
   readStoredRobot,
+  robotSpecToJson,
   resetMyRobot,
   setMyRobot,
 } from './myRobot';
@@ -29,11 +31,54 @@ beforeEach(() => {
   void configureMyRobotPersistence(null);
   localStorage.clear();
   resetMyRobot();
+  hydrateMyRobot();
 });
 
 describe('$myRobot (F2-11)', () => {
   test('starts from the reference robot of docs/ROBOT-SPEC.md §3', () => {
     expect($myRobot.get()).toEqual(reference());
+  });
+
+  // The server renders islands too, so the atom must not read `localStorage` before the
+  // island is hydrated: it starts from the reference robot, the same one the server rendered,
+  // and `hydrateMyRobot` adopts the stored one from an effect (docs/audits F2-01a).
+  test('starts from the reference robot and adopts the stored one on hydration', async () => {
+    const spec = withWheelRadius(0.05);
+    localStorage.setItem(MY_ROBOT_STORAGE_KEY, JSON.stringify(spec));
+    vi.resetModules();
+    const fresh = await import('./myRobot');
+
+    expect(fresh.$myRobot.get()).toEqual(reference());
+
+    fresh.hydrateMyRobot();
+
+    expect(fresh.$myRobot.get()).toEqual(spec);
+  });
+
+  test('hydrating twice reads the stored robot only once', async () => {
+    vi.resetModules();
+    const fresh = await import('./myRobot');
+    fresh.hydrateMyRobot();
+    fresh.setMyRobot(withWheelRadius(0.06));
+
+    fresh.hydrateMyRobot();
+
+    expect(fresh.$myRobot.get()).toEqual(withWheelRadius(0.06));
+  });
+
+  test('hydrating with no document (SSR) keeps the reference robot', async () => {
+    localStorage.setItem(MY_ROBOT_STORAGE_KEY, JSON.stringify(withWheelRadius(0.05)));
+    const realDocument = globalThis.document;
+    vi.resetModules();
+    // @ts-expect-error the server has no `document`; this reproduces that environment.
+    delete globalThis.document;
+    try {
+      const fresh = await import('./myRobot');
+      fresh.hydrateMyRobot();
+      expect(fresh.$myRobot.get()).toEqual(reference());
+    } finally {
+      Object.defineProperty(globalThis, 'document', { value: realDocument, configurable: true });
+    }
   });
 
   test('falls back to the reference robot when localStorage holds an invalid spec', () => {
@@ -77,6 +122,24 @@ describe('$myRobot (F2-11)', () => {
 
     expect($myRobot.get()).toEqual(reference());
     expect(localStorage.getItem(MY_ROBOT_STORAGE_KEY)).toBeNull();
+  });
+});
+
+describe('robotSpecToJson (F2-11)', () => {
+  test('hands the spec over as plain JSON data, losing nothing', () => {
+    const spec = withWheelRadius(0.05);
+
+    const json = robotSpecToJson(spec);
+
+    expect(json).toEqual(spec);
+    // It is data, not the spec object: the row written to the jsonb column is independent.
+    expect(json).not.toBe(spec);
+  });
+
+  test('round-trips back through parseRobotSpec', () => {
+    const spec = withWheelRadius(0.05);
+
+    expect(parseRobotSpec(robotSpecToJson(spec))).toEqual({ ok: true, value: spec });
   });
 });
 
