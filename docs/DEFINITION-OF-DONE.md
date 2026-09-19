@@ -34,6 +34,7 @@ Un ticket está terminado cuando cumple **todo** lo de "Común" más lo de su ti
 - [ ] `X.stories.tsx` con al menos 2 configuraciones en `/dev/widgets`.
 - [ ] Test de comportamiento con Testing Library.
 - [ ] Captura de regresión visual guardada y aprobada.
+- [ ] Si la story nueva desplaza capturas aprobadas de otros widgets en `/dev/widgets`, se regeneran en el mismo PR, se declara en "Qué NO se hizo / riesgos" y se aporta evidencia de que el diff es solo reposicionamiento (sin cambio de contenido).
 - [ ] Operable con teclado; `aria-label` en cada control; `aria-live` para el estado.
 - [ ] Textos por claves i18n; ningún literal en español dentro del componente.
 - [ ] Valores dorados del ticket verificados en test.

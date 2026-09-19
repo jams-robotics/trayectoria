@@ -76,11 +76,12 @@ Cualquier otra importación es un error de arquitectura (regla de ESLint `import
 | `/simuladores/brazo` | Simulador de brazo 3D |
 | `/brazos`, `/brazos/[id]` | Catálogo |
 | `/cuenta`, `/cuenta/robots` | Cuenta y robots guardados |
-| `/aula`, `/aula/[groupId]` | Docente |
+| `/aula`, `/aula?grupo=<id>` | Docente. Ruta canónica del detalle: la de query string, no `/aula/[groupId]`, mientras el sitio sea estático (`output: 'static'` no puede prerenderizar un parámetro no enumerable; F3-02a) |
 | `/unirse` | Estudiante se une a un grupo |
 | `/auth/login`, `/auth/registro`, `/auth/recuperar` | Auth |
 | `/docentes`, `/contribuir`, `/acerca` | Públicas |
 | `/dev/widgets` | Playground de widgets (solo en dev) |
+| `/dev/sims` | Playground de `packages/sims` (solo en dev) |
 
 ### 3.3 Contenido como código
 
@@ -107,6 +108,7 @@ Cualquier otra importación es un error de arquitectura (regla de ESLint `import
 | Backend | @supabase/supabase-js | `packages/auth`, `packages/db` |
 | Tests | Vitest, @testing-library/react, Playwright | — |
 | Lint y formato de `.astro` | eslint-plugin-astro, prettier-plugin-astro (ADR-0007) | — |
+| Zip (subida de URDF) | fflate (ADR-0008) | `sims/urdf/zip` |
 
 Añadir una librería requiere un ADR. Versiones fijadas sin `^`.
 
@@ -268,3 +270,4 @@ attempts      (id uuid pk, user_id uuid → profiles, topic_id text, exercise_id
 - ADR-0005 Currículo como código
 - ADR-0006 Controlador intercambiable
 - ADR-0007 ESLint y Prettier para archivos `.astro`
+- ADR-0008 fflate para leer zips en el navegador

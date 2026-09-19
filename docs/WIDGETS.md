@@ -47,8 +47,9 @@ interface PlotProps {
 ### Scene2D
 Canvas 2D en coordenadas físicas (m, Y hacia arriba). Hijos declarativos: `Grid`, `Axes`, `Vector`, `Trace`, `Circle`, `Rect`, `RobotBody` (desde `RobotSpec`), `Label`, `TrackLayer`.
 ```ts
-interface Scene2DProps { worldWidth_m: number; center_m?: [number, number]; aspect?: number; children: ReactNode }
+interface Scene2DProps { worldWidth_m: number; center_m?: [number, number]; aspect?: number; description: string; children: ReactNode }
 ```
+`description` es obligatoria: texto accesible ya traducido que el escenario usa como `aria-label`.
 Hook asociado: `useSimulationDriver(sim: Simulation, { fps?: number })` enlaza el bucle con `requestAnimationFrame` y expone `state`.
 
 ### Scene3D
@@ -60,8 +61,9 @@ interface Scene3DProps { up?: 'z' | 'y'; showGrid?: boolean; children: ReactNode
 ### ExerciseWidget
 UI de un ejercicio de `defineExercise`. Registra intentos si hay sesión.
 ```ts
-interface ExerciseWidgetProps { exercise: Exercise; topicId: string; required?: boolean }
+interface ExerciseWidgetProps { exercise: Exercise; topicId: string; required?: boolean; index?: number; seed?: number }
 ```
+`index` pinta el prefijo `E1`, `E2`… del ejercicio dentro del tema; `seed` fija la instancia para stories, tests y e2e (si no, sale de la sesión).
 
 ### MyRobotWidget
 Formulario del perfil móvil y tarjeta compacta.
