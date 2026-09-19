@@ -133,3 +133,52 @@ describe('ArmViewer (F5-01a)', () => {
     });
   });
 });
+
+describe('ArmViewer · renderPanel (F5-01b, #134)', () => {
+  test('sin `renderPanel` el marcado de los paneles es el de siempre', async () => {
+    stubCatalogFetch();
+    render(<ArmViewer catalogId="planar2dof" show={[]} />);
+    await waitFor(() => {
+      expect(screen.getByTestId('arm-viewer')).toBeInTheDocument();
+    });
+    // Los dos paneles quedan en flujo normal, sin envoltorio añadido.
+    expect(screen.getByTestId('joint-sliders')).toBeInTheDocument();
+    expect(screen.getByTestId('effector-panel')).toBeInTheDocument();
+    expect(screen.queryByTestId('panel-wrapper')).toBeNull();
+  });
+
+  test('con `renderPanel` recibe `id`, `title`, `summary` y `content` de cada panel', async () => {
+    stubCatalogFetch();
+    const seen: Array<{ id: string; title: string; summary: string }> = [];
+    render(
+      <ArmViewer
+        catalogId="planar2dof"
+        initialQ={[Math.PI / 2, 0]}
+        show={[]}
+        renderPanel={(panel) => {
+          seen.push({ id: panel.id, title: panel.title, summary: panel.summary });
+          return (
+            <div data-testid="panel-wrapper" data-panel={panel.id}>
+              {panel.content}
+            </div>
+          );
+        }}
+      />,
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId('arm-viewer')).toBeInTheDocument();
+    });
+
+    expect(seen.map((panel) => panel.id)).toEqual(['joints', 'effector']);
+    expect(seen[0]?.title).toBe(t('sims.arm.joints'));
+    expect(seen[1]?.title).toBe(t('sims.arm.effector'));
+    // Resúmenes de una línea con los valores dorados de F5-01a (q₁ = 90°, q₂ = 0°).
+    expect(seen[0]?.summary).toBe('joint1 90.0° · joint2 0.0°');
+    expect(seen[1]?.summary).toBe('x 0.000 y 0.350 z 0.000 m');
+
+    // El contenido es el mismo de siempre, ahora dentro del envoltorio del consumidor.
+    expect(screen.getAllByTestId('panel-wrapper')).toHaveLength(2);
+    expect(screen.getByTestId('joint-sliders')).toBeInTheDocument();
+    expect(screen.getByTestId('effector-panel')).toBeInTheDocument();
+  });
+});

@@ -10,6 +10,9 @@ import { expect, test } from '@playwright/test';
 /** Margen para la isla perezosa: su chunk arrastra three y urdf-loader. */
 const ISLAND_TIMEOUT_MS = 30_000;
 
+/** Viewport móvil de las maquetas (docs/DESIGN.md §9). */
+const MOBILE_VIEWPORT = { width: 390, height: 900 };
+
 /** URDF del brazo de referencia; de ahí sale cuántas articulaciones actuadas se esperan. */
 const SO101_URDF = path.resolve(import.meta.dirname, '../../../catalog/arms/so101/so101.urdf');
 
@@ -36,6 +39,8 @@ async function openArm(page: Page, robot: string): Promise<void> {
   await expect(page.locator('[data-testid="arm-viewer"]')).toBeVisible({
     timeout: ISLAND_TIMEOUT_MS,
   });
+  // El panel del efector está plegado en móvil, así que la puerta de «sim-core ya resolvió la
+  // pose» se lee sobre el nodo aunque esté oculto: `toHaveText` no exige visibilidad.
   await expect(page.locator('[data-testid="sims.arm.x"]')).not.toBeEmpty({
     timeout: ISLAND_TIMEOUT_MS,
   });
@@ -83,6 +88,29 @@ test.describe('/simuladores/brazo (F5-01b)', () => {
     await expect(page.locator('[data-testid="arm-source-fallback"]')).toBeVisible();
     // El selector queda en el brazo por defecto, no en el id inventado.
     await expect(page.locator('[data-testid="arm-source-select"]')).toHaveValue('planar2dof');
+  });
+
+  test('a 390 px los tres bloques son acordeones con uno solo abierto', async ({ page }) => {
+    // docs/DESIGN.md §9.4 y #134 decisión 3: controles de vista, articulaciones y efector
+    // plegados, con un único acordeón abierto a la vez.
+    await page.setViewportSize(MOBILE_VIEWPORT);
+    await openArm(page, 'planar2dof');
+
+    const headers = page.locator('[data-testid="sim-accordion"] button[aria-expanded]');
+    await expect(headers).toHaveCount(3);
+    await expect(headers.nth(0)).toContainText('Controles de vista');
+    await expect(headers.nth(1)).toContainText('Articulaciones');
+    await expect(headers.nth(2)).toContainText('Efector');
+
+    // «Articulaciones» arranca abierto y es el único.
+    await expect(page.locator('[data-testid="sim-accordion"] button[aria-expanded="true"]')).toHaveCount(1);
+    await expect(headers.nth(1)).toHaveAttribute('aria-expanded', 'true');
+
+    // Abrir «Efector» cierra «Articulaciones»: sigue habiendo uno solo abierto.
+    await headers.nth(2).click();
+    await expect(headers.nth(2)).toHaveAttribute('aria-expanded', 'true');
+    await expect(headers.nth(1)).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator('[data-testid="sim-accordion"] button[aria-expanded="true"]')).toHaveCount(1);
   });
 
   test('cambiar de brazo en el selector actualiza la URL', async ({ page }) => {

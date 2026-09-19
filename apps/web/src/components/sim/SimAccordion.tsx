@@ -17,8 +17,15 @@ export interface SimAccordionProps {
   title: string;
   /** Resumen en línea, legible con el acordeón cerrado. */
   summary?: string;
-  /** Si el acordeón arranca abierto. */
+  /** Si el acordeón arranca abierto. Se ignora si el acordeón viene controlado con `open`. */
   defaultOpen?: boolean;
+  /**
+   * Estado controlado desde fuera. Lo usa el grupo de la página del brazo para mantener un solo
+   * acordeón abierto a la vez (docs/DESIGN.md §9.4); sin él el acordeón se gobierna solo.
+   */
+  open?: boolean;
+  /** Se llama con el estado al que pasa el acordeón al pulsar la cabecera. */
+  onToggle?: (open: boolean) => void;
   children: ReactNode;
 }
 
@@ -27,10 +34,13 @@ export function SimAccordion({
   title,
   summary,
   defaultOpen = false,
+  open: controlledOpen,
+  onToggle,
   children,
 }: SimAccordionProps): JSX.Element {
   const t = useT();
-  const [open, setOpen] = useState(defaultOpen);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
+  const open = controlledOpen ?? uncontrolledOpen;
   const panelId = useId();
 
   return (
@@ -42,7 +52,8 @@ export function SimAccordion({
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => {
-            setOpen((previous) => !previous);
+            setUncontrolledOpen(!open);
+            onToggle?.(!open);
           }}
         >
           <span className="text-fg flex-1 font-semibold">{title}</span>
