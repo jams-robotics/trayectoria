@@ -3,7 +3,13 @@ import { expect, test } from '@playwright/test';
 
 // F2-01a: visual regression of every widget section of the /dev/widgets playground.
 // Light theme and the default viewport of the chromium project; no Supabase needed.
-const WIDGETS = ['ParamPanel', 'Formula'] as const;
+// `story` narrows the shot to one case: Plot animates in `Live` and `PlotStress`, so only the
+// static case is comparable frame to frame (F2-01b, decision 8 of the assignment of #83).
+const WIDGETS = [
+  { name: 'ParamPanel' },
+  { name: 'Formula' },
+  { name: 'Plot', story: 'Static' },
+] as const;
 
 async function openPlayground(page: Page): Promise<void> {
   // With nothing stored, the inline script of Base.astro follows the system preference; the
@@ -17,11 +23,16 @@ async function openPlayground(page: Page): Promise<void> {
 }
 
 for (const widget of WIDGETS) {
-  test(`${widget} looks as approved`, async ({ page }) => {
+  const story = 'story' in widget ? widget.story : undefined;
+  test(`${widget.name} looks as approved`, async ({ page }) => {
     await openPlayground(page);
-    const section = page.locator(`[data-widget="${widget}"]`);
-    await expect(section).toBeVisible();
-    await expect(section).toHaveScreenshot(`${widget}.png`);
+    const section = page.locator(`[data-widget="${widget.name}"]`);
+    const target = story === undefined ? section : section.locator(`[data-story="${story}"]`);
+    await expect(target).toBeVisible();
+    // Plot loads uPlot lazily (it needs a browser), so the canvas appears one tick after the
+    // card: without this the shot would catch an empty chart area (F2-01b).
+    if (widget.name === 'Plot') await expect(target.locator('canvas')).toBeVisible();
+    await expect(target).toHaveScreenshot(`${widget.name}.png`);
   });
 }
 
