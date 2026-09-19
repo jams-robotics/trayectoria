@@ -1,9 +1,9 @@
 import '@testing-library/jest-dom/vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, test } from 'vitest';
-import { parseRobotSpec, referenceMobile } from '@trayectoria/robot-spec';
+import { parseRobotSpec, planar2dof, referenceMobile } from '@trayectoria/robot-spec';
 
-import { $myRobot, configureMyRobotPersistence, resetMyRobot } from '../stores/myRobot';
+import { $myRobot, configureMyRobotPersistence, resetMyRobot, setMyRobot } from '../stores/myRobot';
 import { MyRobotWidget } from './MyRobotWidget';
 import { omegaMax_radps, vMax_mps } from './fields';
 
@@ -183,6 +183,15 @@ describe('MyRobotWidget card (F2-11)', () => {
     render(<MyRobotWidget mode="card" editHref="/cuenta/robot" />);
 
     expect(screen.getByRole('link', { name: 'Editar' })).toHaveAttribute('href', '/cuenta/robot');
+  });
+
+  test('shows no figures for a spec without a `mobile` section', () => {
+    const result = setMyRobot(planar2dof);
+    expect(result.ok).toBe(true);
+
+    render(<MyRobotWidget mode="card" />);
+
+    expect(document.querySelectorAll('[data-card-item]')).toHaveLength(0);
   });
 
   test('follows the store when the form saves a new robot', () => {
