@@ -381,6 +381,9 @@ importers:
       '@trayectoria/widgets':
         specifier: workspace:*
         version: link:../widgets
+      fflate:
+        specifier: 0.8.3
+        version: 0.8.3
       nanostores:
         specifier: 1.5.3
         version: 1.5.3

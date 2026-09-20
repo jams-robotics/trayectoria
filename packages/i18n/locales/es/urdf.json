@@ -1,0 +1,17 @@
+{
+  "parse": "No se pudo leer el archivo URDF: no es XML válido.",
+  "noRoot": "El robot no tiene eslabón raíz: todos los eslabones son hijos de alguna articulación.",
+  "multipleRoots": "El robot tiene más de un eslabón raíz; debe tener exactamente uno.",
+  "cycle": "Las articulaciones forman un ciclo o dejan eslabones sueltos.",
+  "missingLink": "Una articulación apunta a un eslabón que no está declarado.",
+  "unsupportedJoint": "Hay una articulación de un tipo no admitido; se aceptan revolute, continuous, prismatic y fixed.",
+  "missingMesh": "El URDF usa una malla que no está dentro del zip.",
+  "badLimits": "Una articulación tiene el límite inferior por encima del superior.",
+  "invalidZip": "No se pudo abrir el archivo: no es un zip válido.",
+  "tooLarge": "El archivo supera los 20 MB.",
+  "pathTraversal": "El zip contiene rutas fuera de su raíz.",
+  "badExtension": "El zip contiene archivos de un tipo no permitido. Se aceptan .urdf, .stl, .dae, .obj, .png, .jpg y .jpeg.",
+  "multipleUrdf": "El zip debe contener exactamente un archivo .urdf.",
+  "noUrdf": "El zip no contiene ningún archivo .urdf.",
+  "xacroUnsupported": "Los archivos .xacro no se admiten; sube el URDF ya procesado."
+}
