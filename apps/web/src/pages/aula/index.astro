@@ -1,0 +1,26 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import { AulaIsland } from '../../components/aula/AulaIsland';
+import Base from '../../layouts/Base.astro';
+
+// One island with client:load, like /cuenta (docs/ARCHITECTURE.md §3.1). The CTA texts are
+// resolved here because packages/auth only imports db (§2). The group detail lives on this same
+// page as `/aula?grupo=<uuid>`: `output: 'static'` cannot prerender `/aula/[groupId]`.
+const cta = {
+  title: t('auth.gate.title'),
+  body: t('auth.gate.body'),
+  register: t('auth.gate.register'),
+  login: t('auth.gate.login'),
+};
+---
+
+<Base title={t('aula.title')}>
+  <section class="mx-auto max-w-[1120px] px-5 py-11 md:px-8">
+    <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">{t('aula.eyebrow')}</p>
+    <h1 class="text-2xl leading-tight mt-4 font-semibold">{t('aula.title')}</h1>
+    <div class="mt-7">
+      <AulaIsland client:load cta={cta} />
+    </div>
+  </section>
+</Base>

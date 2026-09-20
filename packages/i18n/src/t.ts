@@ -1,15 +1,16 @@
 import { createInstance } from 'i18next';
 
 import auth from '../locales/es/auth.json';
+import aula from '../locales/es/aula.json';
 import es from '../locales/es/common.json';
 import progress from '../locales/es/progress.json';
 import sims from '../locales/es/sims.json';
 import widgets from '../locales/es/widgets.json';
 
 // Namespace `common` = common.json plus auth.json under the root key `auth` (F0-08),
-// widgets.json under the root key `widgets` (F2-01a), progress.json under `progress` (F3-01)
-// and sims.json under `sims` (F4-01b).
-export const resources = { es: { common: { ...es, auth, progress, sims, widgets } } };
+// widgets.json under the root key `widgets` (F2-01a), progress.json under `progress` (F3-01),
+// aula.json under `aula` (F3-02a) and sims.json under `sims` (F4-01b).
+export const resources = { es: { common: { ...es, auth, aula, progress, sims, widgets } } };
 
 export const DEFAULT_LANGUAGE = 'es';
 
