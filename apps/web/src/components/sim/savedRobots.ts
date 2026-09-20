@@ -10,7 +10,7 @@
  * `/simuladores/movil` y la página cumple el presupuesto de docs/ARCHITECTURE.md §8. Un estudiante
  * sin sesión nunca llega a descargarlo.
  */
-import { $session, $sessionReady } from '@trayectoria/auth';
+import { ensureSessionReady } from '@trayectoria/auth';
 import { getDbClient } from '@trayectoria/db';
 import type { DbClient } from '@trayectoria/db';
 import { parseStoredRobot } from '@trayectoria/widgets';
@@ -51,20 +51,12 @@ export async function listSavedRobots(
 }
 
 /**
- * Los robots guardados del estudiante que tenga sesión ahora mismo, o la lista vacía si no la
- * hay. Espera a `$sessionReady` porque la sesión se lee de forma asíncrona al montar
- * (`packages/auth`) y antes de eso `$session` vale `null` para todo el mundo.
+ * The saved robots of the learner signed in right now, or the empty list when there is none.
+ * `ensureSessionReady` from `packages/auth` (#184) activates the store and waits, because the
+ * session is read asynchronously on mount and until then `$session` is `null` for everyone.
  */
 export async function loadForCurrentSession(): Promise<readonly SavedRobot[]> {
-  if (!$sessionReady.get()) {
-    await new Promise<void>((resolve) => {
-      const stop = $sessionReady.subscribe((ready) => {
-        if (!ready) return;
-        stop();
-        resolve();
-      });
-    });
-  }
-  const ownerId = $session.get()?.user.id ?? null;
+  const session = await ensureSessionReady();
+  const ownerId = session?.user.id ?? null;
   return ownerId === null ? [] : listSavedRobots(ownerId);
 }

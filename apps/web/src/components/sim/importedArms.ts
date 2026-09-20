@@ -8,7 +8,7 @@
  * Todo corre con el cliente de la sesión y la clave anon; RLS es el único control de acceso y no
  * hay migración ni política nueva.
  */
-import { $session, $sessionReady } from '@trayectoria/auth';
+import { ensureSessionReady } from '@trayectoria/auth';
 import { getDbClient } from '@trayectoria/db';
 import { robotSpecToJson } from '@trayectoria/widgets';
 import type { RobotSpec } from '@trayectoria/widgets';
@@ -19,28 +19,12 @@ import { saveUploadedRobot } from '../../lib/robots/storage';
 export type { ImportedArm } from '../../lib/robots/download';
 
 /**
- * El id del estudiante con sesión, o `null`. Espera a que `$session` se haya leído una vez.
- *
- * La suscripción a `$session` es la que arranca su `onMount` en `packages/auth`, que es quien lee
- * la sesión persistida y pone `$sessionReady` a `true`; sin ella el store nunca llega a resolverse
- * y la espera no terminaría. La suscripción se corta en cuanto termina.
+ * The signed-in learner's id, or `null`. `ensureSessionReady` from `packages/auth` (#184) activates
+ * the store and waits until the persisted session has been read once.
  */
 export async function currentOwnerId(): Promise<string | null> {
-  const stopSession = $session.subscribe(() => undefined);
-  try {
-    if (!$sessionReady.get()) {
-      await new Promise<void>((resolve) => {
-        const stop = $sessionReady.subscribe((ready) => {
-          if (!ready) return;
-          stop();
-          resolve();
-        });
-      });
-    }
-    return $session.get()?.user.id ?? null;
-  } finally {
-    stopSession();
-  }
+  const session = await ensureSessionReady();
+  return session?.user.id ?? null;
 }
 
 /** Los brazos guardados del estudiante con sesión ahora mismo, o la lista vacía si no la hay. */
