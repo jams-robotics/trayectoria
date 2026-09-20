@@ -188,6 +188,12 @@ export interface LineFollowerWidgetProps {
    */
   renderPanel?: (panel: ReactNode) => ReactNode;
   /**
+   * Wraps the viewer column, so a page can decide what surrounds it — e.g. swapping it for a
+   * track editor without reaching into the widget's DOM (#158, enmienda tras auditoría de PR
+   * #169; mismo patrón que `renderPanel`). Without it the viewer renders where it always has.
+   */
+  renderViewer?: (viewer: ReactNode) => ReactNode;
+  /**
    * Hides `SimControls` under the viewer, so a page can put them in its fixed bottom bar
    * (F4-02b, docs/DESIGN.md §9.7). Without it the controls stay where F4-02a put them.
    */
@@ -271,21 +277,27 @@ function useRun(props: LineFollowerWidgetProps): {
 }
 
 export function LineFollowerWidget(props: LineFollowerWidgetProps): JSX.Element {
-  const { compact = false, hideControls = false, renderPanel } = props;
+  const { compact = false, hideControls = false, renderPanel, renderViewer } = props;
   const { spec, resolved, choice, api } = useRun(props);
+
+  const viewer = (
+    <Viewer
+      api={api}
+      spec={spec}
+      track={resolved}
+      compact={compact}
+      hideControls={hideControls}
+      handle={handleOf(props.startPose, props.onStartPoseChange)}
+    />
+  );
 
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-start" data-testid="line-follower">
-      <div className="flex min-w-0 flex-1 flex-col gap-3">
-        <Viewer
-          api={api}
-          spec={spec}
-          track={resolved}
-          compact={compact}
-          hideControls={hideControls}
-          handle={handleOf(props.startPose, props.onStartPoseChange)}
-        />
-      </div>
+      {renderViewer === undefined ? (
+        <div className="flex min-w-0 flex-1 flex-col gap-3">{viewer}</div>
+      ) : (
+        <>{renderViewer(viewer)}</>
+      )}
       {compact ? null : (
         <Panel
           spec={spec}

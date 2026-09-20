@@ -1,15 +1,13 @@
-import { Suspense, lazy, useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { TrackJson } from '@trayectoria/sims';
 
-// #158 (decisiones 1 y 2): el editor de pista ocupa la caja del visor, no la columna estrecha de
-// los paneles. El visor del `LineFollowerWidget` vive dentro del propio widget, así que la caja
-// se toma prestada sin tocar la API de `@trayectoria/sims` (prohibido por el ticket): el editor
-// se monta con un portal en el mismo contenedor que el visor, y el visor se oculta mientras dura
-// la edición. Así el editor hereda exactamente el ancho de la columna del visor y los paneles
-// laterales conservan su ancho y su posición, porque la rejilla del widget no cambia.
+// #158 (decisiones 1 y 2), enmendado tras la auditoría de PR #169: el editor de pista ocupa la
+// caja que la página misma reserva para el visor (Simulator pasa `renderViewer` a
+// `LineFollowerWidget`), no un portal hacia un detalle interno de `@trayectoria/sims`. La caja se
+// mide con un `ResizeObserver` sobre su propio contenedor, así que el editor hereda el ancho de la
+// columna sin tocar el DOM del widget.
 
 // El editor entra con `import()` y solo al abrirlo: la mayoría de las visitas simulan sobre un
 // preset y no tienen por qué descargar el editor de F4-01b (docs/ARCHITECTURE.md §8).
@@ -24,42 +22,26 @@ const BOX_ASPECT_RATIO = 16 / 9;
 /** Alto mínimo de la caja, en píxeles: el editor no cabe en menos aunque la columna sea estrecha. */
 const MIN_BOX_HEIGHT_PX = 320;
 
-/** El visor del widget, que es a la vez la caja que el editor ocupa y el hermano que se oculta. */
-const VIEWER_SELECTOR = '[data-testid="line-follower-view"]';
-
-/**
- * El contenedor del visor y el ancho que ocupa, observados mientras la caja está abierta. El
- * visor se oculta con `hidden` en lugar de desmontarse: la simulación sigue viva detrás, con su
- * robot y su controlador, y volver no la reconstruye desde cero.
- */
-function useViewerSlot(open: boolean): { host: HTMLElement | null; width_px: number } {
-  const [host, setHost] = useState<HTMLElement | null>(null);
+/** El ancho de la caja propia de la página, observado mientras el editor está abierto. */
+function useBoxWidth(ref: React.RefObject<HTMLElement | null>, open: boolean): number {
   const [width_px, setWidth] = useState(0);
 
   useEffect(() => {
-    if (!open) {
-      setHost(null);
-      return undefined;
-    }
-    const viewer = document.querySelector<HTMLElement>(VIEWER_SELECTOR);
-    const parent = viewer?.parentElement ?? null;
-    if (viewer === null || parent === null) return undefined;
-    viewer.hidden = true;
-    setHost(parent);
-    // La caja mide lo que mide la columna del visor, y la sigue midiendo si la ventana cambia.
+    if (!open) return undefined;
+    const box = ref.current;
+    if (box === null) return undefined;
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (entry !== undefined) setWidth(entry.contentRect.width);
     });
-    observer.observe(parent);
-    setWidth(parent.getBoundingClientRect().width);
+    observer.observe(box);
+    setWidth(box.getBoundingClientRect().width);
     return () => {
       observer.disconnect();
-      viewer.hidden = false;
     };
-  }, [open]);
+  }, [ref, open]);
 
-  return { host, width_px };
+  return width_px;
 }
 
 /**
@@ -136,7 +118,7 @@ function BoxHeader({ onBack }: { onBack: () => void }): JSX.Element {
   );
 }
 
-/** El editor de pista de F4-01b dentro de la caja que dejó libre el visor. */
+/** El editor de pista de F4-01b dentro de la caja propia que la página reserva para el visor. */
 export function TrackEditorBox({
   open,
   track,
@@ -144,12 +126,13 @@ export function TrackEditorBox({
   onBack,
 }: TrackEditorBoxProps): JSX.Element | null {
   const t = useT();
-  const { host, width_px } = useViewerSlot(open);
+  const boxRef = useRef<HTMLDivElement | null>(null);
+  const width_px = useBoxWidth(boxRef, open);
   const initialTrack = useResolvedTrack(track, open);
-  if (!open || host === null) return null;
+  if (!open) return null;
 
-  return createPortal(
-    <div className="flex flex-col gap-3" data-testid="track-editor-box">
+  return (
+    <div ref={boxRef} className="flex flex-col gap-3" data-testid="track-editor-box">
       <BoxHeader onBack={onBack} />
       <div className="overflow-auto" style={{ height: `${String(boxHeight_px(width_px))}px` }}>
         <Suspense
@@ -164,7 +147,6 @@ export function TrackEditorBox({
           )}
         </Suspense>
       </div>
-    </div>,
-    host,
+    </div>
   );
 }

@@ -167,3 +167,28 @@ describe('LineFollowerWidget (F4-02a)', () => {
     expect(screen.getByTestId('line-follower-lost')).toBeInTheDocument();
   });
 });
+
+describe('LineFollowerWidget · renderViewer (#158, enmienda tras auditoría de PR #169)', () => {
+  it('sin `renderViewer` el visor se renderiza en su columna de siempre', () => {
+    render(
+      <LineFollowerWidget track="oval" controller="pid" initialParams={PARAMS} robot={ROBOT} />,
+    );
+    expect(screen.getByTestId('line-follower-view')).toBeInTheDocument();
+    expect(screen.queryByTestId('viewer-wrapper')).toBeNull();
+  });
+
+  it('con `renderViewer` la página decide dónde coloca el visor', () => {
+    render(
+      <LineFollowerWidget
+        track="oval"
+        controller="pid"
+        initialParams={PARAMS}
+        robot={ROBOT}
+        renderViewer={(viewer) => <div data-testid="viewer-wrapper">{viewer}</div>}
+      />,
+    );
+    const wrapper = screen.getByTestId('viewer-wrapper');
+    expect(wrapper).toBeInTheDocument();
+    expect(wrapper.querySelector('[data-testid="line-follower-view"]')).not.toBeNull();
+  });
+});

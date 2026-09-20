@@ -33,68 +33,76 @@ const LazyLineFollowerWidget = lazy(async () => {
   return { default: module.LineFollowerWidget };
 });
 
+/**
+ * La caja del visor: el visor de `LineFollowerWidget` (oculto con `hidden` mientras se edita, para
+ * que la simulación siga viva) y, al editar, `TrackEditorBox` en su lugar (#158, enmienda tras
+ * auditoría de PR #169). La página la pasa como `renderViewer`, así que decide ella el envoltorio
+ * en lugar de que `TrackEditorBox` alcance el DOM interno del widget con un portal.
+ */
+function ViewerBox({
+  viewer,
+  page,
+  store,
+}: {
+  viewer: ReactNode;
+  page: ReturnType<typeof usePageState>;
+  store: ApiStore;
+}): JSX.Element {
+  const { closeEditor } = page;
+  const editing = page.view === 'editor';
+  const onBack = useCallback((): void => {
+    store.read()?.driver.reset();
+    closeEditor();
+  }, [store, closeEditor]);
+  return (
+    <div className="flex min-w-0 flex-1 flex-col gap-3">
+      <div hidden={editing}>{viewer}</div>
+      <TrackEditorBox
+        open={editing}
+        track={page.choice.track}
+        onTrack={page.onTrack}
+        onBack={onBack}
+      />
+    </div>
+  );
+}
+
 /** El simulador: el `LineFollowerWidget` de F4-02a con la pista, el robot y la pose de la página. */
 function Simulator({
   page,
   mobile,
   renderPanel,
   onApi,
+  store,
 }: {
   page: ReturnType<typeof usePageState>;
   mobile: boolean;
   renderPanel: (panel: ReactNode) => ReactNode;
   onApi: (api: LineFollowerApi) => void;
+  store: ApiStore;
 }): JSX.Element {
   const t = useT();
   return (
-    <div className="min-w-0">
-      <Suspense
-        fallback={
-          <p className="text-fg-muted text-sm" role="status" aria-live="polite">
-            {t('sims.mobilePage.loading')}
-          </p>
-        }
-      >
-        <LazyLineFollowerWidget
-          track={page.choice.track}
-          controller="pid"
-          initialParams={{}}
-          {...(page.robot === null ? {} : { robot: page.robot })}
-          {...(page.startPose === null ? {} : { startPose: page.startPose })}
-          onStartPoseChange={page.setStartPose}
-          onApi={onApi}
-          renderPanel={renderPanel}
-          hideControls={mobile}
-        />
-      </Suspense>
-    </div>
-  );
-}
-
-/**
- * El editor de pista en la caja del visor (#158). «Volver a la simulación» reinicia la simulación
- * pausada en `t = 0`: la pista editada ya llegó al widget por `onTrack`, y el reinicio lo pide la
- * api que el widget publica, que es quien tiene el driver.
- */
-function LiveTrackEditorBox({
-  page,
-  store,
-}: {
-  page: ReturnType<typeof usePageState>;
-  store: ApiStore;
-}): JSX.Element | null {
-  const { closeEditor } = page;
-  const onBack = useCallback((): void => {
-    store.read()?.driver.reset();
-    closeEditor();
-  }, [store, closeEditor]);
-  return (
-    <TrackEditorBox
-      open={page.view === 'editor'}
-      track={page.choice.track}
-      onTrack={page.onTrack}
-      onBack={onBack}
-    />
+    <Suspense
+      fallback={
+        <p className="text-fg-muted text-sm" role="status" aria-live="polite">
+          {t('sims.mobilePage.loading')}
+        </p>
+      }
+    >
+      <LazyLineFollowerWidget
+        track={page.choice.track}
+        controller="pid"
+        initialParams={{}}
+        {...(page.robot === null ? {} : { robot: page.robot })}
+        {...(page.startPose === null ? {} : { startPose: page.startPose })}
+        onStartPoseChange={page.setStartPose}
+        onApi={onApi}
+        renderPanel={renderPanel}
+        renderViewer={(viewer) => <ViewerBox viewer={viewer} page={page} store={store} />}
+        hideControls={mobile}
+      />
+    </Suspense>
   );
 }
 
@@ -140,15 +148,20 @@ export function MobileSimIsland(): JSX.Element {
   // la rejilla entera porque su propia fila ya coloca el visor y el panel del controlador; las
   // tarjetas Robot, Pista y Lecturas van bajo el controlador, en esa misma columna derecha.
   //
-  // `TrackEditorBox` se monta en la caja del visor con un portal (#158, decisión 1), así que va
-  // después del simulador: cuando se renderiza, el visor ya está en el DOM.
+  // `ViewerBox` entra por `renderViewer` (#158, enmienda tras auditoría de PR #169): la página
+  // decide qué ocupa la caja del visor sin que `TrackEditorBox` toque el DOM interno del widget.
   return (
     <div
       className="mt-6 flex flex-col gap-5"
       style={mobile ? { paddingBottom: `${String(BOTTOM_BAR_HEIGHT_PX)}px` } : undefined}
     >
-      <Simulator page={page} mobile={mobile} renderPanel={renderController} onApi={store.publish} />
-      <LiveTrackEditorBox page={page} store={store} />
+      <Simulator
+        page={page}
+        mobile={mobile}
+        renderPanel={renderController}
+        onApi={store.publish}
+        store={store}
+      />
       {mobile ? <LiveBottomBar store={store} /> : null}
     </div>
   );
