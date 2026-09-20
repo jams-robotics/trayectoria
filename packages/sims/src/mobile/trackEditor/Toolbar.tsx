@@ -3,6 +3,7 @@ import { useT } from '@trayectoria/i18n';
 import { presets } from '@trayectoria/sim-core';
 import type { PresetName } from '@trayectoria/sim-core';
 
+import { SaveTrackField } from './SaveTrackField';
 import type { TrackTool } from './useTrackEditor';
 
 /** Tools of the segmented control, in the order of the spec of #126. */
@@ -26,7 +27,7 @@ const SELECT =
   'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus min-h-11 shrink-0 border px-2 font-mono focus-visible:outline-2 focus-visible:outline-offset-2';
 
 // #189 (decisión 1): en una sola fila los controles de la barra —cuatro herramientas, deshacer,
-// rehacer, guardar, cargar, «Nueva» (#190) y el preset— tienen que caber en la caja del visor,
+// rehacer, exportar, importar, «Nueva» (#190), «Guardar» (#191) y el preset— tienen que caber en la caja del visor,
 // que a 1280 px mide unos 730 px. Con el padding y el cuerpo de siempre piden ~840 px y los últimos quedaban fuera, así que
 // en esa maqueta van con 8 px de padding y el cuerpo `xs`, el mínimo de docs/DESIGN.md §9.2. El
 // alto de 44 px no se toca: es el objetivo táctil de docs/DESIGN.md §5.
@@ -53,6 +54,12 @@ export interface ToolbarProps {
   onPreset: (name: PresetName) => void;
   /** «Nueva»: deja el lienzo vacío, preguntando antes si hay algo que perder (#190, decisión 1). */
   onNew: () => void;
+  /**
+   * Guarda la pista con el nombre que el estudiante escriba, en la cuenta o en el navegador
+   * (F4-06, #191, decisión 3). Sin ella la barra no muestra «Guardar»: el playground y sus
+   * capturas se quedan como estaban.
+   */
+  onSaveTrack?: (name: string) => void;
   /**
    * Toda la barra en una sola fila (#189, decisión 1). La usa la página cuando el editor ocupa la
    * caja del visor: allí una segunda fila se come el alto del lienzo. Sin ella la barra se reparte
@@ -107,7 +114,7 @@ function LoadButton({
   };
   return (
     <label className={`${BUTTON} ${size.pad} ${size.text} inline-flex items-center`}>
-      {t('sims.trackEditor.load')}
+      {t('sims.trackEditor.importJson')}
       <input
         type="file"
         accept="application/json,.json"
@@ -196,7 +203,7 @@ function TrackGroup({
  */
 export function Toolbar(props: ToolbarProps): JSX.Element {
   const { tool, onTool, canUndo, canRedo, onUndo, onRedo, onSave, onLoad, onPreset } = props;
-  const { onNew } = props;
+  const { onNew, onSaveTrack } = props;
   const t = useT();
   // En una sola fila la barra no envuelve y desplaza en horizontal lo que no quepa, en lugar de
   // robarle una segunda fila al lienzo (#189, decisión 1).
@@ -229,12 +236,15 @@ export function Toolbar(props: ToolbarProps): JSX.Element {
       </button>
       <button
         type="button"
-        aria-label={t('sims.trackEditor.save')}
+        aria-label={t('sims.trackEditor.exportJson')}
         className={`${BUTTON} ${size.pad} ${size.text}`}
         onClick={onSave}
       >
-        {t('sims.trackEditor.save')}
+        {t('sims.trackEditor.exportJson')}
       </button>
+      {onSaveTrack === undefined ? null : (
+        <SaveTrackField onSave={onSaveTrack} pad={size.pad} text={size.text} />
+      )}
       <TrackGroup onLoad={onLoad} onNew={onNew} onPreset={onPreset} size={size} />
     </div>
   );

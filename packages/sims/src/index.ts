@@ -50,6 +50,16 @@ export type {
   UseTrackEditorOptions,
 } from './mobile/trackEditor';
 
+// F4-06 (#191): las pistas guardadas en la cuenta o en el navegador.
+export {
+  LOCAL_TRACKS_KEY,
+  MAX_NAME_LENGTH,
+  deleteLocalTrack,
+  listLocalTracks,
+  saveLocalTrack,
+} from './mobile/trackEditor';
+export type { SavedTrack } from './mobile/trackEditor';
+
 export {
   CATALOG_MOBILE_IDS,
   catalogMobileUrl,
