@@ -112,12 +112,16 @@ function useAccept(options: {
         urdfPath: urdfPathOf(upload.paths),
       };
       setDialogOpen(false);
-      if (ownerId === null) {
+      // La sesión se vuelve a leer aquí: al montar la isla puede no estar resuelta todavía, y el
+      // estudiante decide importar mucho después (`packages/auth`, `$sessionReady`).
+      const module = await import('./importedArms');
+      const owner = ownerId ?? (await module.currentOwnerId());
+      if (owner === null) {
         show(arm);
         setNotice('sims.import.loaded');
         return;
       }
-      const saved = await saveOrNull(ownerId, upload);
+      const saved = await saveOrNull(owner, upload);
       if (saved !== null) add(saved);
       show(arm);
       // El zip ya está comprobado: si Supabase lo rechaza, el brazo se carga igual en memoria.

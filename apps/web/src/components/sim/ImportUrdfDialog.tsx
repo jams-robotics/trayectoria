@@ -61,14 +61,15 @@ export function ImportUrdfDialog({
   useEffect(() => {
     const dialog = ref.current;
     if (dialog === null || dialog.open) return;
-    // `showModal` no existe en jsdom; el diálogo se renderiza igual y el test lo lee.
+    // `showModal` es lo que lo pone en la capa superior, por encima del lienzo 3D. En jsdom no
+    // existe: allí basta con abrirlo, que es lo que los tests de componente leen.
     if (typeof dialog.showModal === 'function') dialog.showModal();
+    else dialog.open = true;
   }, []);
 
   return (
     <dialog
       ref={ref}
-      open
       data-testid="import-urdf-dialog"
       aria-label={t('sims.import.title')}
       className="border-border bg-bg text-fg m-auto max-w-lg rounded-lg border p-0 backdrop:bg-black/40"
