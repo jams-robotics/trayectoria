@@ -36,9 +36,22 @@ export interface CsvRecord {
   readonly completedAt: string | null;
 }
 
-/** Quotes a field that carries a comma, a quote or a line break, doubling its quotes. */
+/**
+ * Leading characters a spreadsheet reads as a formula prefix (OWASP CSV injection): the field
+ * gets a `'` guard prepended before quoting so Excel/Sheets never evaluate it.
+ */
+const FORMULA_PREFIX = /^[=+\-@]/;
+
+/**
+ * Quotes a field that carries a comma, a quote or a line break, doubling its quotes. A field
+ * starting with `=`, `+`, `-` or `@` is guarded with a leading `'` and always quoted, so a
+ * spreadsheet never runs it as a formula.
+ */
 export function csvEscape(field: string): string {
-  return /[",\r\n]/.test(field) ? `"${field.replaceAll('"', '""')}"` : field;
+  const guarded = FORMULA_PREFIX.test(field) ? `'${field}` : field;
+  return /[",\r\n]/.test(guarded) || guarded !== field
+    ? `"${guarded.replaceAll('"', '""')}"`
+    : guarded;
 }
 
 function score(bestScore: number | null): string {
