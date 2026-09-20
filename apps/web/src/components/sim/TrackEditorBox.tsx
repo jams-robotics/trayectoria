@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useRef, useState } from 'react';
-import type { JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { TrackJson } from '@trayectoria/sims';
 
@@ -8,6 +8,12 @@ import type { TrackJson } from '@trayectoria/sims';
 // `LineFollowerWidget`), no un portal hacia un detalle interno de `@trayectoria/sims`. La caja se
 // mide con un `ResizeObserver` sobre su propio contenedor, así que el editor hereda el ancho de la
 // columna sin tocar el DOM del widget.
+//
+// #189 (decisiones 1 y 3): dentro de esa caja el lienzo es el protagonista. `TrackEditor` recibe
+// `renderPanel`, así que su panel numérico sale de la caja hacia la columna derecha de la página y
+// el lienzo se queda con todo el ancho; la caja ya no recorta con `overflow: auto`, porque el
+// editor se dimensiona para caber: mide el hueco que le queda al lienzo bajo la barra de
+// herramientas y le da esa relación de aspecto.
 
 // El editor entra con `import()` y solo al abrirlo: la mayoría de las visitas simulan sobre un
 // preset y no tienen por qué descargar el editor de F4-01b (docs/ARCHITECTURE.md §8).
@@ -16,11 +22,11 @@ const LazyTrackEditor = lazy(async () => {
   return { default: module.TrackEditor };
 });
 
-/** Proporción de la caja del editor, la misma que la escena del visor (16/9). */
-const BOX_ASPECT_RATIO = 16 / 9;
+/** Proporción del lienzo del editor, la misma que la escena del visor (16/9). */
+const CANVAS_ASPECT_RATIO = 16 / 9;
 
-/** Alto mínimo de la caja, en píxeles: el editor no cabe en menos aunque la columna sea estrecha. */
-const MIN_BOX_HEIGHT_PX = 320;
+/** Alto mínimo del lienzo, en píxeles: el editor no cabe en menos aunque la columna sea estrecha. */
+const MIN_CANVAS_HEIGHT_PX = 320;
 
 /** El ancho de la caja propia de la página, observado mientras el editor está abierto. */
 function useBoxWidth(ref: React.RefObject<HTMLElement | null>, open: boolean): number {
@@ -77,12 +83,17 @@ function useResolvedTrack(track: TrackJson, open: boolean): EditorTrack | null {
 }
 
 /**
- * Alto de la caja: el mismo que tendría el visor con su relación 16/9, con un mínimo para que el
- * editor siga siendo utilizable en columnas estrechas. `TrackEditor` no admite prop de tamaño
- * (#158, decisión 2), así que lo que sobra lo recorta la caja con scroll propio.
+ * Alto del lienzo del editor, en píxeles: el mismo que tendría el visor al que sustituye con su
+ * relación 16/9 (#158, decisión 2; #189, decisión 3), con un mínimo para que el editor siga siendo
+ * utilizable en columnas estrechas.
+ *
+ * Es el alto del lienzo y no el de la caja entera: la barra de herramientas va encima y, en móvil,
+ * se reparte en varias filas. Fijando la caja, esas filas se lo habrían quitado al lienzo hasta
+ * dejarlo en una franja; fijando el lienzo, la caja crece lo que necesite y el lienzo conserva la
+ * forma del visor.
  */
-function boxHeight_px(width_px: number): number {
-  return Math.max(MIN_BOX_HEIGHT_PX, Math.round(width_px / BOX_ASPECT_RATIO));
+function canvasHeight_px(width_px: number): number {
+  return Math.max(MIN_CANVAS_HEIGHT_PX, Math.round(width_px / CANVAS_ASPECT_RATIO));
 }
 
 export interface TrackEditorBoxProps {
@@ -94,6 +105,11 @@ export interface TrackEditorBoxProps {
   readonly onTrack: (track: TrackJson) => void;
   /** «Volver a la simulación»: devuelve la caja al visor y reinicia la simulación en `t = 0`. */
   readonly onBack: () => void;
+  /**
+   * Dónde coloca la página el panel numérico del segmento (#189, decisión 2): la columna derecha,
+   * en lugar de una segunda columna dentro de la caja.
+   */
+  readonly renderPanel: (panel: ReactNode) => ReactNode;
 }
 
 /** La cabecera de la caja: el título y «Volver a la simulación» (#158, decisión 3). */
@@ -124,6 +140,7 @@ export function TrackEditorBox({
   track,
   onTrack,
   onBack,
+  renderPanel,
 }: TrackEditorBoxProps): JSX.Element | null {
   const t = useT();
   const boxRef = useRef<HTMLDivElement | null>(null);
@@ -134,7 +151,7 @@ export function TrackEditorBox({
   return (
     <div ref={boxRef} className="flex flex-col gap-3" data-testid="track-editor-box">
       <BoxHeader onBack={onBack} />
-      <div className="overflow-auto" style={{ height: `${String(boxHeight_px(width_px))}px` }}>
+      <div>
         <Suspense
           fallback={
             <p className="text-fg-muted text-sm" role="status" aria-live="polite">
@@ -143,7 +160,12 @@ export function TrackEditorBox({
           }
         >
           {initialTrack === null ? null : (
-            <LazyTrackEditor initialTrack={initialTrack} onChange={onTrack} />
+            <LazyTrackEditor
+              initialTrack={initialTrack}
+              onChange={onTrack}
+              renderPanel={renderPanel}
+              canvasHeight_px={canvasHeight_px(width_px)}
+            />
           )}
         </Suspense>
       </div>

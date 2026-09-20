@@ -18,12 +18,28 @@ const PRESET_NAMES: readonly PresetName[] = Object.keys(presets).filter(isPreset
 
 // docs/DESIGN.md §5 (Tabs/segmentado) and §8: 44 px targets, visible focus, tokens only.
 const SEGMENT =
-  'min-h-11 border-border text-fg-muted focus-visible:outline-focus cursor-pointer border-r px-4 text-sm font-semibold last:border-r-0 focus-visible:outline-2 focus-visible:outline-offset-2';
+  'min-h-11 border-border text-fg-muted focus-visible:outline-focus shrink-0 cursor-pointer border-r font-semibold last:border-r-0 focus-visible:outline-2 focus-visible:outline-offset-2';
 const SEGMENT_ON = 'bg-primary text-primary-fg';
 const BUTTON =
-  'border-border bg-bg-raised text-fg rounded-md focus-visible:outline-focus min-h-11 cursor-pointer border px-4 text-sm font-semibold hover:border-fg-muted focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-default disabled:opacity-45';
+  'border-border bg-bg-raised text-fg rounded-md focus-visible:outline-focus min-h-11 shrink-0 cursor-pointer border font-semibold hover:border-fg-muted focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-default disabled:opacity-45';
 const SELECT =
-  'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus min-h-11 border px-2 font-mono text-sm focus-visible:outline-2 focus-visible:outline-offset-2';
+  'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus min-h-11 shrink-0 border px-2 font-mono focus-visible:outline-2 focus-visible:outline-offset-2';
+
+// #189 (decisión 1): en una sola fila los nueve controles —cuatro herramientas, deshacer, rehacer,
+// guardar, cargar y el preset— tienen que caber en la caja del visor, que a 1280 px mide unos
+// 730 px. Con el padding y el cuerpo de siempre piden ~840 px y los últimos quedaban fuera, así que
+// en esa maqueta van con 8 px de padding y el cuerpo `xs`, el mínimo de docs/DESIGN.md §9.2. El
+// alto de 44 px no se toca: es el objetivo táctil de docs/DESIGN.md §5.
+const PAD = 'px-4';
+const PAD_TIGHT = 'px-2';
+const TEXT = 'text-sm';
+const TEXT_TIGHT = 'text-xs';
+
+/** Las dos clases que aprietan un control de la barra: su padding lateral y su cuerpo. */
+interface Sizing {
+  readonly pad: string;
+  readonly text: string;
+}
 
 export interface ToolbarProps {
   tool: TrackTool;
@@ -35,10 +51,20 @@ export interface ToolbarProps {
   onSave: () => void;
   onLoad: (file: File) => void;
   onPreset: (name: PresetName) => void;
+  /**
+   * Toda la barra en una sola fila (#189, decisión 1). La usa la página cuando el editor ocupa la
+   * caja del visor: allí una segunda fila se come el alto del lienzo. Sin ella la barra se reparte
+   * en varias líneas cuando no cabe, que es como se ve en el playground.
+   */
+  singleRow?: boolean;
 }
 
 /** The segmented tool picker: one radio per tool, as docs/DESIGN.md §5 describes. */
-function ToolGroup({ tool, onTool }: Pick<ToolbarProps, 'tool' | 'onTool'>): JSX.Element {
+function ToolGroup({
+  tool,
+  onTool,
+  size,
+}: Pick<ToolbarProps, 'tool' | 'onTool'> & { size: Sizing }): JSX.Element {
   const t = useT();
   return (
     <div
@@ -57,7 +83,7 @@ function ToolGroup({ tool, onTool }: Pick<ToolbarProps, 'tool' | 'onTool'>): JSX
           onClick={() => {
             onTool(name);
           }}
-          className={`${SEGMENT} ${tool === name ? SEGMENT_ON : ''}`}
+          className={`${SEGMENT} ${size.pad} ${size.text} ${tool === name ? SEGMENT_ON : ''}`}
         >
           {t(`sims.trackEditor.tool.${name}`)}
         </button>
@@ -67,7 +93,10 @@ function ToolGroup({ tool, onTool }: Pick<ToolbarProps, 'tool' | 'onTool'>): JSX
 }
 
 /** The file input dressed as a button (docs/DESIGN.md §5, Botón secundario). */
-function LoadButton({ onLoad }: Pick<ToolbarProps, 'onLoad'>): JSX.Element {
+function LoadButton({
+  onLoad,
+  size,
+}: Pick<ToolbarProps, 'onLoad'> & { size: Sizing }): JSX.Element {
   const t = useT();
   const pickFile = (event: ChangeEvent<HTMLInputElement>): void => {
     const file = event.target.files?.[0];
@@ -75,7 +104,7 @@ function LoadButton({ onLoad }: Pick<ToolbarProps, 'onLoad'>): JSX.Element {
     event.target.value = '';
   };
   return (
-    <label className={`${BUTTON} inline-flex items-center`}>
+    <label className={`${BUTTON} ${size.pad} ${size.text} inline-flex items-center`}>
       {t('sims.trackEditor.load')}
       <input
         type="file"
@@ -89,7 +118,10 @@ function LoadButton({ onLoad }: Pick<ToolbarProps, 'onLoad'>): JSX.Element {
 }
 
 /** The preset picker; it goes back to its empty option so picking the same one twice works. */
-function PresetPicker({ onPreset }: Pick<ToolbarProps, 'onPreset'>): JSX.Element {
+function PresetPicker({
+  onPreset,
+  size,
+}: Pick<ToolbarProps, 'onPreset'> & { size: Sizing }): JSX.Element {
   const t = useT();
   const pickPreset = (event: ChangeEvent<HTMLSelectElement>): void => {
     const name = event.target.value;
@@ -97,11 +129,11 @@ function PresetPicker({ onPreset }: Pick<ToolbarProps, 'onPreset'>): JSX.Element
     event.target.value = '';
   };
   return (
-    <label className="text-fg-muted flex items-center gap-2 text-sm">
+    <label className={`text-fg-muted flex shrink-0 items-center gap-2 ${size.text}`}>
       {t('sims.trackEditor.preset')}
       <select
         aria-label={t('sims.trackEditor.preset')}
-        className={SELECT}
+        className={`${SELECT} ${size.text}`}
         defaultValue=""
         onChange={pickPreset}
       >
@@ -124,13 +156,21 @@ function PresetPicker({ onPreset }: Pick<ToolbarProps, 'onPreset'>): JSX.Element
 export function Toolbar(props: ToolbarProps): JSX.Element {
   const { tool, onTool, canUndo, canRedo, onUndo, onRedo, onSave, onLoad, onPreset } = props;
   const t = useT();
+  // En una sola fila la barra no envuelve y desplaza en horizontal lo que no quepa, en lugar de
+  // robarle una segunda fila al lienzo (#189, decisión 1).
+  const tight = props.singleRow === true;
+  // Una sola fila desde `md`: a 390 px los nueve controles no caben ni apretados, y una fila que
+  // se desplaza en horizontal esconde justo el selector de herramienta (docs/DESIGN.md §9.3), así
+  // que en móvil la barra sigue repartiéndose en varias líneas.
+  const layout = tight ? 'flex-wrap gap-2 md:flex-nowrap' : 'flex-wrap gap-3';
+  const size: Sizing = tight ? { pad: PAD_TIGHT, text: TEXT_TIGHT } : { pad: PAD, text: TEXT };
   return (
-    <div className="flex flex-wrap items-center gap-3" data-testid="track-editor-toolbar">
-      <ToolGroup tool={tool} onTool={onTool} />
+    <div className={`flex shrink-0 items-center ${layout}`} data-testid="track-editor-toolbar">
+      <ToolGroup tool={tool} onTool={onTool} size={size} />
       <button
         type="button"
         aria-label={t('sims.trackEditor.undo')}
-        className={BUTTON}
+        className={`${BUTTON} ${size.pad} ${size.text}`}
         onClick={onUndo}
         disabled={!canUndo}
       >
@@ -139,7 +179,7 @@ export function Toolbar(props: ToolbarProps): JSX.Element {
       <button
         type="button"
         aria-label={t('sims.trackEditor.redo')}
-        className={BUTTON}
+        className={`${BUTTON} ${size.pad} ${size.text}`}
         onClick={onRedo}
         disabled={!canRedo}
       >
@@ -148,13 +188,13 @@ export function Toolbar(props: ToolbarProps): JSX.Element {
       <button
         type="button"
         aria-label={t('sims.trackEditor.save')}
-        className={BUTTON}
+        className={`${BUTTON} ${size.pad} ${size.text}`}
         onClick={onSave}
       >
         {t('sims.trackEditor.save')}
       </button>
-      <LoadButton onLoad={onLoad} />
-      <PresetPicker onPreset={onPreset} />
+      <LoadButton onLoad={onLoad} size={size} />
+      <PresetPicker onPreset={onPreset} size={size} />
     </div>
   );
 }
