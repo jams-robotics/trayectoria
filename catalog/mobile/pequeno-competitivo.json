@@ -1,0 +1,27 @@
+{
+  "specVersion": 1,
+  "id": "3f8a1d52-4c07-4a1e-9b64-0c1a5f2e7a01",
+  "name": "Pequeño competitivo",
+  "kind": "mobile-diff",
+  "source": { "type": "catalog", "catalogId": "pequeno-competitivo" },
+  "mobile": {
+    "wheelRadius_m": 0.016,
+    "wheelBase_m": 0.1,
+    "maxMotorSpeed_rpm": 12000,
+    "gearRatio": 10,
+    "maxAccel_radps2": 300,
+    "encoderTicksPerRev": 240,
+    "mass_kg": 0.35,
+    "length_m": 0.12,
+    "width_m": 0.11,
+    "lineSensors": {
+      "count": 8,
+      "spacing_m": 0.008,
+      "forwardOffset_m": 0.07,
+      "footprint_m": 0.003
+    },
+    "motor": { "stallTorque_Nm": 0.008, "nominalVoltage_V": 7.4, "efficiency": 0.7 },
+    "battery": { "capacity_Wh": 5.9 }
+  },
+  "simConfigs": []
+}

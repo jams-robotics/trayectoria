@@ -21,6 +21,41 @@ function options(overrides: Partial<Parameters<typeof useLineFollower>[0]> = {})
 }
 
 describe('useLineFollower (F4-02a)', () => {
+  it('manda las ruedas del comando en lugar de las del controlador (F4-04)', () => {
+    const command = { omegaL_radps: 6, omegaR_radps: 2 };
+    const { result } = renderHook(() =>
+      useLineFollower(options({ controller: 'manual', params: {}, command })),
+    );
+    act(() => {
+      result.current.driver.step();
+    });
+    expect(result.current.state.command).toEqual(command);
+  });
+
+  it('un comando nuevo llega al paso siguiente sin reiniciar la carrera (F4-04)', () => {
+    const { rerender, result } = renderHook(
+      ({ omegaL_radps }: { omegaL_radps: number }) =>
+        useLineFollower(
+          options({
+            controller: 'manual',
+            params: {},
+            command: { omegaL_radps, omegaR_radps: 2 },
+          }),
+        ),
+      { initialProps: { omegaL_radps: 6 } },
+    );
+    act(() => {
+      result.current.driver.step();
+    });
+    const t_s = result.current.state.robot.t_s;
+    rerender({ omegaL_radps: 9 });
+    act(() => {
+      result.current.driver.step();
+    });
+    expect(result.current.state.command.omegaL_radps).toBe(9);
+    expect(result.current.state.robot.t_s).toBeGreaterThan(t_s);
+  });
+
   it('arranca pausado en t = 0 con la traza en la pose inicial', () => {
     const { result } = renderHook(() => useLineFollower(options()));
     expect(result.current.driver.running).toBe(false);

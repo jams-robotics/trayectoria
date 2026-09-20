@@ -51,9 +51,32 @@ export type {
 } from './mobile/trackEditor';
 
 export {
+  CATALOG_MOBILE_IDS,
+  catalogMobileUrl,
+  isCatalogMobileId,
+  loadCatalogMobile,
+  loadCatalogMobileAll,
+  summaryOf,
+} from './mobile/catalog';
+export type {
+  CatalogMobileEntry,
+  CatalogMobileId,
+  LoadCatalogMobileOptions,
+} from './mobile/catalog';
+
+export {
   CONTROLLERS,
   CONTROLLER_IDS,
   ControllerPanel,
+  MANUAL_DIFF_RADPS,
+  MANUAL_KEYSHORTCUTS,
+  MANUAL_STEP_RADPS,
+  ManualControls,
+  ManualHelp,
+  ManualViewer,
+  commandOf,
+  useManualKeyboard,
+  useManualMode,
   HANDLE_RADIUS_M,
   LineFollowerView,
   LineFollowerWidget,
@@ -80,6 +103,10 @@ export type {
   ControllerId,
   ControllerPanelProps,
   ControllerParams,
+  ManualControlsProps,
+  ManualDrive,
+  ManualKey,
+  UseManualKeyboardOptions,
   LineFollowerApi,
   LineFollowerInput,
   LineFollowerOptions,

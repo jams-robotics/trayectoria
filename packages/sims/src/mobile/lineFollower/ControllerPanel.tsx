@@ -1,10 +1,11 @@
-import type { JSX } from 'react';
+import { useState } from 'react';
+import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
-import type { MobileSpec } from '@trayectoria/robot-spec';
+import type { MobileSpec, RobotSpec } from '@trayectoria/robot-spec';
 import { ParamPanel } from '@trayectoria/widgets';
 
-import { CONTROLLERS, CONTROLLER_IDS, controllerParams } from './controllers';
+import { CONTROLLERS, CONTROLLER_IDS, controllerParams, isControllerId } from './controllers';
 import type { ControllerId, ControllerParams } from './controllers';
 
 const TAB =
@@ -73,4 +74,74 @@ export function ControllerPanel({
       <ParamPanel params={controllerParams(controller, params, spec, t)} onChange={onParam} />
     </div>
   );
+}
+
+/**
+ * Which controller drives the run and with which gains; a new tab resets them to its defaults.
+ * A gain alone changes only `params`, which `useLineFollower` hands to the running controller.
+ */
+export function useControllerChoice(
+  controller: ControllerId,
+  initialParams: ControllerParams,
+): {
+  selected: ControllerId;
+  params: ControllerParams;
+  onController: (id: ControllerId) => void;
+  onParam: (key: string, value: number) => void;
+} {
+  const [selected, setSelected] = useState<ControllerId>(() =>
+    isControllerId(controller) ? controller : 'pid',
+  );
+  const [params, setParams] = useState<ControllerParams>(() => ({
+    ...CONTROLLERS[controller].defaults,
+    ...initialParams,
+  }));
+  return {
+    selected,
+    params,
+    onController: (id) => {
+      setSelected(id);
+      setParams({ ...CONTROLLERS[id].defaults });
+    },
+    onParam: (key, value) => {
+      setParams((current) => ({ ...current, [key]: value }));
+    },
+  };
+}
+
+/**
+ * The controller selector and its sliders. Without `renderPanel` it is the side column of
+ * F4-02a; with it, the wrapper the page supplies decides the placement.
+ */
+export function Panel({
+  spec,
+  controller,
+  params,
+  onController,
+  onParam,
+  renderPanel,
+}: {
+  spec: RobotSpec;
+  controller: ControllerId;
+  params: ControllerParams;
+  onController: (id: ControllerId) => void;
+  onParam: (key: string, value: number) => void;
+  renderPanel: ((panel: ReactNode) => ReactNode) | undefined;
+}): JSX.Element | null {
+  const { mobile } = spec;
+  if (mobile === undefined) return null;
+  const content = (
+    <ControllerPanel
+      controller={controller}
+      params={params}
+      spec={mobile}
+      onController={onController}
+      onParam={onParam}
+    />
+  );
+  // With `renderPanel` the page decides where the panel goes and how wide it is (F4-02b: la
+  // maqueta 04 lo pone en su propia columna, no junto al visor), so the widget adds no column of
+  // its own; without it the panel keeps the side column of F4-02a.
+  if (renderPanel !== undefined) return <>{renderPanel(content)}</>;
+  return <div className="flex flex-col gap-4 lg:w-80">{content}</div>;
 }
