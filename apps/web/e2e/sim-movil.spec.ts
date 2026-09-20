@@ -227,9 +227,9 @@ test.describe('/simuladores/movil (F4-02b)', () => {
     await page.setViewportSize(MOBILE_VIEWPORT);
     await open(page);
 
-    // Robot, Pista, Controlador, Lecturas y «Guardar y compartir» (F4-05) pasan a acordeones
-    // (docs/DESIGN.md §9.8).
-    await expect(page.getByTestId('sim-accordion')).toHaveCount(5);
+    // Robot, Pista, Controlador, Lecturas, Gráficas (F4-03) y «Guardar y compartir» (F4-05)
+    // pasan a acordeones (docs/DESIGN.md §9 punto 8).
+    await expect(page.getByTestId('sim-accordion')).toHaveCount(6);
     await expect(page.getByTestId('sim-bottom-bar')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Paso' })).toHaveCount(0);
     // Reproducir, Pausa y Reiniciar sí están, en la barra fija.

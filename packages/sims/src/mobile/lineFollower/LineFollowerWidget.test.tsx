@@ -13,7 +13,8 @@ import type { Track } from '@trayectoria/sim-core';
 import { referenceMobile } from '@trayectoria/robot-spec';
 import type { RobotSpec } from '@trayectoria/robot-spec';
 
-import { LineFollowerWidget, resolveTrack } from './LineFollowerWidget';
+import { LineFollowerWidget } from './LineFollowerWidget';
+import { resolveTrack } from './tracks';
 import { viewOf } from './LineFollowerView';
 
 const ROBOT = referenceMobile as RobotSpec;

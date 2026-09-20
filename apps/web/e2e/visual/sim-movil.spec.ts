@@ -10,6 +10,13 @@ const MOBILE_VIEWPORT = { width: 390, height: 844 };
 /** Margen para la isla perezosa: el simulador entra con un `import()` aparte. */
 const ISLAND_TIMEOUT_MS = 30_000;
 
+/**
+ * Pulsaciones de «Paso» que completan la vuelta del óvalo con el PID por defecto (F4-03). El
+ * modelo la cierra en unos 8,6 s simulados y cada paso es el `dt_s` por defecto de 1 ms, así que
+ * 9 000 pasos la dejan cerrada con margen y siempre en el mismo estado.
+ */
+const LAP_STEPS = 9000;
+
 const SHOTS = [
   { shot: 'sim-movil', viewport: null },
   { shot: 'sim-movil-390', viewport: MOBILE_VIEWPORT },
@@ -91,4 +98,59 @@ test('sim-movil-editor looks as approved', async ({ page }) => {
   await page.mouse.move(0, 0);
 
   await expect(page).toHaveScreenshot('sim-movil-editor.png', { timeout: ISLAND_TIMEOUT_MS });
+});
+
+// F4-03 (#129, decisión 7): la página con el panel «Gráficas» y la tarjeta de vuelta.
+//
+// La vuelta se da con «Paso» y no con «Reproducir»: el bucle de fotogramas avanza en cada
+// fotograma el tiempo real transcurrido, así que el `t` en el que se cruza la meta —y con él la
+// ventana de 10 s que las gráficas están pintando— depende del reparto de fotogramas de la
+// máquina y la captura no sería comparable (mismo motivo que el determinismo de #155). Un número
+// fijo de pulsaciones de «Paso» es el mismo número de `model.step()` en cualquier parte, así que
+// la escena, las curvas y las cifras de la tarjeta salen idénticas corrida tras corrida.
+test('sim-movil-instrumentos looks as approved', async ({ page }) => {
+  // Las pulsaciones de «Paso» de la vuelta completa pasan del tiempo por defecto de un test.
+  test.slow();
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.addInitScript(() => {
+    const style = document.createElement('style');
+    style.textContent = 'astro-dev-toolbar { display: none !important; }';
+    document.addEventListener('DOMContentLoaded', () => document.head.append(style));
+  });
+  await page.goto('/simuladores/movil');
+
+  await expect(page.getByTestId('line-follower-t')).toHaveText('0.00 s', {
+    timeout: ISLAND_TIMEOUT_MS,
+  });
+  await expect(page.getByTestId('start-pose-s')).toBeVisible();
+
+  // «Paso» avanza un `dt_s` exacto por pulsación sin arrancar el bucle de fotogramas. Se
+  // despachan dentro de la página: son miles, y el ida y vuelta del protocolo por cada una
+  // agotaría el tiempo del test. El botón es el de verdad y el evento el que React escucha.
+  await expect(page.getByRole('button', { name: 'Paso' })).toBeEnabled();
+  await page.evaluate((steps) => {
+    const button = [...document.querySelectorAll('button')].find(
+      (candidate) => candidate.textContent?.trim() === 'Paso',
+    );
+    if (button === undefined) throw new Error('no «Paso» button');
+    for (let k = 0; k < steps; k += 1) button.click();
+  }, LAP_STEPS);
+
+  // La vuelta se cerró y la tarjeta lleva cifras, no «—».
+  await expect(page.getByTestId('line-follower-laps')).toHaveText('1');
+  await expect(page.getByTestId('lap-card-last')).not.toHaveText('—');
+  // Y las cuatro gráficas están montadas.
+  await expect(page.getByTestId('panel-plots').getByTestId('plot-pid')).toBeVisible({
+    timeout: ISLAND_TIMEOUT_MS,
+  });
+  await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+  });
+  // El puntero fuera de los paneles: su estado `hover` entraría en la captura.
+  await page.mouse.move(0, 0);
+
+  await expect(page).toHaveScreenshot('sim-movil-instrumentos.png', {
+    timeout: ISLAND_TIMEOUT_MS,
+  });
 });
