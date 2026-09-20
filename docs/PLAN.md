@@ -380,22 +380,26 @@ Todos los widgets siguen `WIDGETS.md` (API, props, eventos, demo aislada, captur
 - Entregables: `packages/progress/` (`recordAttempt`, `getProgress`, `markCompleted`, store), integración en `ExerciseWidget` y en el índice de ruta.
 - Spec: un tema se marca `completed` cuando todos sus ejercicios obligatorios han sido respondidos correctamente al menos una vez; `best_score` = fracción de ejercicios correctos al primer intento; el índice de ruta muestra pendiente / en curso / completado; sin sesión, progreso en `localStorage` con aviso "crea una cuenta para guardar".
 - Aceptación: e2e completo; RLS impide escribir progreso de otro usuario (test con dos usuarios).
+- Estado: Done (#120).
 
 #### F3-02 · Grupos, docente · sim · L (crítico: mergea humano)
 - Depende de: F0-07, F0-08
 - Entregables: páginas `/aula`, `/aula/[groupId]`, componentes de lista y tabla.
 - Spec: docente crea grupo (nombre), recibe código de invitación de 8 caracteres, ve miembros, ve tabla tema × estudiante con estado, puede regenerar el código y quitar miembros; exporta CSV del progreso.
 - Aceptación: e2e con un docente y dos estudiantes; un estudiante no puede abrir `/aula`.
+- Estado: Done. Se ejecutó en dos partes: F3-02a (grupos, código de invitación y miembros, #121) y F3-02b (tabla tema × estudiante y exportación CSV, #122).
 
 #### F3-03 · Unirse a grupo, estudiante · sim · S
 - Depende de: F3-02
 - Spec: página `/unirse` con campo de código que llama a `join_group`; en `/cuenta` lista de grupos con opción de salir; eliminación de cuenta con confirmación (borra datos propios).
 - Aceptación: e2e; código inválido muestra error sin revelar existencia de grupos.
+- Estado: Done (#123).
 
 #### F3-04 · Robots guardados y subida de URDF · sim · M (seguridad revisa)
 - Depende de: F0-07, F1-01, F1-09
 - Spec: CRUD de robots en `/cuenta/robots`; subida de zip (≤ 20 MB) a Storage con validación en cliente (extensiones permitidas: `.urdf`, `.xacro` no, `.stl`, `.dae`, `.obj`, `.png`, `.jpg`), rechazo de rutas con `..`; parseo y validación con F1-09 antes de guardar; el `RobotSpec` resultante se guarda en `robots.spec` y el zip en `urdf/{user}/{robot}.zip`.
 - Aceptación: zip válido del SO-101 se guarda y aparece en la lista; zip con traversal se rechaza; RLS impide leer archivos ajenos.
+- Estado: Done (#124).
 
 ### Fase 4 — Simulador móvil 2D
 
@@ -403,26 +407,31 @@ Todos los widgets siguen `WIDGETS.md` (API, props, eventos, demo aislada, captur
 - Depende de: F1-05, F2-02
 - Spec: herramientas recta y arco por clic y arrastre, snap a extremos, edición de radio, ancho de línea, deshacer/rehacer, guardar/cargar JSON, cargar preset, validación de continuidad (advertencia si hay huecos).
 - Aceptación: crear un óvalo desde cero y guardarlo; capturas de las 4 presets.
+- Estado: Done. Se ejecutó en dos partes: F4-01a (modelo puro de la pista, #125) y F4-01b (editor, #126).
 
 #### F4-02 · Vista del simulador móvil · sim · L
 - Depende de: F1-04, F1-06, F2-02, F2-11, F4-01, D-02
 - Spec: página `/simuladores/movil`; robot desde `useMyRobot()` o selección de robot guardado; sensores dibujados con su lectura (color por intensidad); controles play/pause/step/reset/velocidad; selector de controlador con `ParamPanel` de sus parámetros (Kp, Ki, Kd, ωbase, umbral); posición inicial arrastrable sobre la pista.
 - Aceptación: e2e: cargar preset óvalo, PID por defecto, el robot completa una vuelta sin perder la línea en < 60 s simulados.
+- Estado: Done. Se ejecutó en dos partes: F4-02a (vista y controles, #127) y F4-02b (pose inicial, acordeones y barra inferior móvil, #128).
 
 #### F4-03 · Instrumentación · sim · M
 - Depende de: F4-02
 - Spec: panel con `Plot` en vivo de error, `v`, `ω`, y términos P, I, D; trayectoria acumulada; cronómetro de vuelta (detección de paso por la línea de meta = punto de inicio de la pista); velocidad promedio de la última vuelta; evento "perdió la línea" que pausa y marca el punto.
 - Aceptación: capturas; el tiempo de vuelta coincide con `length_m / v_promedio` ±2 %.
+- Estado: en curso (#129). `v_promedio` es la longitud de la pista dividida por el tiempo de vuelta, con lo que la aceptación se cumple exacta; la tarjeta muestra además la distancia realmente recorrida (#170). La tolerancia no cambia.
 
 #### F4-04 · Modo manual y robots de referencia · sim · S
 - Depende de: F4-02
 - Spec: controlador manual con teclado (flechas: ωbase y diferencia) y botones táctiles; 3 robots de referencia en `catalog/mobile/` (pequeño competitivo, educativo estándar, grande lento) con sus specs y una nota de origen.
 - Aceptación: manual funciona con teclado y táctil; los 3 specs validan.
+- Estado: Done (#130).
 
 #### F4-05 · Guardar configuraciones y compartir · sim · S
 - Depende de: F4-02, F3-04
 - Spec: guardar `{ robotId, trackJson, controller, params }` en `localStorage` y, con sesión, en `robots.spec.simConfigs[]`; enlace compartible que codifica pista y parámetros en la URL (comprimido) para que un docente comparta una configuración.
 - Aceptación: abrir el enlace reproduce la misma simulación (determinismo).
+- Estado: Done (#131).
 
 ### Fase 5 — Simulador de brazo 3D
 
@@ -430,27 +439,32 @@ Todos los widgets siguen `WIDGETS.md` (API, props, eventos, demo aislada, captur
 - Depende de: F2-12, F1-09, F5-05 (planar y SO-101 en catálogo)
 - Spec: página `/simuladores/brazo`; carga con `urdf-loader` desde `catalog/arms/{id}/`; slider por articulación con límites del spec; toggle de marcos por eslabón (`Frame` de F2-12); panel del efector con posición `(x, y, z)` y `rpy` en vivo calculados por `sim-core` (F1-08), no por three.
 - Aceptación: e2e: cargar planar 2 GDL, poner `q = (90°, 0)`, el panel muestra `(0, 0.35, 0)`; test que compara la posición de `sim-core` con la del objeto three (< 1e-6).
+- Estado: Done. Se ejecutó en dos partes: F5-01a (visor y sliders, #133) y F5-01b (paneles plegables en móvil, #134).
 
 #### F5-02 · Panel de matrices · sim · M
 - Depende de: F5-01
 - Spec: vista opcional que muestra, por eslabón, `T_origin`, `T_joint(q)` y la acumulada `⁰T_i` con `Formula`, actualizadas en vivo, con la cadena de multiplicación explícita; resaltado del eslabón seleccionado en 3D.
 - Aceptación: capturas; valores coinciden con F1-08.
+- Estado: Done (#135).
 
 #### F5-03 · Espacio de trabajo · sim · M
 - Depende de: F5-01
 - Spec: botón "calcular espacio de trabajo" que muestrea `n` configuraciones (n configurable, default 20 000) en lotes con barra de progreso sin bloquear la interfaz, y dibuja la nube de puntos con color por distancia a la base; toggle de visibilidad.
 - Aceptación: planar 2 GDL produce un anillo de radios `|l1 − l2|` y `l1 + l2` (verificación numérica de los extremos).
+- Estado: Done (#136).
 
 #### F5-04 · Importar URDF propio · sim · M (seguridad revisa)
 - Depende de: F5-01, F3-04
 - Spec: en la página del simulador, "importar" abre el flujo de F3-04 y carga el resultado en el visor; errores de validación se muestran con la clave i18n correspondiente; robots guardados aparecen en el selector.
 - Aceptación: e2e con el zip del SO-101.
+- Estado: Done (#137).
 
 #### F5-05 · Catálogo de brazos · content · M
 - Depende de: F0-05, F1-09
 - Entregables: `catalog/arms/so101/` (URDF y mallas del repositorio oficial, licencia y `ficha.json`), `catalog/arms/planar2dof/` (URDF creado por nosotros: `l1 = 0.20 m`, `l2 = 0.15 m`, dos revolute en Z, mallas simples generadas), páginas `/brazos` y `/brazos/[id]`.
 - Spec: `ficha.json`: nombre, GDL, alcance, carga, costo aproximado, licencia de hardware y software, links (repositorio, planos, BOM, compra), fecha de verificación; página con foto (propia o con licencia compatible), ficha y botón "abrir en simulador".
 - Aceptación: ambos parsean con F1-09; licencias copiadas al directorio; fichas validadas por esquema.
+- Estado: Done (#132).
 
 ### Fase 6 — Contenido
 

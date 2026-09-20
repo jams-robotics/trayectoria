@@ -86,5 +86,11 @@ Los datos locales se conservan entre `stop` y `start`; ese `start` restaura el b
 | `0001_schema.sql` | Las seis tablas de `ARCHITECTURE.md` §5.1, FKs a `profiles` con `on delete cascade`, trigger de `updated_at`, índices por dueño |
 | `0002_rls.sql` | RLS activo en todas las tablas, revocación de `anon`, políticas de §5.2, funciones auxiliares `security definer` (`is_teacher`, `owns_group`, `is_group_member`, `teaches_user`) y la vista `groups_visible` (grupos del usuario sin `invite_code`) |
 | `0003_functions.sql` | `join_group(invite_code)`, trigger `on_auth_user_created` que crea el perfil, bucket privado `urdf` (20 MiB) y políticas de `storage.objects` por dueño en `{uid}/*` |
+| `0004_profiles_column_grants.sql` | La actualización de `profiles` desde el cliente queda limitada a la columna `display_name`; `id`, `role` y `created_at` los pone el trigger de auth (spec gap #41) |
+| `0005_membership_and_account.sql` | Política para que un estudiante borre su propia membresía (salir de un grupo) y función `delete_account()` (#123) |
+
+Tras la migración 0005 (#123) hay que correr `db reset` en local antes de volver a trabajar: la base existente no la tiene aplicada y `start` no reaplica migraciones.
+
+`delete_account()` es `security definer` y solo toca filas de `auth.uid()`. Para borrar los objetos de `storage.objects` levanta `set_config('storage.allow_delete_query', …)` de forma **local a la transacción**, así que el permiso no sobrevive a la llamada. Quién borra los ficheros físicos y en qué orden lo fija `ARCHITECTURE.md` §6 (#178); aquí basta con saber que la función no deja el permiso levantado fuera de su transacción.
 
 Los estudiantes leen sus grupos desde `groups_visible`; la tabla `groups` solo la lee su dueño. Las membresías se crean únicamente con `select join_group('<código>')`, que devuelve el `id` del grupo o falla con `invalid invite code` sin distinguir entre código inexistente, grupo propio o membresía ya existente.
