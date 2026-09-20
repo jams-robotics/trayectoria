@@ -8,7 +8,7 @@ import { Toolbar } from './Toolbar';
 import { useTrackEditor } from './useTrackEditor';
 import type { TrackEditorApi } from './useTrackEditor';
 import { ContinuityNotice, EditorToast } from './notices';
-import { PresetDialog, useTrackFiles } from './useTrackFiles';
+import { ConfirmReplace, useTrackFiles } from './useTrackFiles';
 
 /**
  * True when `target` is a control that owns its own keys: a shortcut must not steal `Supr` from
@@ -154,12 +154,13 @@ function EditorToolbar({
       onSave={files.save}
       onLoad={files.load}
       onPreset={files.askPreset}
+      onNew={files.askNew}
       singleRow={singleRow}
     />
   );
 }
 
-/** Los avisos y diálogos que el editor puede abrir: continuidad, error de carga, preset, toast. */
+/** Los avisos que el editor puede abrir: continuidad, error de carga, confirmación, toast. */
 function EditorNotices({
   editor,
   files,
@@ -171,10 +172,10 @@ function EditorNotices({
     <>
       <ContinuityNotice report={editor.continuity} />
       <LoadError message={files.error} />
-      <PresetDialog
+      <ConfirmReplace
         pending={files.pending}
-        onConfirm={files.confirmPreset}
-        onCancel={files.cancelPreset}
+        onConfirm={files.confirmPending}
+        onCancel={files.cancelPending}
       />
       <EditorToast shown={files.saved} onClose={files.dismiss} />
     </>

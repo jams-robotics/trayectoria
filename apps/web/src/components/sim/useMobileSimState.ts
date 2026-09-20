@@ -9,6 +9,8 @@ import type {
 import type { RobotSpec } from '@trayectoria/widgets';
 
 import { MY_ROBOT_ID } from './RobotSource';
+import { useSimView } from './useSimView';
+import type { SimView } from './useSimView';
 
 // F4-02b (#128): estado de `/simuladores/movil`, separado de la presentación de
 // `MobileSimIsland.tsx` para mantener cada archivo bajo el límite de docs/STANDARDS.md §4.
@@ -64,11 +66,7 @@ export async function initialPose(track: TrackJson): Promise<StartPose> {
   return poseOnTrack(resolveTrack(track), null, 0);
 }
 
-/**
- * Qué ocupa la caja del visor: la simulación o el editor de pista (#158, decisión 1). El editor
- * sustituye al visor en la misma caja; no es un panel que se despliegue bajo la columna derecha.
- */
-export type SimView = 'sim' | 'editor';
+export type { SimView };
 
 /** El controlador, sus parámetros y la semilla de la carrera; lo que el enlace reproduce. */
 export interface ControllerChoice {
@@ -90,7 +88,11 @@ export interface PageState {
   readonly onPreset: (preset: TrackPreset) => void;
   readonly view: SimView;
   readonly openEditor: () => void;
+  /** «Nueva pista»: abre el editor con el lienzo en blanco (#190, decisión 3). */
+  readonly openNewEditor: () => void;
   readonly closeEditor: () => void;
+  /** La pista con la que abre el editor: la de la página, o ninguna tras «Nueva pista». */
+  readonly editorTrack: TrackJson | null;
   /** El controlador, los parámetros y la semilla con los que el widget arranca (F4-05). */
   readonly run: ControllerChoice;
   /** Cambia con cada configuración aplicada; es el `key` que remonta el widget (F4-05). */
@@ -110,26 +112,6 @@ export function useOpeningPose(setStartPose: (pose: StartPose) => void): void {
       live = false;
     };
   }, [setStartPose]);
-}
-
-/**
- * Qué ocupa la caja del visor y cómo se cambia (#158, decisiones 1 y 3). «Volver a la simulación»
- * solo devuelve la caja al visor: la pista editada ya llegó por `onTrack` en cada cambio del
- * editor, y el reinicio a `t = 0` en pausa lo pide la isla, que es quien tiene la api del widget.
- */
-export function useSimView(): {
-  view: SimView;
-  openEditor: () => void;
-  closeEditor: () => void;
-} {
-  const [view, setView] = useState<SimView>('sim');
-  const openEditor = useCallback((): void => {
-    setView('editor');
-  }, []);
-  const closeEditor = useCallback((): void => {
-    setView('sim');
-  }, []);
-  return { view, openEditor, closeEditor };
 }
 
 /**
@@ -221,7 +203,7 @@ export function usePageState(): PageState {
   const [robotId, setRobotId] = useState(MY_ROBOT_ID);
   const [robot, setRobot] = useState<RobotSpec | null>(null);
   const [startPose, setStartPose] = useState<StartPose | null>(null);
-  const { view, openEditor, closeEditor } = useSimView();
+  const { view, openEditor, openNewEditor, closeEditor, fromEmpty } = useSimView();
   const { choice, setChoice, onTrack, onPreset } = useTrackChoice(setStartPose);
   useOpeningPose(setStartPose);
 
@@ -253,7 +235,11 @@ export function usePageState(): PageState {
     onPreset,
     view,
     openEditor,
+    openNewEditor,
     closeEditor,
+    // #190 (decisión 3): «Nueva pista» abre el editor en blanco; «Editar esta pista», con la que
+    // la página está simulando.
+    editorTrack: fromEmpty ? null : choice.track,
     run,
     configKey,
     applyConfig,
@@ -267,7 +253,8 @@ export function usePageState(): PageState {
  */
 function usePageStateObject(state: PageState): PageState {
   const { robotId, robot, choice, startPose, onTrack, onPreset } = state;
-  const { view, openEditor, closeEditor, run, configKey, applyConfig } = state;
+  const { view, openEditor, openNewEditor, closeEditor, editorTrack } = state;
+  const { run, configKey, applyConfig } = state;
   const kept = useRef(state);
   kept.current = state;
   return useMemo(
@@ -281,7 +268,9 @@ function usePageStateObject(state: PageState): PageState {
       onPreset,
       view,
       openEditor,
+      openNewEditor,
       closeEditor,
+      editorTrack,
       run,
       configKey,
       applyConfig,

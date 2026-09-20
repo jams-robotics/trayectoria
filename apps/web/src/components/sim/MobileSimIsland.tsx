@@ -6,13 +6,14 @@ import type { LineFollowerApi, LiveInstruments, SimConfig } from '@trayectoria/s
 
 import { useApiStore } from './apiStore';
 import type { ApiStore } from './apiStore';
-import { useEditorPanelStore, usePublishedPanel } from './editorPanelStore';
+import { useEditorPanelStore } from './editorPanelStore';
 import type { EditorPanelStore } from './editorPanelStore';
+import { EmptyTrackToast, useEmptyTrackNotice } from './EmptyTrackNotice';
 import { useInstruments } from './instrumentsStore';
 import { BOTTOM_BAR_HEIGHT_PX } from './BottomBar';
 import { LiveBottomBar, SidePanels } from './MobileSimPanels';
 import type { OpenPanelId, SidePanelsProps } from './MobileSimPanels';
-import { TrackEditorBox } from './TrackEditorBox';
+import { ViewerBox } from './ViewerBox';
 import { MOBILE_MEDIA_QUERY, useMediaQuery } from './useMediaQuery';
 import { useSimConfigs } from './useSimConfigs';
 import type { SimConfigsApi } from './useSimConfigs';
@@ -53,59 +54,6 @@ function useStableConfig(config: Omit<SimConfig, 'id' | 'name'>): Omit<SimConfig
   const kept = useRef(config);
   if (JSON.stringify(kept.current) !== JSON.stringify(config)) kept.current = config;
   return kept.current;
-}
-
-/**
- * La caja del visor: el visor de `LineFollowerWidget` (oculto con `hidden` mientras se edita, para
- * que la simulación siga viva) y, al editar, `TrackEditorBox` en su lugar (#158, enmienda tras
- * auditoría de PR #169). La página la pasa como `renderViewer`, así que decide ella el envoltorio
- * en lugar de que `TrackEditorBox` alcance el DOM interno del widget con un portal.
- */
-function ViewerBox({
-  viewer,
-  page,
-  store,
-  panels,
-}: {
-  viewer: ReactNode;
-  page: ReturnType<typeof usePageState>;
-  store: ApiStore;
-  panels: EditorPanelStore;
-}): JSX.Element {
-  const { closeEditor } = page;
-  const editing = page.view === 'editor';
-  const onBack = useCallback((): void => {
-    store.read()?.driver.reset();
-    closeEditor();
-  }, [store, closeEditor]);
-  return (
-    <div className="flex min-w-0 flex-1 flex-col gap-3">
-      <div hidden={editing}>{viewer}</div>
-      <TrackEditorBox
-        open={editing}
-        track={page.choice.track}
-        onTrack={page.onTrack}
-        onBack={onBack}
-        renderPanel={(panel) => <EditorPanelPort store={panels} panel={panel} />}
-      />
-    </div>
-  );
-}
-
-/**
- * El panel numérico que el editor entrega por `renderPanel`, encaminado hacia la columna derecha
- * (#189, decisión 2). No pinta nada donde el editor lo dejó: allí ya no hay sitio, y la columna es
- * quien lo muestra.
- */
-function EditorPanelPort({
-  store,
-  panel,
-}: {
-  store: EditorPanelStore;
-  panel: ReactNode;
-}): null {
-  usePublishedPanel(store, panel);
-  return null;
 }
 
 /**
@@ -199,6 +147,8 @@ interface SimulatorProps {
   readonly onInstruments: (instruments: LiveInstruments) => void;
   readonly store: ApiStore;
   readonly panels: EditorPanelStore;
+  /** Se llama al volver del editor con el lienzo sin segmentos (#190, decisión 3). */
+  readonly onEmptyTrack: () => void;
 }
 
 /** El aviso mientras el chunk del simulador se resuelve. */
@@ -220,6 +170,7 @@ function Simulator({
   onInstruments,
   store,
   panels,
+  onEmptyTrack,
 }: SimulatorProps): JSX.Element {
   return (
     <Suspense fallback={<SimulatorFallback />}>
@@ -234,7 +185,13 @@ function Simulator({
         onInstruments={onInstruments}
         renderPanel={renderPanel}
         renderViewer={(viewer) => (
-          <ViewerBox viewer={viewer} page={page} store={store} panels={panels} />
+          <ViewerBox
+            viewer={viewer}
+            page={page}
+            store={store}
+            panels={panels}
+            onEmptyTrack={onEmptyTrack}
+          />
         )}
         hideControls={mobile}
       />
@@ -260,6 +217,7 @@ export function MobileSimIsland(): JSX.Element {
   // #189 (decisión 2): el panel del editor viaja de la caja del visor a la columna derecha.
   const panels = useEditorPanelStore();
   const configs = useSimConfigs(page.robotId, page.applyConfig);
+  const emptyTrack = useEmptyTrackNotice();
   const [live, setLive] = useState<ControllerChoice>(page.run);
   const current = useCurrentConfig(page, live);
   const renderController = useSidePanels({
@@ -286,9 +244,11 @@ export function MobileSimIsland(): JSX.Element {
         onInstruments={instruments.publish}
         store={store}
         panels={panels}
+        onEmptyTrack={emptyTrack.show}
       />
       {mobile ? <LiveBottomBar store={store} /> : null}
       <Notices configs={configs} />
+      <EmptyTrackToast notice={emptyTrack} />
     </div>
   );
 }

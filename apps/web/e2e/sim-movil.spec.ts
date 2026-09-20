@@ -1,6 +1,9 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
+import { openEditor, openMobileSim as open, readout } from './sim-movil.helpers';
+import type { Readout } from './sim-movil.helpers';
+
 // F4-02b (#128, decisión 6): la página `/simuladores/movil`. Sin Supabase: el selector de robots
 // guardados no entra aquí (lo cubre el test unitario de la consulta con cliente mockeado); lo que
 // se prueba es la vuelta completa con el preset óvalo y el PID por defecto, el determinismo de
@@ -23,19 +26,6 @@ const DETERMINISM_STEPS = 200;
 
 /** Viewport móvil de las maquetas (docs/DESIGN.md §9). */
 const MOBILE_VIEWPORT = { width: 390, height: 844 };
-
-/**
- * Abre la página y espera a que la isla esté asentada: el asa de la pose inicial solo aparece
- * cuando el módulo del simulador ya resolvió la pose de apertura, y aplicarla reconstruye la
- * simulación. Reproducir antes de eso arrancaría una carrera que el propio reinicio detiene.
- */
-async function open(page: Page): Promise<void> {
-  await page.emulateMedia({ colorScheme: 'light' });
-  await page.goto('/simuladores/movil');
-  await page.addStyleTag({ content: 'astro-dev-toolbar { display: none !important; }' });
-  await expect(page.getByTestId('start-pose-s')).toBeVisible();
-  await expect(page.getByTestId('line-follower-t')).toHaveText('0.00 s');
-}
 
 /**
  * Pone la velocidad al máximo, reproduce y devuelve el `t` simulado de la primera vuelta. El
@@ -68,23 +58,6 @@ async function runOneLap(page: Page): Promise<string> {
   lap_s = pair.split('|')[1] ?? '';
   await page.getByRole('button', { name: 'Pausa' }).first().click();
   return lap_s;
-}
-
-/** Las lecturas que la página muestra, leídas en una sola evaluación del DOM. */
-interface Readout {
-  readonly t: string;
-  readonly x: string;
-  readonly y: string;
-  readonly theta: string;
-}
-
-/** Lee las lecturas del visor tal y como se ven. */
-async function readout(page: Page): Promise<Readout> {
-  return page.evaluate(() => {
-    const read = (id: string): string =>
-      document.querySelector(`[data-testid="line-follower-${id}"]`)?.textContent ?? '';
-    return { t: read('t'), x: read('x'), y: read('y'), theta: read('theta') };
-  });
 }
 
 /**
@@ -250,19 +223,6 @@ test.describe('/simuladores/movil (F4-02b)', () => {
 test.describe('editor de pista en la caja del visor (#158, #189)', () => {
   /** Tolerancia de ancho entre el visor y el editor, en píxeles (decisión 4). */
   const WIDTH_TOLERANCE_PX = 2;
-
-  /**
-   * Pulsa «Editar» en el panel Pista. A 390 px ese panel es un acordeón cerrado, así que primero
-   * hay que abrirlo: el botón existe en el DOM pero no se ve (docs/DESIGN.md §9.4).
-   */
-  async function openEditor(page: Page): Promise<void> {
-    const edit = page.getByTestId('track-source-edit');
-    if (!(await edit.isVisible())) {
-      await page.getByRole('button', { name: /^Pista/ }).click();
-    }
-    await edit.click();
-    await expect(page.getByTestId('track-editor')).toBeVisible();
-  }
 
   /** Ancho de un elemento en píxeles, del recuadro que el navegador le da. */
   async function width_px(page: Page, testId: string): Promise<number> {

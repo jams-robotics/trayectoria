@@ -56,6 +56,11 @@ export interface TrackEditorApi {
   selectSegment: (index: number | null) => void;
   moveEndpoint: (end: Endpoint, p_m: Vec2) => void;
   setLineWidth: (w_m: number) => void;
+  /**
+   * Empties the canvas, keeping the current `lineWidth_m` (#190, decision 1). It is an edit like
+   * any other, not a reset: it goes through the history, so «Deshacer» brings the track back.
+   */
+  newTrack: () => void;
   applyPreset: (name: PresetName) => void;
   /** Serializes the track; `null` on success, the error message when the JSON is not a track. */
   toJson: () => string;
@@ -177,6 +182,33 @@ function useWholeTrack(
   ];
 }
 
+/** «Deshacer» y «Rehacer»: un paso atrás o adelante en el historial (spec de #126). */
+function useTimeTravel(
+  history: History<EditorState>,
+  replace: (next: History<EditorState>) => void,
+): Pick<TrackEditorApi, 'undo' | 'redo'> {
+  return {
+    undo: useCallback(() => {
+      replace(undo(history));
+    }, [history, replace]),
+    redo: useCallback(() => {
+      replace(redo(history));
+    }, [history, replace]),
+  };
+}
+
+/**
+ * «Nueva» (#190, decisión 1): el lienzo vacío con el ancho de línea que se estaba usando. Pasa por
+ * `commit` y no por `reset` como los presets, así que es una edición más del historial y
+ * «Deshacer» devuelve la pista que había.
+ */
+function useNewTrack(state: EditorState, commit: (next: EditorState) => void): () => void {
+  const { lineWidth_m } = state.track;
+  return useCallback((): void => {
+    commit(emptyEditor(lineWidth_m));
+  }, [lineWidth_m, commit]);
+}
+
 /**
  * State of the track editor: the edited track with its selection, the active tool, the stroke
  * being previewed, the undo/redo history and the continuity report. Every geometry decision is
@@ -206,14 +238,10 @@ export function useTrackEditor(options: UseTrackEditorOptions = {}): TrackEditor
     pointerDown: down,
     pointerMove: move,
     pointerUp: up,
-    undo: useCallback(() => {
-      replace(undo(history));
-    }, [history, replace]),
-    redo: useCallback(() => {
-      replace(redo(history));
-    }, [history, replace]),
+    ...useTimeTravel(history, replace),
     ...usePanel(state, commit),
     ...useSegmentActions(state, commit),
+    newTrack: useNewTrack(state, commit),
     selectSegment: useCallback(
       (index: number | null): void => {
         commit(select(state, index));
