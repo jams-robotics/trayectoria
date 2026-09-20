@@ -3,6 +3,8 @@ import { getDbClient, type Tables } from '@trayectoria/db';
 import { useT } from '@trayectoria/i18n';
 import { useEffect, useState, type JSX } from 'react';
 
+import { DeleteAccount } from './DeleteAccount';
+import { MyGroups } from './MyGroups';
 import { SECONDARY_BUTTON } from './fields';
 
 type Profile = Pick<Tables<'profiles'>, 'display_name' | 'role'>;
@@ -77,19 +79,24 @@ export function AccountPanel(): JSX.Element {
   const profile = useProfile(session?.user.id ?? '');
   if (session === null) return <></>;
   return (
-    <div className="border-border bg-bg-raised rounded-md border p-7">
-      {profile === null ? (
-        <p aria-live="polite" className="text-fg-muted m-0">
-          {t('auth.account.loading')}
-        </p>
-      ) : (
-        <ProfileFields profile={profile} email={session.user.email ?? ''} />
-      )}
-      <div className="mt-6">
-        <button type="button" onClick={() => void signOut()} className={SECONDARY_BUTTON}>
-          {t('auth.account.signOut')}
-        </button>
+    <div className="flex flex-col gap-7">
+      <div className="border-border bg-bg-raised rounded-md border p-7">
+        {profile === null ? (
+          <p aria-live="polite" className="text-fg-muted m-0">
+            {t('auth.account.loading')}
+          </p>
+        ) : (
+          <ProfileFields profile={profile} email={session.user.email ?? ''} />
+        )}
+        <div className="mt-6">
+          <button type="button" onClick={() => void signOut()} className={SECONDARY_BUTTON}>
+            {t('auth.account.signOut')}
+          </button>
+        </div>
       </div>
+      {/* «Mis grupos» and «Eliminar cuenta» (F3-03); the latter closes the page. */}
+      <MyGroups userId={session.user.id} />
+      <DeleteAccount />
     </div>
   );
 }
