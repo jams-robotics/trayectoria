@@ -192,5 +192,17 @@
     "summaryLaps": "{{laps}} vueltas · t {{time}} s",
     "readoutsEmpty": "Todavía no hay lecturas; pulsa Reproducir.",
     "loading": "Cargando el simulador…"
+  },
+  "workspace": {
+    "title": "Espacio de trabajo",
+    "count": "Muestras",
+    "compute": "Calcular",
+    "cancel": "Cancelar",
+    "show": "Mostrar",
+    "hide": "Ocultar",
+    "progress": "Progreso del cálculo del espacio de trabajo",
+    "computing": "Calculando el espacio de trabajo: {{percent}} %.",
+    "empty": "Sin calcular. Pulsa Calcular para muestrear las posiciones alcanzables.",
+    "ready": "Nube de {{count}} posiciones alcanzables, coloreadas por distancia a la base."
   }
 }

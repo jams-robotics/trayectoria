@@ -14,14 +14,19 @@ const ISLAND_TIMEOUT_MS = 30_000;
 /** Viewport móvil de las maquetas (docs/DESIGN.md §9). */
 const MOBILE_VIEWPORT = { width: 390, height: 844 };
 
+/** Muestras del cálculo de la captura del espacio de trabajo (#136, decisión 6). */
+const WORKSPACE_SAMPLE_COUNT = 5_000;
+
 const SHOTS = [
-  { shot: 'sim-brazo', viewport: null, matrices: false },
-  { shot: 'sim-brazo-390', viewport: MOBILE_VIEWPORT, matrices: false },
+  { shot: 'sim-brazo', viewport: null, matrices: false, workspace: false },
+  { shot: 'sim-brazo-390', viewport: MOBILE_VIEWPORT, matrices: false, workspace: false },
   // F5-02 (#135, decisión 6): la misma página con el panel de matrices encendido.
-  { shot: 'sim-brazo-matrices', viewport: null, matrices: true },
+  { shot: 'sim-brazo-matrices', viewport: null, matrices: true, workspace: false },
+  // F5-03 (#136, decisión 6): la nube del espacio de trabajo ya calculada.
+  { shot: 'sim-brazo-workspace', viewport: null, matrices: false, workspace: true },
 ] as const;
 
-for (const { shot, viewport, matrices } of SHOTS) {
+for (const { shot, viewport, matrices, workspace } of SHOTS) {
   test(`${shot} looks as approved`, async ({ page }) => {
     if (viewport !== null) await page.setViewportSize(viewport);
     await page.emulateMedia({ colorScheme: 'light' });
@@ -40,6 +45,17 @@ for (const { shot, viewport, matrices } of SHOTS) {
     if (matrices) {
       await page.locator('[data-testid="matrices-toggle"]').click();
       await expect(page.locator('[data-testid="matrix-panel"]')).toBeVisible({
+        timeout: ISLAND_TIMEOUT_MS,
+      });
+    }
+    if (workspace) {
+      await page.locator('[data-testid="workspace-toggle"]').click();
+      await page
+        .locator('[data-testid="workspace-count"]')
+        .fill(String(WORKSPACE_SAMPLE_COUNT));
+      await page.locator('[data-testid="workspace-compute"]').click();
+      // La nube está en la escena cuando el botón vuelve a ofrecer Calcular.
+      await expect(page.locator('[data-testid="workspace-compute"]')).toHaveText('Calcular', {
         timeout: ISLAND_TIMEOUT_MS,
       });
     }
