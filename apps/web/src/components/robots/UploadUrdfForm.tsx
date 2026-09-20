@@ -35,6 +35,7 @@ const ERROR_KEYS: Readonly<Record<string, string>> = {
   'urdf.pathTraversal': 'urdf.pathTraversal',
   'urdf.badExtension': 'urdf.badExtension',
   'urdf.multipleUrdf': 'urdf.multipleUrdf',
+  'urdf.noUrdf': 'urdf.noUrdf',
   'urdf.xacroUnsupported': 'urdf.xacroUnsupported',
 };
 
