@@ -2,10 +2,15 @@ import { Suspense, lazy, useCallback, useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
 
-import { ArmSource, resolveArmId } from './ArmSource';
+import { ArmSource, IMPORTED_VALUE, resolveArmId, savedIdOf } from './ArmSource';
 import type { ArmOption } from './ArmSource';
+import { ImportUrdfDialog } from './ImportUrdfDialog';
 import { SimAccordion } from './SimAccordion';
+import { ViewControls } from './ArmViewControls';
+import type { AccordionGroup, OpenPanelId } from './accordionGroup';
 import { MOBILE_MEDIA_QUERY, useMediaQuery } from './useMediaQuery';
+import { useImportedArm } from './useImportedArm';
+import type { ImportState, MemoryArm } from './useImportedArm';
 
 // F5-01b (#134, decisiones 1, 2 y 4): la isla de `/simuladores/brazo`. Es `client:only="react"`
 // y carga `@trayectoria/sims/arm` con un `import()` dinámico, de modo que `three` y
@@ -25,6 +30,11 @@ const LazyArmViewer = lazy(async () => {
 /** Capa de los marcos, siempre activa; las otras dos las encienden los controles de vista. */
 type ShowLayer = 'frames' | 'matrices' | 'workspace';
 
+/** Lee `?robot=` de la URL. Solo se ejecuta en el cliente: la isla es `client:only`. */
+function requestedArmId(): string | null {
+  return new URLSearchParams(window.location.search).get('robot');
+}
+
 /** Las capas del visor según qué controles de vista estén encendidos (#135 y #136). */
 function showLayers(matrices: boolean, workspace: boolean): ShowLayer[] {
   const layers: ShowLayer[] = ['frames'];
@@ -33,120 +43,6 @@ function showLayers(matrices: boolean, workspace: boolean): ShowLayer[] {
   return layers;
 }
 
-/** El botón de vista operativo: activo en `primary`, inactivo secundario (docs/DESIGN.md §5). */
-const TOGGLE_BUTTON = 'h-9 rounded-sm border px-3 text-sm';
-const TOGGLE_ON = `${TOGGLE_BUTTON} bg-primary text-primary-fg border-primary`;
-const TOGGLE_OFF = `${TOGGLE_BUTTON} border-border bg-bg-raised text-fg-muted`;
-
-/** Lee `?robot=` de la URL. Solo se ejecuta en el cliente: la isla es `client:only`. */
-function requestedArmId(): string | null {
-  return new URLSearchParams(window.location.search).get('robot');
-}
-
-/** Un control de vista que enciende una capa del visor (#135 y #136, decisión 4). */
-function LayerToggle({
-  label,
-  on,
-  testId,
-  onToggle,
-}: {
-  label: string;
-  on: boolean;
-  testId: string;
-  onToggle: (on: boolean) => void;
-}): JSX.Element {
-  return (
-    <button
-      type="button"
-      className={on ? TOGGLE_ON : TOGGLE_OFF}
-      aria-pressed={on}
-      data-testid={testId}
-      onClick={() => {
-        onToggle(!on);
-      }}
-    >
-      {label}
-    </button>
-  );
-}
-
-/** La fila con los dos controles de vista operativos. */
-function ToggleRow({
-  matrices,
-  onMatrices,
-  workspace,
-  onWorkspace,
-}: {
-  matrices: boolean;
-  onMatrices: (on: boolean) => void;
-  workspace: boolean;
-  onWorkspace: (on: boolean) => void;
-}): JSX.Element {
-  const t = useT();
-  return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label={t('sims.armPage.view')}>
-      <LayerToggle
-        label={t('sims.armPage.workspace')}
-        on={workspace}
-        testId="workspace-toggle"
-        onToggle={onWorkspace}
-      />
-      <LayerToggle
-        label={t('sims.armPage.matrices')}
-        on={matrices}
-        testId="matrices-toggle"
-        onToggle={onMatrices}
-      />
-    </div>
-  );
-}
-
-/**
- * Los controles de vista. «Marcos» no está aquí: lo aporta el propio `ArmViewer` (#134,
- * decisión 4). En móvil van dentro de un acordeón para no comerse el alto por encima del visor
- * (docs/DESIGN.md §9 puntos 3 y 8).
- */
-function ViewControls({
-  mobile,
-  group,
-  matrices,
-  onMatrices,
-  workspace,
-  onWorkspace,
-}: {
-  mobile: boolean;
-  group: AccordionGroup;
-  matrices: boolean;
-  onMatrices: (on: boolean) => void;
-  workspace: boolean;
-  onWorkspace: (on: boolean) => void;
-}): JSX.Element {
-  const t = useT();
-  const controls = (
-    <ToggleRow
-      matrices={matrices}
-      onMatrices={onMatrices}
-      workspace={workspace}
-      onWorkspace={onWorkspace}
-    />
-  );
-  // En escritorio los controles van arriba-izquierda del visor (maqueta 05). `Marcos` no está
-  // aquí: lo pinta el propio `ArmViewer` en la fila inmediatamente inferior, porque reutilizarlo
-  // tal cual es la decisión 4 del ticket y su `FramesToggle` es interno.
-  if (!mobile) return controls;
-  return (
-    <SimAccordion
-      title={t('sims.armPage.view')}
-      summary={t('sims.armPage.view')}
-      open={group.openId === 'view'}
-      onToggle={(open) => {
-        group.setOpenId(open ? 'view' : null);
-      }}
-    >
-      {controls}
-    </SimAccordion>
-  );
-}
 
 /** El panel que `ArmViewer` entrega a `renderPanel` (`ArmViewerPanel` de `@trayectoria/sims`). */
 interface ArmViewerPanel {
@@ -154,15 +50,6 @@ interface ArmViewerPanel {
   readonly title: string;
   readonly summary: string;
   readonly content: ReactNode;
-}
-
-/** Qué acordeón está abierto en móvil; solo uno a la vez (docs/DESIGN.md §9.4). */
-type OpenPanelId = 'view' | 'joints' | 'effector' | 'matrices' | 'workspace' | null;
-
-/** El estado compartido por los tres acordeones de la página en móvil. */
-interface AccordionGroup {
-  readonly openId: OpenPanelId;
-  readonly setOpenId: (id: OpenPanelId) => void;
 }
 
 /**
@@ -197,18 +84,22 @@ function usePanelWrapper(
 
 /**
  * El visor perezoso. Cambiar de brazo lo remonta con `key`, así que `q` vuelve a `initialQ` o a
- * ceros (criterio del ticket) sin que esta isla toque el estado de `useArmSim`.
+ * ceros (criterio del ticket) sin que esta isla toque el estado de `useArmSim`. Un brazo
+ * importado llega como `source` con su zip en memoria (#137, decisión 2).
  */
 function Viewer({
   armId,
+  memoryArm,
   show,
   renderPanel,
 }: {
   armId: string;
+  memoryArm: MemoryArm | null;
   show: ShowLayer[];
   renderPanel: (panel: ArmViewerPanel) => ReactNode;
 }): JSX.Element {
   const t = useT();
+  const imported = memoryArm !== null;
   return (
     <Suspense
       fallback={
@@ -217,8 +108,115 @@ function Viewer({
         </p>
       }
     >
-      <LazyArmViewer key={armId} catalogId={armId} show={show} renderPanel={renderPanel} />
+      {imported ? (
+        <LazyArmViewer
+          key={`imported:${memoryArm.urdfPath}`}
+          source={{ kind: 'zip', bytes: memoryArm.bytes, urdfPath: memoryArm.urdfPath }}
+          show={show}
+          renderPanel={renderPanel}
+        />
+      ) : (
+        <LazyArmViewer key={armId} catalogId={armId} show={show} renderPanel={renderPanel} />
+      )}
     </Suspense>
+  );
+}
+
+/**
+ * El aviso de la última importación. Las claves van como literales para que el chequeo estático de
+ * F0-06 las vea (docs/ops/I18N.md, mismo patrón que `ERROR_KEYS` de `UploadUrdfForm`).
+ */
+function ImportNotice({ notice }: { notice: string }): JSX.Element {
+  const t = useT();
+  const messages: Readonly<Record<string, string>> = {
+    'sims.import.saved': t('sims.import.saved'),
+    'sims.import.loaded': t('sims.import.loaded'),
+    'sims.import.saveFailed': t('sims.import.saveFailed'),
+    'sims.import.downloadFailed': t('sims.import.downloadFailed'),
+    'sims.import.loadFailed': t('sims.import.loadFailed'),
+  };
+  return (
+    <p
+      aria-live="polite"
+      data-testid="import-notice"
+      className="text-fg-muted m-0 min-h-[1.5em] text-sm"
+    >
+      {messages[notice] ?? ''}
+    </p>
+  );
+}
+
+/** El selector con su aviso y, cuando está abierto, el diálogo de importación (#137). */
+function SourceRow({
+  arms,
+  selected,
+  fallback,
+  importing,
+  onSelect,
+}: {
+  arms: readonly ArmOption[];
+  selected: string;
+  fallback: boolean;
+  importing: ImportState;
+  onSelect: (value: string) => void;
+}): JSX.Element {
+  return (
+    <>
+      <ArmSource
+        arms={arms}
+        selected={selected}
+        fallback={fallback}
+        savedArms={importing.savedArms}
+        importedName={importing.memoryArm?.name ?? null}
+        onSelect={onSelect}
+        onImport={importing.openDialog}
+      />
+      <ImportNotice notice={importing.notice} />
+      {importing.dialogOpen ? (
+        <ImportUrdfDialog
+          signedIn={importing.signedIn}
+          onAccept={importing.accept}
+          onClose={importing.closeDialog}
+        />
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * Qué hace cada opción del selector (#137, decisión 3): un brazo del catálogo cambia la URL, uno
+ * guardado se descarga del propio bucket y el importado en memoria solo se vuelve a mostrar.
+ */
+function useArmSelection(options: {
+  armId: string;
+  setArmId: (id: string) => void;
+  setSelected: (value: string) => void;
+  setFallback: (shown: boolean) => void;
+  importing: ImportState;
+}): (value: string) => void {
+  const { armId, setArmId, setSelected, setFallback, importing } = options;
+  return useCallback(
+    (value: string): void => {
+      if (value === IMPORTED_VALUE) {
+        setSelected(value);
+        return;
+      }
+      if (savedIdOf(value) !== null) {
+        setSelected(value);
+        void importing.selectSaved(value).then((ok) => {
+          if (!ok) setSelected(armId);
+        });
+        return;
+      }
+      importing.clearMemoryArm();
+      setArmId(value);
+      setSelected(value);
+      setFallback(false);
+      const url = new URL(window.location.href);
+      url.searchParams.set('robot', value);
+      window.history.replaceState(null, '', url);
+    },
+    [armId, setArmId, setSelected, setFallback, importing],
   );
 }
 
@@ -228,25 +226,35 @@ export interface ArmSimIslandProps {
 }
 
 /**
- * Página del simulador de brazo: selector del catálogo, controles de vista y el visor 3D.
- * `?robot=<id>` se lee en el cliente (`window` está permitido en `apps/web`, CLAUDE.md) porque
- * la página es estática y `Astro.url.searchParams` no ve una cadena añadida tras el build.
+ * El brazo que la página muestra: el del catálogo pedido en `?robot=`, uno guardado o el
+ * importado en memoria. `?robot=` se lee en el cliente (`window` está permitido en `apps/web`,
+ * CLAUDE.md) porque la página es estática y `Astro.url.searchParams` no ve una cadena añadida
+ * tras el build.
  */
-export function ArmSimIsland({ arms }: ArmSimIslandProps): JSX.Element {
+function useArmPage(arms: readonly ArmOption[]): {
+  armId: string;
+  selected: string;
+  fallback: boolean;
+  importing: ImportState;
+  onSelect: (value: string) => void;
+} {
   const requested = requestedArmId();
   const [armId, setArmId] = useState(() => resolveArmId(requested, arms));
   // El aviso solo aparece si la URL pedía un brazo concreto que no existe en el catálogo.
   const [fallback, setFallback] = useState(
     () => requested !== null && !arms.some((arm) => arm.id === requested),
   );
+  // «Importar…» y «Mis robots» son F5-04 (#137, decisiones 3, 4 y 5); el brazo importado se
+  // dibuja desde su zip en memoria y el selector se queda en su propia opción.
+  const [selected, setSelected] = useState(armId);
+  const importing = useImportedArm(setSelected);
+  const onSelect = useArmSelection({ armId, setArmId, setSelected, setFallback, importing });
+  return { armId, selected, fallback, importing, onSelect };
+}
 
-  const selectArm = useCallback((id: string): void => {
-    setArmId(id);
-    setFallback(false);
-    const url = new URL(window.location.href);
-    url.searchParams.set('robot', id);
-    window.history.replaceState(null, '', url);
-  }, []);
+/** Página del simulador de brazo: selector, controles de vista y el visor 3D. */
+export function ArmSimIsland({ arms }: ArmSimIslandProps): JSX.Element {
+  const { armId, selected, fallback, importing, onSelect } = useArmPage(arms);
 
   // En móvil los tres bloques de la página son acordeones con uno solo abierto a la vez
   // (docs/DESIGN.md §9.4, #134 decisión 3); «Articulaciones» arranca abierto.
@@ -260,7 +268,13 @@ export function ArmSimIsland({ arms }: ArmSimIslandProps): JSX.Element {
 
   return (
     <div className="mt-6 flex flex-col gap-5">
-      <ArmSource arms={arms} selected={armId} fallback={fallback} onSelect={selectArm} />
+      <SourceRow
+        arms={arms}
+        selected={selected}
+        fallback={fallback}
+        importing={importing}
+        onSelect={onSelect}
+      />
 
       <ViewControls
         mobile={mobile}
@@ -270,7 +284,14 @@ export function ArmSimIsland({ arms }: ArmSimIslandProps): JSX.Element {
         workspace={workspace}
         onWorkspace={setWorkspace}
       />
-      <Viewer armId={armId} show={showLayers(matrices, workspace)} renderPanel={renderPanel} />
+      <Viewer
+        armId={armId}
+        memoryArm={selected === IMPORTED_VALUE || savedIdOf(selected) !== null
+          ? importing.memoryArm
+          : null}
+        show={showLayers(matrices, workspace)}
+        renderPanel={renderPanel}
+      />
     </div>
   );
 }
