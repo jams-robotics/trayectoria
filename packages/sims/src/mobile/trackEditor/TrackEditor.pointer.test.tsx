@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { t } from '@trayectoria/i18n';
 import type { Track } from '@trayectoria/sim-core';
@@ -10,6 +10,11 @@ import { TrackEditor } from './TrackEditor';
 // F4-01b: lo que el puntero dibuja sobre el lienzo. Va aparte de TrackEditor.test.tsx, que
 // cubre el panel numérico y la barra, para no pasar de 300 líneas por archivo
 // (docs/STANDARDS.md §4).
+const LINE_TRACK: Track = {
+  segments: [{ type: 'line', from: [0, 0], to: [0.3, 0] }],
+  lineWidth_m: 0.02,
+};
+
 describe('TrackEditor con el puntero (F4-01b)', () => {
   // jsdom gives every element a zero-sized box, so `createTransform` would map nothing: the
   // canvas is given a 720 × 405 box, which over `worldWidth_m = 1.8` makes 1 m exactly 400 px.
@@ -86,6 +91,40 @@ describe('TrackEditor con el puntero (F4-01b)', () => {
     if (segment?.type !== 'arc') throw new Error('expected an arc');
     expect(segment.radius_m).toBeCloseTo(0.125, 9);
     expect(segment.ccw).toBe(true);
+  });
+
+  // #160: el segmento seleccionado debe distinguirse en el lienzo. El marcado que lo prueba es
+  // `data-selected` en su elemento de la lista; el resaltado del lienzo es canvas y se cubre con
+  // la captura visual `TrackEditor-selected.png`.
+  test('clicking a segment marks it as selected and clicking away unmarks it', () => {
+    render(<TrackEditor initialTrack={LINE_TRACK} />);
+    const host = layOutCanvas();
+    const segment = screen.getByRole('button', {
+      name: t('sims.trackEditor.segmentLine', { index: 1 }),
+    });
+    expect(segment).not.toHaveAttribute('data-selected');
+
+    // La recta va de (0,0) a (0.3,0): un clic sobre ella la selecciona.
+    fireEvent.pointerDown(host, { pointerId: 1, ...px([0.15, 0]) });
+    fireEvent.pointerUp(host, { pointerId: 1, ...px([0.15, 0]) });
+    expect(segment).toHaveAttribute('data-selected', 'true');
+
+    // Un clic lejos de la pista la deselecciona.
+    fireEvent.pointerDown(host, { pointerId: 1, ...px([0.15, 0.4]) });
+    fireEvent.pointerUp(host, { pointerId: 1, ...px([0.15, 0.4]) });
+    expect(segment).not.toHaveAttribute('data-selected');
+  });
+
+  test('the panel title names the selected segment and its kind', () => {
+    render(<TrackEditor initialTrack={LINE_TRACK} />);
+    const host = layOutCanvas();
+    const panel = screen.getByTestId('track-editor-panel');
+    expect(within(panel).getByRole('heading')).toHaveTextContent(t('sims.trackEditor.segment'));
+    fireEvent.pointerDown(host, { pointerId: 1, ...px([0.15, 0]) });
+    fireEvent.pointerUp(host, { pointerId: 1, ...px([0.15, 0]) });
+    expect(within(panel).getByRole('heading')).toHaveTextContent(
+      t('sims.trackEditor.segmentTitle.line', { index: 1 }),
+    );
   });
 
   test('a pointer event before the canvas has a box draws nothing', () => {

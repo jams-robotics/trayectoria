@@ -29,6 +29,7 @@ describe('sims catalogue (F4-01b)', () => {
           ['SCurve', expect.any(Function)],
           ['TightCurves', expect.any(Function)],
           ['Crossing', expect.any(Function)],
+          ['Selected', expect.any(Function)],
         ],
       },
       {
