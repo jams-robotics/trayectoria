@@ -4,6 +4,7 @@ import { useT } from '@trayectoria/i18n';
 import type { Track, Vec2 } from '@trayectoria/sim-core';
 import { Circle, Scene2D, TrackLayer, createTransform, pxToWorld } from '@trayectoria/widgets';
 
+import { SegmentBar } from './SegmentBar';
 import { SegmentPanel } from './SegmentPanel';
 import { segmentEndpoints } from './model';
 import { Toolbar } from './Toolbar';
@@ -146,6 +147,51 @@ function EditorCanvas({
   );
 }
 
+/**
+ * True when `target` is a control that owns its own keys: a shortcut must not steal `Supr` from
+ * a numeric field the learner is editing, nor `F` from anything they are typing into.
+ */
+function isTextEntry(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  const tag = target.tagName.toLowerCase();
+  return tag === 'input' || tag === 'select' || tag === 'textarea' || target.isContentEditable;
+}
+
+/**
+ * `F` sweeps the selected arc the other way and `Supr`/`Delete` removes the selected segment
+ * (#159, decision 3). Both are bound on the editor's own container, so they only fire while the
+ * focus is inside it, and both go through `commit`, so «Deshacer» takes them back.
+ */
+function useSegmentShortcuts(
+  editor: TrackEditorApi,
+  hostRef: RefObject<HTMLDivElement | null>,
+): void {
+  const latest = useRef(editor);
+  latest.current = editor;
+  useEffect(() => {
+    const host = hostRef.current;
+    if (host === null) return;
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      if (isTextEntry(event.target)) return;
+      if (latest.current.state.selected === null) return;
+      if (event.key === 'Delete') {
+        event.preventDefault();
+        latest.current.removeSelected();
+        return;
+      }
+      if (event.key.toLowerCase() === 'f') {
+        event.preventDefault();
+        latest.current.flipArc();
+      }
+    };
+    host.addEventListener('keydown', onKeyDown);
+    return () => {
+      host.removeEventListener('keydown', onKeyDown);
+    };
+  }, [hostRef]);
+}
+
 /** Ctrl+Z undoes and Ctrl+Shift+Z redoes, anywhere in the editor (spec of #126). */
 function useHistoryShortcuts(editor: TrackEditorApi): void {
   const latest = useRef(editor);
@@ -164,6 +210,27 @@ function useHistoryShortcuts(editor: TrackEditorApi): void {
   }, []);
 }
 
+/**
+ * The floating bar of the selected segment, over the top-right corner of the canvas (#159,
+ * decision 1). `pointer-events-none` on the layer so the canvas below keeps receiving strokes;
+ * the bar itself turns them back on.
+ */
+function SegmentBarLayer({ editor }: { editor: TrackEditorApi }): JSX.Element | null {
+  const { selected, track } = editor.state;
+  const segment = selected === null ? undefined : track.segments[selected];
+  if (segment === undefined) return null;
+  return (
+    <div className="pointer-events-none absolute top-2 right-2">
+      <SegmentBar
+        segment={segment}
+        onFlip={editor.flipArc}
+        onRadius={editor.setRadius}
+        onDelete={editor.removeSelected}
+      />
+    </div>
+  );
+}
+
 /** The canvas plus the pointer plumbing that turns its pixels into the model's metres. */
 function CanvasHost({
   editor,
@@ -180,21 +247,24 @@ function CanvasHost({
       if (p_m !== null) handler(p_m);
     };
   return (
-    <div
-      ref={hostRef}
-      // Without it the browser pans the page instead of letting the drag reach the canvas.
-      style={{ touchAction: 'none' }}
-      onPointerDown={(event) => {
-        event.currentTarget.setPointerCapture(event.pointerId);
-        pointer(editor.pointerDown)(event);
-      }}
-      onPointerMove={pointer(editor.pointerMove)}
-      onPointerUp={(event) => {
-        event.currentTarget.releasePointerCapture(event.pointerId);
-        pointer(editor.pointerUp)(event);
-      }}
-    >
-      <EditorCanvas editor={editor} metresPerPx={metresPerPx} />
+    <div className="relative">
+      <div
+        ref={hostRef}
+        // Without it the browser pans the page instead of letting the drag reach the canvas.
+        style={{ touchAction: 'none' }}
+        onPointerDown={(event) => {
+          event.currentTarget.setPointerCapture(event.pointerId);
+          pointer(editor.pointerDown)(event);
+        }}
+        onPointerMove={pointer(editor.pointerMove)}
+        onPointerUp={(event) => {
+          event.currentTarget.releasePointerCapture(event.pointerId);
+          pointer(editor.pointerUp)(event);
+        }}
+      >
+        <EditorCanvas editor={editor} metresPerPx={metresPerPx} />
+      </div>
+      <SegmentBarLayer editor={editor} />
     </div>
   );
 }
@@ -260,10 +330,19 @@ export function TrackEditor({ initialTrack, onChange }: TrackEditorProps = {}): 
   });
   const files = useTrackFiles(editor);
   const hostRef = useRef<HTMLDivElement | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
   useHistoryShortcuts(editor);
+  useSegmentShortcuts(editor, rootRef);
 
   return (
-    <div className="flex flex-col gap-5" data-testid="track-editor">
+    // `tabIndex` so a click on the canvas leaves the focus inside the editor and the shortcuts of
+    // #159 reach it; the outline is the browser's own only when it is focused by keyboard.
+    <div
+      ref={rootRef}
+      tabIndex={-1}
+      className="flex flex-col gap-5 outline-none"
+      data-testid="track-editor"
+    >
       <Toolbar
         tool={editor.tool}
         onTool={editor.setTool}

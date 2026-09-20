@@ -36,7 +36,6 @@
       "toX": "Fin x (m)",
       "toY": "Fin y (m)",
       "radius": "Radio (m)",
-      "ccw": "Sentido antihorario",
       "lineWidth": "Ancho de línea (m)"
     },
     "continuity": {
@@ -51,7 +50,13 @@
     "segments": "Segmentos de la pista",
     "segmentLine": "Segmento {{index}}: recta",
     "segmentArc": "Segmento {{index}}: arco",
-    "noSegments": "La pista no tiene segmentos."
+    "noSegments": "La pista no tiene segmentos.",
+    "segmentBar": "Acciones del segmento seleccionado",
+    "flipArc": "Invertir sentido",
+    "deleteSegment": "Borrar segmento",
+    "direction": "Sentido",
+    "directionCw": "Horario",
+    "directionCcw": "Antihorario"
   },
   "lineFollower": {
     "scene": "Escena del seguidor de línea: la pista, el robot con sus sensores y la traza recorrida.",

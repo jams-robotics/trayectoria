@@ -1,12 +1,20 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import type { PresetName, Track, TrackSegment, Vec2 } from '@trayectoria/sim-core';
+import type { PresetName, Track, Vec2 } from '@trayectoria/sim-core';
 
 import { continuity } from './continuity';
 import type { ContinuityReport } from './continuity';
 import { canRedo, canUndo, createHistory, push, redo, undo } from './history';
 import type { History } from './history';
 import { fromJson, fromPreset, toJson } from './io';
-import { emptyEditor, moveEndpoint, setLineWidth, setRadius, select } from './model';
+import {
+  emptyEditor,
+  moveEndpoint,
+  removeSegment,
+  setArcDirection,
+  setLineWidth,
+  setRadius,
+  select,
+} from './model';
 import type { Endpoint, EditorState } from './model';
 import { ARC_RADIUS_FACTOR, PICK_TOLERANCE_M, arcFromDrag, usePointer } from './useTrackPointer';
 import type { DragArc, TrackDraft } from './useTrackPointer';
@@ -41,6 +49,10 @@ export interface TrackEditorApi {
   redo: () => void;
   setRadius: (radius_m: number) => void;
   setCcw: (ccw: boolean) => void;
+  /** Sweeps the selected arc the other way; a no-op when the selection is not an arc (#159). */
+  flipArc: () => void;
+  /** Removes the selected segment; a no-op with nothing selected (#159). */
+  removeSelected: () => void;
   selectSegment: (index: number | null) => void;
   moveEndpoint: (end: Endpoint, p_m: Vec2) => void;
   setLineWidth: (w_m: number) => void;
@@ -70,6 +82,26 @@ function useHistory(
   return [history, commit, replace];
 }
 
+/** Actions of the floating bar of the selected segment (#159, decisions 1 and 3). */
+function useSegmentActions(
+  state: EditorState,
+  commit: (next: EditorState) => void,
+): Pick<TrackEditorApi, 'flipArc' | 'removeSelected'> {
+  const { selected } = state;
+  return {
+    flipArc: useCallback((): void => {
+      const segment = selected === null ? undefined : state.track.segments[selected];
+      if (selected === null || segment === undefined || segment.type !== 'arc') return;
+      commit(setArcDirection(state, selected, !segment.ccw));
+    }, [state, selected, commit]),
+    removeSelected: useCallback((): void => {
+      if (selected === null) return;
+      const next = removeSegment(state, selected);
+      if (next !== state) commit(next);
+    }, [state, selected, commit]),
+  };
+}
+
 /** Edits of the numeric panel, the keyboard alternative to drawing (criterion of #126). */
 function usePanel(
   state: EditorState,
@@ -85,16 +117,9 @@ function usePanel(
     ),
     setCcw: useCallback(
       (ccw: boolean): void => {
-        const segment = selected === null ? undefined : state.track.segments[selected];
-        if (selected === null || segment === undefined || segment.type !== 'arc') return;
-        // The same radius with the opposite sweep: `setRadius` rebuilds the arc through both
-        // endpoints, so flipping `ccw` first and reusing it keeps them where they were.
-        const flipped: TrackSegment = { ...segment, ccw };
-        const segments = state.track.segments.map((current, index) =>
-          index === selected ? flipped : current,
-        );
-        const flippedState: EditorState = { ...state, track: { ...state.track, segments } };
-        commit(setRadius(flippedState, selected, segment.radius_m));
+        if (selected === null) return;
+        const next = setArcDirection(state, selected, ccw);
+        if (next !== state) commit(next);
       },
       [state, selected, commit],
     ),
@@ -188,6 +213,7 @@ export function useTrackEditor(options: UseTrackEditorOptions = {}): TrackEditor
       replace(redo(history));
     }, [history, replace]),
     ...usePanel(state, commit),
+    ...useSegmentActions(state, commit),
     selectSegment: useCallback(
       (index: number | null): void => {
         commit(select(state, index));

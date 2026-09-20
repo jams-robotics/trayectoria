@@ -52,7 +52,10 @@ describe('TrackEditor (F4-01b)', () => {
     const changes: Track[] = [];
     render(<TrackEditor initialTrack={ARC_TRACK} onChange={(track) => changes.push(track)} />);
     await selectFirstSegment(user, 'Arc');
-    const field = screen.getByLabelText(t('sims.trackEditor.field.radius'));
+    // #159: el radio también está en la barra flotante, así que este criterio se mide en el panel.
+    const field = within(screen.getByTestId('track-editor-panel')).getByLabelText(
+      t('sims.trackEditor.field.radius'),
+    );
     await user.clear(field);
     await user.type(field, '0.3');
     await user.keyboard('{Enter}');
@@ -64,12 +67,16 @@ describe('TrackEditor (F4-01b)', () => {
     expect(last.radius_m).toBeCloseTo(0.3, 9);
   });
 
-  test('the ccw checkbox flips the sweep of the selected arc', async () => {
+  // #159, decisión 4: la casilla «Sentido antihorario» pasa a control segmentado.
+  test('the direction control of the panel flips the sweep of the selected arc', async () => {
     const user = userEvent.setup();
     const changes: Track[] = [];
     render(<TrackEditor initialTrack={ARC_TRACK} onChange={(track) => changes.push(track)} />);
     await selectFirstSegment(user, 'Arc');
-    await user.click(screen.getByLabelText(t('sims.trackEditor.field.ccw')));
+    const panel = screen.getByTestId('track-editor-panel');
+    await user.click(
+      within(panel).getByRole('radio', { name: t('sims.trackEditor.directionCcw') }),
+    );
     const last = changes[changes.length - 1]?.segments[0];
     if (last?.type !== 'arc') throw new Error('expected an arc');
     expect(last.ccw).toBe(true);

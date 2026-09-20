@@ -4,9 +4,12 @@
 @import './tokens.css';
 @import 'tailwindcss';
 
-/* Islands shipped by workspace packages (AuthGate) live outside apps/web: Tailwind must scan them. */
+/* Las islas que publican los paquetes del workspace (AuthGate, widgets, sims) viven fuera de
+   apps/web: Tailwind debe escanearlas. Un paquete con UI propia que falte aquí no falla al
+   construir; sus clases simplemente no se generan y el componente se pinta sin ellas (#167). */
 @source '../../../../packages/auth/src';
 @source '../../../../packages/widgets/src';
+@source '../../../../packages/sims/src';
 
 /* `dark:` follows the data-theme attribute set by the theme store, not the OS preference. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));

@@ -16,6 +16,7 @@ import {
   removeSegment,
   segmentEndpoints,
   select,
+  setArcDirection,
   setLineWidth,
   setRadius,
 } from './model';
@@ -138,5 +139,37 @@ describe('track editor model (F4-01a)', () => {
     const result = continuity(state.track);
     expect(result.gaps).toEqual([]);
     expect(result.closed).toBe(true);
+  });
+});
+
+// #159, decisión 2: invertir el sentido conserva `from`, `to` y el radio, y solo niega `ccw`.
+describe('setArcDirection (#159)', () => {
+  it('keeps both endpoints and the radius and flips the sweep', () => {
+    const state = addArc(emptyEditor(), ORIGIN, RIGHT, 0.15, false);
+    const before = arcAt(state, 0);
+    const [from, to] = segmentEndpoints(before);
+    const after = arcAt(setArcDirection(state, 0, true), 0);
+    const [flippedFrom, flippedTo] = segmentEndpoints(after);
+    expect(after.ccw).toBe(true);
+    expect(after.radius_m).toBeCloseTo(before.radius_m, 12);
+    expect(flippedFrom[0]).toBeCloseTo(from[0], 12);
+    expect(flippedFrom[1]).toBeCloseTo(from[1], 12);
+    expect(flippedTo[0]).toBeCloseTo(to[0], 12);
+    expect(flippedTo[1]).toBeCloseTo(to[1], 12);
+  });
+
+  it('flipping twice returns the arc to where it started', () => {
+    const state = addArc(emptyEditor(), ORIGIN, RIGHT, 0.15, true);
+    const back = arcAt(setArcDirection(setArcDirection(state, 0, false), 0, true), 0);
+    const original = arcAt(state, 0);
+    expect(back.ccw).toBe(original.ccw);
+    expect(back.center[0]).toBeCloseTo(original.center[0], 12);
+    expect(back.center[1]).toBeCloseTo(original.center[1], 12);
+  });
+
+  it('leaves a straight segment and an out-of-range index untouched', () => {
+    const state = addLine(emptyEditor(), ORIGIN, RIGHT);
+    expect(setArcDirection(state, 0, true)).toBe(state);
+    expect(setArcDirection(state, 7, true)).toBe(state);
   });
 });
