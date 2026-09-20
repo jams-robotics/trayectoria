@@ -132,11 +132,10 @@ describe('presupuesto de bundle (ARCHITECTURE §8)', () => {
     expect(offenders).toEqual([]);
   });
 
-  // Pendiente de #188: la página de tema carga hoy ~301 kB gzip porque el chunk del barrel de
-  // `@trayectoria/widgets` (~113 kB) lo descarga entera cualquier página que importe el paquete.
-  // Trocear el barrel es una decisión de arquitectura que #188 resuelve; al cerrarlo se activa
-  // este test cambiando `test.todo` por el `test.skipIf(distMissing)` de su hermano.
-  test.todo('la página de tema carga como mucho 250 kB gzip de JS (#188)', () => {
+  // Activo desde #188: `@trayectoria/widgets` expone una entrada por widget (ADR-0009) y la
+  // página de tema resuelve cada uno con `import()` dinámico desde su entrada, así que ya no
+  // descarga el catálogo entero por el barrel.
+  test.skipIf(distMissing)('la página de tema carga como mucho 250 kB gzip de JS (#188)', () => {
     const graph = staticImportGraph(assetNames());
     const bytes = gzipBytes(downloadedChunks(TEMA_PAGE, graph));
     expect(bytes).toBeLessThanOrEqual(THEME_BUDGET_GZIP_BYTES);

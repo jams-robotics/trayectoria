@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { JSX } from 'react';
 import { progressAdapterFor } from '@trayectoria/progress';
-import { ExerciseWidget, ProgressAdapterProvider } from '@trayectoria/widgets';
+import { ExerciseWidget, ProgressAdapterProvider } from '@trayectoria/widgets/ExerciseWidget';
 
 import { findExercise } from '../../lib/exercises';
 

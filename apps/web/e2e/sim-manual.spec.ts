@@ -45,10 +45,23 @@ async function poseOf(page: Page): Promise<Pose> {
   });
 }
 
-/** Avanza la simulación `STEPS` pasos con el botón «Paso». */
+/**
+ * Advances the simulation `STEPS` steps with the «Paso» button. The first press goes through
+ * Playwright, which checks the button is actionable; the rest are fired in a single DOM
+ * evaluation, because every Playwright `click()` costs a ~75 ms round trip and the 400 steps of
+ * a check do not fit in a test's time budget (#197). Same device as `stepAndRead` in
+ * `sim-movil.spec.ts`: the button is the same one and the model advances identically.
+ */
 async function advance(page: Page): Promise<void> {
   const step = page.getByRole('button', { name: 'Paso' }).first();
-  for (let i = 0; i < STEPS; i += 1) await step.click();
+  await expect(step).toBeEnabled();
+  await step.click();
+  await page.evaluate((remaining) => {
+    const buttons = [...document.querySelectorAll('button')];
+    const button = buttons.find((candidate) => candidate.textContent?.trim() === 'Paso');
+    if (button === undefined) throw new Error('no «Paso» button');
+    for (let k = 0; k < remaining; k += 1) button.click();
+  }, STEPS - 1);
 }
 
 test.describe('modo manual del simulador móvil (F4-04)', () => {

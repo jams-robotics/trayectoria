@@ -1,9 +1,17 @@
 ---
-import { Formula as FormulaWidget } from '@trayectoria/widgets';
+import { TopicWidget } from './TopicWidget';
 
 // Un bloque de fórmula dentro de `Formulas` (docs/DESIGN.md §5, Bloque de fórmula). Va en el
 // mapa de componentes MDX en vez de importarse desde el tema: `content/` vive fuera de
 // `apps/web` (ADR-0005) y no resuelve los paquetes del workspace.
+//
+// El widget se resuelve por nombre con el `import()` dinámico de su entrada propia
+// (`@trayectoria/widgets/Formula`, ADR-0009 y #188) en vez de importarse estático del barrel:
+// así la página de tema no descarga KaTeX hasta que la isla se monta.
+//
+// La isla es `client:only` porque el widget llega por `import()`: con `client:visible` el
+// servidor pintaría el `fallback` vacío del `Suspense` y el cliente el widget ya resuelto, y esa
+// diferencia rompe la hidratación de React.
 interface Props {
   latex: string;
   /** Variable a resaltar en la fórmula. */
@@ -13,12 +21,12 @@ interface Props {
 }
 
 const { latex, highlight, substituted } = Astro.props;
+const props = {
+  block: true,
+  latex,
+  ...(highlight === undefined ? {} : { highlight }),
+  ...(substituted === undefined ? {} : { substituted }),
+};
 ---
 
-<FormulaWidget
-  client:visible
-  block
-  latex={latex}
-  {...(highlight === undefined ? {} : { highlight })}
-  {...(substituted === undefined ? {} : { substituted })}
-/>
+<TopicWidget client:only="react" name="Formula" props={props} />
