@@ -84,8 +84,8 @@ describe('listSavedRobots (F4-02b)', () => {
   });
 });
 
-// `loadForCurrentSession` delega la espera de la sesión en `ensureSessionReady` (#184): aquí se
-// comprueba ese contrato, no la lectura del store, que ya cubre `packages/auth`.
+// `loadForCurrentSession` delegates the session wait to `ensureSessionReady` (#184): what is
+// checked here is that contract, not the store read, which `packages/auth` already covers.
 describe('loadForCurrentSession (#184)', () => {
   test('espera a la sesión y pide los robots de ese dueño', async () => {
     ensureSessionReady.mockResolvedValue({ user: { id: 'user-1' } });

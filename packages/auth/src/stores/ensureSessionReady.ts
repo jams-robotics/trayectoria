@@ -3,23 +3,23 @@ import { $session, $sessionReady } from './session';
 import type { Session } from '../client';
 
 /**
- * La sesión actual en cuanto el store la ha leído una vez, para quien la necesita una sola vez y
- * no quiere reaccionar a sus cambios (#184, docs/ARCHITECTURE.md §3.1).
+ * The current session once the store has read it, for callers that need it one time and do not
+ * want to react to its changes (#184, docs/ARCHITECTURE.md §3.1).
  *
- * Se suscribe a `$session` para activar el store: su `onMount` en `session.ts` es quien lee la
- * sesión persistida y pone `$sessionReady` a `true`, así que sin suscriptor la espera no
- * terminaría nunca. Ambas suscripciones se liberan al resolver, no hay temporizadores y llamarla
- * varias veces, a la vez o en serie, es equivalente a llamarla una: cada llamada resuelve con el
- * valor de `$session` en ese momento.
+ * Subscribing to `$session` is what activates the store: its `onMount` in `session.ts` reads the
+ * persisted session and sets `$sessionReady` to `true`, so without a subscriber the wait would
+ * never end. Both subscriptions are released on resolve, there are no timers, and calling it
+ * several times, concurrently or in sequence, is equivalent to calling it once: every call
+ * resolves with the value of `$session` at that moment.
  */
 export async function ensureSessionReady(): Promise<Session | null> {
   const stopSession = $session.subscribe(() => undefined);
   try {
     if (!$sessionReady.get()) {
-      // `listen`, no `subscribe`: no llama al oyente en el propio alta, así que `stopReady` ya
-      // está asignado cuando llega el aviso y se puede cortar desde dentro. El store solo avisa
-      // cuando el valor cambia y `false` es el valor de partida, así que el único aviso posible
-      // aquí es el que lo deja listo.
+      // `listen`, not `subscribe`: it does not call the listener on subscription, so `stopReady`
+      // is already assigned when the notification arrives and can be released from inside. The
+      // store only notifies on a change and `false` is the starting value, so the only possible
+      // notification here is the one that marks it ready.
       await new Promise<void>((resolve) => {
         const stopReady = $sessionReady.listen(() => {
           stopReady();

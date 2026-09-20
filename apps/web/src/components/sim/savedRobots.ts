@@ -51,9 +51,9 @@ export async function listSavedRobots(
 }
 
 /**
- * Los robots guardados del estudiante que tenga sesión ahora mismo, o la lista vacía si no la
- * hay. `ensureSessionReady` de `packages/auth` (#184) activa el store y espera, porque la sesión
- * se lee de forma asíncrona al montar y antes de eso `$session` vale `null` para todo el mundo.
+ * The saved robots of the learner signed in right now, or the empty list when there is none.
+ * `ensureSessionReady` from `packages/auth` (#184) activates the store and waits, because the
+ * session is read asynchronously on mount and until then `$session` is `null` for everyone.
  */
 export async function loadForCurrentSession(): Promise<readonly SavedRobot[]> {
   const session = await ensureSessionReady();

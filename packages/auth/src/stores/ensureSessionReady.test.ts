@@ -3,9 +3,9 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Session } from '../client';
 
-// El `onMount` de `$session` no lee nada sin DOM (Astro renderiza las islas también en el
-// servidor), y estas pruebas corren en el entorno `node`: un `document` mínimo basta para que el
-// store se active, que es justo lo que `ensureSessionReady` tiene que provocar.
+// The `onMount` of `$session` reads nothing without a DOM (Astro renders islands on the server
+// too), and these tests run in the `node` environment: a minimal `document` is enough for the
+// store to activate, which is exactly what `ensureSessionReady` has to trigger.
 const globals = globalThis as { document?: unknown };
 const hadDocument = 'document' in globals;
 globals.document = {};
@@ -13,8 +13,8 @@ afterAll(() => {
   if (!hadDocument) delete globals.document;
 });
 
-// El cliente de Supabase va simulado: estas pruebas cubren el contrato de `ensureSessionReady`
-// (#184), no la red. `getSession` se resuelve a mano para poder observar la espera.
+// The Supabase client is mocked: these tests cover the contract of `ensureSessionReady` (#184),
+// not the network. `getSession` is resolved by hand so the wait can be observed.
 const auth = {
   getSession: vi.fn(),
   onAuthStateChange: vi.fn(),
@@ -25,7 +25,7 @@ vi.mock('@trayectoria/db', () => ({ getDbClient: () => ({ auth }) }));
 const { $session, $sessionReady } = await import('./session');
 const { ensureSessionReady } = await import('./ensureSessionReady');
 
-/** Solo los campos que el store toca; el cast se queda en esta prueba. */
+/** Only the fields the store touches; the cast is confined to this test. */
 function fakeSession(id: string): Session {
   return { access_token: `token-${id}`, user: { id } } as unknown as Session;
 }
@@ -35,8 +35,8 @@ const unsubscribe = vi.fn();
 beforeEach(() => {
   vi.clearAllMocks();
   auth.onAuthStateChange.mockReturnValue({ data: { subscription: { unsubscribe } } });
-  // Sin esto el store sigue montado entre pruebas (nanostores lo desmonta 1 s después del último
-  // oyente) y la siguiente no volvería a leer la sesión.
+  // Without this the store stays mounted between tests (nanostores unmounts it 1 s after the last
+  // listener) and the next one would not read the session again.
   cleanStores($session, $sessionReady);
   $session.set(null);
   $sessionReady.set(false);
@@ -48,7 +48,7 @@ describe('ensureSessionReady (#184)', () => {
     auth.getSession.mockResolvedValue({ data: { session }, error: null });
 
     await expect(ensureSessionReady()).resolves.toBe(session);
-    // La espera terminó porque la función montó el store ella misma.
+    // The wait ended because the function mounted the store itself.
     expect(auth.getSession).toHaveBeenCalledTimes(1);
     expect($sessionReady.get()).toBe(true);
   });

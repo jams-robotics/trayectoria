@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-// `currentOwnerId` delega la espera de la sesión en `ensureSessionReady` (#184): lo que aquí se
-// comprueba es ese contrato, no la lectura del store, que ya cubre `packages/auth`.
+// `currentOwnerId` delegates the session wait to `ensureSessionReady` (#184): what is checked
+// here is that contract, not the store read, which `packages/auth` already covers.
 const ensureSessionReady = vi.fn();
 const listImportedArms = vi.fn();
 

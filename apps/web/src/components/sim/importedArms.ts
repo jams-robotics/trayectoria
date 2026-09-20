@@ -19,8 +19,8 @@ import { saveUploadedRobot } from '../../lib/robots/storage';
 export type { ImportedArm } from '../../lib/robots/download';
 
 /**
- * El id del estudiante con sesión, o `null`. `ensureSessionReady` de `packages/auth` (#184) activa
- * el store y espera a que la sesión persistida se haya leído una vez.
+ * The signed-in learner's id, or `null`. `ensureSessionReady` from `packages/auth` (#184) activates
+ * the store and waits until the persisted session has been read once.
  */
 export async function currentOwnerId(): Promise<string | null> {
   const session = await ensureSessionReady();
