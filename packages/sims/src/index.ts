@@ -50,6 +50,19 @@ export type {
   UseTrackEditorOptions,
 } from './mobile/trackEditor';
 
+// F4-06 (#191): the tracks saved in the account or in the browser. `serializeTrack` is
+// re-exported because the Supabase adapter lives in `apps/web`, which cannot import sim-core
+// (docs/ARCHITECTURE.md §2) and stores the track with the same text the editor exports.
+export {
+  LOCAL_TRACKS_KEY,
+  MAX_NAME_LENGTH,
+  deleteLocalTrack,
+  listLocalTracks,
+  saveLocalTrack,
+} from './mobile/trackEditor';
+export { serializeTrack } from '@trayectoria/sim-core';
+export type { SavedTrack } from './mobile/trackEditor';
+
 export {
   CATALOG_MOBILE_IDS,
   catalogMobileUrl,

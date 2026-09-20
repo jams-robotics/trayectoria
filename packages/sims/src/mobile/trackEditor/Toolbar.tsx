@@ -3,6 +3,7 @@ import { useT } from '@trayectoria/i18n';
 import { presets } from '@trayectoria/sim-core';
 import type { PresetName } from '@trayectoria/sim-core';
 
+import { SaveTrackField } from './SaveTrackField';
 import type { TrackTool } from './useTrackEditor';
 
 /** Tools of the segmented control, in the order of the spec of #126. */
@@ -26,7 +27,7 @@ const SELECT =
   'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus min-h-11 shrink-0 border px-2 font-mono focus-visible:outline-2 focus-visible:outline-offset-2';
 
 // #189 (decisión 1): en una sola fila los controles de la barra —cuatro herramientas, deshacer,
-// rehacer, guardar, cargar, «Nueva» (#190) y el preset— tienen que caber en la caja del visor,
+// rehacer, exportar, importar, «Nueva» (#190), «Guardar» (#191) y el preset— tienen que caber en la caja del visor,
 // que a 1280 px mide unos 730 px. Con el padding y el cuerpo de siempre piden ~840 px y los últimos quedaban fuera, así que
 // en esa maqueta van con 8 px de padding y el cuerpo `xs`, el mínimo de docs/DESIGN.md §9.2. El
 // alto de 44 px no se toca: es el objetivo táctil de docs/DESIGN.md §5.
@@ -53,6 +54,12 @@ export interface ToolbarProps {
   onPreset: (name: PresetName) => void;
   /** «Nueva»: deja el lienzo vacío, preguntando antes si hay algo que perder (#190, decisión 1). */
   onNew: () => void;
+  /**
+   * Saves the track under the name the learner types, in the account or in the browser (F4-06,
+   * #191, decision 3). Without it the bar shows no «Guardar»: the playground and its snapshots
+   * stay as they were.
+   */
+  onSaveTrack?: (name: string) => void;
   /**
    * Toda la barra en una sola fila (#189, decisión 1). La usa la página cuando el editor ocupa la
    * caja del visor: allí una segunda fila se come el alto del lienzo. Sin ella la barra se reparte
@@ -107,7 +114,7 @@ function LoadButton({
   };
   return (
     <label className={`${BUTTON} ${size.pad} ${size.text} inline-flex items-center`}>
-      {t('sims.trackEditor.load')}
+      {t('sims.trackEditor.importJson')}
       <input
         type="file"
         accept="application/json,.json"
@@ -189,6 +196,52 @@ function TrackGroup({
   );
 }
 
+/** A text button of the bar, with its label and its size. */
+function BarButton({
+  label,
+  size,
+  disabled,
+  onClick,
+}: {
+  label: string;
+  size: Sizing;
+  disabled?: boolean;
+  onClick: () => void;
+}): JSX.Element {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      className={`${BUTTON} ${size.pad} ${size.text}`}
+      onClick={onClick}
+      disabled={disabled === true}
+    >
+      {label}
+    </button>
+  );
+}
+
+/** Undo, redo and «Exportar JSON»: what acts on the track already on the canvas. */
+function HistoryGroup({
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
+  onSave,
+  size,
+}: Pick<ToolbarProps, 'canUndo' | 'canRedo' | 'onUndo' | 'onRedo' | 'onSave'> & {
+  size: Sizing;
+}): JSX.Element {
+  const t = useT();
+  return (
+    <>
+      <BarButton label={t('sims.trackEditor.undo')} size={size} disabled={!canUndo} onClick={onUndo} />
+      <BarButton label={t('sims.trackEditor.redo')} size={size} disabled={!canRedo} onClick={onRedo} />
+      <BarButton label={t('sims.trackEditor.exportJson')} size={size} onClick={onSave} />
+    </>
+  );
+}
+
 /**
  * Toolbar of the track editor: tools, undo/redo, save, load and the preset picker. Every control
  * carries its own label and reaches 44 px, so the whole bar is operable by keyboard and on a
@@ -196,8 +249,7 @@ function TrackGroup({
  */
 export function Toolbar(props: ToolbarProps): JSX.Element {
   const { tool, onTool, canUndo, canRedo, onUndo, onRedo, onSave, onLoad, onPreset } = props;
-  const { onNew } = props;
-  const t = useT();
+  const { onNew, onSaveTrack } = props;
   // En una sola fila la barra no envuelve y desplaza en horizontal lo que no quepa, en lugar de
   // robarle una segunda fila al lienzo (#189, decisión 1).
   const tight = props.singleRow === true;
@@ -209,32 +261,17 @@ export function Toolbar(props: ToolbarProps): JSX.Element {
   return (
     <div className={`flex shrink-0 items-center ${layout}`} data-testid="track-editor-toolbar">
       <ToolGroup tool={tool} onTool={onTool} size={size} />
-      <button
-        type="button"
-        aria-label={t('sims.trackEditor.undo')}
-        className={`${BUTTON} ${size.pad} ${size.text}`}
-        onClick={onUndo}
-        disabled={!canUndo}
-      >
-        {t('sims.trackEditor.undo')}
-      </button>
-      <button
-        type="button"
-        aria-label={t('sims.trackEditor.redo')}
-        className={`${BUTTON} ${size.pad} ${size.text}`}
-        onClick={onRedo}
-        disabled={!canRedo}
-      >
-        {t('sims.trackEditor.redo')}
-      </button>
-      <button
-        type="button"
-        aria-label={t('sims.trackEditor.save')}
-        className={`${BUTTON} ${size.pad} ${size.text}`}
-        onClick={onSave}
-      >
-        {t('sims.trackEditor.save')}
-      </button>
+      <HistoryGroup
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onUndo={onUndo}
+        onRedo={onRedo}
+        onSave={onSave}
+        size={size}
+      />
+      {onSaveTrack === undefined ? null : (
+        <SaveTrackField onSave={onSaveTrack} pad={size.pad} text={size.text} />
+      )}
       <TrackGroup onLoad={onLoad} onNew={onNew} onPreset={onPreset} size={size} />
     </div>
   );
