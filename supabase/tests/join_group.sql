@@ -81,14 +81,15 @@ select throws_ok(
   'the owner joining their own group fails with the generic error'
 );
 
--- Only the owner removes members (F0-07b). RLS filters the row out of the other users'
--- deletes (0 rows affected, no error).
+-- A member only ever removes their own row (F3-03, migration 0005); the owner removes any row
+-- of their group (F0-07b). RLS filters the row out of every other delete (0 rows affected, no
+-- error). B leaving their own group is covered by supabase/tests/membership_and_account.sql.
 select pg_temp.act_as('00000000-0000-4000-8000-00000000000b');
-delete from public.group_members where user_id = '00000000-0000-4000-8000-00000000000b';
+delete from public.group_members where user_id = '00000000-0000-4000-8000-00000000000c';
 select results_eq(
   $$ select user_id from public.group_members $$,
   $$ values ('00000000-0000-4000-8000-00000000000b'::uuid) $$,
-  'a student cannot remove their own membership'
+  'a student cannot remove the membership of another student'
 );
 select pg_temp.act_as('00000000-0000-4000-8000-00000000000c');
 delete from public.group_members where user_id = '00000000-0000-4000-8000-00000000000b';
