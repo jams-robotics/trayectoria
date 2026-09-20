@@ -64,6 +64,8 @@ Cualquier otra importación es un error de arquitectura (regla de ESLint `import
 - Todo componente interactivo es una isla React. Directiva por defecto: `client:visible`. `client:load` solo para `AuthGate` y el store de sesión. `client:only="react"` para escenas 3D.
 - Regla para agentes: **no hay estado compartido entre islas excepto a través de nanostores** (`packages/*/src/stores/`). Prohibido prop drilling entre islas, eventos DOM globales o `window.*`.
 - Stores existentes: `$session` (auth), `$myRobot` (perfil activo), `$theme`, `$progress`.
+- Quien necesite la sesión una sola vez (no reaccionar a sus cambios) espera a `ensureSessionReady(): Promise<Session | null>` de `packages/auth`, que activa el store y resuelve con la sesión actual en cuanto está lista, en lugar de montar su propia suscripción manual (#184).
+- Todo paquete con UI debe figurar en los `@source` de `apps/web/src/styles/global.css`: Tailwind solo escanea lo que ahí se declara, así que un paquete que falte se queda sin sus clases en producción aunque funcione en desarrollo (#167).
 
 ### 3.2 Rutas
 
@@ -111,6 +113,8 @@ Cualquier otra importación es un error de arquitectura (regla de ESLint `import
 | Zip (subida de URDF) | fflate (ADR-0008) | `sims/urdf/zip` |
 
 Añadir una librería requiere un ADR. Versiones fijadas sin `^`.
+
+El envoltorio `sims/urdf` (ADR-0008, #124) es el único punto que toca `fflate`: lee y valida el zip antes de descomprimir nada. Sus textos van en el namespace i18n `urdf` (`locales/es/urdf.json`, `ops/I18N.md` §1).
 
 ## 4. sim-core
 
@@ -182,6 +186,8 @@ interface Controller<P> {
 }
 ```
 
+Las implementaciones leen `params` en **cada** `update()`, no lo copian al construirse: el consumidor cambia una ganancia reemplazando el objeto `params`, y el efecto se ve en el paso siguiente sin reiniciar la carrera (#163).
+
 PID: `u = Kp·e + Ki·∫e·dt + Kd·de/dt`, `ωL = ωbase + u`, `ωR = ωbase − u`. Anti-windup por saturación del integrador en `±iMax`. Esta interfaz es la que en v2 implementará el código del estudiante; no se cambia.
 
 ### 4.5 Brazo serial
@@ -219,6 +225,8 @@ attempts      (id uuid pk, user_id uuid → profiles, topic_id text, exercise_id
 
 `topic_id` = `ruta-1/m04-t02`. `exercise_id` = `ruta-1/m04-t02/e1`.
 
+`robots.spec.simConfigs` lo escribe el cliente (F4-05, #131): cada configuración guardada lleva el `spec` completo del robot, no una referencia, para que abrirla no dependa de que ese robot siga existiendo. La tabla `robots` no cambia; es una clave más dentro del `jsonb` de `spec`.
+
 ### 5.2 Políticas RLS (resumen; el SQL completo es el entregable de F0-07)
 
 | Tabla | Estudiante | Docente |
@@ -242,6 +250,8 @@ attempts      (id uuid pk, user_id uuid → profiles, topic_id text, exercise_id
 
 - RLS en todas las tablas; tests de políticas con dos usuarios.
 - Subidas: tamaño ≤ 20 MB, extensiones permitidas, rechazo de `..` y rutas absolutas, parseo del URDF antes de guardar, mallas cargadas solo desde el propio bucket.
+- Un brazo importado se dibuja sin red: las mallas del zip se resuelven a Blob URL creadas en el propio navegador, nunca a URLs externas, y se revocan al cambiar de fuente y al desmontar (#137).
+- Enlace compartido del simulador móvil: el texto del enlace no pasa de 8 000 caracteres y lo que lleva dentro no pasa de 64 KiB descomprimidos; si la configuración no cabe, «Copiar enlace» avisa al usuario y no copia nada, en vez de generar un enlace que no se pueda abrir (#182). Un enlace `?c=` con controlador `manual` abre con PID: el modo manual no viaja en el enlace (#131).
 - Sin `dangerouslySetInnerHTML` salvo en `Formula` (salida de KaTeX, con `trust: false`).
 - Dependencias auditadas en CI (`pnpm audit --audit-level=high`).
 - Sin analytics de terceros en v1.

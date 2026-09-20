@@ -140,16 +140,61 @@ interface LineSensorWidgetProps { robot?: RobotSpec; initialOffset_m: number; in
 ### LineFollowerWidget
 El simulador móvil completo embebido (pista preset, controlador seleccionable, instrumentación reducida). Es el mismo componente que la página `/simuladores/movil` con `compact`.
 ```ts
-interface LineFollowerWidgetProps { track: 'oval' | 's' | 'tight' | 'cross' | TrackJson; controller: 'onoff' | 'p' | 'pid'; initialParams: Record<string, number>; robot?: RobotSpec; compact?: boolean; showPlots?: Array<'error' | 'v' | 'omega' | 'pid'> }
+interface LineFollowerWidgetProps {
+  track: 'oval' | 's' | 'tight' | 'cross' | TrackJson;
+  controller: 'onoff' | 'p' | 'pid';
+  initialParams: Record<string, number>;
+  robot?: RobotSpec;
+  compact?: boolean;
+  showPlots?: Array<'error' | 'v' | 'omega' | 'pid'>;
+  noiseSigma?: number;
+  startPose?: StartPose;
+  onStartPoseChange?: (pose: StartPose) => void;
+  onApi?: (api: LineFollowerApi) => void;
+  renderPanel?: (panel: ReactNode) => ReactNode;
+  renderViewer?: (viewer: ReactNode) => ReactNode;
+  hideControls?: boolean;
+  seed?: number;
+}
 ```
+`renderPanel` envuelve la columna del panel de controlador y `renderViewer` la del visor, para que una página decida qué las rodea sin tocar el DOM del widget: es lo que permite plegar el panel en un acordeón móvil (F4-02b) y alternar visor y editor de pista en la misma caja (#158). `hideControls` oculta los controles de reproducción cuando la página los pone en su barra inferior fija (F4-02b). `seed` fija la semilla del ruido del sensor y es la que viaja en el enlace compartido (#131); cambiarla reconstruye la simulación pausada en `t = 0`. `showPlots` sigue reservado a F4-03: se acepta para que el contenido ya lo declare, pero no dibuja nada hasta ese ticket.
+
+### TrackEditor
+Editor de pista de F4-01b, embebido en la caja del visor del simulador móvil (#158). Vive en `packages/sims`; no es un widget del catálogo de temas, pero su comportamiento se documenta aquí porque `LineFollowerWidget` lo aloja con `renderViewer`.
+```ts
+interface TrackEditorProps { initialTrack?: Track; onChange?: (track: Track) => void }
+```
+Con un segmento seleccionado aparece una barra flotante junto a la pista con sus acciones frecuentes, y el segmento seleccionado se resalta en el lienzo (#159, #160). Atajos de teclado dentro del editor: `F` invierte el sentido del segmento y `Supr` lo borra; el control «Sentido» hace lo mismo desde la barra (#159). El panel numérico sigue siendo la ruta accesible a las mismas ediciones.
 
 ## Brazo
 
 ### ArmViewerWidget
 Visor URDF con sliders, marcos, panel del efector y matrices; es el simulador de brazo embebido.
 ```ts
-interface ArmViewerWidgetProps { catalogId?: string; robot?: RobotSpec; initialQ?: number[]; show: Array<'frames' | 'matrices' | 'workspace'>; compact?: boolean }
+interface ArmViewerWidgetProps {
+  catalogId?: string;
+  source?: ArmSource;
+  robot?: RobotSpec;
+  initialQ?: number[];
+  show: Array<'frames' | 'matrices' | 'workspace'>;
+  compact?: boolean;
+  renderPanel?: (panel: ArmViewerPanel) => ReactNode;
+}
 ```
+Las tres capas de `show` son operativas: `frames` (F5-01a), `matrices` (#135) y `workspace` (#136). `renderPanel` recibe un panel a la vez, en orden, y pinta lo que devuelve en lugar del panel suelto, para plegarlos en acordeones en móvil (F5-01b, DESIGN.md §9.4):
+```ts
+interface ArmViewerPanel { id: 'joints' | 'effector' | 'matrices' | 'workspace'; title: string; summary: string; content: ReactNode }
+```
+El panel de matrices (#135) resalta en 3D el eslabón elegido: `UrdfModel` gana `highlightLink?: string` y sin valor no resalta nada. El panel de espacio de trabajo (#136) es el de F5-03 dentro del visor.
+
+De dónde sale el brazo lo decide `source`, que manda sobre `catalogId` cuando viene (#137); `loadArm` es la única vía de carga y las dos fuentes se exportan desde `sims`:
+```ts
+type ArmSource =
+  | { readonly kind: 'catalog'; readonly catalogId: string }
+  | { readonly kind: 'zip'; readonly bytes: Uint8Array; readonly urdfPath: string };
+function loadArm(source: ArmSource, options: LoadUrdfOptions): Promise<LoadedArm>;
+```
+El formulario de subida de F3-04 se reutiliza para importar sin guardar: `UploadUrdfForm` gana `mode?: 'save' | 'parseOnly'`, con `'save'` por defecto (el comportamiento de F3-04); en `'parseOnly'` entrega el zip ya parseado a quien llama y no guarda nada, que es lo que usa el importador del simulador de brazo sin sesión (#137).
 
 ## Relación tema → widgets (v1)
 
