@@ -145,10 +145,17 @@ export interface TrackEditorBoxProps {
 function useTrackWithSegments(
   onTrack: (track: TrackJson) => void,
   startsEmpty: boolean,
+  open: boolean,
 ): { publish: (track: EditorTrack) => void; empty: boolean } {
   const latest = useRef(onTrack);
   latest.current = onTrack;
   const [empty, setEmpty] = useState(startsEmpty);
+  // La caja se monta con la página y solo se oculta al cerrar, así que el valor inicial del
+  // `useState` es el de la primera carga y no el de esta apertura: cada vez que el editor se abre
+  // hay que volver a partir de si trae pista o no.
+  useEffect(() => {
+    if (open) setEmpty(startsEmpty);
+  }, [open, startsEmpty]);
   const publish = useCallback((track: EditorTrack): void => {
     const hasSegments = track.segments.length > 0;
     setEmpty(!hasSegments);
@@ -227,7 +234,7 @@ export function TrackEditorBox({
   const boxRef = useRef<HTMLDivElement | null>(null);
   const width_px = useBoxWidth(boxRef, open);
   const { initialTrack, resolving } = useResolvedTrack(track, open);
-  const { publish, empty } = useTrackWithSegments(onTrack, track === null);
+  const { publish, empty } = useTrackWithSegments(onTrack, track === null, open);
   if (!open) return null;
 
   return (
