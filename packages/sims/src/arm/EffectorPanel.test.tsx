@@ -73,6 +73,8 @@ describe('armColors (F5-01a)', () => {
       base: '--color-fg-muted',
       link: '--color-physical',
       joint: '--color-fg',
+      // F5-02 (#135, decisión 4): el eslabón elegido en el panel de matrices se marca `primary`.
+      highlight: '--color-primary',
     });
   });
 
@@ -81,6 +83,7 @@ describe('armColors (F5-01a)', () => {
       base: '#526475',
       link: '#a25607',
       joint: '#1a242f',
+      highlight: '#0d6a8e',
     });
   });
 

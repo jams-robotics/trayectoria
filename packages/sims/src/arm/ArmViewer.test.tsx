@@ -29,7 +29,7 @@ vi.mock('@trayectoria/widgets/scene3d', () => ({
   ),
 }));
 
-import { ArmViewer, translationOf } from './ArmViewer';
+import { ArmViewer, matricesSummary, translationOf } from './ArmViewer';
 
 const CATALOG = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../catalog/arms');
 const PLANAR_URDF = readFileSync(resolve(CATALOG, 'planar2dof/planar2dof.urdf'), 'utf8');
@@ -180,5 +180,58 @@ describe('ArmViewer · renderPanel (F5-01b, #134)', () => {
     expect(screen.getAllByTestId('panel-wrapper')).toHaveLength(2);
     expect(screen.getByTestId('joint-sliders')).toBeInTheDocument();
     expect(screen.getByTestId('effector-panel')).toBeInTheDocument();
+  });
+});
+
+describe('ArmViewer con matrices (F5-02)', () => {
+  test('sin `matrices` el panel no existe', async () => {
+    stubCatalogFetch();
+    render(<ArmViewer catalogId="planar2dof" show={['frames']} />);
+    await waitFor(() => {
+      expect(screen.getByTestId('arm-viewer')).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('matrix-panel')).toBeNull();
+  });
+
+  test('con `show: [matrices]` pinta el panel con los valores de sim-core', async () => {
+    stubCatalogFetch();
+    render(<ArmViewer catalogId="planar2dof" initialQ={[Math.PI / 2, 0]} show={['matrices']} />);
+    await waitFor(() => {
+      expect(screen.getByTestId('matrix-panel')).toBeInTheDocument();
+    });
+    // `⁰T` del último eslabón de la cadena (`tool0`) con q = (90°, 0°): el valor dorado del
+    // efector de F5-01a, (0.000, 0.350, 0.000), en la columna de traslación.
+    const cells = screen.getAllByRole('cell');
+    expect(cells[3]).toHaveTextContent('0.000');
+    expect(cells[7]).toHaveTextContent('0.350');
+    expect(cells[11]).toHaveTextContent('0.000');
+  });
+
+  test('el panel de matrices llega a `renderPanel` como un panel más', async () => {
+    stubCatalogFetch();
+    const seen: string[] = [];
+    render(
+      <ArmViewer
+        catalogId="planar2dof"
+        initialQ={[Math.PI / 2, 0]}
+        show={['matrices']}
+        renderPanel={(panel) => {
+          seen.push(panel.id);
+          return <div data-testid="panel-wrapper">{panel.content}</div>;
+        }}
+      />,
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId('matrix-panel')).toBeInTheDocument();
+    });
+    expect(seen).toContain('matrices');
+    expect(seen.at(-1)).toBe('matrices');
+  });
+});
+
+describe('matricesSummary (F5-02)', () => {
+  test('resume con el eslabón elegido, y con la base si aún no hay ninguno', () => {
+    expect(matricesSummary('link2', t)).toBe('link2');
+    expect(matricesSummary(null, t)).toBe(t('sims.matrices.baseLink'));
   });
 });

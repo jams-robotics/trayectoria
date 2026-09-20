@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
@@ -11,15 +11,17 @@ import type { URDFRobot } from 'urdf-loader';
 import { EffectorPanel } from './EffectorPanel';
 import { FramesToggle } from './FramesToggle';
 import { JointSliders } from './JointSliders';
+import { MatrixPanel } from './MatrixPanel';
 import { UrdfModel } from './UrdfModel';
 import { readArmColors } from './armColors';
 import { loadUrdf } from './loadUrdf';
+import { linkTransforms } from './matrices';
 import { useArmSim } from './useArmSim';
 import type { ActuatedJoint, ArmSim, EffectorReadout } from './useArmSim';
 
 // F5-01a (#133): visor URDF con las props de `ArmViewerWidget` (docs/WIDGETS.md). `show` acepta
-// las tres opciones del catálogo, pero solo `'frames'` es operativo en este ticket; las matrices
-// son F5-02 y el espacio de trabajo F5-03.
+// las tres opciones del catálogo; `'frames'` es de F5-01a y `'matrices'` de F5-02 (#135,
+// decisiones 4 y 5). El espacio de trabajo sigue siendo F5-03.
 
 /** Largo de los brazos de cada tríada de eslabón, en metros. */
 const FRAME_LENGTH_M = 0.06;
@@ -33,10 +35,10 @@ export function translationOf(transform: Mat4): readonly [number, number, number
   return [transform[12] ?? 0, transform[13] ?? 0, transform[14] ?? 0];
 }
 
-/** Uno de los dos paneles laterales del visor, listo para envolverlo desde fuera. */
+/** Uno de los paneles laterales del visor, listo para envolverlo desde fuera. */
 export interface ArmViewerPanel {
-  /** Cuál de los dos paneles es. */
-  readonly id: 'joints' | 'effector';
+  /** Cuál de los paneles es; `'matrices'` solo aparece con `show: ['matrices']` (F5-02). */
+  readonly id: 'joints' | 'effector' | 'matrices';
   /** Título del panel, ya traducido. */
   readonly title: string;
   /** Resumen de una línea, legible con el panel plegado (por ejemplo `x 0.000 y 0.350 z 0.000 m`). */
@@ -140,11 +142,13 @@ function ArmScene({
   sim,
   robot,
   framesVisible,
+  highlightLink,
 }: {
   spec: RobotSpec;
   sim: ArmSim;
   robot: URDFRobot | null;
   framesVisible: boolean;
+  highlightLink: string | undefined;
 }): JSX.Element {
   const t = useT();
   const colors = useMemo(
@@ -160,6 +164,7 @@ function ArmScene({
           q_rad={sim.q_rad}
           baseLink={sim.arm.baseLink}
           colors={colors}
+          highlightLink={highlightLink}
         />
       )}
       {framesVisible ? <LinkFrames transforms={sim.linkTransforms} /> : null}
@@ -167,9 +172,18 @@ function ArmScene({
   );
 }
 
-/** Los dos paneles laterales del visor, en el orden en que se muestran. */
-function armPanels(sim: ArmSim, t: Translate): readonly ArmViewerPanel[] {
-  return [
+/** Resumen de una línea del panel de matrices: qué eslabón se está mirando. */
+export function matricesSummary(link: string | null, t: Translate): string {
+  return link ?? t('sims.matrices.baseLink');
+}
+
+/** Los paneles laterales del visor, en el orden en que se muestran. */
+function armPanels(
+  sim: ArmSim,
+  t: Translate,
+  matrices: { readonly show: boolean; readonly onHighlight: (link: string | null) => void; readonly highlighted: string | null },
+): readonly ArmViewerPanel[] {
+  const panels: ArmViewerPanel[] = [
     {
       id: 'joints',
       title: t('sims.arm.joints'),
@@ -183,6 +197,22 @@ function armPanels(sim: ArmSim, t: Translate): readonly ArmViewerPanel[] {
       content: <EffectorPanel readout={sim.readout} />,
     },
   ];
+  // El panel de matrices solo existe con `show: ['matrices']` (#135, decisión 5); va como un
+  // panel más para que la página lo pliegue en móvil con el mismo `renderPanel`.
+  if (matrices.show) {
+    panels.push({
+      id: 'matrices',
+      title: t('sims.matrices.title'),
+      summary: matricesSummary(matrices.highlighted, t),
+      content: (
+        <MatrixPanel
+          rows={linkTransforms(sim.arm, sim.q_rad)}
+          onHighlightLink={matrices.onHighlight}
+        />
+      ),
+    });
+  }
+  return panels;
 }
 
 /** La columna de paneles, envuelta por el consumidor si pasó `renderPanel`. */
@@ -210,6 +240,7 @@ interface ArmViewerReadyProps {
   robot: URDFRobot | null;
   initialQ: number[] | undefined;
   showFrames: boolean;
+  showMatrices: boolean;
   compact: boolean;
   renderPanel: ((panel: ArmViewerPanel) => ReactNode) | undefined;
 }
@@ -220,13 +251,19 @@ function ArmViewerReady({
   robot,
   initialQ,
   showFrames,
+  showMatrices,
   compact,
   renderPanel,
 }: ArmViewerReadyProps): JSX.Element {
   const t = useT();
   const sim = useArmSim(spec, initialQ);
   const [framesVisible, setFramesVisible] = useState(showFrames);
-  const panels = armPanels(sim, t);
+  // El eslabón elegido en el panel de matrices, que es el que se marca en 3D (#135, decisión 4).
+  const [highlighted, setHighlighted] = useState<string | null>(null);
+  const onHighlight = useCallback((link: string | null): void => {
+    setHighlighted(link);
+  }, []);
+  const panels = armPanels(sim, t, { show: showMatrices, onHighlight, highlighted });
   return (
     <div
       className={compact ? 'flex flex-col gap-4' : 'flex flex-col gap-5 md:flex-row'}
@@ -237,7 +274,13 @@ function ArmViewerReady({
         <div className="mb-3">
           <FramesToggle visible={framesVisible} onToggle={setFramesVisible} />
         </div>
-        <ArmScene spec={spec} sim={sim} robot={robot} framesVisible={framesVisible} />
+        <ArmScene
+          spec={spec}
+          sim={sim}
+          robot={robot}
+          framesVisible={framesVisible}
+          highlightLink={showMatrices ? (highlighted ?? undefined) : undefined}
+        />
       </div>
       <PanelColumn panels={panels} renderPanel={renderPanel} />
     </div>
@@ -276,6 +319,7 @@ export function ArmViewer({
       robot={loaded.robot}
       initialQ={initialQ}
       showFrames={show.includes('frames')}
+      showMatrices={show.includes('matrices')}
       compact={compact}
       renderPanel={renderPanel}
     />

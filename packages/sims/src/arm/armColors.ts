@@ -7,6 +7,8 @@ export const ARM_TOKENS = {
   base: '--color-fg-muted',
   link: '--color-physical',
   joint: '--color-fg',
+  // F5-02 (#135, decisión 4): el eslabón elegido en el panel de matrices se marca con `primary`.
+  highlight: '--color-primary',
 } as const;
 
 /** Valores claros de los tokens; sirven de reserva donde no hay hoja de estilos (jsdom). */
@@ -14,6 +16,7 @@ const FALLBACK: Readonly<Record<string, string>> = {
   '--color-fg-muted': '#526475',
   '--color-physical': '#a25607',
   '--color-fg': '#1a242f',
+  '--color-primary': '#0d6a8e',
 };
 
 /** Colores del brazo, uno por parte. */
@@ -21,6 +24,8 @@ export interface ArmColors {
   readonly base: string;
   readonly link: string;
   readonly joint: string;
+  /** Color del eslabón resaltado en 3D (F5-02). */
+  readonly highlight: string;
 }
 
 /** Resuelve un token contra `element`; el valor claro si no hay hoja de estilos que consultar. */
@@ -37,5 +42,6 @@ export function readArmColors(element: Element | null): ArmColors {
     base: armToken(element, ARM_TOKENS.base),
     link: armToken(element, ARM_TOKENS.link),
     joint: armToken(element, ARM_TOKENS.joint),
+    highlight: armToken(element, ARM_TOKENS.highlight),
   };
 }
