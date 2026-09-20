@@ -52,53 +52,70 @@ for (const { shot, viewport } of SHOTS) {
 
 // #158 (decisión 4): la página con el editor de pista abierto en la caja del visor. El editor
 // no anima —su `Scene2D` pinta una vez por cambio— y la simulación sigue pausada en `t = 0`.
-test('sim-movil-editor looks as approved', async ({ page }) => {
-  await page.emulateMedia({ colorScheme: 'light' });
-  await page.addInitScript(() => {
-    const style = document.createElement('style');
-    style.textContent = 'astro-dev-toolbar { display: none !important; }';
-    document.addEventListener('DOMContentLoaded', () => document.head.append(style));
-  });
-  await page.goto('/simuladores/movil');
+//
+// #189 (decisión 5): la captura de escritorio cambia (el lienzo llena la caja y el panel del
+// segmento se va a la columna derecha) y se añade la de 390 px, donde ese panel es un acordeón
+// abierto.
+const EDITOR_SHOTS = [
+  { shot: 'sim-movil-editor', viewport: null },
+  { shot: 'sim-movil-editor-390', viewport: MOBILE_VIEWPORT },
+] as const;
 
-  await expect(page.getByTestId('line-follower-t')).toHaveText('0.00 s', {
-    timeout: ISLAND_TIMEOUT_MS,
-  });
-  await expect(page.getByTestId('start-pose-s')).toBeVisible();
+for (const { shot, viewport } of EDITOR_SHOTS) {
+  test(`${shot} looks as approved`, async ({ page }) => {
+    if (viewport !== null) await page.setViewportSize(viewport);
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.addInitScript(() => {
+      const style = document.createElement('style');
+      style.textContent = 'astro-dev-toolbar { display: none !important; }';
+      document.addEventListener('DOMContentLoaded', () => document.head.append(style));
+    });
+    await page.goto('/simuladores/movil');
 
-  await page.getByTestId('track-source-edit').click();
-  // El editor entra con un `import()` aparte, así que se espera a su lienzo dimensionado y con
-  // píxeles pintados antes de capturar; si no, se recogería el canvas intrínseco en blanco.
-  await expect(page.getByTestId('track-editor')).toBeVisible({ timeout: ISLAND_TIMEOUT_MS });
-  const canvas = page.getByTestId('track-editor-box').locator('[data-testid="scene2d"] canvas');
-  await expect(canvas).toBeVisible();
-  await expect
-    .poll(async () =>
-      canvas.evaluate((element: HTMLCanvasElement) => {
-        const ctx = element.getContext('2d');
-        if (ctx === null || element.width <= 300) return 0;
-        const { data } = ctx.getImageData(0, 0, element.width, element.height);
-        let painted = 0;
-        for (let i = 0; i < data.length; i += 4) {
-          if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255) painted += 1;
-        }
-        return painted;
-      }),
-    )
-    .toBeGreaterThan(0);
-  await page.evaluate(() => document.fonts.ready);
-  // Pulsar «Editar» desplaza la página hasta el botón, que está abajo en la columna derecha; la
-  // captura se toma desde arriba, que es donde queda la caja del editor.
-  await page.evaluate(() => {
-    window.scrollTo(0, 0);
-  });
-  // Y el puntero se retira del área de los paneles: tras el desplazamiento se queda sobre el
-  // elemento que ocupe ahora ese punto, y su estado `hover` entraría en la captura (F4-05: con un
-  // panel más en la columna, ese punto cae sobre la pestaña «P» del selector).
-  await page.mouse.move(0, 0);
+    await expect(page.getByTestId('line-follower-t')).toHaveText('0.00 s', {
+      timeout: ISLAND_TIMEOUT_MS,
+    });
+    await expect(page.getByTestId('start-pose-s')).toBeVisible();
+    if (viewport !== null) await expect(page.getByTestId('sim-bottom-bar')).toBeVisible();
 
-  await expect(page).toHaveScreenshot('sim-movil-editor.png', { timeout: ISLAND_TIMEOUT_MS });
-});
+    // A 390 px el panel Pista es un acordeón cerrado: «Editar» está en el DOM pero no se ve.
+    const edit = page.getByTestId('track-source-edit');
+    if (!(await edit.isVisible())) await page.getByRole('button', { name: /^Pista/ }).click();
+    await edit.click();
+    // El editor entra con un `import()` aparte, así que se espera a su lienzo dimensionado y con
+    // píxeles pintados antes de capturar; si no, se recogería el canvas intrínseco en blanco.
+    await expect(page.getByTestId('track-editor')).toBeVisible({ timeout: ISLAND_TIMEOUT_MS });
+    const canvas = page.getByTestId('track-editor-box').locator('[data-testid="scene2d"] canvas');
+    await expect(canvas).toBeVisible();
+    await expect
+      .poll(async () =>
+        canvas.evaluate((element: HTMLCanvasElement) => {
+          const ctx = element.getContext('2d');
+          if (ctx === null || element.width <= 300) return 0;
+          const { data } = ctx.getImageData(0, 0, element.width, element.height);
+          let painted = 0;
+          for (let i = 0; i < data.length; i += 4) {
+            if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255) painted += 1;
+          }
+          return painted;
+        }),
+      )
+      .toBeGreaterThan(0);
+    // El panel del segmento ya está en la columna derecha (#189, decisión 2).
+    await expect(page.getByTestId('track-editor-panel')).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    // Pulsar «Editar» desplaza la página hasta el botón, que está abajo en la columna derecha; la
+    // captura se toma desde arriba, que es donde queda la caja del editor.
+    await page.evaluate(() => {
+      window.scrollTo(0, 0);
+    });
+    // Y el puntero se retira del área de los paneles: tras el desplazamiento se queda sobre el
+    // elemento que ocupe ahora ese punto, y su estado `hover` entraría en la captura.
+    await page.mouse.move(0, 0);
+
+    await expect(page).toHaveScreenshot(`${shot}.png`, { timeout: ISLAND_TIMEOUT_MS });
+  });
+}
 
 // F4-03 (#129, decisión 7): la página con el panel «Gráficas» y la tarjeta de vuelta.
 //

@@ -194,6 +194,7 @@
     "edit": "Editar",
     "editorTitle": "Editor de pista",
     "editorBack": "Volver a la simulación",
+    "editorPanel": "Segmento",
     "loadJson": "Cargar JSON",
     "loadInput": "Archivo de pista en JSON",
     "loadError": "El archivo no es una pista válida: {{reason}}",

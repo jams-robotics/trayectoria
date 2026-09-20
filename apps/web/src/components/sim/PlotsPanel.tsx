@@ -5,8 +5,8 @@ import type { LineFollowerPlot } from '@trayectoria/sims';
 
 import { useInstrumentsStore } from './instrumentsStore';
 import type { InstrumentsStore } from './instrumentsStore';
-import { Panel } from './MobileSimPanels';
-import type { OpenPanelId } from './MobileSimPanels';
+import { Panel } from './SimPanel';
+import type { OpenPanelId } from './SimPanel';
 
 // F4-03 (#129, decisión 6): las gráficas son un panel más de la columna, y en móvil un acordeón
 // como el resto. Llegan con el mismo `import()` que el simulador, así que no entran en el JS

@@ -6,6 +6,8 @@ import type { LineFollowerApi, LiveInstruments, SimConfig } from '@trayectoria/s
 
 import { useApiStore } from './apiStore';
 import type { ApiStore } from './apiStore';
+import { useEditorPanelStore, usePublishedPanel } from './editorPanelStore';
+import type { EditorPanelStore } from './editorPanelStore';
 import { useInstruments } from './instrumentsStore';
 import { BOTTOM_BAR_HEIGHT_PX } from './BottomBar';
 import { LiveBottomBar, SidePanels } from './MobileSimPanels';
@@ -63,10 +65,12 @@ function ViewerBox({
   viewer,
   page,
   store,
+  panels,
 }: {
   viewer: ReactNode;
   page: ReturnType<typeof usePageState>;
   store: ApiStore;
+  panels: EditorPanelStore;
 }): JSX.Element {
   const { closeEditor } = page;
   const editing = page.view === 'editor';
@@ -82,9 +86,26 @@ function ViewerBox({
         track={page.choice.track}
         onTrack={page.onTrack}
         onBack={onBack}
+        renderPanel={(panel) => <EditorPanelPort store={panels} panel={panel} />}
       />
     </div>
   );
+}
+
+/**
+ * El panel numérico que el editor entrega por `renderPanel`, encaminado hacia la columna derecha
+ * (#189, decisión 2). No pinta nada donde el editor lo dejó: allí ya no hay sitio, y la columna es
+ * quien lo muestra.
+ */
+function EditorPanelPort({
+  store,
+  panel,
+}: {
+  store: EditorPanelStore;
+  panel: ReactNode;
+}): null {
+  usePublishedPanel(store, panel);
+  return null;
 }
 
 /**
@@ -119,7 +140,7 @@ function useCurrentConfig(
 function useSidePanels(
   props: Omit<SidePanelsProps, 'controller'>,
 ): (panel: ReactNode) => ReactNode {
-  const { mobile, openId, setOpenId, store, onChoice, instruments } = props;
+  const { mobile, openId, setOpenId, store, onChoice, instruments, panels } = props;
   const latest = useRef(props);
   latest.current = props;
   return useCallback(
@@ -136,9 +157,10 @@ function useSidePanels(
         current={latest.current.current}
         onChoice={onChoice}
         instruments={instruments}
+        panels={panels}
       />
     ),
-    [mobile, openId, setOpenId, store, onChoice, instruments],
+    [mobile, openId, setOpenId, store, onChoice, instruments, panels],
   );
 }
 
@@ -168,6 +190,27 @@ function runProps(page: ReturnType<typeof usePageState>): {
   };
 }
 
+/** Lo que la isla le pasa al simulador: la página, la maqueta y los tres canales de salida. */
+interface SimulatorProps {
+  readonly page: ReturnType<typeof usePageState>;
+  readonly mobile: boolean;
+  readonly renderPanel: (panel: ReactNode) => ReactNode;
+  readonly onApi: (api: LineFollowerApi) => void;
+  readonly onInstruments: (instruments: LiveInstruments) => void;
+  readonly store: ApiStore;
+  readonly panels: EditorPanelStore;
+}
+
+/** El aviso mientras el chunk del simulador se resuelve. */
+function SimulatorFallback(): JSX.Element {
+  const t = useT();
+  return (
+    <p className="text-fg-muted text-sm" role="status" aria-live="polite">
+      {t('sims.mobilePage.loading')}
+    </p>
+  );
+}
+
 /** El simulador: el `LineFollowerWidget` de F4-02a con la pista, el robot y la pose de la página. */
 function Simulator({
   page,
@@ -176,23 +219,10 @@ function Simulator({
   onApi,
   onInstruments,
   store,
-}: {
-  page: ReturnType<typeof usePageState>;
-  mobile: boolean;
-  renderPanel: (panel: ReactNode) => ReactNode;
-  onApi: (api: LineFollowerApi) => void;
-  onInstruments: (instruments: LiveInstruments) => void;
-  store: ApiStore;
-}): JSX.Element {
-  const t = useT();
+  panels,
+}: SimulatorProps): JSX.Element {
   return (
-    <Suspense
-      fallback={
-        <p className="text-fg-muted text-sm" role="status" aria-live="polite">
-          {t('sims.mobilePage.loading')}
-        </p>
-      }
-    >
+    <Suspense fallback={<SimulatorFallback />}>
       <LazyLineFollowerWidget
         // F4-05: cargar una configuración sube `configKey` y el widget se remonta con el
         // controlador, los parámetros y la semilla nuevos; `useControllerChoice` los lee al
@@ -203,7 +233,9 @@ function Simulator({
         onApi={onApi}
         onInstruments={onInstruments}
         renderPanel={renderPanel}
-        renderViewer={(viewer) => <ViewerBox viewer={viewer} page={page} store={store} />}
+        renderViewer={(viewer) => (
+          <ViewerBox viewer={viewer} page={page} store={store} panels={panels} />
+        )}
         hideControls={mobile}
       />
     </Suspense>
@@ -225,11 +257,14 @@ export function MobileSimIsland(): JSX.Element {
   // F4-03 (#129, decisión 6): las gráficas y la tarjeta de vuelta salen del widget por
   // `onInstruments` y llegan al panel «Gráficas» por su propio store, como la api por `apiStore`.
   const instruments = useInstruments();
+  // #189 (decisión 2): el panel del editor viaja de la caja del visor a la columna derecha.
+  const panels = useEditorPanelStore();
   const configs = useSimConfigs(page.robotId, page.applyConfig);
   const [live, setLive] = useState<ControllerChoice>(page.run);
   const current = useCurrentConfig(page, live);
   const renderController = useSidePanels({
     page, t, configs, current, store, mobile, openId, setOpenId, onChoice: setLive, instruments,
+    panels,
   });
 
   // Maqueta 04: el visor a la izquierda y la columna de tarjetas a la derecha. El widget ocupa
@@ -250,6 +285,7 @@ export function MobileSimIsland(): JSX.Element {
         onApi={store.publish}
         onInstruments={instruments.publish}
         store={store}
+        panels={panels}
       />
       {mobile ? <LiveBottomBar store={store} /> : null}
       <Notices configs={configs} />
