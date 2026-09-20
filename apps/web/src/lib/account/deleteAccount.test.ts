@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { LIST_PAGE_SIZE, StorageCleanupError, deleteAccount } from './deleteAccount';
+import {
+  LIST_PAGE_SIZE,
+  MAX_LIST_CALLS,
+  StorageCleanupError,
+  deleteAccount,
+} from './deleteAccount';
 
 // #178: every call runs against a mocked Supabase client, so the tests assert the order of the
 // operations (list → remove → rpc) without touching the network.
@@ -24,6 +29,8 @@ interface Failures {
   readonly failing?: readonly string[];
   /** The listing of each prefix, keyed by the prefix `list` is called with. */
   readonly listings?: Readonly<Record<string, readonly Entry[]>>;
+  /** Every prefix answers with one subfolder, so the walk never runs out of prefixes. */
+  readonly endlessFolders?: boolean;
 }
 
 interface Mock {
@@ -46,8 +53,10 @@ function mockDb(failures: Failures = {}): Mock {
   const answer = (op: string, data: unknown): { data: unknown; error: unknown } =>
     failing.has(op) ? { data: null, error: { message: `${op} failed` } } : { data, error: null };
 
-  const listingOf = (prefix: string, offset: number): readonly Entry[] =>
-    (failures.listings?.[prefix] ?? []).slice(offset, offset + LIST_PAGE_SIZE);
+  const listingOf = (prefix: string, offset: number): readonly Entry[] => {
+    if (failures.endlessFolders === true) return offset === 0 ? [folder('deeper')] : [];
+    return (failures.listings?.[prefix] ?? []).slice(offset, offset + LIST_PAGE_SIZE);
+  };
 
   const storage = {
     from: (bucket: string) => ({
@@ -120,6 +129,16 @@ describe('deleteAccount (#178)', () => {
     expect(lists[1]?.payload).toEqual({ prefix: OWNER, offset: LIST_PAGE_SIZE });
     const removed = calls.find((call) => call.op === 'storage.urdf.remove')?.payload;
     expect(removed).toHaveLength(LIST_PAGE_SIZE + 3);
+  });
+
+  it('gives up before the RPC when the listing never runs out of prefixes', async () => {
+    const { db, calls } = mockDb({ endlessFolders: true });
+
+    await expect(deleteAccount(OWNER, db)).rejects.toThrow(StorageCleanupError);
+
+    // The cap stops the walk instead of looping forever, and the account is left untouched.
+    expect(calls).toHaveLength(MAX_LIST_CALLS);
+    expect(calls.every((call) => call.op === 'storage.urdf.list')).toBe(true);
   });
 
   it('calls only the RPC when the learner has no objects', async () => {

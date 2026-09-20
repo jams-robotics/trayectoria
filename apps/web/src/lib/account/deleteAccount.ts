@@ -16,7 +16,7 @@ import { URDF_BUCKET } from '../robots/storage';
 export const LIST_PAGE_SIZE = 100;
 
 /** Guards against an endless walk if the bucket ever answered with a cycle of prefixes. */
-const MAX_LIST_CALLS = 200;
+export const MAX_LIST_CALLS = 200;
 
 /**
  * The files could not be emptied, so `delete_account()` was never called and the account is

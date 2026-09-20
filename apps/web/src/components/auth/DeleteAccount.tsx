@@ -1,5 +1,5 @@
 import { signOut, useSession } from '@trayectoria/auth';
-import { useT } from '@trayectoria/i18n';
+import { useT, type Translate } from '@trayectoria/i18n';
 import { useState, type JSX } from 'react';
 
 import { StorageCleanupError, deleteAccount } from '../../lib/account/deleteAccount';
@@ -91,6 +91,43 @@ interface DeleteState extends ConfirmFormProps {
   readonly onStart: () => void;
 }
 
+/** What `runDeletion` needs from the hook to report back into the section's status. */
+interface DeletionHandlers {
+  readonly t: Translate;
+  readonly setError: (message: string) => void;
+  readonly setPending: (pending: boolean) => void;
+}
+
+/**
+ * Deletes the account of `userId` and leaves the page (F3-03, #178). Without a session there is
+ * no `auth.uid()` behind the calls, so nothing is deleted and the learner is asked to retry.
+ */
+async function runDeletion(
+  userId: string | undefined,
+  { t, setError, setPending }: DeletionHandlers,
+): Promise<void> {
+  if (userId === undefined) {
+    setError(t('auth.deleteAccount.failed'));
+    return;
+  }
+  setPending(true);
+  setError('');
+  try {
+    await deleteAccount(userId);
+    await signOut();
+    window.location.assign(DONE_URL);
+  } catch (cause) {
+    // The files are still there and the account was not touched: a different message, because
+    // retrying is what the learner should do and nothing has been lost (#178).
+    setError(
+      cause instanceof StorageCleanupError
+        ? t('auth.deleteAccount.storageFailed')
+        : t('auth.deleteAccount.failed'),
+    );
+    setPending(false);
+  }
+}
+
 /** Runs the deletion and turns its outcome into the section's status (F3-03, #178). */
 function useDeleteAccount(): DeleteState {
   const t = useT();
@@ -100,25 +137,6 @@ function useDeleteAccount(): DeleteState {
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false);
 
-  async function run(): Promise<void> {
-    setPending(true);
-    setError('');
-    try {
-      await deleteAccount(session?.user.id ?? '');
-      await signOut();
-      window.location.assign(DONE_URL);
-    } catch (cause) {
-      // The files are still there and the account was not touched: a different message, because
-      // retrying is what the learner should do and nothing has been lost (#178).
-      setError(
-        cause instanceof StorageCleanupError
-          ? t('auth.deleteAccount.storageFailed')
-          : t('auth.deleteAccount.failed'),
-      );
-      setPending(false);
-    }
-  }
-
   return {
     open,
     typed,
@@ -126,7 +144,7 @@ function useDeleteAccount(): DeleteState {
     pending,
     onStart: () => setOpen(true),
     onTyped: setTyped,
-    onSubmit: () => void run(),
+    onSubmit: () => void runDeletion(session?.user.id, { t, setError, setPending }),
     onCancel: () => {
       setOpen(false);
       setTyped('');
