@@ -8,6 +8,10 @@ import { SHARE_PARAM, encode, shareLink } from './codec';
 // F4-05 (#131, decisión 6): «Copiar enlace». El enlace se calcula del estado en curso —cada vez
 // que la configuración cambia—, se muestra en un campo de solo lectura para poder leerlo o
 // seleccionarlo a mano, y el botón lo lleva al portapapeles con un toast (docs/DESIGN.md §5).
+//
+// #182 (decisión 2): una configuración que no cabe en `MAX_LINK_CHARS` deja el campo vacío y el
+// botón activo; al pulsarlo no se copia nada y se avisa con `tooLong`. Antes el enlace se
+// mostraba igualmente y no abría al otro lado.
 
 const BUTTON =
   'border-border bg-bg-raised text-fg inline-flex h-11 items-center rounded-md border px-3 ' +
@@ -17,29 +21,73 @@ const FIELD =
   'border-border bg-bg text-fg-muted h-11 min-w-0 flex-1 rounded-md border px-3 font-mono ' +
   'text-xs focus-visible:outline-color-focus focus-visible:outline-2 focus-visible:outline-offset-2';
 
+/** Por qué no se copió el enlace, cuando el motivo no es el portapapeles. */
+export type CopyFailure = 'tooLong';
+
 export interface ShareLinkProps {
   /** La configuración que el enlace debe reproducir. */
   readonly config: SimConfig;
   /** Origen del enlace; el de la página cuando no se da (los tests pasan uno fijo). */
   readonly origin?: string;
-  /** Se llama tras copiar, con `true` si el portapapeles aceptó el texto. */
-  readonly onCopied: (copied: boolean) => void;
+  /**
+   * Se llama tras copiar, con `true` si el portapapeles aceptó el texto. Con `false` y `tooLong`
+   * no hubo nada que copiar: la configuración no cabe en un enlace.
+   */
+  readonly onCopied: (copied: boolean, reason?: CopyFailure) => void;
 }
 
+/** El estado del enlace: aún codificando, listo, o más largo de lo que un enlace admite. */
+interface LinkState {
+  /** El enlace listo para copiar; vacío mientras se codifica y cuando no cabe. */
+  readonly link: string;
+  /** La configuración no cabe en `MAX_LINK_CHARS`: no hay enlace que dar. */
+  readonly tooLong: boolean;
+}
+
+const ENCODING: LinkState = { link: '', tooLong: false };
+
 /** El enlace de `config`, recalculado cada vez que la configuración cambia. */
-function useLink(config: SimConfig, origin: string | undefined): string {
-  const [link, setLink] = useState('');
+function useLink(config: SimConfig, origin: string | undefined): LinkState {
+  const [state, setState] = useState<LinkState>(ENCODING);
   useEffect(() => {
     let live = true;
-    void encode(config).then((text) => {
+    setState(ENCODING);
+    void encode(config).then((result) => {
+      if (!live) return;
+      if (!result.ok) {
+        setState({ link: '', tooLong: true });
+        return;
+      }
       const base = origin ?? (typeof location === 'undefined' ? '' : location.origin);
-      if (live) setLink(shareLink(text, base));
+      setState({ link: shareLink(result.value, base), tooLong: false });
     });
     return () => {
       live = false;
     };
   }, [config, origin]);
-  return link;
+  return state;
+}
+
+/**
+ * Lleva `link` al portapapeles, o avisa de que no hay enlace porque la configuración no cabe
+ * (#182): en ese caso no se toca el portapapeles, para no borrar lo que hubiera dentro.
+ */
+function copyLink(
+  state: LinkState,
+  onCopied: (copied: boolean, reason?: CopyFailure) => void,
+): void {
+  if (state.tooLong) {
+    onCopied(false, 'tooLong');
+    return;
+  }
+  navigator.clipboard.writeText(state.link).then(
+    () => {
+      onCopied(true);
+    },
+    () => {
+      onCopied(false);
+    },
+  );
 }
 
 /**
@@ -49,7 +97,8 @@ function useLink(config: SimConfig, origin: string | undefined): string {
  */
 export function ShareLink({ config, origin, onCopied }: ShareLinkProps): JSX.Element {
   const t = useT();
-  const link = useLink(config, origin);
+  const state = useLink(config, origin);
+  const { link, tooLong } = state;
   return (
     <div className="flex flex-col gap-2">
       <label className="text-fg-muted text-sm" htmlFor="sim-config-link">
@@ -69,16 +118,9 @@ export function ShareLink({ config, origin, onCopied }: ShareLinkProps): JSX.Ele
           type="button"
           className={BUTTON}
           data-testid="sim-config-copy"
-          disabled={link === ''}
+          disabled={link === '' && !tooLong}
           onClick={() => {
-            navigator.clipboard.writeText(link).then(
-              () => {
-                onCopied(true);
-              },
-              () => {
-                onCopied(false);
-              },
-            );
+            copyLink(state, onCopied);
           }}
         >
           {t('sims.simConfig.copy')}

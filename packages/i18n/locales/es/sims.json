@@ -246,6 +246,7 @@
     "copied": "Copiado",
     "copyError": "No se pudo copiar el enlace; está a la vista para copiarlo a mano.",
     "invalidLink": "El enlace no es una configuración válida; se abre con los valores por defecto.",
+    "linkTooLong": "La configuración es demasiado grande para un enlace; guárdala o simplifica la pista.",
     "saveError": "No se pudo guardar la configuración en el robot."
   },
   "import": {
