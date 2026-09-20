@@ -92,19 +92,60 @@ async function useTool(story: Locator, name: string): Promise<void> {
 }
 
 /**
+ * Borde superior de la zona que ocupa la barra flotante del segmento seleccionado (#159), en
+ * metros: la barra vive en la esquina superior derecha del lienzo y con un arco seleccionado su
+ * borde inferior cae en y ≈ 0.300 m, cubriendo desde x ≈ 0.441 m hasta el borde derecho. Un
+ * `pointerdown` que caiga ahí lo recibe la barra, no el lienzo, y el trazo se pierde: el cuadrado
+ * se dibuja por debajo de esta cota (#177).
+ */
+const SEGMENT_BAR_BOTTOM_M = 0.3;
+
+/**
+ * Techo del cuadrado que dibujan los tests, en metros: por debajo de `SEGMENT_BAR_BOTTOM_M` con
+ * margen de sobra para los 20 mm del snap y el grosor de la línea.
+ */
+const TRACK_TOP_M = 0.15;
+
+/** Borde inferior del cuadrado que dibujan los tests, en metros. */
+const TRACK_BOTTOM_M = -0.25;
+
+/**
+ * Comprueba que la barra flotante del segmento seleccionado está donde este archivo supone: sobre
+ * la esquina superior derecha del lienzo y por encima de `SEGMENT_BAR_BOTTOM_M`. Si la barra se
+ * moviera, las coordenadas del cuadrado dejarían de estar justificadas y este fallo lo diría.
+ */
+async function expectSegmentBarAboveTrack(story: Locator): Promise<void> {
+  const bar = story.getByTestId('track-editor-segment-bar');
+  await expect(bar).toBeVisible();
+  const barBox = await bar.boundingBox();
+  const canvasBox = await story.locator('[data-testid="scene2d"] canvas').boundingBox();
+  if (barBox === null || canvasBox === null) throw new Error('la barra o el lienzo no tienen caja');
+  // La barra flota sobre la mitad derecha del lienzo.
+  expect(barBox.x + barBox.width).toBeGreaterThan(canvasBox.x + canvasBox.width / 2);
+  // Y su borde inferior no baja de `SEGMENT_BAR_BOTTOM_M`, que a su vez queda por encima del techo
+  // del cuadrado: el eje y del mundo crece hacia arriba, así que «más arriba» es una y de pantalla
+  // menor. Con las dos comprobaciones, si la barra creciera hacia abajo el fallo sería aquí y no
+  // un trazo perdido a mitad del dibujo.
+  expect(TRACK_TOP_M).toBeLessThan(SEGMENT_BAR_BOTTOM_M);
+  const barFloor = await toScreen(story, [0, SEGMENT_BAR_BOTTOM_M]);
+  expect(barBox.y + barBox.height).toBeLessThanOrEqual(barFloor.y);
+}
+
+/**
  * Dibuja el cuadrado redondeado del criterio: dos rectas y dos arcos encadenados, cada trazo
  * empezando dentro del radio de snap (20 mm) del final del anterior, y el último cerrando sobre
- * el inicio del primero.
+ * el inicio del primero. El cuadrado va por debajo de `SEGMENT_BAR_BOTTOM_M` para que ningún
+ * `pointerdown` caiga sobre la barra flotante de #159 (#177).
  */
 async function drawClosedTrack(story: Locator): Promise<void> {
   await useTool(story, 'Recta');
-  await drag(story, [0.2, -0.1], [0.6, -0.1]);
+  await drag(story, [0.2, TRACK_BOTTOM_M], [0.6, TRACK_BOTTOM_M]);
   await useTool(story, 'Arco');
-  await drag(story, [0.605, -0.1], [0.6, 0.3], [0.8, 0.1]);
+  await drag(story, [0.605, TRACK_BOTTOM_M], [0.6, TRACK_TOP_M], [0.8, -0.05]);
   await useTool(story, 'Recta');
-  await drag(story, [0.6, 0.305], [0.2, 0.3]);
+  await drag(story, [0.6, TRACK_TOP_M + 0.005], [0.2, TRACK_TOP_M]);
   await useTool(story, 'Arco');
-  await drag(story, [0.195, 0.3], [0.2, -0.1], [0, 0.1]);
+  await drag(story, [0.195, TRACK_TOP_M], [0.2, TRACK_BOTTOM_M], [0, -0.05]);
 }
 
 test('dibujar dos rectas y dos arcos encadenados deja la pista continua y cerrada', async ({
@@ -115,6 +156,9 @@ test('dibujar dos rectas y dos arcos encadenados deja la pista continua y cerrad
 
   const segments = story.getByRole('list', { name: 'Segmentos de la pista' }).getByRole('button');
   await expect(segments).toHaveCount(4);
+  // El último trazo deja su arco seleccionado, así que la barra de #159 está en pantalla: aquí se
+  // comprueba que sigue fuera de la banda donde se dibuja (#177).
+  await expectSegmentBarAboveTrack(story);
   const notice = story.getByTestId('track-editor-continuity');
   await expect(notice).toContainText('Pista continua');
   await expect(notice).not.toContainText('Pista abierta');
@@ -161,7 +205,7 @@ test('Guardar descarga un JSON con los cuatro segmentos que parseTrack acepta', 
 test('cargar un JSON inválido muestra el error y no cambia la pista', async ({ page }) => {
   const story = await openEditor(page);
   await useTool(story, 'Recta');
-  await drag(story, [0.2, 0.1], [0.8, 0.1]);
+  await drag(story, [0.2, TRACK_BOTTOM_M], [0.8, TRACK_BOTTOM_M]);
   const segments = story.getByRole('list', { name: 'Segmentos de la pista' }).getByRole('button');
   await expect(segments).toHaveCount(1);
 
