@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./arm": "./src/arm/index.ts"
   },
   "scripts": {
     "lint": "eslint .",
@@ -18,7 +19,9 @@
     "@trayectoria/robot-spec": "workspace:*",
     "@trayectoria/sim-core": "workspace:*",
     "@trayectoria/widgets": "workspace:*",
-    "nanostores": "1.5.3"
+    "nanostores": "1.5.3",
+    "three": "0.186.0",
+    "urdf-loader": "0.13.1"
   },
   "peerDependencies": {
     "react": "19.3.0",
@@ -30,6 +33,7 @@
     "@testing-library/user-event": "14.6.7",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "@types/three": "0.186.0",
     "jsdom": "30.1.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"

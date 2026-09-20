@@ -378,6 +378,9 @@ async function openTopic(page: Page): Promise<void> {
   // la captura recogería el bloque de fórmula vacío (misma carrera que en /dev/widgets).
   await expect(page.locator('[role="math"]')).toBeVisible();
   await expect(page.getByTestId('exercise')).toBeVisible();
+  // `ProgressNotice` (#146) solo se pinta cuando `$sessionReady` es cierto y no hay sesión: sin
+  // esperarlo, la captura corre la misma carrera y a veces sale sin el aviso (49 px de menos).
+  await expect(page.getByTestId('progress-notice')).toBeVisible();
   await page.evaluate(() => document.fonts.ready);
 }
 

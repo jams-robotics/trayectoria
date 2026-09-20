@@ -226,6 +226,9 @@ importers:
       '@trayectoria/progress':
         specifier: workspace:*
         version: link:../../packages/progress
+      '@trayectoria/sims':
+        specifier: workspace:*
+        version: link:../../packages/sims
       '@trayectoria/widgets':
         specifier: workspace:*
         version: link:../../packages/widgets
@@ -381,6 +384,12 @@ importers:
       nanostores:
         specifier: 1.5.3
         version: 1.5.3
+      three:
+        specifier: 0.186.0
+        version: 0.186.0
+      urdf-loader:
+        specifier: 0.13.1
+        version: 0.13.1(three@0.186.0)
     devDependencies:
       '@testing-library/jest-dom':
         specifier: 7.0.1
@@ -397,6 +406,9 @@ importers:
       '@types/react-dom':
         specifier: 19.3.0
         version: 19.3.0(@types/react@19.3.0)
+      '@types/three':
+        specifier: 0.186.0
+        version: 0.186.0
       jsdom:
         specifier: 30.1.0
         version: 30.1.0
@@ -3660,6 +3672,11 @@ packages:
 
   uplot@1.6.32:
     resolution: {integrity: sha512-KIMVnG68zvu5XXUbC4LQEPnhwOxBuLyW1AHtpm6IKTXImkbLgkMy+jabjLgSLMasNuGGzQm/ep3tOkyTxpiQIw==}
+
+  urdf-loader@0.13.1:
+    resolution: {integrity: sha512-bHHoh0Yxrgrw91dPAmVnzKleA8HiVMeHy6xYqOVRw3LuZ2hDOwUiQVCbrzPZckO5S30F1Yym8zLCINN0HfcM3w==}
+    peerDependencies:
+      three: '>=0.152.0'
 
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
@@ -7095,6 +7112,10 @@ snapshots:
       picocolors: 1.1.1
 
   uplot@1.6.32: {}
+
+  urdf-loader@0.13.1(three@0.186.0):
+    dependencies:
+      three: 0.186.0
 
   uri-js@4.4.1:
     dependencies:

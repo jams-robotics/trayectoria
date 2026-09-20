@@ -1,0 +1,157 @@
+{
+  "trackEditor": {
+    "scene": "Lienzo del editor de pista: la pista dibujada y la previsualización de la herramienta activa.",
+    "tools": "Herramienta",
+    "tool": {
+      "select": "Seleccionar",
+      "line": "Recta",
+      "arc": "Arco",
+      "erase": "Borrar"
+    },
+    "undo": "Deshacer",
+    "redo": "Rehacer",
+    "save": "Guardar",
+    "load": "Cargar",
+    "loadInput": "Archivo de pista en JSON",
+    "preset": "Preset",
+    "presetApply": "Aplicar preset",
+    "presetName": {
+      "oval": "Óvalo",
+      "sCurve": "Curva en S",
+      "tightCurves": "Curvas cerradas",
+      "crossing": "Cruce"
+    },
+    "presetConfirm": "Hay cambios sin guardar. ¿Sustituir la pista por el preset?",
+    "presetConfirmAccept": "Sustituir",
+    "presetConfirmCancel": "Cancelar",
+    "segment": "Segmento seleccionado",
+    "noSegment": "Ningún segmento seleccionado.",
+    "field": {
+      "fromX": "Inicio x (m)",
+      "fromY": "Inicio y (m)",
+      "toX": "Fin x (m)",
+      "toY": "Fin y (m)",
+      "radius": "Radio (m)",
+      "ccw": "Sentido antihorario",
+      "lineWidth": "Ancho de línea (m)"
+    },
+    "continuity": {
+      "ok": "Pista continua",
+      "gap": "Hueco tras el segmento {{index}}: {{gap}} mm",
+      "open": "Pista abierta",
+      "gapsTitle": "Huecos en la pista"
+    },
+    "loadError": "El archivo no es una pista válida: {{reason}}",
+    "saved": "Pista descargada como pista.json",
+    "loaded": "Pista cargada",
+    "segments": "Segmentos de la pista",
+    "segmentLine": "Segmento {{index}}: recta",
+    "segmentArc": "Segmento {{index}}: arco",
+    "noSegments": "La pista no tiene segmentos."
+  },
+  "lineFollower": {
+    "scene": "Escena del seguidor de línea: la pista, el robot con sus sensores y la traza recorrida.",
+    "sensors": "Sensores",
+    "lost": "El arreglo ha perdido la línea.",
+    "controllerGroup": "Controlador",
+    "custom": "Propio",
+    "customBadge": "v2",
+    "controller": {
+      "manual": "Manual",
+      "onoff": "On/off",
+      "p": "P",
+      "pid": "PID"
+    },
+    "param": {
+      "omegaBase_radps": "Velocidad base",
+      "delta_radps": "Corrección",
+      "kp": "Kp",
+      "ki": "Ki",
+      "kd": "Kd",
+      "iMax": "Límite integral",
+      "threshold": "Umbral"
+    },
+    "unit": {
+      "omegaBase_radps": "rad/s",
+      "delta_radps": "rad/s",
+      "kp": "",
+      "ki": "",
+      "kd": "",
+      "iMax": "",
+      "threshold": ""
+    },
+    "readout": {
+      "x": "x",
+      "y": "y",
+      "theta": "θ",
+      "v": "v",
+      "omega": "ω",
+      "laps": "Vueltas",
+      "t": "t"
+    }
+  },
+  "arm": {
+    "scene": "Escena 3D del brazo {{name}}: los eslabones, las articulaciones y los marcos de cada eslabón.",
+    "joints": "Articulaciones",
+    "effector": "Efector",
+    "frames": "Marcos",
+    "x": "x",
+    "y": "y",
+    "z": "z",
+    "roll": "alabeo",
+    "pitch": "cabeceo",
+    "yaw": "guiñada",
+    "unitM": "m",
+    "unitDeg": "°",
+    "readoutItem": "{{label}} {{value}} {{unit}}",
+    "loading": "Cargando el brazo…",
+    "loadError": "No se pudo cargar el brazo «{{id}}» del catálogo.",
+    "unsupportedMesh": "Formato de malla no soportado; solo se cargan archivos STL."
+  },
+  "armPage": {
+    "title": "Simulador de brazo 3D",
+    "lead": "Mueve las articulaciones y observa dónde queda el efector. La posición y la orientación las calcula el motor de cinemática, no el dibujo.",
+    "loading": "Cargando el simulador de brazo…",
+    "source": "Brazo",
+    "sourceHelp": "Elige un brazo del catálogo.",
+    "fallback": "No hay ningún brazo con ese identificador; se muestra «{{name}}».",
+    "soon": "Disponible más adelante",
+    "view": "Controles de vista",
+    "workspace": "Espacio de trabajo",
+    "matrices": "Matrices",
+    "expand": "ver",
+    "collapse": "ocultar"
+  },
+  "playground": {
+    "title": "Catálogo de simuladores",
+    "lead": "Cada componente de simulación con sus configuraciones de ejemplo. Página de desarrollo: no se enlaza desde la navegación."
+  },
+  "mobilePage": {
+    "title": "Simulador móvil 2D",
+    "lead": "Elige el robot y la pista, ajusta el controlador y observa cómo sigue la línea. Los números salen del motor de simulación, no del dibujo.",
+    "robot": "Robot",
+    "robotSource": "Origen del robot",
+    "myRobot": "Mi robot",
+    "savedRobots": "Robots guardados",
+    "savedEmpty": "Todavía no tienes robots guardados.",
+    "savedError": "No se pudieron leer los robots guardados.",
+    "track": "Pista",
+    "trackSource": "Origen de la pista",
+    "preset": "Preset",
+    "edit": "Editar",
+    "editHide": "Ocultar el editor",
+    "loadJson": "Cargar JSON",
+    "loadInput": "Archivo de pista en JSON",
+    "loadError": "El archivo no es una pista válida: {{reason}}",
+    "startPose": "Pose inicial sobre la pista",
+    "startS": "Posición s (m)",
+    "controller": "Controlador",
+    "readouts": "Lecturas",
+    "controls": "Controles de simulación",
+    "expand": "ver",
+    "collapse": "ocultar",
+    "summaryLaps": "{{laps}} vueltas · t {{time}} s",
+    "readoutsEmpty": "Todavía no hay lecturas; pulsa Reproducir.",
+    "loading": "Cargando el simulador…"
+  }
+}
