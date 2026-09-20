@@ -55,9 +55,9 @@ export interface ToolbarProps {
   /** «Nueva»: deja el lienzo vacío, preguntando antes si hay algo que perder (#190, decisión 1). */
   onNew: () => void;
   /**
-   * Guarda la pista con el nombre que el estudiante escriba, en la cuenta o en el navegador
-   * (F4-06, #191, decisión 3). Sin ella la barra no muestra «Guardar»: el playground y sus
-   * capturas se quedan como estaban.
+   * Saves the track under the name the learner types, in the account or in the browser (F4-06,
+   * #191, decision 3). Without it the bar shows no «Guardar»: the playground and its snapshots
+   * stay as they were.
    */
   onSaveTrack?: (name: string) => void;
   /**
@@ -196,7 +196,7 @@ function TrackGroup({
   );
 }
 
-/** Un botón de texto de la barra, con su etiqueta y su tamaño. */
+/** A text button of the bar, with its label and its size. */
 function BarButton({
   label,
   size,
@@ -221,7 +221,7 @@ function BarButton({
   );
 }
 
-/** Deshacer, rehacer y «Exportar JSON»: lo que actúa sobre la pista que ya está en el lienzo. */
+/** Undo, redo and «Exportar JSON»: what acts on the track already on the canvas. */
 function HistoryGroup({
   canUndo,
   canRedo,

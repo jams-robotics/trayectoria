@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { JSX, KeyboardEvent } from 'react';
 import { useT } from '@trayectoria/i18n';
 
-// F4-06 (#191, decisión 3): «Guardar» of the editor and its inline name field. It lives in its
+// F4-06 (#191, decision 3): «Guardar» of the editor and its inline name field. It lives in its
 // own file, and not inside `TrackEditor.tsx`, so neither file grows past the 300 lines of
 // docs/STANDARDS.md §4.
 //

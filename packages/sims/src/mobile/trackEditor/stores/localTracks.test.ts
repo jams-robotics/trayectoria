@@ -9,7 +9,7 @@ import {
   saveLocalTrack,
 } from './localTracks';
 
-// F4-06 (#191, decisión 6): the local track store. What the spec fixes is what is tested — each
+// F4-06 (#191, decision 6): the local track store. What the spec fixes is what is tested — each
 // entry is validated, the list comes back most recent first and nothing throws without
 // `localStorage` — and not the track serialization, which is sim-core's and has its own tests.
 

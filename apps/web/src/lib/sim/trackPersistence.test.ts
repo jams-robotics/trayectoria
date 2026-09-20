@@ -3,22 +3,22 @@ import type { DbClient } from '@trayectoria/db';
 
 import { deleteTrack, listTracks, saveTrack } from './trackPersistence';
 
-// F4-06 (#191, decisión 6): el adaptador de `public.tracks` con un cliente mockeado. Lo que se
-// comprueba es que cada consulta se acote al `owner_id` del estudiante —RLS ya lo hace en la base,
-// y el test pgTAP de `supabase/tests/tracks.sql` lo prueba allí— y que una fila con un `track` que
-// el editor no abriría se descarte en lugar de llegar a la página.
+// F4-06 (#191, decision 6): the adapter of `public.tracks` with a mocked client. What is checked
+// is that every query is scoped to the `owner_id` of the student — RLS already does that in the
+// database, and the pgTAP test of `supabase/tests/tracks.sql` proves it there — and that a row
+// with a `track` the editor could not open is dropped instead of reaching the page.
 
 const OWNER_ID = '00000000-0000-4000-8000-00000000000d';
 const OTHER_ID = '00000000-0000-4000-8000-00000000000e';
 
-/** La pista de las filas de prueba, tal y como el editor la exporta. */
+/** The track of the test rows, exactly as the editor exports it. */
 const TRACK_JSON = {
   version: 1,
   lineWidth_m: 0.02,
   segments: [{ type: 'line', from: [0, 0], to: [0.2, 0] }],
 };
 
-/** Lo que cada llamada encadenada del cliente registró, para comprobar el filtro por dueño. */
+/** What each chained call of the client recorded, to check the filter by owner. */
 interface Calls {
   readonly table: string[];
   readonly eq: Array<readonly [string, unknown]>;
@@ -28,8 +28,8 @@ interface Calls {
 }
 
 /**
- * Un cliente mockeado con la misma forma encadenada que el de Supabase. `rows` es lo que devuelve
- * el `select`, y `error` el error que cualquiera de las tres operaciones devuelve.
+ * A mocked client with the same chained shape as the Supabase one. `rows` is what the `select`
+ * returns, and `error` the error any of the three operations returns.
  */
 function fakeDb(
   rows: readonly unknown[] = [],

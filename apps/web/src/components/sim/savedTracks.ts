@@ -1,27 +1,27 @@
 import type { SavedTrack, TrackJson } from '@trayectoria/sims';
 
-// F4-06 (#191, decisión 2): dónde van a parar las pistas guardadas. Sin sesión, al store local de
-// `@trayectoria/sims` (el único archivo con `localStorage`); con sesión, al adaptador de
-// `apps/web/src/lib/sim/trackPersistence.ts`, que se carga con `import()` para no meter
-// `@supabase/supabase-js` en el JS inicial de una página que simula igual sin sesión.
+// F4-06 (#191, decision 2): where the saved tracks end up. Without a session, in the local store
+// of `@trayectoria/sims` (the only file with `localStorage`); with one, in the adapter of
+// `apps/web/src/lib/sim/trackPersistence.ts`, which is loaded with `import()` so as not to put
+// `@supabase/supabase-js` in the initial JS of a page that simulates just as well without one.
 //
-// La decisión vive aquí y no en el hook, sin React de por medio, que es como `savedRobots.ts`
-// separa la suya: así se prueba con un cliente y una sesión mockeados.
+// The decision lives here and not in the hook, with no React in between, which is how
+// `savedRobots.ts` separates its own: that way it is tested with a mocked client and session.
 //
-// No se migran pistas locales a la cuenta al iniciar sesión: está fuera de alcance (decisión 2);
-// lo que sí ocurre es que la lista se relee.
+// Local tracks are not migrated to the account on sign-in: that is out of scope (decision 2);
+// what does happen is that the list is read again.
 
-/** La pista con geometría: el `TrackJson` sin la rama del nombre de preset. */
+/** The track with geometry: the `TrackJson` without the preset-name branch. */
 export type Track = Exclude<TrackJson, string>;
 
-/** El id del estudiante con sesión, o `null` sin ella; espera a que la sesión esté leída. */
+/** Id of the signed-in student, or `null` without a session; waits until the session is read. */
 async function currentOwnerId(): Promise<string | null> {
   const { ensureSessionReady } = await import('@trayectoria/auth');
   const session = await ensureSessionReady();
   return session?.user.id ?? null;
 }
 
-/** Las pistas de la cuenta con sesión, o las del navegador sin ella. */
+/** The tracks of the account with a session, or those of the browser without one. */
 export async function loadSavedTracks(): Promise<readonly SavedTrack[]> {
   const ownerId = await currentOwnerId();
   if (ownerId === null) {
@@ -32,7 +32,7 @@ export async function loadSavedTracks(): Promise<readonly SavedTrack[]> {
   return listTracks(ownerId);
 }
 
-/** Guarda `track` con el nombre `name` donde corresponda y devuelve la lista resultante. */
+/** Saves `track` under `name` wherever it belongs and returns the resulting list. */
 export async function storeSavedTrack(
   name: string,
   track: Track,
@@ -48,7 +48,7 @@ export async function storeSavedTrack(
   return listTracks(ownerId);
 }
 
-/** Borra la pista `id` donde corresponda y devuelve la lista resultante. */
+/** Deletes the track `id` wherever it belongs and returns the resulting list. */
 export async function removeSavedTrack(id: string): Promise<readonly SavedTrack[]> {
   const ownerId = await currentOwnerId();
   if (ownerId === null) {

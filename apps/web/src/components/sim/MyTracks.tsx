@@ -6,10 +6,10 @@ import type { SavedTrack } from '@trayectoria/sims';
 
 import { ConfirmInline } from '../aula/MemberList';
 
-// F4-06 (#191, decisión 4): el grupo «Mis pistas» del selector de pista y el «Borrar» de la
-// elegida. Vive en su propio archivo para que `TrackSource.tsx` siga bajo las 300 líneas de
-// docs/STANDARDS.md §4. No sabe de dónde salen las pistas —la cuenta o el navegador—: recibe la
-// lista y los dos callbacks que la página resuelve en `useSavedTracks.ts`.
+// F4-06 (#191, decision 4): the «Mis pistas» group of the track picker and the «Borrar» of the
+// picked one. It lives in its own file so that `TrackSource.tsx` stays under the 300 lines of
+// docs/STANDARDS.md §4. It does not know where the tracks come from — the account or the
+// browser —: it takes the list and the two callbacks the page resolves in `useSavedTracks.ts`.
 
 const BUTTON =
   'border-border bg-bg-raised text-fg inline-flex h-11 items-center rounded-md border px-3 ' +
@@ -17,15 +17,15 @@ const BUTTON =
   'focus-visible:outline-2 focus-visible:outline-offset-2';
 
 export interface MyTracksProps {
-  /** Las pistas guardadas, de la más reciente a la más antigua. */
+  /** The saved tracks, most recently saved first. */
   readonly saved: readonly SavedTrack[];
-  /** El id de la pista guardada que la página está simulando, o `null` si es otra. */
+  /** Id of the saved track the page is simulating, or `null` when it is another one. */
   readonly selectedId: string | null;
-  /** «Borrar», ya confirmado en línea. */
+  /** «Borrar», already confirmed inline. */
   readonly onDelete: (id: string) => void;
 }
 
-/** «Borrar» y su confirmación en línea: nada se borra sin un segundo clic (docs/DESIGN.md §5). */
+/** «Borrar» and its inline confirmation: nothing is deleted without a second click (docs/DESIGN.md §5). */
 function DeleteAction({
   onDelete,
   t,
@@ -65,9 +65,9 @@ function DeleteAction({
 }
 
 /**
- * «Borrar» de la pista guardada que está elegida, junto al selector (decisión 4). No hay un
- * «Borrar» por fila: el selector es un `<select>` y la acción es sobre lo elegido, como en el
- * resto de la maqueta 04.
+ * «Borrar» for the saved track that is picked, beside the selector (decision 4). There is no
+ * «Borrar» per row: the picker is a `<select>` and the action is on what is picked, as in the
+ * rest of layout 04.
  */
 export function MyTracks({ saved, selectedId, onDelete }: MyTracksProps): JSX.Element | null {
   const t = useT();
@@ -83,7 +83,7 @@ export function MyTracks({ saved, selectedId, onDelete }: MyTracksProps): JSX.El
   );
 }
 
-/** Las opciones del grupo «Mis pistas» del selector; vacío cuando no hay ninguna guardada. */
+/** The options of the «Mis pistas» group of the picker; empty when none is saved yet. */
 export function MyTracksGroup({
   saved,
   t,
@@ -103,15 +103,15 @@ export function MyTracksGroup({
   );
 }
 
-/** Prefijo con el que una pista guardada se distingue de un preset en el mismo `<select>`. */
+/** Prefix that tells a saved track apart from a preset inside the same `<select>`. */
 const SAVED_PREFIX = 'saved:';
 
-/** El valor de la opción de la pista guardada `id`. */
+/** The option value of the saved track `id`. */
 export function savedOptionValue(id: string): string {
   return `${SAVED_PREFIX}${id}`;
 }
 
-/** El id de la pista guardada de `value`, o `null` cuando el valor no es una de ellas. */
+/** The saved track id of `value`, or `null` when the value is not one of them. */
 export function savedIdOf(value: string): string | null {
   return value.startsWith(SAVED_PREFIX) ? value.slice(SAVED_PREFIX.length) : null;
 }

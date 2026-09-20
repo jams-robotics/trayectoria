@@ -7,7 +7,7 @@ import { describe, expect, test, vi } from 'vitest';
 
 import { TrackEditor } from './TrackEditor';
 
-// F4-06 (#191, decisiones 3 y 6): «Guardar» of the editor. What is checked is the contract with
+// F4-06 (#191, decisions 3 and 6): «Guardar» of the editor. What is checked is the contract with
 // the page — no button without the prop, an empty name never saves, and the callback gets the
 // name and the track the editor has — and not where the page then writes it, which is the job of
 // the hook and the adapter.
@@ -21,7 +21,7 @@ describe('TrackEditor · Guardar (F4-06)', () => {
   test('shows no «Guardar» button without onSaveTrack', () => {
     render(<TrackEditor initialTrack={LINE_TRACK} />);
     expect(screen.queryByTestId('track-editor-save-track')).not.toBeInTheDocument();
-    // The file buttons keep their new names in both layouts (decisión 3).
+    // The file buttons keep their new names in both layouts (decision 3).
     expect(
       screen.getByRole('button', { name: t('sims.trackEditor.exportJson') }),
     ).toBeInTheDocument();

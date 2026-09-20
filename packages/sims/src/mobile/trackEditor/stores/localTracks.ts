@@ -3,7 +3,7 @@ import type { Track } from '@trayectoria/sim-core';
 
 import { fromJson } from '../io';
 
-// F4-06 (#191, decisión 2): the tracks saved in the browser, for a learner with no session. It is
+// F4-06 (#191, decision 2): the tracks saved in the browser, for a learner with no session. It is
 // the only file of the deliverable that touches `localStorage` (docs/STANDARDS.md §10), so neither
 // the editor nor the Supabase adapter mention it.
 //
@@ -103,7 +103,7 @@ function write(tracks: readonly StoredTrack[]): void {
 
 /**
  * Saves `track` under `name`, replacing in place the one that already had that name and keeping
- * its id. Same rule as the unique `(owner_id, name)` index of the account (decisión 3), so the
+ * its id. Same rule as the unique `(owner_id, name)` index of the account (decision 3), so the
  * learner sees the same behaviour with and without a session.
  */
 export function saveLocalTrack(name: string, track: Track): void {

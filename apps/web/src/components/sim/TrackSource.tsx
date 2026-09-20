@@ -44,13 +44,13 @@ export interface TrackSourceProps {
   readonly onEdit: () => void;
   /** «Nueva pista»: abre esa misma caja con el editor en blanco (#190, decisión 3). */
   readonly onNew: () => void;
-  /** Las pistas guardadas del grupo «Mis pistas», ya sean de la cuenta o del navegador (#191). */
+  /** The saved tracks of the «Mis pistas» group, from the account or from the browser (#191). */
   readonly saved: readonly SavedTrack[];
-  /** La pista guardada que la página está simulando, o `null` cuando es un preset o un JSON. */
+  /** The saved track the page is simulating, or `null` when it is a preset or a loaded JSON. */
   readonly savedId: string | null;
-  /** Elegir una pista guardada: la página la carga como pista actual (#191, decisión 4). */
+  /** Picking a saved track: the page loads it as the current one (#191, decision 4). */
   readonly onSaved: (id: string) => void;
-  /** «Borrar» la pista guardada elegida, ya confirmado en línea (#191, decisión 4). */
+  /** «Borrar» for the picked saved track, already confirmed inline (#191, decision 4). */
   readonly onDeleteSaved: (id: string) => void;
 }
 
@@ -59,7 +59,7 @@ function asPreset(value: string): TrackPreset | null {
   return PRESETS.find((preset) => preset === value) ?? null;
 }
 
-/** Encamina el valor elegido en el selector: una pista guardada (#191) o uno de los presets. */
+/** Routes the value picked in the selector: a saved track (#191) or one of the presets. */
 function pick(
   value: string,
   onPick: (preset: TrackPreset) => void,
@@ -74,7 +74,7 @@ function pick(
   if (next !== null) onPick(next);
 }
 
-/** El selector de pista: los cuatro presets de la spec y, tras ellos, «Mis pistas» (#191). */
+/** The track picker: the four presets of the spec and, after them, «Mis pistas» (#191). */
 function PresetSelect({
   preset,
   saved,
@@ -200,8 +200,8 @@ function useJsonLoad(
 }
 
 /**
- * Selector de pista —presets y «Mis pistas» (#191, decisión 4)—, los dos botones del editor y la
- * carga de un JSON.
+ * The track picker — presets and «Mis pistas» (#191, decision 4) —, the two editor buttons and
+ * loading a JSON file.
  */
 export function TrackSource({
   preset,

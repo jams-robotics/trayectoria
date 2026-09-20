@@ -116,9 +116,9 @@ function useSidePanels(
 }
 
 /**
- * El aviso en curso de la página: el de «Guardar y compartir» (copiado, enlace inválido, fallo al
- * guardar) o el de las pistas guardadas (#191). Solo hay un `Toast` a la vez, y el de las pistas
- * va primero: es el que responde a lo último que el estudiante hizo.
+ * The notice the page is showing: the one of «Guardar y compartir» (copied, invalid link, failed
+ * save) or the one of the saved tracks (#191). There is a single `Toast` at a time, and the one
+ * of the tracks goes first: it answers the last thing the learner did.
  */
 function Notices({
   configs,
@@ -162,7 +162,7 @@ interface SimulatorProps {
   readonly panels: EditorPanelStore;
   /** Se llama al volver del editor con el lienzo sin segmentos (#190, decisión 3). */
   readonly onEmptyTrack: () => void;
-  /** «Guardar» del editor: la pista va a la cuenta o al navegador (#191, decisión 3). */
+  /** «Guardar» of the editor: the track goes to the account or to the browser (#191, decision 3). */
   readonly onSaveTrack: SavedTracksApi['onSave'];
 }
 
@@ -234,9 +234,9 @@ export function MobileSimIsland(): JSX.Element {
   // #189 (decisión 2): el panel del editor viaja de la caja del visor a la columna derecha.
   const panels = useEditorPanelStore();
   const configs = useSimConfigs(page.robotId, page.applyConfig);
-  // #191 (decisiones 2 y 4): las pistas guardadas del grupo «Mis pistas». Elegir una la carga
-  // como pista actual por el mismo camino que un preset, y guardar desde el editor la deja
-  // seleccionada.
+  // #191 (decisions 2 and 4): the saved tracks of the «Mis pistas» group. Picking one loads it as
+  // the current track down the same path as a preset, and saving from the editor leaves it
+  // selected.
   const tracks = useSavedTracks(page.onTrack);
   const emptyTrack = useEmptyTrackNotice();
   const [live, setLive] = useState<ControllerChoice>(page.run);

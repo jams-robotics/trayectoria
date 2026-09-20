@@ -1,17 +1,17 @@
 /**
- * Las pistas guardadas en la cuenta (F4-06, #191, decisión 2): las filas de `public.tracks`.
- * Vive en `apps/web` porque solo la app puede importar `@trayectoria/db` (regla de dependencias
- * de `eslint.config.js`).
+ * The tracks saved in the account (F4-06, #191, decision 2): the rows of `public.tracks`. It
+ * lives in `apps/web` because only the app may import `@trayectoria/db` (dependency rule of
+ * `eslint.config.js`).
  *
- * RLS es el único control de acceso: cada sentencia corre con la sesión del propio estudiante y
- * las políticas de `supabase/migrations/0006_tracks.sql` la acotan a `owner_id = auth.uid()`. El
- * `owner_id` va además en el `eq` de cada consulta, así que una fila de otro no se toca ni por
- * error. No se usa la `service_role` ni se lee ninguna pista ajena: no hay pistas compartidas
- * (docs/ARCHITECTURE.md §5.2).
+ * RLS is the only access control: every statement runs with the session of the student itself and
+ * the policies of `supabase/migrations/0006_tracks.sql` scope it to `owner_id = auth.uid()`. The
+ * `owner_id` also goes in the `eq` of every query, so a row of someone else is not touched even
+ * by mistake. The `service_role` is never used and no track of another owner is ever read: there
+ * are no shared tracks (docs/ARCHITECTURE.md §5.2).
  *
- * La columna `track` guarda exactamente lo que el editor exporta a un archivo (`serializeTrack`,
- * con su versión de esquema), así que guardar en la cuenta y exportar producen lo mismo, y lo
- * leído se valida con el mismo parser que un archivo antes de llegar a la página.
+ * The `track` column stores exactly what the editor exports to a file (`serializeTrack`, schema
+ * version included), so saving to the account and exporting produce the same thing, and what is
+ * read back is validated with the same parser as a file before it reaches the page.
  */
 import { getDbClient } from '@trayectoria/db';
 import type { DbClient, Json } from '@trayectoria/db';
@@ -19,16 +19,16 @@ import { fromJson, serializeTrack } from '@trayectoria/sims';
 import type { SavedTrack, TrackJson } from '@trayectoria/sims';
 
 /**
- * La pista con geometría: el `TrackJson` sin la rama del nombre de preset. `apps/web` no puede
- * importar sim-core (docs/ARCHITECTURE.md §2), así que el tipo `Track` se nombra por lo que
- * `@trayectoria/sims` sí exporta, igual que en `TrackEditorBox.tsx`.
+ * The track with geometry: the `TrackJson` without the preset-name branch. `apps/web` cannot
+ * import sim-core (docs/ARCHITECTURE.md §2), so the `Track` type is named after what
+ * `@trayectoria/sims` does export, just as in `TrackEditorBox.tsx`.
  */
 type Track = Exclude<TrackJson, string>;
 
-/** Las columnas que la página necesita de cada fila. */
+/** The columns the page needs from each row. */
 const COLUMNS = 'id, name, track, updated_at';
 
-/** Una fila ya leída, antes de validar su geometría. */
+/** A row already read, before its geometry is validated. */
 interface TrackRow {
   readonly id: string;
   readonly name: string;
@@ -36,22 +36,22 @@ interface TrackRow {
   readonly updated_at: string;
 }
 
-/** Una fila como `SavedTrack`, o `null` si su `track` no es una pista que el editor abra. */
+/** A row as a `SavedTrack`, or `null` when its `track` is not one the editor could open. */
 function parseRow(row: TrackRow): SavedTrack | null {
   const parsed = fromJson(JSON.stringify(row.track));
   if (!parsed.ok) return null;
   return { id: row.id, name: row.name, track: parsed.value.track, updatedAt: row.updated_at };
 }
 
-/** Si un valor ya leído de `JSON.parse` encaja en `Json`; lo es todo salvo `undefined`. */
+/** Whether a value already read from `JSON.parse` fits `Json`; everything but `undefined` does. */
 function isJson(value: unknown): value is Json {
   return value !== undefined;
 }
 
 /**
- * El valor como JSON plano, que es lo que la columna `jsonb` guarda. El ida y vuelta por
- * `JSON.parse` es lo que convierte el texto de `serializeTrack` en datos, sin aserciones de tipo
- * (mismo patrón que `simConfigPersistence.ts`).
+ * The value as plain JSON, which is what the `jsonb` column stores. The round trip through
+ * `JSON.parse` is what turns the text of `serializeTrack` into data, with no type assertions
+ * (same pattern as `simConfigPersistence.ts`).
  */
 function jsonOf(track: Track): Json {
   const parsed: unknown = JSON.parse(serializeTrack(track));
@@ -59,8 +59,8 @@ function jsonOf(track: Track): Json {
 }
 
 /**
- * Las pistas guardadas del estudiante, de la más reciente a la más antigua. Un error de la
- * consulta se propaga: la página lo convierte en un aviso y sigue con la lista que tuviera.
+ * The saved tracks of the student, most recently saved first. An error of the query propagates:
+ * the page turns it into a notice and carries on with whatever list it had.
  */
 export async function listTracks(
   ownerId: string,
@@ -78,9 +78,9 @@ export async function listTracks(
 }
 
 /**
- * Guarda `track` con el nombre `name`. El índice único `(owner_id, name)` hace que el mismo
- * nombre actualice su fila en lugar de crear una segunda, así que es un `upsert` sobre esa
- * pareja de columnas y no un `insert` con un `select` previo.
+ * Saves `track` under the name `name`. The unique `(owner_id, name)` index makes the same name
+ * update its row instead of creating a second one, so this is an `upsert` on that pair of
+ * columns and not an `insert` after a `select`.
  */
 export async function saveTrack(
   ownerId: string,
@@ -97,7 +97,7 @@ export async function saveTrack(
   if (error !== null) throw new Error(error.message);
 }
 
-/** Borra la pista `id` del estudiante; una que no sea suya no la alcanza ni la política ni el `eq`. */
+/** Deletes the student's track `id`; one that is not theirs is reached by neither policy nor `eq`. */
 export async function deleteTrack(
   ownerId: string,
   id: string,

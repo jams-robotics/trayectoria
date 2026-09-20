@@ -77,7 +77,7 @@ function Readouts({ api, t }: { api: LineFollowerApi | null; t: Translate }): JS
   );
 }
 
-/** El origen de la pista, con lo que la página tiene elegido y sus pistas guardadas (#191). */
+/** Where the track comes from: what the page has picked and its saved tracks (#191). */
 function TrackPanel({ page, tracks }: { page: PageState; tracks: SavedTracksApi }): JSX.Element {
   return (
     <TrackSource
@@ -214,7 +214,7 @@ export interface SidePanelsProps {
   readonly instruments: InstrumentsStore;
   /** El panel numérico que el editor de pista publica mientras se edita (#189, decisión 2). */
   readonly panels: EditorPanelStore;
-  /** Las pistas guardadas del grupo «Mis pistas» del panel Pista (#191, decisión 4). */
+  /** The saved tracks of the «Mis pistas» group of the Pista panel (#191, decision 4). */
   readonly tracks: SavedTracksApi;
 }
 

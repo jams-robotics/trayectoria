@@ -180,12 +180,12 @@ export interface TrackEditorProps {
    */
   canvasHeight_px?: number;
   /**
-   * Guarda la pista con el nombre que el estudiante escriba, en la cuenta o en el navegador
-   * (F4-06, #191, decisión 3). Con ella la barra muestra «Guardar»; sin ella no hay botón, así
-   * que el playground y sus capturas `TrackEditor-*.png` se quedan como estaban.
+   * Saves the track under the name the learner types, in the account or in the browser (F4-06,
+   * #191, decision 3). With it the bar shows «Guardar»; without it there is no button, so the
+   * playground and its `TrackEditor-*.png` snapshots stay as they were.
    *
-   * La promesa es de la página, que es quien sabe dónde guarda y quien avisa con su toast; el
-   * editor solo la dispara y no espera su resultado.
+   * The promise belongs to the page, which is what knows where it saves and what reports with its
+   * toast; the editor only fires it and does not wait for its result.
    */
   onSaveTrack?: (name: string, track: Track) => Promise<void>;
 }
@@ -197,8 +197,8 @@ export interface TrackEditorProps {
  * comes from the pure model of F4-01a; this component only maps pixels to metres and renders.
  */
 /**
- * #189: con `renderPanel` el editor vive dentro de la caja del visor, donde cada píxel de
- * separación se lo quita al lienzo; sin ella, la separación de siempre (el playground).
+ * #189: with `renderPanel` the editor lives inside the viewer box, where every pixel of spacing is
+ * taken from the canvas; without it, the usual spacing (the playground).
  */
 function rootClass(renderPanel: ((panel: ReactNode) => ReactNode) | undefined): string {
   return `flex flex-col outline-none ${renderPanel === undefined ? 'gap-5' : 'gap-3'}`;

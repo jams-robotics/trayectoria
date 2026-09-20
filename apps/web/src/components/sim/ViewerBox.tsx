@@ -32,7 +32,7 @@ export function ViewerBox({
   panels: EditorPanelStore;
   /** Se llama al volver con el lienzo sin segmentos, para avisar de que la pista se conserva. */
   onEmptyTrack: () => void;
-  /** «Guardar» del editor: la pista va a la cuenta o al navegador (#191, decisión 3). */
+  /** «Guardar» of the editor: the track goes to the account or to the browser (#191, decision 3). */
   onSaveTrack: (name: string, track: Exclude<TrackJson, string>) => Promise<void>;
 }): JSX.Element {
   const { closeEditor } = page;

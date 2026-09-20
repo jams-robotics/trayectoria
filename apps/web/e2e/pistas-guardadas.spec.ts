@@ -6,13 +6,13 @@ import auth from '../../../packages/i18n/locales/es/auth.json' with { type: 'jso
 import { E2E_PASSWORD, signUp } from './helpers/supabase';
 import { openEditor, openMobileSim } from './sim-movil.helpers';
 
-// F4-06 (#191, decisión 6): las pistas guardadas de `/simuladores/movil`. Con sesión se guarda en
-// `public.tracks` y otro estudiante no la ve (RLS del propietario, docs/ARCHITECTURE.md §5.2);
-// sin sesión, en el store local del navegador. La vuelta completa es la del criterio del ticket:
-// guardar, recargar, elegirla en «Mis pistas» y borrarla.
+// F4-06 (#191, decision 6): the saved tracks of `/simuladores/movil`. With a session the track
+// goes to `public.tracks` and another student does not see it (owner RLS, docs/ARCHITECTURE.md
+// §5.2); without one, to the local store of the browser. The whole round trip is the acceptance
+// criterion of the ticket: save, reload, pick it under «Mis pistas» and delete it.
 //
-// Las cuentas se crean desde Node con la clave `anon` (`e2e/helpers/supabase.ts`); el inicio de
-// sesión va por la interfaz, que es lo que deja la sesión en el navegador.
+// The accounts are created from Node with the `anon` key (`e2e/helpers/supabase.ts`); signing in
+// goes through the interface, which is what puts the session in the browser.
 
 const TRACKS = sims.mobilePage.myTracks;
 const SAVE = sims.trackEditor.save;
@@ -21,14 +21,14 @@ function uniqueEmail(prefix: string): string {
   return `${prefix}+${Date.now()}-${test.info().workerIndex}@example.com`;
 }
 
-/** Un nombre de pista distinto por ejecución: el índice `(owner_id, name)` es único. */
+/** A different track name per run: the `(owner_id, name)` index is unique. */
 function uniqueTrackName(prefix: string): string {
   return `${prefix} ${String(Date.now())}-${String(test.info().workerIndex)}`;
 }
 
 /**
- * Astro quita el atributo `ssr` de una isla en cuanto React la hidrata; escribir antes lo
- * desharía la hidratación (los campos controlados arrancan vacíos).
+ * Astro removes the `ssr` attribute of an island once React has hydrated it; typing before that
+ * would be undone by hydration (controlled inputs start empty).
  */
 async function openHydrated(page: Page, pathname: string): Promise<void> {
   await page.goto(pathname);
@@ -37,7 +37,7 @@ async function openHydrated(page: Page, pathname: string): Promise<void> {
   );
 }
 
-/** Inicia sesión por la interfaz, que es lo que pone la sesión en el almacenamiento del navegador. */
+/** Signs in through the UI, which is what puts the session in the browser's storage. */
 async function signInOnPage(page: Page, email: string): Promise<void> {
   await openHydrated(page, '/auth/login');
   await page.getByLabel(auth.fields.email, { exact: true }).fill(email);
@@ -46,7 +46,7 @@ async function signInOnPage(page: Page, email: string): Promise<void> {
   await page.waitForURL('**/cuenta');
 }
 
-/** Abre el editor con la pista que se está simulando y la guarda con el nombre `name`. */
+/** Opens the editor on the track being simulated and saves it under `name`. */
 async function saveCurrentTrack(page: Page, name: string): Promise<void> {
   await openEditor(page, 'track-source-edit');
   await page.getByTestId('track-editor-save-track').click();
@@ -56,7 +56,7 @@ async function saveCurrentTrack(page: Page, name: string): Promise<void> {
   await page.getByTestId('track-editor-back').click();
 }
 
-/** El selector de pista, con el panel Pista abierto si la maqueta lo tiene plegado. */
+/** The track picker, opening the Pista panel first when the layout keeps it collapsed. */
 async function trackSelect(page: Page) {
   const select = page.getByTestId('track-source-select');
   if (!(await select.isVisible())) {
@@ -78,22 +78,22 @@ test.describe('Mis pistas (#191)', () => {
     await openMobileSim(page);
     await saveCurrentTrack(page, name);
 
-    // Recargar: la pista está en la cuenta, no en el estado de la página.
+    // Reload: the track lives in the account, not in the state of the page.
     await openMobileSim(page);
     const select = await trackSelect(page);
-    // Un `<optgroup>` dentro de un `<select>` cerrado no está «visible» para Playwright, así que
-    // se comprueba que esté en el DOM con su etiqueta y con la pista dentro.
+    // An `<optgroup>` inside a closed `<select>` is not "visible" to Playwright, so what is
+    // checked is that it is in the DOM with its label and with the track inside it.
     await expect(select.locator('optgroup', { hasText: name })).toHaveAttribute(
       'label',
       TRACKS.group,
     );
     await expect(select.getByRole('option', { name })).toBeAttached();
 
-    // Elegirla la carga como pista actual y la simulación sigue corriendo sobre ella.
+    // Picking it loads it as the current track and the simulation carries on over it.
     await select.selectOption({ label: name });
     await expect(page.getByTestId('line-follower-view')).toBeVisible();
 
-    // Otro estudiante no ve la pista: RLS la acota a su dueño.
+    // Another student does not see the track: RLS scopes it to its owner.
     const otherEmail = uniqueEmail('pistas-other');
     await signUp('student', 'Otro E2E', otherEmail);
     const otherContext = await browser.newContext();
@@ -104,7 +104,7 @@ test.describe('Mis pistas (#191)', () => {
     await expect(otherSelect.getByRole('option', { name })).toHaveCount(0);
     await otherContext.close();
 
-    // Borrarla pide confirmación y la quita del grupo.
+    // Deleting it asks for confirmation and takes it out of the group.
     await page.getByTestId('my-tracks-delete').click();
     await page.getByRole('button', { name: TRACKS.confirmYes, exact: true }).click();
     await expect(select.getByRole('option', { name })).toHaveCount(0);

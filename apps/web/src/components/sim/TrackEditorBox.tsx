@@ -135,8 +135,8 @@ export interface TrackEditorBoxProps {
    */
   readonly renderPanel: (panel: ReactNode) => ReactNode;
   /**
-   * «Guardar» del editor: guarda la pista con el nombre que el estudiante escriba, en la cuenta o
-   * en el navegador (#191, decisión 3). Sin ella el editor no muestra el botón.
+   * «Guardar» of the editor: saves the track under the name the learner types, in the account or
+   * in the browser (#191, decision 3). Without it the editor shows no button.
    */
   readonly onSaveTrack: (name: string, track: EditorTrack) => Promise<void>;
 }

@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// F4-06 (#191, decisión 6): la decisión de dónde van las pistas guardadas, con la sesión y el
-// adaptador mockeados. Sin sesión, el store local; con sesión, el adaptador de Supabase. Lo que
-// cada capa hace por dentro lo cubren sus propios tests (`localTracks.test.ts` y
-// `trackPersistence.test.ts`), y las políticas, `supabase/tests/tracks.sql`.
+// F4-06 (#191, decision 6): the decision of where the saved tracks go, with the session and the
+// adapter mocked. Without a session, the local store; with one, the Supabase adapter. What each
+// layer does inside is covered by its own tests (`localTracks.test.ts` and
+// `trackPersistence.test.ts`), and the policies, by `supabase/tests/tracks.sql`.
 //
-// Mismo patrón que `savedRobots.test.ts`: los módulos se mockean antes de importar el que se
-// prueba, porque este los carga con `import()`.
+// Same pattern as `savedRobots.test.ts`: the modules are mocked before importing the one under
+// test, because it loads them with `import()`.
 
 const ensureSessionReady = vi.fn();
 const listLocalTracks = vi.fn();
@@ -30,7 +30,7 @@ const TRACK: Track = {
 };
 const SAVED = { id: 't1', name: 'Óvalo', track: TRACK, updatedAt: '2026-09-20T11:00:00.000Z' };
 
-/** Deja la sesión leída con ese estudiante, o sin sesión cuando es `null`. */
+/** Leaves the session read as that student, or with no session when it is `null`. */
 function withSession(userId: string | null): void {
   ensureSessionReady.mockResolvedValue(userId === null ? null : { user: { id: userId } });
 }
