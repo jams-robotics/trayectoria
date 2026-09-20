@@ -405,7 +405,7 @@ Todos los widgets siguen `WIDGETS.md` (API, props, eventos, demo aislada, captur
 
 #### F4-01 · Editor de pista · sim · L
 - Depende de: F1-05, F2-02
-- Spec: herramientas recta y arco por clic y arrastre, snap a extremos, edición de radio, ancho de línea, deshacer/rehacer, guardar/cargar JSON, cargar preset, validación de continuidad (advertencia si hay huecos).
+- Spec: herramientas recta y arco por clic y arrastre, snap a extremos, edición de radio, ancho de línea, deshacer/rehacer, exportar/importar JSON, cargar preset, validación de continuidad (advertencia si hay huecos).
 - Aceptación: crear un óvalo desde cero y guardarlo; capturas de las 4 presets.
 - Estado: Done. Se ejecutó en dos partes: F4-01a (modelo puro de la pista, #125) y F4-01b (editor, #126).
 
@@ -432,6 +432,13 @@ Todos los widgets siguen `WIDGETS.md` (API, props, eventos, demo aislada, captur
 - Spec: guardar `{ robotId, trackJson, controller, params }` en `localStorage` y, con sesión, en `robots.spec.simConfigs[]`; enlace compartible que codifica pista y parámetros en la URL (comprimido) para que un docente comparta una configuración.
 - Aceptación: abrir el enlace reproduce la misma simulación (determinismo).
 - Estado: Done (#131).
+
+#### F4-06 · Pistas guardadas en la cuenta · sim · M (crítico: mergea humano; seguridad revisa)
+- Depende de: F4-01b, F4-02b, F3-04, y el cambio de alcance en docs (#191)
+- Entregables: `supabase/migrations/0006_tracks.sql` y `supabase/tests/tracks.sql` (pgTAP), `packages/db/src/types.ts` regenerado, el guardado del editor de pista y el grupo «Mis pistas» del selector de `/simuladores/movil`.
+- Spec: «Guardar» con sesión pide un nombre en línea y hace `insert`/`update` en la tabla `tracks` de `ARCHITECTURE.md` §5.1; sin sesión guarda en un store local `trayectoria.tracks`. Los botones de archivo pasan a «Exportar JSON» / «Importar JSON». El selector de pista suma un grupo «Mis pistas» (las de la cuenta y las locales) junto a los presets; elegir una la carga y borrarla pide confirmación. El enlace compartido de F4-05 sigue llevando la pista embebida: compartir no depende de la cuenta.
+- Aceptación: con sesión, guardar una pista, recargar la página y elegirla en «Mis pistas»; otro usuario no la ve (RLS del propietario, §5.2).
+- Fuera de alcance: compartir pistas entre usuarios o con el grupo; pistas públicas.
 
 ### Fase 5 — Simulador de brazo 3D
 
