@@ -45,14 +45,19 @@ export type { BatchOptions, BatchSchedule, BatchedSampling } from './workspace/s
 export { formatEntry, linkTransforms, matrixRows } from './matrices';
 export type { LinkTransform } from './matrices';
 export {
+  MISSING_MESH_KEY,
   UNSUPPORTED_MESH_KEY,
   catalogBaseUrl,
   catalogUrdfUrl,
   createLoader,
+  loadArm,
   loadMesh,
   loadUrdf,
+  meshLoaderForZip,
+  resolveZipMesh,
+  urdfPathOf,
 } from './loadUrdf';
-export type { LoadUrdfOptions, LoadedArm } from './loadUrdf';
+export type { ArmSource, LoadUrdfOptions, LoadedArm } from './loadUrdf';
 export {
   CONTINUOUS_LIMIT_RAD,
   actuatedJoints,

@@ -59,5 +59,20 @@
     "removeConfirm": "¿Quitar a {{name}}?",
     "removeYes": "Sí, quitar",
     "removeNo": "Cancelar"
+  },
+  "progress": {
+    "title": "Progreso por tema",
+    "empty": "Nadie se ha unido todavía. Comparte el código de invitación.",
+    "failed": "No se pudo cargar el progreso. Inténtalo de nuevo.",
+    "caption": "Progreso por tema y estudiante del grupo {{group}}",
+    "topic": "Tema",
+    "summary": "Completados",
+    "count": "{{done}}/{{total}}",
+    "barLabel": "Temas completados por {{name}}",
+    "cellTitle": "{{name}} · {{topic}}: {{status}}",
+    "cellScore": "Mejor puntuación {{score}}",
+    "scrollHint": "La tabla se desplaza en horizontal: usa las flechas del teclado o arrastra para ver al resto de estudiantes.",
+    "export": "Exportar CSV",
+    "exported": "CSV exportado"
   }
 }

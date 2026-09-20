@@ -85,6 +85,10 @@ test('sim-movil-editor looks as approved', async ({ page }) => {
   await page.evaluate(() => {
     window.scrollTo(0, 0);
   });
+  // Y el puntero se retira del área de los paneles: tras el desplazamiento se queda sobre el
+  // elemento que ocupe ahora ese punto, y su estado `hover` entraría en la captura (F4-05: con un
+  // panel más en la columna, ese punto cae sobre la pestaña «P» del selector).
+  await page.mouse.move(0, 0);
 
   await expect(page).toHaveScreenshot('sim-movil-editor.png', { timeout: ISLAND_TIMEOUT_MS });
 });
