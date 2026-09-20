@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 const getDbClient = vi.fn();
+const ensureSessionReady = vi.fn();
 
 vi.mock('@trayectoria/db', () => ({ getDbClient }));
+vi.mock('@trayectoria/auth', () => ({ ensureSessionReady }));
 
-const { MOBILE_KIND, listSavedRobots } = await import('./savedRobots');
+const { MOBILE_KIND, listSavedRobots, loadForCurrentSession } = await import('./savedRobots');
 const { referenceRobot, robotSpecToJson } = await import('@trayectoria/widgets');
 
 /** Cliente de Supabase justo para esta consulta: `select ... eq ... eq ... order`. */
@@ -33,6 +35,7 @@ function mockClient(data: unknown, error: unknown = null) {
 
 beforeEach(() => {
   getDbClient.mockReset();
+  ensureSessionReady.mockReset();
 });
 
 describe('listSavedRobots (F4-02b)', () => {
@@ -78,5 +81,32 @@ describe('listSavedRobots (F4-02b)', () => {
     await listSavedRobots('user-1');
 
     expect(getDbClient).toHaveBeenCalledTimes(1);
+  });
+});
+
+// `loadForCurrentSession` delega la espera de la sesión en `ensureSessionReady` (#184): aquí se
+// comprueba ese contrato, no la lectura del store, que ya cubre `packages/auth`.
+describe('loadForCurrentSession (#184)', () => {
+  test('espera a la sesión y pide los robots de ese dueño', async () => {
+    ensureSessionReady.mockResolvedValue({ user: { id: 'user-1' } });
+    const spec = referenceRobot();
+    const mock = mockClient([{ id: 'r-1', name: 'Ágil', spec: robotSpecToJson(spec) }]);
+    getDbClient.mockReturnValue(mock.client);
+
+    const robots = await loadForCurrentSession();
+
+    expect(ensureSessionReady).toHaveBeenCalledTimes(1);
+    expect(mock.eq).toEqual([
+      ['owner_id', 'user-1'],
+      ['kind', MOBILE_KIND],
+    ]);
+    expect(robots.map((robot) => robot.id)).toEqual(['r-1']);
+  });
+
+  test('sin sesión devuelve la lista vacía y no consulta la base', async () => {
+    ensureSessionReady.mockResolvedValue(null);
+
+    await expect(loadForCurrentSession()).resolves.toEqual([]);
+    expect(getDbClient).not.toHaveBeenCalled();
   });
 });

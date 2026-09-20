@@ -1,6 +1,7 @@
 export { AuthGate } from './AuthGate';
 export type { AuthGateCta, AuthGateProps } from './AuthGate';
 export { getAuthClient } from './client';
+export { ensureSessionReady } from './stores/ensureSessionReady';
 export type { AuthClient, AuthError, Session, User } from './client';
 export {
   $passwordRecovery,
