@@ -36,7 +36,8 @@ export type UploadErrorCode =
   | 'urdf.pathTraversal'
   | 'urdf.badExtension'
   | 'urdf.xacroUnsupported'
-  | 'urdf.multipleUrdf';
+  | 'urdf.multipleUrdf'
+  | 'urdf.noUrdf';
 
 export interface UploadOk {
   readonly ok: true;
@@ -76,19 +77,24 @@ function escapesRoot(path: string): boolean {
 
 /** The first rule the entries break, or `undefined` when they break none. */
 function checkEntries(entries: readonly ZipEntry[]): UploadErrorCode | undefined {
+  const seen = new Set<string>();
   for (const entry of entries) {
     if (escapesRoot(entry.path)) return 'urdf.pathTraversal';
     const extension = extensionOf(entry.path);
     if (extension === '.xacro') return 'urdf.xacroUnsupported';
     if (!ALLOWED_EXTENSIONS.includes(extension)) return 'urdf.badExtension';
+    if (seen.has(entry.path)) return 'urdf.multipleUrdf';
+    seen.add(entry.path);
   }
   return undefined;
 }
 
 /**
- * Checks one upload: the compressed size first, then every entry that carries content, and
- * finally that exactly one of them is the `.urdf`. Returns the path of that URDF, which is the
- * only entry the caller needs to decompress to parse the robot.
+ * Checks one upload: the compressed size first, then the uncompressed size of every entry (a zip
+ * bomb inflates well past its compressed bytes, security finding 1 of PR #174), then every entry
+ * that carries content — including duplicate paths, finding 2 — and finally that exactly one of
+ * them is the `.urdf`. Returns the path of that URDF, which is the only entry the caller needs to
+ * decompress to parse the robot.
  */
 export function validateUpload(
   entries: readonly ZipEntry[],
@@ -96,10 +102,13 @@ export function validateUpload(
 ): UploadResult {
   if (size_bytes > MAX_UPLOAD_SIZE_BYTES) return { ok: false, code: 'urdf.tooLarge' };
   const files = entries.filter((entry) => !isIgnored(entry));
+  const totalOriginalSize = files.reduce((sum, entry) => sum + entry.size_bytes, 0);
+  if (totalOriginalSize > MAX_UPLOAD_SIZE_BYTES) return { ok: false, code: 'urdf.tooLarge' };
   const broken = checkEntries(files);
   if (broken !== undefined) return { ok: false, code: broken };
   const urdfs = files.filter((entry) => extensionOf(entry.path) === '.urdf');
   const urdfPath = urdfs[0]?.path;
+  if (urdfs.length === 0) return { ok: false, code: 'urdf.noUrdf' };
   if (urdfs.length !== 1 || urdfPath === undefined) {
     return { ok: false, code: 'urdf.multipleUrdf' };
   }

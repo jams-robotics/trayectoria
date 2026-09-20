@@ -12,5 +12,6 @@
   "pathTraversal": "El zip contiene rutas fuera de su raíz.",
   "badExtension": "El zip contiene archivos de un tipo no permitido. Se aceptan .urdf, .stl, .dae, .obj, .png, .jpg y .jpeg.",
   "multipleUrdf": "El zip debe contener exactamente un archivo .urdf.",
+  "noUrdf": "El zip no contiene ningún archivo .urdf.",
   "xacroUnsupported": "Los archivos .xacro no se admiten; sube el URDF ya procesado."
 }

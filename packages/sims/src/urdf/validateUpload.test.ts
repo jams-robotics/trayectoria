@@ -98,11 +98,27 @@ describe('validateUpload (F3-04)', () => {
     expect(result).toEqual({ ok: true, urdfPath: 'robot.urdf' });
   });
 
-  it('rejects a zip with no URDF at all', () => {
+  it('rejects a zip with no URDF at all (golden: urdf.noUrdf, not multipleUrdf)', () => {
     expect(validateUpload(entries('meshes/base.stl'), 1024)).toEqual({
       ok: false,
-      code: 'urdf.multipleUrdf',
+      code: 'urdf.noUrdf',
     });
+  });
+
+  it('rejects two entries with the same path as duplicates', () => {
+    const duplicated: readonly ZipEntry[] = [
+      { path: 'robot.urdf', size_bytes: 100 },
+      { path: 'robot.urdf', size_bytes: 100 },
+    ];
+    expect(validateUpload(duplicated, 1024)).toEqual({ ok: false, code: 'urdf.multipleUrdf' });
+  });
+
+  it('rejects an oversized total of uncompressed entries even when the zip itself is small', () => {
+    const bombed: readonly ZipEntry[] = [
+      { path: 'robot.urdf', size_bytes: MAX_UPLOAD_SIZE_BYTES + 1 },
+    ];
+    const result = validateUpload(bombed, 1024);
+    expect(result).toEqual({ ok: false, code: 'urdf.tooLarge' });
   });
 
   it('checks the size before the entries, so an oversized zip is never inspected', () => {

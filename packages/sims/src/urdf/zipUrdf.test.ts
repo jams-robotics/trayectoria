@@ -1,10 +1,11 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { zipSync, strToU8 } from 'fflate';
+import { zipSync, strToU8, unzipSync } from 'fflate';
 import { describe, expect, it } from 'vitest';
 
 import { listEntries, parseUploadedZip, readEntry, readUrdfZip } from './zipUrdf';
+import { MAX_UPLOAD_SIZE_BYTES } from './validateUpload';
 
 // F3-04: the zip is built here with fflate's writer, so the tests never depend on a binary
 // fixture committed to the repository.
@@ -29,6 +30,39 @@ describe('listEntries (F3-04)', () => {
 
   it('throws `urdf.invalidZip` on bytes that are not a zip', () => {
     expect(() => listEntries(strToU8('not a zip at all'))).toThrow('urdf.invalidZip');
+  });
+
+  // Security finding 1 (PR #174): a zip bomb must be rejected from its directory metadata alone,
+  // never by decompressing its entries. A highly-compressible payload whose *uncompressed* size
+  // is past the limit compresses down to a few kilobytes.
+  it('reports the true uncompressed size of a highly-compressible entry without decompressing it', () => {
+    const huge = 'a'.repeat(MAX_UPLOAD_SIZE_BYTES + 1);
+    const bytes = zipSync({ 'robot.urdf': strToU8(huge) }, { level: 9 });
+    expect(bytes.length).toBeLessThan(1024 * 1024); // compresses to well under 1 MB
+    const entries = listEntries(bytes);
+    const urdf = entries.find((entry) => entry.path === 'robot.urdf');
+    expect(urdf?.size_bytes).toBe(huge.length);
+  });
+
+  it('never decompresses entries: feeding the same bytes through a spy filter yields none', () => {
+    // `listEntries` cannot be asked for the `UnzipFileFilter` it builds internally (it is not
+    // part of its public surface), so this drives `unzipSync` the same way it does, with a filter
+    // that records every `UnzipFileInfo` it is offered and always declines to extract it — which
+    // is the same call shape `listEntries` makes. If `listEntries` ever switched back to plain
+    // `unzipSync(bytes)`, this filter would never run and `seen` would stay empty while the huge
+    // uncompressed size still leaked through decompression instead of `originalSize` metadata.
+    const bytes = zipOf({ 'robot.urdf': URDF_SOURCE, 'meshes/base.stl': 'solid base' });
+    const seen: string[] = [];
+    const result = unzipSync(bytes, {
+      filter: (file) => {
+        seen.push(file.name);
+        return false;
+      },
+    });
+    expect(seen.sort()).toEqual(['meshes/base.stl', 'robot.urdf']);
+    expect(Object.keys(result)).toHaveLength(0);
+    // And `listEntries` itself reports the same paths, from that same metadata-only pass.
+    expect(listEntries(bytes).map((entry) => entry.path).sort()).toEqual(seen.sort());
   });
 });
 

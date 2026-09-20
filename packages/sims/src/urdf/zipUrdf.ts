@@ -13,15 +13,24 @@ import { validateUpload, type UploadErrorCode, type ZipEntry } from './validateU
 /** Raised when the bytes are not a readable zip, or the entry asked for is not in it. */
 const INVALID_ZIP = 'urdf.invalidZip';
 
-/** Entries of the zip with their uncompressed sizes; it never returns partial results. */
+/**
+ * Entries of the zip's directory, with their uncompressed sizes, read from its metadata without
+ * decompressing a single byte: the `filter` always returns `false`, so `unzipSync` only collects
+ * the `UnzipFileInfo` of each entry and extracts nothing (security finding 1, PR #174).
+ */
 export function listEntries(bytes: Uint8Array): readonly ZipEntry[] {
-  let files: Record<string, Uint8Array>;
+  const found: ZipEntry[] = [];
   try {
-    files = unzipSync(bytes);
+    unzipSync(bytes, {
+      filter: (file) => {
+        found.push({ path: file.name, size_bytes: file.originalSize });
+        return false;
+      },
+    });
   } catch {
     throw new Error(INVALID_ZIP);
   }
-  return Object.entries(files).map(([path, content]) => ({ path, size_bytes: content.length }));
+  return found;
 }
 
 /** The bytes of one entry, by its path inside the zip. */
