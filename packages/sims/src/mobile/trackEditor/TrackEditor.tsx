@@ -31,8 +31,11 @@ const SCENE_CENTER_M: [number, number] = [0.475, 0.05];
 /** Radius of the marker drawn at the snapped end of the stroke, in metres (spec of #126). */
 const SNAP_MARKER_RADIUS_M = 0.015;
 
-/** Diameter of the marker drawn at each end of the selected segment, in CSS pixels (#160). */
-const SELECTED_ENDPOINT_DIAMETER_PX = 6;
+/**
+ * Radius of the marker drawn at each end of the selected segment, in CSS pixels: 12 px across,
+ * so it reads as a ring over the 10 px stroke of the track (#160, precisión a la decisión 1).
+ */
+const SELECTED_ENDPOINT_RADIUS_PX = 6;
 
 /** Width `Scene2D` falls back to before it has measured its container, in CSS pixels. */
 const FALLBACK_CANVAS_WIDTH_PX = 480;
@@ -98,12 +101,14 @@ function SelectedOverlay({
   const segment = selected === null ? undefined : track.segments[selected];
   if (segment === undefined) return null;
   const [from, to] = segmentEndpoints(segment);
-  const radius_m = (SELECTED_ENDPOINT_DIAMETER_PX / 2) * metresPerPx;
+  const radius_m = SELECTED_ENDPOINT_RADIUS_PX * metresPerPx;
   return (
     <>
       <TrackLayer track={{ ...track, segments: [segment] }} color="color-primary" />
-      <Circle center_m={[from[0], from[1]]} radius_m={radius_m} color="color-primary" filled />
-      <Circle center_m={[to[0], to[1]]} radius_m={radius_m} color="color-primary" filled />
+      <Circle center_m={[from[0], from[1]]} radius_m={radius_m} color="color-bg-raised" filled />
+      <Circle center_m={[from[0], from[1]]} radius_m={radius_m} color="color-primary" />
+      <Circle center_m={[to[0], to[1]]} radius_m={radius_m} color="color-bg-raised" filled />
+      <Circle center_m={[to[0], to[1]]} radius_m={radius_m} color="color-primary" />
     </>
   );
 }
