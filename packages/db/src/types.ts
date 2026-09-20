@@ -253,6 +253,41 @@ export type Database = {
           },
         ]
       }
+      tracks: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+          track: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+          track: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          track?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracks_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       groups_visible: {
