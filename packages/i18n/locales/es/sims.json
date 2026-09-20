@@ -138,7 +138,6 @@
     "source": "Brazo",
     "sourceHelp": "Elige un brazo del catálogo.",
     "fallback": "No hay ningún brazo con ese identificador; se muestra «{{name}}».",
-    "soon": "Disponible más adelante",
     "view": "Controles de vista",
     "workspace": "Espacio de trabajo",
     "matrices": "Matrices",
