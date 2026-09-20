@@ -1,8 +1,8 @@
-import { signOut } from '@trayectoria/auth';
+import { signOut, useSession } from '@trayectoria/auth';
 import { useT } from '@trayectoria/i18n';
 import { useState, type JSX } from 'react';
 
-import { deleteAccount } from '../../lib/aula/membership';
+import { StorageCleanupError, deleteAccount } from '../../lib/account/deleteAccount';
 import { GHOST_BUTTON } from '../aula/MemberList';
 import { INPUT_CLASS, PRIMARY_BUTTON, SECONDARY_BUTTON } from './fields';
 
@@ -91,9 +91,10 @@ interface DeleteState extends ConfirmFormProps {
   readonly onStart: () => void;
 }
 
-/** Runs the deletion and turns its outcome into the section's status (F3-03). */
+/** Runs the deletion and turns its outcome into the section's status (F3-03, #178). */
 function useDeleteAccount(): DeleteState {
   const t = useT();
+  const { session } = useSession();
   const [open, setOpen] = useState(false);
   const [typed, setTyped] = useState('');
   const [error, setError] = useState('');
@@ -103,11 +104,17 @@ function useDeleteAccount(): DeleteState {
     setPending(true);
     setError('');
     try {
-      await deleteAccount();
+      await deleteAccount(session?.user.id ?? '');
       await signOut();
       window.location.assign(DONE_URL);
-    } catch {
-      setError(t('auth.deleteAccount.failed'));
+    } catch (cause) {
+      // The files are still there and the account was not touched: a different message, because
+      // retrying is what the learner should do and nothing has been lost (#178).
+      setError(
+        cause instanceof StorageCleanupError
+          ? t('auth.deleteAccount.storageFailed')
+          : t('auth.deleteAccount.failed'),
+      );
       setPending(false);
     }
   }
@@ -147,8 +154,9 @@ function StartButton({ onStart }: Pick<DeleteState, 'onStart'>): JSX.Element {
 
 /**
  * "Eliminar cuenta" at the end of `/cuenta` (F3-03): a danger ghost button that opens a field
- * where the student has to type `ELIMINAR` exactly. It calls `delete_account` (migration 0005),
- * signs out and lands on the home page with the notice; the text above lists what is deleted.
+ * where the student has to type `ELIMINAR` exactly. It empties `urdf/{uid}/` and then calls
+ * `delete_account` (migration 0005), signs out and lands on the home page with the notice; the
+ * text above lists what is deleted.
  */
 export function DeleteAccount(): JSX.Element {
   const t = useT();
