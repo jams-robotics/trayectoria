@@ -11,13 +11,17 @@ import {
   type Group,
   type Member,
 } from '../../lib/aula/groups';
+import type { MatrixTopic } from '../../lib/aula/progressMatrix';
 import { INPUT_CLASS, SECONDARY_BUTTON } from '../auth/fields';
 import { InviteCode } from './InviteCode';
 import { ConfirmInline, GHOST_BUTTON, MemberList } from './MemberList';
+import { ProgressTable } from './ProgressTable';
 
 export interface GroupDetailProps {
   readonly ownerId: string;
   readonly group: Group;
+  /** Topics of the route, in the order of `ruta.json`, for the progress table (F3-02b). */
+  readonly topics: readonly MatrixTopic[];
   /** Re-reads the groups after a rename or a new code, so the list stays in step. */
   readonly onChanged: () => Promise<void>;
   /** Called after the group is deleted; the island goes back to the list. */
@@ -161,47 +165,61 @@ function useGroupDetail(groupId: string): DetailState {
   return { members, error, status, refreshMembers, run };
 }
 
-/** Detail of one group: editable name, invite code and members (F3-02a). */
-export function GroupDetail({
-  ownerId,
-  group,
-  onChanged,
-  onDeleted,
-}: GroupDetailProps): JSX.Element {
-  const t = useT();
+interface Actions {
+  readonly rename: (name: string) => void;
+  readonly drop: () => void;
+  readonly regenerate: () => Promise<void>;
+  readonly remove: (userId: string) => Promise<void>;
+}
+
+/** The four writes of the detail, each reported through the live region of `run`. */
+function groupActions(
+  props: GroupDetailProps,
+  state: DetailState,
+  renamedMessage: string,
+): Actions {
+  const { ownerId, group, onChanged, onDeleted } = props;
+  const { refreshMembers, run } = state;
   const groupId = group.id;
-  const { members, error, status, refreshMembers, run } = useGroupDetail(groupId);
+  return {
+    rename: (name) =>
+      void run(async () => {
+        await renameGroup(ownerId, groupId, name);
+        await onChanged();
+      }, renamedMessage),
+    drop: () =>
+      void run(async () => {
+        await deleteGroup(ownerId, groupId);
+        onDeleted();
+      }, ''),
+    regenerate: () =>
+      run(async () => {
+        await regenerateInviteCode(ownerId, groupId);
+        await onChanged();
+      }, ''),
+    remove: (userId) =>
+      run(async () => {
+        await removeMember(groupId, userId);
+        await refreshMembers();
+        await onChanged();
+      }, ''),
+  };
+}
 
-  const rename = (name: string): void =>
-    void run(async () => {
-      await renameGroup(ownerId, groupId, name);
-      await onChanged();
-    }, t('aula.detail.renamed'));
-
-  const drop = (): void =>
-    void run(async () => {
-      await deleteGroup(ownerId, groupId);
-      onDeleted();
-    }, '');
-
-  const regenerate = (): Promise<void> =>
-    run(async () => {
-      await regenerateInviteCode(ownerId, groupId);
-      await onChanged();
-    }, '');
-
-  const remove = (userId: string): Promise<void> =>
-    run(async () => {
-      await removeMember(groupId, userId);
-      await refreshMembers();
-      await onChanged();
-    }, '');
+/** Detail of one group: editable name, invite code, members and progress (F3-02a, F3-02b). */
+export function GroupDetail(props: GroupDetailProps): JSX.Element {
+  const t = useT();
+  const { group, topics } = props;
+  const state = useGroupDetail(group.id);
+  const { members, error, status } = state;
+  const { rename, drop, regenerate, remove } = groupActions(props, state, t('aula.detail.renamed'));
 
   return (
     <div className="flex flex-col gap-5">
       <NameForm initialName={group.name} onRename={rename} onDelete={drop} />
       <InviteCode code={group.inviteCode} onRegenerate={regenerate} />
       <MemberList members={members} onRemove={remove} />
+      <ProgressTable groupName={group.name} members={members} topics={topics} />
       <StatusLine error={error} status={status} />
     </div>
   );
