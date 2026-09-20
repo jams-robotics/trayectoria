@@ -10,8 +10,11 @@ import type { Endpoint } from './model';
 const MAX_DECIMALS = 6;
 
 // docs/DESIGN.md §5 (Campo numérico) and §8: mono, tabular numbers, 40 px tall, visible focus.
+// `w-12` y no `w-24`: la escala de espaciado solo expone los tokens D-01 (global.css vacía las
+// escalas por defecto), así que `w-24` nunca se generaba y el campo se estiraba hasta aplastar su
+// etiqueta en la columna de 280 px. Se veía solo desde que Tailwind escanea `sims` (#167).
 const FIELD =
-  'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus h-10 w-24 border px-2 text-right font-mono text-sm tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2';
+  'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus h-10 w-12 border px-2 text-right font-mono text-sm tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2';
 const ROW = 'text-fg-muted flex items-center justify-between gap-3 text-sm';
 const SEGMENT_BUTTON =
   'border-border text-fg-muted focus-visible:outline-focus min-h-11 w-full cursor-pointer rounded-sm border px-3 text-left font-mono text-xs focus-visible:outline-2 focus-visible:outline-offset-2';

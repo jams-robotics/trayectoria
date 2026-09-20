@@ -9,8 +9,11 @@ const BAR =
   'border-border bg-bg-raised rounded-md pointer-events-auto flex items-center gap-2 border p-2 shadow-md';
 const BUTTON =
   'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus min-h-11 cursor-pointer border px-3 text-sm font-semibold hover:border-fg-muted focus-visible:outline-2 focus-visible:outline-offset-2';
+// `w-12` y no un ancho mayor porque la escala de espaciado solo expone los tokens D-01 (global.css
+// vacía las escalas por defecto): una clase fuera de esa escala no se genera y el campo quedaría
+// sin ancho. Basta para un radio en metros con dos o tres decimales.
 const FIELD =
-  'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus h-11 w-20 border px-2 text-right font-mono text-sm tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2';
+  'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus h-11 w-12 border px-2 text-right font-mono text-sm tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2';
 
 /**
  * The compact radius field of the bar. It shares `useDraft` with the numeric panel, so it holds
