@@ -84,9 +84,18 @@ export function Instruments({ buffers, show, mobile = false, pid = false }: Inst
   const height = mobile ? MOBILE_PLOT_HEIGHT_PX : PLOT_HEIGHT_PX;
   const drawn = PLOTS.filter(({ id }) => show.includes(id) && (id !== 'pid' || pid));
   return (
-    <div className="flex flex-col gap-3" data-testid="line-follower-plots">
+    // uPlot mide su contenedor y le fija al lienzo un ancho en píxeles que después no vuelve a
+    // encoger. Puesto en una columna elástica eso se realimenta —la gráfica empuja, la columna
+    // crece, la gráfica vuelve a medir— y la maqueta no se asienta nunca, lo que además hace que
+    // una captura visual jamás llegue a dos fotogramas iguales. El `width: 0` del contenedor rompe
+    // el bucle: la gráfica nunca aporta ancho mínimo, así que mide el que la columna ya tenía.
+    <div className="flex w-full min-w-0 flex-col gap-3" data-testid="line-follower-plots">
       {drawn.map(({ id, buffer, series }) => (
-        <div key={id} data-testid={`plot-${id}`}>
+        <div
+          key={id}
+          className="w-0 min-w-full overflow-hidden"
+          data-testid={`plot-${id}`}
+        >
           <Plot
             x={{ label: t('sims.instruments.time'), unit: 's' }}
             series={series(t)}

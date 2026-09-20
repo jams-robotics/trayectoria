@@ -43,6 +43,19 @@ export interface LapCardProps {
   readonly timer: LapTimer;
 }
 
+/** Las cifras sin formatear que la tarjeta publica para que un e2e compruebe la identidad. */
+function dataOf(timer: LapTimer): Record<string, string> {
+  const last = timer.laps.at(-1);
+  if (last === undefined) return { 'data-laps': '0' };
+  return {
+    'data-laps': String(timer.laps.length),
+    'data-lap-time-s': String(last.lapTime_s),
+    'data-avg-speed-mps': String(last.avgSpeed_mps),
+    'data-distance-m': String(last.distance_m),
+    'data-track-length-m': String(timer.trackLength_m),
+  };
+}
+
 /**
  * La tarjeta de métrica del visor (docs/DESIGN.md §6: abajo-derecha, `bg-raised` y `shadow-sm`):
  * el tiempo de la última vuelta, el mejor tiempo, la velocidad media y la distancia que el
@@ -58,6 +71,9 @@ export function LapCard({ timer }: LapCardProps): JSX.Element {
     <div
       className="border-border bg-bg-raised pointer-events-none absolute right-3 bottom-3 rounded-lg border p-3 shadow-sm"
       data-testid="lap-card"
+      // Las cifras sin redondear, para que el e2e compruebe `lapTime · avgSpeed = trackLength`
+      // con la tolerancia de 1e-9 del criterio en lugar de con los dos decimales que se ven.
+      {...dataOf(timer)}
     >
       <dl className="text-fg grid grid-cols-[auto_auto] gap-x-3 gap-y-1 text-xs">
         {rowsOf(timer, t).map(({ key, label, value }) => (

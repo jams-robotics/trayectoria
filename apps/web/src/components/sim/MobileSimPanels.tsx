@@ -31,40 +31,44 @@ const LazySaveConfigPanel = lazy(async () => {
   return { default: module.SaveConfigPanel };
 });
 
-/** Un panel de la página: en móvil va en un acordeón del grupo, en escritorio en una tarjeta. */
-export function Panel({
-  id,
-  title,
-  summary,
-  mobile,
-  openId,
-  setOpenId,
-  children,
-}: {
+/** La versión de móvil de un panel: un acordeón del grupo, con solo uno abierto a la vez. */
+function AccordionPanel(props: PanelProps): JSX.Element {
+  const { id, title, summary, openId, setOpenId, children } = props;
+  return (
+    <SimAccordion
+      title={title}
+      {...(summary === undefined ? {} : { summary })}
+      open={openId === id}
+      onToggle={(open) => {
+        setOpenId(open ? id : null);
+      }}
+    >
+      {children}
+    </SimAccordion>
+  );
+}
+
+interface PanelProps {
   id: Exclude<OpenPanelId, null>;
   title: string;
   summary?: string;
-  mobile: boolean;
+  mobile?: boolean;
   openId: OpenPanelId;
   setOpenId: (id: OpenPanelId) => void;
   children: ReactNode;
-}): JSX.Element {
-  if (mobile) {
-    return (
-      <SimAccordion
-        title={title}
-        {...(summary === undefined ? {} : { summary })}
-        open={openId === id}
-        onToggle={(open) => {
-          setOpenId(open ? id : null);
-        }}
-      >
-        {children}
-      </SimAccordion>
-    );
-  }
+}
+
+/** Un panel de la página: en móvil va en un acordeón del grupo, en escritorio en una tarjeta. */
+export function Panel(props: PanelProps): JSX.Element {
+  const { id, title, children } = props;
+  if (props.mobile === true) return <AccordionPanel {...props} />;
   return (
-    <section className="border-border bg-bg-raised rounded-lg border p-4" data-testid={`panel-${id}`}>
+    // `overflow-hidden`: las gráficas de «Gráficas» fijan al lienzo un ancho en píxeles que no
+    // vuelve a encoger, y sin recortar aquí la tarjeta crecería con él (F4-03, #129).
+    <section
+      className="border-border bg-bg-raised min-w-0 overflow-hidden rounded-lg border p-4"
+      data-testid={`panel-${id}`}
+    >
       <h2 className="text-fg mb-3 font-semibold">{title}</h2>
       {children}
     </section>
@@ -249,7 +253,12 @@ export function SidePanels(props: SidePanelsProps): JSX.Element {
   const shared = { mobile, openId, setOpenId };
   useReportedChoice(liveChoice(controller), page.run.seed, props.onChoice);
   return (
-    <div className="flex flex-col gap-4">
+    // Ancho fijo en escritorio: la columna vive en la fila flex del widget y las gráficas de
+    // «Gráficas» fijan su ancho en píxeles al medir su contenedor (uPlot). Sin un ancho fijo, la
+    // columna y las gráficas se persiguen —la gráfica mide, crece, la columna crece, la gráfica
+    // vuelve a medir— y la maqueta nunca se asienta. `lg:w-80` es el mismo ancho que el widget
+    // usa cuando lleva su propia columna (docs/DESIGN.md §9: panel lateral de 340-360 px).
+    <div className="flex min-w-0 flex-col gap-4 lg:w-80 lg:shrink-0">
       <Panel id="controller" title={t('sims.mobilePage.controller')} {...shared}>
         {controller}
       </Panel>

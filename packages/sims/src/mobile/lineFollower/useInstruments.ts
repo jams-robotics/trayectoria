@@ -112,17 +112,19 @@ export function useInstruments({ api, track, params, pid }: UseInstrumentsOption
   const [timer, setTimer] = useState<LapTimer>(() => createLapTimer(length_m));
   const [lostAt, setLostAt] = useState<Pose | undefined>(undefined);
   const memory = useRef<PidMemory>({ integral: 0, ePrev: 0, hasPrev: false });
-  const last = useRef<{ t_s: number; laps: number; lost: boolean }>({
-    t_s: -1,
-    laps: 0,
-    lost: false,
-  });
+  const last = useRef({ t_s: -1, laps: 0, lost: false });
+  // Lo que cambia en cada render y el efecto necesita leer sin volver a suscribirse: las ganancias
+  // vigentes (#161), el driver que pausa y la longitud de la pista en curso.
   const live = useRef({ pid: pidParamsOf(params), driver: api.driver, length_m });
   live.current = { pid: pid ? pidParamsOf(params) : null, driver: api.driver, length_m };
 
   const { state } = api;
   useEffect(() => {
     const previous = last.current;
+    // Un render que no ha avanzado el modelo no aporta muestra: `useSimulationDriver` entrega un
+    // objeto nuevo en cada render, y empujar en todos dejaría el anillo creciendo con la pausa
+    // puesta — y con él la gráfica redibujándose sin parar.
+    if (state.robot.t_s === previous.t_s) return;
     // Un reinicio, una pista nueva o una simulación reconstruida traen el reloj hacia atrás: la
     // instrumentación empieza de cero con ellos, igual que la traza del visor.
     const restarted = state.robot.t_s < previous.t_s;
@@ -136,18 +138,16 @@ export function useInstruments({ api, track, params, pid }: UseInstrumentsOption
     // arrancar con el punto de salida y no en blanco.
     const dt_s = restarted ? 0 : Math.max(state.robot.t_s - previous.t_s, 0);
     sample(buffers, state, live.current.pid, memory.current, dt_s);
-    if (restarted) {
-      last.current = { t_s: state.robot.t_s, laps: state.laps, lost: state.lineLost };
-      return;
-    }
-    if (state.laps > previous.laps) {
-      setTimer((current) => recordLap(current, state.robot.t_s, state.distance_m));
-    }
-    // El flanco de subida de `lineLost` pausa la carrera en el fotograma siguiente y deja el
-    // marcador donde se perdió; seguir perdido no la vuelve a pausar (decisión 5).
-    if (state.lineLost && !previous.lost && state.lostAt !== undefined) {
-      setLostAt(state.lostAt);
-      live.current.driver.pause();
+    if (!restarted) {
+      if (state.laps > previous.laps) {
+        setTimer((current) => recordLap(current, state.robot.t_s, state.distance_m));
+      }
+      // El flanco de subida de `lineLost` pausa la carrera y deja el marcador donde se perdió;
+      // seguir perdido no la vuelve a pausar (decisión 5).
+      if (state.lineLost && !previous.lost && state.lostAt !== undefined) {
+        setLostAt(state.lostAt);
+        live.current.driver.pause();
+      }
     }
     last.current = { t_s: state.robot.t_s, laps: state.laps, lost: state.lineLost };
   }, [state, buffers]);
