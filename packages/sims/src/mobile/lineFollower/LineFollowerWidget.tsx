@@ -129,6 +129,12 @@ export interface LineFollowerWidgetProps {
    * (F4-02b, docs/DESIGN.md §9.7). Without it the controls stay where F4-02a put them.
    */
   hideControls?: boolean;
+  /**
+   * Semilla del generador de ruido (F4-05, #131, decisión 3). Sin ella la carrera usa la de
+   * siempre; es la que viaja en el enlace compartido, y cambiarla reconstruye la simulación
+   * pausada en `t = 0`, igual que cambiar de pista o de robot.
+   */
+  seed?: number;
 }
 
 /**
@@ -201,7 +207,7 @@ function useRun(
   drive: ManualDrive;
   manual: boolean;
 } {
-  const { track, controller, initialParams, robot, noiseSigma, startPose, onApi } = props;
+  const { track, controller, initialParams, robot, noiseSigma, startPose, seed, onApi } = props;
   // «Mi robot» is the default, so a saved change reaches the simulator with no reload; an
   // explicit `robot` still wins, which is what the stories use.
   const myRobot = useMyRobot();
@@ -222,6 +228,7 @@ function useRun(
     ...(noiseSigma === undefined ? {} : { noiseSigma }),
     ...(startPose === undefined ? {} : { startPose }),
     ...(manual ? { command: drive.command } : {}),
+    ...(seed === undefined ? {} : { seed }),
   });
   playRef.current = togglePlayOf(api);
   useApiReport(api, onApi);

@@ -203,5 +203,23 @@
     "computing": "Calculando el espacio de trabajo: {{percent}} %.",
     "empty": "Sin calcular. Pulsa Calcular para muestrear las posiciones alcanzables.",
     "ready": "Nube de {{count}} posiciones alcanzables, coloreadas por distancia a la base."
+  },
+  "simConfig": {
+    "title": "Guardar y compartir",
+    "name": "Nombre de la configuración",
+    "save": "Guardar",
+    "load": "Cargar",
+    "delete": "Borrar",
+    "confirmDelete": "¿Borrar la configuración?",
+    "confirmYes": "Sí, borrar",
+    "confirmNo": "Cancelar",
+    "empty": "Todavía no has guardado ninguna configuración.",
+    "link": "Enlace para compartir",
+    "linkName": "Configuración compartida",
+    "copy": "Copiar enlace",
+    "copied": "Copiado",
+    "copyError": "No se pudo copiar el enlace; está a la vista para copiarlo a mano.",
+    "invalidLink": "El enlace no es una configuración válida; se abre con los valores por defecto.",
+    "saveError": "No se pudo guardar la configuración en el robot."
   }
 }

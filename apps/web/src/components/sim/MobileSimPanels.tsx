@@ -1,6 +1,7 @@
+import { isValidElement, lazy, Suspense, useEffect } from 'react';
 import type { JSX, ReactNode } from 'react';
 import type { Translate } from '@trayectoria/i18n';
-import type { LineFollowerApi } from '@trayectoria/sims';
+import type { ControllerPanelProps, LineFollowerApi, SimConfig } from '@trayectoria/sims';
 
 import { useApi } from './apiStore';
 import type { ApiStore } from './apiStore';
@@ -8,7 +9,8 @@ import { BottomBar } from './BottomBar';
 import { RobotSource } from './RobotSource';
 import { SimAccordion } from './SimAccordion';
 import { TrackSource } from './TrackSource';
-import type { PageState } from './useMobileSimState';
+import type { ControllerChoice, PageState } from './useMobileSimState';
+import type { SimConfigsApi } from './useSimConfigs';
 
 // F4-02b (#128): los paneles de `/simuladores/movil` (Robot, Pista, Lecturas y la columna
 // derecha que los agrupa), separados de `MobileSimIsland.tsx` para mantener cada archivo bajo
@@ -18,7 +20,14 @@ import type { PageState } from './useMobileSimState';
 const CLOCK_DECIMALS = 2;
 
 /** Qué acordeón está abierto en móvil; solo uno a la vez (docs/DESIGN.md §9.4). */
-export type OpenPanelId = 'robot' | 'track' | 'controller' | 'readouts' | null;
+export type OpenPanelId = 'robot' | 'track' | 'controller' | 'readouts' | 'share' | null;
+
+// F4-05 (#131, decisión 6): «Guardar y compartir» es un panel más de la columna. Se carga con
+// `import()` como el resto de `@trayectoria/sims`, así que no entra en el JS inicial.
+const LazySaveConfigPanel = lazy(async () => {
+  const module = await import('@trayectoria/sims');
+  return { default: module.SaveConfigPanel };
+});
 
 /** Un panel de la página: en móvil va en un acordeón del grupo, en escritorio en una tarjeta. */
 export function Panel({
@@ -147,29 +156,94 @@ function ReadoutsPanel({
 }
 
 /**
+ * «Guardar y compartir» (F4-05): el nombre, la lista de guardadas y el enlace. La página decide
+ * qué lista se muestra y dónde se guarda; aquí solo se monta el panel de `@trayectoria/sims`.
+ */
+function SharePanel({
+  configs,
+  current,
+  page,
+  t,
+}: {
+  configs: SimConfigsApi;
+  current: Omit<SimConfig, 'id' | 'name'>;
+  page: PageState;
+  t: Translate;
+}): JSX.Element {
+  return (
+    <Suspense fallback={<p className="text-fg-muted text-sm">{t('sims.mobilePage.loading')}</p>}>
+      <LazySaveConfigPanel
+        current={current}
+        saved={configs.saved}
+        onSave={configs.onSave}
+        onLoad={page.applyConfig}
+        onDelete={configs.onDelete}
+        onCopied={configs.onCopied}
+      />
+    </Suspense>
+  );
+}
+
+/**
+ * El controlador y las ganancias que el panel del widget está mostrando ahora mismo. El widget
+ * entrega ese panel por `renderPanel`, así que sus props son el estado en vivo de
+ * `useControllerChoice`: leerlas de ahí evita duplicar el selector en la página y evita añadirle
+ * api pública nueva al widget (F4-05, #131, decisión 6). Lo que no venga del panel se queda con lo
+ * que la página tenía elegido.
+ *
+ * «Manual» no es un valor con el que la página pueda arrancar el widget (ver `PageController` en
+ * `useMobileSimState.ts`), así que guardar en ese modo guarda el controlador con el que abrió.
+ */
+function liveChoice(panel: ReactNode): Omit<ControllerChoice, 'seed'> | null {
+  if (!isValidElement<Partial<ControllerPanelProps>>(panel)) return null;
+  const { controller, params } = panel.props;
+  if (controller === undefined || controller === 'manual') return null;
+  return { controller, params: params ?? {} };
+}
+
+/**
+ * Publica hacia la página el controlador y las ganancias que el panel del widget muestra ahora
+ * mismo, para que «Guardar y compartir» guarde lo que de verdad está corriendo (F4-05).
+ */
+function useReportedChoice(
+  choice: Omit<ControllerChoice, 'seed'> | null,
+  seed: number,
+  onChoice: (choice: ControllerChoice) => void,
+): void {
+  const controller = choice?.controller;
+  const params = choice?.params;
+  useEffect(() => {
+    if (controller === undefined || params === undefined) return;
+    onChoice({ controller, params, seed });
+  }, [controller, params, seed, onChoice]);
+}
+
+/**
  * La columna derecha de la maqueta 04: el panel del controlador que entrega el widget y, debajo,
  * Robot, Pista y Lecturas. Va dentro del `renderPanel` del widget porque es ahí donde su propia
  * fila coloca la columna derecha, junto al visor; así el visor se queda con los 2/3 de ancho de
  * la maqueta en lugar de repartirse la celda con el panel.
  */
-export function SidePanels({
-  page,
-  mobile,
-  openId,
-  setOpenId,
-  t,
-  controller,
-  store,
-}: {
-  page: PageState;
-  mobile: boolean;
-  openId: OpenPanelId;
-  setOpenId: (id: OpenPanelId) => void;
-  t: Translate;
-  controller: ReactNode;
-  store: ApiStore;
-}): JSX.Element {
+export interface SidePanelsProps {
+  readonly page: PageState;
+  readonly mobile: boolean;
+  readonly openId: OpenPanelId;
+  readonly setOpenId: (id: OpenPanelId) => void;
+  readonly t: Translate;
+  readonly controller: ReactNode;
+  readonly store: ApiStore;
+  /** Las configuraciones guardadas y las acciones del panel «Guardar y compartir» (F4-05). */
+  readonly configs: SimConfigsApi;
+  /** La configuración en curso que ese panel guarda y comparte (F4-05). */
+  readonly current: Omit<SimConfig, 'id' | 'name'>;
+  /** Publica hacia la isla el controlador y las ganancias que el panel muestra (F4-05). */
+  readonly onChoice: (choice: ControllerChoice) => void;
+}
+
+export function SidePanels(props: SidePanelsProps): JSX.Element {
+  const { page, mobile, openId, setOpenId, t, controller, store, configs, current } = props;
   const shared = { mobile, openId, setOpenId };
+  useReportedChoice(liveChoice(controller), page.run.seed, props.onChoice);
   return (
     <div className="flex flex-col gap-4">
       <Panel id="controller" title={t('sims.mobilePage.controller')} {...shared}>
@@ -182,6 +256,9 @@ export function SidePanels({
         <TrackPanel page={page} />
       </Panel>
       <ReadoutsPanel store={store} t={t} {...shared} />
+      <Panel id="share" title={t('sims.simConfig.title')} {...shared}>
+        <SharePanel configs={configs} current={current} page={page} t={t} />
+      </Panel>
     </div>
   );
 }

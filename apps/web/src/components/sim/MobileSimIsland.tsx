@@ -1,15 +1,19 @@
 import { Suspense, lazy, useCallback, useRef, useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
-import type { LineFollowerApi } from '@trayectoria/sims';
+import { Toast } from '@trayectoria/widgets';
+import type { LineFollowerApi, SimConfig } from '@trayectoria/sims';
 
 import { useApiStore } from './apiStore';
 import type { ApiStore } from './apiStore';
 import { BOTTOM_BAR_HEIGHT_PX } from './BottomBar';
 import { LiveBottomBar, SidePanels } from './MobileSimPanels';
-import type { OpenPanelId } from './MobileSimPanels';
+import type { OpenPanelId, SidePanelsProps } from './MobileSimPanels';
 import { TrackEditorBox } from './TrackEditorBox';
 import { MOBILE_MEDIA_QUERY, useMediaQuery } from './useMediaQuery';
+import { useSimConfigs } from './useSimConfigs';
+import type { SimConfigsApi } from './useSimConfigs';
+import type { ControllerChoice } from './useMobileSimState';
 import { useMounted, usePageState } from './useMobileSimState';
 
 // F4-02b (#128, decisiones 1, 2 y 4): la isla de `/simuladores/movil`. Es `client:visible` y no
@@ -27,11 +31,26 @@ import { useMounted, usePageState } from './useMobileSimState';
 // la columna derecha que los agrupa) en `MobileSimPanels.tsx`; este archivo solo compone ambos
 // con el `LineFollowerWidget` (docs/STANDARDS.md §4, límite de tamaño de archivo).
 
+// F4-05 (#131, decisiones 6 y 7): la isla es además quien lee `?c=` al montar, quien compone la
+// `SimConfig` en curso y quien decide dónde se guarda (local o la fila del robot), en
+// `useSimConfigs.ts`. El panel «Guardar y compartir» es uno más de la columna derecha.
+
 /** El simulador de F4-02a, resuelto solo cuando el navegador lo renderiza. */
 const LazyLineFollowerWidget = lazy(async () => {
   const module = await import('@trayectoria/sims');
   return { default: module.LineFollowerWidget };
 });
+
+/**
+ * La configuración en curso, estable mientras nada cambie de valor. `SaveConfigPanel` la usa para
+ * codificar el enlace en un efecto, así que un objeto nuevo en cada render volvería a codificarlo
+ * sin parar: se compara por su JSON y solo se devuelve otro cuando de verdad es otra.
+ */
+function useStableConfig(config: Omit<SimConfig, 'id' | 'name'>): Omit<SimConfig, 'id' | 'name'> {
+  const kept = useRef(config);
+  if (JSON.stringify(kept.current) !== JSON.stringify(config)) kept.current = config;
+  return kept.current;
+}
 
 /**
  * La caja del visor: el visor de `LineFollowerWidget` (oculto con `hidden` mientras se edita, para
@@ -67,6 +86,67 @@ function ViewerBox({
   );
 }
 
+/**
+ * Lo que «Guardar y compartir» guarda y comparte: la pista de la página y el controlador, los
+ * parámetros y la semilla con los que corre el widget. La pista viaja como el preset elegido
+ * mientras no se haya editado, y como el JSON del editor en cuanto sí (F4-05, decisión 2).
+ */
+function useCurrentConfig(
+  page: ReturnType<typeof usePageState>,
+  live: ControllerChoice,
+): Omit<SimConfig, 'id' | 'name'> {
+  const { preset, track } = page.choice;
+  return useStableConfig({
+    track: track === preset ? { preset } : track,
+    controller: live.controller,
+    params: live.params,
+    seed: live.seed,
+  });
+}
+
+/**
+ * El `renderPanel` que la isla le da al widget: el widget entrega ahí su panel del controlador y
+ * la página lo devuelve dentro de la columna derecha completa (maqueta 04), con Robot, Pista,
+ * Lecturas y «Guardar y compartir» debajo.
+ *
+ * `renderPanel` es una prop del widget, así que un callback nuevo lo vuelve a renderizar; y el
+ * widget publica su estado con `onApi`, que actualiza esta página. Si el callback dependiera del
+ * estado, cada estado publicado produciría un callback nuevo y con él otro render, es decir un
+ * bucle. Lo que cambia en cada estado se lee de un ref dentro del propio callback, de modo que su
+ * identidad solo depende de lo que cambia la maqueta.
+ */
+function useSidePanels(
+  props: Omit<SidePanelsProps, 'controller'>,
+): (panel: ReactNode) => ReactNode {
+  const { mobile, openId, setOpenId, store, onChoice } = props;
+  const latest = useRef(props);
+  latest.current = props;
+  return useCallback(
+    (panel: ReactNode): ReactNode => (
+      <SidePanels
+        page={latest.current.page}
+        mobile={mobile}
+        openId={openId}
+        setOpenId={setOpenId}
+        t={latest.current.t}
+        controller={panel}
+        store={store}
+        configs={latest.current.configs}
+        current={latest.current.current}
+        onChoice={onChoice}
+      />
+    ),
+    [mobile, openId, setOpenId, store, onChoice],
+  );
+}
+
+/** El aviso en curso de «Guardar y compartir»: copiado, enlace inválido o fallo al guardar. */
+function Notices({ configs }: { configs: SimConfigsApi }): JSX.Element | null {
+  const { notice, dismiss } = configs;
+  if (notice === null) return null;
+  return <Toast message={notice.message} tone={notice.tone} onClose={dismiss} />;
+}
+
 /** El simulador: el `LineFollowerWidget` de F4-02a con la pista, el robot y la pose de la página. */
 function Simulator({
   page,
@@ -91,9 +171,14 @@ function Simulator({
       }
     >
       <LazyLineFollowerWidget
+        // F4-05: cargar una configuración sube `configKey` y el widget se remonta con el
+        // controlador, los parámetros y la semilla nuevos; `useControllerChoice` los lee al
+        // montar, así que sin el `key` la configuración cargada no llegaría a los mandos.
+        key={page.configKey}
         track={page.choice.track}
-        controller="pid"
-        initialParams={{}}
+        controller={page.run.controller}
+        initialParams={page.run.params}
+        seed={page.run.seed}
         {...(page.robot === null ? {} : { robot: page.robot })}
         {...(page.startPose === null ? {} : { startPose: page.startPose })}
         onStartPoseChange={page.setStartPose}
@@ -118,31 +203,20 @@ export function MobileSimIsland(): JSX.Element {
   const [openId, setOpenId] = useState<OpenPanelId>('robot');
   const page = usePageState();
   const store = useApiStore();
-
-  // El widget entrega su panel del controlador aquí y la página lo devuelve dentro de la columna
-  // derecha completa (maqueta 04), con Robot, Pista y Lecturas debajo.
-  //
-  // `renderPanel` es una prop del widget, así que un `renderController` nuevo lo vuelve a
-  // renderizar; y el widget publica su estado con `onApi`, que actualiza esta página. Si el
-  // callback dependiera de `page`, cada estado publicado produciría un callback nuevo y con él
-  // otro render, es decir un bucle. Lo que cambia en cada estado se lee de un ref dentro del
-  // propio callback, de modo que su identidad solo depende de lo que cambia la maqueta.
-  const latest = useRef({ page, t });
-  latest.current = { page, t };
-  const renderController = useCallback(
-    (panel: ReactNode): ReactNode => (
-      <SidePanels
-        page={latest.current.page}
-        mobile={mobile}
-        openId={openId}
-        setOpenId={setOpenId}
-        t={latest.current.t}
-        controller={panel}
-        store={store}
-      />
-    ),
-    [mobile, openId, store],
-  );
+  const configs = useSimConfigs(page.robotId, page.applyConfig);
+  const [live, setLive] = useState<ControllerChoice>(page.run);
+  const current = useCurrentConfig(page, live);
+  const renderController = useSidePanels({
+    page,
+    t,
+    configs,
+    current,
+    store,
+    mobile,
+    openId,
+    setOpenId,
+    onChoice: setLive,
+  });
 
   // Maqueta 04: el visor a la izquierda y la columna de tarjetas a la derecha. El widget ocupa
   // la rejilla entera porque su propia fila ya coloca el visor y el panel del controlador; las
@@ -163,6 +237,7 @@ export function MobileSimIsland(): JSX.Element {
         store={store}
       />
       {mobile ? <LiveBottomBar store={store} /> : null}
+      <Notices configs={configs} />
     </div>
   );
 }
