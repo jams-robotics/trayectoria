@@ -1,4 +1,4 @@
-import { trackTimeExercise } from '@trayectoria/widgets';
+import { trackTimeExercise } from '@trayectoria/widgets/ExerciseWidget';
 
 /**
  * Registro clave → `Exercise` que resuelve `VerificaExercise` en el cliente (#97, hallazgo alta
