@@ -15,11 +15,13 @@ const ISLAND_TIMEOUT_MS = 30_000;
 const MOBILE_VIEWPORT = { width: 390, height: 844 };
 
 const SHOTS = [
-  { shot: 'sim-brazo', viewport: null },
-  { shot: 'sim-brazo-390', viewport: MOBILE_VIEWPORT },
+  { shot: 'sim-brazo', viewport: null, matrices: false },
+  { shot: 'sim-brazo-390', viewport: MOBILE_VIEWPORT, matrices: false },
+  // F5-02 (#135, decisión 6): la misma página con el panel de matrices encendido.
+  { shot: 'sim-brazo-matrices', viewport: null, matrices: true },
 ] as const;
 
-for (const { shot, viewport } of SHOTS) {
+for (const { shot, viewport, matrices } of SHOTS) {
   test(`${shot} looks as approved`, async ({ page }) => {
     if (viewport !== null) await page.setViewportSize(viewport);
     await page.emulateMedia({ colorScheme: 'light' });
@@ -35,6 +37,12 @@ for (const { shot, viewport } of SHOTS) {
     await expect(page.locator('[data-testid="sims.arm.x"]')).not.toBeEmpty({
       timeout: ISLAND_TIMEOUT_MS,
     });
+    if (matrices) {
+      await page.locator('[data-testid="matrices-toggle"]').click();
+      await expect(page.locator('[data-testid="matrix-panel"]')).toBeVisible({
+        timeout: ISLAND_TIMEOUT_MS,
+      });
+    }
     await page.evaluate(() => document.fonts.ready);
 
     const canvas = page.locator('canvas').first();
@@ -61,7 +69,11 @@ for (const { shot, viewport } of SHOTS) {
       )
       .toBeGreaterThan(0);
 
-    await expect(page).toHaveScreenshot(`${shot}.png`, {
+    // La captura de las matrices se acota al panel: en la página entera queda bajo el pliegue,
+    // y lo que aprueba el ticket es el panel (#135, decisión 6). Las otras dos capturas siguen
+    // siendo de la ventana, como en F5-01b.
+    const target = matrices ? page.locator('[data-testid="matrix-panel"]') : page;
+    await expect(target).toHaveScreenshot(`${shot}.png`, {
       maxDiffPixelRatio: WEBGL_MAX_DIFF_PIXEL_RATIO,
       // Playwright repite la captura hasta que dos consecutivas coinciden: sobre WebGL eso puede
       // tardar más que el tiempo por defecto.

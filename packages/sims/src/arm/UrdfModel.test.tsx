@@ -10,14 +10,19 @@ import { beforeAll, describe, expect, test, vi } from 'vitest';
 // Sin WebGL en jsdom (mismo criterio que F2-12, #96, decisión 6): `<primitive>` es un elemento de
 // three, no de HTML, así que React lo deja en el DOM como elemento desconocido y se puede
 // consultar. El `Canvas` real nunca se monta aquí.
-import { UrdfModel, applyArmMaterials } from './UrdfModel';
+import { UrdfModel, applyArmMaterials, applyHighlight } from './UrdfModel';
 import { createLoader } from './loadUrdf';
 import type { ActuatedJoint, ArmColors } from './types';
 
 const CATALOG = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../catalog/arms');
 const PLANAR_URDF = readFileSync(resolve(CATALOG, 'planar2dof/planar2dof.urdf'), 'utf8');
 
-const COLORS: ArmColors = { base: '#526475', link: '#a25607', joint: '#1a242f' };
+const COLORS: ArmColors = {
+  base: '#526475',
+  link: '#a25607',
+  joint: '#1a242f',
+  highlight: '#0d6a8e',
+};
 
 
 const JOINTS: readonly ActuatedJoint[] = [
@@ -115,6 +120,55 @@ describe('UrdfModel (F5-01a)', () => {
     // El material del `<material name="link">` del URDF queda sustituido, no conservado.
     expect(colorOf('link1')).not.toBe('#f59e0b');
     for (const material of created) material.dispose();
+  });
+
+  test('resalta el eslabón elegido con `emissive` y lo restaura al cambiar (F5-02)', () => {
+    const robot = planarRobot();
+    applyArmMaterials(robot, COLORS, 'base_link');
+
+    /** `emissive` del primer material del `<visual>` propio del eslabón, en hexadecimal. */
+    const emissiveOf = (link: string): string | undefined => {
+      let hex: string | undefined;
+      for (const visual of robot.links[link]?.children ?? []) {
+        if (!('isURDFVisual' in visual)) continue;
+        visual.traverse((node) => {
+          if (
+            hex === undefined &&
+            node instanceof Mesh &&
+            node.material instanceof MeshStandardMaterial
+          ) {
+            hex = `#${node.material.emissive.getHexString()}`;
+          }
+        });
+      }
+      return hex;
+    };
+
+    const restore = applyHighlight(robot, 'link1', COLORS.highlight);
+    // docs/DESIGN.md §6 y #135 decisión 4: el resaltado es el token `primary`.
+    expect(emissiveOf('link1')).toBe(`#${new Color(COLORS.highlight).getHexString()}`);
+    // Solo el eslabón elegido: los demás siguen sin emisión.
+    expect(emissiveOf('link2')).toBe('#000000');
+
+    restore();
+    expect(emissiveOf('link1')).toBe('#000000');
+  });
+
+  test('sin eslabón elegido no resalta nada (F5-02)', () => {
+    const robot = planarRobot();
+    applyArmMaterials(robot, COLORS, 'base_link');
+    const restore = applyHighlight(robot, null, COLORS.highlight);
+    restore();
+    render(
+      <UrdfModel
+        robot={robot}
+        joints={JOINTS}
+        q_rad={[0, 0]}
+        baseLink="base_link"
+        colors={COLORS}
+      />,
+    );
+    expect(robot.links.link1).toBeDefined();
   });
 
   test('libera los materiales al desmontar', () => {
