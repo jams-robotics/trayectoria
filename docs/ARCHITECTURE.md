@@ -221,11 +221,14 @@ progress      (user_id uuid → profiles, topic_id text, status text check (stat
                best_score numeric, attempts int, completed_at timestamptz null, updated_at, pk (user_id, topic_id))
 attempts      (id uuid pk, user_id uuid → profiles, topic_id text, exercise_id text, seed int,
                response jsonb, correct bool, created_at)
+tracks        (id uuid pk, owner_id uuid → profiles, name text, track jsonb, created_at, updated_at)
 ```
 
 `topic_id` = `ruta-1/m04-t02`. `exercise_id` = `ruta-1/m04-t02/e1`.
 
 `robots.spec.simConfigs` lo escribe el cliente (F4-05, #131): cada configuración guardada lleva el `spec` completo del robot, no una referencia, para que abrirla no dependa de que ese robot siga existiendo. La tabla `robots` no cambia; es una clave más dentro del `jsonb` de `spec`.
+
+`tracks` guarda las pistas del editor en la cuenta (F4-06, #191): `track` es el mismo JSON que ya se exporta a archivo, así que guardar en la cuenta y exportar producen lo mismo. Una pista guardada es privada de su dueño; compartirla sigue siendo por enlace (F4-05), que lleva la pista embebida y no depende de esta tabla.
 
 ### 5.2 Políticas RLS (resumen; el SQL completo es el entregable de F0-07)
 
@@ -236,6 +239,7 @@ attempts      (id uuid pk, user_id uuid → profiles, topic_id text, exercise_id
 | group_members | inserta solo vía `join_group()`; lee sus membresías | lee y borra en sus grupos |
 | robots | CRUD propios | igual |
 | progress, attempts | CRUD propios | además lee los de miembros de sus grupos |
+| tracks | CRUD propias (`owner_id = auth.uid()` en select, insert, update y delete) | igual; no hay pistas compartidas ni públicas (#191) |
 | storage `urdf` | lee y escribe `urdf/{uid}/*` | igual |
 
 `join_group(invite_code text)` es `security definer`: busca el grupo y crea la membresía sin exponer códigos. Ningún dato es público. Nunca se usa la `service_role` desde el cliente.
@@ -252,6 +256,7 @@ attempts      (id uuid pk, user_id uuid → profiles, topic_id text, exercise_id
 - Subidas: tamaño ≤ 20 MB, extensiones permitidas, rechazo de `..` y rutas absolutas, parseo del URDF antes de guardar, mallas cargadas solo desde el propio bucket.
 - Un brazo importado se dibuja sin red: las mallas del zip se resuelven a Blob URL creadas en el propio navegador, nunca a URLs externas, y se revocan al cambiar de fuente y al desmontar (#137).
 - Enlace compartido del simulador móvil: el texto del enlace no pasa de 8 000 caracteres y lo que lleva dentro no pasa de 64 KiB descomprimidos; si la configuración no cabe, «Copiar enlace» avisa al usuario y no copia nada, en vez de generar un enlace que no se pueda abrir (#182). Un enlace `?c=` con controlador `manual` abre con PID: el modo manual no viaja en el enlace (#131).
+- Eliminar la cuenta borra también los ficheros: el cliente lista y borra los objetos de `urdf/{uid}/` con la API de Storage **antes** de llamar a `delete_account()`, y si ese borrado falla no llama al RPC (#178). La función conserva su propio borrado de filas de `storage.objects` como red de seguridad, no como vía principal: `storage.objects` no entra en el `on delete cascade` de las tablas de §5.1.
 - Sin `dangerouslySetInnerHTML` salvo en `Formula` (salida de KaTeX, con `trust: false`).
 - Dependencias auditadas en CI (`pnpm audit --audit-level=high`).
 - Sin analytics de terceros en v1.
@@ -268,6 +273,7 @@ attempts      (id uuid pk, user_id uuid → profiles, topic_id text, exercise_id
 
 - Presupuesto por página de tema: ≤ 250 kB JS comprimido (sin three).
 - three solo en páginas 3D, con `client:only` y `import()` dinámico.
+- El registro de widgets de la página de tema resuelve cada widget con `import()` dinámico desde su propia entrada de `@trayectoria/widgets` (`./<Widget>`), de modo que un tema solo carga los que usa; el barrel sigue existiendo para quien lo necesite (ADR-0009, #188).
 - `Simulation` corre en el hilo principal en v1 con `dt = 1 ms` y render a 60 Hz; `sim-core` sin DOM para migrar a Web Worker en v2 sin cambios de API.
 - Canvas hi-DPI limitado a `devicePixelRatio ≤ 2`.
 
@@ -281,3 +287,4 @@ attempts      (id uuid pk, user_id uuid → profiles, topic_id text, exercise_id
 - ADR-0006 Controlador intercambiable
 - ADR-0007 ESLint y Prettier para archivos `.astro`
 - ADR-0008 fflate para leer zips en el navegador
+- ADR-0009 Exports por widget en `@trayectoria/widgets`
