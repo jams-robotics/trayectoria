@@ -1,7 +1,7 @@
 import type { DbClient } from '@trayectoria/db';
 import { describe, expect, it } from 'vitest';
 
-import { deleteAccount, joinGroup, leaveGroup, listMyGroups, normalizeCode } from './membership';
+import { joinGroup, leaveGroup, listMyGroups, normalizeCode } from './membership';
 
 const USER = '11111111-1111-4111-8111-111111111111';
 const GROUP = '22222222-2222-4222-8222-222222222222';
@@ -147,21 +147,5 @@ describe('leaveGroup (F3-03)', () => {
     const { db } = mockDb({ error: { message: 'denied' } });
 
     await expect(leaveGroup(GROUP, USER, db)).rejects.toThrow('denied');
-  });
-});
-
-describe('deleteAccount (F3-03)', () => {
-  it('calls delete_account without arguments', async () => {
-    const { db, calls } = mockDb({});
-
-    await deleteAccount(db);
-
-    expect(calls).toEqual([{ op: 'rpc.delete_account', payload: undefined, filters: {} }]);
-  });
-
-  it('throws when the function fails', async () => {
-    const { db } = mockDb({ error: { message: 'not authenticated' } });
-
-    await expect(deleteAccount(db)).rejects.toThrow('not authenticated');
   });
 });

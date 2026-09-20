@@ -1,8 +1,8 @@
-import { signOut } from '@trayectoria/auth';
-import { useT } from '@trayectoria/i18n';
+import { signOut, useSession } from '@trayectoria/auth';
+import { useT, type Translate } from '@trayectoria/i18n';
 import { useState, type JSX } from 'react';
 
-import { deleteAccount } from '../../lib/aula/membership';
+import { StorageCleanupError, deleteAccount } from '../../lib/account/deleteAccount';
 import { GHOST_BUTTON } from '../aula/MemberList';
 import { INPUT_CLASS, PRIMARY_BUTTON, SECONDARY_BUTTON } from './fields';
 
@@ -91,26 +91,51 @@ interface DeleteState extends ConfirmFormProps {
   readonly onStart: () => void;
 }
 
-/** Runs the deletion and turns its outcome into the section's status (F3-03). */
+/** What `runDeletion` needs from the hook to report back into the section's status. */
+interface DeletionHandlers {
+  readonly t: Translate;
+  readonly setError: (message: string) => void;
+  readonly setPending: (pending: boolean) => void;
+}
+
+/**
+ * Deletes the account of `userId` and leaves the page (F3-03, #178). Without a session there is
+ * no `auth.uid()` behind the calls, so nothing is deleted and the learner is asked to retry.
+ */
+async function runDeletion(
+  userId: string | undefined,
+  { t, setError, setPending }: DeletionHandlers,
+): Promise<void> {
+  if (userId === undefined) {
+    setError(t('auth.deleteAccount.failed'));
+    return;
+  }
+  setPending(true);
+  setError('');
+  try {
+    await deleteAccount(userId);
+    await signOut();
+    window.location.assign(DONE_URL);
+  } catch (cause) {
+    // The files are still there and the account was not touched: a different message, because
+    // retrying is what the learner should do and nothing has been lost (#178).
+    setError(
+      cause instanceof StorageCleanupError
+        ? t('auth.deleteAccount.storageFailed')
+        : t('auth.deleteAccount.failed'),
+    );
+    setPending(false);
+  }
+}
+
+/** Runs the deletion and turns its outcome into the section's status (F3-03, #178). */
 function useDeleteAccount(): DeleteState {
   const t = useT();
+  const { session } = useSession();
   const [open, setOpen] = useState(false);
   const [typed, setTyped] = useState('');
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false);
-
-  async function run(): Promise<void> {
-    setPending(true);
-    setError('');
-    try {
-      await deleteAccount();
-      await signOut();
-      window.location.assign(DONE_URL);
-    } catch {
-      setError(t('auth.deleteAccount.failed'));
-      setPending(false);
-    }
-  }
 
   return {
     open,
@@ -119,7 +144,7 @@ function useDeleteAccount(): DeleteState {
     pending,
     onStart: () => setOpen(true),
     onTyped: setTyped,
-    onSubmit: () => void run(),
+    onSubmit: () => void runDeletion(session?.user.id, { t, setError, setPending }),
     onCancel: () => {
       setOpen(false);
       setTyped('');
@@ -147,8 +172,9 @@ function StartButton({ onStart }: Pick<DeleteState, 'onStart'>): JSX.Element {
 
 /**
  * "Eliminar cuenta" at the end of `/cuenta` (F3-03): a danger ghost button that opens a field
- * where the student has to type `ELIMINAR` exactly. It calls `delete_account` (migration 0005),
- * signs out and lands on the home page with the notice; the text above lists what is deleted.
+ * where the student has to type `ELIMINAR` exactly. It empties `urdf/{uid}/` and then calls
+ * `delete_account` (migration 0005), signs out and lands on the home page with the notice; the
+ * text above lists what is deleted.
  */
 export function DeleteAccount(): JSX.Element {
   const t = useT();
