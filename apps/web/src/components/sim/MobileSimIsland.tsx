@@ -6,13 +6,14 @@ import type { LineFollowerApi, LiveInstruments, SimConfig } from '@trayectoria/s
 
 import { useApiStore } from './apiStore';
 import type { ApiStore } from './apiStore';
-import { useEditorPanelStore, usePublishedPanel } from './editorPanelStore';
+import { useEditorPanelStore } from './editorPanelStore';
 import type { EditorPanelStore } from './editorPanelStore';
+import { EmptyTrackToast, useEmptyTrackNotice } from './EmptyTrackNotice';
 import { useInstruments } from './instrumentsStore';
 import { BOTTOM_BAR_HEIGHT_PX } from './BottomBar';
 import { LiveBottomBar, SidePanels } from './MobileSimPanels';
 import type { OpenPanelId, SidePanelsProps } from './MobileSimPanels';
-import { TrackEditorBox } from './TrackEditorBox';
+import { ViewerBox } from './ViewerBox';
 import { MOBILE_MEDIA_QUERY, useMediaQuery } from './useMediaQuery';
 import { useSimConfigs } from './useSimConfigs';
 import type { SimConfigsApi } from './useSimConfigs';
@@ -53,69 +54,6 @@ function useStableConfig(config: Omit<SimConfig, 'id' | 'name'>): Omit<SimConfig
   const kept = useRef(config);
   if (JSON.stringify(kept.current) !== JSON.stringify(config)) kept.current = config;
   return kept.current;
-}
-
-/**
- * La caja del visor: el visor de `LineFollowerWidget` (oculto con `hidden` mientras se edita, para
- * que la simulación siga viva) y, al editar, `TrackEditorBox` en su lugar (#158, enmienda tras
- * auditoría de PR #169). La página la pasa como `renderViewer`, así que decide ella el envoltorio
- * en lugar de que `TrackEditorBox` alcance el DOM interno del widget con un portal.
- */
-function ViewerBox({
-  viewer,
-  page,
-  store,
-  panels,
-  onEmptyTrack,
-}: {
-  viewer: ReactNode;
-  page: ReturnType<typeof usePageState>;
-  store: ApiStore;
-  panels: EditorPanelStore;
-  /** Se llama al volver con el lienzo sin segmentos, para avisar de que la pista se conserva. */
-  onEmptyTrack: () => void;
-}): JSX.Element {
-  const { closeEditor } = page;
-  const editing = page.view === 'editor';
-  const onBack = useCallback(
-    (emptyTrack: boolean): void => {
-      store.read()?.driver.reset();
-      closeEditor();
-      // #190 (decisión 3): un lienzo sin segmentos no reemplaza a la pista que la página ya
-      // simulaba; se conserva aquella y se dice, porque si no el editor parecería no haber hecho
-      // nada.
-      if (emptyTrack) onEmptyTrack();
-    },
-    [store, closeEditor, onEmptyTrack],
-  );
-  return (
-    <div className="flex min-w-0 flex-1 flex-col gap-3">
-      <div hidden={editing}>{viewer}</div>
-      <TrackEditorBox
-        open={editing}
-        track={page.editorTrack}
-        onTrack={page.onTrack}
-        onBack={onBack}
-        renderPanel={(panel) => <EditorPanelPort store={panels} panel={panel} />}
-      />
-    </div>
-  );
-}
-
-/**
- * El panel numérico que el editor entrega por `renderPanel`, encaminado hacia la columna derecha
- * (#189, decisión 2). No pinta nada donde el editor lo dejó: allí ya no hay sitio, y la columna es
- * quien lo muestra.
- */
-function EditorPanelPort({
-  store,
-  panel,
-}: {
-  store: EditorPanelStore;
-  panel: ReactNode;
-}): null {
-  usePublishedPanel(store, panel);
-  return null;
 }
 
 /**
@@ -174,41 +112,11 @@ function useSidePanels(
   );
 }
 
-/**
- * El aviso de «el editor se dejó sin segmentos, sigue la pista anterior» (#190, decisión 3). Es el
- * toast de docs/DESIGN.md §5, que se cierra solo a los 5 s o con Esc.
- */
-function useEmptyTrackNotice(): { shown: boolean; show: () => void; dismiss: () => void } {
-  const [shown, setShown] = useState(false);
-  return {
-    shown,
-    show: useCallback((): void => {
-      setShown(true);
-    }, []),
-    dismiss: useCallback((): void => {
-      setShown(false);
-    }, []),
-  };
-}
-
 /** El aviso en curso de «Guardar y compartir»: copiado, enlace inválido o fallo al guardar. */
 function Notices({ configs }: { configs: SimConfigsApi }): JSX.Element | null {
   const { notice, dismiss } = configs;
   if (notice === null) return null;
   return <Toast message={notice.message} tone={notice.tone} onClose={dismiss} />;
-}
-
-/** El toast de «el editor se dejó sin segmentos», cuando lo hay (#190, decisión 3). */
-function EmptyTrackToast({
-  notice,
-}: {
-  notice: ReturnType<typeof useEmptyTrackNotice>;
-}): JSX.Element | null {
-  const t = useT();
-  if (!notice.shown) return null;
-  return (
-    <Toast message={t('sims.mobilePage.emptyTrackKept')} tone="neutral" onClose={notice.dismiss} />
-  );
 }
 
 /** La pista, el controlador, el robot y la pose con los que la página abre la carrera. */
