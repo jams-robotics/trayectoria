@@ -53,6 +53,16 @@ export interface LineFollowerState {
   readonly distance_m: number;
   /** Pose `init` placed the robot at, so «Reiniciar» returns to it. */
   readonly startPose: Pose;
+  /**
+   * Simulated time the lap in progress started at, in seconds (F4-03, #129, decisión 3). The lap
+   * timer closes a lap with `t − lapStart_s`, so the time it shows is exact simulated time and
+   * does not depend on how the frame loop split the steps (#155).
+   */
+  readonly lapStart_s: number;
+  /** Odometer at the start of the lap in progress, in metres; pairs with `lapStart_s`. */
+  readonly lapStartDistance_m: number;
+  /** Pose the array lost the line at, while it is lost; absent as long as it sees it. */
+  readonly lostAt?: Pose;
 }
 
 /**
@@ -151,6 +161,9 @@ export function createLineFollowerModel({
         s_m: projectOnTrack(index, [robot.x_m, robot.y_m]),
         distance_m: 0,
         startPose: origin,
+        lapStart_s: 0,
+        lapStartDistance_m: 0,
+        ...(reading.lineLost ? { lostAt: origin } : {}),
       };
     },
 
@@ -163,6 +176,38 @@ export function createLineFollowerModel({
   };
 }
 
+/** The pose of a differential-drive state, which is what the lost marker is drawn at. */
+function poseOf(robot: DiffDriveState): Pose {
+  return { x_m: robot.x_m, y_m: robot.y_m, theta_rad: robot.theta_rad };
+}
+
+/**
+ * Where the lap in progress started (F4-03, #129, decisión 3): crossing the start closes the
+ * current lap and opens the next one at the very step it happened, so the time and the distance
+ * the card shows are differences of exact simulated quantities.
+ */
+function lapStartOf(
+  state: LineFollowerState,
+  scored: boolean,
+  robot: DiffDriveState,
+  distance_m: number,
+): { lapStart_s: number; lapStartDistance_m: number } {
+  if (!scored) {
+    return { lapStart_s: state.lapStart_s, lapStartDistance_m: state.lapStartDistance_m };
+  }
+  return { lapStart_s: robot.t_s, lapStartDistance_m: distance_m };
+}
+
+/**
+ * Where the line was lost (F4-03, #129, decisión 3): the pose of the step `lineLost` turned true,
+ * kept while it stays lost and dropped as soon as the array sees the line again. A `Reiniciar`
+ * goes through `init`, which starts without one.
+ */
+function lostAtOf(state: LineFollowerState, lineLost: boolean, robot: DiffDriveState): Pose | undefined {
+  if (!lineLost) return undefined;
+  return state.lineLost ? state.lostAt : poseOf(robot);
+}
+
 /** The state after one integrated step: the lap counter and the odometer over the new pose. */
 function advanced(
   state: LineFollowerState,
@@ -173,6 +218,8 @@ function advanced(
   const { reading, command, robot } = next;
   const s_m = projectOnTrack(index, [robot.x_m, robot.y_m]);
   const scored = !reading.lineLost && crossedStart(state.s_m, s_m, index.length_m);
+  const distance_m = state.distance_m + Math.abs(robot.v_mps) * dt_s;
+  const lostAt = lostAtOf(state, reading.lineLost, robot);
   return {
     robot,
     reading,
@@ -180,7 +227,9 @@ function advanced(
     lineLost: reading.lineLost,
     laps: scored ? state.laps + 1 : state.laps,
     s_m,
-    distance_m: state.distance_m + Math.abs(robot.v_mps) * dt_s,
+    distance_m,
     startPose: state.startPose,
+    ...lapStartOf(state, scored, robot, distance_m),
+    ...(lostAt === undefined ? {} : { lostAt }),
   };
 }
