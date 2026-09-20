@@ -22,7 +22,7 @@ import { avgSpeed_mps, createLapTimer, lostEvent, pidTerms, recordLap } from './
 const SEED = 7;
 
 describe('avgSpeed_mps (F4-03)', () => {
-  test('valor dorado: 3,0 m en 12,0 s son 0,25 m/s', () => {
+  test('valor dorado: una pista de 3,0 m dada en 12,0 s son 0,25 m/s', () => {
     expect(avgSpeed_mps(3.0, 12.0)).toBe(0.25);
   });
 
@@ -44,13 +44,17 @@ describe('createLapTimer / recordLap (F4-03)', () => {
     expect(second.best_s).toBe(10);
   });
 
-  test('la velocidad promedio de cada vuelta usa la distancia recorrida en ella', () => {
+  test('la distancia de cada vuelta es la del tramo, no la acumulada desde el arranque', () => {
     const timer = recordLap(recordLap(createLapTimer(), 10, 5), 21, 11);
     expect(timer.laps[0]?.distance_m).toBe(5);
-    expect(timer.laps[0]?.avgSpeed_mps).toBe(0.5);
-    // La segunda vuelta duró 11 s y recorrió 6 m: la distancia es la del tramo, no la acumulada.
     expect(timer.laps[1]?.distance_m).toBe(6);
-    expect(timer.laps[1]?.avgSpeed_mps).toBeCloseTo(6 / 11, 12);
+  });
+
+  test('la velocidad promedio sale de la longitud de la pista, no de la distancia recorrida', () => {
+    // Pista de 6 m y un robot que corta las curvas: recorre 5 m en la primera vuelta.
+    const timer = recordLap(createLapTimer(6), 12, 5);
+    expect(timer.laps[0]?.distance_m).toBe(5);
+    expect(timer.laps[0]?.avgSpeed_mps).toBe(0.5);
   });
 
   test('el mejor tiempo es el menor, no el último', () => {
@@ -156,9 +160,10 @@ describe('vuelta del óvalo con el PID de referencia (F4-03)', () => {
   /** Pasos máximos de la corrida: el óvalo se completa en menos de 20 s simulados. */
   const MAX_STEPS = 20_000;
 
-  test('lapTime · avgSpeed = distance y la distancia está a ±2 % de la longitud del óvalo', () => {
+  test('lapTime · avgSpeed reproduce la longitud del óvalo y la distancia recorrida es menor', () => {
+    const length_m = trackLength_m(presets.oval);
     const model = modelOf(presets.oval);
-    let timer = createLapTimer();
+    let timer = createLapTimer(length_m);
     let previous = model.init(SEED);
 
     for (let k = 0; k < MAX_STEPS && timer.laps.length === 0; k += 1) {
@@ -173,11 +178,14 @@ describe('vuelta del óvalo con el PID de referencia (F4-03)', () => {
     expect(lap).toBeDefined();
     if (lap === undefined) return;
 
-    // La identidad es exacta salvo el redondeo de un producto y un cociente en coma flotante.
-    expect(lap.avgSpeed_mps * lap.lapTime_s).toBeCloseTo(lap.distance_m, 9);
+    // Identidad exacta (#170, enmienda): el producto reproduce la longitud de la pista salvo el
+    // redondeo de un cociente y un producto en coma flotante.
+    expect(Math.abs(lap.avgSpeed_mps * lap.lapTime_s - length_m)).toBeLessThanOrEqual(1e-9);
 
-    const length_m = trackLength_m(presets.oval);
-    expect(Math.abs(lap.distance_m - length_m) / length_m).toBeLessThanOrEqual(0.02);
+    // Y el odómetro queda por debajo: el seguidor corta los arcos de 0,25 m del óvalo, así que
+    // recorre menos que la línea (es el hallazgo de #170, no un fallo del odómetro).
+    expect(lap.distance_m).toBeGreaterThan(0);
+    expect(lap.distance_m).toBeLessThan(length_m);
   });
 });
 

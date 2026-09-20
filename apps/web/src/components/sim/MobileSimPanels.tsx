@@ -5,6 +5,8 @@ import type { ControllerPanelProps, LineFollowerApi, SimConfig } from '@trayecto
 
 import { useApi } from './apiStore';
 import type { ApiStore } from './apiStore';
+import type { InstrumentsStore } from './instrumentsStore';
+import { PlotsPanel } from './PlotsPanel';
 import { BottomBar } from './BottomBar';
 import { RobotSource } from './RobotSource';
 import { SimAccordion } from './SimAccordion';
@@ -20,7 +22,7 @@ import type { SimConfigsApi } from './useSimConfigs';
 const CLOCK_DECIMALS = 2;
 
 /** Qué acordeón está abierto en móvil; solo uno a la vez (docs/DESIGN.md §9.4). */
-export type OpenPanelId = 'robot' | 'track' | 'controller' | 'readouts' | 'share' | null;
+export type OpenPanelId = 'robot' | 'track' | 'controller' | 'readouts' | 'plots' | 'share' | null;
 
 // F4-05 (#131, decisión 6): «Guardar y compartir» es un panel más de la columna. Se carga con
 // `import()` como el resto de `@trayectoria/sims`, así que no entra en el JS inicial.
@@ -238,6 +240,8 @@ export interface SidePanelsProps {
   readonly current: Omit<SimConfig, 'id' | 'name'>;
   /** Publica hacia la isla el controlador y las ganancias que el panel muestra (F4-05). */
   readonly onChoice: (choice: ControllerChoice) => void;
+  /** Las gráficas en vivo que el widget publica por `onInstruments` (F4-03). */
+  readonly instruments: InstrumentsStore;
 }
 
 export function SidePanels(props: SidePanelsProps): JSX.Element {
@@ -256,6 +260,12 @@ export function SidePanels(props: SidePanelsProps): JSX.Element {
         <TrackPanel page={page} />
       </Panel>
       <ReadoutsPanel store={store} t={t} {...shared} />
+      <PlotsPanel
+        store={props.instruments}
+        t={t}
+        pid={liveChoice(controller)?.controller === 'pid'}
+        {...shared}
+      />
       <Panel id="share" title={t('sims.simConfig.title')} {...shared}>
         <SharePanel configs={configs} current={current} page={page} t={t} />
       </Panel>

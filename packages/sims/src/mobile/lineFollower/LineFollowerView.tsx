@@ -4,12 +4,14 @@ import type { Translate } from '@trayectoria/i18n';
 import { DEFAULT_LOST_THRESHOLD, binarize, pointAt, trackLength_m } from '@trayectoria/sim-core';
 import type { Track } from '@trayectoria/sim-core';
 import type { RobotSpec } from '@trayectoria/robot-spec';
-import { RobotBody, Scene2D, SimControls, Trace, TrackLayer } from '@trayectoria/widgets';
+import { Circle, RobotBody, Scene2D, SimControls, Trace, TrackLayer } from '@trayectoria/widgets';
 
+import { LapCard } from './LapCard';
+import type { Instruments } from './useInstruments';
 import { StartPoseHandle, StartPoseMarker } from './StartPoseHandle';
 import type { StartPose } from './StartPoseHandle';
 import type { LineFollowerApi } from './useLineFollower';
-import type { LineFollowerState } from './model';
+import type { LineFollowerState, Pose } from './model';
 
 /** Margin left around the track on every side, in metres (#127, decisión 6). */
 const VIEW_MARGIN_M = 0.1;
@@ -127,6 +129,34 @@ function LostNotice({ lost, t }: { lost: boolean; t: Translate }): JSX.Element |
   );
 }
 
+/** Radius of the marker drawn where the line was lost, in metres (F4-03, #129, decisión 5). */
+const LOST_MARKER_RADIUS_M = 0.03;
+
+/**
+ * The marker left at the pose the array lost the line at (F4-03, decisión 5): a filled circle in
+ * `--color-error`, which is the token docs/DESIGN.md §6 gives the error state. It stays until
+ * «Reiniciar» starts the run over, so the learner can see where the robot went off.
+ */
+function LostMarker({ pose }: { pose: Pose | undefined }): JSX.Element | null {
+  if (pose === undefined) return null;
+  return (
+    <Circle center_m={[pose.x_m, pose.y_m]} radius_m={LOST_MARKER_RADIUS_M} color="color-error" filled />
+  );
+}
+
+/**
+ * The assertive warning of the lost event (F4-03, decisión 5). It is a separate live region from
+ * `LostNotice`: that one only describes the state of the array, while this one announces the run
+ * stopping, which is what a screen reader has to hear the moment it happens.
+ */
+function LostEventNotice({ lost, t }: { lost: boolean; t: Translate }): JSX.Element {
+  return (
+    <p className="text-error text-sm" role="alert" aria-live="assertive" data-testid="instruments-lost">
+      {lost ? t('sims.instruments.lineLost') : ''}
+    </p>
+  );
+}
+
 /**
  * The draggable start pose (F4-02b, #128): the pose the marker sits at and the callback the drop
  * publishes. Absent, the viewer draws no marker and behaves exactly as in F4-02a.
@@ -146,6 +176,11 @@ export interface LineFollowerViewProps {
   readonly startPose?: StartPoseControl;
   /** Hides `SimControls`, so a page can put them in its own bar (F4-02b, docs/DESIGN.md §9.7). */
   readonly hideControls?: boolean;
+  /**
+   * The live instrumentation of the run (F4-03, #129): the lap timer the card shows and the pose
+   * the line was lost at. Without it the viewer draws neither, exactly as in F4-02b.
+   */
+  readonly instruments?: Instruments;
 }
 
 /**
@@ -161,6 +196,7 @@ function Viewer({
   track,
   view,
   marker,
+  instruments,
   t,
 }: {
   api: LineFollowerApi;
@@ -168,24 +204,31 @@ function Viewer({
   track: Track;
   view: ReturnType<typeof viewOf>;
   marker: ReactNode;
+  instruments: Instruments | undefined;
   t: Translate;
 }): JSX.Element {
   const { robot } = api.state;
+  // F4-03 (#129, decisión 5): la tarjeta de vuelta va abajo-derecha del visor (docs/DESIGN.md §6),
+  // superpuesta a la escena; el envoltorio `relative` es lo que la ancla a esa esquina.
   return (
-    <Scene2D
-      worldWidth_m={view.worldWidth_m}
-      center_m={view.center_m}
-      description={t('sims.lineFollower.scene')}
-    >
-      <TrackLayer track={track} />
-      <Trace points_m={api.trace_m} />
-      {marker}
-      <RobotBody
-        spec={spec}
-        pose={{ x_m: robot.x_m, y_m: robot.y_m, theta_rad: robot.theta_rad }}
-        sensorStates={sensorStates(api.state)}
-      />
-    </Scene2D>
+    <div className="relative">
+      <Scene2D
+        worldWidth_m={view.worldWidth_m}
+        center_m={view.center_m}
+        description={t('sims.lineFollower.scene')}
+      >
+        <TrackLayer track={track} />
+        <Trace points_m={api.trace_m} />
+        {marker}
+        <LostMarker pose={instruments?.lostAt} />
+        <RobotBody
+          spec={spec}
+          pose={{ x_m: robot.x_m, y_m: robot.y_m, theta_rad: robot.theta_rad }}
+          sensorStates={sensorStates(api.state)}
+        />
+      </Scene2D>
+      {instruments === undefined ? null : <LapCard timer={instruments.timer} />}
+    </div>
   );
 }
 
@@ -196,11 +239,12 @@ export function LineFollowerView({
   compact = false,
   startPose,
   hideControls = false,
+  instruments,
 }: LineFollowerViewProps): JSX.Element {
   const t = useT();
   const view = viewOf(track, compact);
   const scene = (marker: ReactNode): JSX.Element => (
-    <Viewer api={api} spec={spec} track={track} view={view} marker={marker} t={t} />
+    <Viewer {...{ api, spec, track, view, marker, instruments, t }} />
   );
   return (
     <div className="flex flex-col gap-3" data-testid="line-follower-view">
@@ -217,6 +261,9 @@ export function LineFollowerView({
         </StartPoseHandle>
       )}
       {hideControls ? null : <SimControls {...api.driver} compact={compact} />}
+      {instruments === undefined ? null : (
+        <LostEventNotice lost={instruments.lostAt !== undefined} t={t} />
+      )}
       <Below state={api.state} compact={compact} t={t} />
     </div>
   );

@@ -151,20 +151,7 @@ export function createLineFollowerModel({
       rng = createRng(seed);
       controller.reset();
       const robot = stateAt(origin);
-      const reading = sense(robot);
-      return {
-        robot,
-        reading,
-        command: { omegaL_radps: 0, omegaR_radps: 0 },
-        lineLost: reading.lineLost,
-        laps: 0,
-        s_m: projectOnTrack(index, [robot.x_m, robot.y_m]),
-        distance_m: 0,
-        startPose: origin,
-        lapStart_s: 0,
-        lapStartDistance_m: 0,
-        ...(reading.lineLost ? { lostAt: origin } : {}),
-      };
+      return initialState(robot, sense(robot), origin, index);
     },
 
     step(state: LineFollowerState, input: LineFollowerInput, dt_s: number): LineFollowerState {
@@ -173,6 +160,28 @@ export function createLineFollowerModel({
       const robot = drive.step(state.robot, command, dt_s);
       return advanced(state, { reading, command, robot }, index, dt_s);
     },
+  };
+}
+
+/** The state `init` hands back: the robot at `origin`, stopped, with its first reading taken. */
+function initialState(
+  robot: DiffDriveState,
+  reading: LineReading,
+  origin: Pose,
+  index: TrackIndex,
+): LineFollowerState {
+  return {
+    robot,
+    reading,
+    command: { omegaL_radps: 0, omegaR_radps: 0 },
+    lineLost: reading.lineLost,
+    laps: 0,
+    s_m: projectOnTrack(index, [robot.x_m, robot.y_m]),
+    distance_m: 0,
+    startPose: origin,
+    lapStart_s: 0,
+    lapStartDistance_m: 0,
+    ...(reading.lineLost ? { lostAt: origin } : {}),
   };
 }
 

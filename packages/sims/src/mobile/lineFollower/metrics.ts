@@ -8,7 +8,9 @@ import type { Pose } from './model';
 /** Una vuelta cerrada: lo que tardó, lo que recorrió y a qué velocidad media. */
 export interface Lap {
   readonly lapTime_s: number;
+  /** Distancia que el odómetro del modelo acumuló en la vuelta, en metros. */
   readonly distance_m: number;
+  /** Velocidad media de la vuelta: la longitud de la pista dividida por lo que tardó. */
   readonly avgSpeed_mps: number;
 }
 
@@ -21,21 +23,30 @@ export interface LapTimer {
   readonly startedAt_s: number;
   /** Odómetro del modelo al empezar la vuelta en curso, en metros. */
   readonly startedAtDistance_m: number;
+  /** Longitud de la pista que se está dando, en metros; es la que define la velocidad media. */
+  readonly trackLength_m: number;
 }
 
 /**
- * Velocidad media de una vuelta: la distancia que el robot recorrió dividida por lo que tardó.
+ * Velocidad media de una vuelta: la longitud de la pista dividida por lo que se tardó en darla
+ * (enmienda de #129 tras el spec gap #170). No es la distancia que el odómetro acumuló: el
+ * seguidor corta los arcos por dentro, así que recorre sistemáticamente un 2-3 % menos que la
+ * línea, y la cifra que interesa al estudiante es a qué ritmo dio la vuelta a la pista.
+ *
  * Una vuelta de duración nula (o negativa, que no puede ocurrir con tiempo simulado creciente)
  * da 0 en lugar de un infinito que la tarjeta no sabría mostrar.
  */
-export function avgSpeed_mps(distance_m: number, lapTime_s: number): number {
+export function avgSpeed_mps(trackLength_m: number, lapTime_s: number): number {
   if (!(lapTime_s > 0)) return 0;
-  return distance_m / lapTime_s;
+  return trackLength_m / lapTime_s;
 }
 
-/** Cronómetro recién puesto a cero: sin vueltas y con la primera empezando en `t = 0`. */
-export function createLapTimer(): LapTimer {
-  return { laps: [], best_s: null, startedAt_s: 0, startedAtDistance_m: 0 };
+/**
+ * Cronómetro recién puesto a cero para una pista de `trackLength_m` metros: sin vueltas y con la
+ * primera empezando en `t = 0`.
+ */
+export function createLapTimer(trackLength_m = 0): LapTimer {
+  return { laps: [], best_s: null, startedAt_s: 0, startedAtDistance_m: 0, trackLength_m };
 }
 
 /**
@@ -43,16 +54,19 @@ export function createLapTimer(): LapTimer {
  * `distance_m`, y abre la siguiente ahí mismo. El tiempo y la distancia de la vuelta son
  * diferencias contra el arranque de la vuelta, así que no dependen del reparto de fotogramas:
  * dos corridas con los mismos pasos dan exactamente la misma vuelta (#155).
+ *
+ * La velocidad media sale de la longitud de la pista del cronómetro, no de esa distancia, de modo
+ * que `lapTime_s · avgSpeed_mps` reproduce la longitud de la pista exactamente (#170).
  */
 export function recordLap(timer: LapTimer, t_s: number, distance_m: number): LapTimer {
   const lapTime_s = t_s - timer.startedAt_s;
-  const lapDistance_m = distance_m - timer.startedAtDistance_m;
   const lap: Lap = {
     lapTime_s,
-    distance_m: lapDistance_m,
-    avgSpeed_mps: avgSpeed_mps(lapDistance_m, lapTime_s),
+    distance_m: distance_m - timer.startedAtDistance_m,
+    avgSpeed_mps: avgSpeed_mps(timer.trackLength_m, lapTime_s),
   };
   return {
+    ...timer,
     laps: [...timer.laps, lap],
     best_s: timer.best_s === null ? lapTime_s : Math.min(timer.best_s, lapTime_s),
     startedAt_s: t_s,

@@ -50,10 +50,20 @@ export {
   useManualKeyboard,
 } from './useManualKeyboard';
 export type { ManualDrive, ManualKey, UseManualKeyboardOptions } from './useManualKeyboard';
-export { LineFollowerWidget, resolveTrack } from './LineFollowerWidget';
+export { LineFollowerWidget } from './LineFollowerWidget';
+export type { LineFollowerWidgetProps } from './LineFollowerWidget';
+export { resolveTrack } from './tracks';
+export type { TrackJson, TrackPreset } from './tracks';
+export type { LineFollowerPlot } from './plots';
+export { avgSpeed_mps, createLapTimer, lostEvent, pidTerms, recordLap } from './metrics';
+export type { Lap, LapTimer, LostEvent, PidTerms } from './metrics';
+export { LapCard } from './LapCard';
+export type { LapCardProps } from './LapCard';
+export { Instruments, MOBILE_PLOT_HEIGHT_PX, PLOT_HEIGHT_PX } from './Instruments';
+export type { InstrumentsProps } from './Instruments';
+export { PLOT_WINDOW_S, useInstruments } from './useInstruments';
 export type {
-  LineFollowerPlot,
-  LineFollowerWidgetProps,
-  TrackJson,
-  TrackPreset,
-} from './LineFollowerWidget';
+  InstrumentBuffers,
+  Instruments as LiveInstruments,
+  UseInstrumentsOptions,
+} from './useInstruments';

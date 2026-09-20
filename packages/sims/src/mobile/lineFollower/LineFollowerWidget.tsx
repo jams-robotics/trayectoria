@@ -1,54 +1,25 @@
 import { useEffect, useMemo, useRef } from 'react';
 import type { JSX, ReactNode, RefObject } from 'react';
-import { parseTrack, presets } from '@trayectoria/sim-core';
 import type { Track } from '@trayectoria/sim-core';
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import { useMyRobot } from '@trayectoria/widgets';
 
-import { ManualViewer, useManualMode } from './ManualControls';
+import { useManualMode } from './ManualControls';
 import type { ManualDrive } from './useManualKeyboard';
-import { Panel, useControllerChoice } from './ControllerPanel';
+import { useControllerChoice } from './ControllerPanel';
+import { ControllerColumn, ViewerColumn } from './columns';
 import type { ControllerParams } from './controllers';
+import { Instruments } from './Instruments';
 import { LineFollowerView } from './LineFollowerView';
 import type { StartPoseControl } from './LineFollowerView';
+import type { LineFollowerPlot } from './plots';
+import { resolveTrack } from './tracks';
+import type { TrackJson } from './tracks';
+import { useInstruments } from './useInstruments';
+import type { Instruments as LiveInstruments } from './useInstruments';
 import type { StartPose } from './StartPoseHandle';
 import { useLineFollower } from './useLineFollower';
 import type { LineFollowerApi } from './useLineFollower';
-
-/** Preset names the widget accepts, as `docs/WIDGETS.md` spells them. */
-export type TrackPreset = 'oval' | 's' | 'tight' | 'cross';
-
-/**
- * A track given as data: the serialized JSON of `parseTrack` (F1-04) or a `Track` already
- * parsed, which is what an editor of F4-01 hands over without a round trip through a string.
- */
-export type TrackJson = string | Track;
-
-/** Plots `showPlots` may ask for; drawn from F4-03 on (docs/WIDGETS.md). */
-export type LineFollowerPlot = 'error' | 'v' | 'omega' | 'pid';
-
-const PRESET_TRACKS: Readonly<Record<TrackPreset, Track>> = {
-  oval: presets.oval,
-  s: presets.sCurve,
-  tight: presets.tightCurves,
-  cross: presets.crossing,
-};
-
-function isPreset(track: LineFollowerWidgetProps['track']): track is TrackPreset {
-  return typeof track === 'string' && Object.hasOwn(PRESET_TRACKS, track);
-}
-
-/**
- * The track the widget simulates. A preset name resolves to the track of sim-core, a string is
- * parsed with `parseTrack` and an object is taken as it is; a string that does not parse falls
- * back to the oval rather than leaving the widget without a track.
- */
-export function resolveTrack(track: LineFollowerWidgetProps['track']): Track {
-  if (isPreset(track)) return PRESET_TRACKS[track];
-  if (typeof track !== 'string') return track;
-  const result = parseTrack(track);
-  return result.ok ? result.value : presets.oval;
-}
 
 /**
  * Publishes the live api to `onApi`, so a page can drive and read the run from outside.
@@ -90,10 +61,18 @@ export interface LineFollowerWidgetProps {
   /** Hides the controller panel and the legend, for an embedded viewer. */
   compact?: boolean;
   /**
-   * Plots to draw beside the viewer. Accepted so the content can already declare them, but it
-   * has no effect until F4-03 adds the charts (fuera de alcance de #127).
+   * Plots drawn under the viewer (F4-03, #129, decisión 6): `error`, `v`, `omega` and, with the
+   * PID selected, `pid` with its three terms. Without the prop none is drawn, which is exactly
+   * how the widget behaved in F4-02a.
    */
   showPlots?: LineFollowerPlot[];
+  /** Stacks the plots at 120 px each instead of 200 (docs/DESIGN.md §9 punto 8). */
+  mobile?: boolean;
+  /**
+   * Called with the live instrumentation of the run (F4-03): the lap timer and the pose the line
+   * was lost at, so a page can put the plots in a panel of its own.
+   */
+  onInstruments?: (instruments: LiveInstruments) => void;
   /** Standard deviation of the sensor noise; without it the readings are exact. */
   noiseSigma?: number;
   /**
@@ -138,16 +117,6 @@ export interface LineFollowerWidgetProps {
 }
 
 /**
- * The line-following simulator (docs/WIDGETS.md, LineFollowerWidget): a track, a robot driven by
- * the controller the learner picks, the viewer of `docs/DESIGN.md` §6 and the playback controls.
- * It is the same component the page `/simuladores/movil` will embed with `compact` (F4-02b).
- *
- * Moving a gain or the base speed applies to the run in progress without pausing it, so the
- * learner sees the response change as it happens (#161). Picking another controller restarts the
- * run at `t = 0`, paused: the new tab also resets its sliders to their own defaults, so there is
- * no state of a previous law to splice into.
- */
-/**
  * The start-pose control, only while the page asks for it: `startPose` alone would leave a
  * marker nobody can move, so both props are needed (#128, decisión 3).
  */
@@ -167,6 +136,7 @@ function Viewer({
   compact,
   hideControls,
   handle,
+  instruments,
 }: {
   api: LineFollowerApi;
   spec: RobotSpec;
@@ -174,6 +144,7 @@ function Viewer({
   compact: boolean;
   hideControls: boolean;
   handle: StartPoseControl | undefined;
+  instruments: LiveInstruments;
 }): JSX.Element {
   return (
     <LineFollowerView
@@ -182,6 +153,7 @@ function Viewer({
       track={track}
       compact={compact}
       hideControls={hideControls}
+      instruments={instruments}
       {...(handle === undefined ? {} : { startPose: handle })}
     />
   );
@@ -235,24 +207,58 @@ function useRun(
   return { spec, resolved, choice, api, drive, manual };
 }
 
+/**
+ * Publishes the live instrumentation to `onInstruments` (F4-03), on the same terms as
+ * `useApiReport`: only when the timer or the lost pose actually change, so a page that re-renders
+ * the widget on every publication does not loop.
+ */
+function useInstrumentsReport(
+  instruments: LiveInstruments,
+  onInstruments: ((instruments: LiveInstruments) => void) | undefined,
+): void {
+  const latest = useRef(instruments);
+  latest.current = instruments;
+  const { timer, lostAt } = instruments;
+  useEffect(() => {
+    onInstruments?.(latest.current);
+  }, [onInstruments, timer, lostAt]);
+}
+
+/**
+ * The line-following simulator (docs/WIDGETS.md, LineFollowerWidget): a track, a robot driven by
+ * the controller the learner picks, the viewer of `docs/DESIGN.md` §6, the playback controls and,
+ * with `showPlots`, the live charts of F4-03.
+ *
+ * Moving a gain or the base speed applies to the run in progress without pausing it (#161).
+ * Picking another controller restarts the run at `t = 0`, paused.
+ */
 export function LineFollowerWidget(props: LineFollowerWidgetProps): JSX.Element {
   const { compact = false, hideControls = false, renderPanel, renderViewer } = props;
+  const { showPlots, mobile = false, onInstruments } = props;
   const viewerRef = useRef<HTMLDivElement | null>(null);
   const { spec, resolved, choice, api, drive, manual } = useRun(props, viewerRef);
+  const pid = choice.selected === 'pid';
+  const instruments = useInstruments({ api, track: resolved, params: choice.params, pid });
+  useInstrumentsReport(instruments, onInstruments);
 
-  // The viewer is the element the manual keyboard listens on (#130, decisión 2): the listeners
-  // never reach `window` or `document`, so the arrows only drive while the focus is inside it.
   const viewer = (
-    <ManualViewer viewerRef={viewerRef} manual={manual} drive={drive}>
-      <Viewer
-        api={api}
-        spec={spec}
-        track={resolved}
-        compact={compact}
-        hideControls={hideControls}
-        handle={handleOf(props.startPose, props.onStartPoseChange)}
-      />
-    </ManualViewer>
+    <ViewerColumn
+      viewerRef={viewerRef}
+      manual={manual}
+      drive={drive}
+      viewer={
+        <Viewer
+          {...{ api, spec, compact, hideControls, instruments }}
+          track={resolved}
+          handle={handleOf(props.startPose, props.onStartPoseChange)}
+        />
+      }
+      plots={
+        showPlots === undefined ? null : (
+          <Instruments buffers={instruments.buffers} show={showPlots} mobile={mobile} pid={pid} />
+        )
+      }
+    />
   );
 
   return (
@@ -262,16 +268,7 @@ export function LineFollowerWidget(props: LineFollowerWidgetProps): JSX.Element 
       ) : (
         <>{renderViewer(viewer)}</>
       )}
-      {compact ? null : (
-        <Panel
-          spec={spec}
-          controller={choice.selected}
-          params={choice.params}
-          onController={choice.onController}
-          onParam={choice.onParam}
-          renderPanel={renderPanel}
-        />
-      )}
+      {compact ? null : <ControllerColumn spec={spec} choice={choice} renderPanel={renderPanel} />}
     </div>
   );
 }
