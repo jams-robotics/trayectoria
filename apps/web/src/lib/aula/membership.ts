@@ -1,12 +1,12 @@
 /**
  * Supabase side of the student's membership (F3-03): joining a group with an invite code,
- * listing the groups they belong to, leaving one and deleting the account.
+ * listing the groups they belong to and leaving one. Deleting the account lives in
+ * `lib/account/deleteAccount.ts`, which empties the `urdf` bucket first (#178).
  *
  * RLS is the only access control (docs/ARCHITECTURE.md §5.2). Joining goes through the
  * `security definer` function `join_group` (migration 0003), the one path into `group_members`;
  * the names come from the `groups_visible` view, which never exposes `invite_code`; leaving uses
- * the "group_members: member leaves" policy and deleting the account the `delete_account`
- * function, both of migration 0005. No `service_role` anywhere.
+ * the "group_members: member leaves" policy of migration 0005. No `service_role` anywhere.
  */
 import { getDbClient, type DbClient } from '@trayectoria/db';
 
@@ -79,15 +79,5 @@ export async function leaveGroup(
     .delete()
     .eq('group_id', groupId)
     .eq('user_id', userId);
-  if (error !== null) throw new Error(error.message);
-}
-
-/**
- * Deletes the caller's account. `delete_account` takes no arguments: it acts on `auth.uid()`,
- * removes the caller's `urdf` objects and the auth user, and the cascades of migration 0001 take
- * the profile, memberships, robots, progress and attempts with it.
- */
-export async function deleteAccount(db: DbClient = getDbClient()): Promise<void> {
-  const { error } = await db.rpc('delete_account');
   if (error !== null) throw new Error(error.message);
 }
