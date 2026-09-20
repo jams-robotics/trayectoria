@@ -16,7 +16,7 @@ export const URDF_BUCKET = 'urdf';
 export const ROBOT_NAME_MAX_LENGTH = 60;
 
 /** The `kind` whose default row «Mi robot» reads (`robotPersistence.ts`). */
-const MOBILE_KIND = 'mobile-diff';
+export const MOBILE_KIND = 'mobile-diff';
 
 /** The `kind` an uploaded URDF produces. */
 const ARM_KIND = 'arm-serial';

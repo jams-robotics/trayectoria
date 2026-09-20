@@ -1,8 +1,9 @@
 import { useT } from '@trayectoria/i18n';
 import { useState, type JSX } from 'react';
 
-import type { RobotRow } from '../../lib/robots/storage';
+import { MOBILE_KIND, type RobotRow } from '../../lib/robots/storage';
 import { INPUT_CLASS, SECONDARY_BUTTON } from '../auth/fields';
+import { ConfirmInline, GHOST_BUTTON } from '../aula/MemberList';
 
 export interface RobotListProps {
   readonly robots: readonly RobotRow[];
@@ -12,9 +13,6 @@ export interface RobotListProps {
   /** Marks a `mobile-diff` robot as «Mi robot». */
   readonly onMakeDefault: (robot: RobotRow) => Promise<void>;
 }
-
-/** Only a mobile robot can be «Mi robot» (ticket decision 5). */
-const MOBILE_KIND = 'mobile-diff';
 
 const CELL = 'px-4 py-2 align-middle';
 
@@ -69,10 +67,43 @@ interface RowActionsProps extends Omit<RobotListProps, 'robots'> {
   readonly onEdit: () => void;
 }
 
+interface DeleteActionProps {
+  readonly robot: RobotRow;
+  readonly onDelete: (robot: RobotRow) => Promise<void>;
+}
+
+/** «Eliminar» with an inline confirmation before it calls `onDelete` (audit finding 4, PR #174). */
+function DeleteAction({ robot, onDelete }: DeleteActionProps): JSX.Element {
+  const t = useT();
+  const [confirming, setConfirming] = useState(false);
+  if (confirming) {
+    return (
+      <ConfirmInline
+        question={t('auth.robots.deleteConfirm', { name: robot.name })}
+        yes={t('auth.robots.delete')}
+        no={t('auth.robots.renameCancel')}
+        onConfirm={() => void onDelete(robot)}
+        onCancel={() => setConfirming(false)}
+      />
+    );
+  }
+  return (
+    <button
+      type="button"
+      data-testid="delete-robot"
+      onClick={() => setConfirming(true)}
+      aria-label={t('auth.robots.delete')}
+      className={GHOST_BUTTON}
+    >
+      {t('auth.robots.delete')}
+    </button>
+  );
+}
+
 function RowActions({ robot, onEdit, onDelete, onMakeDefault }: RowActionsProps): JSX.Element {
   const t = useT();
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       {robot.kind === MOBILE_KIND && !robot.isDefault ? (
         <button
           type="button"
@@ -93,15 +124,7 @@ function RowActions({ robot, onEdit, onDelete, onMakeDefault }: RowActionsProps)
       >
         {t('auth.robots.rename')}
       </button>
-      <button
-        type="button"
-        data-testid="delete-robot"
-        onClick={() => void onDelete(robot)}
-        aria-label={t('auth.robots.delete')}
-        className={SECONDARY_BUTTON}
-      >
-        {t('auth.robots.delete')}
-      </button>
+      <DeleteAction robot={robot} onDelete={onDelete} />
     </div>
   );
 }

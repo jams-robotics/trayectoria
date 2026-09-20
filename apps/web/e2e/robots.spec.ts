@@ -94,8 +94,9 @@ test('uploading a valid zip creates the robot, its object, and deleting it remov
   expect(stored.error).toBeNull();
   expect(stored.data).not.toBeNull();
 
-  // Deleting takes the row and the object with it.
+  // Deleting takes the row and the object with it, after the inline confirmation.
   await page.getByTestId('delete-robot').click();
+  await page.getByRole('button', { name: auth.robots.delete, exact: true }).click();
   await expect(page.getByTestId('robots-empty')).toBeVisible();
 
   const { data: afterRows } = await user.client
