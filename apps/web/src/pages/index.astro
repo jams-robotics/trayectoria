@@ -2,6 +2,7 @@
 import { t } from '@trayectoria/i18n';
 
 import ChassisIcon from '../components/ChassisIcon.astro';
+import { AccountDeletedNotice } from '../components/auth/AccountDeletedNotice';
 import Base from '../layouts/Base.astro';
 
 // Route 1 as specified in docs/PLAN.md §2 (7 modules, 27 topics).
@@ -36,6 +37,8 @@ const features = [
 
 <Base title={t('home.title')}>
   <section class="mx-auto max-w-[1120px] px-5 pt-11 pb-9 md:px-8">
+    <!-- Notice after deleting the account, `/?cuenta=eliminada` (F3-03). -->
+    <AccountDeletedNotice client:load />
     <div class="grid items-start gap-9 lg:grid-cols-[1fr_500px] lg:gap-10">
       <div>
         <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">

@@ -41,6 +41,15 @@
     "regenerate": "Regenerar el código",
     "regenerated": "Código nuevo generado"
   },
+  "join": {
+    "title": "Unirme a un grupo",
+    "eyebrow": "Estudiante",
+    "intro": "Escribe el código que te dio tu docente para unirte a su grupo.",
+    "code": "Código de invitación",
+    "submit": "Unirme",
+    "invalid": "Código no válido",
+    "success": "Te uniste al grupo"
+  },
   "members": {
     "title": "Miembros",
     "empty": "Nadie se ha unido todavía. Comparte el código de invitación.",

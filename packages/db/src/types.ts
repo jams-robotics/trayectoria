@@ -286,6 +286,7 @@ export type Database = {
       }
     }
     Functions: {
+      delete_account: { Args: never; Returns: undefined }
       is_group_member: { Args: { target_group_id: string }; Returns: boolean }
       is_teacher: { Args: never; Returns: boolean }
       join_group: { Args: { invite_code: string }; Returns: string }
