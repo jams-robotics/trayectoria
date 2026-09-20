@@ -16,6 +16,10 @@ const ROW = 'text-fg-muted flex items-center justify-between gap-3 text-sm';
 const SEGMENT_BUTTON =
   'border-border text-fg-muted focus-visible:outline-focus min-h-11 w-full cursor-pointer rounded-sm border px-3 text-left font-mono text-xs focus-visible:outline-2 focus-visible:outline-offset-2';
 const SEGMENT_ON = 'border-primary text-fg';
+// docs/DESIGN.md §5 (Tabs/segmentado): el mismo patrón que el selector de herramienta.
+const DIRECTION =
+  'min-h-11 border-border text-fg-muted focus-visible:outline-focus flex-1 cursor-pointer border-r px-3 text-sm font-semibold last:border-r-0 focus-visible:outline-2 focus-visible:outline-offset-2';
+const DIRECTION_ON = 'bg-primary text-primary-fg';
 
 /** Formats a number for a field: no trailing zeros, no floating point noise. */
 function format(value: number): string {
@@ -28,8 +32,11 @@ interface NumberFieldProps {
   onCommit: (value: number) => void;
 }
 
-/** Draft, commit and key handling of one numeric field; kept out of the component itself. */
-function useDraft(
+/**
+ * Draft, commit and key handling of one numeric field; kept out of the component itself. Exported
+ * within the package so the compact radius field of the floating bar behaves identically (#159).
+ */
+export function useDraft(
   value: number,
   onCommit: (value: number) => void,
 ): {
@@ -174,6 +181,52 @@ function EndpointFields({
   );
 }
 
+/**
+ * Sweep of the arc as a segmented control «Sentido: horario / antihorario» (#159, decision 4).
+ * It is the same `ccw` datum the checkbox held, said in the words a learner reads on the canvas:
+ * the two options are mutually exclusive, which is what a `radiogroup` means, and neither state
+ * is encoded by colour alone (docs/DESIGN.md §8).
+ */
+function DirectionControl({
+  ccw,
+  onCcw,
+}: {
+  ccw: boolean;
+  onCcw: SegmentPanelProps['onCcw'];
+}): JSX.Element {
+  const t = useT();
+  const options: readonly { readonly ccw: boolean; readonly label: string }[] = [
+    { ccw: false, label: t('sims.trackEditor.directionCw') },
+    { ccw: true, label: t('sims.trackEditor.directionCcw') },
+  ];
+  return (
+    <div className={ROW}>
+      {t('sims.trackEditor.direction')}
+      <div
+        role="radiogroup"
+        aria-label={t('sims.trackEditor.direction')}
+        className="border-border rounded-md flex overflow-hidden border"
+      >
+        {options.map((option) => (
+          <button
+            key={option.label}
+            type="button"
+            role="radio"
+            aria-checked={ccw === option.ccw}
+            aria-label={option.label}
+            onClick={() => {
+              onCcw(option.ccw);
+            }}
+            className={`${DIRECTION} ${ccw === option.ccw ? DIRECTION_ON : ''}`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** The radius and the sweep of an arc; a straight segment has neither. */
 function ArcFields({
   segment,
@@ -192,18 +245,7 @@ function ArcFields({
         value={segment.radius_m}
         onCommit={onRadius}
       />
-      <label className={ROW}>
-        {t('sims.trackEditor.field.ccw')}
-        <input
-          type="checkbox"
-          aria-label={t('sims.trackEditor.field.ccw')}
-          checked={segment.ccw}
-          onChange={(event) => {
-            onCcw(event.target.checked);
-          }}
-          className="accent-primary h-5 w-5"
-        />
-      </label>
+      <DirectionControl ccw={segment.ccw} onCcw={onCcw} />
     </>
   );
 }

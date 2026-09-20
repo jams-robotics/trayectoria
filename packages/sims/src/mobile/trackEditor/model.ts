@@ -123,6 +123,21 @@ export function setRadius(state: EditorState, index: number, radius_m: number): 
   return withSegment(state, index, arcThrough(from, to, radius_m, segment.ccw));
 }
 
+/**
+ * Sweeps the arc at `index` the other way when `ccw` differs from its current sweep, keeping both
+ * of its endpoints and its radius (#159, decision 2). `arcThrough` puts the centre on the side of
+ * the chord the requested sweep needs, so rebuilding the arc from the same `[from, to]` and radius
+ * is the whole of the flip. Anything that is not an arc is left as it was.
+ */
+export function setArcDirection(state: EditorState, index: number, ccw: boolean): EditorState {
+  const segment = state.track.segments[index];
+  if (segment === undefined || segment.type !== 'arc') {
+    return state;
+  }
+  const [from, to] = segmentEndpoints(segment);
+  return withSegment(state, index, arcThrough(from, to, segment.radius_m, ccw));
+}
+
 /** Moves the `end` end of segment `index` to `p` (metres), keeping the other end and the radius. */
 export function moveEndpoint(
   state: EditorState,
