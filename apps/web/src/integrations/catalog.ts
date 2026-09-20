@@ -15,8 +15,11 @@ export const CATALOG_URL_PREFIX = '/catalog/';
 /** Raíz del catálogo en el repositorio, relativa a este archivo. */
 const CATALOG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../catalog');
 
-/** Subárbol del catálogo que se copia al build: solo los brazos (docs/ARCHITECTURE.md §3.4). */
-const ARMS_SUBDIR = 'arms';
+/**
+ * Subárboles del catálogo que se copian al build: los brazos (F5-01a) y los robots móviles de
+ * referencia (F4-04, #130, decisión 4), que la página carga por HTTP desde `/catalog/mobile/`.
+ */
+const BUILT_SUBDIRS: readonly string[] = ['arms', 'mobile'];
 
 /** Tipo MIME por extensión; lo que el catálogo contiene y nada más. */
 const MIME_BY_EXTENSION: Readonly<Record<string, string>> = {
@@ -84,9 +87,12 @@ export function catalogAssets(root: string = CATALOG_ROOT): AstroIntegration {
         });
       },
       'astro:build:done': async ({ dir }) => {
-        await cp(join(root, ARMS_SUBDIR), join(fileURLToPath(dir), 'catalog', ARMS_SUBDIR), {
-          recursive: true,
-        });
+        const out = fileURLToPath(dir);
+        await Promise.all(
+          BUILT_SUBDIRS.map(async (subdir) =>
+            cp(join(root, subdir), join(out, 'catalog', subdir), { recursive: true }),
+          ),
+        );
       },
     },
   };
