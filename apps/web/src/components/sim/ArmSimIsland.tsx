@@ -22,19 +22,18 @@ const LazyArmViewer = lazy(async () => {
   return { default: module.ArmViewer };
 });
 
-/** Capa de los marcos, siempre activa; el espacio de trabajo sigue siendo F5-03. */
+/** Capa de los marcos, siempre activa; las otras dos las encienden los controles de vista. */
 type ShowLayer = 'frames' | 'matrices' | 'workspace';
 
-/** Las capas del visor según esté activado o no el control «Matrices» (#135, decisión 5). */
-const SHOW_WITH_MATRICES: ShowLayer[] = ['frames', 'matrices'];
-const SHOW_FRAMES: ShowLayer[] = ['frames'];
+/** Las capas del visor según qué controles de vista estén encendidos (#135 y #136). */
+function showLayers(matrices: boolean, workspace: boolean): ShowLayer[] {
+  const layers: ShowLayer[] = ['frames'];
+  if (matrices) layers.push('matrices');
+  if (workspace) layers.push('workspace');
+  return layers;
+}
 
-/** Botón secundario de 36 px de los controles de vista (docs/DESIGN.md §6). */
-const VIEW_BUTTON =
-  'border-border bg-bg-raised text-fg-muted h-9 cursor-not-allowed rounded-sm border px-3 ' +
-  'text-sm opacity-60';
-
-/** El mismo botón, ya operativo: activo en `primary`, inactivo secundario (docs/DESIGN.md §5). */
+/** El botón de vista operativo: activo en `primary`, inactivo secundario (docs/DESIGN.md §5). */
 const TOGGLE_BUTTON = 'h-9 rounded-sm border px-3 text-sm';
 const TOGGLE_ON = `${TOGGLE_BUTTON} bg-primary text-primary-fg border-primary`;
 const TOGGLE_OFF = `${TOGGLE_BUTTON} border-border bg-bg-raised text-fg-muted`;
@@ -44,67 +43,92 @@ function requestedArmId(): string | null {
   return new URLSearchParams(window.location.search).get('robot');
 }
 
-/** El control «Matrices»: enciende la capa de matrices del visor (#135, decisión 5). */
-function MatricesToggle({
+/** Un control de vista que enciende una capa del visor (#135 y #136, decisión 4). */
+function LayerToggle({
+  label,
   on,
+  testId,
   onToggle,
 }: {
+  label: string;
   on: boolean;
+  testId: string;
   onToggle: (on: boolean) => void;
 }): JSX.Element {
-  const t = useT();
   return (
     <button
       type="button"
       className={on ? TOGGLE_ON : TOGGLE_OFF}
       aria-pressed={on}
-      data-testid="matrices-toggle"
+      data-testid={testId}
       onClick={() => {
         onToggle(!on);
       }}
-    >
-      {t('sims.armPage.matrices')}
-    </button>
-  );
-}
-
-/** Un control de vista todavía no operativo: visible, anunciado y no accionable. */
-function SoonButton({ label, hint }: { label: string; hint: string }): JSX.Element {
-  return (
-    <button
-      type="button"
-      className={VIEW_BUTTON}
-      aria-disabled="true"
-      aria-label={`${label}. ${hint}`}
-      disabled
     >
       {label}
     </button>
   );
 }
 
+/** La fila con los dos controles de vista operativos. */
+function ToggleRow({
+  matrices,
+  onMatrices,
+  workspace,
+  onWorkspace,
+}: {
+  matrices: boolean;
+  onMatrices: (on: boolean) => void;
+  workspace: boolean;
+  onWorkspace: (on: boolean) => void;
+}): JSX.Element {
+  const t = useT();
+  return (
+    <div className="flex flex-wrap gap-2" role="group" aria-label={t('sims.armPage.view')}>
+      <LayerToggle
+        label={t('sims.armPage.workspace')}
+        on={workspace}
+        testId="workspace-toggle"
+        onToggle={onWorkspace}
+      />
+      <LayerToggle
+        label={t('sims.armPage.matrices')}
+        on={matrices}
+        testId="matrices-toggle"
+        onToggle={onMatrices}
+      />
+    </div>
+  );
+}
+
 /**
- * Los controles de vista todavía no operativos. «Marcos» no está aquí: lo aporta el propio
- * `ArmViewer` (#134, decisión 4). En móvil van dentro de un acordeón para no comerse el alto por
- * encima del visor (docs/DESIGN.md §9 puntos 3 y 8).
+ * Los controles de vista. «Marcos» no está aquí: lo aporta el propio `ArmViewer` (#134,
+ * decisión 4). En móvil van dentro de un acordeón para no comerse el alto por encima del visor
+ * (docs/DESIGN.md §9 puntos 3 y 8).
  */
 function ViewControls({
   mobile,
   group,
   matrices,
   onMatrices,
+  workspace,
+  onWorkspace,
 }: {
   mobile: boolean;
   group: AccordionGroup;
   matrices: boolean;
   onMatrices: (on: boolean) => void;
+  workspace: boolean;
+  onWorkspace: (on: boolean) => void;
 }): JSX.Element {
   const t = useT();
   const controls = (
-    <div className="flex flex-wrap gap-2" role="group" aria-label={t('sims.armPage.view')}>
-      <SoonButton label={t('sims.armPage.workspace')} hint={t('sims.armPage.soon')} />
-      <MatricesToggle on={matrices} onToggle={onMatrices} />
-    </div>
+    <ToggleRow
+      matrices={matrices}
+      onMatrices={onMatrices}
+      workspace={workspace}
+      onWorkspace={onWorkspace}
+    />
   );
   // En escritorio los controles van arriba-izquierda del visor (maqueta 05). `Marcos` no está
   // aquí: lo pinta el propio `ArmViewer` en la fila inmediatamente inferior, porque reutilizarlo
@@ -113,7 +137,7 @@ function ViewControls({
   return (
     <SimAccordion
       title={t('sims.armPage.view')}
-      summary={t('sims.armPage.soon')}
+      summary={t('sims.armPage.view')}
       open={group.openId === 'view'}
       onToggle={(open) => {
         group.setOpenId(open ? 'view' : null);
@@ -126,14 +150,14 @@ function ViewControls({
 
 /** El panel que `ArmViewer` entrega a `renderPanel` (`ArmViewerPanel` de `@trayectoria/sims`). */
 interface ArmViewerPanel {
-  readonly id: 'joints' | 'effector' | 'matrices';
+  readonly id: 'joints' | 'effector' | 'matrices' | 'workspace';
   readonly title: string;
   readonly summary: string;
   readonly content: ReactNode;
 }
 
 /** Qué acordeón está abierto en móvil; solo uno a la vez (docs/DESIGN.md §9.4). */
-type OpenPanelId = 'view' | 'joints' | 'effector' | 'matrices' | null;
+type OpenPanelId = 'view' | 'joints' | 'effector' | 'matrices' | 'workspace' | null;
 
 /** El estado compartido por los tres acordeones de la página en móvil. */
 interface AccordionGroup {
@@ -230,8 +254,9 @@ export function ArmSimIsland({ arms }: ArmSimIslandProps): JSX.Element {
   const [openId, setOpenId] = useState<OpenPanelId>('joints');
   const group: AccordionGroup = { openId, setOpenId };
   const renderPanel = usePanelWrapper(mobile, group);
-  // El control «Matrices» enciende la capa del visor; el estado no va en la URL (#135, decisión 5).
+  // Los controles encienden las capas del visor; su estado no va en la URL (#135 y #136).
   const [matrices, setMatrices] = useState(false);
+  const [workspace, setWorkspace] = useState(false);
 
   return (
     <div className="mt-6 flex flex-col gap-5">
@@ -242,12 +267,10 @@ export function ArmSimIsland({ arms }: ArmSimIslandProps): JSX.Element {
         group={group}
         matrices={matrices}
         onMatrices={setMatrices}
+        workspace={workspace}
+        onWorkspace={setWorkspace}
       />
-      <Viewer
-        armId={armId}
-        show={matrices ? SHOW_WITH_MATRICES : SHOW_FRAMES}
-        renderPanel={renderPanel}
-      />
+      <Viewer armId={armId} show={showLayers(matrices, workspace)} renderPanel={renderPanel} />
     </div>
   );
 }

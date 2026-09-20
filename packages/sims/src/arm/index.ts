@@ -15,6 +15,33 @@ export type { MatrixKind, MatrixPanelProps } from './MatrixPanel';
 export { UrdfModel, applyArmMaterials, applyHighlight } from './UrdfModel';
 export type { UrdfModelProps } from './UrdfModel';
 export { ARM_TOKENS, armToken, readArmColors } from './armColors';
+export {
+  N_DEFAULT,
+  N_MAX,
+  N_MIN,
+  N_STEP,
+  WorkspacePanel,
+  clampCount,
+} from './workspace/WorkspacePanel';
+export type { WorkspacePanelProps, WorkspaceState } from './workspace/WorkspacePanel';
+export { WorkspacePoints } from './workspace/WorkspacePoints';
+export type { WorkspacePointsProps } from './workspace/WorkspacePoints';
+export {
+  WORKSPACE_TOKENS,
+  colorFor,
+  distanceToBase_m,
+  pointColors,
+  readWorkspacePalette,
+} from './workspace/colors';
+export type { Rgb, WorkspacePalette } from './workspace/colors';
+export {
+  CANCELLED_REASON,
+  WORKSPACE_SEED,
+  defaultBatchSize,
+  defaultSchedule,
+  sampleWorkspaceInBatches,
+} from './workspace/sampler';
+export type { BatchOptions, BatchSchedule, BatchedSampling } from './workspace/sampler';
 export { formatEntry, linkTransforms, matrixRows } from './matrices';
 export type { LinkTransform } from './matrices';
 export {

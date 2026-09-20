@@ -138,7 +138,6 @@
     "source": "Brazo",
     "sourceHelp": "Elige un brazo del catálogo.",
     "fallback": "No hay ningún brazo con ese identificador; se muestra «{{name}}».",
-    "soon": "Disponible más adelante",
     "view": "Controles de vista",
     "workspace": "Espacio de trabajo",
     "matrices": "Matrices",
@@ -192,5 +191,17 @@
     "summaryLaps": "{{laps}} vueltas · t {{time}} s",
     "readoutsEmpty": "Todavía no hay lecturas; pulsa Reproducir.",
     "loading": "Cargando el simulador…"
+  },
+  "workspace": {
+    "title": "Espacio de trabajo",
+    "count": "Muestras",
+    "compute": "Calcular",
+    "cancel": "Cancelar",
+    "show": "Mostrar",
+    "hide": "Ocultar",
+    "progress": "Progreso del cálculo del espacio de trabajo",
+    "computing": "Calculando el espacio de trabajo: {{percent}} %.",
+    "empty": "Sin calcular. Pulsa Calcular para muestrear las posiciones alcanzables.",
+    "ready": "Nube de {{count}} posiciones alcanzables, coloreadas por distancia a la base."
   }
 }
