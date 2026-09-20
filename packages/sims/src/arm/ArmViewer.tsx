@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { RobotSpec } from '@trayectoria/robot-spec';
@@ -13,7 +13,8 @@ import {
   useHighlightedLink,
   useWorkspaceCloud,
 } from './ArmScene';
-import { loadUrdf } from './loadUrdf';
+import { loadArm } from './loadUrdf';
+import type { ArmSource } from './loadUrdf';
 import { useArmSim } from './useArmSim';
 
 // F5-01a (#133): visor URDF con las props de `ArmViewerWidget` (docs/WIDGETS.md). `show` acepta
@@ -32,6 +33,11 @@ const VIEWER_ROBOT_ID = '00000000-0000-4000-8000-000000000133';
 export interface ArmViewerProps {
   /** Brazo del catálogo a cargar (`catalog/arms/{catalogId}`). */
   catalogId?: string;
+  /**
+   * Fuente del brazo cuando no es el catálogo (F5-04, #137, decisión 2): un zip ya en memoria. Si
+   * viene, manda sobre `catalogId`.
+   */
+  source?: ArmSource;
   /** Brazo ya resuelto; tiene prioridad sobre `catalogId` para el spec. */
   robot?: RobotSpec;
   /** Configuración inicial, en radianes. */
@@ -48,8 +54,12 @@ export interface ArmViewerProps {
   renderPanel?: (panel: ArmViewerPanel) => ReactNode;
 }
 
-/** El brazo cargado del catálogo, o `null` mientras se carga o si falla. */
-function useCatalogArm(catalogId: string | undefined): {
+/**
+ * El brazo cargado de su fuente, o `null` mientras se carga o si falla. Las URL de objeto de un
+ * brazo importado se revocan al cambiar de fuente y al desmontar (#137, decisión 2), así que nunca
+ * queda ninguna viva cuando el visor deja de dibujar ese zip.
+ */
+function useLoadedArm(source: ArmSource | undefined): {
   robot: URDFRobot | null;
   spec: RobotSpec | null;
   failed: boolean;
@@ -61,19 +71,26 @@ function useCatalogArm(catalogId: string | undefined): {
   }>({ robot: null, spec: null, failed: false });
 
   useEffect(() => {
-    if (catalogId === undefined) return;
+    if (source === undefined) return;
     let active = true;
-    loadUrdf(catalogId, { domParser: new DOMParser(), robotId: VIEWER_ROBOT_ID })
+    let release: (() => void) | null = null;
+    loadArm(source, { domParser: new DOMParser(), robotId: VIEWER_ROBOT_ID })
       .then((loaded) => {
-        if (active) setState({ robot: loaded.robot, spec: loaded.spec, failed: false });
+        if (!active) {
+          loaded.revoke();
+          return;
+        }
+        release = loaded.revoke;
+        setState({ robot: loaded.robot, spec: loaded.spec, failed: false });
       })
       .catch(() => {
         if (active) setState({ robot: null, spec: null, failed: true });
       });
     return () => {
       active = false;
+      release?.();
     };
-  }, [catalogId]);
+  }, [source]);
 
   return state;
 }
@@ -137,6 +154,7 @@ function ArmViewerReady({
  */
 export function ArmViewer({
   catalogId,
+  source,
   robot,
   initialQ,
   show,
@@ -144,9 +162,14 @@ export function ArmViewer({
   renderPanel,
 }: ArmViewerProps): JSX.Element {
   const t = useT();
-  // `catalogId` siempre se carga si viene: es de donde salen la jerarquía y las mallas. `robot`,
+  // La fuente siempre se carga si viene: es de donde salen la jerarquía y las mallas. `robot`,
   // si se pasa, manda sobre el spec (docs/WIDGETS.md, ArmViewerWidget).
-  const loaded = useCatalogArm(catalogId);
+  const armSource = useMemo(
+    (): ArmSource | undefined =>
+      source ?? (catalogId === undefined ? undefined : { kind: 'catalog', catalogId }),
+    [source, catalogId],
+  );
+  const loaded = useLoadedArm(armSource);
   const spec = robot ?? loaded.spec;
 
   if (spec === null) {

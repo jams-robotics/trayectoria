@@ -221,5 +221,20 @@
     "copyError": "No se pudo copiar el enlace; está a la vista para copiarlo a mano.",
     "invalidLink": "El enlace no es una configuración válida; se abre con los valores por defecto.",
     "saveError": "No se pudo guardar la configuración en el robot."
+  },
+  "import": {
+    "group": "Mis robots",
+    "catalogGroup": "Catálogo",
+    "importOption": "Importar…",
+    "title": "Importar un brazo",
+    "help": "Sube un zip con un archivo .urdf y sus mallas. Se comprueba en tu navegador antes de cargarlo.",
+    "close": "Cerrar",
+    "anonymous": "Sin sesión el brazo solo se carga en esta pestaña; no se guarda.",
+    "saved": "Brazo importado y guardado en «Mis robots».",
+    "loaded": "Brazo importado en esta pestaña.",
+    "saveFailed": "No se pudo guardar el brazo; se ha cargado solo en esta pestaña.",
+    "downloadFailed": "No se pudo descargar el brazo guardado.",
+    "loadFailed": "No se pudo cargar el brazo importado.",
+    "loading": "Cargando el brazo importado…"
   }
 }
