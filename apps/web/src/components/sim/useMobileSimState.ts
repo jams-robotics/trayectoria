@@ -38,6 +38,12 @@ export async function initialPose(track: TrackJson): Promise<StartPose> {
   return poseOnTrack(resolveTrack(track), null, 0);
 }
 
+/**
+ * Qué ocupa la caja del visor: la simulación o el editor de pista (#158, decisión 1). El editor
+ * sustituye al visor en la misma caja; no es un panel que se despliegue bajo la columna derecha.
+ */
+export type SimView = 'sim' | 'editor';
+
 /** Lo que la isla elige y publica; un solo objeto para no repartir seis `useState` por la vista. */
 export interface PageState {
   readonly robotId: string;
@@ -49,6 +55,9 @@ export interface PageState {
   readonly setStartPose: (pose: StartPose) => void;
   readonly onTrack: (track: TrackJson) => void;
   readonly onPreset: (preset: TrackPreset) => void;
+  readonly view: SimView;
+  readonly openEditor: () => void;
+  readonly closeEditor: () => void;
 }
 
 /** Aplica la pose de apertura en cuanto el módulo del simulador está cargado. */
@@ -64,6 +73,26 @@ export function useOpeningPose(setStartPose: (pose: StartPose) => void): void {
   }, [setStartPose]);
 }
 
+/**
+ * Qué ocupa la caja del visor y cómo se cambia (#158, decisiones 1 y 3). «Volver a la simulación»
+ * solo devuelve la caja al visor: la pista editada ya llegó por `onTrack` en cada cambio del
+ * editor, y el reinicio a `t = 0` en pausa lo pide la isla, que es quien tiene la api del widget.
+ */
+export function useSimView(): {
+  view: SimView;
+  openEditor: () => void;
+  closeEditor: () => void;
+} {
+  const [view, setView] = useState<SimView>('sim');
+  const openEditor = useCallback((): void => {
+    setView('editor');
+  }, []);
+  const closeEditor = useCallback((): void => {
+    setView('sim');
+  }, []);
+  return { view, openEditor, closeEditor };
+}
+
 /** El estado de la página: el robot, la pista, la pose inicial y la simulación en curso. */
 export function usePageState(): PageState {
   const [robotId, setRobotId] = useState(MY_ROBOT_ID);
@@ -73,6 +102,7 @@ export function usePageState(): PageState {
     track: DEFAULT_PRESET,
   });
   const [startPose, setStartPose] = useState<StartPose | null>(null);
+  const { view, openEditor, closeEditor } = useSimView();
   useOpeningPose(setStartPose);
 
   // Cambiar la pista reinicia la simulación (el widget la reconstruye) y devuelve la pose inicial
@@ -100,7 +130,10 @@ export function usePageState(): PageState {
       setStartPose,
       onTrack,
       onPreset,
+      view,
+      openEditor,
+      closeEditor,
     }),
-    [robotId, robot, choice, startPose, onTrack, onPreset],
+    [robotId, robot, choice, startPose, onTrack, onPreset, view, openEditor, closeEditor],
   );
 }

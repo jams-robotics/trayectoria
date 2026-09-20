@@ -1,20 +1,17 @@
-import { Suspense, lazy, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 import type { TrackJson, TrackPreset } from '@trayectoria/sims';
 
-// El editor entra con `import()` y solo al desplegarlo: la mayoría de las visitas simulan sobre
-// un preset y no tienen por qué descargar el editor de F4-01b (docs/ARCHITECTURE.md §8).
-const LazyTrackEditor = lazy(async () => {
-  const module = await import('@trayectoria/sims');
-  return { default: module.TrackEditor };
-});
-
 // F4-02b (#128, decisión 2): el origen de la pista. La página no reimplementa nada: los presets
 // son los nombres que `LineFollowerWidget` ya resuelve y el editor es el `TrackEditor` de F4-01b
-// con `initialTrack` y `onChange`, plegado en un panel. `apps/web` no puede importar sim-core
+// con `initialTrack` y `onChange`. `apps/web` no puede importar sim-core
 // (docs/ARCHITECTURE.md §2), así que la pista viaja como `TrackJson` de `@trayectoria/sims`.
+//
+// #158 (decisión 1): «Editar» ya no despliega el editor dentro de este panel —la columna de la
+// derecha es estrecha y el editor quedaba encogido y fuera de la vista—, sino que cambia la
+// vista de la página: el editor ocupa la caja del visor y este panel solo dispara el cambio.
 
 /** Los cuatro presets de la spec, en el orden del selector. */
 export const PRESETS: readonly TrackPreset[] = ['oval', 's', 'tight', 'cross'];
@@ -39,10 +36,10 @@ export interface TrackSourceProps {
   /** Preset seleccionado; la pista efectiva puede venir del editor o de un JSON cargado. */
   readonly preset: TrackPreset;
   readonly onPreset: (preset: TrackPreset) => void;
-  /** Se llama con la pista editada o cargada; la página reinicia la simulación con ella. */
+  /** Se llama con la pista cargada de un JSON; la página reinicia la simulación con ella. */
   readonly onTrack: (track: TrackJson) => void;
-  /** La pista que el editor abre, para que «Editar» continúe desde lo que se ve. */
-  readonly track: TrackJson;
+  /** «Editar»: la página lleva el editor a la caja del visor (#158, decisión 1). */
+  readonly onEdit: () => void;
 }
 
 /** Uno de los cuatro presets, o null si la cadena no es ninguno. */
@@ -120,26 +117,11 @@ function LoadButton({
   );
 }
 
-/** El botón que pliega y despliega el editor de pista. */
-function EditToggle({
-  editing,
-  onToggle,
-  t,
-}: {
-  editing: boolean;
-  onToggle: () => void;
-  t: Translate;
-}): JSX.Element {
+/** El botón que lleva el editor de pista a la caja del visor (#158). */
+function EditButton({ onEdit, t }: { onEdit: () => void; t: Translate }): JSX.Element {
   return (
-    <button
-      type="button"
-      className={BUTTON}
-      aria-expanded={editing}
-      aria-controls="track-editor-panel"
-      data-testid="track-source-edit"
-      onClick={onToggle}
-    >
-      {editing ? t('sims.mobilePage.editHide') : t('sims.mobilePage.edit')}
+    <button type="button" className={BUTTON} data-testid="track-source-edit" onClick={onEdit}>
+      {t('sims.mobilePage.edit')}
     </button>
   );
 }
@@ -167,42 +149,9 @@ function useJsonLoad(
   return { error, load };
 }
 
-/** El panel plegable con el editor de pista de F4-01b, cargado solo al desplegarlo. */
-function EditorPanel({
-  editing,
-  track,
-  onTrack,
-  t,
-}: {
-  editing: boolean;
-  track: TrackJson;
-  onTrack: (track: TrackJson) => void;
-  t: Translate;
-}): JSX.Element {
-  return (
-    <div id="track-editor-panel" hidden={!editing}>
-      {editing ? (
-        <Suspense
-          fallback={
-            <p className="text-fg-muted text-sm" role="status" aria-live="polite">
-              {t('sims.mobilePage.loading')}
-            </p>
-          }
-        >
-          <LazyTrackEditor
-            {...(typeof track === 'string' ? {} : { initialTrack: track })}
-            onChange={onTrack}
-          />
-        </Suspense>
-      ) : null}
-    </div>
-  );
-}
-
-/** Selector de preset, editor plegable y carga de un JSON de pista. */
-export function TrackSource({ preset, onPreset, onTrack, track }: TrackSourceProps): JSX.Element {
+/** Selector de preset, botón «Editar» y carga de un JSON de pista. */
+export function TrackSource({ preset, onPreset, onTrack, onEdit }: TrackSourceProps): JSX.Element {
   const t = useT();
-  const [editing, setEditing] = useState(false);
   const { error, load } = useJsonLoad(onTrack, t);
 
   return (
@@ -216,13 +165,7 @@ export function TrackSource({ preset, onPreset, onTrack, track }: TrackSourcePro
           }}
           t={t}
         />
-        <EditToggle
-          editing={editing}
-          onToggle={() => {
-            setEditing(!editing);
-          }}
-          t={t}
-        />
+        <EditButton onEdit={onEdit} t={t} />
         <LoadButton onFile={load} t={t} />
       </div>
       {error === null ? null : (
@@ -230,7 +173,6 @@ export function TrackSource({ preset, onPreset, onTrack, track }: TrackSourcePro
           {error}
         </p>
       )}
-      <EditorPanel editing={editing} track={track} onTrack={onTrack} t={t} />
     </div>
   );
 }

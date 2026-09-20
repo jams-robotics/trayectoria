@@ -238,3 +238,76 @@ test.describe('/simuladores/movil (F4-02b)', () => {
     await expect(bar.getByRole('button', { name: 'Reiniciar' })).toBeVisible();
   });
 });
+
+// #158 (decisiones 1-4): «Editar» abre el editor de pista en la caja del visor, con el mismo
+// ancho que este y sin mover ni estrechar la columna de paneles; «Volver a la simulación»
+// devuelve el visor y reinicia la simulación pausada en t = 0 con la pista editada.
+test.describe('editor de pista en la caja del visor (#158)', () => {
+  /** Tolerancia de ancho entre el visor y el editor, en píxeles (decisión 4). */
+  const WIDTH_TOLERANCE_PX = 2;
+
+  /** Ancho de un elemento en píxeles, del recuadro que el navegador le da. */
+  async function width_px(page: Page, testId: string): Promise<number> {
+    const box = await page.getByTestId(testId).boundingBox();
+    if (box === null) throw new Error(`no box for ${testId}`);
+    return box.width;
+  }
+
+  test('«Editar» pone el editor en la caja del visor y «Volver» restaura el visor', async ({
+    page,
+  }) => {
+    await open(page);
+
+    const viewer_px = await width_px(page, 'line-follower-view');
+    const controllerPanel_px = await width_px(page, 'panel-controller');
+    const trackPanel_px = await width_px(page, 'panel-track');
+    const panelLeft_px = (await page.getByTestId('panel-track').boundingBox())?.x ?? 0;
+
+    await page.getByTestId('track-source-edit').click();
+
+    // El editor está en la misma caja: mismo ancho que tenía el visor, y el visor ya no se ve.
+    const editorBox = page.getByTestId('track-editor-box');
+    await expect(editorBox).toBeVisible();
+    await expect(page.getByTestId('track-editor')).toBeVisible();
+    await expect(page.getByTestId('line-follower-view')).toBeHidden();
+    expect(Math.abs((await width_px(page, 'track-editor-box')) - viewer_px)).toBeLessThanOrEqual(
+      WIDTH_TOLERANCE_PX,
+    );
+
+    // Los paneles laterales conservan ancho y posición: no se apilan ni se estrechan.
+    expect(Math.abs((await width_px(page, 'panel-controller')) - controllerPanel_px)).toBeLessThanOrEqual(
+      WIDTH_TOLERANCE_PX,
+    );
+    expect(Math.abs((await width_px(page, 'panel-track')) - trackPanel_px)).toBeLessThanOrEqual(
+      WIDTH_TOLERANCE_PX,
+    );
+    const panelLeftNow_px = (await page.getByTestId('panel-track').boundingBox())?.x ?? 0;
+    expect(Math.abs(panelLeftNow_px - panelLeft_px)).toBeLessThanOrEqual(WIDTH_TOLERANCE_PX);
+
+    // «Volver a la simulación» devuelve el visor a su caja y retira el editor.
+    await page.getByTestId('track-editor-back').click();
+    await expect(page.getByTestId('line-follower-view')).toBeVisible();
+    await expect(editorBox).toHaveCount(0);
+    expect(Math.abs((await width_px(page, 'line-follower-view')) - viewer_px)).toBeLessThanOrEqual(
+      WIDTH_TOLERANCE_PX,
+    );
+  });
+
+  test('«Volver a la simulación» deja la simulación pausada en t = 0', async ({ page }) => {
+    await open(page);
+
+    // La simulación avanza antes de editar: si volviera sin reiniciar, `t` no sería 0.
+    await page.getByRole('button', { name: 'Reproducir' }).first().click();
+    await expect
+      .poll(async () => Number.parseFloat((await readout(page)).t))
+      .toBeGreaterThan(0.2);
+    await page.getByRole('button', { name: 'Pausa' }).first().click();
+
+    await page.getByTestId('track-source-edit').click();
+    await expect(page.getByTestId('track-editor')).toBeVisible();
+    await page.getByTestId('track-editor-back').click();
+
+    await expect(page.getByTestId('line-follower-t')).toHaveText('0.00 s');
+    await expect(page.getByRole('button', { name: 'Pausa' }).first()).toBeDisabled();
+  });
+});

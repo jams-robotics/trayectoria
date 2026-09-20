@@ -4,9 +4,11 @@ import { useT } from '@trayectoria/i18n';
 import type { LineFollowerApi } from '@trayectoria/sims';
 
 import { useApiStore } from './apiStore';
+import type { ApiStore } from './apiStore';
 import { BOTTOM_BAR_HEIGHT_PX } from './BottomBar';
 import { LiveBottomBar, SidePanels } from './MobileSimPanels';
 import type { OpenPanelId } from './MobileSimPanels';
+import { TrackEditorBox } from './TrackEditorBox';
 import { MOBILE_MEDIA_QUERY, useMediaQuery } from './useMediaQuery';
 import { useMounted, usePageState } from './useMobileSimState';
 
@@ -70,6 +72,33 @@ function Simulator({
 }
 
 /**
+ * El editor de pista en la caja del visor (#158). «Volver a la simulación» reinicia la simulación
+ * pausada en `t = 0`: la pista editada ya llegó al widget por `onTrack`, y el reinicio lo pide la
+ * api que el widget publica, que es quien tiene el driver.
+ */
+function LiveTrackEditorBox({
+  page,
+  store,
+}: {
+  page: ReturnType<typeof usePageState>;
+  store: ApiStore;
+}): JSX.Element | null {
+  const { closeEditor } = page;
+  const onBack = useCallback((): void => {
+    store.read()?.driver.reset();
+    closeEditor();
+  }, [store, closeEditor]);
+  return (
+    <TrackEditorBox
+      open={page.view === 'editor'}
+      track={page.choice.track}
+      onTrack={page.onTrack}
+      onBack={onBack}
+    />
+  );
+}
+
+/**
  * Página del simulador móvil 2D: el robot, la pista, la pose inicial y el `LineFollowerWidget`.
  * En escritorio el visor va a la izquierda y los paneles a la derecha (maqueta 04); en móvil los
  * paneles son acordeones y los controles van en la barra inferior fija (maqueta 08).
@@ -110,12 +139,16 @@ export function MobileSimIsland(): JSX.Element {
   // Maqueta 04: el visor a la izquierda y la columna de tarjetas a la derecha. El widget ocupa
   // la rejilla entera porque su propia fila ya coloca el visor y el panel del controlador; las
   // tarjetas Robot, Pista y Lecturas van bajo el controlador, en esa misma columna derecha.
+  //
+  // `TrackEditorBox` se monta en la caja del visor con un portal (#158, decisión 1), así que va
+  // después del simulador: cuando se renderiza, el visor ya está en el DOM.
   return (
     <div
       className="mt-6 flex flex-col gap-5"
       style={mobile ? { paddingBottom: `${String(BOTTOM_BAR_HEIGHT_PX)}px` } : undefined}
     >
       <Simulator page={page} mobile={mobile} renderPanel={renderController} onApi={store.publish} />
+      <LiveTrackEditorBox page={page} store={store} />
       {mobile ? <LiveBottomBar store={store} /> : null}
     </div>
   );
