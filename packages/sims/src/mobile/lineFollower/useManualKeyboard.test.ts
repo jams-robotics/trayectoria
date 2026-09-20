@@ -30,6 +30,13 @@ function release(element: HTMLElement, key: string): void {
   });
 }
 
+/** Envía un `keydown` de auto-repeat (tecla mantenida) sobre el visor. */
+function repeatPress(element: HTMLElement, key: string): void {
+  act(() => {
+    element.dispatchEvent(new KeyboardEvent('keydown', { key, repeat: true, bubbles: true, cancelable: true }));
+  });
+}
+
 const OMEGA_MAX_RADPS = 20.944;
 
 describe('useManualKeyboard', () => {
@@ -136,6 +143,31 @@ describe('useManualKeyboard', () => {
       document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
     });
     expect(result.current.omegaBase_radps).toBe(0);
+  });
+
+  it('el auto-repeat de ↑ no acumula pasos (#130, auditoría F4-04)', () => {
+    const { ref, element } = viewerRef();
+    const { result } = renderHook(() => useManualKeyboard(ref, { omegaMax_radps: OMEGA_MAX_RADPS }));
+
+    press(element, 'ArrowUp');
+    repeatPress(element, 'ArrowUp');
+    repeatPress(element, 'ArrowUp');
+    repeatPress(element, 'ArrowUp');
+    repeatPress(element, 'ArrowUp');
+    repeatPress(element, 'ArrowUp');
+    expect(result.current.omegaBase_radps).toBe(MANUAL_STEP_RADPS);
+  });
+
+  it('el blur del visor suelta la diferencia si el keyup no llega (#130, auditoría F4-04)', () => {
+    const { ref, element } = viewerRef();
+    const { result } = renderHook(() => useManualKeyboard(ref, { omegaMax_radps: OMEGA_MAX_RADPS }));
+
+    press(element, 'ArrowRight');
+    expect(result.current.diff_radps).toBe(-MANUAL_DIFF_RADPS);
+    act(() => {
+      element.dispatchEvent(new FocusEvent('blur', { bubbles: false }));
+    });
+    expect(result.current.diff_radps).toBe(0);
   });
 
   it('recorta la base cuando el robot admite menos velocidad', () => {

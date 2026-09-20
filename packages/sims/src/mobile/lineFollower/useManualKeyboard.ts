@@ -119,12 +119,15 @@ function keyDownListener(latest: RefObject<KeyHandlers>): (event: KeyboardEvent)
     const { press, onTogglePlay } = latest.current;
     if (PLAY_KEYS.includes(event.key)) {
       event.preventDefault();
-      onTogglePlay?.();
+      if (!event.repeat) onTogglePlay?.();
       return;
     }
     const key = KEY_BY_NAME[event.key];
     if (key === undefined) return;
     event.preventDefault();
+    // El auto-repeat del navegador no debe acumular pasos de ↑/↓ (#130, auditoría F4-04).
+    // ←/→ ya están fijadas en ±MANUAL_DIFF_RADPS, así que repetir no cambia nada de todos modos.
+    if (event.repeat) return;
     press(key);
   };
 }
@@ -136,6 +139,18 @@ function keyUpListener(latest: RefObject<KeyHandlers>): (event: KeyboardEvent) =
     if (key === undefined) return;
     event.preventDefault();
     latest.current.release(key);
+  };
+}
+
+/**
+ * El oyente de `blur`: perder el foco suelta ← y → como si el usuario las hubiera soltado, para
+ * que `diff_radps` no quede atascado si el `keyup` nunca llega al elemento (#130, auditoría F4-04).
+ */
+function blurListener(latest: RefObject<KeyHandlers>): () => void {
+  return () => {
+    const { release } = latest.current;
+    release('left');
+    release('right');
   };
 }
 
@@ -153,11 +168,14 @@ function useKeyListeners(viewerRef: RefObject<HTMLElement | null>, handlers: Key
     if (!enabled || element === null) return undefined;
     const onKeyDown = keyDownListener(latest);
     const onKeyUp = keyUpListener(latest);
+    const onBlur = blurListener(latest);
     element.addEventListener('keydown', onKeyDown);
     element.addEventListener('keyup', onKeyUp);
+    element.addEventListener('blur', onBlur);
     return () => {
       element.removeEventListener('keydown', onKeyDown);
       element.removeEventListener('keyup', onKeyUp);
+      element.removeEventListener('blur', onBlur);
     };
   }, [viewerRef, enabled]);
 }
