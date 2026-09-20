@@ -84,6 +84,7 @@ function TrackPanel({ page }: { page: PageState }): JSX.Element {
       onPreset={page.onPreset}
       onTrack={page.onTrack}
       onEdit={page.openEditor}
+      onNew={page.openNewEditor}
     />
   );
 }

@@ -90,7 +90,11 @@ export interface PageState {
   readonly onPreset: (preset: TrackPreset) => void;
   readonly view: SimView;
   readonly openEditor: () => void;
+  /** «Nueva pista»: abre el editor con el lienzo en blanco (#190, decisión 3). */
+  readonly openNewEditor: () => void;
   readonly closeEditor: () => void;
+  /** La pista con la que abre el editor: la de la página, o ninguna tras «Nueva pista». */
+  readonly editorTrack: TrackJson | null;
   /** El controlador, los parámetros y la semilla con los que el widget arranca (F4-05). */
   readonly run: ControllerChoice;
   /** Cambia con cada configuración aplicada; es el `key` que remonta el widget (F4-05). */
@@ -120,16 +124,25 @@ export function useOpeningPose(setStartPose: (pose: StartPose) => void): void {
 export function useSimView(): {
   view: SimView;
   openEditor: () => void;
+  openNewEditor: () => void;
   closeEditor: () => void;
+  /** True mientras el editor abierto haya partido del lienzo vacío (#190, decisión 3). */
+  fromEmpty: boolean;
 } {
   const [view, setView] = useState<SimView>('sim');
+  const [fromEmpty, setFromEmpty] = useState(false);
   const openEditor = useCallback((): void => {
+    setFromEmpty(false);
+    setView('editor');
+  }, []);
+  const openNewEditor = useCallback((): void => {
+    setFromEmpty(true);
     setView('editor');
   }, []);
   const closeEditor = useCallback((): void => {
     setView('sim');
   }, []);
-  return { view, openEditor, closeEditor };
+  return { view, openEditor, openNewEditor, closeEditor, fromEmpty };
 }
 
 /**
@@ -221,7 +234,7 @@ export function usePageState(): PageState {
   const [robotId, setRobotId] = useState(MY_ROBOT_ID);
   const [robot, setRobot] = useState<RobotSpec | null>(null);
   const [startPose, setStartPose] = useState<StartPose | null>(null);
-  const { view, openEditor, closeEditor } = useSimView();
+  const { view, openEditor, openNewEditor, closeEditor, fromEmpty } = useSimView();
   const { choice, setChoice, onTrack, onPreset } = useTrackChoice(setStartPose);
   useOpeningPose(setStartPose);
 
@@ -253,7 +266,11 @@ export function usePageState(): PageState {
     onPreset,
     view,
     openEditor,
+    openNewEditor,
     closeEditor,
+    // #190 (decisión 3): «Nueva pista» abre el editor en blanco; «Editar esta pista», con la que
+    // la página está simulando.
+    editorTrack: fromEmpty ? null : choice.track,
     run,
     configKey,
     applyConfig,
@@ -267,7 +284,8 @@ export function usePageState(): PageState {
  */
 function usePageStateObject(state: PageState): PageState {
   const { robotId, robot, choice, startPose, onTrack, onPreset } = state;
-  const { view, openEditor, closeEditor, run, configKey, applyConfig } = state;
+  const { view, openEditor, openNewEditor, closeEditor, editorTrack } = state;
+  const { run, configKey, applyConfig } = state;
   const kept = useRef(state);
   kept.current = state;
   return useMemo(
@@ -281,7 +299,9 @@ function usePageStateObject(state: PageState): PageState {
       onPreset,
       view,
       openEditor,
+      openNewEditor,
       closeEditor,
+      editorTrack,
       run,
       configKey,
       applyConfig,

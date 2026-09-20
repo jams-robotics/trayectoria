@@ -66,24 +66,34 @@ function ViewerBox({
   page,
   store,
   panels,
+  onEmptyTrack,
 }: {
   viewer: ReactNode;
   page: ReturnType<typeof usePageState>;
   store: ApiStore;
   panels: EditorPanelStore;
+  /** Se llama al volver con el lienzo sin segmentos, para avisar de que la pista se conserva. */
+  onEmptyTrack: () => void;
 }): JSX.Element {
   const { closeEditor } = page;
   const editing = page.view === 'editor';
-  const onBack = useCallback((): void => {
-    store.read()?.driver.reset();
-    closeEditor();
-  }, [store, closeEditor]);
+  const onBack = useCallback(
+    (emptyTrack: boolean): void => {
+      store.read()?.driver.reset();
+      closeEditor();
+      // #190 (decisión 3): un lienzo sin segmentos no reemplaza a la pista que la página ya
+      // simulaba; se conserva aquella y se dice, porque si no el editor parecería no haber hecho
+      // nada.
+      if (emptyTrack) onEmptyTrack();
+    },
+    [store, closeEditor, onEmptyTrack],
+  );
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-3">
       <div hidden={editing}>{viewer}</div>
       <TrackEditorBox
         open={editing}
-        track={page.choice.track}
+        track={page.editorTrack}
         onTrack={page.onTrack}
         onBack={onBack}
         renderPanel={(panel) => <EditorPanelPort store={panels} panel={panel} />}
@@ -164,11 +174,41 @@ function useSidePanels(
   );
 }
 
+/**
+ * El aviso de «el editor se dejó sin segmentos, sigue la pista anterior» (#190, decisión 3). Es el
+ * toast de docs/DESIGN.md §5, que se cierra solo a los 5 s o con Esc.
+ */
+function useEmptyTrackNotice(): { shown: boolean; show: () => void; dismiss: () => void } {
+  const [shown, setShown] = useState(false);
+  return {
+    shown,
+    show: useCallback((): void => {
+      setShown(true);
+    }, []),
+    dismiss: useCallback((): void => {
+      setShown(false);
+    }, []),
+  };
+}
+
 /** El aviso en curso de «Guardar y compartir»: copiado, enlace inválido o fallo al guardar. */
 function Notices({ configs }: { configs: SimConfigsApi }): JSX.Element | null {
   const { notice, dismiss } = configs;
   if (notice === null) return null;
   return <Toast message={notice.message} tone={notice.tone} onClose={dismiss} />;
+}
+
+/** El toast de «el editor se dejó sin segmentos», cuando lo hay (#190, decisión 3). */
+function EmptyTrackToast({
+  notice,
+}: {
+  notice: ReturnType<typeof useEmptyTrackNotice>;
+}): JSX.Element | null {
+  const t = useT();
+  if (!notice.shown) return null;
+  return (
+    <Toast message={t('sims.mobilePage.emptyTrackKept')} tone="neutral" onClose={notice.dismiss} />
+  );
 }
 
 /** La pista, el controlador, el robot y la pose con los que la página abre la carrera. */
@@ -199,6 +239,8 @@ interface SimulatorProps {
   readonly onInstruments: (instruments: LiveInstruments) => void;
   readonly store: ApiStore;
   readonly panels: EditorPanelStore;
+  /** Se llama al volver del editor con el lienzo sin segmentos (#190, decisión 3). */
+  readonly onEmptyTrack: () => void;
 }
 
 /** El aviso mientras el chunk del simulador se resuelve. */
@@ -220,6 +262,7 @@ function Simulator({
   onInstruments,
   store,
   panels,
+  onEmptyTrack,
 }: SimulatorProps): JSX.Element {
   return (
     <Suspense fallback={<SimulatorFallback />}>
@@ -234,7 +277,13 @@ function Simulator({
         onInstruments={onInstruments}
         renderPanel={renderPanel}
         renderViewer={(viewer) => (
-          <ViewerBox viewer={viewer} page={page} store={store} panels={panels} />
+          <ViewerBox
+            viewer={viewer}
+            page={page}
+            store={store}
+            panels={panels}
+            onEmptyTrack={onEmptyTrack}
+          />
         )}
         hideControls={mobile}
       />
@@ -260,6 +309,7 @@ export function MobileSimIsland(): JSX.Element {
   // #189 (decisión 2): el panel del editor viaja de la caja del visor a la columna derecha.
   const panels = useEditorPanelStore();
   const configs = useSimConfigs(page.robotId, page.applyConfig);
+  const emptyTrack = useEmptyTrackNotice();
   const [live, setLive] = useState<ControllerChoice>(page.run);
   const current = useCurrentConfig(page, live);
   const renderController = useSidePanels({
@@ -286,9 +336,11 @@ export function MobileSimIsland(): JSX.Element {
         onInstruments={instruments.publish}
         store={store}
         panels={panels}
+        onEmptyTrack={emptyTrack.show}
       />
       {mobile ? <LiveBottomBar store={store} /> : null}
       <Notices configs={configs} />
+      <EmptyTrackToast notice={emptyTrack} />
     </div>
   );
 }

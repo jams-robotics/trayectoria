@@ -38,8 +38,10 @@ export interface TrackSourceProps {
   readonly onPreset: (preset: TrackPreset) => void;
   /** Se llama con la pista cargada de un JSON; la página reinicia la simulación con ella. */
   readonly onTrack: (track: TrackJson) => void;
-  /** «Editar»: la página lleva el editor a la caja del visor (#158, decisión 1). */
+  /** «Editar esta pista»: la página lleva el editor a la caja del visor (#158, decisión 1). */
   readonly onEdit: () => void;
+  /** «Nueva pista»: abre esa misma caja con el editor en blanco (#190, decisión 3). */
+  readonly onNew: () => void;
 }
 
 /** Uno de los cuatro presets, o null si la cadena no es ninguno. */
@@ -117,12 +119,29 @@ function LoadButton({
   );
 }
 
-/** El botón que lleva el editor de pista a la caja del visor (#158). */
-function EditButton({ onEdit, t }: { onEdit: () => void; t: Translate }): JSX.Element {
+/**
+ * Los dos botones que llevan el editor a la caja del visor (#158; #190, decisión 3): continuar
+ * con la pista que se está viendo, o empezar una en blanco. Antes había uno solo, «Editar», y
+ * desde él no había forma de llegar al lienzo vacío.
+ */
+function EditButtons({
+  onEdit,
+  onNew,
+  t,
+}: {
+  onEdit: () => void;
+  onNew: () => void;
+  t: Translate;
+}): JSX.Element {
   return (
-    <button type="button" className={BUTTON} data-testid="track-source-edit" onClick={onEdit}>
-      {t('sims.mobilePage.edit')}
-    </button>
+    <>
+      <button type="button" className={BUTTON} data-testid="track-source-edit" onClick={onEdit}>
+        {t('sims.mobilePage.editThis')}
+      </button>
+      <button type="button" className={BUTTON} data-testid="track-source-new" onClick={onNew}>
+        {t('sims.mobilePage.newTrack')}
+      </button>
+    </>
   );
 }
 
@@ -149,8 +168,14 @@ function useJsonLoad(
   return { error, load };
 }
 
-/** Selector de preset, botón «Editar» y carga de un JSON de pista. */
-export function TrackSource({ preset, onPreset, onTrack, onEdit }: TrackSourceProps): JSX.Element {
+/** Selector de preset, los dos botones del editor y la carga de un JSON de pista. */
+export function TrackSource({
+  preset,
+  onPreset,
+  onTrack,
+  onEdit,
+  onNew,
+}: TrackSourceProps): JSX.Element {
   const t = useT();
   const { error, load } = useJsonLoad(onTrack, t);
 
@@ -165,7 +190,7 @@ export function TrackSource({ preset, onPreset, onTrack, onEdit }: TrackSourcePr
           }}
           t={t}
         />
-        <EditButton onEdit={onEdit} t={t} />
+        <EditButtons onEdit={onEdit} onNew={onNew} t={t} />
         <LoadButton onFile={load} t={t} />
       </div>
       {error === null ? null : (
