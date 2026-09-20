@@ -10,6 +10,9 @@ const STORIES = [
   { story: 'SCurve', shot: 'TrackEditor-s' },
   { story: 'TightCurves', shot: 'TrackEditor-tight' },
   { story: 'Crossing', shot: 'TrackEditor-cross' },
+  // #160: la story `Selected` deja seleccionado su segundo segmento, que el lienzo redibuja en
+  // `--color-primary` con un círculo en cada extremo.
+  { story: 'Selected', shot: 'TrackEditor-selected' },
 ] as const;
 
 /** Sección de /dev/sims que se captura. */
@@ -43,6 +46,11 @@ for (const { story, shot } of STORIES) {
     await openPlayground(page);
     const target = page.locator(`[data-section="${SECTION}"] [data-story="${story}"]`);
     await expect(target).toBeVisible();
+    // La story `Selected` hace su selección al montar: la marca del segmento es la puerta de
+    // «el resaltado ya está en el lienzo» (#160).
+    if (story === 'Selected') {
+      await expect(target.locator('[data-selected="true"]')).toHaveCount(1);
+    }
     // Scene2D mide su contenedor con un `ResizeObserver` y pinta dentro de un
     // `requestAnimationFrame`: al hacerse visible el lienzo sigue en 300 × 150 y en blanco, así
     // que se espera a que esté dimensionado y con píxeles pintados de verdad.

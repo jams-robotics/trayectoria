@@ -122,6 +122,8 @@ function SegmentList({
           <button
             type="button"
             aria-pressed={selected === index}
+            // #160: marca del segmento seleccionado, la misma que resalta el lienzo.
+            {...(selected === index ? { 'data-selected': 'true' } : {})}
             aria-label={t(`sims.trackEditor.segment${segment.type === 'arc' ? 'Arc' : 'Line'}`, {
               index: index + 1,
             })}
@@ -242,6 +244,21 @@ function SegmentFields({
 }
 
 /**
+ * Title of the panel: «Segmento N · recta» or «Segmento N · arco» with a segment selected, and
+ * the generic heading with none (#160, decision 2). N is one-based, as in the list below it.
+ */
+function panelTitle(
+  t: ReturnType<typeof useT>,
+  segment: TrackSegment | undefined,
+  selected: number | null,
+): string {
+  if (segment === undefined || selected === null) return t('sims.trackEditor.segment');
+  return t(`sims.trackEditor.segmentTitle.${segment.type === 'arc' ? 'arc' : 'line'}`, {
+    index: selected + 1,
+  });
+}
+
+/**
  * Numeric panel of the selected segment (criterion of #126: it is the keyboard alternative to
  * drawing with the pointer). It edits both endpoints in metres, the radius and the sweep of an
  * arc, and the global painted width of the track.
@@ -257,7 +274,7 @@ export function SegmentPanel(props: SegmentPanelProps): JSX.Element {
       aria-label={t('sims.trackEditor.segment')}
       data-testid="track-editor-panel"
     >
-      <h3 className="text-base font-semibold">{t('sims.trackEditor.segment')}</h3>
+      <h3 className="text-base font-semibold">{panelTitle(t, segment, selected)}</h3>
       <div className="mt-3">
         <SegmentList segments={segments} selected={selected} onSelect={onSelect} />
       </div>

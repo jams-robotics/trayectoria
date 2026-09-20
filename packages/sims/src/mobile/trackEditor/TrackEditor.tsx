@@ -1,10 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { JSX, PointerEvent as ReactPointerEvent, RefObject } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Track, Vec2 } from '@trayectoria/sim-core';
 import { Circle, Scene2D, TrackLayer, createTransform, pxToWorld } from '@trayectoria/widgets';
 
 import { SegmentPanel } from './SegmentPanel';
+import { segmentEndpoints } from './model';
 import { Toolbar } from './Toolbar';
 import { useTrackEditor } from './useTrackEditor';
 import type { TrackEditorApi } from './useTrackEditor';
@@ -30,6 +31,12 @@ const SCENE_CENTER_M: [number, number] = [0.475, 0.05];
 /** Radius of the marker drawn at the snapped end of the stroke, in metres (spec of #126). */
 const SNAP_MARKER_RADIUS_M = 0.015;
 
+/** Diameter of the marker drawn at each end of the selected segment, in CSS pixels (#160). */
+const SELECTED_ENDPOINT_DIAMETER_PX = 6;
+
+/** Width `Scene2D` falls back to before it has measured its container, in CSS pixels. */
+const FALLBACK_CANVAS_WIDTH_PX = 480;
+
 /**
  * Pointer position in world metres, or null before the scene has been laid out. The mapping is
  * rebuilt with the very `createTransform` of `Scene2D` over the canvas it painted, so the pixels
@@ -51,8 +58,64 @@ function worldOf(host: HTMLElement | null, event: ReactPointerEvent<HTMLElement>
   return pxToWorld(transform, event.clientX - box.left, event.clientY - box.top);
 }
 
+/**
+ * Metres the canvas currently paints per CSS pixel. `Circle` sizes its markers in world metres,
+ * so a marker that must stay 6 px wide whatever the width of the canvas needs the live scale;
+ * the canvas is measured with the same `ResizeObserver` route `Scene2D` uses on its own host.
+ */
+function useMetresPerPx(hostRef: RefObject<HTMLDivElement | null>): number {
+  const [width_px, setWidth] = useState(FALLBACK_CANVAS_WIDTH_PX);
+  useEffect(() => {
+    const canvas = hostRef.current?.querySelector('canvas') ?? null;
+    if (canvas === null || typeof ResizeObserver !== 'function') return;
+    const measure = (): void => {
+      const measured_px = canvas.getBoundingClientRect().width;
+      if (measured_px > 0) setWidth(measured_px);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(canvas);
+    return () => {
+      observer.disconnect();
+    };
+  }, [hostRef]);
+  return WORLD_WIDTH_M / width_px;
+}
+
+/**
+ * The selected segment redrawn on top of the track in `--color-primary` at the same line width,
+ * with a circle at each of its ends (#160, decision 1): selection is visible on the canvas, not
+ * only in the numeric panel.
+ */
+function SelectedOverlay({
+  editor,
+  metresPerPx,
+}: {
+  editor: TrackEditorApi;
+  metresPerPx: number;
+}): JSX.Element | null {
+  const { track, selected } = editor.state;
+  const segment = selected === null ? undefined : track.segments[selected];
+  if (segment === undefined) return null;
+  const [from, to] = segmentEndpoints(segment);
+  const radius_m = (SELECTED_ENDPOINT_DIAMETER_PX / 2) * metresPerPx;
+  return (
+    <>
+      <TrackLayer track={{ ...track, segments: [segment] }} color="color-primary" />
+      <Circle center_m={[from[0], from[1]]} radius_m={radius_m} color="color-primary" filled />
+      <Circle center_m={[to[0], to[1]]} radius_m={radius_m} color="color-primary" filled />
+    </>
+  );
+}
+
 /** The canvas with the track, the preview of the stroke and the snap marker of its start. */
-function EditorCanvas({ editor }: { editor: TrackEditorApi }): JSX.Element {
+function EditorCanvas({
+  editor,
+  metresPerPx,
+}: {
+  editor: TrackEditorApi;
+  metresPerPx: number;
+}): JSX.Element {
   const t = useT();
   const { draft } = editor;
   return (
@@ -62,6 +125,7 @@ function EditorCanvas({ editor }: { editor: TrackEditorApi }): JSX.Element {
       description={t('sims.trackEditor.scene')}
     >
       <TrackLayer track={editor.state.track} />
+      <SelectedOverlay editor={editor} metresPerPx={metresPerPx} />
       {draft === null ? null : (
         <>
           <TrackLayer track={draft.track} color="color-data-1" />
@@ -103,6 +167,7 @@ function CanvasHost({
   editor: TrackEditorApi;
   hostRef: RefObject<HTMLDivElement | null>;
 }): JSX.Element {
+  const metresPerPx = useMetresPerPx(hostRef);
   const pointer =
     (handler: (p_m: Vec2) => void) =>
     (event: ReactPointerEvent<HTMLDivElement>): void => {
@@ -124,7 +189,7 @@ function CanvasHost({
         pointer(editor.pointerUp)(event);
       }}
     >
-      <EditorCanvas editor={editor} />
+      <EditorCanvas editor={editor} metresPerPx={metresPerPx} />
     </div>
   );
 }

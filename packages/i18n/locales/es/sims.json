@@ -25,6 +25,10 @@
     "presetConfirmAccept": "Sustituir",
     "presetConfirmCancel": "Cancelar",
     "segment": "Segmento seleccionado",
+    "segmentTitle": {
+      "line": "Segmento {{index}} · recta",
+      "arc": "Segmento {{index}} · arco"
+    },
     "noSegment": "Ningún segmento seleccionado.",
     "field": {
       "fromX": "Inicio x (m)",
