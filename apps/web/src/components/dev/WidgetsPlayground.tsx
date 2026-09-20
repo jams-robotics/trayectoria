@@ -1,4 +1,4 @@
-import { StoryGallery } from '@trayectoria/widgets';
+import { StoryGallery } from '@trayectoria/widgets/dev';
 import type { JSX } from 'react';
 
 /**
@@ -11,6 +11,10 @@ import type { JSX } from 'react';
  * Mounted with `client:only="react"` (no SSR pass, so there is nothing to mismatch) from
  * `apps/web/src/pages/dev/widgets.astro`, the only place `window` is allowed (CLAUDE.md,
  * prohibiciones). `StoryGallery` and its `section` prop are unchanged.
+ *
+ * Se importa desde `@trayectoria/widgets/dev` y no desde el barrel: estando en el barrel, su
+ * `import()` de las stories dejaba el chunk de `three` en el grafo de toda página que importa
+ * `@trayectoria/widgets` (#154).
  */
 export function WidgetsPlayground(): JSX.Element {
   const section = new URLSearchParams(window.location.search).get('section');

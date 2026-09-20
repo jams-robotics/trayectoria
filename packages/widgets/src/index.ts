@@ -261,7 +261,7 @@ export type {
 export { TOAST_TIMEOUT_MS, Toast } from './shared/Toast';
 export type { ToastProps, ToastTone } from './shared/Toast';
 
-// Playground-only discovery/rendering (docs/STANDARDS.md §4: index.ts reexports the public
-// API only); the implementation lives in ./dev/StoryGallery.
-export { StoryGallery, stories } from './dev/StoryGallery';
-export type { WidgetStory, WidgetStories, StoryGalleryProps } from './dev/StoryGallery';
+// `StoryGallery` y sus tipos NO se reexportan aquí: son API de desarrollo del playground, no API
+// pública del paquete (docs/STANDARDS.md §4). Viven en la entrada `@trayectoria/widgets/dev`.
+// Estando en el barrel, su `import()` de las stories dejaba la tabla `__vite__mapDeps` con el
+// chunk de `three` en el grafo de toda página que importa `@trayectoria/widgets` (#154).
