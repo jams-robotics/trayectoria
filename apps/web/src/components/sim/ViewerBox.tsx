@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import type { JSX, ReactNode } from 'react';
+import type { TrackJson } from '@trayectoria/sims';
 
 import type { ApiStore } from './apiStore';
 import type { EditorPanelStore } from './editorPanelStore';
@@ -23,6 +24,7 @@ export function ViewerBox({
   store,
   panels,
   onEmptyTrack,
+  onSaveTrack,
 }: {
   viewer: ReactNode;
   page: ReturnType<typeof usePageState>;
@@ -30,6 +32,8 @@ export function ViewerBox({
   panels: EditorPanelStore;
   /** Se llama al volver con el lienzo sin segmentos, para avisar de que la pista se conserva. */
   onEmptyTrack: () => void;
+  /** «Guardar» del editor: la pista va a la cuenta o al navegador (#191, decisión 3). */
+  onSaveTrack: (name: string, track: Exclude<TrackJson, string>) => Promise<void>;
 }): JSX.Element {
   const { closeEditor } = page;
   const editing = page.view === 'editor';
@@ -53,6 +57,7 @@ export function ViewerBox({
         onTrack={page.onTrack}
         onBack={onBack}
         renderPanel={(panel) => <EditorPanelPort store={panels} panel={panel} />}
+        onSaveTrack={onSaveTrack}
       />
     </div>
   );

@@ -196,6 +196,52 @@ function TrackGroup({
   );
 }
 
+/** Un botón de texto de la barra, con su etiqueta y su tamaño. */
+function BarButton({
+  label,
+  size,
+  disabled,
+  onClick,
+}: {
+  label: string;
+  size: Sizing;
+  disabled?: boolean;
+  onClick: () => void;
+}): JSX.Element {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      className={`${BUTTON} ${size.pad} ${size.text}`}
+      onClick={onClick}
+      disabled={disabled === true}
+    >
+      {label}
+    </button>
+  );
+}
+
+/** Deshacer, rehacer y «Exportar JSON»: lo que actúa sobre la pista que ya está en el lienzo. */
+function HistoryGroup({
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
+  onSave,
+  size,
+}: Pick<ToolbarProps, 'canUndo' | 'canRedo' | 'onUndo' | 'onRedo' | 'onSave'> & {
+  size: Sizing;
+}): JSX.Element {
+  const t = useT();
+  return (
+    <>
+      <BarButton label={t('sims.trackEditor.undo')} size={size} disabled={!canUndo} onClick={onUndo} />
+      <BarButton label={t('sims.trackEditor.redo')} size={size} disabled={!canRedo} onClick={onRedo} />
+      <BarButton label={t('sims.trackEditor.exportJson')} size={size} onClick={onSave} />
+    </>
+  );
+}
+
 /**
  * Toolbar of the track editor: tools, undo/redo, save, load and the preset picker. Every control
  * carries its own label and reaches 44 px, so the whole bar is operable by keyboard and on a
@@ -204,7 +250,6 @@ function TrackGroup({
 export function Toolbar(props: ToolbarProps): JSX.Element {
   const { tool, onTool, canUndo, canRedo, onUndo, onRedo, onSave, onLoad, onPreset } = props;
   const { onNew, onSaveTrack } = props;
-  const t = useT();
   // En una sola fila la barra no envuelve y desplaza en horizontal lo que no quepa, en lugar de
   // robarle una segunda fila al lienzo (#189, decisión 1).
   const tight = props.singleRow === true;
@@ -216,32 +261,14 @@ export function Toolbar(props: ToolbarProps): JSX.Element {
   return (
     <div className={`flex shrink-0 items-center ${layout}`} data-testid="track-editor-toolbar">
       <ToolGroup tool={tool} onTool={onTool} size={size} />
-      <button
-        type="button"
-        aria-label={t('sims.trackEditor.undo')}
-        className={`${BUTTON} ${size.pad} ${size.text}`}
-        onClick={onUndo}
-        disabled={!canUndo}
-      >
-        {t('sims.trackEditor.undo')}
-      </button>
-      <button
-        type="button"
-        aria-label={t('sims.trackEditor.redo')}
-        className={`${BUTTON} ${size.pad} ${size.text}`}
-        onClick={onRedo}
-        disabled={!canRedo}
-      >
-        {t('sims.trackEditor.redo')}
-      </button>
-      <button
-        type="button"
-        aria-label={t('sims.trackEditor.exportJson')}
-        className={`${BUTTON} ${size.pad} ${size.text}`}
-        onClick={onSave}
-      >
-        {t('sims.trackEditor.exportJson')}
-      </button>
+      <HistoryGroup
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onUndo={onUndo}
+        onRedo={onRedo}
+        onSave={onSave}
+        size={size}
+      />
       {onSaveTrack === undefined ? null : (
         <SaveTrackField onSave={onSaveTrack} pad={size.pad} text={size.text} />
       )}

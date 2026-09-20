@@ -196,6 +196,14 @@ export interface TrackEditorProps {
  * selected segment, which is the keyboard route into the same edits. Every geometry decision
  * comes from the pure model of F4-01a; this component only maps pixels to metres and renders.
  */
+/**
+ * #189: con `renderPanel` el editor vive dentro de la caja del visor, donde cada píxel de
+ * separación se lo quita al lienzo; sin ella, la separación de siempre (el playground).
+ */
+function rootClass(renderPanel: ((panel: ReactNode) => ReactNode) | undefined): string {
+  return `flex flex-col outline-none ${renderPanel === undefined ? 'gap-5' : 'gap-3'}`;
+}
+
 export function TrackEditor({
   initialTrack,
   onChange,
@@ -218,14 +226,7 @@ export function TrackEditor({
   return (
     // `tabIndex` so a click on the canvas leaves the focus inside the editor and the shortcuts of
     // #159 reach it; the outline is the browser's own only when it is focused by keyboard.
-    <div
-      ref={rootRef}
-      tabIndex={-1}
-      // #189: con `renderPanel` el editor vive dentro de la caja del visor, donde cada píxel de
-      // separación se lo quita al lienzo; sin ella, la separación de siempre (el playground).
-      className={`flex flex-col outline-none ${renderPanel === undefined ? 'gap-5' : 'gap-3'}`}
-      data-testid="track-editor"
-    >
+    <div ref={rootRef} tabIndex={-1} className={rootClass(renderPanel)} data-testid="track-editor">
       {/* #189, decisión 1: en una sola fila cuando la página coloca el panel fuera; en el
           playground la barra sigue repartiéndose en varias líneas si no cabe. */}
       <EditorToolbar

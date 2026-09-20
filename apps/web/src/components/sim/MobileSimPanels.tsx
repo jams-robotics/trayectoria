@@ -16,6 +16,7 @@ import { Panel } from './SimPanel';
 import type { OpenPanelId } from './SimPanel';
 import { TrackSource } from './TrackSource';
 import type { ControllerChoice, PageState } from './useMobileSimState';
+import type { SavedTracksApi } from './useSavedTracks';
 import type { SimConfigsApi } from './useSimConfigs';
 
 // F4-02b (#128): los paneles de `/simuladores/movil` (Robot, Pista, Lecturas y la columna
@@ -76,8 +77,8 @@ function Readouts({ api, t }: { api: LineFollowerApi | null; t: Translate }): JS
   );
 }
 
-/** El origen de la pista, con lo que la página tiene elegido. */
-function TrackPanel({ page }: { page: PageState }): JSX.Element {
+/** El origen de la pista, con lo que la página tiene elegido y sus pistas guardadas (#191). */
+function TrackPanel({ page, tracks }: { page: PageState; tracks: SavedTracksApi }): JSX.Element {
   return (
     <TrackSource
       preset={page.choice.preset}
@@ -85,6 +86,10 @@ function TrackPanel({ page }: { page: PageState }): JSX.Element {
       onTrack={page.onTrack}
       onEdit={page.openEditor}
       onNew={page.openNewEditor}
+      saved={tracks.saved}
+      savedId={tracks.selectedId}
+      onSaved={tracks.onSelect}
+      onDeleteSaved={tracks.onDelete}
     />
   );
 }
@@ -209,6 +214,8 @@ export interface SidePanelsProps {
   readonly instruments: InstrumentsStore;
   /** El panel numérico que el editor de pista publica mientras se edita (#189, decisión 2). */
   readonly panels: EditorPanelStore;
+  /** Las pistas guardadas del grupo «Mis pistas» del panel Pista (#191, decisión 4). */
+  readonly tracks: SavedTracksApi;
 }
 
 /** La columna de la simulación: el controlador del widget y las cinco tarjetas de la maqueta 04. */
@@ -229,7 +236,7 @@ function SimColumn(props: SidePanelsProps): JSX.Element {
         <RobotSource selected={page.robotId} onSelect={page.setRobotId} onRobot={page.setRobot} />
       </Panel>
       <Panel id="track" title={t('sims.mobilePage.track')} {...shared}>
-        <TrackPanel page={page} />
+        <TrackPanel page={page} tracks={props.tracks} />
       </Panel>
       <ReadoutsPanel store={store} t={t} {...shared} />
       <PlotsPanel

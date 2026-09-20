@@ -15,6 +15,8 @@ import { LiveBottomBar, SidePanels } from './MobileSimPanels';
 import type { OpenPanelId, SidePanelsProps } from './MobileSimPanels';
 import { ViewerBox } from './ViewerBox';
 import { MOBILE_MEDIA_QUERY, useMediaQuery } from './useMediaQuery';
+import { useSavedTracks } from './useSavedTracks';
+import type { SavedTracksApi } from './useSavedTracks';
 import { useSimConfigs } from './useSimConfigs';
 import type { SimConfigsApi } from './useSimConfigs';
 import type { ControllerChoice, PageState } from './useMobileSimState';
@@ -106,17 +108,28 @@ function useSidePanels(
         onChoice={onChoice}
         instruments={instruments}
         panels={panels}
+        tracks={latest.current.tracks}
       />
     ),
     [mobile, openId, setOpenId, store, onChoice, instruments, panels],
   );
 }
 
-/** El aviso en curso de «Guardar y compartir»: copiado, enlace inválido o fallo al guardar. */
-function Notices({ configs }: { configs: SimConfigsApi }): JSX.Element | null {
-  const { notice, dismiss } = configs;
-  if (notice === null) return null;
-  return <Toast message={notice.message} tone={notice.tone} onClose={dismiss} />;
+/**
+ * El aviso en curso de la página: el de «Guardar y compartir» (copiado, enlace inválido, fallo al
+ * guardar) o el de las pistas guardadas (#191). Solo hay un `Toast` a la vez, y el de las pistas
+ * va primero: es el que responde a lo último que el estudiante hizo.
+ */
+function Notices({
+  configs,
+  tracks,
+}: {
+  configs: SimConfigsApi;
+  tracks: SavedTracksApi;
+}): JSX.Element | null {
+  const shown = tracks.notice === null ? configs : tracks;
+  if (shown.notice === null) return null;
+  return <Toast message={shown.notice.message} tone={shown.notice.tone} onClose={shown.dismiss} />;
 }
 
 /** La pista, el controlador, el robot y la pose con los que la página abre la carrera. */
@@ -149,6 +162,8 @@ interface SimulatorProps {
   readonly panels: EditorPanelStore;
   /** Se llama al volver del editor con el lienzo sin segmentos (#190, decisión 3). */
   readonly onEmptyTrack: () => void;
+  /** «Guardar» del editor: la pista va a la cuenta o al navegador (#191, decisión 3). */
+  readonly onSaveTrack: SavedTracksApi['onSave'];
 }
 
 /** El aviso mientras el chunk del simulador se resuelve. */
@@ -171,6 +186,7 @@ function Simulator({
   store,
   panels,
   onEmptyTrack,
+  onSaveTrack,
 }: SimulatorProps): JSX.Element {
   return (
     <Suspense fallback={<SimulatorFallback />}>
@@ -191,6 +207,7 @@ function Simulator({
             store={store}
             panels={panels}
             onEmptyTrack={onEmptyTrack}
+            onSaveTrack={onSaveTrack}
           />
         )}
         hideControls={mobile}
@@ -217,12 +234,16 @@ export function MobileSimIsland(): JSX.Element {
   // #189 (decisión 2): el panel del editor viaja de la caja del visor a la columna derecha.
   const panels = useEditorPanelStore();
   const configs = useSimConfigs(page.robotId, page.applyConfig);
+  // #191 (decisiones 2 y 4): las pistas guardadas del grupo «Mis pistas». Elegir una la carga
+  // como pista actual por el mismo camino que un preset, y guardar desde el editor la deja
+  // seleccionada.
+  const tracks = useSavedTracks(page.onTrack);
   const emptyTrack = useEmptyTrackNotice();
   const [live, setLive] = useState<ControllerChoice>(page.run);
   const current = useCurrentConfig(page, live);
   const renderController = useSidePanels({
     page, t, configs, current, store, mobile, openId, setOpenId, onChoice: setLive, instruments,
-    panels,
+    panels, tracks,
   });
 
   // Maqueta 04: el visor a la izquierda y la columna de tarjetas a la derecha. El widget ocupa
@@ -245,9 +266,10 @@ export function MobileSimIsland(): JSX.Element {
         store={store}
         panels={panels}
         onEmptyTrack={emptyTrack.show}
+        onSaveTrack={tracks.onSave}
       />
       {mobile ? <LiveBottomBar store={store} /> : null}
-      <Notices configs={configs} />
+      <Notices configs={configs} tracks={tracks} />
       <EmptyTrackToast notice={emptyTrack} />
     </div>
   );

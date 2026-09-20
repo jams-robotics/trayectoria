@@ -50,7 +50,9 @@ export type {
   UseTrackEditorOptions,
 } from './mobile/trackEditor';
 
-// F4-06 (#191): las pistas guardadas en la cuenta o en el navegador.
+// F4-06 (#191): las pistas guardadas en la cuenta o en el navegador. `serializeTrack` se
+// reexporta porque el adaptador de Supabase vive en `apps/web`, que no puede importar sim-core
+// (docs/ARCHITECTURE.md §2) y guarda la pista con el mismo texto que el editor exporta.
 export {
   LOCAL_TRACKS_KEY,
   MAX_NAME_LENGTH,
@@ -58,6 +60,7 @@ export {
   listLocalTracks,
   saveLocalTrack,
 } from './mobile/trackEditor';
+export { serializeTrack } from '@trayectoria/sim-core';
 export type { SavedTrack } from './mobile/trackEditor';
 
 export {

@@ -29,7 +29,7 @@ describe('TrackEditor · Guardar (F4-06)', () => {
 
   test('calls onSaveTrack with the name and the track of the editor', async () => {
     const user = userEvent.setup();
-    const onSaveTrack = vi.fn<(name: string, track: Track) => Promise<void>>(async () => undefined);
+    const onSaveTrack = vi.fn<(name: string, track: Track) => Promise<void>>(() => Promise.resolve());
     render(<TrackEditor initialTrack={LINE_TRACK} onSaveTrack={onSaveTrack} />);
     await user.click(screen.getByTestId('track-editor-save-track'));
     await user.type(screen.getByTestId('track-editor-save-name'), 'Mi óvalo');
@@ -42,7 +42,7 @@ describe('TrackEditor · Guardar (F4-06)', () => {
 
   test('does not save an empty name and keeps the field open', async () => {
     const user = userEvent.setup();
-    const onSaveTrack = vi.fn<(name: string, track: Track) => Promise<void>>(async () => undefined);
+    const onSaveTrack = vi.fn<(name: string, track: Track) => Promise<void>>(() => Promise.resolve());
     render(<TrackEditor initialTrack={LINE_TRACK} onSaveTrack={onSaveTrack} />);
     await user.click(screen.getByTestId('track-editor-save-track'));
     const confirm = screen.getByTestId('track-editor-save-track-confirm');
@@ -55,7 +55,7 @@ describe('TrackEditor · Guardar (F4-06)', () => {
 
   test('Enter saves and Esc closes the field without saving', async () => {
     const user = userEvent.setup();
-    const onSaveTrack = vi.fn<(name: string, track: Track) => Promise<void>>(async () => undefined);
+    const onSaveTrack = vi.fn<(name: string, track: Track) => Promise<void>>(() => Promise.resolve());
     render(<TrackEditor initialTrack={LINE_TRACK} onSaveTrack={onSaveTrack} />);
     await user.click(screen.getByTestId('track-editor-save-track'));
     await user.type(screen.getByTestId('track-editor-save-name'), 'Con Enter{Enter}');
@@ -69,7 +69,7 @@ describe('TrackEditor · Guardar (F4-06)', () => {
 
   test('caps the name at the length the tracks table accepts', async () => {
     const user = userEvent.setup();
-    const onSaveTrack = vi.fn<(name: string, track: Track) => Promise<void>>(async () => undefined);
+    const onSaveTrack = vi.fn<(name: string, track: Track) => Promise<void>>(() => Promise.resolve());
     render(<TrackEditor initialTrack={LINE_TRACK} onSaveTrack={onSaveTrack} />);
     await user.click(screen.getByTestId('track-editor-save-track'));
     const field = screen.getByTestId('track-editor-save-name');

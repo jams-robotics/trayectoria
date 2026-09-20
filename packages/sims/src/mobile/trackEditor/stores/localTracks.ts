@@ -42,14 +42,21 @@ function storage(): Storage | null {
   }
 }
 
+/** The string under `key` of a record, or `null` when it is not there or is not a string. */
+function textOf(record: Readonly<Record<string, unknown>>, key: string): string | null {
+  const value = record[key];
+  return typeof value === 'string' && value.trim() !== '' ? value : null;
+}
+
 /** One stored entry as a `SavedTrack`, or `null` when it is not one. */
 function parseEntry(entry: unknown): SavedTrack | null {
   if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) return null;
-  const { id, name, track, updatedAt } = entry as Partial<StoredTrack>;
-  if (typeof id !== 'string' || id === '') return null;
-  if (typeof name !== 'string' || name.trim() === '') return null;
-  if (typeof updatedAt !== 'string') return null;
-  if (typeof track !== 'string') return null;
+  const record: Readonly<Record<string, unknown>> = { ...entry };
+  const id = textOf(record, 'id');
+  const name = textOf(record, 'name');
+  const updatedAt = textOf(record, 'updatedAt');
+  const track = textOf(record, 'track');
+  if (id === null || name === null || updatedAt === null || track === null) return null;
   const parsed = fromJson(track);
   return parsed.ok ? { id, name, track: parsed.value.track, updatedAt } : null;
 }

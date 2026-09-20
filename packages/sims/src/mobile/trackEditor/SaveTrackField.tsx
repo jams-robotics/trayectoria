@@ -28,7 +28,25 @@ export interface SaveTrackFieldProps {
   readonly text: string;
 }
 
-/** The name field and its two keys: Enter saves, Esc closes without saving. */
+/** The two keys of the field: Enter saves, Esc closes without saving. */
+function keyHandler(
+  onCommit: () => void,
+  onCancel: () => void,
+): (event: KeyboardEvent<HTMLInputElement>) => void {
+  return (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      onCommit();
+      return;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      onCancel();
+    }
+  };
+}
+
+/** The name field, with Enter and Esc bound to saving and cancelling. */
 function NameEntry({
   name,
   onName,
@@ -43,17 +61,6 @@ function NameEntry({
   readonly text: string;
 }): JSX.Element {
   const t = useT();
-  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      onCommit();
-      return;
-    }
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      onCancel();
-    }
-  };
   return (
     <input
       type="text"
@@ -67,7 +74,7 @@ function NameEntry({
       onChange={(event) => {
         onName(event.target.value);
       }}
-      onKeyDown={onKeyDown}
+      onKeyDown={keyHandler(onCommit, onCancel)}
     />
   );
 }
@@ -78,7 +85,6 @@ function NameEntry({
  * `SaveConfigPanel` — so the learner sees why nothing happened.
  */
 export function SaveTrackField({ onSave, pad, text }: SaveTrackFieldProps): JSX.Element {
-  const t = useT();
   const [name, setName] = useState<string | null>(null);
   const trimmed = name?.trim() ?? '';
   const close = (): void => {
@@ -91,32 +97,70 @@ export function SaveTrackField({ onSave, pad, text }: SaveTrackFieldProps): JSX.
   };
   if (name === null) {
     return (
-      <button
-        type="button"
-        aria-label={t('sims.trackEditor.save.open')}
-        data-testid="track-editor-save-track"
-        className={`${BUTTON} ${pad} ${text}`}
-        onClick={() => {
+      <OpenButton
+        pad={pad}
+        text={text}
+        onOpen={() => {
           setName('');
         }}
-      >
-        {t('sims.trackEditor.save.open')}
-      </button>
+      />
     );
   }
   return (
     <span className="flex shrink items-center gap-2">
       <NameEntry name={name} onName={setName} onCommit={commit} onCancel={close} text={text} />
-      <button
-        type="button"
-        aria-label={t('sims.trackEditor.save.confirm')}
-        data-testid="track-editor-save-track-confirm"
-        className={`${BUTTON} ${pad} ${text}`}
-        disabled={trimmed === ''}
-        onClick={commit}
-      >
-        {t('sims.trackEditor.save.confirm')}
-      </button>
+      <ConfirmButton pad={pad} text={text} disabled={trimmed === ''} onCommit={commit} />
     </span>
+  );
+}
+
+/** «Guardar» before the field is open: a click on it is what asks for the name. */
+function OpenButton({
+  pad,
+  text,
+  onOpen,
+}: {
+  readonly pad: string;
+  readonly text: string;
+  readonly onOpen: () => void;
+}): JSX.Element {
+  const t = useT();
+  return (
+    <button
+      type="button"
+      aria-label={t('sims.trackEditor.save.open')}
+      data-testid="track-editor-save-track"
+      className={`${BUTTON} ${pad} ${text}`}
+      onClick={onOpen}
+    >
+      {t('sims.trackEditor.save.open')}
+    </button>
+  );
+}
+
+/** «Guardar» beside the open field; disabled while the name is empty. */
+function ConfirmButton({
+  pad,
+  text,
+  disabled,
+  onCommit,
+}: {
+  readonly pad: string;
+  readonly text: string;
+  readonly disabled: boolean;
+  readonly onCommit: () => void;
+}): JSX.Element {
+  const t = useT();
+  return (
+    <button
+      type="button"
+      aria-label={t('sims.trackEditor.save.confirm')}
+      data-testid="track-editor-save-track-confirm"
+      className={`${BUTTON} ${pad} ${text}`}
+      disabled={disabled}
+      onClick={onCommit}
+    >
+      {t('sims.trackEditor.save.confirm')}
+    </button>
   );
 }
