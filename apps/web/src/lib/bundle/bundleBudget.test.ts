@@ -51,7 +51,7 @@ function staticImportGraph(assets: readonly string[]): Map<string, string[]> {
     let match: RegExpExecArray | null;
     while ((match = pattern.exec(source)) !== null) {
       const target = match[1];
-      if (target !== asset && assets.includes(target)) edges.add(target);
+      if (target !== undefined && target !== asset && assets.includes(target)) edges.add(target);
     }
     graph.set(asset, [...edges]);
   }
@@ -64,7 +64,10 @@ function downloadedChunks(page: string, graph: Map<string, string[]>): Set<strin
   const entries = new Set<string>();
   const pattern = /_astro\/([\w.-]+\.js)/g;
   let match: RegExpExecArray | null;
-  while ((match = pattern.exec(html)) !== null) entries.add(match[1]);
+  while ((match = pattern.exec(html)) !== null) {
+    const entry = match[1];
+    if (entry !== undefined) entries.add(entry);
+  }
 
   const reached = new Set(entries);
   const pending = [...entries];
