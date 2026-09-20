@@ -28,17 +28,9 @@ export function savedRobotIdOf(robotId: string): string | null {
 
 /** El id del estudiante con sesión, o `null` sin ella; espera a que la sesión esté leída. */
 async function currentOwnerId(): Promise<string | null> {
-  const { $session, $sessionReady } = await import('@trayectoria/auth');
-  if (!$sessionReady.get()) {
-    await new Promise<void>((resolve) => {
-      const stop = $sessionReady.subscribe((ready) => {
-        if (!ready) return;
-        stop();
-        resolve();
-      });
-    });
-  }
-  return $session.get()?.user.id ?? null;
+  const { ensureSessionReady } = await import('@trayectoria/auth');
+  const session = await ensureSessionReady();
+  return session?.user.id ?? null;
 }
 
 /** La lista guardada del robot con sesión, o la local cuando no la hay. */

@@ -2,7 +2,9 @@ import { useRef, useState } from 'react';
 import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
-import type { TrackJson, TrackPreset } from '@trayectoria/sims';
+import type { SavedTrack, TrackJson, TrackPreset } from '@trayectoria/sims';
+
+import { MyTracks, MyTracksGroup, savedIdOf, savedOptionValue } from './MyTracks';
 
 // F4-02b (#128, decisión 2): el origen de la pista. La página no reimplementa nada: los presets
 // son los nombres que `LineFollowerWidget` ya resuelve y el editor es el `TrackEditor` de F4-01b
@@ -42,6 +44,14 @@ export interface TrackSourceProps {
   readonly onEdit: () => void;
   /** «Nueva pista»: abre esa misma caja con el editor en blanco (#190, decisión 3). */
   readonly onNew: () => void;
+  /** The saved tracks of the «Mis pistas» group, from the account or from the browser (#191). */
+  readonly saved: readonly SavedTrack[];
+  /** The saved track the page is simulating, or `null` when it is a preset or a loaded JSON. */
+  readonly savedId: string | null;
+  /** Picking a saved track: the page loads it as the current one (#191, decision 4). */
+  readonly onSaved: (id: string) => void;
+  /** «Borrar» for the picked saved track, already confirmed inline (#191, decision 4). */
+  readonly onDeleteSaved: (id: string) => void;
 }
 
 /** Uno de los cuatro presets, o null si la cadena no es ninguno. */
@@ -49,14 +59,35 @@ function asPreset(value: string): TrackPreset | null {
   return PRESETS.find((preset) => preset === value) ?? null;
 }
 
-/** El selector de preset (los cuatro de la spec). */
+/** Routes the value picked in the selector: a saved track (#191) or one of the presets. */
+function pick(
+  value: string,
+  onPick: (preset: TrackPreset) => void,
+  onSaved: (id: string) => void,
+): void {
+  const pickedSaved = savedIdOf(value);
+  if (pickedSaved !== null) {
+    onSaved(pickedSaved);
+    return;
+  }
+  const next = asPreset(value);
+  if (next !== null) onPick(next);
+}
+
+/** The track picker: the four presets of the spec and, after them, «Mis pistas» (#191). */
 function PresetSelect({
   preset,
+  saved,
+  savedId,
   onPick,
+  onSaved,
   t,
 }: {
   preset: TrackPreset;
+  saved: readonly SavedTrack[];
+  savedId: string | null;
   onPick: (preset: TrackPreset) => void;
+  onSaved: (id: string) => void;
   t: Translate;
 }): JSX.Element {
   return (
@@ -69,10 +100,9 @@ function PresetSelect({
         className={SELECT}
         aria-label={t('sims.mobilePage.trackSource')}
         data-testid="track-source-select"
-        value={preset}
+        value={savedId === null ? preset : savedOptionValue(savedId)}
         onChange={(event) => {
-          const next = asPreset(event.target.value);
-          if (next !== null) onPick(next);
+          pick(event.target.value, onPick, onSaved);
         }}
       >
         {PRESETS.map((name) => (
@@ -80,6 +110,7 @@ function PresetSelect({
             {t(PRESET_KEY[name])}
           </option>
         ))}
+        <MyTracksGroup saved={saved} t={t} />
       </select>
     </div>
   );
@@ -168,13 +199,20 @@ function useJsonLoad(
   return { error, load };
 }
 
-/** Selector de preset, los dos botones del editor y la carga de un JSON de pista. */
+/**
+ * The track picker — presets and «Mis pistas» (#191, decision 4) —, the two editor buttons and
+ * loading a JSON file.
+ */
 export function TrackSource({
   preset,
   onPreset,
   onTrack,
   onEdit,
   onNew,
+  saved,
+  savedId,
+  onSaved,
+  onDeleteSaved,
 }: TrackSourceProps): JSX.Element {
   const t = useT();
   const { error, load } = useJsonLoad(onTrack, t);
@@ -184,12 +222,16 @@ export function TrackSource({
       <div className="flex flex-wrap items-end gap-3">
         <PresetSelect
           preset={preset}
+          saved={saved}
+          savedId={savedId}
           onPick={(next) => {
             onPreset(next);
             onTrack(next);
           }}
+          onSaved={onSaved}
           t={t}
         />
+        <MyTracks saved={saved} selectedId={savedId} onDelete={onDeleteSaved} />
         <EditButtons onEdit={onEdit} onNew={onNew} t={t} />
         <LoadButton onFile={load} t={t} />
       </div>

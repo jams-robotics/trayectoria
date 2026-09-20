@@ -207,7 +207,7 @@ describe('TrackEditor (F4-01b)', () => {
     expect(notice).toHaveTextContent(t('sims.trackEditor.continuity.open'));
   });
 
-  test('Guardar downloads the serialized track and clears the unsaved mark', async () => {
+  test('Exportar JSON downloads the serialized track and clears the unsaved mark', async () => {
     const user = userEvent.setup();
     vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:pista');
     vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
@@ -215,7 +215,7 @@ describe('TrackEditor (F4-01b)', () => {
       .spyOn(HTMLAnchorElement.prototype, 'click')
       .mockImplementation(() => undefined);
     render(<TrackEditor initialTrack={LINE_TRACK} />);
-    await user.click(screen.getByRole('button', { name: t('sims.trackEditor.save') }));
+    await user.click(screen.getByRole('button', { name: t('sims.trackEditor.exportJson') }));
     expect(click).toHaveBeenCalledTimes(1);
     expect(await screen.findByTestId('toast')).toHaveTextContent(t('sims.trackEditor.saved'));
   });

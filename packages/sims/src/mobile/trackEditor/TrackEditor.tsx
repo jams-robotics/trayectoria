@@ -1,77 +1,15 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import type { JSX, ReactNode, RefObject } from 'react';
 import type { Track } from '@trayectoria/sim-core';
 
 import { CanvasHost } from './EditorCanvas';
+import { useHistoryShortcuts, useSegmentShortcuts } from './useEditorShortcuts';
 import { SegmentPanel } from './SegmentPanel';
 import { Toolbar } from './Toolbar';
 import { useTrackEditor } from './useTrackEditor';
 import type { TrackEditorApi } from './useTrackEditor';
 import { ContinuityNotice, EditorToast } from './notices';
 import { ConfirmReplace, useTrackFiles } from './useTrackFiles';
-
-/**
- * True when `target` is a control that owns its own keys: a shortcut must not steal `Supr` from
- * a numeric field the learner is editing, nor `F` from anything they are typing into.
- */
-function isTextEntry(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  const tag = target.tagName.toLowerCase();
-  return tag === 'input' || tag === 'select' || tag === 'textarea' || target.isContentEditable;
-}
-
-/**
- * `F` sweeps the selected arc the other way and `Supr`/`Delete` removes the selected segment
- * (#159, decision 3). Both are bound on the editor's own container, so they only fire while the
- * focus is inside it, and both go through `commit`, so «Deshacer» takes them back.
- */
-function useSegmentShortcuts(
-  editor: TrackEditorApi,
-  hostRef: RefObject<HTMLDivElement | null>,
-): void {
-  const latest = useRef(editor);
-  latest.current = editor;
-  useEffect(() => {
-    const host = hostRef.current;
-    if (host === null) return;
-    const onKeyDown = (event: KeyboardEvent): void => {
-      if (event.ctrlKey || event.metaKey || event.altKey) return;
-      if (isTextEntry(event.target)) return;
-      if (latest.current.state.selected === null) return;
-      if (event.key === 'Delete') {
-        event.preventDefault();
-        latest.current.removeSelected();
-        return;
-      }
-      if (event.key.toLowerCase() === 'f') {
-        event.preventDefault();
-        latest.current.flipArc();
-      }
-    };
-    host.addEventListener('keydown', onKeyDown);
-    return () => {
-      host.removeEventListener('keydown', onKeyDown);
-    };
-  }, [hostRef]);
-}
-
-/** Ctrl+Z undoes and Ctrl+Shift+Z redoes, anywhere in the editor (spec of #126). */
-function useHistoryShortcuts(editor: TrackEditorApi): void {
-  const latest = useRef(editor);
-  latest.current = editor;
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent): void => {
-      if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'z') return;
-      event.preventDefault();
-      if (event.shiftKey) latest.current.redo();
-      else latest.current.undo();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, []);
-}
 
 /** The numeric panel of the selected segment, wired to the editor. */
 function Panel({ editor }: { editor: TrackEditorApi }): JSX.Element {
@@ -138,10 +76,12 @@ function EditorToolbar({
   editor,
   files,
   singleRow,
+  onSaveTrack,
 }: {
   editor: TrackEditorApi;
   files: ReturnType<typeof useTrackFiles>;
   singleRow: boolean;
+  onSaveTrack: ((name: string) => void) | undefined;
 }): JSX.Element {
   return (
     <Toolbar
@@ -156,6 +96,8 @@ function EditorToolbar({
       onPreset={files.askPreset}
       onNew={files.askNew}
       singleRow={singleRow}
+      // `exactOptionalPropertyTypes`: an absent prop is absent, not `undefined`.
+      {...(onSaveTrack === undefined ? {} : { onSaveTrack })}
     />
   );
 }
@@ -197,6 +139,25 @@ function LoadError({ message }: { message: string | null }): JSX.Element | null 
   );
 }
 
+/**
+ * «Guardar» wired to the track the editor has right now, or `undefined` when the page did not
+ * ask for it. The track is read from a ref at the moment of the click, so the callback the
+ * toolbar gets keeps its identity while the learner draws.
+ */
+function useSaveTrack(
+  editor: TrackEditorApi,
+  onSaveTrack: ((name: string, track: Track) => Promise<void>) | undefined,
+): ((name: string) => void) | undefined {
+  const latest = useRef({ editor, onSaveTrack });
+  latest.current = { editor, onSaveTrack };
+  const save = useCallback((name: string): void => {
+    const save_ = latest.current.onSaveTrack;
+    if (save_ === undefined) return;
+    void save_(name, latest.current.editor.state.track);
+  }, []);
+  return onSaveTrack === undefined ? undefined : save;
+}
+
 export interface TrackEditorProps {
   /** Track the editor opens on. Defaults to an empty one. */
   initialTrack?: Track;
@@ -218,6 +179,15 @@ export interface TrackEditorProps {
    * `renderPanel`; sin él, el lienzo conserva la relación 16/9 de `Scene2D`.
    */
   canvasHeight_px?: number;
+  /**
+   * Saves the track under the name the learner types, in the account or in the browser (F4-06,
+   * #191, decision 3). With it the bar shows «Guardar»; without it there is no button, so the
+   * playground and its `TrackEditor-*.png` snapshots stay as they were.
+   *
+   * The promise belongs to the page, which is what knows where it saves and what reports with its
+   * toast; the editor only fires it and does not wait for its result.
+   */
+  onSaveTrack?: (name: string, track: Track) => Promise<void>;
 }
 
 /**
@@ -226,11 +196,20 @@ export interface TrackEditorProps {
  * selected segment, which is the keyboard route into the same edits. Every geometry decision
  * comes from the pure model of F4-01a; this component only maps pixels to metres and renders.
  */
+/**
+ * #189: with `renderPanel` the editor lives inside the viewer box, where every pixel of spacing is
+ * taken from the canvas; without it, the usual spacing (the playground).
+ */
+function rootClass(renderPanel: ((panel: ReactNode) => ReactNode) | undefined): string {
+  return `flex flex-col outline-none ${renderPanel === undefined ? 'gap-5' : 'gap-3'}`;
+}
+
 export function TrackEditor({
   initialTrack,
   onChange,
   renderPanel,
   canvasHeight_px,
+  onSaveTrack,
 }: TrackEditorProps = {}): JSX.Element {
   // `exactOptionalPropertyTypes`: an absent prop is absent, not `undefined`.
   const editor = useTrackEditor({
@@ -242,21 +221,20 @@ export function TrackEditor({
   const rootRef = useRef<HTMLDivElement | null>(null);
   useHistoryShortcuts(editor);
   useSegmentShortcuts(editor, rootRef);
+  const saveTrack = useSaveTrack(editor, onSaveTrack);
 
   return (
     // `tabIndex` so a click on the canvas leaves the focus inside the editor and the shortcuts of
     // #159 reach it; the outline is the browser's own only when it is focused by keyboard.
-    <div
-      ref={rootRef}
-      tabIndex={-1}
-      // #189: con `renderPanel` el editor vive dentro de la caja del visor, donde cada píxel de
-      // separación se lo quita al lienzo; sin ella, la separación de siempre (el playground).
-      className={`flex flex-col outline-none ${renderPanel === undefined ? 'gap-5' : 'gap-3'}`}
-      data-testid="track-editor"
-    >
+    <div ref={rootRef} tabIndex={-1} className={rootClass(renderPanel)} data-testid="track-editor">
       {/* #189, decisión 1: en una sola fila cuando la página coloca el panel fuera; en el
           playground la barra sigue repartiéndose en varias líneas si no cabe. */}
-      <EditorToolbar editor={editor} files={files} singleRow={renderPanel !== undefined} />
+      <EditorToolbar
+        editor={editor}
+        files={files}
+        singleRow={renderPanel !== undefined}
+        onSaveTrack={saveTrack}
+      />
       <EditorMain
         editor={editor}
         hostRef={hostRef}

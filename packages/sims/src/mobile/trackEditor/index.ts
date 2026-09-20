@@ -33,3 +33,12 @@ export type { ToolbarProps } from './Toolbar';
 export { SegmentPanel } from './SegmentPanel';
 export type { SegmentPanelProps } from './SegmentPanel';
 export { ContinuityNotice, EditorToast, gapText_mm } from './notices';
+export { MAX_NAME_LENGTH, SaveTrackField } from './SaveTrackField';
+export type { SaveTrackFieldProps } from './SaveTrackField';
+export {
+  LOCAL_TRACKS_KEY,
+  deleteLocalTrack,
+  listLocalTracks,
+  saveLocalTrack,
+} from './stores/localTracks';
+export type { SavedTrack } from './stores/localTracks';

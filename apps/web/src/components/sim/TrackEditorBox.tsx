@@ -134,6 +134,11 @@ export interface TrackEditorBoxProps {
    * en lugar de una segunda columna dentro de la caja.
    */
   readonly renderPanel: (panel: ReactNode) => ReactNode;
+  /**
+   * «Guardar» of the editor: saves the track under the name the learner types, in the account or
+   * in the browser (#191, decision 3). Without it the editor shows no button.
+   */
+  readonly onSaveTrack: (name: string, track: EditorTrack) => Promise<void>;
 }
 
 /**
@@ -193,12 +198,14 @@ function EditorSlot({
   onChange,
   renderPanel,
   height_px,
+  onSaveTrack,
 }: {
   initialTrack: EditorTrack | null;
   resolving: boolean;
   onChange: (track: EditorTrack) => void;
   renderPanel: (panel: ReactNode) => ReactNode;
   height_px: number;
+  onSaveTrack: (name: string, track: EditorTrack) => Promise<void>;
 }): JSX.Element {
   const t = useT();
   return (
@@ -217,6 +224,7 @@ function EditorSlot({
           onChange={onChange}
           renderPanel={renderPanel}
           canvasHeight_px={height_px}
+          onSaveTrack={onSaveTrack}
         />
       )}
     </Suspense>
@@ -230,6 +238,7 @@ export function TrackEditorBox({
   onTrack,
   onBack,
   renderPanel,
+  onSaveTrack,
 }: TrackEditorBoxProps): JSX.Element | null {
   const boxRef = useRef<HTMLDivElement | null>(null);
   const width_px = useBoxWidth(boxRef, open);
@@ -251,6 +260,7 @@ export function TrackEditorBox({
           onChange={publish}
           renderPanel={renderPanel}
           height_px={canvasHeight_px(width_px)}
+          onSaveTrack={onSaveTrack}
         />
       </div>
     </div>
