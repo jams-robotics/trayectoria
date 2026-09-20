@@ -35,10 +35,22 @@ const SHARE_PATH = '/simuladores/movil';
 /** Lo que `decode` devuelve cuando el texto no produce una `SimConfig`. */
 export type DecodeError = 'invalid';
 
+// F4-05 (seguridad): un enlace corto puede llevar un `deflate-raw` que expande a decenas de MB.
+// `MAX_LINK_CHARS` rechaza el texto antes de tocar `DecompressionStream`, y `MAX_DECODED_BYTES`
+// corta la descompresión en marcha si, aun así, el flujo sigue produciendo bytes.
+const MAX_LINK_CHARS = 2_000;
+const MAX_DECODED_BYTES = 65_536;
+
+/** Se lanza dentro de `through` cuando el flujo descomprimido supera `MAX_DECODED_BYTES`. */
+class DecodedTooLargeError extends Error {}
+
 /**
  * Los bytes de `data` pasados por `stream`, leídos de una vez. La entrada se arma como
  * `ReadableStream` y no como `Blob`: `Blob.stream()` no existe en el jsdom de los tests, y los
  * dos flujos nativos aceptan igual de bien uno que otro.
+ *
+ * Si el total supera `MAX_DECODED_BYTES` se cancela el lector y se lanza `DecodedTooLargeError`:
+ * un enlace comprimido no debe poder expandirse sin cota en la pestaña de quien lo abre.
  */
 async function through(
   data: Uint8Array<ArrayBuffer>,
@@ -57,8 +69,12 @@ async function through(
   for (;;) {
     const { done, value } = await reader.read();
     if (done) break;
-    chunks.push(value);
     total += value.length;
+    if (total > MAX_DECODED_BYTES) {
+      await reader.cancel();
+      throw new DecodedTooLargeError();
+    }
+    chunks.push(value);
   }
   const out = new Uint8Array(total);
   let at = 0;
@@ -100,6 +116,7 @@ export async function encode(config: SimConfig): Promise<string> {
  * `invalid`: para quien abre el enlace son el mismo caso, un enlace que no sirve.
  */
 export async function decode(text: string): Promise<Result<SimConfig, DecodeError>> {
+  if (text.length > MAX_LINK_CHARS) return { ok: false, error: 'invalid' };
   const bytes = fromBase64Url(text);
   if (bytes === null) return { ok: false, error: 'invalid' };
   let json: string;

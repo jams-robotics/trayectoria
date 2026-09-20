@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { REFERENCE_PID_PARAMS } from '@trayectoria/sim-core';
 import type { SimConfig } from '@trayectoria/robot-spec';
 
@@ -66,6 +66,20 @@ describe('codec (F4-05)', () => {
 
   it('el texto vacío es inválido', async () => {
     await expect(decode('')).resolves.toEqual({ ok: false, error: 'invalid' });
+  });
+
+  it('un texto más largo que el máximo del enlace es inválido sin descomprimir', async () => {
+    const decompress = vi.spyOn(globalThis, 'DecompressionStream');
+    const text = 'A'.repeat(MAX_LENGTH + 1);
+    await expect(decode(text)).resolves.toEqual({ ok: false, error: 'invalid' });
+    expect(decompress).not.toHaveBeenCalled();
+    decompress.mockRestore();
+  });
+
+  it('un payload que descomprime a más de 64 KiB es inválido', async () => {
+    const oneMegabyteOfZeros = JSON.stringify({ padding: '0'.repeat(1024 * 1024) });
+    const text = await encodeRaw(oneMegabyteOfZeros);
+    await expect(decode(text)).resolves.toEqual({ ok: false, error: 'invalid' });
   });
 
   it('el enlace lleva el texto en el parámetro `c` de la página del simulador', async () => {
