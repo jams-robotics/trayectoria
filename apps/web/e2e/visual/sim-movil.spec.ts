@@ -10,6 +10,13 @@ const MOBILE_VIEWPORT = { width: 390, height: 844 };
 /** Margen para la isla perezosa: el simulador entra con un `import()` aparte. */
 const ISLAND_TIMEOUT_MS = 30_000;
 
+/**
+ * Pulsaciones de «Paso» que completan la vuelta del óvalo con el PID por defecto (F4-03). El
+ * modelo la cierra en unos 8,6 s simulados y cada paso es el `dt_s` por defecto de 1 ms, así que
+ * 9 000 pasos la dejan cerrada con margen y siempre en el mismo estado.
+ */
+const LAP_STEPS = 9000;
+
 const SHOTS = [
   { shot: 'sim-movil', viewport: null },
   { shot: 'sim-movil-390', viewport: MOBILE_VIEWPORT },
@@ -45,7 +52,82 @@ for (const { shot, viewport } of SHOTS) {
 
 // #158 (decisión 4): la página con el editor de pista abierto en la caja del visor. El editor
 // no anima —su `Scene2D` pinta una vez por cambio— y la simulación sigue pausada en `t = 0`.
-test('sim-movil-editor looks as approved', async ({ page }) => {
+//
+// #189 (decisión 5): la captura de escritorio cambia (el lienzo llena la caja y el panel del
+// segmento se va a la columna derecha) y se añade la de 390 px, donde ese panel es un acordeón
+// abierto.
+const EDITOR_SHOTS = [
+  { shot: 'sim-movil-editor', viewport: null },
+  { shot: 'sim-movil-editor-390', viewport: MOBILE_VIEWPORT },
+] as const;
+
+for (const { shot, viewport } of EDITOR_SHOTS) {
+  test(`${shot} looks as approved`, async ({ page }) => {
+    if (viewport !== null) await page.setViewportSize(viewport);
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.addInitScript(() => {
+      const style = document.createElement('style');
+      style.textContent = 'astro-dev-toolbar { display: none !important; }';
+      document.addEventListener('DOMContentLoaded', () => document.head.append(style));
+    });
+    await page.goto('/simuladores/movil');
+
+    await expect(page.getByTestId('line-follower-t')).toHaveText('0.00 s', {
+      timeout: ISLAND_TIMEOUT_MS,
+    });
+    await expect(page.getByTestId('start-pose-s')).toBeVisible();
+    if (viewport !== null) await expect(page.getByTestId('sim-bottom-bar')).toBeVisible();
+
+    // A 390 px el panel Pista es un acordeón cerrado: «Editar» está en el DOM pero no se ve.
+    const edit = page.getByTestId('track-source-edit');
+    if (!(await edit.isVisible())) await page.getByRole('button', { name: /^Pista/ }).click();
+    await edit.click();
+    // El editor entra con un `import()` aparte, así que se espera a su lienzo dimensionado y con
+    // píxeles pintados antes de capturar; si no, se recogería el canvas intrínseco en blanco.
+    await expect(page.getByTestId('track-editor')).toBeVisible({ timeout: ISLAND_TIMEOUT_MS });
+    const canvas = page.getByTestId('track-editor-box').locator('[data-testid="scene2d"] canvas');
+    await expect(canvas).toBeVisible();
+    await expect
+      .poll(async () =>
+        canvas.evaluate((element: HTMLCanvasElement) => {
+          const ctx = element.getContext('2d');
+          if (ctx === null || element.width <= 300) return 0;
+          const { data } = ctx.getImageData(0, 0, element.width, element.height);
+          let painted = 0;
+          for (let i = 0; i < data.length; i += 4) {
+            if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255) painted += 1;
+          }
+          return painted;
+        }),
+      )
+      .toBeGreaterThan(0);
+    // El panel del segmento ya está en la columna derecha (#189, decisión 2).
+    await expect(page.getByTestId('track-editor-panel')).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    // Pulsar «Editar» desplaza la página hasta el botón, que está abajo en la columna derecha; la
+    // captura se toma desde arriba, que es donde queda la caja del editor.
+    await page.evaluate(() => {
+      window.scrollTo(0, 0);
+    });
+    // Y el puntero se retira del área de los paneles: tras el desplazamiento se queda sobre el
+    // elemento que ocupe ahora ese punto, y su estado `hover` entraría en la captura.
+    await page.mouse.move(0, 0);
+
+    await expect(page).toHaveScreenshot(`${shot}.png`, { timeout: ISLAND_TIMEOUT_MS });
+  });
+}
+
+// F4-03 (#129, decisión 7): la página con el panel «Gráficas» y la tarjeta de vuelta.
+//
+// La vuelta se da con «Paso» y no con «Reproducir»: el bucle de fotogramas avanza en cada
+// fotograma el tiempo real transcurrido, así que el `t` en el que se cruza la meta —y con él la
+// ventana de 10 s que las gráficas están pintando— depende del reparto de fotogramas de la
+// máquina y la captura no sería comparable (mismo motivo que el determinismo de #155). Un número
+// fijo de pulsaciones de «Paso» es el mismo número de `model.step()` en cualquier parte, así que
+// la escena, las curvas y las cifras de la tarjeta salen idénticas corrida tras corrida.
+test('sim-movil-instrumentos looks as approved', async ({ page }) => {
+  // Las pulsaciones de «Paso» de la vuelta completa pasan del tiempo por defecto de un test.
+  test.slow();
   await page.emulateMedia({ colorScheme: 'light' });
   await page.addInitScript(() => {
     const style = document.createElement('style');
@@ -59,36 +141,33 @@ test('sim-movil-editor looks as approved', async ({ page }) => {
   });
   await expect(page.getByTestId('start-pose-s')).toBeVisible();
 
-  await page.getByTestId('track-source-edit').click();
-  // El editor entra con un `import()` aparte, así que se espera a su lienzo dimensionado y con
-  // píxeles pintados antes de capturar; si no, se recogería el canvas intrínseco en blanco.
-  await expect(page.getByTestId('track-editor')).toBeVisible({ timeout: ISLAND_TIMEOUT_MS });
-  const canvas = page.getByTestId('track-editor-box').locator('[data-testid="scene2d"] canvas');
-  await expect(canvas).toBeVisible();
-  await expect
-    .poll(async () =>
-      canvas.evaluate((element: HTMLCanvasElement) => {
-        const ctx = element.getContext('2d');
-        if (ctx === null || element.width <= 300) return 0;
-        const { data } = ctx.getImageData(0, 0, element.width, element.height);
-        let painted = 0;
-        for (let i = 0; i < data.length; i += 4) {
-          if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255) painted += 1;
-        }
-        return painted;
-      }),
-    )
-    .toBeGreaterThan(0);
+  // «Paso» avanza un `dt_s` exacto por pulsación sin arrancar el bucle de fotogramas. Se
+  // despachan dentro de la página: son miles, y el ida y vuelta del protocolo por cada una
+  // agotaría el tiempo del test. El botón es el de verdad y el evento el que React escucha.
+  await expect(page.getByRole('button', { name: 'Paso' })).toBeEnabled();
+  await page.evaluate((steps) => {
+    const button = [...document.querySelectorAll('button')].find(
+      (candidate) => candidate.textContent?.trim() === 'Paso',
+    );
+    if (button === undefined) throw new Error('no «Paso» button');
+    for (let k = 0; k < steps; k += 1) button.click();
+  }, LAP_STEPS);
+
+  // La vuelta se cerró y la tarjeta lleva cifras, no «—».
+  await expect(page.getByTestId('line-follower-laps')).toHaveText('1');
+  await expect(page.getByTestId('lap-card-last')).not.toHaveText('—');
+  // Y las cuatro gráficas están montadas.
+  await expect(page.getByTestId('panel-plots').getByTestId('plot-pid')).toBeVisible({
+    timeout: ISLAND_TIMEOUT_MS,
+  });
   await page.evaluate(() => document.fonts.ready);
-  // Pulsar «Editar» desplaza la página hasta el botón, que está abajo en la columna derecha; la
-  // captura se toma desde arriba, que es donde queda la caja del editor.
   await page.evaluate(() => {
     window.scrollTo(0, 0);
   });
-  // Y el puntero se retira del área de los paneles: tras el desplazamiento se queda sobre el
-  // elemento que ocupe ahora ese punto, y su estado `hover` entraría en la captura (F4-05: con un
-  // panel más en la columna, ese punto cae sobre la pestaña «P» del selector).
+  // El puntero fuera de los paneles: su estado `hover` entraría en la captura.
   await page.mouse.move(0, 0);
 
-  await expect(page).toHaveScreenshot('sim-movil-editor.png', { timeout: ISLAND_TIMEOUT_MS });
+  await expect(page).toHaveScreenshot('sim-movil-instrumentos.png', {
+    timeout: ISLAND_TIMEOUT_MS,
+  });
 });

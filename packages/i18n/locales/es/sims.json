@@ -99,6 +99,22 @@
       "t": "t"
     }
   },
+  "instruments": {
+    "title": "Gráficas",
+    "time": "t",
+    "error": "Error",
+    "v": "v",
+    "omega": "ω",
+    "termP": "P",
+    "termI": "I",
+    "termD": "D",
+    "lastLap": "Última vuelta",
+    "bestLap": "Mejor vuelta",
+    "avgSpeed": "Velocidad media",
+    "distance": "Distancia recorrida",
+    "lineLost": "El robot ha perdido la línea y la simulación se ha detenido.",
+    "summary": "Última {{last}} · mejor {{best}}"
+  },
   "arm": {
     "scene": "Escena 3D del brazo {{name}}: los eslabones, las articulaciones y los marcos de cada eslabón.",
     "joints": "Articulaciones",
@@ -178,6 +194,7 @@
     "edit": "Editar",
     "editorTitle": "Editor de pista",
     "editorBack": "Volver a la simulación",
+    "editorPanel": "Segmento",
     "loadJson": "Cargar JSON",
     "loadInput": "Archivo de pista en JSON",
     "loadError": "El archivo no es una pista válida: {{reason}}",
@@ -185,6 +202,7 @@
     "startS": "Posición s (m)",
     "controller": "Controlador",
     "readouts": "Lecturas",
+    "plots": "Gráficas",
     "controls": "Controles de simulación",
     "expand": "ver",
     "collapse": "ocultar",

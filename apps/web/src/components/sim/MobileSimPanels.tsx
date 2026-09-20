@@ -5,22 +5,28 @@ import type { ControllerPanelProps, LineFollowerApi, SimConfig } from '@trayecto
 
 import { useApi } from './apiStore';
 import type { ApiStore } from './apiStore';
+import { EditorColumn } from './EditorColumn';
+import { useEditorPanel } from './editorPanelStore';
+import type { EditorPanelStore } from './editorPanelStore';
+import type { InstrumentsStore } from './instrumentsStore';
+import { PlotsPanel } from './PlotsPanel';
 import { BottomBar } from './BottomBar';
 import { RobotSource } from './RobotSource';
-import { SimAccordion } from './SimAccordion';
+import { Panel } from './SimPanel';
+import type { OpenPanelId } from './SimPanel';
 import { TrackSource } from './TrackSource';
 import type { ControllerChoice, PageState } from './useMobileSimState';
 import type { SimConfigsApi } from './useSimConfigs';
 
 // F4-02b (#128): los paneles de `/simuladores/movil` (Robot, Pista, Lecturas y la columna
 // derecha que los agrupa), separados de `MobileSimIsland.tsx` para mantener cada archivo bajo
-// el límite de docs/STANDARDS.md §4.
+// el límite de docs/STANDARDS.md §4. La tarjeta/acordeón que envuelve a cada uno vive en
+// `SimPanel.tsx` y la columna del editor de pista en `EditorColumn.tsx` (#189).
+
+export type { OpenPanelId } from './SimPanel';
 
 /** Decimales del reloj en el resumen de un acordeón (docs/DESIGN.md §5). */
 const CLOCK_DECIMALS = 2;
-
-/** Qué acordeón está abierto en móvil; solo uno a la vez (docs/DESIGN.md §9.4). */
-export type OpenPanelId = 'robot' | 'track' | 'controller' | 'readouts' | 'share' | null;
 
 // F4-05 (#131, decisión 6): «Guardar y compartir» es un panel más de la columna. Se carga con
 // `import()` como el resto de `@trayectoria/sims`, así que no entra en el JS inicial.
@@ -28,46 +34,6 @@ const LazySaveConfigPanel = lazy(async () => {
   const module = await import('@trayectoria/sims');
   return { default: module.SaveConfigPanel };
 });
-
-/** Un panel de la página: en móvil va en un acordeón del grupo, en escritorio en una tarjeta. */
-export function Panel({
-  id,
-  title,
-  summary,
-  mobile,
-  openId,
-  setOpenId,
-  children,
-}: {
-  id: Exclude<OpenPanelId, null>;
-  title: string;
-  summary?: string;
-  mobile: boolean;
-  openId: OpenPanelId;
-  setOpenId: (id: OpenPanelId) => void;
-  children: ReactNode;
-}): JSX.Element {
-  if (mobile) {
-    return (
-      <SimAccordion
-        title={title}
-        {...(summary === undefined ? {} : { summary })}
-        open={openId === id}
-        onToggle={(open) => {
-          setOpenId(open ? id : null);
-        }}
-      >
-        {children}
-      </SimAccordion>
-    );
-  }
-  return (
-    <section className="border-border bg-bg-raised rounded-lg border p-4" data-testid={`panel-${id}`}>
-      <h2 className="text-fg mb-3 font-semibold">{title}</h2>
-      {children}
-    </section>
-  );
-}
 
 /**
  * El resumen en línea de «Lecturas», legible con el acordeón cerrado (docs/DESIGN.md §9.8).
@@ -238,14 +204,23 @@ export interface SidePanelsProps {
   readonly current: Omit<SimConfig, 'id' | 'name'>;
   /** Publica hacia la isla el controlador y las ganancias que el panel muestra (F4-05). */
   readonly onChoice: (choice: ControllerChoice) => void;
+  /** Las gráficas en vivo que el widget publica por `onInstruments` (F4-03). */
+  readonly instruments: InstrumentsStore;
+  /** El panel numérico que el editor de pista publica mientras se edita (#189, decisión 2). */
+  readonly panels: EditorPanelStore;
 }
 
-export function SidePanels(props: SidePanelsProps): JSX.Element {
+/** La columna de la simulación: el controlador del widget y las cinco tarjetas de la maqueta 04. */
+function SimColumn(props: SidePanelsProps): JSX.Element {
   const { page, mobile, openId, setOpenId, t, controller, store, configs, current } = props;
   const shared = { mobile, openId, setOpenId };
-  useReportedChoice(liveChoice(controller), page.run.seed, props.onChoice);
   return (
-    <div className="flex flex-col gap-4">
+    // Ancho fijo en escritorio: la columna vive en la fila flex del widget y las gráficas de
+    // «Gráficas» fijan su ancho en píxeles al medir su contenedor (uPlot). Sin un ancho fijo, la
+    // columna y las gráficas se persiguen —la gráfica mide, crece, la columna crece, la gráfica
+    // vuelve a medir— y la maqueta nunca se asienta. `lg:w-80` es el mismo ancho que el widget
+    // usa cuando lleva su propia columna (docs/DESIGN.md §9: panel lateral de 340-360 px).
+    <div className="flex min-w-0 flex-col gap-4 lg:w-80 lg:shrink-0">
       <Panel id="controller" title={t('sims.mobilePage.controller')} {...shared}>
         {controller}
       </Panel>
@@ -256,11 +231,36 @@ export function SidePanels(props: SidePanelsProps): JSX.Element {
         <TrackPanel page={page} />
       </Panel>
       <ReadoutsPanel store={store} t={t} {...shared} />
+      <PlotsPanel
+        store={props.instruments}
+        t={t}
+        pid={liveChoice(controller)?.controller === 'pid'}
+        {...shared}
+      />
       <Panel id="share" title={t('sims.simConfig.title')} {...shared}>
         <SharePanel configs={configs} current={current} page={page} t={t} />
       </Panel>
     </div>
   );
+}
+
+export function SidePanels(props: SidePanelsProps): JSX.Element {
+  const { page, mobile, openId, setOpenId, t, controller } = props;
+  const editorPanel = useEditorPanel(props.panels);
+  useReportedChoice(liveChoice(controller), page.run.seed, props.onChoice);
+  // #189 (decisión 2): mientras se edita la pista, la columna es solo el panel del segmento.
+  if (page.view === 'editor') {
+    return (
+      <EditorColumn
+        panel={editorPanel}
+        mobile={mobile}
+        openId={openId}
+        setOpenId={setOpenId}
+        t={t}
+      />
+    );
+  }
+  return <SimColumn {...props} />;
 }
 
 /** La barra inferior de móvil, conectada al driver en curso; se renderiza sola en cada tick. */
