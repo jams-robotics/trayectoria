@@ -40,9 +40,12 @@ function clamp(x: number, limit: number): number {
  * `e = reading.linePosition`, `omegaL = omegaBase + u` and `omegaR = omegaBase - u`. The integral
  * is saturated to `±iMax` on every step (anti-windup) and the derivative is a backward difference,
  * zero on the first step after `reset()`. Saturation of the wheel speeds is left to the model.
+ *
+ * The gains are read from `params` on every `update()`, so replacing the object applies them from
+ * the very next step while `integral` and the previous error survive untouched (#161): a learner
+ * moving a slider mid-run sees the response change without the integrator starting over.
  */
 export function createPidController(params: PidParams): Controller<PidParams> {
-  const { omegaBase_radps, kp, ki, kd, iMax } = params;
   let integral = 0;
   let prevError = 0;
   let hasPrevError = false;
@@ -55,6 +58,7 @@ export function createPidController(params: PidParams): Controller<PidParams> {
       hasPrevError = false;
     },
     update(reading: LineReading, _state: DiffDriveState, dt_s: number): WheelCommand {
+      const { omegaBase_radps, kp, ki, kd, iMax } = this.params;
       const error = reading.linePosition;
       integral = clamp(integral + error * dt_s, iMax);
       const derivative = hasPrevError && dt_s > 0 ? (error - prevError) / dt_s : 0;

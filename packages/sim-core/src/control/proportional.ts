@@ -12,18 +12,20 @@ export interface ProportionalParams {
 /**
  * Proportional controller: `u = kp · e`, `omegaL = omegaBase + u`, `omegaR = omegaBase - u`, with
  * `e = reading.linePosition`. Saturation is left to the drive model. It has no internal state.
+ *
+ * `params` is read on every `update()`, so replacing it applies the new gain from the next step
+ * on, without rebuilding the controller (#161).
  */
 export function createProportionalController(
   params: ProportionalParams,
 ): Controller<ProportionalParams> {
-  const { omegaBase_radps, kp } = params;
-
   return {
     params,
     reset(): void {
       // No internal state to clear.
     },
     update(reading: LineReading): WheelCommand {
+      const { omegaBase_radps, kp } = this.params;
       const u_radps = kp * reading.linePosition;
       return {
         omegaL_radps: omegaBase_radps + u_radps,
