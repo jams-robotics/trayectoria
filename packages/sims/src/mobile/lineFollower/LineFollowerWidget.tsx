@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { JSX, ReactNode } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import type { JSX, ReactNode, RefObject } from 'react';
 import { parseTrack, presets } from '@trayectoria/sim-core';
 import type { Track } from '@trayectoria/sim-core';
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import { useMyRobot } from '@trayectoria/widgets';
 
-import { ControllerPanel } from './ControllerPanel';
-import { CONTROLLERS, isControllerId } from './controllers';
-import type { ControllerId, ControllerParams } from './controllers';
+import { ManualViewer, useManualMode } from './ManualControls';
+import type { ManualDrive } from './useManualKeyboard';
+import { Panel, useControllerChoice } from './ControllerPanel';
+import type { ControllerParams } from './controllers';
 import { LineFollowerView } from './LineFollowerView';
 import type { StartPoseControl } from './LineFollowerView';
 import type { StartPose } from './StartPoseHandle';
@@ -47,76 +48,6 @@ export function resolveTrack(track: LineFollowerWidgetProps['track']): Track {
   if (typeof track !== 'string') return track;
   const result = parseTrack(track);
   return result.ok ? result.value : presets.oval;
-}
-
-/**
- * Which controller drives the run and with which gains; a new tab resets them to its defaults.
- * A gain alone changes only `params`, which `useLineFollower` hands to the running controller.
- */
-function useControllerChoice(
-  controller: LineFollowerWidgetProps['controller'],
-  initialParams: ControllerParams,
-): {
-  selected: ControllerId;
-  params: ControllerParams;
-  onController: (id: ControllerId) => void;
-  onParam: (key: string, value: number) => void;
-} {
-  const [selected, setSelected] = useState<ControllerId>(() =>
-    isControllerId(controller) ? controller : 'pid',
-  );
-  const [params, setParams] = useState<ControllerParams>(() => ({
-    ...CONTROLLERS[controller].defaults,
-    ...initialParams,
-  }));
-  return {
-    selected,
-    params,
-    onController: (id) => {
-      setSelected(id);
-      setParams({ ...CONTROLLERS[id].defaults });
-    },
-    onParam: (key, value) => {
-      setParams((current) => ({ ...current, [key]: value }));
-    },
-  };
-}
-
-/**
- * The controller selector and its sliders. Without `renderPanel` it is the side column of
- * F4-02a; with it, the wrapper the page supplies decides the placement.
- */
-function Panel({
-  spec,
-  controller,
-  params,
-  onController,
-  onParam,
-  renderPanel,
-}: {
-  spec: RobotSpec;
-  controller: ControllerId;
-  params: ControllerParams;
-  onController: (id: ControllerId) => void;
-  onParam: (key: string, value: number) => void;
-  renderPanel: ((panel: ReactNode) => ReactNode) | undefined;
-}): JSX.Element | null {
-  const { mobile } = spec;
-  if (mobile === undefined) return null;
-  const content = (
-    <ControllerPanel
-      controller={controller}
-      params={params}
-      spec={mobile}
-      onController={onController}
-      onParam={onParam}
-    />
-  );
-  // With `renderPanel` the page decides where the panel goes and how wide it is (F4-02b: la
-  // maqueta 04 lo pone en su propia columna, no junto al visor), so the widget adds no column of
-  // its own; without it the panel keeps the side column of F4-02a.
-  if (renderPanel !== undefined) return <>{renderPanel(content)}</>;
-  return <div className="flex flex-col gap-4 lg:w-80">{content}</div>;
 }
 
 /**
@@ -250,12 +181,25 @@ function Viewer({
   );
 }
 
+/** Space over the viewer plays or pauses the run (#130, decisión 2; docs/DESIGN.md §5). */
+function togglePlayOf(api: LineFollowerApi): () => void {
+  return () => {
+    if (api.driver.running) api.driver.pause();
+    else api.driver.play();
+  };
+}
+
 /** The robot, the resolved track, the controller choice and the live run of one widget. */
-function useRun(props: LineFollowerWidgetProps): {
+function useRun(
+  props: LineFollowerWidgetProps,
+  viewerRef: RefObject<HTMLDivElement | null>,
+): {
   spec: RobotSpec;
   resolved: Track;
   choice: ReturnType<typeof useControllerChoice>;
   api: LineFollowerApi;
+  drive: ManualDrive;
+  manual: boolean;
 } {
   const { track, controller, initialParams, robot, noiseSigma, startPose, onApi } = props;
   // «Mi robot» is the default, so a saved change reaches the simulator with no reload; an
@@ -264,6 +208,12 @@ function useRun(props: LineFollowerWidgetProps): {
   const spec = robot ?? myRobot;
   const resolved = useMemo(() => resolveTrack(track), [track]);
   const choice = useControllerChoice(controller, initialParams);
+  const manual = choice.selected === 'manual';
+  // F4-04 (#130, decisión 2): the keyboard drives the robot while the manual tab is the one
+  // selected, and the run is the one already on screen — the command is an input of each step,
+  // not a reason to rebuild the simulation.
+  const playRef = useRef<() => void>(() => undefined);
+  const drive = useManualMode(viewerRef, { spec, enabled: manual, onTogglePlay: () => { playRef.current(); } });
   const api = useLineFollower({
     spec,
     track: resolved,
@@ -271,24 +221,31 @@ function useRun(props: LineFollowerWidgetProps): {
     params: choice.params,
     ...(noiseSigma === undefined ? {} : { noiseSigma }),
     ...(startPose === undefined ? {} : { startPose }),
+    ...(manual ? { command: drive.command } : {}),
   });
+  playRef.current = togglePlayOf(api);
   useApiReport(api, onApi);
-  return { spec, resolved, choice, api };
+  return { spec, resolved, choice, api, drive, manual };
 }
 
 export function LineFollowerWidget(props: LineFollowerWidgetProps): JSX.Element {
   const { compact = false, hideControls = false, renderPanel, renderViewer } = props;
-  const { spec, resolved, choice, api } = useRun(props);
+  const viewerRef = useRef<HTMLDivElement | null>(null);
+  const { spec, resolved, choice, api, drive, manual } = useRun(props, viewerRef);
 
+  // The viewer is the element the manual keyboard listens on (#130, decisión 2): the listeners
+  // never reach `window` or `document`, so the arrows only drive while the focus is inside it.
   const viewer = (
-    <Viewer
-      api={api}
-      spec={spec}
-      track={resolved}
-      compact={compact}
-      hideControls={hideControls}
-      handle={handleOf(props.startPose, props.onStartPoseChange)}
-    />
+    <ManualViewer viewerRef={viewerRef} manual={manual} drive={drive}>
+      <Viewer
+        api={api}
+        spec={spec}
+        track={resolved}
+        compact={compact}
+        hideControls={hideControls}
+        handle={handleOf(props.startPose, props.onStartPoseChange)}
+      />
+    </ManualViewer>
   );
 
   return (

@@ -135,6 +135,21 @@
     "title": "Catálogo de simuladores",
     "lead": "Cada componente de simulación con sus configuraciones de ejemplo. Página de desarrollo: no se enlaza desde la navegación."
   },
+  "manual": {
+    "pad": "Controles manuales",
+    "help": "↑ ↓ velocidad base ±0.5 rad/s · ← → diferencia ±2 rad/s mientras se mantienen · Espacio reproduce o pausa",
+    "key": {
+      "up": "Subir la velocidad base",
+      "down": "Bajar la velocidad base",
+      "left": "Girar a la izquierda",
+      "right": "Girar a la derecha"
+    }
+  },
+  "catalog": {
+    "group": "Referencia",
+    "option": "{{name}} · {{summary}}",
+    "loadError": "No se pudieron cargar los robots de referencia del catálogo."
+  },
   "mobilePage": {
     "title": "Simulador móvil 2D",
     "lead": "Elige el robot y la pista, ajusta el controlador y observa cómo sigue la línea. Los números salen del motor de simulación, no del dibujo.",

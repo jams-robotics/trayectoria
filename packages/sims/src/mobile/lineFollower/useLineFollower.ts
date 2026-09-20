@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DEFAULT_DT_S, Simulation } from '@trayectoria/sim-core';
-import type { Track } from '@trayectoria/sim-core';
+import type { Track, WheelCommand } from '@trayectoria/sim-core';
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import { createFrameClock, useSimulationDriver } from '@trayectoria/widgets';
 import type { FrameClock, SimulationDriver } from '@trayectoria/widgets';
@@ -26,6 +26,12 @@ export interface UseLineFollowerOptions {
   readonly params: ControllerParams;
   readonly noiseSigma?: number;
   readonly startPose?: Pose;
+  /**
+   * Wheel speeds that override the controller on every step (F4-04, #130, decisión 2): the
+   * manual mode drives the robot with them instead of with a control law. Without it the
+   * controller decides, exactly as before.
+   */
+  readonly command?: WheelCommand;
 }
 
 export interface LineFollowerApi {
@@ -115,6 +121,12 @@ function useSimulationOf({
  */
 export function useLineFollower(options: UseLineFollowerOptions): LineFollowerApi {
   const { sim, clock } = useSimulationOf(options);
+  // The manual mode overrides the controller with wheel speeds of its own (F4-04, #130): the
+  // input reaches the run in progress through `setInput`, exactly as the gains reach the
+  // controller through `params`, so pressing a key changes the next step without rebuilding the
+  // simulation or touching `t`. Setting it during render keeps the very next frame on the
+  // speeds the learner just commanded.
+  sim.setInput(options.command === undefined ? {} : { command: options.command });
   const published = useSimulationDriver(sim, { clock });
   // `useSimulationDriver` seeds its snapshot once and only refreshes it on a tick, a step or a
   // reset; a brand-new simulation therefore renders with the previous one's state until

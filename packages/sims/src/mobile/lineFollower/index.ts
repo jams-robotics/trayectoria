@@ -33,8 +33,23 @@ export {
   poseOnTrack,
 } from './StartPoseHandle';
 export type { StartPose, StartPoseHandleProps } from './StartPoseHandle';
-export { ControllerPanel } from './ControllerPanel';
+export { ControllerPanel, Panel, useControllerChoice } from './ControllerPanel';
 export type { ControllerPanelProps } from './ControllerPanel';
+export {
+  MANUAL_KEYSHORTCUTS,
+  ManualControls,
+  ManualHelp,
+  ManualViewer,
+  useManualMode,
+} from './ManualControls';
+export type { ManualControlsProps } from './ManualControls';
+export {
+  MANUAL_DIFF_RADPS,
+  MANUAL_STEP_RADPS,
+  commandOf,
+  useManualKeyboard,
+} from './useManualKeyboard';
+export type { ManualDrive, ManualKey, UseManualKeyboardOptions } from './useManualKeyboard';
 export { LineFollowerWidget, resolveTrack } from './LineFollowerWidget';
 export type {
   LineFollowerPlot,
