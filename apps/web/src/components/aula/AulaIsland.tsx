@@ -4,6 +4,7 @@ import { useT } from '@trayectoria/i18n';
 import { useCallback, useEffect, useState, type JSX } from 'react';
 
 import { createGroup, listGroups, type Group } from '../../lib/aula/groups';
+import type { MatrixTopic } from '../../lib/aula/progressMatrix';
 import { SECONDARY_BUTTON } from '../auth/fields';
 import { CreateGroupForm } from './CreateGroupForm';
 import { GroupDetail } from './GroupDetail';
@@ -11,6 +12,8 @@ import { GroupList } from './GroupList';
 
 export interface AulaIslandProps {
   readonly cta: AuthGateCta;
+  /** Topics of the route, in the order of `ruta.json`, resolved at build time (F3-02b). */
+  readonly topics: readonly MatrixTopic[];
 }
 
 /** Query-string parameter that turns the list into the detail: `/aula?grupo=<uuid>`. */
@@ -86,11 +89,12 @@ function NotFound({ onBack }: BackButtonProps): JSX.Element {
 interface DetailPaneProps {
   readonly ownerId: string;
   readonly group: Group;
+  readonly topics: readonly MatrixTopic[];
   readonly onChanged: () => Promise<void>;
   readonly onBack: () => void;
 }
 
-function DetailPane({ ownerId, group, onChanged, onBack }: DetailPaneProps): JSX.Element {
+function DetailPane({ ownerId, group, topics, onChanged, onBack }: DetailPaneProps): JSX.Element {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -99,7 +103,13 @@ function DetailPane({ ownerId, group, onChanged, onBack }: DetailPaneProps): JSX
         </h2>
         <BackButton onBack={onBack} />
       </div>
-      <GroupDetail ownerId={ownerId} group={group} onChanged={onChanged} onDeleted={onBack} />
+      <GroupDetail
+        ownerId={ownerId}
+        group={group}
+        topics={topics}
+        onChanged={onChanged}
+        onDeleted={onBack}
+      />
     </>
   );
 }
@@ -143,11 +153,45 @@ function Phasing({ phase }: { readonly phase: Phase }): JSX.Element {
   );
 }
 
-interface ClassroomProps {
+interface PanelProps {
+  readonly topics: readonly MatrixTopic[];
+}
+
+interface ClassroomProps extends PanelProps {
   readonly ownerId: string;
 }
 
-function Classroom({ ownerId }: ClassroomProps): JSX.Element {
+interface PaneProps extends ClassroomProps {
+  readonly selected: Group | null;
+  readonly missing: boolean;
+  readonly creating: boolean;
+  readonly onCreated: (name: string) => Promise<void>;
+  readonly onCancelCreate: () => void;
+  readonly onChanged: () => Promise<void>;
+  readonly onBack: () => void;
+}
+
+/** Right-hand column: the creation form, the "not found" notice or the group detail. */
+function Pane(props: PaneProps): JSX.Element {
+  const { selected, missing, creating, onCreated, onCancelCreate, onBack } = props;
+  return (
+    <div className="flex flex-col gap-5">
+      {creating ? <CreateGroupForm onCreate={onCreated} onCancel={onCancelCreate} /> : null}
+      {missing ? <NotFound onBack={onBack} /> : null}
+      {selected !== null ? (
+        <DetailPane
+          ownerId={props.ownerId}
+          group={selected}
+          topics={props.topics}
+          onChanged={props.onChanged}
+          onBack={onBack}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function Classroom({ ownerId, topics }: ClassroomProps): JSX.Element {
   const { groups, phase, refresh } = useGroups(ownerId);
   const [creating, setCreating] = useState(false);
   const [groupId, navigate] = useGroupParam();
@@ -159,6 +203,12 @@ function Classroom({ ownerId }: ClassroomProps): JSX.Element {
     navigate('');
     void refresh();
   };
+  const create = async (name: string): Promise<void> => {
+    const group = await createGroup(ownerId, name);
+    setCreating(false);
+    await refresh();
+    navigate(group.id);
+  };
 
   return (
     <div className="grid gap-7 md:grid-cols-[280px_minmax(0,1fr)]">
@@ -168,29 +218,23 @@ function Classroom({ ownerId }: ClassroomProps): JSX.Element {
         onNew={() => setCreating(true)}
         creating={creating}
       />
-      <div className="flex flex-col gap-5">
-        {creating ? (
-          <CreateGroupForm
-            onCreate={async (name) => {
-              const group = await createGroup(ownerId, name);
-              setCreating(false);
-              await refresh();
-              navigate(group.id);
-            }}
-            onCancel={() => setCreating(false)}
-          />
-        ) : null}
-        {groupId !== '' && selected === null ? <NotFound onBack={back} /> : null}
-        {selected !== null ? (
-          <DetailPane ownerId={ownerId} group={selected} onChanged={refresh} onBack={back} />
-        ) : null}
-      </div>
+      <Pane
+        ownerId={ownerId}
+        topics={topics}
+        selected={selected}
+        missing={groupId !== '' && selected === null}
+        creating={creating}
+        onCreated={create}
+        onCancelCreate={() => setCreating(false)}
+        onChanged={refresh}
+        onBack={back}
+      />
     </div>
   );
 }
 
 /** Role guard: only a `teacher` profile sees the classroom (ticket F3-02a, decision 3). */
-function AulaPanel(): JSX.Element {
+function AulaPanel({ topics }: PanelProps): JSX.Element {
   const t = useT();
   const { session } = useSession();
   const userId = session?.user.id ?? '';
@@ -228,7 +272,7 @@ function AulaPanel(): JSX.Element {
       </section>
     );
   }
-  return <Classroom ownerId={userId} />;
+  return <Classroom ownerId={userId} topics={topics} />;
 }
 
 /**
@@ -236,10 +280,10 @@ function AulaPanel(): JSX.Element {
  * `Account`, the panel is a plain child of `AuthGate` and not a nested island, which would be
  * server-rendered without a session and hydrated with one.
  */
-export function AulaIsland({ cta }: AulaIslandProps): JSX.Element {
+export function AulaIsland({ cta, topics }: AulaIslandProps): JSX.Element {
   return (
     <AuthGate cta={cta}>
-      <AulaPanel />
+      <AulaPanel topics={topics} />
     </AuthGate>
   );
 }

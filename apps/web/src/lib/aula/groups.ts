@@ -11,6 +11,7 @@
 import { getDbClient, type DbClient, type Tables } from '@trayectoria/db';
 
 import { inviteCode, type Rng } from './inviteCode';
+import type { ProgressRow } from './progressMatrix';
 
 /** A group as the classroom list and detail show it. */
 export interface Group {
@@ -240,4 +241,26 @@ export async function removeMember(
     .eq('group_id', groupId)
     .eq('user_id', userId);
   if (error !== null) fail(error, 'member not removed');
+}
+
+/** Columns of `public.progress` the classroom table and the CSV need (F3-02b). */
+const PROGRESS_COLUMNS = 'user_id, topic_id, status, best_score, attempts, completed_at';
+
+/**
+ * Progress of the given members in one query (F3-02b). The "progress: own or taught reads"
+ * policy is what authorises it: with the teacher's own session the rows of their own students
+ * come back and nothing else, so a user id that is not theirs simply yields no row
+ * (`supabase/tests/progress_isolation.sql`). No `service_role`, no policy change.
+ */
+export async function listProgress(
+  memberIds: readonly string[],
+  db: DbClient = getDbClient(),
+): Promise<ProgressRow[]> {
+  if (memberIds.length === 0) return [];
+  const { data, error }: Result<ProgressRow[]> = await db
+    .from('progress')
+    .select(PROGRESS_COLUMNS)
+    .in('user_id', memberIds);
+  if (error !== null || data === null) fail(error, 'progress unavailable');
+  return data;
 }
