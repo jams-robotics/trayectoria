@@ -49,7 +49,10 @@ export function resolveTrack(track: LineFollowerWidgetProps['track']): Track {
   return result.ok ? result.value : presets.oval;
 }
 
-/** Which controller drives the run and with which gains; a new tab resets them to its defaults. */
+/**
+ * Which controller drives the run and with which gains; a new tab resets them to its defaults.
+ * A gain alone changes only `params`, which `useLineFollower` hands to the running controller.
+ */
 function useControllerChoice(
   controller: LineFollowerWidgetProps['controller'],
   initialParams: ControllerParams,
@@ -196,9 +199,10 @@ export interface LineFollowerWidgetProps {
  * the controller the learner picks, the viewer of `docs/DESIGN.md` §6 and the playback controls.
  * It is the same component the page `/simuladores/movil` will embed with `compact` (F4-02b).
  *
- * Changing the controller or a gain restarts the run at `t = 0`: the state the model produced
- * belongs to the controller that produced it, so splicing a new one into it halfway would show
- * numbers no run ever went through.
+ * Moving a gain or the base speed applies to the run in progress without pausing it, so the
+ * learner sees the response change as it happens (#161). Picking another controller restarts the
+ * run at `t = 0`, paused: the new tab also resets its sliders to their own defaults, so there is
+ * no state of a previous law to splice into.
  */
 /**
  * The start-pose control, only while the page asks for it: `startPose` alone would leave a

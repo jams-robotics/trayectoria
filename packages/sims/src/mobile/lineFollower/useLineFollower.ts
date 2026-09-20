@@ -45,9 +45,14 @@ function appended(
 }
 
 /**
- * The `Simulation` of a run, rebuilt whenever anything that defines it changes, together with the
- * `FrameClock` it was built with. `params` is a fresh object on every render, so the run is keyed
- * by its contents rather than its identity.
+ * The `Simulation` of a run, together with the `FrameClock` it was built with and the live
+ * controller driving it.
+ *
+ * It is rebuilt only when something that defines the run changes — the robot, the track, the
+ * controller type, the noise or the start pose (#161, decisión 3) — and then it comes back paused
+ * at `t = 0`, ready for «Reproducir» without a «Reiniciar» first. The gains are deliberately not
+ * part of that: they reach the running controller through `controller.params`, so moving a slider
+ * changes the response from the next step on without touching `t` or the playback state.
  *
  * The clock is returned because the driver has to be handed the very same one: it is the driver
  * that advances it from the timestamp of each animation frame, and a `FrameClock` nobody feeds
@@ -65,22 +70,37 @@ function useSimulationOf({
   clock: FrameClock;
 } {
   const clock = useMemo(createFrameClock, []);
-  const key = `${controller}:${JSON.stringify(params)}`;
-  const sim = useMemo(
-    () =>
-      new Simulation<LineFollowerState, LineFollowerInput>(
-        createLineFollowerModel({
-          spec,
-          track,
-          controller: CONTROLLERS[controller].create(params),
-          ...(noiseSigma === undefined ? {} : { noiseSigma }),
-          ...(startPose === undefined ? {} : { startPose }),
-        }),
-        { seed: SEED, clock, dt_s: DEFAULT_DT_S, input: {} },
-      ),
-    [spec, track, controller, key, noiseSigma, startPose, clock],
+  // The gains of the first render build the controller; from then on they are pushed into it.
+  const latestParams = useRef(params);
+  latestParams.current = params;
+  const built = useMemo(
+    () => {
+      const instance = CONTROLLERS[controller].create(latestParams.current);
+      return {
+        instance,
+        sim: new Simulation<LineFollowerState, LineFollowerInput>(
+          createLineFollowerModel({
+            spec,
+            track,
+            controller: instance,
+            ...(noiseSigma === undefined ? {} : { noiseSigma }),
+            ...(startPose === undefined ? {} : { startPose }),
+          }),
+          { seed: SEED, clock, dt_s: DEFAULT_DT_S, input: {} },
+        ),
+      };
+    },
+    // `latestParams` is a ref on purpose: a new gain must not rebuild the simulation.
+    [spec, track, controller, noiseSigma, startPose, clock],
   );
-  return { sim, clock };
+
+  // `Controller<P>.params` is assignable and every controller of sim-core reads it on each
+  // `update()` (#161), so replacing the object applies the gains to the run in progress while the
+  // PID keeps the integral it has accumulated. Assigning during render keeps the very next step
+  // — which may be the frame right after this one — on the gains the learner just chose.
+  built.instance.params = params;
+
+  return { sim: built.sim, clock };
 }
 
 /**
@@ -88,9 +108,10 @@ function useSimulationOf({
  * hands it to `useSimulationDriver` — the same frame loop `DiffDriveWidget` uses, so nothing in
  * here reads a platform clock — and keeps the trace of the poses it has passed through.
  *
- * The simulation is rebuilt whenever the robot, the track, the controller or its parameters
- * change, and it always comes back paused at `t = 0`: changing a gain restarts the run rather
- * than splicing a new controller into a state it never produced.
+ * Changing a gain or the base speed applies to the run in progress, leaving `t`, the trace and the
+ * playback state alone (#161, decisión 1); the playback speed is the driver's own multiplier and
+ * never pauses either. The simulation is rebuilt only when the robot, the track, the controller
+ * type or the start pose changes, and then it comes back paused at `t = 0`.
  */
 export function useLineFollower(options: UseLineFollowerOptions): LineFollowerApi {
   const { sim, clock } = useSimulationOf(options);
@@ -103,6 +124,18 @@ export function useLineFollower(options: UseLineFollowerOptions): LineFollowerAp
   const driver: SimulationDriver<LineFollowerState> = stale
     ? { ...published, state: sim.state, t_s: sim.time_s }
     : published;
+
+  // A rebuilt simulation comes back paused at `t = 0`, and so must the driver: `useSimulationDriver`
+  // keeps `running` across a new `sim`, so a run going when the learner picks another controller
+  // would carry on over the fresh one. Pausing here is what makes «Reproducir» enough afterwards,
+  // with no «Reiniciar» in between (#161, decisión 3).
+  const { pause } = published;
+  const driven = useRef(sim);
+  useEffect(() => {
+    if (driven.current === sim) return;
+    driven.current = sim;
+    pause();
+  }, [sim, pause]);
 
   const [trace_m, setTrace] = useState<ReadonlyArray<readonly [number, number]>>([]);
   const lastTraced = useRef<{ sim: unknown; t_s: number }>({ sim: null, t_s: -1 });

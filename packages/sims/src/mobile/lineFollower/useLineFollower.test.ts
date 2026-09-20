@@ -58,7 +58,25 @@ describe('useLineFollower (F4-02a)', () => {
     expect(result.current.trace_m).toHaveLength(1);
   });
 
-  it('reconstruye la simulación cuando cambian los parámetros', () => {
+  it('aplica en vivo unos parámetros nuevos, sin reconstruir la simulación (#161)', () => {
+    const { result, rerender } = renderHook(
+      (props: Parameters<typeof useLineFollower>[0]) => useLineFollower(props),
+      { initialProps: options() },
+    );
+    act(() => {
+      result.current.driver.step();
+    });
+    const t_s = result.current.state.robot.t_s;
+    expect(t_s).toBeGreaterThan(0);
+
+    rerender(options({ params: { ...REFERENCE_PID_PARAMS, kp: 5 } }));
+
+    // El tiempo y la traza sobreviven al cambio: es la misma carrera con otras ganancias.
+    expect(result.current.state.robot.t_s).toBe(t_s);
+    expect(result.current.trace_m.length).toBeGreaterThan(0);
+  });
+
+  it('reconstruye la simulación al cambiar de tipo de controlador (#161)', () => {
     const { result, rerender } = renderHook(
       (props: Parameters<typeof useLineFollower>[0]) => useLineFollower(props),
       { initialProps: options() },
@@ -67,7 +85,7 @@ describe('useLineFollower (F4-02a)', () => {
       result.current.driver.step();
     });
     expect(result.current.state.robot.t_s).toBeGreaterThan(0);
-    rerender(options({ params: { ...REFERENCE_PID_PARAMS, kp: 5 } }));
+    rerender(options({ controller: 'p', params: { omegaBase_radps: 10, kp: 10 } }));
     expect(result.current.state.robot.t_s).toBe(0);
   });
 
@@ -133,6 +151,85 @@ describe('useLineFollower · bucle de reproducción (F4-02a)', () => {
     expect(result.current.driver.t_s).toBeCloseTo(0.1, 9);
     expect(result.current.state.robot.t_s).toBeCloseTo(0.1, 9);
     expect(result.current.state.robot.x_m).not.toBe(startX_m);
+  });
+
+  it('cambiar Kp en marcha no toca t ni detiene la reproducción (#161, caso a)', () => {
+    const { result, rerender } = renderHook(
+      (props: Parameters<typeof useLineFollower>[0]) => useLineFollower(props),
+      { initialProps: options() },
+    );
+
+    act(() => {
+      result.current.driver.play();
+    });
+    frame(1000);
+    frame(1100);
+    expect(result.current.driver.t_s).toBeCloseTo(0.1, 9);
+
+    rerender(options({ params: { ...REFERENCE_PID_PARAMS, kp: 5 } }));
+
+    // Ni el tiempo ni el estado de reproducción se mueven al soltar el slider.
+    expect(result.current.driver.running).toBe(true);
+    expect(result.current.driver.t_s).toBeCloseTo(0.1, 9);
+    expect(result.current.state.robot.t_s).toBeCloseTo(0.1, 9);
+
+    // Y el bucle sigue integrando fotogramas después del cambio.
+    frame(1200);
+    expect(result.current.driver.running).toBe(true);
+    expect(result.current.driver.t_s).toBeCloseTo(0.2, 9);
+  });
+
+  it('cambiar de controlador deja t = 0 en pausa y «Reproducir» arranca (#161, caso b)', () => {
+    const { result, rerender } = renderHook(
+      (props: Parameters<typeof useLineFollower>[0]) => useLineFollower(props),
+      { initialProps: options() },
+    );
+
+    act(() => {
+      result.current.driver.play();
+    });
+    frame(1000);
+    frame(1100);
+    expect(result.current.driver.t_s).toBeCloseTo(0.1, 9);
+
+    rerender(options({ controller: 'p', params: { omegaBase_radps: 10, kp: 10 } }));
+
+    expect(result.current.driver.t_s).toBe(0);
+    expect(result.current.state.robot.t_s).toBe(0);
+    expect(result.current.driver.running).toBe(false);
+
+    // «Reproducir» basta: no hace falta pulsar Reiniciar antes.
+    act(() => {
+      result.current.driver.play();
+    });
+    frame(2000);
+    frame(2100);
+    expect(result.current.driver.running).toBe(true);
+    expect(result.current.state.robot.t_s).toBeCloseTo(0.1, 9);
+  });
+
+  it('cambiar la velocidad de reproducción no pausa la carrera (#161, caso c)', () => {
+    const { result } = renderHook(() => useLineFollower(options()));
+
+    act(() => {
+      result.current.driver.play();
+    });
+    frame(1000);
+    frame(1100);
+    const t_s = result.current.driver.t_s;
+
+    act(() => {
+      result.current.driver.setSpeed(2);
+    });
+
+    expect(result.current.driver.running).toBe(true);
+    expect(result.current.driver.speed).toBe(2);
+    expect(result.current.driver.t_s).toBeCloseTo(t_s, 9);
+
+    // Al doble de velocidad, 100 ms de fotograma integran 0.2 s simulados.
+    frame(1200);
+    expect(result.current.driver.running).toBe(true);
+    expect(result.current.driver.t_s).toBeCloseTo(t_s + 0.2, 9);
   });
 
   it('«Paso» en pausa avanza exactamente un DEFAULT_DT_S', () => {

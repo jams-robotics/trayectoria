@@ -49,6 +49,19 @@ describe('createOnOffController', () => {
     });
   });
 
+  it('reads params on every update, so replacing them changes the next step (#161)', () => {
+    const live = createOnOffController({ omegaBase_radps: 10, delta_radps: 3 });
+    expect(live.update(readingAt(0.2), state, 0.001)).toEqual({
+      omegaL_radps: 13,
+      omegaR_radps: 7,
+    });
+    live.params = { omegaBase_radps: 12, delta_radps: 5 };
+    expect(live.update(readingAt(0.2), state, 0.001)).toEqual({
+      omegaL_radps: 17,
+      omegaR_radps: 7,
+    });
+  });
+
   it('is stateless, so reset changes nothing', () => {
     const before = controller.update(readingAt(-0.2), state, 0.001);
     controller.reset();

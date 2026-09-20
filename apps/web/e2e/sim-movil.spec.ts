@@ -147,6 +147,80 @@ test.describe('/simuladores/movil (F4-02b)', () => {
     expect(first).not.toMatchObject({ x: '0.000 m', y: '0.000 m' });
   });
 
+  test('mover un slider en marcha no pausa ni reinicia la simulación (#161)', async ({ page }) => {
+    await open(page);
+
+    await page.getByRole('button', { name: 'Reproducir' }).first().click();
+    // La carrera ya avanza antes de tocar nada: si `t` siguiera en 0, el resto no probaría nada.
+    await expect
+      .poll(async () => Number.parseFloat((await readout(page)).t))
+      .toBeGreaterThan(0.2);
+
+    const before_s = Number.parseFloat((await readout(page)).t);
+
+    // Kp con el teclado, que es como se mueve un slider de verdad: el valor cambia de hecho.
+    const kp = page.getByRole('slider', { name: /^Kp/ });
+    const kpBefore = await kp.inputValue();
+    await kp.press('ArrowLeft');
+    await expect(kp).not.toHaveValue(kpBefore);
+
+    // Sigue en marcha — «Pausa» habilitado y «Reproducir» no — y el tiempo no ha vuelto a 0.
+    await expect(page.getByRole('button', { name: 'Pausa' }).first()).toBeEnabled();
+    const after_s = Number.parseFloat((await readout(page)).t);
+    expect(after_s).toBeGreaterThanOrEqual(before_s);
+
+    // Y el reloj sigue corriendo después del cambio, sin tocar «Reproducir» ni «Reiniciar».
+    await expect
+      .poll(async () => Number.parseFloat((await readout(page)).t))
+      .toBeGreaterThan(after_s);
+
+    await page.getByRole('button', { name: 'Pausa' }).first().click();
+  });
+
+  test('cambiar la velocidad de reproducción en marcha no pausa (#161)', async ({ page }) => {
+    await open(page);
+
+    await page.getByRole('button', { name: 'Reproducir' }).first().click();
+    await expect
+      .poll(async () => Number.parseFloat((await readout(page)).t))
+      .toBeGreaterThan(0.2);
+
+    await page.getByRole('combobox', { name: 'Velocidad de reproducción' }).selectOption('4');
+
+    const after_s = Number.parseFloat((await readout(page)).t);
+    await expect(page.getByRole('button', { name: 'Pausa' }).first()).toBeEnabled();
+    await expect
+      .poll(async () => Number.parseFloat((await readout(page)).t))
+      .toBeGreaterThan(after_s);
+
+    await page.getByRole('button', { name: 'Pausa' }).first().click();
+  });
+
+  test('cambiar de controlador deja t = 0 y «Reproducir» arranca sin Reiniciar (#161)', async ({
+    page,
+  }) => {
+    await open(page);
+
+    await page.getByRole('button', { name: 'Reproducir' }).first().click();
+    await expect
+      .poll(async () => Number.parseFloat((await readout(page)).t))
+      .toBeGreaterThan(0.2);
+
+    await page.getByRole('button', { name: 'P', exact: true }).click();
+
+    // Reinicio a t = 0 y en pausa.
+    await expect(page.getByTestId('line-follower-t')).toHaveText('0.00 s');
+    await expect(page.getByRole('button', { name: 'Pausa' }).first()).toBeDisabled();
+
+    // «Reproducir» basta: no hace falta «Reiniciar» antes.
+    await page.getByRole('button', { name: 'Reproducir' }).first().click();
+    await expect
+      .poll(async () => Number.parseFloat((await readout(page)).t))
+      .toBeGreaterThan(0.2);
+
+    await page.getByRole('button', { name: 'Pausa' }).first().click();
+  });
+
   test('a 390 px los paneles son acordeones, hay barra inferior y no hay «Paso»', async ({
     page,
   }) => {

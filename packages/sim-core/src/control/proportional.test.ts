@@ -43,6 +43,19 @@ describe('createProportionalController', () => {
     expect(big.omegaL_radps - 10).toBeCloseTo(2 * (small.omegaL_radps - 10), 12);
   });
 
+  it('reads params on every update, so replacing them changes the next step (#161)', () => {
+    const live = createProportionalController({ omegaBase_radps: 10, kp: 4 });
+    expect(live.update(readingAt(0.5), state, 0.001)).toEqual({
+      omegaL_radps: 12,
+      omegaR_radps: 8,
+    });
+    live.params = { omegaBase_radps: 12, kp: 8 };
+    expect(live.update(readingAt(0.5), state, 0.001)).toEqual({
+      omegaL_radps: 16,
+      omegaR_radps: 8,
+    });
+  });
+
   it('is stateless, so reset changes nothing', () => {
     const before = controller.update(readingAt(0.3), state, 0.001);
     controller.reset();
