@@ -20,16 +20,28 @@ const COMPACT_MIN_WIDTH_M = 1;
 /** Samples of the centerline used to bound the view; one every centimetre is plenty. */
 const BOUNDS_STEP_M = 0.01;
 
+/**
+ * Visible aspect (width / height) the enclosing `Scene2D` draws with. It mirrors the default of
+ * `Scene2D` (`packages/widgets/src/Scene2D/Scene2D.tsx`, `DEFAULT_ASPECT`), which the widgets
+ * package does not export, so a track taller than `worldWidth_m / VIEW_ASPECT` is not cropped
+ * (#157, decisiones 1 y 2).
+ */
+const VIEW_ASPECT = 16 / 9;
+
 /** Decimals of the sensor readings in the legend (#127, decisión 6). */
 const READING_DECIMALS = 2;
 
 /** Decimals of the pose, speed and time readouts of the legend. */
 const READOUT_DECIMALS = 3;
 
-/** The visible world of a track: its extent plus `VIEW_MARGIN_M` on every side. */
+/**
+ * The visible world of a track: its extent plus `VIEW_MARGIN_M` on every side, widened so the
+ * vertical extent also fits the aspect the scene draws with (#157, decisión 1).
+ */
 export function viewOf(
   track: Track,
   compact: boolean,
+  aspect = VIEW_ASPECT,
 ): { worldWidth_m: number; center_m: [number, number] } {
   const length_m = trackLength_m(track);
   let minX_m = Number.POSITIVE_INFINITY;
@@ -45,7 +57,10 @@ export function viewOf(
     maxY_m = Math.max(maxY_m, y_m);
   }
   if (!Number.isFinite(minX_m)) return { worldWidth_m: COMPACT_MIN_WIDTH_M, center_m: [0, 0] };
-  const width_m = maxX_m - minX_m + 2 * VIEW_MARGIN_M;
+  const width_m = Math.max(
+    maxX_m - minX_m + 2 * VIEW_MARGIN_M,
+    (maxY_m - minY_m + 2 * VIEW_MARGIN_M) * aspect,
+  );
   return {
     worldWidth_m: compact ? Math.max(width_m, COMPACT_MIN_WIDTH_M) : width_m,
     center_m: [(minX_m + maxX_m) / 2, (minY_m + maxY_m) / 2],
