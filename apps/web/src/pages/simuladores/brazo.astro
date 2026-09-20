@@ -1,0 +1,28 @@
+---
+import { getCollection } from 'astro:content';
+import { t } from '@trayectoria/i18n';
+
+import { ArmSimIsland } from '../../components/sim/ArmSimIsland';
+import Base from '../../layouts/Base.astro';
+
+// F5-01b (#134): la página del simulador de brazo 3D (docs/ARCHITECTURE.md §3.2).
+//
+// Los brazos salen de la colección `arms` en build y se pasan a la isla como props
+// serializables, `{ id, name }[]` (#134, decisión 2): la isla no lee el catálogo ni importa
+// sim-core. `?robot=<id>` lo lee la isla en el cliente, porque la página es estática y
+// `Astro.url.searchParams` no ve una cadena de consulta añadida tras el build.
+//
+// La isla es `client:only="react"`: así no hay pasada de SSR que desajustar y `three` y
+// `urdf-loader` solo entran en el chunk de esta página (docs/ARCHITECTURE.md §3.1 y §8).
+
+const collection = await getCollection('arms');
+const arms = collection.map((arm) => ({ id: arm.id, name: arm.data.name }));
+---
+
+<Base title={t('sims.armPage.title')} description={t('sims.armPage.lead')}>
+  <section class="mx-auto max-w-[1120px] px-5 pt-11 pb-9 md:px-8">
+    <h1 class="text-xl leading-tight md:text-2xl font-semibold">{t('sims.armPage.title')}</h1>
+    <p class="text-fg-muted mt-4 max-w-[72ch]">{t('sims.armPage.lead')}</p>
+    <ArmSimIsland arms={arms} client:only="react" />
+  </section>
+</Base>

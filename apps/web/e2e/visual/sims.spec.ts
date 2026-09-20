@@ -66,6 +66,43 @@ for (const { story, shot } of STORIES) {
   });
 }
 
+// F4-02a (#127, decisión 10): regresión visual de la story `Oval` de `LineFollowerWidget` en
+// /dev/sims. La story arranca pausada en `t = 0` con el PID de referencia, así que la escena no
+// anima y la captura es comparable fotograma a fotograma, igual que las del editor de pista.
+const LINE_FOLLOWER_SECTION = 'LineFollowerWidget';
+
+test('LineFollowerWidget looks as approved', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto(`/dev/sims?section=${LINE_FOLLOWER_SECTION}`);
+  await page.addStyleTag({ content: 'astro-dev-toolbar { display: none !important; }' });
+  await expect(page.locator('[data-story]').first()).toBeVisible();
+  await expect(page.locator('[data-section]')).toHaveCount(1);
+  await page.evaluate(() => document.fonts.ready);
+
+  const target = page.locator(`[data-section="${LINE_FOLLOWER_SECTION}"] [data-story="Oval"]`);
+  await expect(target).toBeVisible();
+  // El reloj a `00.00` es la puerta de «el modelo ya publicó su estado inicial»; el lienzo se
+  // espera pintado por la misma razón que en las capturas del editor.
+  await expect(target.locator('[data-testid="line-follower-t"]')).toHaveText('0.00 s');
+  const canvas = target.locator('[data-testid="scene2d"] canvas');
+  await expect(canvas).toBeVisible();
+  await expect
+    .poll(async () =>
+      canvas.evaluate((element: HTMLCanvasElement, intrinsicWidth_px: number) => {
+        const ctx = element.getContext('2d');
+        if (ctx === null || element.width <= intrinsicWidth_px) return 0;
+        const { data } = ctx.getImageData(0, 0, element.width, element.height);
+        let painted = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255) painted += 1;
+        }
+        return painted;
+      }, INTRINSIC_CANVAS_WIDTH_PX),
+    )
+    .toBeGreaterThan(0);
+  await expect(target).toHaveScreenshot('LineFollowerWidget.png');
+});
+
 // F5-01a (#133, decisión 9): regresión visual de la story `Planar` de `ArmViewer` en /dev/sims.
 // Es una captura sobre WebGL, así que se compara con `maxDiffPixelRatio`: el renderizado de
 // three en Chromium headless no es idéntico píxel a píxel entre máquinas (mismo criterio que

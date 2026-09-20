@@ -1,0 +1,54 @@
+{
+  "title": "Aula",
+  "eyebrow": "Docente",
+  "loading": "Cargando…",
+  "onlyTeachers": "El aula es para cuentas de docente. Tu cuenta es de estudiante.",
+  "goToAccount": "Ver mi cuenta",
+  "error": "No se pudo cargar el aula. Inténtalo de nuevo.",
+  "groups": {
+    "title": "Grupos",
+    "empty": "Todavía no tienes grupos. Crea el primero para compartir su código.",
+    "memberCount": "{{count}} estudiantes",
+    "open": "Abrir el grupo {{name}}",
+    "new": "Nuevo grupo",
+    "back": "Volver a los grupos",
+    "notFound": "Ese grupo no existe o no es tuyo."
+  },
+  "create": {
+    "title": "Nuevo grupo",
+    "name": "Nombre del grupo",
+    "submit": "Crear grupo",
+    "cancel": "Cancelar",
+    "invalidName": "El nombre debe tener entre 1 y 60 caracteres.",
+    "failed": "No se pudo crear el grupo. Inténtalo de nuevo."
+  },
+  "detail": {
+    "name": "Nombre del grupo",
+    "rename": "Guardar el nombre",
+    "renamed": "Nombre actualizado",
+    "delete": "Eliminar grupo",
+    "deleteConfirm": "¿Eliminar este grupo y sus miembros?",
+    "deleteYes": "Sí, eliminar",
+    "deleteNo": "Cancelar",
+    "failed": "No se pudo completar la operación. Inténtalo de nuevo."
+  },
+  "invite": {
+    "title": "Código de invitación",
+    "code": "Código de invitación del grupo",
+    "copy": "Copiar el código",
+    "copied": "Copiado",
+    "copyUnavailable": "Copia el código a mano: el portapapeles no está disponible.",
+    "regenerate": "Regenerar el código",
+    "regenerated": "Código nuevo generado"
+  },
+  "members": {
+    "title": "Miembros",
+    "empty": "Nadie se ha unido todavía. Comparte el código de invitación.",
+    "unknown": "Sin nombre",
+    "joinedAt": "Se unió el {{date}}",
+    "remove": "Quitar a {{name}} del grupo",
+    "removeConfirm": "¿Quitar a {{name}}?",
+    "removeYes": "Sí, quitar",
+    "removeNo": "Cancelar"
+  }
+}
