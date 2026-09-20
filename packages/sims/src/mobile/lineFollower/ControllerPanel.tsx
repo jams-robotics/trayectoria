@@ -40,8 +40,9 @@ export interface ControllerPanelProps {
 
 /**
  * Controller selector and its sliders (docs/DESIGN.md §6): Manual · On/off · P · PID, plus the
- * disabled «Propio» tab that v2 will enable. Selecting a controller or moving a slider restarts
- * the run, which the widget above decides; this component only reports the change.
+ * disabled «Propio» tab that v2 will enable. Moving a slider applies to the run in progress and
+ * picking another controller restarts it (#161), which the widget above decides; this component
+ * only reports the change.
  */
 export function ControllerPanel({
   controller,
