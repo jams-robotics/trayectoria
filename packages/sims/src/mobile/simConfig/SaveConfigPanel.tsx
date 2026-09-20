@@ -5,6 +5,7 @@ import type { Translate } from '@trayectoria/i18n';
 import type { SimConfig } from '@trayectoria/robot-spec';
 
 import { ShareLink } from './ShareLink';
+import type { CopyFailure } from './ShareLink';
 
 // F4-05 (#131, decisión 6): el panel «Guardar y compartir». No decide dónde se guarda —eso lo
 // elige la página según haya sesión y robot guardado (decisión 5)— ni fabrica ids: recibe la lista
@@ -37,8 +38,11 @@ export interface SaveConfigPanelProps {
   readonly onLoad: (config: SimConfig) => void;
   /** «Borrar», ya confirmado en línea. */
   readonly onDelete: (id: string) => void;
-  /** Se llama al copiar el enlace, con `true` si el portapapeles lo aceptó. */
-  readonly onCopied: (copied: boolean) => void;
+  /**
+   * Se llama al copiar el enlace, con `true` si el portapapeles lo aceptó. Con `false` y
+   * `'tooLong'` no hubo nada que copiar: la configuración no cabe en un enlace (#182).
+   */
+  readonly onCopied: (copied: boolean, reason?: CopyFailure) => void;
   /** Origen del enlace; el de la página cuando no se da. */
   readonly origin?: string;
 }

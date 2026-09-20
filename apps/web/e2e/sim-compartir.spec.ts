@@ -78,6 +78,22 @@ async function shareLink(page: Page): Promise<string> {
   return field.inputValue();
 }
 
+/**
+ * Una pista serializada de `count` segmentos de línea, con coordenadas que no se repiten: sobre
+ * números iguales el `deflate-raw` del enlace comprimiría a casi nada y no mediría la cota.
+ */
+function syntheticTrack(count: number): string {
+  const segments = Array.from({ length: count }, (_unused, k) => ({
+    type: 'line',
+    from: [k * 0.137251, Math.sin(k) * 1.618034],
+    to: [(k + 1) * 0.137251, Math.cos(k) * 1.414214],
+  }));
+  return JSON.stringify({ version: 1, lineWidth_m: 0.02, segments });
+}
+
+/** Segmentos de la pista cuyo enlace pasa de los 8 000 caracteres de `MAX_LINK_CHARS` (#182). */
+const TOO_LONG_SEGMENTS = 250;
+
 test.describe('guardar y compartir la configuración (F4-05)', () => {
   test('el enlace copiado reproduce parámetros y pose a los 10 s simulados', async ({
     page,
@@ -147,6 +163,33 @@ test.describe('guardar y compartir la configuración (F4-05)', () => {
     await expect(page.getByRole('slider', { name: /^Kp/ })).toHaveValue(kp);
     await expect(page.getByTestId('line-follower-t')).toHaveText('0.00 s');
     await expect(page.getByRole('button', { name: 'Pausa' }).first()).toBeDisabled();
+  });
+
+  // #182 (decisión 2): la pista se carga desde un JSON generado aquí mismo, sin fixture en disco.
+  test('una pista que no cabe en el enlace avisa y no copia nada', async ({ page, context }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await open(page);
+
+    // El portapapeles arranca con una marca: si «Copiar enlace» copiara algo, dejaría de estar.
+    await page.evaluate(async () => navigator.clipboard.writeText('sin tocar'));
+
+    await page.getByLabel('Archivo de pista en JSON').setInputFiles({
+      name: 'pista-larga.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(syntheticTrack(TOO_LONG_SEGMENTS), 'utf-8'),
+    });
+
+    // El campo del enlace se queda vacío, pero el botón sigue activo para poder pulsarlo y saber
+    // por qué: un botón deshabilitado no explicaría nada.
+    const field = page.getByTestId('sim-config-link');
+    await expect(field).toHaveValue('');
+    const copy = page.getByTestId('sim-config-copy');
+    await expect(copy).toBeEnabled();
+
+    await copy.click();
+    await expect(page.getByTestId('toast')).toContainText('demasiado grande para un enlace');
+    await expect(page.getByTestId('toast')).toHaveAttribute('data-tone', 'error');
+    expect(await page.evaluate(async () => navigator.clipboard.readText())).toBe('sin tocar');
   });
 
   test('«Borrar» pide confirmación y quita la configuración de la lista', async ({ page }) => {

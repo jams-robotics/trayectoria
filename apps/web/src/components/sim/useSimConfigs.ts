@@ -95,7 +95,8 @@ export interface SimConfigsApi {
   readonly saved: readonly SimConfig[];
   readonly onSave: (name: string, current: Omit<SimConfig, 'id' | 'name'>) => void;
   readonly onDelete: (id: string) => void;
-  readonly onCopied: (copied: boolean) => void;
+  /** `false` con `'tooLong'` significa que no hubo enlace que copiar: la configuración no cabe. */
+  readonly onCopied: (copied: boolean, reason?: 'tooLong') => void;
   /** El aviso en curso y cómo cerrarlo. */
   readonly notice: Notice | null;
   readonly dismiss: () => void;
@@ -209,8 +210,14 @@ export function useSimConfigs(
     setNotice({ message: t('sims.simConfig.saveError'), tone: 'error' });
   });
 
+  // #182 (decisión 2): «Copiar enlace» con una configuración que no cabe no copia nada y lo dice
+  // con su propio aviso; el del portapapeles no valdría, porque no hay enlace a la vista.
   const onCopied = useCallback(
-    (copied: boolean): void => {
+    (copied: boolean, reason?: 'tooLong'): void => {
+      if (reason === 'tooLong') {
+        setNotice({ message: t('sims.simConfig.linkTooLong'), tone: 'error' });
+        return;
+      }
       setNotice(
         copied
           ? { message: t('sims.simConfig.copied'), tone: 'success' }

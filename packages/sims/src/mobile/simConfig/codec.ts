@@ -35,10 +35,21 @@ const SHARE_PATH = '/simuladores/movil';
 /** Lo que `decode` devuelve cuando el texto no produce una `SimConfig`. */
 export type DecodeError = 'invalid';
 
+/** Lo que `encode` devuelve cuando la configuración no cabe en un enlace. */
+export type EncodeError = 'tooLong';
+
 // F4-05 (seguridad): un enlace corto puede llevar un `deflate-raw` que expande a decenas de MB.
 // `MAX_LINK_CHARS` rechaza el texto antes de tocar `DecompressionStream`, y `MAX_DECODED_BYTES`
 // corta la descompresión en marcha si, aun así, el flujo sigue produciendo bytes.
-const MAX_LINK_CHARS = 2_000;
+//
+// #182: la cota sube de 2 000 a 8 000 caracteres. Con 2 000 una pista editada de más de unas
+// decenas de segmentos ya no cabía y el enlace salía roto sin decirlo; 8 000 entra en el límite
+// práctico de URL de los navegadores (docs/ARCHITECTURE.md §6) y deja sitio a pistas largas. La
+// cota de bytes descomprimidos no cambia: es la que protege de la bomba de descompresión.
+
+/** Máximo de caracteres del texto del enlace; por encima, `encode` falla y `decode` rechaza. */
+export const MAX_LINK_CHARS = 8_000;
+
 const MAX_DECODED_BYTES = 65_536;
 
 /** Se lanza dentro de `through` cuando el flujo descomprimido supera `MAX_DECODED_BYTES`. */
@@ -104,10 +115,17 @@ function fromBase64Url(text: string): Uint8Array<ArrayBuffer> | null {
   }
 }
 
-/** La configuración como texto del enlace: JSON → `deflate-raw` → base64url. */
-export async function encode(config: SimConfig): Promise<string> {
+/**
+ * La configuración como texto del enlace: JSON → `deflate-raw` → base64url.
+ *
+ * #182 (decisión 2): una configuración cuyo texto pase de `MAX_LINK_CHARS` devuelve `tooLong` en
+ * lugar de un enlace que `decode` rechazaría al otro lado. Quien llama avisa y no copia nada: más
+ * vale no dar enlace que dar uno que no abre.
+ */
+export async function encode(config: SimConfig): Promise<Result<string, EncodeError>> {
   const bytes = await through(new TextEncoder().encode(JSON.stringify(config)), new CompressionStream(FORMAT));
-  return toBase64Url(bytes);
+  const text = toBase64Url(bytes);
+  return text.length > MAX_LINK_CHARS ? { ok: false, error: 'tooLong' } : { ok: true, value: text };
 }
 
 /**
