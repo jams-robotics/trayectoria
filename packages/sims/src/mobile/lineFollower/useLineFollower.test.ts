@@ -278,4 +278,55 @@ describe('useLineFollower · bucle de reproducción (F4-02a)', () => {
     expect(result.current.driver.t_s).toBeCloseTo(DEFAULT_DT_S, 12);
     expect(result.current.state.robot.t_s).toBeCloseTo(DEFAULT_DT_S, 12);
   });
+  // F4-05 (#131, decisión 3): la semilla es una opción, y viaja en el enlace compartido. Con ruido
+  // el generador la usa, así que dos semillas producen lecturas distintas y la misma semilla
+  // reproduce la carrera paso a paso.
+  it('la semilla por defecto y una semilla explícita distinta dan lecturas distintas (F4-05)', () => {
+    const noisy = { noiseSigma: 0.05 };
+    const run = (seed?: number): number[] => {
+      const { result } = renderHook(() =>
+        useLineFollower(options({ ...noisy, ...(seed === undefined ? {} : { seed }) })),
+      );
+      const readings: number[] = [];
+      for (let k = 0; k < 5; k += 1) {
+        act(() => {
+          result.current.driver.step();
+        });
+        readings.push(result.current.state.reading.linePosition);
+      }
+      return readings;
+    };
+    expect(run(1)).not.toEqual(run());
+  });
+
+  it('la misma semilla reproduce la misma carrera (F4-05)', () => {
+    const run = (): number[] => {
+      const { result } = renderHook(() =>
+        useLineFollower(options({ noiseSigma: 0.05, seed: 42 })),
+      );
+      const readings: number[] = [];
+      for (let k = 0; k < 5; k += 1) {
+        act(() => {
+          result.current.driver.step();
+        });
+        readings.push(result.current.state.reading.linePosition);
+      }
+      return readings;
+    };
+    expect(run()).toEqual(run());
+  });
+
+  it('cambiar la semilla reconstruye la simulación pausada en t = 0 (F4-05)', () => {
+    const { rerender, result } = renderHook(
+      ({ seed }: { seed: number }) => useLineFollower(options({ noiseSigma: 0.05, seed })),
+      { initialProps: { seed: 1 } },
+    );
+    act(() => {
+      result.current.driver.step();
+    });
+    expect(result.current.driver.t_s).toBeGreaterThan(0);
+    rerender({ seed: 2 });
+    expect(result.current.driver.t_s).toBe(0);
+    expect(result.current.driver.running).toBe(false);
+  });
 });

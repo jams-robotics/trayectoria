@@ -125,6 +125,27 @@ export type {
   UseLineFollowerOptions,
 } from './mobile/lineFollower';
 
+// F4-05 (#131): guardar y compartir la configuración del simulador móvil.
+export {
+  SHARE_PARAM,
+  SIM_CONFIGS_KEY,
+  SaveConfigPanel,
+  ShareLink,
+  decode,
+  deleteSimConfig,
+  encode,
+  listSimConfigs,
+  parseSimConfig,
+  saveSimConfig,
+  shareLink,
+} from './mobile/simConfig';
+export type {
+  DecodeError,
+  SaveConfigPanelProps,
+  ShareLinkProps,
+  SimConfig,
+} from './mobile/simConfig';
+
 // Playground-only discovery/rendering (docs/STANDARDS.md §4: index.ts reexports the public
 // API only); the implementation lives in ./dev/SimGallery.
 export { SimGallery, stories } from './dev/SimGallery';

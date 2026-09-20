@@ -11,7 +11,7 @@ import { createLineFollowerModel } from './model';
 import type { LineFollowerInput, LineFollowerState, Pose } from './model';
 
 /** Seed of the noise generator; a fixed one keeps a story reproducible run after run. */
-const SEED = 7;
+export const DEFAULT_SEED = 7;
 
 /** Samples of the trace kept on screen, so a long run does not grow without bound. */
 const TRACE_LIMIT = 600;
@@ -32,6 +32,13 @@ export interface UseLineFollowerOptions {
    * controller decides, exactly as before.
    */
   readonly command?: WheelCommand;
+  /**
+   * Seed of the noise generator (F4-05, #131, decisión 3). Without it the run uses
+   * `DEFAULT_SEED`, exactly as before. It is what a shared link carries, so two browsers that
+   * open the same link integrate the very same sequence of readings; changing it rebuilds the
+   * simulation, which comes back paused at `t = 0` like a new track or a new robot.
+   */
+  readonly seed?: number;
 }
 
 export interface LineFollowerApi {
@@ -55,9 +62,10 @@ function appended(
  * controller driving it.
  *
  * It is rebuilt only when something that defines the run changes — the robot, the track, the
- * controller type, the noise or the start pose (#161, decisión 3) — and then it comes back paused
- * at `t = 0`, ready for «Reproducir» without a «Reiniciar» first. The gains are deliberately not
- * part of that: they reach the running controller through `controller.params`, so moving a slider
+ * controller type, the noise, the start pose or the seed (#161, decisión 3; F4-05) — and then it
+ * comes back paused at `t = 0`, ready for «Reproducir» without a «Reiniciar» first. The gains are
+ * deliberately not part of that: they reach the running controller through `controller.params`, so
+ * moving a slider
  * changes the response from the next step on without touching `t` or the playback state.
  *
  * The clock is returned because the driver has to be handed the very same one: it is the driver
@@ -71,6 +79,7 @@ function useSimulationOf({
   params,
   noiseSigma,
   startPose,
+  seed = DEFAULT_SEED,
 }: UseLineFollowerOptions): {
   sim: Simulation<LineFollowerState, LineFollowerInput>;
   clock: FrameClock;
@@ -92,12 +101,12 @@ function useSimulationOf({
             ...(noiseSigma === undefined ? {} : { noiseSigma }),
             ...(startPose === undefined ? {} : { startPose }),
           }),
-          { seed: SEED, clock, dt_s: DEFAULT_DT_S, input: {} },
+          { seed, clock, dt_s: DEFAULT_DT_S, input: {} },
         ),
       };
     },
     // `latestParams` is a ref on purpose: a new gain must not rebuild the simulation.
-    [spec, track, controller, noiseSigma, startPose, clock],
+    [spec, track, controller, noiseSigma, startPose, seed, clock],
   );
 
   // `Controller<P>.params` is assignable and every controller of sim-core reads it on each
