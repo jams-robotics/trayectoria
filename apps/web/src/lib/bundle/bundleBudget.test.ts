@@ -1,14 +1,16 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { basename, join, relative, sep } from 'node:path';
 import { gzipSync } from 'node:zlib';
-import { describe, expect, test } from 'vitest';
+import { beforeAll, describe, expect, test } from 'vitest';
 
 /**
  * Guardia de regresión del presupuesto de `docs/ARCHITECTURE.md` §8 (#154): `three` solo en
  * páginas 3D y ≤ 250 kB de JS comprimido en la página de tema.
  *
- * El test lee `apps/web/dist`, que solo existe tras `pnpm build`; sin ese directorio se omite
- * (`test.skipIf`) para no romper `pnpm test` en un checkout limpio ni en CI antes del build.
+ * El test lee `apps/web/dist`, que solo existe tras `pnpm build`, así que sin ese directorio
+ * falla en vez de omitirse (#208): un presupuesto que se salta en silencio no es una guardia.
+ * Por eso `vitest.config.ts` excluye este archivo del `pnpm test` normal y CI lo ejecuta con
+ * `BUNDLE_BUDGET=1` en un paso propio del job `build`, después de `pnpm build`.
  */
 
 const DIST_DIR = join(import.meta.dirname, '..', '..', '..', 'dist');
@@ -22,16 +24,18 @@ const TEMA_PAGE = 'ruta/ruta-1/m00/t01/index.html';
 
 const THEME_BUDGET_GZIP_BYTES = 250 * 1024;
 
-function hasDist(): boolean {
+/** Falla pronto y con instrucciones si el build no se ha ejecutado (#208). */
+function requireDist(): void {
   try {
     readdirSync(ASSETS_DIR);
-    return true;
   } catch {
-    return false;
+    throw new Error(
+      `No existe ${ASSETS_DIR}: el presupuesto de bundle necesita un build. ` +
+        'Ejecuta `pnpm build` y vuelve a lanzar ' +
+        '`BUNDLE_BUDGET=1 pnpm --filter @trayectoria/web exec vitest run`.',
+    );
   }
 }
-
-const distMissing = !hasDist();
 
 function assetNames(): string[] {
   return readdirSync(ASSETS_DIR).filter((name) => name.endsWith('.js'));
@@ -111,7 +115,9 @@ function threeChunk(assets: readonly string[]): string | undefined {
 }
 
 describe('presupuesto de bundle (ARCHITECTURE §8)', () => {
-  test.skipIf(distMissing)('ninguna página fuera de las 3D referencia el chunk de three', () => {
+  beforeAll(requireDist);
+
+  test('ninguna página fuera de las 3D referencia el chunk de three', () => {
     const assets = assetNames();
     const three = threeChunk(assets);
     expect(three, 'no se encontró el chunk de three en dist/_astro').toBeDefined();
@@ -135,7 +141,7 @@ describe('presupuesto de bundle (ARCHITECTURE §8)', () => {
   // Activo desde #188: `@trayectoria/widgets` expone una entrada por widget (ADR-0009) y la
   // página de tema resuelve cada uno con `import()` dinámico desde su entrada, así que ya no
   // descarga el catálogo entero por el barrel.
-  test.skipIf(distMissing)('la página de tema carga como mucho 250 kB gzip de JS (#188)', () => {
+  test('la página de tema carga como mucho 250 kB gzip de JS (#188)', () => {
     const graph = staticImportGraph(assetNames());
     const bytes = gzipBytes(downloadedChunks(TEMA_PAGE, graph));
     expect(bytes).toBeLessThanOrEqual(THEME_BUDGET_GZIP_BYTES);
