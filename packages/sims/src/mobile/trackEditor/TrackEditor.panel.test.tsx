@@ -131,14 +131,7 @@ describe('SegmentBar compacta (#189, decisión 4)', () => {
     expect(field).toHaveValue('0.125');
   });
 
-  test('la barra se muestra con cualquier herramienta (#189, decisión 4)', async () => {
-    const user = userEvent.setup();
-    render(<TrackEditor initialTrack={LINE_TRACK} />);
-    await selectFirst(user, 'Line');
-    expect(screen.getByTestId('track-editor-segment-bar')).toBeInTheDocument();
-    for (const tool of ['line', 'arc', 'erase'] as const) {
-      await user.click(screen.getByRole('radio', { name: t(`sims.trackEditor.tool.${tool}`) }));
-      expect(screen.getByTestId('track-editor-segment-bar')).toBeInTheDocument();
-    }
-  });
+  // #189, decision 4 left the bar visible with every tool while the human had not yet seen it;
+  // #180, decision 1 reserves it for «Seleccionar». Visibility per tool is now checked in
+  // SegmentBar.test.tsx.
 });

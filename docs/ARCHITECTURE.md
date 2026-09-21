@@ -61,7 +61,7 @@ Cualquier otra importación es un error de arquitectura (regla de ESLint `import
 ### 3.1 Astro e islas
 
 - Astro renderiza páginas y MDX de forma estática en build (`output: 'static'`).
-- Todo componente interactivo es una isla React. Directiva por defecto: `client:visible`. `client:load` solo para `AuthGate` y el store de sesión. `client:only="react"` para escenas 3D.
+- Todo componente interactivo es una isla React. Directiva por defecto: `client:visible`. `client:load` solo para `AuthGate` y el store de sesión. `client:only="react"` para escenas 3D y para `Formula.astro`: su widget llega por `import()`, así que el servidor pintaría el `fallback` vacío del `Suspense` y el cliente el widget resuelto, y ese desajuste rompe la hidratación de React (#207).
 - Regla para agentes: **no hay estado compartido entre islas excepto a través de nanostores** (`packages/*/src/stores/`). Prohibido prop drilling entre islas, eventos DOM globales o `window.*`.
 - Stores existentes: `$session` (auth), `$myRobot` (perfil activo), `$theme`, `$progress`.
 - Quien necesite la sesión una sola vez (no reaccionar a sus cambios) espera a `ensureSessionReady(): Promise<Session | null>` de `packages/auth`, que activa el store y resuelve con la sesión actual en cuanto está lista, en lugar de montar su propia suscripción manual (#184).
@@ -230,6 +230,8 @@ tracks        (id uuid pk, owner_id uuid → profiles, name text, track jsonb, c
 
 `tracks` guarda las pistas del editor en la cuenta (F4-06, #191): `track` es el mismo JSON que ya se exporta a archivo, así que guardar en la cuenta y exportar producen lo mismo. Una pista guardada es privada de su dueño; compartirla sigue siendo por enlace (F4-05), que lleva la pista embebida y no depende de esta tabla.
 
+Los `jsonb` que escribe el cliente llevan cota de tamaño (#204): `tracks.track` y `robots.spec` (incluidas las `simConfigs` de dentro) tienen `check (pg_column_size(...) < 65536)`, es decir 64 KiB, el mismo límite que §6 aplica a lo que viaja en el enlace compartido. No hay límite de filas por propietario en v1. El cliente valida la cota antes de guardar y avisa al usuario en vez de dejar que la base rechace la escritura. La migración es `supabase/migrations/0007_jsonb_size_checks.sql`.
+
 ### 5.2 Políticas RLS (resumen; el SQL completo es el entregable de F0-07)
 
 | Tabla | Estudiante | Docente |
@@ -256,7 +258,7 @@ tracks        (id uuid pk, owner_id uuid → profiles, name text, track jsonb, c
 - Subidas: tamaño ≤ 20 MB, extensiones permitidas, rechazo de `..` y rutas absolutas, parseo del URDF antes de guardar, mallas cargadas solo desde el propio bucket.
 - Un brazo importado se dibuja sin red: las mallas del zip se resuelven a Blob URL creadas en el propio navegador, nunca a URLs externas, y se revocan al cambiar de fuente y al desmontar (#137).
 - Enlace compartido del simulador móvil: el texto del enlace no pasa de 8 000 caracteres y lo que lleva dentro no pasa de 64 KiB descomprimidos; si la configuración no cabe, «Copiar enlace» avisa al usuario y no copia nada, en vez de generar un enlace que no se pueda abrir (#182). Un enlace `?c=` con controlador `manual` abre con PID: el modo manual no viaja en el enlace (#131).
-- Eliminar la cuenta borra también los ficheros: el cliente lista y borra los objetos de `urdf/{uid}/` con la API de Storage **antes** de llamar a `delete_account()`, y si ese borrado falla no llama al RPC (#178). La función conserva su propio borrado de filas de `storage.objects` como red de seguridad, no como vía principal: `storage.objects` no entra en el `on delete cascade` de las tablas de §5.1.
+- Eliminar la cuenta borra también los ficheros: el cliente lista y borra los objetos de `urdf/{uid}/` con la API de Storage **antes** de llamar a `delete_account()`, y si ese borrado falla no llama al RPC (#178). Implementado en #205 en `apps/web/src/lib/account/deleteAccount.ts`, que es la única vía al RPC: la interfaz no llama a `delete_account()` por ningún otro camino. La función conserva su propio borrado de filas de `storage.objects` como red de seguridad, no como vía principal: `storage.objects` no entra en el `on delete cascade` de las tablas de §5.1.
 - Sin `dangerouslySetInnerHTML` salvo en `Formula` (salida de KaTeX, con `trust: false`).
 - Dependencias auditadas en CI (`pnpm audit --audit-level=high`).
 - Sin analytics de terceros en v1.
@@ -273,7 +275,8 @@ tracks        (id uuid pk, owner_id uuid → profiles, name text, track jsonb, c
 
 - Presupuesto por página de tema: ≤ 250 kB JS comprimido (sin three).
 - three solo en páginas 3D, con `client:only` y `import()` dinámico.
-- El registro de widgets de la página de tema resuelve cada widget con `import()` dinámico desde su propia entrada de `@trayectoria/widgets` (`./<Widget>`), de modo que un tema solo carga los que usa; el barrel sigue existiendo para quien lo necesite (ADR-0009, #188).
+- El registro de widgets de la página de tema resuelve cada widget con `import()` dinámico desde su propia entrada de `@trayectoria/widgets` (`./<Widget>`), de modo que un tema solo carga los que usa; el barrel sigue existiendo para quien lo necesite (ADR-0009, #188). Aplicado en #207: la página de tema baja de 298,5 kB a 192,4 kB gzip.
+- La aserción del presupuesto corre en el job `build` de CI, después de `pnpm build`, porque necesita `apps/web/dist`; el job `test` no ejecuta ese archivo (#208).
 - `Simulation` corre en el hilo principal en v1 con `dt = 1 ms` y render a 60 Hz; `sim-core` sin DOM para migrar a Web Worker en v2 sin cambios de API.
 - Canvas hi-DPI limitado a `devicePixelRatio ≤ 2`.
 
