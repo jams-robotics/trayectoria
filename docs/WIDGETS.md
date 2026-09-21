@@ -157,14 +157,21 @@ interface LineFollowerWidgetProps {
   seed?: number;
 }
 ```
-`renderPanel` envuelve la columna del panel de controlador y `renderViewer` la del visor, para que una página decida qué las rodea sin tocar el DOM del widget: es lo que permite plegar el panel en un acordeón móvil (F4-02b) y alternar visor y editor de pista en la misma caja (#158). `hideControls` oculta los controles de reproducción cuando la página los pone en su barra inferior fija (F4-02b). `seed` fija la semilla del ruido del sensor y es la que viaja en el enlace compartido (#131); cambiarla reconstruye la simulación pausada en `t = 0`. `showPlots` sigue reservado a F4-03: se acepta para que el contenido ya lo declare, pero no dibuja nada hasta ese ticket.
+`renderPanel` envuelve la columna del panel de controlador y `renderViewer` la del visor, para que una página decida qué las rodea sin tocar el DOM del widget: es lo que permite plegar el panel en un acordeón móvil (F4-02b) y alternar visor y editor de pista en la misma caja (#158). `hideControls` oculta los controles de reproducción cuando la página los pone en su barra inferior fija (F4-02b). `seed` fija la semilla del ruido del sensor y es la que viaja en el enlace compartido (#131); cambiarla reconstruye la simulación pausada en `t = 0`. `showPlots` es operativa desde F4-03 (#129): elige cuáles de las cuatro gráficas en vivo se pintan (`'error'`, `'v'`, `'omega'`, `'pid'`); sin la prop no se dibuja ninguna.
 
 ### TrackEditor
 Editor de pista de F4-01b, embebido en la caja del visor del simulador móvil (#158). Vive en `packages/sims`; no es un widget del catálogo de temas, pero su comportamiento se documenta aquí porque `LineFollowerWidget` lo aloja con `renderViewer`.
 ```ts
-interface TrackEditorProps { initialTrack?: Track; onChange?: (track: Track) => void }
+interface TrackEditorProps {
+  initialTrack?: Track;
+  onChange?: (track: Track) => void;
+  renderPanel?: (panel: ReactNode) => ReactNode;
+  canvasHeight_px?: number;
+  onSaveTrack?: (name: string, track: Track) => Promise<void>;
+}
 ```
-Con un segmento seleccionado aparece una barra flotante junto a la pista con sus acciones frecuentes, y el segmento seleccionado se resalta en el lienzo (#159, #160). Atajos de teclado dentro del editor: `F` invierte el sentido del segmento y `Supr` lo borra; el control «Sentido» hace lo mismo desde la barra (#159). El panel numérico sigue siendo la ruta accesible a las mismas ediciones.
+`renderPanel` envuelve el panel numérico para que la página lo coloque donde quiera, con el lienzo a todo el ancho y la barra de herramientas en una fila encima; sin la prop, la maquetación del playground no cambia (#189). `canvasHeight_px` fija el alto del lienzo (#189). `onSaveTrack` añade el botón «Guardar» a la barra, con nombre en línea; sin la prop no hay botón. Los botones de archivo son «Exportar JSON» e «Importar JSON» siempre, con o sin `onSaveTrack` (#191).
+Con la herramienta «Seleccionar» y un segmento seleccionado aparece una barra flotante junto a la pista con sus acciones frecuentes, y el segmento seleccionado se resalta en el lienzo (#159, #160). Con «Recta», «Arco» o «Borrar» la barra no se renderiza; la selección se conserva y la barra reaparece al volver a «Seleccionar» (#180). Atajos de teclado dentro del editor: `F` invierte el sentido del segmento y `Supr` lo borra; el control «Sentido» hace lo mismo desde la barra (#159). El panel numérico sigue siendo la ruta accesible a las mismas ediciones.
 
 ## Brazo
 

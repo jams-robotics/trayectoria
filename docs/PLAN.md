@@ -419,7 +419,7 @@ Todos los widgets siguen `WIDGETS.md` (API, props, eventos, demo aislada, captur
 - Depende de: F4-02
 - Spec: panel con `Plot` en vivo de error, `v`, `ω`, y términos P, I, D; trayectoria acumulada; cronómetro de vuelta (detección de paso por la línea de meta = punto de inicio de la pista); velocidad promedio de la última vuelta; evento "perdió la línea" que pausa y marca el punto.
 - Aceptación: capturas; el tiempo de vuelta coincide con `length_m / v_promedio` ±2 %.
-- Estado: en curso (#129). `v_promedio` es la longitud de la pista dividida por el tiempo de vuelta, con lo que la aceptación se cumple exacta; la tarjeta muestra además la distancia realmente recorrida (#170). La tolerancia no cambia.
+- Estado: Done (#129). `v_promedio` es la longitud de la pista dividida por el tiempo de vuelta, con lo que la aceptación se cumple exacta; la tarjeta muestra además la distancia realmente recorrida (#170). La tolerancia no cambia.
 
 #### F4-04 · Modo manual y robots de referencia · sim · S
 - Depende de: F4-02
@@ -439,6 +439,7 @@ Todos los widgets siguen `WIDGETS.md` (API, props, eventos, demo aislada, captur
 - Spec: «Guardar» con sesión pide un nombre en línea y hace `insert`/`update` en la tabla `tracks` de `ARCHITECTURE.md` §5.1; sin sesión guarda en un store local `trayectoria.tracks`. Los botones de archivo pasan a «Exportar JSON» / «Importar JSON». El selector de pista suma un grupo «Mis pistas» (las de la cuenta y las locales) junto a los presets; elegir una la carga y borrarla pide confirmación. El enlace compartido de F4-05 sigue llevando la pista embebida: compartir no depende de la cuenta.
 - Aceptación: con sesión, guardar una pista, recargar la página y elegirla en «Mis pistas»; otro usuario no la ve (RLS del propietario, §5.2).
 - Fuera de alcance: compartir pistas entre usuarios o con el grupo; pistas públicas.
+- Estado: Done (#191).
 
 ### Fase 5 — Simulador de brazo 3D
 
