@@ -41,14 +41,22 @@ async function selectFirstSegment(
   );
 }
 
-describe('TrackEditor · barra del segmento (#159)', () => {
-  /** El `ccw` del primer segmento del último cambio notificado; falla si no es un arco. */
-  function lastCcw(changes: readonly Track[]): boolean {
-    const last = changes[changes.length - 1]?.segments[0];
-    if (last?.type !== 'arc') throw new Error('expected an arc');
-    return last.ccw;
-  }
+/** Activates one of the toolbar tools by its label, as a learner would. */
+async function useTool(
+  user: ReturnType<typeof userEvent.setup>,
+  tool: 'select' | 'line' | 'arc' | 'erase',
+): Promise<void> {
+  await user.click(screen.getByRole('radio', { name: t(`sims.trackEditor.tool.${tool}`) }));
+}
 
+/** The `ccw` of the first segment of the last notified change; throws when it is not an arc. */
+function lastArcCcw(changes: readonly Track[]): boolean {
+  const last = changes[changes.length - 1]?.segments[0];
+  if (last?.type !== 'arc') throw new Error('expected an arc');
+  return last.ccw;
+}
+
+describe('TrackEditor · barra del segmento (#159)', () => {
   test('with nothing selected the floating bar is not rendered', () => {
     render(<TrackEditor initialTrack={ARC_TRACK} />);
     expect(screen.queryByTestId('track-editor-segment-bar')).toBeNull();
@@ -68,7 +76,7 @@ describe('TrackEditor · barra del segmento (#159)', () => {
     await selectFirstSegment(user, 'Arc');
     const bar = screen.getByTestId('track-editor-segment-bar');
     await user.click(within(bar).getByRole('button', { name: t('sims.trackEditor.flipArc') }));
-    expect(lastCcw(changes)).toBe(true);
+    expect(lastArcCcw(changes)).toBe(true);
   });
 
   test('the F key flips the selected arc and undo takes it back', async () => {
@@ -77,10 +85,10 @@ describe('TrackEditor · barra del segmento (#159)', () => {
     render(<TrackEditor initialTrack={ARC_TRACK} onChange={(track) => changes.push(track)} />);
     await selectFirstSegment(user, 'Arc');
     await user.keyboard('f');
-    expect(lastCcw(changes)).toBe(true);
+    expect(lastArcCcw(changes)).toBe(true);
     await user.click(screen.getByRole('button', { name: t('sims.trackEditor.undo') }));
     await waitFor(() => {
-      expect(lastCcw(changes)).toBe(false);
+      expect(lastArcCcw(changes)).toBe(false);
     });
   });
 
@@ -162,7 +170,7 @@ describe('TrackEditor · barra del segmento (#159)', () => {
     expect(cw).toHaveAttribute('aria-checked', 'true');
     expect(ccw).toHaveAttribute('aria-checked', 'false');
     await user.click(ccw);
-    expect(lastCcw(changes)).toBe(true);
+    expect(lastArcCcw(changes)).toBe(true);
     await waitFor(() => {
       expect(
         within(
@@ -170,5 +178,54 @@ describe('TrackEditor · barra del segmento (#159)', () => {
         ).getByRole('radio', { name: t('sims.trackEditor.directionCcw') }),
       ).toHaveAttribute('aria-checked', 'true');
     });
+  });
+});
+
+// #180 (decisions 1 and 2): the floating bar belongs to «Seleccionar». With a drawing tool active
+// it would sit over the very corner the learner is drawing on, so it is not rendered; the
+// selection itself is untouched, and the F/Supr shortcuts keep working whatever the tool.
+describe('TrackEditor · la barra solo con «Seleccionar» (#180)', () => {
+  test('a drawing tool hides the bar and «Seleccionar» brings it back', async () => {
+    const user = userEvent.setup();
+    render(<TrackEditor initialTrack={LINE_TRACK} />);
+    await selectFirstSegment(user);
+    expect(screen.getByTestId('track-editor-segment-bar')).toBeInTheDocument();
+
+    // None of the three drawing tools renders the bar, and the selection survives each of them:
+    // the segment stays marked in the list, so «Seleccionar» needs no reselection.
+    for (const tool of ['line', 'arc', 'erase'] as const) {
+      await useTool(user, tool);
+      expect(screen.queryByTestId('track-editor-segment-bar')).toBeNull();
+      expect(
+        screen.getByRole('button', { name: t('sims.trackEditor.segmentLine', { index: 1 }) }),
+      ).toHaveAttribute('data-selected', 'true');
+    }
+
+    await useTool(user, 'select');
+    expect(screen.getByTestId('track-editor-segment-bar')).toBeInTheDocument();
+  });
+
+  test('Supr removes the selected segment with the bar hidden by «Recta»', async () => {
+    const user = userEvent.setup();
+    const changes: Track[] = [];
+    render(<TrackEditor initialTrack={LINE_TRACK} onChange={(track) => changes.push(track)} />);
+    await selectFirstSegment(user);
+    await useTool(user, 'line');
+    expect(screen.queryByTestId('track-editor-segment-bar')).toBeNull();
+
+    await user.keyboard('{Delete}');
+    expect(changes[changes.length - 1]?.segments).toHaveLength(0);
+  });
+
+  test('F flips the selected arc with the bar hidden by «Arco»', async () => {
+    const user = userEvent.setup();
+    const changes: Track[] = [];
+    render(<TrackEditor initialTrack={ARC_TRACK} onChange={(track) => changes.push(track)} />);
+    await selectFirstSegment(user, 'Arc');
+    await useTool(user, 'arc');
+    expect(screen.queryByTestId('track-editor-segment-bar')).toBeNull();
+
+    await user.keyboard('f');
+    expect(lastArcCcw(changes)).toBe(true);
   });
 });

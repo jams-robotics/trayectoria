@@ -178,11 +178,17 @@ function EditorScene({
  * The floating bar of the selected segment, over the top-right corner of the canvas (#159,
  * decision 1). `pointer-events-none` on the layer so the canvas below keeps receiving strokes;
  * the bar itself turns them back on.
+ *
+ * It belongs to «Seleccionar» and is rendered with no other tool (#180, decision 1): while a
+ * stroke is being drawn the bar covers the very corner the pointer needs, and its own controls
+ * swallow the `pointerdown` that starts there. The selection is not cleared by the tool change,
+ * so coming back to «Seleccionar» brings the same bar back. The `F`/`Supr` shortcuts of #159 are
+ * bound on the editor, not on the bar, so they keep working whatever the tool (decision 2).
  */
 function SegmentBarLayer({ editor }: { editor: TrackEditorApi }): JSX.Element | null {
   const { selected, track } = editor.state;
   const segment = selected === null ? undefined : track.segments[selected];
-  if (segment === undefined) return null;
+  if (segment === undefined || editor.tool !== 'select') return null;
   return (
     <div className="pointer-events-none absolute top-2 right-2">
       <SegmentBar
