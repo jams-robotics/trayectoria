@@ -357,6 +357,49 @@ test.describe('editor de pista en la caja del visor (#158, #189)', () => {
     await expect(page.getByTestId('sim-accordion')).toHaveCount(6);
   });
 
+  /**
+   * Fraction of the canvas, from its top-right corner, where the stroke starts: the band the
+   * floating segment bar took with any tool (#189, decision 4). With the bar reserved for
+   * «Seleccionar» (#180, decision 1) that corner is canvas again.
+   */
+  const CORNER_INSET = 0.05;
+
+  /** Fraction of the canvas width the stroke travels leftwards. */
+  const STROKE_SPAN = 0.3;
+
+  test('con «Recta» se dibuja desde la esquina superior derecha del lienzo (#180)', async ({
+    page,
+  }) => {
+    await open(page);
+    await openEditor(page);
+
+    const canvas = page.getByTestId('track-editor-box').locator('[data-testid="scene2d"] canvas');
+    await expect(canvas).toBeVisible();
+    const box = await canvas.boundingBox();
+    if (box === null) throw new Error('no box for the canvas');
+
+    // The opening track is the oval: whatever segments exist before the stroke are its own.
+    const segments = page
+      .getByTestId('track-editor-panel')
+      .getByRole('list', { name: 'Segmentos de la pista' })
+      .getByRole('button');
+    const before = await segments.count();
+
+    await page.getByRole('radio', { name: 'Recta' }).click();
+    // The `pointerdown` lands on the corner the bar used to cover; were anything still floating
+    // there, the stroke would not reach the canvas and no new segment would appear.
+    const start = {
+      x: box.x + box.width * (1 - CORNER_INSET),
+      y: box.y + box.height * CORNER_INSET,
+    };
+    await page.mouse.move(start.x, start.y);
+    await page.mouse.down();
+    await page.mouse.move(start.x - box.width * STROKE_SPAN, start.y, { steps: 4 });
+    await page.mouse.up();
+
+    await expect(segments).toHaveCount(before + 1);
+  });
+
   test('«Volver a la simulación» deja la simulación pausada en t = 0', async ({ page }) => {
     await open(page);
 

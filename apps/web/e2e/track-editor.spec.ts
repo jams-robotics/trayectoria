@@ -113,8 +113,13 @@ const TRACK_BOTTOM_M = -0.25;
  * Comprueba que la barra flotante del segmento seleccionado está donde este archivo supone: sobre
  * la esquina superior derecha del lienzo y por encima de `SEGMENT_BAR_BOTTOM_M`. Si la barra se
  * moviera, las coordenadas del cuadrado dejarían de estar justificadas y este fallo lo diría.
+ *
+ * The bar is only rendered with «Seleccionar» (#180, decision 1), so the check starts by
+ * activating that tool; the selection the last stroke left survives the tool change, so the bar
+ * that appears is the one of that very segment.
  */
 async function expectSegmentBarAboveTrack(story: Locator): Promise<void> {
+  await useTool(story, 'Seleccionar');
   const bar = story.getByTestId('track-editor-segment-bar');
   await expect(bar).toBeVisible();
   const barBox = await bar.boundingBox();
