@@ -41,6 +41,14 @@ jobs:
       - name: Run ${{ matrix.task }}
         run: pnpm ${{ matrix.task }}
 
+      # The budget reads apps/web/dist, so it can only run once the build has produced it (#208).
+      # The test task excludes this file; BUNDLE_BUDGET=1 makes it the only one Vitest picks up.
+      - name: Bundle budget
+        if: matrix.task == 'build'
+        env:
+          BUNDLE_BUDGET: '1'
+        run: pnpm --filter @trayectoria/web exec vitest run
+
   audit:
     name: audit
     runs-on: ubuntu-latest
