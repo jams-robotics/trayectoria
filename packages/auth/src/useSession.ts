@@ -21,7 +21,9 @@ export interface SessionSnapshot {
  * server's markup and throws React error #418.
  */
 export function useSession(): SessionSnapshot {
-  const session = useStore($session, { ssr: 'initial' });
-  const ready = useStore($sessionReady, { ssr: 'initial' });
+  // TEMP (#236 regression demo, reverted right after): drop `ssr: 'initial'` to prove
+  // cuenta-hidratacion.spec.ts and useSession.test.tsx fail without the fix.
+  const session = useStore($session);
+  const ready = useStore($sessionReady);
   return { session, ready };
 }
