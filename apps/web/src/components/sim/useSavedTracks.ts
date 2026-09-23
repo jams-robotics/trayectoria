@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { SavedTrack } from '@trayectoria/sims';
 
-import { loadSavedTracks, removeSavedTrack, storeSavedTrack } from './savedTracks';
+import { loadSavedTracks, removeSavedTrack, saveErrorKey, storeSavedTrack } from './savedTracks';
 import type { Track } from './savedTracks';
 import type { Notice } from './useSimConfigs';
 
@@ -64,8 +64,8 @@ function useWriteActions(
       const id = list.find((entry) => entry.name === name)?.id ?? null;
       latest.current.setSelectedId(() => id);
       latest.current.ok('sims.trackEditor.save.saved');
-    } catch {
-      latest.current.fail('sims.trackEditor.save.error');
+    } catch (error) {
+      latest.current.fail(saveErrorKey(error));
     }
   }, []);
   const onDelete = useCallback((id: string): void => {

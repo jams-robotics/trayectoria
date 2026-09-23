@@ -3,6 +3,7 @@ import { parseUploadedZip } from '@trayectoria/sims/urdf';
 import type { RobotSpec } from '@trayectoria/widgets';
 import { useState, type JSX } from 'react';
 
+import { saveErrorKey } from '../../lib/robots/storage';
 import { PRIMARY_BUTTON } from '../auth/fields';
 
 /** What one accepted upload hands the island: the parsed spec and the bytes to store. */
@@ -95,8 +96,15 @@ function useUpload(onUpload: UploadUrdfFormProps['onUpload'], mode: UploadMode):
       const checked = await checkFile(file);
       if (!checked.ok) setError(t(ERROR_KEYS[checked.code] ?? 'urdf.parse'));
       else await onUpload(checked.upload);
-    } catch {
-      setError(t(mode === 'parseOnly' ? 'sims.import.loadFailed' : 'auth.robots.uploadFailed'));
+    } catch (error) {
+      // #210: a spec over the 64 KiB of `robots.spec` has its own notice (`saveUploadedRobot`).
+      setError(
+        t(
+          mode === 'parseOnly'
+            ? 'sims.import.loadFailed'
+            : saveErrorKey(error, 'auth.robots.uploadFailed'),
+        ),
+      );
     }
     setPending(false);
   }

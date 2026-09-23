@@ -170,6 +170,33 @@ describe('saveRobotSimConfig (F4-05)', () => {
   });
 });
 
+describe('size bound of robots.spec (#210)', () => {
+  /** 500 saved configurations: well over 64 KiB of `spec`, the way the list really grows. */
+  const MANY = Array.from({ length: 500 }, (_, i) => ({ ...CONFIG, id: `cfg-${String(i)}` }));
+  const SIZE_MESSAGE =
+    'new row for relation "robots" violates check constraint "robots_spec_size_check"';
+
+  test('a spec over 64 KiB is refused with a RangeError and never reaches the update', async () => {
+    const mock = mockClient(row(MANY));
+    const saving = saveRobotSimConfig('robot-1', 'user-1', { ...CONFIG, id: 'new' }, mock.client);
+    await expect(saving).rejects.toBeInstanceOf(RangeError);
+    expect(mock.updates).toEqual([]);
+  });
+
+  test('the 23514 of the size check is the same RangeError', async () => {
+    const mock = mockClient(row(), null, { message: SIZE_MESSAGE, code: '23514' });
+    const saving = saveRobotSimConfig('robot-1', 'user-1', CONFIG, mock.client);
+    await expect(saving).rejects.toBeInstanceOf(RangeError);
+  });
+
+  test('any other check violation stays a plain Error', async () => {
+    const message = 'new row for relation "robots" violates check constraint "robots_kind_check"';
+    const mock = mockClient(row(), null, { message, code: '23514' });
+    const saving = saveRobotSimConfig('robot-1', 'user-1', CONFIG, mock.client);
+    await expect(saving).rejects.not.toBeInstanceOf(RangeError);
+  });
+});
+
 describe('deleteRobotSimConfig (F4-05)', () => {
   test('quita la configuración y escribe el resto', async () => {
     const other = { ...CONFIG, id: 'cfg-2', name: 'Otra' };

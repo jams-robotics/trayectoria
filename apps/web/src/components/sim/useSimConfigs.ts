@@ -44,6 +44,14 @@ async function loadList(robotId: string): Promise<readonly SimConfig[]> {
   return listRobotSimConfigs(saved, ownerId);
 }
 
+/**
+ * The notice of a failed write: its own one when the spec of the robot would go over the size
+ * bound, which `simConfigPersistence.ts` reports with a `RangeError` (#210).
+ */
+export function saveErrorKey(error: unknown): string {
+  return error instanceof RangeError ? 'sims.simConfig.tooLarge' : 'sims.simConfig.saveError';
+}
+
 /** Guarda `config` donde corresponda y devuelve la lista resultante. */
 async function storeConfig(
   robotId: string,
@@ -146,7 +154,7 @@ function useLinkedConfig(
 function useWriteActions(
   robotId: string,
   setSaved: (list: readonly SimConfig[]) => void,
-  onError: () => void,
+  onError: (error: unknown) => void,
 ): {
   onSave: (name: string, current: Omit<SimConfig, 'id' | 'name'>) => void;
   onDelete: (id: string) => void;
@@ -160,8 +168,8 @@ function useWriteActions(
         .then((list) => {
           latest.current.setSaved(list);
         })
-        .catch(() => {
-          latest.current.onError();
+        .catch((error: unknown) => {
+          latest.current.onError(error);
         });
     },
     [robotId],
@@ -172,8 +180,8 @@ function useWriteActions(
         .then((list) => {
           latest.current.setSaved(list);
         })
-        .catch(() => {
-          latest.current.onError();
+        .catch((error: unknown) => {
+          latest.current.onError(error);
         });
     },
     [robotId],
@@ -198,8 +206,8 @@ export function useSimConfigs(
     setNotice({ message: t('sims.simConfig.invalidLink'), tone: 'error' });
   });
 
-  const { onSave, onDelete } = useWriteActions(robotId, setSaved, () => {
-    setNotice({ message: t('sims.simConfig.saveError'), tone: 'error' });
+  const { onSave, onDelete } = useWriteActions(robotId, setSaved, (error) => {
+    setNotice({ message: t(saveErrorKey(error)), tone: 'error' });
   });
 
   // #182 (decisión 2): «Copiar enlace» con una configuración que no cabe no copia nada y lo dice

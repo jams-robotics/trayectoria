@@ -25,6 +25,18 @@ import type { SavedTrack, TrackJson } from '@trayectoria/sims';
  */
 type Track = Exclude<TrackJson, string>;
 
+/**
+ * The size check of `tracks.track` (migration 0007, #210): SQLSTATE `23514` and its constraint
+ * name, which the message carries. The name matters because the check of `name` is `23514` too.
+ */
+const CHECK_VIOLATION = '23514';
+const SIZE_CHECK = 'tracks_track_size_check';
+
+/** Whether the database rejected the write because the track is over the size bound. */
+function isSizeViolation(error: { readonly code?: string; readonly message: string }): boolean {
+  return error.code === CHECK_VIOLATION && error.message.includes(SIZE_CHECK);
+}
+
 /** The columns the page needs from each row. */
 const COLUMNS = 'id, name, track, updated_at';
 
@@ -81,6 +93,10 @@ export async function listTracks(
  * Saves `track` under the name `name`. The unique `(owner_id, name)` index makes the same name
  * update its row instead of creating a second one, so this is an `upsert` on that pair of
  * columns and not an `insert` after a `select`.
+ *
+ * The caller has already checked the size of the text (#210), but the `jsonb` stored can take
+ * more than its text, so a rejection by the size check of migration 0007 becomes a `RangeError`:
+ * the same error, and so the same notice, as that check.
  */
 export async function saveTrack(
   ownerId: string,
@@ -94,7 +110,8 @@ export async function saveTrack(
       { owner_id: ownerId, name, track: jsonOf(track), updated_at: new Date().toISOString() },
       { onConflict: 'owner_id,name' },
     );
-  if (error !== null) throw new Error(error.message);
+  if (error === null) return;
+  throw isSizeViolation(error) ? new RangeError(error.message) : new Error(error.message);
 }
 
 /** Deletes the student's track `id`; one that is not theirs is reached by neither policy nor `eq`. */

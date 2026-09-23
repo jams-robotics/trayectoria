@@ -17,6 +17,7 @@
       "placeholder": "Mi pista",
       "empty": "Escribe un nombre para la pista.",
       "error": "No se pudo guardar la pista.",
+      "tooLarge": "La pista es demasiado grande para guardarla (máximo 64 KiB); simplifícala quitando segmentos.",
       "saved": "Pista guardada"
     },
     "exportJson": "Exportar JSON",
@@ -265,7 +266,8 @@
     "copyError": "No se pudo copiar el enlace; está a la vista para copiarlo a mano.",
     "invalidLink": "El enlace no es una configuración válida; se abre con los valores por defecto.",
     "linkTooLong": "La configuración es demasiado grande para un enlace; guárdala o simplifica la pista.",
-    "saveError": "No se pudo guardar la configuración en el robot."
+    "saveError": "No se pudo guardar la configuración en el robot.",
+    "tooLarge": "No caben más configuraciones en este robot (máximo 64 KiB); borra alguna o simplifica la pista."
   },
   "import": {
     "group": "Mis robots",

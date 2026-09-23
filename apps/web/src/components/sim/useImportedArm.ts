@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import type { AcceptedUpload } from '../robots/UploadUrdfForm';
 import type { ImportedArm } from './importedArms';
+import { saveErrorKey } from '../../lib/robots/storage';
 import { IMPORTED_VALUE, savedIdOf } from './ArmSource';
 
 // F5-04 (#137, decisiones 3, 4 y 5): el estado del brazo importado de `/simuladores/brazo`, fuera
@@ -77,11 +78,14 @@ function useSavedArms(): {
   return { savedArms, ownerId, add };
 }
 
-/** Guarda el zip como un brazo del estudiante, o `null` si Supabase lo rechaza. */
-async function saveOrNull(
+/**
+ * Saves the zip as an arm of the learner, or returns the key of the notice when it is not saved:
+ * its own one when the spec is over the size bound of `robots.spec` (#210).
+ */
+async function saveOrNotice(
   ownerId: string,
   upload: AcceptedUpload,
-): Promise<ImportedArm | null> {
+): Promise<ImportedArm | string> {
   try {
     const module = await import('./importedArms');
     return await module.saveImportedArm({
@@ -90,8 +94,8 @@ async function saveOrNull(
       spec: upload.spec,
       zipBytes: upload.zipBytes,
     });
-  } catch {
-    return null;
+  } catch (error) {
+    return saveErrorKey(error, 'sims.import.saveFailed');
   }
 }
 
@@ -121,11 +125,11 @@ function useAccept(options: {
         setNotice('sims.import.loaded');
         return;
       }
-      const saved = await saveOrNull(owner, upload);
-      if (saved !== null) add(saved);
+      const saved = await saveOrNotice(owner, upload);
+      if (typeof saved !== 'string') add(saved);
       show(arm);
       // El zip ya está comprobado: si Supabase lo rechaza, el brazo se carga igual en memoria.
-      setNotice(saved === null ? 'sims.import.saveFailed' : 'sims.import.saved');
+      setNotice(typeof saved === 'string' ? saved : 'sims.import.saved');
     },
     [ownerId, add, show, setNotice, setDialogOpen],
   );
