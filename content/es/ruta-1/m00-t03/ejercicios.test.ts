@@ -98,7 +98,9 @@ describe('e1 · velocidad media', () => {
     const rng = scriptedRng([drawFor(0.09, E1_DX_M), drawFor(0.1, E1_DT_S)]);
     const { values, answer, unit } = exercise('e1').generate(rng);
 
-    expect(values).toEqual({ dx_m: expect.closeTo(0.09, 12), dt_s: expect.closeTo(0.1, 12) });
+    const { dx_m, dt_s } = values as Record<string, number>;
+    expect(dx_m).toBeCloseTo(0.09, 12);
+    expect(dt_s).toBeCloseTo(0.1, 12);
     expect(answer).toBeCloseTo(0.9, 10);
     expect(unit).toBe('m/s');
   });
