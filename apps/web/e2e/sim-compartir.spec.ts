@@ -205,3 +205,18 @@ test.describe('guardar y compartir la configuración (F4-05)', () => {
     await expect(page.getByText('Para borrar')).toHaveCount(0);
   });
 });
+
+// #249: con el simulador renderizado en el servidor, React lo dejaba en un `<div hidden>` hasta
+// revelarlo, la hidratación lo volvía a pintar en el cliente y durante un instante había dos
+// visores con los mismos `data-testid`. Mirar el HTML del servidor lo comprueba sin carreras.
+test('el servidor no emite una copia oculta del simulador y la página monta uno solo', async ({
+  page,
+  request,
+}) => {
+  const response = await request.get('/simuladores/movil');
+  expect(response.ok()).toBe(true);
+  expect(await response.text()).not.toContain('data-testid="line-follower"');
+
+  await open(page);
+  await expect(page.getByTestId('line-follower')).toHaveCount(1);
+});
