@@ -8,6 +8,7 @@ import {
   configureMyRobotPersistence,
   referenceRobot,
   resetMyRobot,
+  setMyRobot,
 } from './myRobot';
 import type { RobotPersistence } from './myRobot';
 
@@ -93,5 +94,80 @@ describe('session switch while «Mi robot» loads (#218)', () => {
     expect($myRobot.get()).toEqual(referenceRobot());
     expect(storedRobot()).toBeNull();
     expect(a.adapter.save).not.toHaveBeenCalled();
+  });
+});
+
+/** An adapter whose account holds `remote` (`null`: no robot saved in the account). */
+function accountAdapter(remote: RobotSpec | null): RobotPersistence {
+  return { load: vi.fn().mockResolvedValue(remote), save: vi.fn().mockResolvedValue(undefined) };
+}
+
+describe('«Mi robot» when the session ends or changes hands (#238)', () => {
+  test('signing out goes back to the reference robot and drops the local copy', async () => {
+    await configureMyRobotPersistence(accountAdapter(ROBOT_A));
+    expect($myRobot.get()).toEqual(ROBOT_A);
+
+    await configureMyRobotPersistence(null);
+
+    expect($myRobot.get()).toEqual(referenceRobot());
+    expect(storedRobot()).toBeNull();
+  });
+
+  test('a robot saved during the session is dropped too when signing out', async () => {
+    const a = accountAdapter(null);
+    await configureMyRobotPersistence(a);
+    setMyRobot(ROBOT_A);
+
+    await configureMyRobotPersistence(null);
+
+    expect($myRobot.get()).toEqual(referenceRobot());
+    expect(storedRobot()).toBeNull();
+    expect(a.save).toHaveBeenCalledTimes(1);
+  });
+
+  test('an anonymous visit that never had a session keeps its local robot', async () => {
+    setMyRobot(ROBOT_A);
+
+    await configureMyRobotPersistence(null);
+
+    expect($myRobot.get()).toEqual(ROBOT_A);
+    expect(storedRobot()).toEqual(ROBOT_A);
+  });
+
+  test('signing in keeps the anonymous robot when the account has none', async () => {
+    setMyRobot(ROBOT_A);
+
+    await configureMyRobotPersistence(accountAdapter(null));
+
+    expect($myRobot.get()).toEqual(ROBOT_A);
+    expect(storedRobot()).toEqual(ROBOT_A);
+  });
+
+  test('B signing in after A signed out does not get the robot of A', async () => {
+    await configureMyRobotPersistence(accountAdapter(ROBOT_A));
+    await configureMyRobotPersistence(null);
+
+    await configureMyRobotPersistence(accountAdapter(null));
+
+    expect($myRobot.get()).toEqual(referenceRobot());
+    expect(storedRobot()).toBeNull();
+  });
+
+  test('switching from A to B, whose account has no robot, does not hand B the robot of A', async () => {
+    await configureMyRobotPersistence(accountAdapter(ROBOT_A));
+
+    await configureMyRobotPersistence(accountAdapter(null));
+
+    expect($myRobot.get()).toEqual(referenceRobot());
+    expect(storedRobot()).toBeNull();
+  });
+
+  test('switching from A to B adopts the robot saved in the account of B', async () => {
+    await configureMyRobotPersistence(accountAdapter(ROBOT_A));
+
+    await configureMyRobotPersistence(accountAdapter(ROBOT_B));
+
+    expect($myRobot.get()).toEqual(ROBOT_B);
+    expect(storedRobot()).toEqual(ROBOT_B);
   });
 });

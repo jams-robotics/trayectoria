@@ -143,12 +143,21 @@ export function resetMyRobot(): RobotSpec {
 /**
  * Attaches the remote adapter (or detaches it with `null`) and adopts the robot it holds: a
  * valid remote spec replaces the local one, so a learner signing in on another device gets
- * their own robot back (#95, decision 2).
+ * their own robot back (#95, decision 2). `apps/web` calls it once per change of signed-in
+ * learner, so a previous adapter means that learner is leaving.
  */
 export async function configureMyRobotPersistence(adapter: RobotPersistence | null): Promise<void> {
+  const previous = persistence;
   persistence = adapter;
   persistenceGeneration += 1;
   const generation = persistenceGeneration;
+  // The learner who leaves takes their robot along: this browser goes back to the reference
+  // robot, so whoever uses it next never sees nor adopts it. An anonymous visit had no adapter,
+  // so its robot is kept, also when signing in to an account without a robot (#238).
+  if (previous !== null) {
+    $myRobot.set(referenceRobot());
+    writeStoredRobot(null);
+  }
   if (adapter === null) return;
   const remote = await adapter.load().catch(() => null);
   // The session changed while loading: this robot belongs to whoever was signed in before (#218).
