@@ -214,7 +214,7 @@ export function MatrixPanel({ rows, onHighlightLink }: MatrixPanelProps): JSX.El
     <section
       aria-label={t('sims.matrices.title')}
       data-testid="matrix-panel"
-      className="flex flex-col gap-3"
+      className="flex w-0 min-w-full flex-col gap-3"
     >
       <h3 className="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
         {t('sims.matrices.title')}
