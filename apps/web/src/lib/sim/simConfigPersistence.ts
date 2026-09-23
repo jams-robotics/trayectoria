@@ -13,8 +13,20 @@
  */
 import { getDbClient } from '@trayectoria/db';
 import type { DbClient, Json } from '@trayectoria/db';
-import { parseSimConfig } from '@trayectoria/sims';
+import { fitsStoredJson, parseSimConfig } from '@trayectoria/sims';
 import type { SimConfig } from '@trayectoria/sims';
+
+/**
+ * The size check of `robots.spec` (migration 0007, #210): SQLSTATE `23514` and its constraint
+ * name, which the message carries. The name matters because the check of `kind` is `23514` too.
+ */
+const CHECK_VIOLATION = '23514';
+const SIZE_CHECK = 'robots_spec_size_check';
+
+/** Whether the database rejected the write because the spec is over the size bound. */
+function isSizeViolation(error: { readonly code?: string; readonly message: string }): boolean {
+  return error.code === CHECK_VIOLATION && error.message.includes(SIZE_CHECK);
+}
 
 /** La fila que hace falta para leer y reescribir la lista. */
 interface RobotRow {
@@ -64,7 +76,13 @@ function isJson(value: unknown): value is Json {
   return value !== undefined;
 }
 
-/** Escribe la lista en el `spec` de la fila, conservando el resto del robot y `spec_version`. */
+/**
+ * Escribe la lista en el `spec` de la fila, conservando el resto del robot y `spec_version`.
+ *
+ * #210: the list lives inside `robots.spec`, which is bound to 64 KiB (docs/ARCHITECTURE.md
+ * §5.1). A spec over the bound is refused with a `RangeError` before the `update`, and a rejection
+ * by the size check of the database becomes the same error, so the page shows the same notice.
+ */
 async function write(
   row: RobotRow,
   ownerId: string,
@@ -72,13 +90,14 @@ async function write(
   db: DbClient,
 ): Promise<readonly SimConfig[]> {
   const spec = jsonOf({ ...row.spec, simConfigs: configs });
+  if (!fitsStoredJson(spec)) throw new RangeError('robot spec over the stored JSON bound');
   const { error } = await db
     .from('robots')
     .update({ spec })
     .eq('id', row.id)
     .eq('owner_id', ownerId);
-  if (error !== null) throw new Error(error.message);
-  return configs;
+  if (error === null) return configs;
+  throw isSizeViolation(error) ? new RangeError(error.message) : new Error(error.message);
 }
 
 /** Las configuraciones guardadas en el robot; lista vacía si la fila no existe o falla la lectura. */

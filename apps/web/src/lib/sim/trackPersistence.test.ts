@@ -18,6 +18,10 @@ const TRACK_JSON = {
   segments: [{ type: 'line', from: [0, 0], to: [0.2, 0] }],
 };
 
+/** What PostgREST answers when the size check of migration 0007 rejects the row (#210). */
+const SIZE_MESSAGE =
+  'new row for relation "tracks" violates check constraint "tracks_track_size_check"';
+
 /** What each chained call of the client recorded, to check the filter by owner. */
 interface Calls {
   readonly table: string[];
@@ -33,7 +37,7 @@ interface Calls {
  */
 function fakeDb(
   rows: readonly unknown[] = [],
-  error: { message: string } | null = null,
+  error: { message: string; code?: string } | null = null,
 ): { db: DbClient; calls: Calls } {
   const calls: Calls = { table: [], eq: [], upsert: [], order: [], deleted: 0 };
   const chain = {
@@ -107,6 +111,28 @@ describe('track persistence (F4-06)', () => {
     await expect(
       saveTrack(OWNER_ID, 'Óvalo', { segments: [], lineWidth_m: 0.02 }, db),
     ).rejects.toThrow('duplicate key');
+  });
+
+  it('turns the 23514 of the size check into a RangeError, the too-large notice (#210)', async () => {
+    const { db } = fakeDb([], { message: SIZE_MESSAGE, code: '23514' });
+    const saving = saveTrack(OWNER_ID, 'Óvalo', { segments: [], lineWidth_m: 0.02 }, db);
+    await expect(saving).rejects.toBeInstanceOf(RangeError);
+  });
+
+  it('keeps any other error of a save, the name check included, a plain Error', async () => {
+    const name = 'new row for relation "tracks" violates check constraint "tracks_name_check"';
+    for (const error of [
+      { message: 'duplicate key', code: '23505' },
+      { message: name, code: '23514' },
+    ]) {
+      const saving = saveTrack(
+        OWNER_ID,
+        'Óvalo',
+        { segments: [], lineWidth_m: 0.02 },
+        fakeDb([], error).db,
+      );
+      await expect(saving).rejects.not.toBeInstanceOf(RangeError);
+    }
   });
 
   it('deletes by id and owner_id', async () => {

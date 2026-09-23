@@ -6,10 +6,15 @@ import {
   listRobots,
   makeDefault,
   renameRobot,
+  saveErrorKey,
   saveUploadedRobot,
   urdfObjectPath,
   type RobotRow,
 } from './storage';
+
+// `saveUploadedRobot` loads `@trayectoria/sims` with `import()` for its size check (#210); it is
+// loaded once here so that no test pays for importing the package cold.
+await import('@trayectoria/sims');
 
 // F3-04: every call runs against a mocked Supabase client, so the tests assert the order of the
 // statements (ticket decision 6) without touching the network.
@@ -28,6 +33,8 @@ interface Failures {
   readonly failing?: readonly string[];
   readonly rows?: readonly unknown[];
   readonly row?: unknown;
+  /** The error every failing operation answers with, instead of a plain `{ message }`. */
+  readonly error?: { readonly message: string; readonly code: string };
 }
 
 interface Mock {
@@ -40,7 +47,9 @@ function mockDb(failures: Failures = {}): Mock {
   const calls: Call[] = [];
   const failing = new Set(failures.failing ?? []);
   const answer = (op: string, data: unknown): { data: unknown; error: unknown } =>
-    failing.has(op) ? { data: null, error: { message: `${op} failed` } } : { data, error: null };
+    failing.has(op)
+      ? { data: null, error: failures.error ?? { message: `${op} failed` } }
+      : { data, error: null };
 
   const table = (name: string): unknown => {
     const verb = (op: string, payload?: unknown): unknown => {
@@ -167,6 +176,41 @@ describe('saveUploadedRobot (F3-04, decision 6)', () => {
       }),
     ).rejects.toThrow();
     expect(calls.map((call) => call.op)).toEqual(['robots.insert']);
+  });
+});
+
+describe('saveUploadedRobot size bound (#210)', () => {
+  const upload = (spec: unknown): Parameters<typeof saveUploadedRobot>[1] => ({
+    ...{ ownerId: OWNER, robotId: ROBOT, name: 'Brazo', specVersion: 1, zipBytes: ZIP },
+    spec: spec as never,
+  });
+  const huge = {
+    ...SPEC,
+    links: Array.from({ length: 5000 }, (_, i) => ({ name: `l${String(i)}` })),
+  };
+  const sizeCheck =
+    'new row for relation "robots" violates check constraint "robots_spec_size_check"';
+
+  it('refuses a spec over 64 KiB with a RangeError before any call', async () => {
+    const { db, calls } = mockDb({ row: INSERTED });
+    await expect(saveUploadedRobot(db, upload(huge))).rejects.toBeInstanceOf(RangeError);
+    expect(calls).toEqual([]);
+  });
+
+  it('turns the 23514 of the size check into the same RangeError, uploading nothing', async () => {
+    const error = { message: sizeCheck, code: '23514' };
+    const { db, calls } = mockDb({ failing: ['robots.insert'], error });
+    await expect(saveUploadedRobot(db, upload(SPEC))).rejects.toBeInstanceOf(RangeError);
+    expect(calls.map((call) => call.op)).toEqual(['robots.insert']);
+  });
+
+  it('shows the too-large notice only for that error', () => {
+    expect(saveErrorKey(new RangeError('x'), 'auth.robots.uploadFailed')).toBe(
+      'auth.robots.tooLarge',
+    );
+    expect(saveErrorKey(new Error('x'), 'auth.robots.uploadFailed')).toBe(
+      'auth.robots.uploadFailed',
+    );
   });
 });
 

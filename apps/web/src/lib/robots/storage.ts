@@ -46,7 +46,7 @@ export interface UploadedRobot {
 /** What a PostgREST or Storage call resolves to, as this module reads it back. */
 interface Result<Row> {
   readonly data: Row | null;
-  readonly error: { readonly message: string } | null;
+  readonly error: { readonly message: string; readonly code?: string } | null;
 }
 
 interface DbRow {
@@ -62,6 +62,36 @@ const COLUMNS = 'id, name, kind, created_at, is_default, urdf_path';
 
 function fail(error: Result<unknown>['error'], fallback: string): never {
   throw new Error(error?.message ?? fallback);
+}
+
+/**
+ * The size check of `robots.spec` (migration 0007, #210): SQLSTATE `23514` and its constraint
+ * name, which the message carries. The name matters because the check of `kind` is `23514` too.
+ */
+const CHECK_VIOLATION = '23514';
+const SIZE_CHECK = 'robots_spec_size_check';
+
+/** A rejection by the size check as a `RangeError`, the error of the precheck; anything else as is. */
+function failInsert(error: Result<unknown>['error']): never {
+  if (error?.code === CHECK_VIOLATION && error.message.includes(SIZE_CHECK)) {
+    throw new RangeError(error.message);
+  }
+  fail(error, 'robot not saved');
+}
+
+/** Refuses a spec over the 64 KiB of `robots.spec` (docs/ARCHITECTURE.md §5.1) with a `RangeError`. */
+async function checkSize(spec: Json): Promise<void> {
+  // Loaded on save only, so the package stays out of the initial JS of `/cuenta/robots`.
+  const { fitsStoredJson } = await import('@trayectoria/sims');
+  if (!fitsStoredJson(spec)) throw new RangeError('robot spec over the stored JSON bound');
+}
+
+/**
+ * The notice of a failed save: `auth.robots.tooLarge` when the spec is over the size bound
+ * (#210), whether the precheck or the database said so, and `fallbackKey` otherwise.
+ */
+export function saveErrorKey(error: unknown, fallbackKey: string): string {
+  return error instanceof RangeError ? 'auth.robots.tooLarge' : fallbackKey;
 }
 
 function toRobot(row: DbRow): RobotRow {
@@ -170,13 +200,15 @@ export async function deleteRobot(
 
 /**
  * Saves a validated upload: the row first, then the zip (ticket decision 6). If the upload is
- * refused the row is deleted again, so a robot in the list always has its file behind it.
+ * refused the row is deleted again, so a robot in the list always has its file behind it. A spec
+ * over the size bound is refused before either (#210).
  */
 export async function saveUploadedRobot(
   db: DbClient,
   upload: UploadedRobot,
 ): Promise<RobotRow> {
   const { ownerId, robotId, name, spec, specVersion, zipBytes } = upload;
+  await checkSize(spec);
   const { data, error }: Result<DbRow> = await db
     .from('robots')
     .insert({
@@ -191,7 +223,7 @@ export async function saveUploadedRobot(
     })
     .select(COLUMNS)
     .single();
-  if (error !== null || data === null) fail(error, 'robot not saved');
+  if (error !== null || data === null) failInsert(error);
 
   const uploaded: Result<unknown> = await db.storage
     .from(URDF_BUCKET)
