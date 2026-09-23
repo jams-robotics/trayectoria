@@ -229,3 +229,55 @@ describe('progress store resilience (F3-01)', () => {
     expect(getProgress(TOPIC)?.attempts).toBe(1);
   });
 });
+
+describe('session switch while the remote rows load (#218)', () => {
+  const OTHER = '22222222-2222-4222-8222-222222222222';
+  const OTHER_TOPIC = 'ruta-1/m00-t02';
+  const ROW_A: TopicProgress = { ...emptyProgress(), status: 'completed', attempts: 2 };
+  const ROW_B: TopicProgress = { ...emptyProgress(), attempts: 5 };
+
+  /** Makes the next `fetchProgress` stay pending until the test resolves it. */
+  function controlledFetch(): (map: ProgressMap) => void {
+    let resolvePending: (map: ProgressMap) => void = () => undefined;
+    remote.fetchProgress.mockImplementationOnce(
+      () =>
+        new Promise<ProgressMap>((resolve) => {
+          resolvePending = resolve;
+        }),
+    );
+    return (map) => resolvePending(map);
+  }
+
+  test('rows of A that arrive after B signs in are discarded', async () => {
+    await recordAttempt(attemptOf('e1', true, 1), REQUIRED);
+    const resolveA = controlledFetch();
+    const loadingA = configureProgressSession(USER);
+    const resolveB = controlledFetch();
+    const loadingB = configureProgressSession(OTHER);
+
+    resolveB({ [OTHER_TOPIC]: ROW_B });
+    await loadingB;
+    resolveA({ [TOPIC]: ROW_A });
+    await loadingA;
+
+    expect($progress.get()).toEqual({ [OTHER_TOPIC]: ROW_B });
+    expect(stored()).toEqual({ owner: OTHER, topics: { [OTHER_TOPIC]: ROW_B } });
+    expect(currentUserId()).toBe(OTHER);
+    expect(remote.upsertProgress).not.toHaveBeenCalled();
+  });
+
+  test('rows of A that arrive after signing out leave the store empty', async () => {
+    await recordAttempt(attemptOf('e1', true, 1), REQUIRED);
+    const resolveA = controlledFetch();
+    const loadingA = configureProgressSession(USER);
+    await configureProgressSession(null);
+
+    resolveA({ [TOPIC]: ROW_A });
+    await loadingA;
+
+    expect($progress.get()).toEqual({});
+    expect(stored()).toEqual({ owner: null, topics: {} });
+    expect(currentUserId()).toBeNull();
+    expect(remote.upsertProgress).not.toHaveBeenCalled();
+  });
+});
