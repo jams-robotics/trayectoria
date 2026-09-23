@@ -69,6 +69,8 @@ const SCALE_PREFIXES = [
   'max-w',
   'max-h',
   'basis',
+  'translate-x',
+  'translate-y',
 ];
 
 const SCALE_UTILITY = new RegExp(`^-?(?:${SCALE_PREFIXES.join('|')})-(\\d+(?:\\.\\d+)?)$`);
@@ -110,7 +112,7 @@ function scannedRoots(): string[] {
 
 describe('findOffScaleClasses', () => {
   test('flags steps above 12, with or without variants and sign', () => {
-    const source = `<div className="w-80 md:w-72 lg:w-80 -mt-16 hover:p-14 w-20 w-0.5" />`;
+    const source = `<div className="w-80 md:w-72 lg:w-80 -mt-16 hover:p-14 w-20 w-0.5 translate-x-20" />`;
     expect(findOffScaleClasses(source)).toEqual([
       'w-80',
       'md:w-72',
@@ -119,6 +121,7 @@ describe('findOffScaleClasses', () => {
       'hover:p-14',
       'w-20',
       'w-0.5',
+      'translate-x-20',
     ]);
   });
 
@@ -131,7 +134,7 @@ describe('findOffScaleClasses', () => {
   });
 
   test('accepts the token scale, named and arbitrary utilities', () => {
-    const source = `<div className={cn('w-0 w-12 lg:w-panel -mt-4 gap-3 w-full w-1/2 w-[352px] min-w-0')} />`;
+    const source = `<div className={cn('w-0 w-12 lg:w-panel -mt-4 gap-3 w-full w-1/2 w-[352px] min-w-0 -translate-y-1')} />`;
     expect(findOffScaleClasses(source)).toEqual([]);
   });
 });
