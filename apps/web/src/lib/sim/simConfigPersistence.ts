@@ -16,17 +16,10 @@ import type { DbClient, Json } from '@trayectoria/db';
 import { fitsStoredJson, parseSimConfig } from '@trayectoria/sims';
 import type { SimConfig } from '@trayectoria/sims';
 
-/**
- * The size check of `robots.spec` (migration 0007, #210): SQLSTATE `23514` and its constraint
- * name, which the message carries. The name matters because the check of `kind` is `23514` too.
- */
-const CHECK_VIOLATION = '23514';
-const SIZE_CHECK = 'robots_spec_size_check';
+import { isCheckViolation } from '../checkViolation';
 
-/** Whether the database rejected the write because the spec is over the size bound. */
-function isSizeViolation(error: { readonly code?: string; readonly message: string }): boolean {
-  return error.code === CHECK_VIOLATION && error.message.includes(SIZE_CHECK);
-}
+/** The size check of `robots.spec` (migration 0007, #210). */
+const SIZE_CHECK = 'robots_spec_size_check';
 
 /** La fila que hace falta para leer y reescribir la lista. */
 interface RobotRow {
@@ -97,7 +90,9 @@ async function write(
     .eq('id', row.id)
     .eq('owner_id', ownerId);
   if (error === null) return configs;
-  throw isSizeViolation(error) ? new RangeError(error.message) : new Error(error.message);
+  throw isCheckViolation(error, SIZE_CHECK)
+    ? new RangeError(error.message)
+    : new Error(error.message);
 }
 
 /** Las configuraciones guardadas en el robot; lista vacía si la fila no existe o falla la lectura. */

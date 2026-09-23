@@ -9,6 +9,8 @@
  */
 import type { DbClient, Json } from '@trayectoria/db';
 
+import { isCheckViolation } from '../checkViolation';
+
 /** Private bucket of migration 0003; its objects live at `{uid}/{robotId}.zip`. */
 export const URDF_BUCKET = 'urdf';
 
@@ -64,18 +66,12 @@ function fail(error: Result<unknown>['error'], fallback: string): never {
   throw new Error(error?.message ?? fallback);
 }
 
-/**
- * The size check of `robots.spec` (migration 0007, #210): SQLSTATE `23514` and its constraint
- * name, which the message carries. The name matters because the check of `kind` is `23514` too.
- */
-const CHECK_VIOLATION = '23514';
+/** The size check of `robots.spec` (migration 0007, #210). */
 const SIZE_CHECK = 'robots_spec_size_check';
 
 /** A rejection by the size check as a `RangeError`, the error of the precheck; anything else as is. */
 function failInsert(error: Result<unknown>['error']): never {
-  if (error?.code === CHECK_VIOLATION && error.message.includes(SIZE_CHECK)) {
-    throw new RangeError(error.message);
-  }
+  if (error !== null && isCheckViolation(error, SIZE_CHECK)) throw new RangeError(error.message);
   fail(error, 'robot not saved');
 }
 
