@@ -18,6 +18,8 @@ import type { DbClient, Json } from '@trayectoria/db';
 import { fromJson, serializeTrack } from '@trayectoria/sims';
 import type { SavedTrack, TrackJson } from '@trayectoria/sims';
 
+import { isCheckViolation } from '../checkViolation';
+
 /**
  * The track with geometry: the `TrackJson` without the preset-name branch. `apps/web` cannot
  * import sim-core (docs/ARCHITECTURE.md §2), so the `Track` type is named after what
@@ -25,17 +27,8 @@ import type { SavedTrack, TrackJson } from '@trayectoria/sims';
  */
 type Track = Exclude<TrackJson, string>;
 
-/**
- * The size check of `tracks.track` (migration 0007, #210): SQLSTATE `23514` and its constraint
- * name, which the message carries. The name matters because the check of `name` is `23514` too.
- */
-const CHECK_VIOLATION = '23514';
+/** The size check of `tracks.track` (migration 0007, #210). */
 const SIZE_CHECK = 'tracks_track_size_check';
-
-/** Whether the database rejected the write because the track is over the size bound. */
-function isSizeViolation(error: { readonly code?: string; readonly message: string }): boolean {
-  return error.code === CHECK_VIOLATION && error.message.includes(SIZE_CHECK);
-}
 
 /** The columns the page needs from each row. */
 const COLUMNS = 'id, name, track, updated_at';
@@ -111,7 +104,9 @@ export async function saveTrack(
       { onConflict: 'owner_id,name' },
     );
   if (error === null) return;
-  throw isSizeViolation(error) ? new RangeError(error.message) : new Error(error.message);
+  throw isCheckViolation(error, SIZE_CHECK)
+    ? new RangeError(error.message)
+    : new Error(error.message);
 }
 
 /** Deletes the student's track `id`; one that is not theirs is reached by neither policy nor `eq`. */
