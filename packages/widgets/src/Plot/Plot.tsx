@@ -19,7 +19,7 @@ function Legend({ series, theme }: { series: readonly PlotSeries[]; theme: PlotT
   return (
     <ul className="m-0 flex list-none flex-wrap items-center gap-3 p-0">
       {series.map((item, index) => (
-        <li key={item.key} className="text-fg-muted flex items-center gap-1.5 font-mono text-xs">
+        <li key={item.key} className="text-fg-muted flex items-center gap-2 font-mono text-xs">
           <span
             aria-hidden="true"
             className="inline-block h-[3px] w-[10px]"

@@ -223,12 +223,13 @@ function SimColumn(props: SidePanelsProps): JSX.Element {
   const { page, mobile, openId, setOpenId, t, controller, store, configs, current } = props;
   const shared = { mobile, openId, setOpenId };
   return (
-    // Ancho fijo en escritorio: la columna vive en la fila flex del widget y las gráficas de
-    // «Gráficas» fijan su ancho en píxeles al medir su contenedor (uPlot). Sin un ancho fijo, la
-    // columna y las gráficas se persiguen —la gráfica mide, crece, la columna crece, la gráfica
-    // vuelve a medir— y la maqueta nunca se asienta. `lg:w-80` es el mismo ancho que el widget
-    // usa cuando lleva su propia columna (docs/DESIGN.md §9: panel lateral de 340-360 px).
-    <div className="flex min-w-0 flex-col gap-4 lg:w-80 lg:shrink-0">
+    // Fixed width on desktop: the column lives in the widget's flex row and the «Gráficas»
+    // charts fix their width in pixels by measuring their container (uPlot). Without a fixed
+    // width, the column and the charts chase each other —the chart measures, grows, the column
+    // grows, the chart measures again— and the mockup never settles. `lg:w-panel` is the same
+    // width the widget uses when it carries its own column (docs/DESIGN.md §9: side panel of
+    // 340-360 px).
+    <div className="flex min-w-0 flex-col gap-4 lg:w-panel lg:shrink-0">
       <Panel id="controller" title={t('sims.mobilePage.controller')} {...shared}>
         {controller}
       </Panel>

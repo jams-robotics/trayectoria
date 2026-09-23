@@ -102,7 +102,7 @@ function SidePanel({
   t,
 }: Omit<PanelsProps, 'curve' | 'setCurve'>): JSX.Element {
   return (
-    <div className="flex flex-col gap-4 lg:w-80">
+    <div className="flex flex-col gap-4 lg:w-panel">
       <ResultsPanel mode={mode} rotation={rotation} t_s={t_s} t={t} />
       <LiveStatus text={statusOf(mode, rotation, t_s, t)} />
       <UnitToggle value={inputUnit} onChange={setInputUnit} t={t} />

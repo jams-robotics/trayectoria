@@ -26,11 +26,11 @@ const BUTTON =
 const SELECT =
   'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus min-h-11 shrink-0 border px-2 font-mono focus-visible:outline-2 focus-visible:outline-offset-2';
 
-// #189 (decisión 1): en una sola fila los controles de la barra —cuatro herramientas, deshacer,
-// rehacer, exportar, importar, «Nueva» (#190), «Guardar» (#191) y el preset— tienen que caber en la caja del visor,
-// que a 1280 px mide unos 730 px. Con el padding y el cuerpo de siempre piden ~840 px y los últimos quedaban fuera, así que
-// en esa maqueta van con 8 px de padding y el cuerpo `xs`, el mínimo de docs/DESIGN.md §9.2. El
-// alto de 44 px no se toca: es el objetivo táctil de docs/DESIGN.md §5.
+// #189 (decisión 1): beside the simulator side panel the bar controls —four tools, undo, redo,
+// export, import, «Nueva» (#190), «Guardar» (#191) and the preset— go with 8 px of padding and the
+// `xs` body, the minimum of docs/DESIGN.md §9.2. Even so they ask for ~920 px and the viewer box
+// measures 672 px at 1280 px, so the bar wraps into a second row (#225). The 44 px height is the
+// touch target of docs/DESIGN.md §5.
 const PAD = 'px-4';
 const PAD_TIGHT = 'px-2';
 const TEXT = 'text-sm';
@@ -61,11 +61,10 @@ export interface ToolbarProps {
    */
   onSaveTrack?: (name: string) => void;
   /**
-   * Toda la barra en una sola fila (#189, decisión 1). La usa la página cuando el editor ocupa la
-   * caja del visor: allí una segunda fila se come el alto del lienzo. Sin ella la barra se reparte
-   * en varias líneas cuando no cabe, que es como se ve en el playground.
+   * Compact controls for the viewer box (#189, decision 1): tighter padding and body so the bar
+   * takes as few rows as possible. It still wraps when it does not fit (#225).
    */
-  singleRow?: boolean;
+  compact?: boolean;
 }
 
 /** The segmented tool picker: one radio per tool, as docs/DESIGN.md §5 describes. */
@@ -79,7 +78,7 @@ function ToolGroup({
     <div
       role="radiogroup"
       aria-label={t('sims.trackEditor.tools')}
-      className="border-border rounded-md flex overflow-hidden border"
+      className="border-border rounded-md flex shrink-0 overflow-hidden border"
     >
       {TOOLS.map((name) => (
         <button
@@ -250,13 +249,10 @@ function HistoryGroup({
 export function Toolbar(props: ToolbarProps): JSX.Element {
   const { tool, onTool, canUndo, canRedo, onUndo, onRedo, onSave, onLoad, onPreset } = props;
   const { onNew, onSaveTrack } = props;
-  // En una sola fila la barra no envuelve y desplaza en horizontal lo que no quepa, en lugar de
-  // robarle una segunda fila al lienzo (#189, decisión 1).
-  const tight = props.singleRow === true;
-  // Una sola fila desde `md`: a 390 px los controles no caben ni apretados, y una fila que
-  // se desplaza en horizontal esconde justo el selector de herramienta (docs/DESIGN.md §9.3), así
-  // que en móvil la barra sigue repartiéndose en varias líneas.
-  const layout = tight ? 'flex-wrap gap-2 md:flex-nowrap' : 'flex-wrap gap-3';
+  const tight = props.compact === true;
+  // The bar wraps at every width: a row that does not fit would squeeze the tool picker away
+  // (docs/DESIGN.md §9.3), and the tools keep their touch size (#225).
+  const layout = tight ? 'flex-wrap gap-2' : 'flex-wrap gap-3';
   const size: Sizing = tight ? { pad: PAD_TIGHT, text: TEXT_TIGHT } : { pad: PAD, text: TEXT };
   return (
     <div className={`flex shrink-0 items-center ${layout}`} data-testid="track-editor-toolbar">

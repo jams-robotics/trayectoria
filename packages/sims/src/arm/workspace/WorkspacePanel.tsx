@@ -134,7 +134,7 @@ function CountField({
       <span className="text-fg-muted">{t('sims.workspace.count')}</span>
       <input
         type="number"
-        className="border-border bg-bg h-10 w-28 rounded-sm border px-2 font-mono text-sm tabular-nums"
+        className="border-border bg-bg h-10 w-12 rounded-sm border px-2 font-mono text-sm tabular-nums"
         value={value}
         min={N_MIN}
         max={N_MAX}

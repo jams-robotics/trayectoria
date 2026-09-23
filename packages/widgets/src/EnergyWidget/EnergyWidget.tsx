@@ -66,7 +66,7 @@ function RampPanels({
   t: Translate;
 }): JSX.Element {
   return (
-    <div className="flex flex-col gap-4 lg:w-80">
+    <div className="flex flex-col gap-4 lg:w-panel">
       <ReadoutPanel
         title={t('widgets.EnergyWidget.panel')}
         rows={rampRows(ramp, energies, v_mps, t)}

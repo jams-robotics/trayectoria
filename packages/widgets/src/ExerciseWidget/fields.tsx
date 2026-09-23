@@ -6,7 +6,7 @@ export type ExerciseStatus = 'pending' | 'checking' | 'correct' | 'incorrect';
 
 // Numeric field of docs/DESIGN.md §5: mono, tabular-nums, 40 px high, unit as a muted suffix.
 const FIELD_BASE =
-  'bg-bg text-fg h-10 w-28 rounded-sm border px-2 text-right font-mono text-sm tabular-nums';
+  'bg-bg text-fg h-10 w-12 rounded-sm border px-2 text-right font-mono text-sm tabular-nums';
 const FIELD_BORDER: Readonly<Record<ExerciseStatus | 'invalid', string>> = {
   pending: 'border-border',
   checking: 'border-border',

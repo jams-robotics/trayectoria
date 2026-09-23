@@ -104,6 +104,11 @@
   --shadow-md: var(--shadow-md);
 }
 
+/* Simulator side panel width (DESIGN.md §4, Anchos): `w-panel`, used with the panel's breakpoint. */
+@utility w-panel {
+  width: var(--size-panel-side);
+}
+
 /* Subconjuntos latín y griego (DESIGN.md §3); cada archivo se descarga solo si la página usa su rango. */
 
 @font-face {

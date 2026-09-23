@@ -66,6 +66,7 @@ Los adimensionales no llevan sufijo (`gearRatio`, `mu_s`). Conversión solo en `
 - Los valores dorados de `PLAN.md` y `CURRICULUM.md` son obligatorios y se citan en el nombre del test (`'F1-04 golden: vR=2vL circle radius'`).
 - Sin `Math.random` en tests; semillas fijas.
 - Capturas de regresión visual en `apps/web/e2e/visual/`; se actualizan solo con justificación en el PR.
+- Las utilidades de espaciado y tamaño solo usan la escala de tokens `0..12` (o `w-panel`); `apps/web/src/styles/spacingScale.test.ts` falla con archivo y clase ante cualquier otra (#225).
 
 ## 8. Dependencias
 

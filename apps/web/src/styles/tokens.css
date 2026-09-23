@@ -55,6 +55,9 @@
   --space-11: 80px;
   --space-12: 96px;
 
+  /* anchos */
+  --size-panel-side: 352px;
+
   /* forma */
   --radius-sm: 4px;
   --radius-md: 8px;

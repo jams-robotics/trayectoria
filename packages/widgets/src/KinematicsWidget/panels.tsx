@@ -145,7 +145,7 @@ export function SidePanel({
 }): JSX.Element {
   const { t_s } = timeline;
   return (
-    <div className="flex flex-col gap-4 lg:w-72">
+    <div className="flex flex-col gap-4 lg:w-panel">
       <SimControls {...timeline.driver} {...timeline.controls} t_s={t_s} />
       <ReadoutPanel
         title={t('widgets.KinematicsWidget.panel')}
