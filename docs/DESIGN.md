@@ -89,7 +89,7 @@ Radios: `--radius-sm` 4 (inputs, botones de simulación, chips de estado en tabl
 
 Sombras: `--shadow-sm` para thumbs de slider y tarjetas flotantes dentro de un visor; `--shadow-md` solo para toasts y popovers. Las tarjetas en flujo **no** llevan sombra.
 
-Anchos: contenido 1120 px (Inicio, Ruta), 1200 px (Tema), 1240 px (Aula); simuladores a ancho completo con padding 32. Panel lateral de simulador 340–360 px; índice de secciones 200 px; lateral de Ruta 300 px.
+Anchos: contenido 1120 px (Inicio, Ruta), 1200 px (Tema), 1240 px (Aula); simuladores a ancho completo con padding 32. Panel lateral de simulador 340–360 px, token `--size-panel-side` = 352 px (utilidad `w-panel`); índice de secciones 200 px; lateral de Ruta 300 px.
 
 ---
 
