@@ -26,6 +26,8 @@ let userId: string | null = null;
 let hydrated = false;
 /** Topics whose remote write failed; retried with the next write of the same session. */
 let pendingTopics = new Set<string>();
+/** Bumped by every session change; a fetch started under an older one is stale. */
+let sessionGeneration = 0;
 
 function storage(): Storage | null {
   return typeof localStorage === 'undefined' ? null : localStorage;
@@ -60,6 +62,7 @@ export function getProgress(topicId: string): TopicProgress | undefined {
 async function push(topicIds: readonly string[]): Promise<void> {
   const owner = userId;
   if (owner === null) return;
+  const generation = sessionGeneration;
   const map = $progress.get();
   const failed = new Set<string>();
   for (const topicId of new Set([...pendingTopics, ...topicIds])) {
@@ -71,7 +74,9 @@ async function push(topicIds: readonly string[]): Promise<void> {
       failed.add(topicId);
     }
   }
-  pendingTopics = failed;
+  // A push begun before a session change belongs to whoever left; its leftover topics must not
+  // become the next learner's pending retries (#218).
+  if (generation === sessionGeneration) pendingTopics = failed;
 }
 
 /**
@@ -127,6 +132,8 @@ function merged(local: ProgressMap, remote: ProgressMap): ProgressMap {
  */
 export async function configureProgressSession(nextUserId: string | null): Promise<void> {
   if (nextUserId === userId && hydrated) return;
+  sessionGeneration += 1;
+  const generation = sessionGeneration;
   const previous = userId;
   pendingTopics = new Set();
   // The copy of this browser is read while the store still belongs to whoever owned it, so an
@@ -148,6 +155,8 @@ export async function configureProgressSession(nextUserId: string | null): Promi
   hydrateProgress();
   const cached = $progress.get();
   const remote = await fetchProgress(nextUserId);
+  // The session changed while fetching: these rows belong to whoever was signed in before (#218).
+  if (generation !== sessionGeneration) return;
   // Only what was done anonymously in this browser is merged into the rows and uploaded once.
   const map = merged(anonymous, { ...cached, ...remote });
   write(map);

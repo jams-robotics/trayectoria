@@ -103,6 +103,8 @@ export function hydrateMyRobot(): void {
 }
 
 let persistence: RobotPersistence | null = null;
+/** Bumped by every `configureMyRobotPersistence`; a load started under an older one is stale. */
+let persistenceGeneration = 0;
 
 function writeStoredRobot(spec: RobotSpec | null): void {
   const store = storage();
@@ -145,8 +147,12 @@ export function resetMyRobot(): RobotSpec {
  */
 export async function configureMyRobotPersistence(adapter: RobotPersistence | null): Promise<void> {
   persistence = adapter;
+  persistenceGeneration += 1;
+  const generation = persistenceGeneration;
   if (adapter === null) return;
   const remote = await adapter.load().catch(() => null);
+  // The session changed while loading: this robot belongs to whoever was signed in before (#218).
+  if (generation !== persistenceGeneration) return;
   if (remote === null) return;
   const parsed = parseRobotSpec(remote);
   if (!parsed.ok) return;
