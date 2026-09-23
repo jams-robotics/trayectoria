@@ -272,6 +272,9 @@ importers:
 
   content:
     dependencies:
+      '@trayectoria/robot-spec':
+        specifier: workspace:*
+        version: link:../packages/robot-spec
       '@trayectoria/sim-core':
         specifier: workspace:*
         version: link:../packages/sim-core

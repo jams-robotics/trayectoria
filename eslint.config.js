@@ -23,7 +23,7 @@ const PACKAGES = Object.keys(PACKAGE_DIRS);
 // Allowed internal imports per docs/ARCHITECTURE.md §2. Anything else is an architecture error.
 const ALLOWED_IMPORTS = {
   'apps/web': ['sims', 'widgets', 'progress', 'auth', 'db', 'i18n', 'robot-spec', 'content'],
-  content: ['sim-core'],
+  content: ['sim-core', 'robot-spec'],
   'packages/sims': ['sim-core', 'widgets', 'robot-spec', 'i18n', 'progress'],
   'packages/widgets': ['sim-core', 'robot-spec', 'i18n'],
   'packages/progress': ['db', 'auth'],
@@ -36,7 +36,18 @@ const ALLOWED_IMPORTS = {
 
 // `content` is topic data on top of sim-core: no other bare import, internal or external
 // (vitest only for its tests). Relative imports stay open; the path zones guard them.
-const CONTENT_BARE_IMPORTS = '^(?!(?:@trayectoria/sim-core|vitest)$)[^.]';
+// `robot-spec` enters for its types only (#246): the `RobotSpec` of the `alrobot.ts` calcs.
+const CONTENT_BARE_IMPORTS = '^(?!(?:@trayectoria/sim-core|@trayectoria/robot-spec|vitest)$)[^.]';
+const CONTENT_TYPE_ONLY = {
+  group: [`${SCOPE}/robot-spec`],
+  allowTypeImports: true,
+  message: 'content imports robot-spec for its types only (#246).',
+};
+
+/** @param {string} message */
+function contentPatterns(message) {
+  return [{ regex: CONTENT_BARE_IMPORTS, message }, CONTENT_TYPE_ONLY];
+}
 
 const architectureBoundaries = Object.entries(ALLOWED_IMPORTS).map(([dir, allowed]) => {
   const forbidden = PACKAGES.filter(
@@ -55,7 +66,7 @@ const architectureBoundaries = Object.entries(ALLOWED_IMPORTS).map(([dir, allowe
               message,
             },
             { group: ['**/apps/*', '**/apps/*/**'], message: 'Packages never import from apps/.' },
-            ...(dir === 'content' ? [{ regex: CONTENT_BARE_IMPORTS, message }] : []),
+            ...(dir === 'content' ? contentPatterns(message) : []),
           ],
         },
       ],
