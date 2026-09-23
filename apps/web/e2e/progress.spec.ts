@@ -5,8 +5,10 @@ import progress from '../../../packages/i18n/locales/es/progress.json' with { ty
 
 // F3-01 acceptance criteria. The anonymous test needs no Supabase; the signed-in one runs
 // against the local stack, where email confirmations are disabled (supabase/config.toml), so
-// sign-up returns a session directly (same setup as e2e/auth.spec.ts).
-const TOPIC_PATH = '/ruta/ruta-1/m00/t01';
+// sign-up returns a session directly (same setup as e2e/auth.spec.ts). The exercise is the demo
+// one of the topic fixture of /dev/tema, which reports it under TOPIC_ID (#255), so these tests
+// do not depend on the exercises of the real topic.
+const TOPIC_PATH = '/dev/tema';
 const ROUTE_PATH = '/ruta/ruta-1';
 const TOPIC_ID = 'ruta-1/m00-t01';
 const TOTAL_TOPICS = 27;

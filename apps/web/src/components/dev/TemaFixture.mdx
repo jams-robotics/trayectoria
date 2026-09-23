@@ -1,8 +1,52 @@
-{/* F6-01 fixture, outside content/es/: the widgets of the T-0.1 spec and a RobotFormula,
-written with the names and props a topic uses and rendered with the same MDX map. */}
+{/* F6-01 fixture, outside content/es/: a topic with the 7 sections, the widgets of the T-0.1
+spec and a RobotFormula, written with the names and props a topic uses and rendered with the same
+MDX map. The e2e of the topic layout (tema.spec.ts, progress.spec.ts and the Tema-* captures) run
+against it, so a new topic in content/es/ never changes them (#255). Its Verifica reports the demo
+exercise under ruta-1/m00-t01, the first topic of ruta.json, so the route index can show it
+completed. */}
 
+<Gancho>
+Tu motor gira a 200 rpm y tu rueda mide 3 cm de radio. ¿A qué velocidad avanza tu robot?
+</Gancho>
+
+<Concepto>
+Tema de prueba de la maqueta: cada sección lleva el mínimo para que se vea su forma.
+</Concepto>
+
+<Formulas>
+<Formula latex="v = \omega\,r" />
+
+- `v` · velocidad lineal · m/s
+- `ω` · velocidad angular · rad/s
+- `r` · radio de la rueda · m
+</Formulas>
+
+<Explora>
 <RotationWidget mode="disc" inputUnit="rpm" initial={{ omega_radps: 20.94, r_m: 0.032 }} />
 
+<Experimento
+  cambia="el radio de la rueda"
+  observa="la velocidad lineal"
+  porque="¿Por qué al duplicar el radio se duplica la velocidad?"
+>
+Respuesta de prueba.
+</Experimento>
+
+<Experimento
+  cambia="las revoluciones del motor"
+  observa="la velocidad lineal"
+  porque="¿Por qué hay que pasar de rpm a rad/s?"
+>
+Respuesta de prueba.
+</Experimento>
+</Explora>
+
+<AlRobot>
 <RobotFormula calc="demo/omega-rueda" />
 
 <MyRobotWidget mode="form" />
+</AlRobot>
+
+<Verifica ejercicios={['demo/track-time']} topicId="ruta-1/m00-t01" obligatorios={['e1']} />
+
+<Profundiza referencias={['young-freedman-1']} topicId="ruta-1/m00-t01" />

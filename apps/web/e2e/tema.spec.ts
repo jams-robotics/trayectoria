@@ -3,9 +3,10 @@ import { expect, test, type Page } from '@playwright/test';
 import common from '../../../packages/i18n/locales/es/common.json' with { type: 'json' };
 import route from '../../../content/es/ruta-1/ruta.json' with { type: 'json' };
 
-// F2-13 acceptance criteria, on the example topic and with no session: the page is static and
-// the only island is the exercise, which falls back to its null progress adapter (#97, decisión 7).
-const TOPIC_URL = '/ruta/ruta-1/m00/t01';
+// F2-13 acceptance criteria, with no session, on the topic fixture of /dev/tema (#255): the
+// layout is checked on a page whose content does not change when a real topic is written, and
+// its only Verifica exercise falls back to its null progress adapter (#97, decisión 7).
+const TOPIC_URL = '/dev/tema';
 const SECTIONS = common.topic.sections;
 
 /** Las 7 anclas de docs/CONTENT-STANDARDS.md §2, en orden. */
@@ -30,7 +31,7 @@ const SECTION_TITLES = [
   SECTIONS.profundiza,
 ] as const;
 
-/** Orden plano de los temas de ruta.json: el vecino de m00-t01 es el siguiente de ese orden. */
+/** Orden plano de los temas de ruta.json: el fixture ocupa el lugar del primero. */
 const ORDERED = route.modules.flatMap((module) => module.topics);
 const MOBILE = { width: 390, height: 844 };
 /** Margen para que la sesión anónima se lea antes de que llegue el módulo de `ProgressNotice`. */
@@ -38,7 +39,8 @@ const NOTICE_MODULE_DELAY_MS = 500;
 
 async function openTopic(page: Page): Promise<void> {
   await page.goto(TOPIC_URL);
-  await expect(page.locator('h1')).toBeVisible();
+  // `.first()`: in `astro dev` the dev toolbar adds its own `h1`s after the page's.
+  await expect(page.locator('h1').first()).toBeVisible();
 }
 
 test('las 7 secciones existen, en el orden del estándar', async ({ page }) => {
@@ -73,8 +75,8 @@ test('anterior y siguiente siguen el orden de ruta.json', async ({ page }) => {
   await openTopic(page);
   const pagination = page.getByRole('navigation', { name: common.topic.pagination });
 
-  // m00-t01 es el primer tema de la ruta: no tiene anterior, y su siguiente es m00-t02, que
-  // todavía no está publicado y por eso aparece sin enlace.
+  // El fixture ocupa el lugar del primer tema de la ruta: no tiene anterior, y su siguiente, el
+  // segundo de ruta.json, aparece sin enlace, como un tema todavía no publicado.
   await expect(pagination.getByText(common.topic.previous)).toHaveCount(0);
   await expect(pagination.getByText(ORDERED[1]?.title ?? '')).toBeVisible();
   await expect(pagination.getByRole('link')).toHaveCount(0);
@@ -132,8 +134,8 @@ test('Verifica se hidrata y responde sin errores de página', async ({ page }) =
   await exercise.scrollIntoViewIfNeeded();
   // `client:visible` hidrata al entrar en el viewport; Astro quita el atributo `ssr` de la isla
   // una vez React la hidrata, y un `fill` o un click anteriores se pierden en silencio
-  // (e2e/exercise.spec.ts, F2-01a ronda 1). Solo se espera la isla de Verifica: `Formulas` monta
-  // otra que no entra en el viewport de este test y nunca se hidrataría.
+  // (e2e/exercise.spec.ts, F2-01a ronda 1). Solo se espera la isla de Verifica: el resto de islas
+  // del fixture no hacen falta aquí.
   await page.waitForFunction(() => {
     const node = document.querySelector('[data-testid="exercise"]');
     return node?.closest('astro-island')?.hasAttribute('ssr') === false;

@@ -1,17 +1,35 @@
 ---
+import { getEntry } from 'astro:content';
 import { t } from '@trayectoria/i18n';
 
 import { temaComponents } from '../../components/tema';
 import TemaFixture from '../../components/dev/TemaFixture.mdx';
-import Base from '../../layouts/Base.astro';
+import Tema from '../../layouts/Tema.astro';
 
-// F6-01 test page: an MDX outside content/es/ rendered with the topic MDX map, so e2e can check
-// that a catalog widget and a `RobotFormula` mount from MDX, and that the calc follows
-// «Mi robot». Not linked from Nav.astro, like /dev/widgets.
+// F6-01 test page: an MDX outside content/es/ rendered with the topic MDX map and the topic
+// layout, so e2e can check the layout (7 sections, outline, header, pagination, progress) and
+// that a catalog widget and a `RobotFormula` mount from MDX, without depending on the content of
+// a real topic (#255). Not linked from Nav.astro, like /dev/widgets.
+//
+// The header and the neighbours are fixed: the fixture sits where the first topic of ruta-1
+// does, with no previous topic and a next one shown without a link.
+const ROUTE_ID = 'ruta-1';
+const route = await getEntry('routes', ROUTE_ID);
+if (route === undefined) throw new Error(`content/es/${ROUTE_ID}/ruta.json is missing`);
+const ordered = route.data.modules.flatMap((module) => module.topics);
+const next = ordered[1];
 ---
 
-<Base title={t('widgets.playground.topicFixtureTitle')}>
-  <section class="mx-auto grid max-w-[1120px] gap-6 px-5 pt-11 pb-9 md:px-8">
-    <TemaFixture components={temaComponents} />
-  </section>
-</Base>
+<Tema
+  title={t('widgets.playground.topicFixtureTitle')}
+  route={{ title: route.data.title, href: undefined }}
+  eyebrow={t('topic.number', { module: 0, order: 1 })}
+  estimatedMinutes={20}
+  prerequisites={[]}
+  done={0}
+  total={ordered.length}
+  previous={undefined}
+  next={next === undefined ? undefined : { title: next.title, href: undefined }}
+>
+  <TemaFixture components={temaComponents} />
+</Tema>

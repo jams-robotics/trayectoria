@@ -357,26 +357,28 @@ test('ExerciseWidget looks as approved', async ({ page }) => {
 
 test('ExerciseWidget-incorrect looks as approved', async ({ page }) => {
   const story = await answerScalar(page, 1.1 * EXERCISE_ANSWER_S);
-  await expect(story.getByTestId('exercise-result')).toContainText(
-    'Incorrecto · fuera por 10.0 %',
-  );
+  await expect(story.getByTestId('exercise-result')).toContainText('Incorrecto · fuera por 10.0 %');
   await expect(story).toHaveScreenshot('ExerciseWidget-incorrect.png');
 });
 
-// F2-13 (#97, decisión 7): la página de tema completa, en escritorio y a 390 px. Es estática —
-// la única isla es el `ExerciseWidget`, que no anima —, así que es comparable fotograma a
-// fotograma. Referencia de diseño: docs/design/03-tema-claro.png y 07-tema-movil-claro.png.
-const TOPIC_URL = '/ruta/ruta-1/m00/t01';
+// F2-13 (#97, decisión 7): la página de tema completa, en escritorio y a 390 px, sobre el tema de
+// prueba de /dev/tema (#255): así la captura no cambia cada vez que se escribe un tema real.
+// Referencia de diseño: docs/design/03-tema-claro.png y 07-tema-movil-claro.png.
+const TOPIC_URL = '/dev/tema';
 const TOPIC_MOBILE_VIEWPORT = { width: 390, height: 844 };
 
-/** Abre el tema de ejemplo en tema claro y con las fuentes y la fórmula ya pintadas. */
+/** Abre el tema de prueba en tema claro y con las fuentes, las fórmulas y las islas ya pintadas. */
 async function openTopic(page: Page): Promise<void> {
   await page.emulateMedia({ colorScheme: 'light' });
   await page.goto(TOPIC_URL);
   await page.addStyleTag({ content: 'astro-dev-toolbar { display: none !important; }' });
-  // `Formula` y `ExerciseWidget` son islas `client:visible`: sin esperar a que Astro las hidrate,
-  // la captura recogería el bloque de fórmula vacío (misma carrera que en /dev/widgets).
-  await expect(page.locator('[role="math"]')).toBeVisible();
+  // Las islas son `client:only` salvo el `ExerciseWidget` (`client:visible`): sin esperar a que
+  // Astro las monte, la captura recogería los bloques vacíos (misma carrera que en /dev/widgets).
+  // Son tres bloques de fórmula: el de `Formulas` y los dos de `RobotFormula` (la forma simbólica
+  // y la sustituida). Cada isla `client:only` carga su widget por `import()`, así que se les da
+  // más margen que el de un `expect` por defecto.
+  await expect(page.locator('[role="math"]')).toHaveCount(3, { timeout: 15_000 });
+  await expect(page.getByTestId('my-robot-form')).toBeVisible();
   await expect(page.getByTestId('exercise')).toBeVisible();
   // `ProgressNotice` (#146) solo se pinta cuando `$sessionReady` es cierto y no hay sesión: sin
   // esperarlo, la captura corre la misma carrera y a veces sale sin el aviso (49 px de menos).
@@ -384,13 +386,24 @@ async function openTopic(page: Page): Promise<void> {
   await page.evaluate(() => document.fonts.ready);
 }
 
+/**
+ * Lo que no es comparable fotograma a fotograma: el disco de `RotationWidget`, que anima, y el
+ * enunciado del ejercicio, cuyos números salen de la semilla anónima que se sortea al hidratar.
+ */
+function unstable(page: Page) {
+  return [
+    page.locator('[data-topic-widget="RotationWidget"]'),
+    page.getByTestId('exercise-statement'),
+  ];
+}
+
 test('Tema looks as approved', async ({ page }) => {
   await openTopic(page);
-  await expect(page).toHaveScreenshot('Tema.png', { fullPage: true });
+  await expect(page).toHaveScreenshot('Tema.png', { fullPage: true, mask: unstable(page) });
 });
 
 test('Tema-mobile looks as approved', async ({ page }) => {
   await page.setViewportSize(TOPIC_MOBILE_VIEWPORT);
   await openTopic(page);
-  await expect(page).toHaveScreenshot('Tema-mobile.png', { fullPage: true });
+  await expect(page).toHaveScreenshot('Tema-mobile.png', { fullPage: true, mask: unstable(page) });
 });
