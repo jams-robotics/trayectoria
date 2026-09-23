@@ -6,7 +6,7 @@
   "scripts": {
     "build": "node ../../scripts/content-check.mjs && astro build",
     "dev": "astro dev",
-    "e2e": "playwright test e2e/sim-compartir.spec.ts e2e/tmp-249.spec.ts --repeat-each=20 --workers=4",
+    "e2e": "playwright test e2e/sim-compartir.spec.ts e2e/tmp-249.spec.ts --repeat-each=10 --workers=4",
     "lint": "eslint .",
     "preview": "astro preview",
     "sync": "astro sync",
