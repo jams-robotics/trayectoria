@@ -75,12 +75,12 @@ function EditorMain({
 function EditorToolbar({
   editor,
   files,
-  singleRow,
+  compact,
   onSaveTrack,
 }: {
   editor: TrackEditorApi;
   files: ReturnType<typeof useTrackFiles>;
-  singleRow: boolean;
+  compact: boolean;
   onSaveTrack: ((name: string) => void) | undefined;
 }): JSX.Element {
   return (
@@ -95,7 +95,7 @@ function EditorToolbar({
       onLoad={files.load}
       onPreset={files.askPreset}
       onNew={files.askNew}
-      singleRow={singleRow}
+      compact={compact}
       // `exactOptionalPropertyTypes`: an absent prop is absent, not `undefined`.
       {...(onSaveTrack === undefined ? {} : { onSaveTrack })}
     />
@@ -232,7 +232,7 @@ export function TrackEditor({
       <EditorToolbar
         editor={editor}
         files={files}
-        singleRow={renderPanel !== undefined}
+        compact={renderPanel !== undefined}
         onSaveTrack={saveTrack}
       />
       <EditorMain

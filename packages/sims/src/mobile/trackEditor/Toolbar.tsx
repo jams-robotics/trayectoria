@@ -64,7 +64,7 @@ export interface ToolbarProps {
    * Compact controls for the viewer box (#189, decision 1): tighter padding and body so the bar
    * takes as few rows as possible. It still wraps when it does not fit (#225).
    */
-  singleRow?: boolean;
+  compact?: boolean;
 }
 
 /** The segmented tool picker: one radio per tool, as docs/DESIGN.md §5 describes. */
@@ -249,7 +249,7 @@ function HistoryGroup({
 export function Toolbar(props: ToolbarProps): JSX.Element {
   const { tool, onTool, canUndo, canRedo, onUndo, onRedo, onSave, onLoad, onPreset } = props;
   const { onNew, onSaveTrack } = props;
-  const tight = props.singleRow === true;
+  const tight = props.compact === true;
   // The bar wraps at every width: a row that does not fit would squeeze the tool picker away
   // (docs/DESIGN.md §9.3), and the tools keep their touch size (#225).
   const layout = tight ? 'flex-wrap gap-2' : 'flex-wrap gap-3';
