@@ -40,4 +40,34 @@ describe('F1-10 defineExercise', () => {
       /tolerance/,
     );
   });
+
+  test('F1-10b accepts and freezes one tolerance per component', () => {
+    const exercise = defineExercise({
+      ...base,
+      tolerance: [
+        { type: 'relative', value: 0.02 },
+        { type: 'absolute', value: 0.5 },
+      ],
+    });
+    expect(exercise.tolerance).toEqual([
+      { type: 'relative', value: 0.02 },
+      { type: 'absolute', value: 0.5 },
+    ]);
+    expect(Object.isFrozen(exercise.tolerance)).toBe(true);
+    const tolerances = exercise.tolerance as readonly object[];
+    expect(tolerances.every((tolerance) => Object.isFrozen(tolerance))).toBe(true);
+  });
+
+  test('F1-10b rejects an empty tolerance list and a non-positive entry', () => {
+    expect(() => defineExercise({ ...base, tolerance: [] })).toThrow(/tolerance/);
+    expect(() =>
+      defineExercise({
+        ...base,
+        tolerance: [
+          { type: 'relative', value: 0.02 },
+          { type: 'absolute', value: 0 },
+        ],
+      }),
+    ).toThrow(/tolerance\[1\]/);
+  });
 });
