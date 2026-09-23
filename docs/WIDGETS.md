@@ -205,7 +205,9 @@ El formulario de subida de F3-04 se reutiliza para importar sin guardar: `Upload
 
 ## Componentes MDX
 
-El mapa MDX (`apps/web/src/components/tema/`, ARCHITECTURE §3.3) expone los widgets de este catálogo con su nombre y sus props, y además componentes propios del tema que no viven en `packages/widgets`.
+El mapa MDX (`apps/web/src/components/tema/`, ARCHITECTURE §3.3) expone, con su nombre y sus props, solo los widgets de tema con props serializables (#246): `Formula`, `VectorWidget`, `KinematicsWidget`, `ProjectileWidget`, `FreeBodyWidget`, `RotationWidget`, `EnergyWidget`, `GearWidget`, `DiffDriveWidget` y `MyRobotWidget`. No se exponen `ParamPanel` ni `Plot`, que son piezas internas de otros widgets. `ExerciseWidget` se monta a través de `Verifica`. `LineSensorWidget` y `LineFollowerWidget` se resuelven en el Módulo 6.
+
+Además expone componentes propios del tema, que no viven en `packages/widgets`.
 
 ### RobotFormula
 `Formula` sustituida con los datos de «Mi robot» (#243). Resuelve `calc` entre los cálculos que exportan los `alrobot.ts` de los temas, lee `useMyRobot()` y pinta `Formula` con el `latex` y el `substituted` que devuelve el cálculo.

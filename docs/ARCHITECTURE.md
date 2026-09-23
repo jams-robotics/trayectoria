@@ -51,6 +51,7 @@ sims     → sim-core, widgets, robot-spec, i18n, progress
 widgets  → sim-core, robot-spec, i18n
 progress → db, auth
 auth     → db
+content  → sim-core, robot-spec (solo tipos)
 sim-core → robot-spec (solo tipos)   robot-spec → (nada interno)
 ```
 
@@ -91,9 +92,9 @@ Cualquier otra importación es un error de arquitectura (regla de ESLint `import
 - Frontmatter validado por zod en `apps/web/src/content.config.ts` (campos en `CONTENT-STANDARDS.md`).
 - Orden y agrupación en `ruta.json`. La URL se deriva del directorio: `m04-t02` → `/ruta/ruta-1/m04/t02`.
 - Los temas solo pueden importar componentes del mapa MDX (F2-13) y widgets del catálogo. Cualquier `import` de otra cosa rompe `pnpm content:check`.
-- Widgets en el MDX (#243): el mapa MDX (`temaComponents`) expone cada widget del catálogo que usa el currículo con el mismo nombre y las mismas props que `WIDGETS.md`, y el tema lo escribe sin `import` (`content/` no resuelve los paquetes del workspace, ADR-0005). Un solo mecanismo genérico, el de `Formula.astro`: una isla `TopicWidget` con `client:only="react"` que carga el widget desde `widgetRegistry.ts`. No se escribe un envoltorio a mano por widget.
+- Widgets en el MDX (#243, #246): el mapa MDX (`temaComponents`) expone los widgets de tema del catálogo cuyas props son todas serializables, con el mismo nombre y las mismas props que `WIDGETS.md`, y el tema los escribe sin `import` (`content/` no resuelve los paquetes del workspace, ADR-0005). Un solo mecanismo genérico, el de `Formula.astro`: una isla `TopicWidget` con `client:only="react"` que carga el widget desde `widgetRegistry.ts`. No se escribe un envoltorio a mano por widget. La lista está en `WIDGETS.md`, «Componentes MDX».
 - Enunciados de ejercicios (#243): claves i18n en `packages/i18n/locales/es/content.json`, bajo la raíz `content`, con la forma `content.<topicId>.<exerciseId>` (p. ej. `content.ruta-1/m00-t01.e1`). `ejercicios.ts` solo devuelve la clave (§4.6).
-- «Al robot» con el perfil (#243): cada tema exporta sus cálculos desde `alrobot.ts`, funciones `RobotSpec → { latex, substituted }` registradas por clave `<topicId>/<calcId>`, igual que los ejercicios. El MDX escribe `<RobotFormula calc="ruta-1/m00-t01/omega-rueda" />`; la isla resuelve la clave, lee `useMyRobot()` y pinta `Formula` sustituida. Así no se pasan funciones a una isla.
+- «Al robot» con el perfil (#243): cada tema exporta sus cálculos desde `alrobot.ts`, funciones `RobotSpec → { latex, substituted }` (el tipo viene de `robot-spec`, §2) registradas por clave `<topicId>/<calcId>`, igual que los ejercicios. El MDX escribe `<RobotFormula calc="ruta-1/m00-t01/omega-rueda" />`; la isla resuelve la clave, lee `useMyRobot()` y pinta `Formula` sustituida. Así no se pasan funciones a una isla.
 - i18n del contenido: por carpeta de idioma (`content/en/` en el futuro). Los textos de widgets van por claves.
 
 ### 3.4 Librerías fijas
