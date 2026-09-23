@@ -62,6 +62,7 @@ export function getProgress(topicId: string): TopicProgress | undefined {
 async function push(topicIds: readonly string[]): Promise<void> {
   const owner = userId;
   if (owner === null) return;
+  const generation = sessionGeneration;
   const map = $progress.get();
   const failed = new Set<string>();
   for (const topicId of new Set([...pendingTopics, ...topicIds])) {
@@ -73,7 +74,9 @@ async function push(topicIds: readonly string[]): Promise<void> {
       failed.add(topicId);
     }
   }
-  pendingTopics = failed;
+  // A push begun before a session change belongs to whoever left; its leftover topics must not
+  // become the next learner's pending retries (#218).
+  if (generation === sessionGeneration) pendingTopics = failed;
 }
 
 /**

@@ -280,4 +280,37 @@ describe('session switch while the remote rows load (#218)', () => {
     expect(currentUserId()).toBeNull();
     expect(remote.upsertProgress).not.toHaveBeenCalled();
   });
+
+  test('a push of A that fails after B signs in does not leak pending topics into B session (#218)', async () => {
+    const TOPIC_C = 'ruta-1/m00-t05';
+
+    await configureProgressSession(USER);
+
+    // markCompleted has no await before push(), so calling it (without awaiting) synchronously
+    // reaches upsertProgress and captures A's owner and session generation before B signs in.
+    let rejectA: (err: Error) => void = () => undefined;
+    remote.upsertProgress.mockImplementationOnce(
+      () =>
+        new Promise<void>((_resolve, reject) => {
+          rejectA = reject;
+        }),
+    );
+    const pushA = markCompleted(TOPIC);
+
+    await configureProgressSession(OTHER);
+    // B also has this topic locally and pushes it successfully, clearing B's own pending set.
+    await markCompleted(TOPIC);
+    remote.upsertProgress.mockClear();
+
+    // A's push only fails now, after the session switched to B.
+    rejectA(new Error('network'));
+    await pushA;
+
+    // B's next push only asks for TOPIC_C; A's stale failure must not resurrect TOPIC for B.
+    await markCompleted(TOPIC_C);
+
+    const calls = remote.upsertProgress.mock.calls as unknown as Array<[string, string, unknown]>;
+    const pushedTopics = calls.map((call) => call[1]);
+    expect(pushedTopics).toEqual([TOPIC_C]);
+  });
 });
