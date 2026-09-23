@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, test, vi } from 'vitest';
+import { defineExercise } from '@trayectoria/sim-core';
 
 import { ExerciseWidget } from './ExerciseWidget';
 import { statementParams } from './state';
@@ -218,6 +219,34 @@ describe('ExerciseWidget (F2-10)', () => {
 
     await user.clear(second);
     await user.type(second, String(VECTOR_VY_MPS));
+    await user.click(verifyButton());
+    expect(result()).toHaveTextContent('Correcto');
+  });
+
+  test('a unit per component shows each field with its own unit (F1-10c)', async () => {
+    // T-0.2 e2 of docs/CURRICULUM.md: magnitude in m/s and angle in degrees (#259).
+    const magnitudeAngle = defineExercise({
+      id: 'e2',
+      generate: () => ({
+        values: { speed_mps: 0.5, angle_deg: 53.13 },
+        answer: [0.5, 53.13],
+        unit: ['m/s', '°'],
+      }),
+      statement: () => 'widgets.ExerciseWidget.demo.components',
+      tolerance: [
+        { type: 'relative', value: 0.02 },
+        { type: 'absolute', value: 0.5 },
+      ],
+    });
+    const user = userEvent.setup();
+    render(<ExerciseWidget exercise={magnitudeAngle} topicId="ruta-1/m00-t02" seed={1} />);
+
+    const magnitude = screen.getByRole('textbox', { name: 'Componente 1 en m/s' });
+    const angle = screen.getByRole('textbox', { name: 'Componente 2 en °' });
+    expect(magnitude.nextSibling).toHaveTextContent('m/s');
+    expect(angle.nextSibling).toHaveTextContent('°');
+    await user.type(magnitude, '0.5');
+    await user.type(angle, '53.13');
     await user.click(verifyButton());
     expect(result()).toHaveTextContent('Correcto');
   });
