@@ -10,9 +10,18 @@ export interface SessionSnapshot {
   readonly ready: boolean;
 }
 
-/** Subscribes a React island to `$session`. */
+/**
+ * Subscribes a React island to `$session`.
+ *
+ * `ssr: 'initial'` makes the first client render read `store.init` (nanostores' constant initial
+ * value, `null`/`false`) instead of the store's current value. Astro renders islands on the
+ * server, where the store is always at its initial value (#236, `packages/auth/src/stores/
+ * session.ts`'s `onMount`). Without this, an island that hydrates after another island has
+ * already read the session sees the current value on its first render, which mismatches the
+ * server's markup and throws React error #418.
+ */
 export function useSession(): SessionSnapshot {
-  const session = useStore($session);
-  const ready = useStore($sessionReady);
+  const session = useStore($session, { ssr: 'initial' });
+  const ready = useStore($sessionReady, { ssr: 'initial' });
   return { session, ready };
 }
