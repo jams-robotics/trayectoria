@@ -33,6 +33,8 @@ const SECTION_TITLES = [
 /** Orden plano de los temas de ruta.json: el vecino de m00-t01 es el siguiente de ese orden. */
 const ORDERED = route.modules.flatMap((module) => module.topics);
 const MOBILE = { width: 390, height: 844 };
+/** Margen para que la sesión anónima se lea antes de que llegue el módulo de `ProgressNotice`. */
+const NOTICE_MODULE_DELAY_MS = 500;
 
 async function openTopic(page: Page): Promise<void> {
   await page.goto(TOPIC_URL);
@@ -155,6 +157,26 @@ test('Verifica se hidrata y responde sin errores de página', async ({ page }) =
       return exercise.getAttribute('data-status');
     })
     .not.toBe('pending');
+
+  expect(pageErrors).toEqual([]);
+});
+
+test('el aviso de progreso no rompe la hidratación aunque la sesión se lea antes (#231)', async ({
+  page,
+}) => {
+  // `ProgressNotice` depende de `$sessionReady`, que el servidor no conoce. Si la sesión se leía
+  // antes de que su isla se hidratara, el primer render del cliente pintaba el aviso sobre un
+  // marcado vacío y React lanzaba el error #418. Retener su módulo fuerza ese orden, que en CI
+  // solo ocurría a veces y hacía intermitente el test anterior.
+  const pageErrors: Error[] = [];
+  page.on('pageerror', (error) => pageErrors.push(error));
+  await page.route(/\/ProgressNotice\./, async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, NOTICE_MODULE_DELAY_MS));
+    await route.continue();
+  });
+
+  await openTopic(page);
+  await expect(page.getByTestId('progress-notice')).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });
