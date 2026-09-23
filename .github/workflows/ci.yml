@@ -77,6 +77,11 @@ jobs:
     name: db
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Job-level permissions replace the workflow default, so contents: read is repeated here.
+    # packages: read lets GITHUB_TOKEN pull the Supabase images from GHCR (#265).
+    permissions:
+      contents: read
+      packages: read
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -87,6 +92,14 @@ jobs:
         uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3.0.0
         with:
           version: 2.117.0
+
+      # Anonymous GHCR pulls hit toomanyrequests; authenticate with the workflow token (#265).
+      # On fork PRs GITHUB_TOKEN is read-only and no repository secret is involved.
+      - name: Log in to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+        run: echo "$GHCR_TOKEN" | docker login ghcr.io --username "$GHCR_USER" --password-stdin
 
       - name: Start local stack
         run: supabase start
@@ -105,6 +118,11 @@ jobs:
     name: e2e
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Job-level permissions replace the workflow default, so contents: read is repeated here.
+    # packages: read lets GITHUB_TOKEN pull the Supabase images from GHCR (#265).
+    permissions:
+      contents: read
+      packages: read
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -115,6 +133,14 @@ jobs:
         uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3.0.0
         with:
           version: 2.117.0
+
+      # Anonymous GHCR pulls hit toomanyrequests; authenticate with the workflow token (#265).
+      # On fork PRs GITHUB_TOKEN is read-only and no repository secret is involved.
+      - name: Log in to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+        run: echo "$GHCR_TOKEN" | docker login ghcr.io --username "$GHCR_USER" --password-stdin
 
       - name: Start local stack
         run: supabase start
