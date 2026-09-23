@@ -54,14 +54,23 @@ export interface ExerciseState {
   attempt: number;
   invalid: boolean;
   values: readonly string[];
-  unit: string;
+  /** One unit for every field, or one per field (F1-10c). */
+  unit: string | readonly string[];
   edit: (position: number, value: string) => void;
   verify: () => void;
   regenerate: () => void;
 }
 
+/** Unit of the field at `position`: the shared unit, or its own entry of a per-component list. */
+export function unitAt(unit: string | readonly string[], position: number): string {
+  return typeof unit === 'string' ? unit : (unit[position] ?? '');
+}
+
 /** The instance drawn for a seed: how many fields to show and in which unit. */
-function useInstance<V>(exercise: Exercise<V>, seed: number): { count: number; unit: string } {
+function useInstance<V>(
+  exercise: Exercise<V>,
+  seed: number,
+): { count: number; unit: string | readonly string[] } {
   return useMemo(() => {
     const { answer, unit } = exercise.generate(createRng(seed));
     return { count: Array.isArray(answer) ? answer.length : 1, unit };

@@ -14,7 +14,8 @@ export interface CheckResult<V> {
   readonly relError: number;
   /** The values the seed generated, for interpolating the statement. */
   readonly values: V;
-  readonly unit: string;
+  /** The generated unit: one for every component, or one per component. */
+  readonly unit: string | readonly string[];
   /** i18n key of the statement for this instance. */
   readonly statementKey: string;
 }
@@ -24,7 +25,8 @@ export interface CheckResult<V> {
  *
  * Pure: the same exercise, seed and response always give the same result, because the generator
  * only sees a fresh `createRng(seed)`. With a tolerance list, each component is graded against its
- * own entry; a list whose length differs from the answer is a definition error and throws.
+ * own entry; a tolerance or unit list whose length differs from the answer is a definition error
+ * and throws.
  */
 export function check<V>(
   exercise: Exercise<V>,
@@ -35,6 +37,7 @@ export function check<V>(
   const expectedComponents = toComponents(answer);
   const responseComponents = toComponents(response);
   const tolerances = tolerancePerComponent(exercise, expectedComponents.length);
+  assertUnitPerComponent(exercise.id, unit, expectedComponents.length);
 
   const shapeMatches =
     Array.isArray(answer) === Array.isArray(response) &&
@@ -70,6 +73,20 @@ export function check<V>(
   return { ...base, correct, relError: worstRelError };
 }
 
+/** A per-component list (tolerances, units, ...) must have one entry per answer component. */
+function assertComponentCount(
+  exerciseId: string,
+  actualLength: number,
+  componentCount: number,
+  label: string,
+): void {
+  if (actualLength !== componentCount) {
+    throw new RangeError(
+      `check: exercise "${exerciseId}" declares ${actualLength} ${label} but its answer has ${componentCount} components`,
+    );
+  }
+}
+
 /** Expands the exercise tolerance into one entry per answer component. */
 function tolerancePerComponent<V>(
   exercise: Exercise<V>,
@@ -79,12 +96,19 @@ function tolerancePerComponent<V>(
   if (!isToleranceList(tolerance)) {
     return Array.from({ length: componentCount }, () => tolerance);
   }
-  if (tolerance.length !== componentCount) {
-    throw new RangeError(
-      `check: exercise "${exercise.id}" declares ${tolerance.length} tolerances but its answer has ${componentCount} components`,
-    );
-  }
+  assertComponentCount(exercise.id, tolerance.length, componentCount, 'tolerances');
   return tolerance;
+}
+
+/** A unit list must have one entry per answer component, like a tolerance list. */
+function assertUnitPerComponent(
+  exerciseId: string,
+  unit: string | readonly string[],
+  componentCount: number,
+): void {
+  if (typeof unit !== 'string') {
+    assertComponentCount(exerciseId, unit.length, componentCount, 'units');
+  }
 }
 
 /** Normalises a scalar or vector answer into a list of components. */

@@ -5,7 +5,7 @@ import type { Translate } from '@trayectoria/i18n';
 
 import { AnswerField, ResultLine } from './fields';
 import type { ExerciseStatus } from './fields';
-import { useExercise } from './state';
+import { unitAt, useExercise } from './state';
 import type { ExerciseState } from './state';
 
 // Button of docs/DESIGN.md §5: primary while the response is pending, ghost once it is correct.
@@ -71,7 +71,7 @@ function AnswerRow({ state, t }: { state: ExerciseState; t: Translate }): JSX.El
           index={position}
           count={state.values.length}
           value={value}
-          unit={state.unit}
+          unit={unitAt(state.unit, position)}
           status={status}
           invalid={state.invalid}
           t={t}

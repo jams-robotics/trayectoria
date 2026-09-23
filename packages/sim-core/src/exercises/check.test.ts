@@ -177,3 +177,42 @@ describe('F1-10b check with per-component tolerance', () => {
     expect(() => check(mismatched, 1, [1, 2, 3])).toThrow(/2 tolerances.*3 components/);
   });
 });
+
+describe('F1-10c check with per-component unit', () => {
+  // T-0.2 e2 of docs/CURRICULUM.md: magnitude in m/s and angle in degrees (#259).
+  const magnitudeAngleExercise = defineExercise({
+    id: 'magnitude-angle',
+    generate: () => ({ values: {}, answer: [0.5, 53.13] as const, unit: ['m/s', '°'] as const }),
+    statement: () => 'ejercicios.magnitudeAngle.enunciado',
+    tolerance: [
+      { type: 'relative', value: 0.02 },
+      { type: 'absolute', value: 0.5 },
+    ],
+  });
+
+  test("golden value: ['m/s', '°'] for the answer [0.5, 53.13] is exposed per component", () => {
+    const result = check(magnitudeAngleExercise, 1, [0.5, 53.13]);
+    expect(result.correct).toBe(true);
+    expect(result.unit).toEqual(['m/s', '°']);
+  });
+
+  test('a single unit for a vector answer is exposed unchanged', () => {
+    const singleUnit = defineExercise({
+      id: 'single-unit',
+      generate: () => ({ values: {}, answer: [0.3, 0.4], unit: 'm/s' }),
+      statement: () => 'ejercicios.singleUnit.enunciado',
+      tolerance: { type: 'relative', value: 0.02 },
+    });
+    expect(check(singleUnit, 1, [0.3, 0.4]).unit).toBe('m/s');
+  });
+
+  test('a unit list whose length differs from the answer throws a clear error', () => {
+    const mismatched = defineExercise({
+      id: 'mismatched-units',
+      generate: () => ({ values: {}, answer: [1, 2, 3], unit: ['m/s', '°'] }),
+      statement: () => 'ejercicios.mismatchedUnits.enunciado',
+      tolerance: { type: 'relative', value: 0.02 },
+    });
+    expect(() => check(mismatched, 1, [1, 2, 3])).toThrow(/2 units.*3 components/);
+  });
+});
