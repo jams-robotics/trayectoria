@@ -1,3 +1,5 @@
+import { EXERCISES as TOPIC_EXERCISES } from '@trayectoria/content';
+import type { TopicExercise } from '@trayectoria/content';
 import { trackTimeExercise } from '@trayectoria/widgets/ExerciseWidget';
 
 /**
@@ -6,15 +8,17 @@ import { trackTimeExercise } from '@trayectoria/widgets/ExerciseWidget';
  * el objeto `Exercise` completo, con sus funciones `generate`/`check`, no sobrevive la
  * serialización JSON que Astro hace de las props de una isla `client:visible`.
  *
- * Mientras no haya `ejercicios.ts` por tema (llega con T-0.1), el único registrado es el escalar
- * de demostración de `ExerciseWidget/demo.ts` (#97, decisión 4).
+ * Se construye con el mapa de `@trayectoria/content` (claves `<topicId>/<exerciseId>`, p. ej.
+ * `ruta-1/m00-t01/e1`, F6-00) y conserva el escalar de demostración de `ExerciseWidget/demo.ts`
+ * bajo `demo/track-time` (#97, decisión 4).
  *
  * `apps/web` no puede importar `@trayectoria/sim-core` (docs/ARCHITECTURE.md §2), así que el
- * tipo del ejercicio se toma del widget, igual que el `Verifica.astro` original.
+ * tipo del ejercicio se toma de `@trayectoria/content`.
  */
-type TopicExercise = typeof trackTimeExercise;
-
-const EXERCISES = new Map<string, TopicExercise>([['demo/track-time', trackTimeExercise]]);
+const EXERCISES = new Map<string, TopicExercise>([
+  ['demo/track-time', trackTimeExercise],
+  ...TOPIC_EXERCISES,
+]);
 
 /** Claves válidas del registro, para el error de build de `Verifica.astro`. */
 export function exerciseKeys(): readonly string[] {
