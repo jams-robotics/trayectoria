@@ -6,7 +6,9 @@ import Formula from './Formula.astro';
 import Formulas from './Formulas.astro';
 import Gancho from './Gancho.astro';
 import Profundiza from './Profundiza.astro';
+import RobotFormula from './RobotFormula.astro';
 import Verifica from './Verifica.astro';
+import { catalogWidgetComponents } from './catalogWidgets';
 
 /**
  * Mapa de componentes que la página del tema pasa a `<Content components={temaComponents} />`
@@ -15,6 +17,9 @@ import Verifica from './Verifica.astro';
  *
  * `Formula` también va aquí, y no se importa desde el MDX: `content/` vive fuera de `apps/web`
  * (ADR-0005) y no resuelve los paquetes del workspace.
+ *
+ * F6-01 (#243): the topic widgets of the catalog enter under their own names through one generic
+ * binding (`catalogWidgets.ts`), and `RobotFormula` renders an «Al robot» calc with «Mi robot».
  *
  * El mapa se tipa como `unknown`: el servicio de tipos de eslint no resuelve un `.astro`
  * importado desde un `.ts` (sí lo hace `astro check`, que corre en `pnpm typecheck`), y MDX solo
@@ -28,8 +33,10 @@ export const temaComponents: Readonly<Record<string, unknown>> = {
   Explora,
   Experimento,
   AlRobot,
+  RobotFormula,
   Verifica,
   Profundiza,
+  ...catalogWidgetComponents,
 };
 
 /** Nombre del componente de cada sección obligatoria, en el orden de CONTENT-STANDARDS §2. */
