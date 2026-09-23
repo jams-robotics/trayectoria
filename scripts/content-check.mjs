@@ -1,16 +1,17 @@
 /**
- * content:check — valida la anatomía obligatoria de cada tema (docs/CONTENT-STANDARDS.md §2).
+ * content:check — validates the mandatory anatomy of every topic (docs/CONTENT-STANDARDS.md §2).
  *
- * Recorre `content/es/<ruta>/<mNN-tNN>/index.mdx` y exige las 7 secciones como etiquetas JSX de nivel
- * superior, en el orden del estándar. Con `status` distinto de `draft` exige además de 2 a 4
- * `Experimento` dentro de `Explora` y de 3 a 5 ejercicios en `Verifica` (#97, decisión 3). En
- * cualquier estado, cada clave de `Verifica` debe existir en el `ejercicios.ts` del tema (F6-00).
+ * Walks `content/es/<ruta>/<mNN-tNN>/index.mdx` and requires the 7 sections as top-level JSX
+ * tags, in the standard's order. With a `status` other than `draft` it also requires 2 to 4
+ * `Experimento` inside `Explora` and 3 to 5 exercises in `Verifica` (#97, decision 3). That every
+ * `Verifica` key actually resolves is checked by `apps/web/src/lib/verifica.test.ts` against the
+ * `EXERCISES` registry, and the build also fails on an unknown key (`Verifica.astro`) (F6-00).
  *
- * Salida: una línea por incumplimiento `content/es/<id>/index.mdx: <motivo>`.
- * Código de salida 1 si algún tema incumple, 0 si todos pasan.
+ * Output: one line per violation, `content/es/<id>/index.mdx: <reason>`.
+ * Exit code 1 if any topic fails, 0 if all pass.
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 
 /** @typedef {{ file: string; reason: string }} Finding */
 
@@ -19,9 +20,6 @@ const contentDir = join(repoRoot, 'content/es');
 
 /** Secciones obligatorias, en el orden de docs/CONTENT-STANDARDS.md §2. */
 const SECTIONS = ['Gancho', 'Concepto', 'Formulas', 'Explora', 'AlRobot', 'Verifica', 'Profundiza'];
-
-/** Prefijo de las claves de demostración del registro de ejercicios (`demo/track-time`). */
-const DEMO_KEY_PREFIX = 'demo/';
 
 /** Límites que el estándar fija para un tema ya escrito (§2, puntos 4 y 6). */
 const LIMITS = { experiments: { min: 2, max: 4 }, exercises: { min: 3, max: 5 } };
@@ -107,43 +105,6 @@ function exerciseKeys(body) {
 }
 
 /**
- * Ids que declara el `ejercicios.ts` del tema (`id: '…'` de cada `defineExercise`); vacío si el
- * tema no tiene `ejercicios.ts`.
- * @param {string} topicDir
- * @returns {Set<string>}
- */
-function definedExerciseIds(topicDir) {
-  let source;
-  try {
-    source = readFileSync(join(topicDir, 'ejercicios.ts'), 'utf8');
-  } catch {
-    return new Set();
-  }
-  return new Set([...source.matchAll(/\bid:\s*['"`]([^'"`]+)['"`]/g)].map((match) => match[1]));
-}
-
-/**
- * Cada clave de `Verifica` debe ser `<topicId>/<exerciseId>` con un ejercicio del `ejercicios.ts`
- * del propio tema (F6-00). Las claves `demo/…` son la demostración del registro de `apps/web`, que
- * `Verifica.astro` valida en el build.
- * @param {string} file
- * @param {string[]} keys
- * @param {(reason: string) => void} report
- */
-function checkExerciseKeys(file, keys, report) {
-  const topicDir = dirname(file);
-  const topicId = toPosix(relative(contentDir, topicDir));
-  const ids = definedExerciseIds(topicDir);
-  for (const key of keys) {
-    if (key.startsWith(DEMO_KEY_PREFIX)) continue;
-    const prefix = `${topicId}/`;
-    if (!key.startsWith(prefix) || !ids.has(key.slice(prefix.length))) {
-      report(`<Verifica> declara el ejercicio "${key}", que no existe en ${topicId}/ejercicios.ts`);
-    }
-  }
-}
-
-/**
  * @param {string} file
  * @param {Finding[]} findings
  */
@@ -165,7 +126,6 @@ function checkTopic(file, findings) {
   }
 
   const keys = exerciseKeys(body);
-  checkExerciseKeys(file, keys, report);
 
   if (status === 'draft') return;
 
