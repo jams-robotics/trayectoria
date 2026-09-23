@@ -217,6 +217,9 @@ importers:
       '@trayectoria/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@trayectoria/content':
+        specifier: workspace:*
+        version: link:../../content
       '@trayectoria/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -266,6 +269,12 @@ importers:
       tailwindcss:
         specifier: 4.3.3
         version: 4.3.3
+
+  content:
+    dependencies:
+      '@trayectoria/sim-core':
+        specifier: workspace:*
+        version: link:../packages/sim-core
 
   packages/auth:
     dependencies:

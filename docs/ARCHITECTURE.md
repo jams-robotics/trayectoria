@@ -25,13 +25,15 @@ trayectoria/
 │   ├── auth/                # cliente supabase-js, sesión, AuthGate
 │   ├── db/                  # tipos generados y cliente tipado
 │   └── i18n/                # i18next, locales
-├── content/
+├── content/                 # paquete @trayectoria/content del workspace
+│   ├── index.ts             # mapa de ejercicios de todos los temas
 │   └── es/
 │       └── ruta-1/
 │           ├── ruta.json    # orden de módulos y temas
 │           └── m04-t02/     # un directorio por tema
 │               ├── index.mdx
 │               ├── ejercicios.ts
+│               ├── ejercicios.test.ts
 │               └── assets/
 ├── catalog/
 │   ├── arms/{id}/           # urdf/, meshes/, ficha.json, LICENSE
@@ -46,7 +48,8 @@ trayectoria/
 Dependencias permitidas entre paquetes (flecha = "puede importar"):
 
 ```
-apps/web → sims, widgets, progress, auth, db, i18n, robot-spec
+apps/web → sims, widgets, progress, auth, db, i18n, robot-spec, content
+content  → sim-core
 sims     → sim-core, widgets, robot-spec, i18n, progress
 widgets  → sim-core, robot-spec, i18n
 progress → db, auth
@@ -89,6 +92,8 @@ Cualquier otra importación es un error de arquitectura (regla de ESLint `import
 ### 3.3 Contenido como código
 
 - Un tema = un directorio `content/es/ruta-1/mNN-tNN/` con `index.mdx`, `ejercicios.ts`, `assets/` y, si su «Al robot» calcula con el perfil, `alrobot.ts`.
+- `content/` es el paquete `@trayectoria/content` del workspace (F6-00): cubierto por `pnpm lint`, `typecheck` y `test`, y solo importa `sim-core` (y `robot-spec`, solo tipos; §2).
+- Cada tema exporta sus ejercicios (`defineExercise`) desde `ejercicios.ts`, con `ejercicios.test.ts` al lado (valores dorados). `content/index.ts` los reúne en un solo mapa con claves `<topicId>/<exerciseId>` (p. ej. `ruta-1/m00-t01/e1`); `apps/web/src/lib/exercises.ts` construye con él el registro que resuelve `Verifica`, que declara esas claves. Una clave de `Verifica` que no existe en el registro hace fallar `pnpm test` (`apps/web/src/lib/verifica.test.ts`) y el build.
 - Frontmatter validado por zod en `apps/web/src/content.config.ts` (campos en `CONTENT-STANDARDS.md`).
 - Orden y agrupación en `ruta.json`. La URL se deriva del directorio: `m04-t02` → `/ruta/ruta-1/m04/t02`.
 - Los temas solo pueden importar componentes del mapa MDX (F2-13) y widgets del catálogo. Cualquier `import` de otra cosa rompe `pnpm content:check`.

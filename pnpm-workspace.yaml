@@ -1,6 +1,7 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+  - 'content'
 allowBuilds:
   # esbuild's postinstall only validates the platform binary that already arrives as an optional dependency.
   esbuild: false
