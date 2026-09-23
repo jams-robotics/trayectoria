@@ -14,8 +14,12 @@ export interface GeneratedExercise<V> {
   readonly values: V;
   /** Expected answer: a scalar, or one number per component for vector answers. */
   readonly answer: number | readonly number[];
-  /** Unit of the answer, as shown to the learner. Empty for dimensionless answers. */
-  readonly unit: string;
+  /**
+   * Unit of the answer, as shown to the learner. Empty for dimensionless answers. One unit for every
+   * component, or a list with one entry per component of the answer (e.g. `['m/s', '°']` for a
+   * magnitude and an angle); its length is checked against the answer by `check`.
+   */
+  readonly unit: string | readonly string[];
 }
 
 /** A pure, seed-driven exercise. The UI and progress persistence live outside `sim-core`. */
