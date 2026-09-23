@@ -87,10 +87,13 @@ Cualquier otra importación es un error de arquitectura (regla de ESLint `import
 
 ### 3.3 Contenido como código
 
-- Un tema = un directorio `content/es/ruta-1/mNN-tNN/` con `index.mdx`, `ejercicios.ts` y `assets/`.
+- Un tema = un directorio `content/es/ruta-1/mNN-tNN/` con `index.mdx`, `ejercicios.ts`, `assets/` y, si su «Al robot» calcula con el perfil, `alrobot.ts`.
 - Frontmatter validado por zod en `apps/web/src/content.config.ts` (campos en `CONTENT-STANDARDS.md`).
 - Orden y agrupación en `ruta.json`. La URL se deriva del directorio: `m04-t02` → `/ruta/ruta-1/m04/t02`.
 - Los temas solo pueden importar componentes del mapa MDX (F2-13) y widgets del catálogo. Cualquier `import` de otra cosa rompe `pnpm content:check`.
+- Widgets en el MDX (#243): el mapa MDX (`temaComponents`) expone cada widget del catálogo que usa el currículo con el mismo nombre y las mismas props que `WIDGETS.md`, y el tema lo escribe sin `import` (`content/` no resuelve los paquetes del workspace, ADR-0005). Un solo mecanismo genérico, el de `Formula.astro`: una isla `TopicWidget` con `client:only="react"` que carga el widget desde `widgetRegistry.ts`. No se escribe un envoltorio a mano por widget.
+- Enunciados de ejercicios (#243): claves i18n en `packages/i18n/locales/es/content.json`, bajo la raíz `content`, con la forma `content.<topicId>.<exerciseId>` (p. ej. `content.ruta-1/m00-t01.e1`). `ejercicios.ts` solo devuelve la clave (§4.6).
+- «Al robot» con el perfil (#243): cada tema exporta sus cálculos desde `alrobot.ts`, funciones `RobotSpec → { latex, substituted }` registradas por clave `<topicId>/<calcId>`, igual que los ejercicios. El MDX escribe `<RobotFormula calc="ruta-1/m00-t01/omega-rueda" />`; la isla resuelve la clave, lee `useMyRobot()` y pinta `Formula` sustituida. Así no se pasan funciones a una isla.
 - i18n del contenido: por carpeta de idioma (`content/en/` en el futuro). Los textos de widgets van por claves.
 
 ### 3.4 Librerías fijas
@@ -230,7 +233,7 @@ tracks        (id uuid pk, owner_id uuid → profiles, name text, track jsonb, c
 
 `tracks` guarda las pistas del editor en la cuenta (F4-06, #191): `track` es el mismo JSON que ya se exporta a archivo, así que guardar en la cuenta y exportar producen lo mismo. Una pista guardada es privada de su dueño; compartirla sigue siendo por enlace (F4-05), que lleva la pista embebida y no depende de esta tabla.
 
-Los `jsonb` que escribe el cliente llevan cota de tamaño (#204): `tracks.track` y `robots.spec` (incluidas las `simConfigs` de dentro) tienen `check (pg_column_size(...) < 65536)`, es decir 64 KiB, el mismo límite que §6 aplica a lo que viaja en el enlace compartido. No hay límite de filas por propietario en v1. El cliente valida la cota antes de guardar y avisa al usuario en vez de dejar que la base rechace la escritura. La migración es `supabase/migrations/0007_jsonb_size_checks.sql`.
+Los `jsonb` que escribe el cliente llevan cota de tamaño (#204): `tracks.track` y `robots.spec` (incluidas las `simConfigs` de dentro) tienen `check (pg_column_size(...) < 65536)`, es decir 64 KiB, el mismo límite que §6 aplica a lo que viaja en el enlace compartido. No hay límite de filas por propietario en v1. El cliente valida la cota antes de guardar y avisa al usuario en vez de dejar que la base rechace la escritura. La migración es `supabase/migrations/0007_jsonb_size_checks.sql`. El cliente mide el texto JSON y la base el `jsonb`, que ocupa ~1.6–1.7 veces más: entre ~39 KB y 64 KiB de texto la base rechaza (`23514`) y el cliente muestra el mismo aviso, así que una pista guardada solo en el navegador en ese rango no se puede subir a la cuenta. Aceptado para v1 (#216).
 
 ### 5.2 Políticas RLS (resumen; el SQL completo es el entregable de F0-07)
 

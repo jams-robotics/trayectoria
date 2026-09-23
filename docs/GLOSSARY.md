@@ -9,12 +9,16 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | Símbolo | Nombre | Unidad | Código |
 |---|---|---|---|
 | t | tiempo | s | `t_s` |
-| Δt | paso de tiempo | s | `dt_s` |
+| Δt | intervalo de tiempo; en simulación, el paso | s | `dt_s` |
 | x, y, z | posición | m | `x_m`, `y_m`, `z_m` |
+| x₀ | posición inicial | m | `x0_m` |
+| Δx | desplazamiento en un intervalo (x final − x inicial) | m | `dx_m` |
 | h | altura inicial | m | `h_m` |
 | s | distancia recorrida (arco) | m | `s_m` |
 | v | rapidez / velocidad lineal | m/s | `v_mps` |
 | v₀ | velocidad inicial | m/s | `v0_mps` |
+| v₁, v₂ | velocidad en dos instantes dados | m/s | `v1_mps`, `v2_mps` |
+| v̄ | velocidad media (Δx / Δt) | m/s | `vAvg_mps` |
 | vₓ, v_y | componentes de velocidad | m/s | `vx_mps`, `vy_mps` |
 | a | aceleración | m/s² | `a_mps2` |
 | g | aceleración gravitatoria | m/s² | `G_MPS2` (constante) |
@@ -32,6 +36,26 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | η | eficiencia | — | `efficiency` |
 | V, I | voltaje, corriente | V, A | `voltage_V`, `current_A` |
 | C | capacidad de batería | Wh | `batteryCapacity_Wh` |
+| [q] | unidad de la magnitud q, en análisis dimensional (`[v] = m/s`) | — | — (solo notación) |
+
+## Vectores
+
+| Símbolo | Nombre | Unidad | Código |
+|---|---|---|---|
+| v⃗ | velocidad como vector, con magnitud \|v⃗\| = v y componentes vₓ, v_y | m/s | `[vx_mps, vy_mps]` |
+| a⃗, b⃗ (en vectores) | vector genérico, con componentes a_x, a_y, b_x, b_y y magnitud \|a⃗\|, \|b⃗\| | la de la magnitud que representa | `a: [number, number]`, `b: [number, number]` |
+| (a, b) (en enunciados de vectores) | vector dado por sus componentes x e y | la de la magnitud que representa | `[number, number]` |
+| a⃗ · b⃗ | producto escalar (a_x·b_x + a_y·b_y) | producto de las unidades de a⃗ y b⃗ | `dot` |
+| φ (entre vectores) | ángulo entre dos vectores | rad | `angleBetween_rad` |
+
+## Razón de cambio
+
+| Símbolo | Nombre | Unidad | Código |
+|---|---|---|---|
+| d/dt | derivada respecto al tiempo (`v = dx/dt`, `a = dv/dt`) | la de la magnitud derivada entre s | — (solo notación) |
+| c (en derivadas) | coeficiente constante de c·tⁿ | la que da a c·tⁿ la unidad de la magnitud; en x = c·t², m/s² | sufijo según su unidad: `c_mps2` en x = c·t² |
+| n (en derivadas) | exponente de t en c·tⁿ | — | `exponent` |
+| a, b (en polinomios de posición) | coeficientes de x(t) = a·t + b·t² | m/s, m/s² | `coefA_mps`, `coefB_mps2` |
 
 ## Rotación
 
@@ -39,6 +63,9 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 |---|---|---|---|
 | θ | ángulo / orientación (heading) | rad | `theta_rad` |
 | ω | velocidad angular | rad/s | `omega_radps` |
+| ω_motor | velocidad angular del eje del motor | rad/s | `omegaMotor_radps` |
+| ω_rueda | velocidad angular de la rueda (ω_motor / i) | rad/s | `omegaWheel_radps` |
+| ω_max | velocidad angular máxima de la rueda (ω_motor sin carga / i) | rad/s | `omegaMax_radps` |
 | α | aceleración angular | rad/s² | `alpha_radps2` |
 | n | velocidad de giro | rpm | `speed_rpm` (solo entrada de usuario) |
 | T | período | s | `period_s` |
@@ -58,6 +85,7 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | ω_L, ω_R | velocidad angular de rueda izquierda y derecha | rad/s | `omegaL_radps`, `omegaR_radps` |
 | v_L, v_R | velocidad lineal de rueda | m/s | `vL_mps`, `vR_mps` |
 | v, ω | velocidad lineal y angular del robot | m/s, rad/s | `v_mps`, `omega_radps` |
+| v_max | velocidad lineal máxima del robot (ω_max · r) | m/s | `vMax_mps` |
 | R | radio de giro | m | `turnRadius_m` |
 | CIR | centro instantáneo de rotación | m | `icr: { x_m, y_m }` |
 | N | número de sensores de línea | — | `lineSensors.count` |
