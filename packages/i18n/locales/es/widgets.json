@@ -411,6 +411,7 @@
   },
   "playground": {
     "title": "Catálogo de widgets",
-    "lead": "Cada widget del catálogo con sus configuraciones de ejemplo. Página de desarrollo: no se enlaza desde la navegación."
+    "lead": "Cada widget del catálogo con sus configuraciones de ejemplo. Página de desarrollo: no se enlaza desde la navegación.",
+    "topicFixtureTitle": "MDX de tema de prueba"
   }
 }

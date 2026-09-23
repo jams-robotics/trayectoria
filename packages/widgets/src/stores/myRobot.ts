@@ -20,6 +20,8 @@ export type SaveResult =
  * (`src/stores/robotPersistence.ts`); with none, «Mi robot» lives only in this browser.
  */
 export interface RobotPersistence {
+  /** Id of the learner this adapter belongs to; who the local copy is checked against (#238). */
+  readonly ownerId: string;
   load: () => Promise<RobotSpec | null>;
   save: (spec: RobotSpec) => Promise<void>;
 }
@@ -66,16 +68,55 @@ function isJson(value: unknown): value is JsonValue {
   return typeof value === 'object' && value !== null;
 }
 
-/** The stored robot, or the reference one when nothing valid is stored (#95, decision 2). */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function parseOrReference(input: unknown): RobotSpec {
+  const parsed = parseRobotSpec(input);
+  return parsed.ok ? parsed.value : referenceRobot();
+}
+
+/**
+ * Id of the learner the stored copy belongs to, read straight from `localStorage` without
+ * going through `currentOwnerId` — `configureMyRobotPersistence` needs the owner of whoever
+ * left it there, not of the session this page currently thinks is active (#238). A copy without
+ * an `owner` field predates the envelope and is anonymous, same as `readStoredRobot`.
+ */
+function readStoredOwner(): string | null {
+  const raw = storage()?.getItem(MY_ROBOT_STORAGE_KEY);
+  if (raw === null || raw === undefined) return null;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!isRecord(parsed) || !('owner' in parsed)) return null;
+    const owner = parsed.owner;
+    return typeof owner === 'string' ? owner : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The stored robot, or the reference one when nothing valid is stored (#95, decision 2), or
+ * when the copy belongs to another learner than `currentOwnerId` (#238) — the same rule
+ * `progress.ts` applies with `readProgressJson`. A copy without an `owner` field predates the
+ * envelope; it reads as anonymous, so old copies keep working.
+ */
 export function readStoredRobot(): RobotSpec {
   const raw = storage()?.getItem(MY_ROBOT_STORAGE_KEY);
   if (raw === null || raw === undefined) return referenceRobot();
+  let parsed: unknown;
   try {
-    const parsed = parseRobotSpec(JSON.parse(raw));
-    return parsed.ok ? parsed.value : referenceRobot();
+    parsed = JSON.parse(raw);
   } catch {
     return referenceRobot();
   }
+  if (!isRecord(parsed)) return referenceRobot();
+  if (!('owner' in parsed)) return currentOwnerId === null ? parseOrReference(parsed) : referenceRobot();
+  const owner = parsed.owner;
+  if (owner !== null && typeof owner !== 'string') return referenceRobot();
+  if (owner !== currentOwnerId) return referenceRobot();
+  return parseOrReference(parsed.spec);
 }
 
 /**
@@ -105,12 +146,14 @@ export function hydrateMyRobot(): void {
 let persistence: RobotPersistence | null = null;
 /** Bumped by every `configureMyRobotPersistence`; a load started under an older one is stale. */
 let persistenceGeneration = 0;
+/** Id of the learner the store currently belongs to, or `null` for an anonymous visit (#238). */
+let currentOwnerId: string | null = null;
 
 function writeStoredRobot(spec: RobotSpec | null): void {
   const store = storage();
   if (store === null) return;
   if (spec === null) store.removeItem(MY_ROBOT_STORAGE_KEY);
-  else store.setItem(MY_ROBOT_STORAGE_KEY, JSON.stringify(spec));
+  else store.setItem(MY_ROBOT_STORAGE_KEY, JSON.stringify({ owner: currentOwnerId, spec }));
 }
 
 /**
@@ -143,12 +186,36 @@ export function resetMyRobot(): RobotSpec {
 /**
  * Attaches the remote adapter (or detaches it with `null`) and adopts the robot it holds: a
  * valid remote spec replaces the local one, so a learner signing in on another device gets
- * their own robot back (#95, decision 2).
+ * their own robot back (#95, decision 2). `apps/web` calls it once per change of signed-in
+ * learner, so a previous adapter means that learner is leaving.
  */
 export async function configureMyRobotPersistence(adapter: RobotPersistence | null): Promise<void> {
   persistence = adapter;
   persistenceGeneration += 1;
   const generation = persistenceGeneration;
+  const nextOwnerId = adapter === null ? null : adapter.ownerId;
+  // Whether the stored copy belongs to someone else is read from the envelope itself, not from
+  // in-memory state: a reload, a session that expires with no page open, or a `signOut()` on
+  // another device never runs this module in between, so a variable reset by the reload cannot
+  // tell "someone left" from "nobody was ever here" (#238, security review of #250). The learner
+  // who leaves takes their robot along: this browser goes back to the reference robot, so
+  // whoever uses it next never sees nor adopts it. An anonymous copy (`owner: null`) has no
+  // learner to take it along, so it is kept, also when signing in to an account without a robot.
+  const storedOwner = readStoredOwner();
+  currentOwnerId = nextOwnerId;
+  if (storedOwner !== null && storedOwner !== nextOwnerId) {
+    $myRobot.set(referenceRobot());
+    writeStoredRobot(null);
+  } else if (nextOwnerId !== null && storedOwner === nextOwnerId) {
+    // Adopt the local copy right away, without waiting for `adapter.load()`: on a page outside
+    // `/cuenta`, `hydrateMyRobot()` (`useMyRobot`'s effect) may already have run while
+    // `currentOwnerId` was still `null` from the previous, unsettled session and cached the
+    // reference robot — its own guard then blocks a second read for the life of the page.
+    // Setting `$myRobot` here overrides that stale value directly, and if the remote load below
+    // fails or is slow, the learner still sees and keeps their own robot instead of the
+    // reference one (decision of the orchestrator, PR #250, second round).
+    $myRobot.set(readStoredRobot());
+  }
   if (adapter === null) return;
   const remote = await adapter.load().catch(() => null);
   // The session changed while loading: this robot belongs to whoever was signed in before (#218).

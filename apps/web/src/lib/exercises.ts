@@ -1,27 +1,31 @@
+import { EXERCISES as TOPIC_EXERCISES } from '@trayectoria/content';
+import type { TopicExercise } from '@trayectoria/content';
 import { trackTimeExercise } from '@trayectoria/widgets/ExerciseWidget';
 
 /**
- * Registro clave → `Exercise` que resuelve `VerificaExercise` en el cliente (#97, hallazgo alta
- * de auditoría del PR #119). `Verifica.astro` monta la isla con solo la clave (serializable);
- * el objeto `Exercise` completo, con sus funciones `generate`/`check`, no sobrevive la
- * serialización JSON que Astro hace de las props de una isla `client:visible`.
+ * Key → `Exercise` registry that resolves `VerificaExercise` on the client (#97, high finding
+ * from the PR #119 audit). `Verifica.astro` mounts the island with only the key (serializable);
+ * the full `Exercise` object, with its `generate`/`check` functions, does not survive the JSON
+ * serialization Astro does for a `client:visible` island's props.
  *
- * Mientras no haya `ejercicios.ts` por tema (llega con T-0.1), el único registrado es el escalar
- * de demostración de `ExerciseWidget/demo.ts` (#97, decisión 4).
+ * Built from the `@trayectoria/content` map (keys `<topicId>/<exerciseId>`, e.g.
+ * `ruta-1/m00-t01/e1`, F6-00), and keeps the demo scalar from `ExerciseWidget/demo.ts` under
+ * `demo/track-time` (#97, decision 4).
  *
- * `apps/web` no puede importar `@trayectoria/sim-core` (docs/ARCHITECTURE.md §2), así que el
- * tipo del ejercicio se toma del widget, igual que el `Verifica.astro` original.
+ * `apps/web` cannot import `@trayectoria/sim-core` (docs/ARCHITECTURE.md §2), so the exercise
+ * type comes from `@trayectoria/content` instead.
  */
-type TopicExercise = typeof trackTimeExercise;
+const EXERCISES = new Map<string, TopicExercise>([
+  ['demo/track-time', trackTimeExercise],
+  ...TOPIC_EXERCISES,
+]);
 
-const EXERCISES = new Map<string, TopicExercise>([['demo/track-time', trackTimeExercise]]);
-
-/** Claves válidas del registro, para el error de build de `Verifica.astro`. */
+/** Valid registry keys, for `Verifica.astro`'s build-time error. */
 export function exerciseKeys(): readonly string[] {
   return [...EXERCISES.keys()];
 }
 
-/** Resuelve una clave a su `Exercise`, o `undefined` si no está en el registro. */
+/** Resolves a key to its `Exercise`, or `undefined` if it is not in the registry. */
 export function findExercise(key: string): TopicExercise | undefined {
   return EXERCISES.get(key);
 }

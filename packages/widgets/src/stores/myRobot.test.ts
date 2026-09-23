@@ -113,7 +113,30 @@ describe('$myRobot (F2-11)', () => {
 
     expect(result.ok).toBe(true);
     expect($myRobot.get()).toEqual(spec);
-    expect(JSON.parse(localStorage.getItem(MY_ROBOT_STORAGE_KEY) ?? 'null')).toEqual(spec);
+    // Anonymous (no session configured): the envelope's owner is `null` (#238).
+    expect(JSON.parse(localStorage.getItem(MY_ROBOT_STORAGE_KEY) ?? 'null')).toEqual({ owner: null, spec });
+  });
+
+  // Security finding baja-1 of the second review round of PR #250 (#238): a page with a
+  // session but no persistence configured used to write an edit as anonymous (`owner: null`),
+  // which the next learner on this browser could then adopt. `RobotSession` now attaches the
+  // adapter on every page, so `setMyRobot` always runs with the right `currentOwnerId`.
+  test('setMyRobot with a session configured stores the envelope under that owner, not anonymous', async () => {
+    const adapter: RobotPersistence = {
+      ownerId: 'user-1',
+      load: vi.fn().mockResolvedValue(null),
+      save: vi.fn().mockResolvedValue(undefined),
+    };
+    await configureMyRobotPersistence(adapter);
+
+    const spec = withWheelRadius(0.05);
+    const result = setMyRobot(spec);
+
+    expect(result.ok).toBe(true);
+    expect(JSON.parse(localStorage.getItem(MY_ROBOT_STORAGE_KEY) ?? 'null')).toEqual({
+      owner: 'user-1',
+      spec,
+    });
   });
 
   test('resetMyRobot returns to the reference robot and clears the stored one', () => {
@@ -164,6 +187,7 @@ describe('remote persistence of $myRobot (F2-11)', () => {
   test('a remote spec replaces the local one when the adapter is configured', async () => {
     const remote = withWheelRadius(0.04);
     const adapter: RobotPersistence = {
+      ownerId: 'user-1',
       load: vi.fn().mockResolvedValue(remote),
       save: vi.fn().mockResolvedValue(undefined),
     };
@@ -171,12 +195,16 @@ describe('remote persistence of $myRobot (F2-11)', () => {
     await configureMyRobotPersistence(adapter);
 
     expect($myRobot.get()).toEqual(remote);
-    expect(JSON.parse(localStorage.getItem(MY_ROBOT_STORAGE_KEY) ?? 'null')).toEqual(remote);
+    expect(JSON.parse(localStorage.getItem(MY_ROBOT_STORAGE_KEY) ?? 'null')).toEqual({
+      owner: 'user-1',
+      spec: remote,
+    });
   });
 
   test('an empty or invalid remote spec leaves the local robot in place', async () => {
     setMyRobot(withWheelRadius(0.05));
     const adapter: RobotPersistence = {
+      ownerId: 'user-1',
       load: vi.fn().mockResolvedValue(null),
       save: vi.fn().mockResolvedValue(undefined),
     };
@@ -188,6 +216,7 @@ describe('remote persistence of $myRobot (F2-11)', () => {
 
   test('setMyRobot forwards the saved spec to the adapter', async () => {
     const adapter: RobotPersistence = {
+      ownerId: 'user-1',
       load: vi.fn().mockResolvedValue(null),
       save: vi.fn().mockResolvedValue(undefined),
     };
@@ -201,6 +230,7 @@ describe('remote persistence of $myRobot (F2-11)', () => {
 
   test('a rejected save leaves the local robot applied', async () => {
     const adapter: RobotPersistence = {
+      ownerId: 'user-1',
       load: vi.fn().mockResolvedValue(null),
       save: vi.fn().mockRejectedValue(new Error('sin red')),
     };
@@ -215,6 +245,7 @@ describe('remote persistence of $myRobot (F2-11)', () => {
 
   test('an invalid remote spec is ignored', async () => {
     const adapter: RobotPersistence = {
+      ownerId: 'user-1',
       load: vi.fn().mockResolvedValue({ name: 'roto' }),
       save: vi.fn().mockResolvedValue(undefined),
     };
@@ -227,6 +258,7 @@ describe('remote persistence of $myRobot (F2-11)', () => {
   test('a rejected load leaves the local robot in place', async () => {
     setMyRobot(withWheelRadius(0.05));
     const adapter: RobotPersistence = {
+      ownerId: 'user-1',
       load: vi.fn().mockRejectedValue(new Error('sin red')),
       save: vi.fn().mockResolvedValue(undefined),
     };
@@ -238,6 +270,7 @@ describe('remote persistence of $myRobot (F2-11)', () => {
 
   test('resetMyRobot pushes the reference robot to the adapter too', async () => {
     const adapter: RobotPersistence = {
+      ownerId: 'user-1',
       load: vi.fn().mockResolvedValue(null),
       save: vi.fn().mockResolvedValue(undefined),
     };
@@ -250,6 +283,7 @@ describe('remote persistence of $myRobot (F2-11)', () => {
 
   test('configuring `null` detaches the adapter', async () => {
     const adapter: RobotPersistence = {
+      ownerId: 'user-1',
       load: vi.fn().mockResolvedValue(null),
       save: vi.fn().mockResolvedValue(undefined),
     };

@@ -43,6 +43,7 @@ async function readRow(db: DbClient, ownerId: string): Promise<StoredRow | null>
 export function robotPersistenceFor(session: Session): RobotPersistence {
   const ownerId = session.user.id;
   return {
+    ownerId,
     load: async () => {
       const row = await readRow(getDbClient(), ownerId);
       return row?.spec ?? null;

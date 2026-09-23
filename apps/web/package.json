@@ -18,6 +18,7 @@
     "@astrojs/react": "6.0.5",
     "@nanostores/react": "2.0.1",
     "@trayectoria/auth": "workspace:*",
+    "@trayectoria/content": "workspace:*",
     "@trayectoria/db": "workspace:*",
     "@trayectoria/i18n": "workspace:*",
     "@trayectoria/progress": "workspace:*",

@@ -1,12 +1,14 @@
 /**
- * content:check — valida la anatomía obligatoria de cada tema (docs/CONTENT-STANDARDS.md §2).
+ * content:check — validates the mandatory anatomy of every topic (docs/CONTENT-STANDARDS.md §2).
  *
- * Recorre `content/es/<ruta>/<mNN-tNN>/index.mdx` y exige las 7 secciones como etiquetas JSX de nivel
- * superior, en el orden del estándar. Con `status` distinto de `draft` exige además de 2 a 4
- * `Experimento` dentro de `Explora` y de 3 a 5 ejercicios en `Verifica` (#97, decisión 3).
+ * Walks `content/es/<ruta>/<mNN-tNN>/index.mdx` and requires the 7 sections as top-level JSX
+ * tags, in the standard's order. With a `status` other than `draft` it also requires 2 to 4
+ * `Experimento` inside `Explora` and 3 to 5 exercises in `Verifica` (#97, decision 3). That every
+ * `Verifica` key actually resolves is checked by `apps/web/src/lib/verifica.test.ts` against the
+ * `EXERCISES` registry, and the build also fails on an unknown key (`Verifica.astro`) (F6-00).
  *
- * Salida: una línea por incumplimiento `content/es/<id>/index.mdx: <motivo>`.
- * Código de salida 1 si algún tema incumple, 0 si todos pasan.
+ * Output: one line per violation, `content/es/<id>/index.mdx: <reason>`.
+ * Exit code 1 if any topic fails, 0 if all pass.
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
@@ -89,15 +91,17 @@ function countTag(body, tag) {
 }
 
 /**
- * Número de ejercicios que `Verifica` recibe en su prop `ejercicios={[…]}`.
+ * Claves que `Verifica` recibe en su prop `ejercicios={[…]}`, sin comillas.
  * @param {string} body
- * @returns {number}
+ * @returns {string[]}
  */
-function exerciseCount(body) {
+function exerciseKeys(body) {
   const match = /ejercicios=\{\[([^\]]*)\]\}/.exec(body);
-  if (match === null) return 0;
-  const inner = match[1].trim();
-  return inner === '' ? 0 : inner.split(',').filter((item) => item.trim() !== '').length;
+  if (match === null) return [];
+  return match[1]
+    .split(',')
+    .map((item) => item.trim().replace(/^['"`]|['"`]$/g, ''))
+    .filter((key) => key !== '');
 }
 
 /**
@@ -121,6 +125,8 @@ function checkTopic(file, findings) {
     }
   }
 
+  const keys = exerciseKeys(body);
+
   if (status === 'draft') return;
 
   const experiments = countTag(body, 'Experimento');
@@ -130,7 +136,7 @@ function checkTopic(file, findings) {
       `<Explora> tiene ${experiments} <Experimento>; el estándar pide de ${exp.min} a ${exp.max}`,
     );
   }
-  const exercises = exerciseCount(body);
+  const exercises = keys.length;
   if (exercises < ex.min || exercises > ex.max) {
     report(`<Verifica> tiene ${exercises} ejercicios; el estándar pide de ${ex.min} a ${ex.max}`);
   }

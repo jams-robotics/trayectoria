@@ -1,0 +1,88 @@
+import type { RobotSpec } from '@trayectoria/robot-spec';
+import type { Exercise } from '@trayectoria/sim-core';
+
+/**
+ * A topic exercise with its value type erased, so exercises of different topics share one map.
+ *
+ * `statement` is declared as a method: its parameter is then checked bivariantly, which lets any
+ * `Exercise<V>` from `defineExercise` enter the map, and the entry still reads as an
+ * `Exercise<unknown>` for whoever renders it.
+ */
+export interface TopicExercise extends Omit<Exercise<unknown>, 'statement'> {
+  statement(values: unknown): string;
+}
+
+/** Registry key of an exercise: `<topicId>/<exerciseId>`, e.g. `ruta-1/m00-t01/e1`. */
+export function exerciseKey(topicId: string, exerciseId: string): string {
+  return `${topicId}/${exerciseId}`;
+}
+
+/**
+ * Gathers the exercises that each topic exports from its `ejercicios.ts` into one map keyed by
+ * `exerciseKey`. Two exercises with the same key are a content error, not an overwrite.
+ */
+export function registerTopics(
+  topics: Readonly<Record<string, readonly TopicExercise[]>>,
+): ReadonlyMap<string, TopicExercise> {
+  return registerById(topics, exerciseKey, 'registerTopics: duplicate exercise key');
+}
+
+/** The formula of an «Al robot» calc: the symbolic form and the same one with the numbers in. */
+export interface RobotCalcFormula {
+  readonly latex: string;
+  readonly substituted: string;
+}
+
+/**
+ * One «Al robot» calc of a topic `alrobot.ts` (#243, decision 3): it turns the learner's robot
+ * into the formula that `RobotFormula` renders. It is a function, so the island resolves it by
+ * key instead of receiving it as a prop.
+ */
+export interface RobotCalc {
+  readonly id: string;
+  compute(robot: RobotSpec): RobotCalcFormula;
+}
+
+/** Registry key of a robot calc: `<topicId>/<calcId>`, e.g. `ruta-1/m00-t01/omega-rueda`. */
+export function robotCalcKey(topicId: string, calcId: string): string {
+  return `${topicId}/${calcId}`;
+}
+
+/**
+ * Gathers the calcs that each topic exports from its `alrobot.ts` into one map keyed by
+ * `robotCalcKey`, like `registerTopics` does with the exercises.
+ */
+export function registerRobotCalcs(
+  topics: Readonly<Record<string, readonly RobotCalc[]>>,
+): ReadonlyMap<string, RobotCalc> {
+  return registerById(topics, robotCalcKey, 'registerRobotCalcs: duplicate robot calc key');
+}
+
+/** Files each item under `key(topicId, item.id)`; a repeated key throws `duplicate "<key>"`. */
+function registerById<T extends { readonly id: string }>(
+  topics: Readonly<Record<string, readonly T[]>>,
+  key: (topicId: string, id: string) => string,
+  duplicate: string,
+): ReadonlyMap<string, T> {
+  const registry = new Map<string, T>();
+  for (const [topicId, items] of Object.entries(topics)) {
+    for (const item of items) {
+      const itemKey = key(topicId, item.id);
+      if (registry.has(itemKey)) throw new Error(`${duplicate} "${itemKey}"`);
+      registry.set(itemKey, item);
+    }
+  }
+  return registry;
+}
+
+/**
+ * Every topic exercise, keyed `<topicId>/<exerciseId>`. Each topic adds one entry here with the
+ * exercises of its `content/es/<ruta>/<mNN-tNN>/ejercicios.ts`; empty until T-0.1.
+ */
+export const EXERCISES: ReadonlyMap<string, TopicExercise> = registerTopics({});
+
+/**
+ * Every «Al robot» calc, keyed `<topicId>/<calcId>`. Each topic adds one entry here with the
+ * calcs of its `content/es/<ruta>/<mNN-tNN>/alrobot.ts`; empty until T-0.1.
+ */
+export const ROBOT_CALCS: ReadonlyMap<string, RobotCalc> = registerRobotCalcs({});

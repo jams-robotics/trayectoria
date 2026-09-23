@@ -1,0 +1,25 @@
+---
+import { TopicWidget } from './TopicWidget';
+
+// A topic widget of the catalog written in the MDX by its own name (`<RotationWidget … />`,
+// #243 decision 1). This is the one mechanism: each file of `catalog/` is a one-line wrapper that
+// only sets `name` (`<CatalogWidget name="RotationWidget" {...Astro.props} />`), because MDX does
+// not tell a component the name it was written under. The props are the ones of
+// docs/WIDGETS.md and reach the widget untouched; `astro check` cannot type them per widget, so
+// their shape is the one the MDX author copies from the catalog.
+//
+// `client:only="react"` for the same reason as `Formula.astro` (docs/ARCHITECTURE.md §3.1): the
+// widget arrives through `import()`, and a server pass would render the empty `Suspense`
+// fallback against the resolved widget on the client, which breaks React hydration (#207).
+interface Props {
+  /** Name of the widget in `widgetRegistry`, set by its wrapper in `catalog/`, never by the MDX. */
+  name: string;
+  [prop: string]: unknown;
+}
+
+const { name, ...props } = Astro.props;
+---
+
+<div data-topic-widget={name}>
+  <TopicWidget client:only="react" name={name} props={props} />
+</div>
