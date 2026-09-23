@@ -1,4 +1,5 @@
 import { createRng } from '@trayectoria/sim-core';
+import type { Tolerance } from '@trayectoria/sim-core';
 import { describe, expect, it } from 'vitest';
 
 import { e1, e2, e3, e4, exercises, power_W, rpmToRadps, speed_cmps } from './ejercicios';
@@ -11,21 +12,34 @@ function relativeError(value: number, expected: number): number {
   return Math.abs(value - expected) / Math.abs(expected);
 }
 
+/** Narrows a tolerance declaration to its per-component list form, like sim-core's own `isToleranceList`. */
+function isToleranceList(tolerance: Tolerance | readonly Tolerance[]): tolerance is readonly Tolerance[] {
+  return Array.isArray(tolerance);
+}
+
+/** These exercises answer a single number, so their tolerance is never a per-component list. */
+function toleranceValue(tolerance: Tolerance | readonly Tolerance[]): number {
+  if (!isToleranceList(tolerance)) return tolerance.value;
+  const first = tolerance[0];
+  if (first === undefined) throw new Error('toleranceValue: empty tolerance list');
+  return first.value;
+}
+
 describe('T-0.1 golden values', () => {
   it('e1: n = 6000 rpm → 628.3 rad/s', () => {
-    expect(relativeError(rpmToRadps(6000), 628.3)).toBeLessThanOrEqual(e1.tolerance.value);
+    expect(relativeError(rpmToRadps(6000), 628.3)).toBeLessThanOrEqual(toleranceValue(e1.tolerance));
   });
 
   it('e2: n = 200 rpm → 20.94 rad/s', () => {
-    expect(relativeError(rpmToRadps(200), 20.94)).toBeLessThanOrEqual(e2.tolerance.value);
+    expect(relativeError(rpmToRadps(200), 20.94)).toBeLessThanOrEqual(toleranceValue(e2.tolerance));
   });
 
   it('e3: x = 1.5 m, t = 2.5 s → 60 cm/s', () => {
-    expect(relativeError(speed_cmps(1.5, 2.5), 60)).toBeLessThanOrEqual(e3.tolerance.value);
+    expect(relativeError(speed_cmps(1.5, 2.5), 60)).toBeLessThanOrEqual(toleranceValue(e3.tolerance));
   });
 
   it('e4: V = 6 V, I = 1.2 A → 7.2 W', () => {
-    expect(relativeError(power_W(6, 1.2), 7.2)).toBeLessThanOrEqual(e4.tolerance.value);
+    expect(relativeError(power_W(6, 1.2), 7.2)).toBeLessThanOrEqual(toleranceValue(e4.tolerance));
   });
 
   it('every exercise uses the default tolerance: relative 2 %', () => {
