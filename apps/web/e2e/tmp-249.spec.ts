@@ -2,7 +2,11 @@ import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
 // TEMP (#249): diagnóstico del fallo intermitente de sim-compartir.spec.ts:169. Se borra antes de
-// pedir revisión. Mismo `open` que el spec; cambia solo la carga de la máquina.
+// pedir revisión. Mismo `open` que el spec.
+//
+// El runtime de React en el HTML del servidor revela los segmentos (`<div hidden id="r2S:0">`)
+// con `$RC`: si el primer fotograma ya pasó (`$RT` es un número), no los revela en ese fotograma
+// sino con un `setTimeout` de ~300 ms. Aquí se fija `$RT` para forzar ese camino.
 
 async function open(page: Page): Promise<void> {
   await page.goto('/simuladores/movil');
@@ -11,21 +15,21 @@ async function open(page: Page): Promise<void> {
   await expect(page.getByTestId('line-follower-t')).toHaveText('0.00 s');
 }
 
-test('CPU x6: abrir la página deja un solo line-follower-t', async ({ page }) => {
-  const cdp = await page.context().newCDPSession(page);
-  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 6 });
+test('primer fotograma antes de $RC: un solo line-follower-t', async ({ page }) => {
+  await page.addInitScript(() => {
+    (window as unknown as { $RT: number }).$RT = performance.now();
+  });
   await open(page);
 });
 
-test('fotograma tardío: abrir la página deja un solo line-follower-t', async ({ page }) => {
-  // Un runner cargado que tarda en dar el siguiente fotograma: el `$RC` de React revela los
-  // segmentos del servidor en `requestAnimationFrame`.
+test('revelado retrasado 1,5 s: un solo line-follower-t', async ({ page }) => {
   await page.addInitScript(() => {
-    const raf = window.requestAnimationFrame.bind(window);
-    window.requestAnimationFrame = (callback: FrameRequestCallback): number => {
-      window.setTimeout(() => raf(callback), 500);
-      return 0;
-    };
+    const firstPaint = performance.now() + 1200;
+    Object.defineProperty(window, '$RT', {
+      configurable: true,
+      get: () => firstPaint,
+      set: () => undefined,
+    });
   });
   await open(page);
 });
