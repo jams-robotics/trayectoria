@@ -1,0 +1,144 @@
+---
+id: ruta-1/m00-t03
+title: 'La derivada como razón de cambio'
+module: 0
+order: 3
+estimatedMinutes: 30
+prerequisites: [ruta-1/m00-t01]
+objectives:
+  - Distinguir velocidad media e instantánea
+  - Leer la velocidad como pendiente de la gráfica x–t
+  - Derivar polinomios simples de posición
+widgets: [KinematicsWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [young-freedman-2, serway-2]
+status: review
+---
+
+<Gancho>
+Cada 0.1 s tu robot reporta su posición: 0.00, 0.05, 0.12, 0.21 m. ¿Va a velocidad constante?
+¿Cuál es su velocidad en el último tramo?
+</Gancho>
+
+<Concepto>
+La **velocidad media** de tu robot en un intervalo es el desplazamiento dividido entre el tiempo
+que tarda en recorrerlo: v̄ = Δx/Δt. Si en Δt = 0.1 s avanza Δx = 0.05 m, su velocidad media en
+ese tramo es 0.5 m/s. La velocidad media no dice qué pasa dentro del intervalo: el robot puede ir
+más rápido al final que al principio.
+
+En la gráfica x–t, v̄ es la pendiente de la recta que une los dos puntos del intervalo. Si reduces
+Δt, los dos puntos se acercan y esa recta se parece cada vez más a la tangente a la curva en un
+instante. El valor al que tiende Δx/Δt cuando Δt tiende a cero es la **derivada** de x respecto a
+t. Ese valor es la **velocidad instantánea**: v = dx/dt, la pendiente de x–t en cada instante.
+
+La misma operación aplicada a la velocidad da la aceleración: a = dv/dt, la pendiente de la
+gráfica v–t. Una velocidad constante es una recta en x–t.
+
+Para posiciones que son polinomios del tiempo basta una regla: la derivada de c·tⁿ es c·n·tⁿ⁻¹.
+Si x = 0.2·t², con x en m y t en s, entonces v = 0.4·t, y en t = 2 s el robot va a 0.8 m/s.
+Derivar otra vez da a = 0.4 m/s², constante.
+
+El signo de v indica la dirección del movimiento: positivo si x crece, negativo si x decrece.
+
+Con la tabla del gancho, las velocidades medias de los tres tramos son 0.05/0.1 = 0.5 m/s,
+0.07/0.1 = 0.7 m/s y 0.09/0.1 = 0.9 m/s. El robot no va a velocidad constante: cada tramo es más
+rápido que el anterior, así que acelera, y en el último tramo va a 0.9 m/s.
+</Concepto>
+
+<Formulas>
+<Formula latex="\bar v = \frac{\Delta x}{\Delta t}" />
+
+- `v̄` · velocidad media · m/s
+- `Δx` · desplazamiento en un intervalo · m
+- `Δt` · intervalo de tiempo · s
+
+<Formula latex="v = \frac{dx}{dt},\quad a = \frac{dv}{dt}" />
+
+- `v` · velocidad lineal · m/s
+- `x` · posición · m
+- `t` · tiempo · s
+- `a` · aceleración · m/s²
+- `d/dt` · derivada respecto al tiempo · la de la magnitud derivada entre s
+
+<Formula latex="\frac{d}{dt}(c\,t^n) = c\,n\,t^{n-1}" />
+
+- `c` · coeficiente constante de c·tⁿ · la que da a c·tⁿ la unidad de la magnitud; en x = c·t², m/s²
+- `n` · exponente de t en c·tⁿ · —
+- `t` · tiempo · s
+</Formulas>
+
+<Explora>
+Una partícula avanza en línea recta con x₀ = 0 m, v₀ = 0.5 m/s y a = 0.2 m/s² durante 5 s. Las
+gráficas x–t, v–t y a–t muestran el mismo movimiento con un marcador de tiempo común, y la
+tangente a x–t en ese instante.
+
+<KinematicsWidget
+  initial={{ x0_m: 0, v0_mps: 0.5, a_mps2: 0.2 }}
+  editable={['v0', 'a']}
+  duration_s={5}
+  showTangent
+/>
+
+<Experimento
+  cambia="el marcador de tiempo, arrastrándolo"
+  observa="la tangente en la gráfica x–t"
+  porque="¿Por qué la pendiente de la tangente coincide con el valor de v–t en ese instante?"
+>
+La pendiente de la tangente a x–t es la derivada dx/dt en ese instante. Esa derivada es la
+velocidad instantánea v, que es justo lo que pinta la gráfica v–t. Por eso los dos números son
+exactamente el mismo.
+</Experimento>
+
+<Experimento
+  cambia="la aceleración a hasta 0"
+  observa="la gráfica x–t"
+  porque="¿Por qué x–t se vuelve una recta?"
+>
+Con a = 0 la velocidad no cambia y v–t es horizontal. Si v = dx/dt es constante, la pendiente de
+x–t es la misma en todos los instantes: una recta. Pendiente constante significa velocidad
+constante.
+</Experimento>
+
+<Experimento
+  cambia="la aceleración a a un valor negativo, con v₀ positiva"
+  observa="el instante en que v–t cruza cero"
+  porque="¿Por qué x alcanza un máximo justo en ese instante?"
+>
+Antes de ese instante v es positiva y x crece; después v es negativa y x decrece. Donde v = dx/dt
+vale cero, la tangente a x–t es horizontal. Ahí x deja de crecer y alcanza su máximo.
+</Experimento>
+</Explora>
+
+<AlRobot>
+Tu robot no mide su velocidad de forma directa. El encoder de cada rueda cuenta fracciones de
+vuelta, y con esas cuentas el simulador calcula la posición del robot cada Δt. La velocidad que
+el simulador te muestra es la derivada de esa posición, aproximada con dos lecturas
+consecutivas: el desplazamiento Δx entre ellas dividido entre Δt.
+
+Es una velocidad media, la del último intervalo. Cuanto más corto es Δt, más se parece a la
+velocidad instantánea v = dx/dt.
+
+Δx y Δt no son datos de tu perfil de «Mi robot», así que este cálculo usa el robot de referencia:
+entre dos lecturas separadas Δt = 0.1 s, su posición avanza Δx = 0.09 m.
+
+<Formula
+  latex="\bar v = \frac{\Delta x}{\Delta t}"
+  substituted="\bar v = \frac{0.09\ \text{m}}{0.1\ \text{s}} = 0.9\ \text{m/s}"
+/>
+
+En ese intervalo el robot va a 0.9 m/s. Es el mismo número del último tramo del gancho: el
+simulador hace con las lecturas del encoder el mismo cálculo que tú hiciste con la tabla.
+</AlRobot>
+
+<Verifica
+  ejercicios={[
+    'ruta-1/m00-t03/e1',
+    'ruta-1/m00-t03/e2',
+    'ruta-1/m00-t03/e3',
+    'ruta-1/m00-t03/e4',
+  ]}
+  topicId="ruta-1/m00-t03"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['young-freedman-2', 'serway-2']} topicId="ruta-1/m00-t03" />
