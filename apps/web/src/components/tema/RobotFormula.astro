@@ -1,0 +1,40 @@
+---
+import { findRobotCalc, robotCalcKeys } from '../../lib/robotCalcs';
+import { RobotCalcFormula } from './RobotCalcFormula';
+
+// «Al robot» calc with the learner's numbers (docs/CONTENT-STANDARDS.md §2.5, #243 decision 3):
+// `<RobotFormula calc="ruta-1/m00-t01/omega-rueda" />` resolves the calc that the topic exports
+// from its `alrobot.ts` and renders its `Formula` substituted with «Mi robot».
+//
+// An unknown key stops the build naming the topic and the key, like `Verifica` does with its
+// exercises. `client:only="react"` as in `Formula.astro`: the formula arrives through `import()`,
+// and the robot is the one stored in this browser, which the server cannot know.
+interface Props {
+  /** Registry key of the calc: `<topicId>/<calcId>`. */
+  calc: string;
+}
+
+const { calc } = Astro.props;
+
+if (findRobotCalc(calc) === undefined) {
+  const topicId = calc.includes('/') ? calc.slice(0, calc.lastIndexOf('/')) : calc;
+  throw new Error(
+    `${topicId}: unknown robot calc "${calc}" (components/tema/RobotFormula.astro); ` +
+      `known calcs: ${robotCalcKeys().join(', ')}`,
+  );
+}
+---
+
+{
+  /*
+    The substituted formula can render wider than the reference formula (more digits, more
+    units): in a grid/flex column the child otherwise takes its own content width and pushes the
+    page wider. `w-0 min-w-full` forces it to the column's width instead (docs/DESIGN.md §9.8,
+    same pattern as `Plot`/`MatrixPanel`, #223); unlike those, a formula must stay readable rather
+    than being clipped, so this container scrolls horizontally on its own (`overflow-x-auto`)
+    instead of `overflow-hidden`.
+  */
+}
+<div data-robot-formula={calc} class="w-0 min-w-full overflow-x-auto">
+  <RobotCalcFormula client:only="react" calc={calc} />
+</div>
