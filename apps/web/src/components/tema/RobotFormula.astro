@@ -25,6 +25,16 @@ if (findRobotCalc(calc) === undefined) {
 }
 ---
 
-<div data-robot-formula={calc}>
+{
+  /*
+    The substituted formula can render wider than the reference formula (more digits, more
+    units): in a grid/flex column the child otherwise takes its own content width and pushes the
+    page wider. `w-0 min-w-full` forces it to the column's width instead (docs/DESIGN.md §9.8,
+    same pattern as `Plot`/`MatrixPanel`, #223); unlike those, a formula must stay readable rather
+    than being clipped, so this container scrolls horizontally on its own (`overflow-x-auto`)
+    instead of `overflow-hidden`.
+  */
+}
+<div data-robot-formula={calc} class="w-0 min-w-full overflow-x-auto">
   <RobotCalcFormula client:only="react" calc={calc} />
 </div>

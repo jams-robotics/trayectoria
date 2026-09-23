@@ -60,3 +60,20 @@ test('RobotFormula substitutes «Mi robot» and follows a new gear ratio', async
   await expect(formula).toContainText('41.89');
   await expect(formula).not.toContainText('20.94');
 });
+
+test('at 390 px RobotFormula does not overflow the page (docs/DESIGN.md §9.8)', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openFixture(page);
+  const formula = robotFormula(page);
+  await expect(formula).toContainText('628.3');
+
+  // A wider substituted formula must scroll inside its own container, not push the page: the
+  // orchestrator's mobile screenshot caught `RobotFormula` doing the latter (PR #248).
+  const { scrollWidth, clientWidth } = await page.evaluate(() => ({
+    scrollWidth: document.documentElement.scrollWidth,
+    clientWidth: document.documentElement.clientWidth,
+  }));
+  expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
+});
