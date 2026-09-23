@@ -139,3 +139,41 @@ describe('F1-10 check', () => {
     expect(result.statementKey).toBe('ejercicios.constant.enunciado');
   });
 });
+
+describe('F1-10b check with per-component tolerance', () => {
+  const magnitudeAngleExercise = defineExercise({
+    id: 'magnitude-angle',
+    generate: () => ({ values: {}, answer: [0.5, 53.13] as const, unit: '' }),
+    statement: () => 'ejercicios.magnitudeAngle.enunciado',
+    tolerance: [
+      { type: 'relative', value: 0.02 },
+      { type: 'absolute', value: 0.5 },
+    ],
+  });
+
+  test('golden value: [0.509, 53.6] passes against [0.5, 53.13]', () => {
+    const result = check(magnitudeAngleExercise, 1, [0.509, 53.6]);
+    expect(result.correct).toBe(true);
+  });
+
+  test('golden value: the magnitude uses its relative 2 % tolerance', () => {
+    expect(check(magnitudeAngleExercise, 1, [0.52, 53.13]).correct).toBe(false);
+  });
+
+  test('golden value: the angle uses its absolute 0.5 tolerance', () => {
+    expect(check(magnitudeAngleExercise, 1, [0.5, 53.7]).correct).toBe(false);
+  });
+
+  test('a tolerance list whose length differs from the answer throws a clear error', () => {
+    const mismatched = defineExercise({
+      id: 'mismatched',
+      generate: () => ({ values: {}, answer: [1, 2, 3], unit: 'm' }),
+      statement: () => 'ejercicios.mismatched.enunciado',
+      tolerance: [
+        { type: 'relative', value: 0.02 },
+        { type: 'absolute', value: 0.5 },
+      ],
+    });
+    expect(() => check(mismatched, 1, [1, 2, 3])).toThrow(/2 tolerances.*3 components/);
+  });
+});

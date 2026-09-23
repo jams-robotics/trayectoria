@@ -1,5 +1,5 @@
 import { createRng } from '../random/SeededRng';
-import type { Exercise } from './defineExercise';
+import { isToleranceList, type Exercise, type Tolerance } from './defineExercise';
 
 /** Outcome of grading one response against a seeded instance of an exercise. */
 export interface CheckResult<V> {
@@ -23,7 +23,8 @@ export interface CheckResult<V> {
  * Regenerates an exercise from its seed and grades `response` against the expected answer.
  *
  * Pure: the same exercise, seed and response always give the same result, because the generator
- * only sees a fresh `createRng(seed)`.
+ * only sees a fresh `createRng(seed)`. With a tolerance list, each component is graded against its
+ * own entry; a list whose length differs from the answer is a definition error and throws.
  */
 export function check<V>(
   exercise: Exercise<V>,
@@ -33,6 +34,7 @@ export function check<V>(
   const { values, answer, unit } = exercise.generate(createRng(seed));
   const expectedComponents = toComponents(answer);
   const responseComponents = toComponents(response);
+  const tolerances = tolerancePerComponent(exercise, expectedComponents.length);
 
   const shapeMatches =
     Array.isArray(answer) === Array.isArray(response) &&
@@ -58,14 +60,31 @@ export function check<V>(
     const relError = expected === 0 ? absError : absError / Math.abs(expected);
     worstRelError = Math.max(worstRelError, relError);
 
+    const tolerance = tolerances[index];
     const passes =
-      exercise.tolerance.type === 'relative'
-        ? relError <= exercise.tolerance.value
-        : absError <= exercise.tolerance.value;
+      tolerance !== undefined &&
+      (tolerance.type === 'relative' ? relError <= tolerance.value : absError <= tolerance.value);
     correct = correct && passes;
   }
 
   return { ...base, correct, relError: worstRelError };
+}
+
+/** Expands the exercise tolerance into one entry per answer component. */
+function tolerancePerComponent<V>(
+  exercise: Exercise<V>,
+  componentCount: number,
+): readonly Tolerance[] {
+  const { tolerance } = exercise;
+  if (!isToleranceList(tolerance)) {
+    return Array.from({ length: componentCount }, () => tolerance);
+  }
+  if (tolerance.length !== componentCount) {
+    throw new RangeError(
+      `check: exercise "${exercise.id}" declares ${tolerance.length} tolerances but its answer has ${componentCount} components`,
+    );
+  }
+  return tolerance;
 }
 
 /** Normalises a scalar or vector answer into a list of components. */
