@@ -188,6 +188,11 @@ function Simulator({
   onEmptyTrack,
   onSaveTrack,
 }: SimulatorProps): JSX.Element {
+  // #249: the widget only mounts in the browser. Server-rendered, React emitted it
+  // in full inside a `<div hidden>` waiting to be revealed; hydration repainted it on the
+  // client and for an instant there were two viewers in the DOM, with the same `data-testid`.
+  const mounted = useMounted();
+  if (!mounted) return <SimulatorFallback />;
   return (
     <Suspense fallback={<SimulatorFallback />}>
       <LazyLineFollowerWidget
