@@ -64,19 +64,19 @@ function originTransform(joint: Joint): Mat4 {
 function validateConfiguration(joints: readonly Joint[], q: readonly number[]): void {
   if (q.length !== joints.length) {
     throw new RangeError(
-      `El brazo tiene ${String(joints.length)} articulaciones no fijas y q trae ${String(q.length)} valores`,
+      `The arm has ${String(joints.length)} non-fixed joints but q has ${String(q.length)} values`,
     );
   }
   joints.forEach((joint, index) => {
     const value = q[index] ?? Number.NaN;
     if (!Number.isFinite(value)) {
-      throw new RangeError(`Valor no finito en la articulación "${joint.name}"`);
+      throw new RangeError(`Non-finite value for joint "${joint.name}"`);
     }
     const limits = joint.limits;
     if (limits === undefined || joint.type === 'continuous') return;
     if (value < limits.lower || value > limits.upper) {
       throw new RangeError(
-        `Valor ${String(value)} fuera de los límites [${String(limits.lower)}, ${String(limits.upper)}] de la articulación "${joint.name}"`,
+        `Value ${String(value)} is outside the limits [${String(limits.lower)}, ${String(limits.upper)}] of joint "${joint.name}"`,
       );
     }
   });
@@ -130,7 +130,7 @@ export function forwardKinematics(arm: ArmSpec, q: readonly number[]): ReadonlyM
     const orphan = arm.joints.find((joint) => !transforms.has(joint.child));
     const name = orphan?.name ?? '';
     throw new RangeError(
-      `La articulación "${name}" cuelga de un eslabón que no desciende de "${arm.baseLink}"`,
+      `Joint "${name}" hangs from a link that does not descend from "${arm.baseLink}"`,
     );
   }
 
@@ -145,7 +145,7 @@ export function forwardKinematics(arm: ArmSpec, q: readonly number[]): ReadonlyM
 export function endEffectorPose(arm: ArmSpec, q: readonly number[]): EndEffectorPose {
   const T = forwardKinematics(arm, q).get(arm.endEffectorLink);
   if (T === undefined) {
-    throw new RangeError(`El eslabón efector "${arm.endEffectorLink}" no existe en el brazo`);
+    throw new RangeError(`End effector link "${arm.endEffectorLink}" does not exist in the arm`);
   }
   return { position_m: getTranslation(T), rpy_rad: toRpy(T), T };
 }

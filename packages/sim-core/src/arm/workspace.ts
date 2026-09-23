@@ -31,7 +31,7 @@ function sampleRange(joint: Joint): { readonly lower: number; readonly upper: nu
  */
 export function sampleWorkspace(arm: ArmSpec, n: number, rng: SeededRng): Float32Array {
   if (!Number.isInteger(n) || n < 0) {
-    throw new RangeError(`n debe ser un entero no negativo, recibido ${String(n)}`);
+    throw new RangeError(`n must be a non-negative integer, received ${String(n)}`);
   }
 
   const actuated = arm.joints.filter(isActuated);
