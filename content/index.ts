@@ -1,6 +1,8 @@
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import type { Exercise } from '@trayectoria/sim-core';
 
+import { robotCalcs as m00t01RobotCalcs } from './es/ruta-1/m00-t01/alrobot';
+import { exercises as m00t01Exercises } from './es/ruta-1/m00-t01/ejercicios';
 import { exercises as m00t03Exercises } from './es/ruta-1/m00-t03/ejercicios';
 
 /**
@@ -79,14 +81,17 @@ function registerById<T extends { readonly id: string }>(
 
 /**
  * Every topic exercise, keyed `<topicId>/<exerciseId>`. Each topic adds one entry here with the
- * exercises of its `content/es/<ruta>/<mNN-tNN>/ejercicios.ts`; empty until T-0.1.
+ * exercises of its `content/es/<ruta>/<mNN-tNN>/ejercicios.ts`.
  */
 export const EXERCISES: ReadonlyMap<string, TopicExercise> = registerTopics({
+  'ruta-1/m00-t01': m00t01Exercises,
   'ruta-1/m00-t03': m00t03Exercises,
 });
 
 /**
  * Every «Al robot» calc, keyed `<topicId>/<calcId>`. Each topic adds one entry here with the
- * calcs of its `content/es/<ruta>/<mNN-tNN>/alrobot.ts`; empty until T-0.1.
+ * calcs of its `content/es/<ruta>/<mNN-tNN>/alrobot.ts`.
  */
-export const ROBOT_CALCS: ReadonlyMap<string, RobotCalc> = registerRobotCalcs({});
+export const ROBOT_CALCS: ReadonlyMap<string, RobotCalc> = registerRobotCalcs({
+  'ruta-1/m00-t01': m00t01RobotCalcs,
+});

@@ -6,59 +6,133 @@ order: 1
 estimatedMinutes: 20
 prerequisites: []
 objectives:
-  - Expresar cualquier magnitud del robot en unidades SI con su símbolo
-  - Convertir rpm, cm y minutos a rad/s, m y s sin perder factores
-widgets: [Formula, ExerciseWidget]
-requiredExercises: [e1]
-references: [young-freedman-1]
-status: draft
+  - Convertir rpm ↔ rad/s y m ↔ cm ↔ mm
+  - Leer una hoja de datos de motor
+  - Verificar unidades en una fórmula
+widgets: [RotationWidget, MyRobotWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [young-freedman-1, serway-1]
+status: review
 ---
 
 <Gancho>
-Tu motor gira a 200 rpm y tu rueda mide 3 cm de radio. ¿En qué unidades tienes que expresar cada
-dato antes de calcular a qué velocidad avanza tu robot?
+La hoja de datos de tu motor dice 6000 rpm, 0.012 N·m, 6 V y 1.2 A. ¿Cuántos radianes por
+segundo son 6000 rpm, y cuántos vatios consume?
 </Gancho>
 
 <Concepto>
-Este tema es un marcador de posición de F0-05: comprueba que el contenido en `content/es/` se
-publica en `/ruta/ruta-1/m00/t01` con el layout de tema y sus siete secciones. El texto real y
-los widgets llegan con T-0.1.
+El **Sistema Internacional (SI)** fija una unidad para cada magnitud: el metro (m) para la
+longitud, el segundo (s) para el tiempo, el kilogramo (kg) para la masa y el radián (rad) para
+los ángulos. La plataforma guarda y calcula todo en SI. Las hojas de datos y los formularios
+usan rpm, mm o minutos, pero cada dato se convierte al entrar, y ninguna fórmula mezcla
+sistemas.
 
-Mientras tanto, la única idea que deja escrita es la que ordena el resto de la ruta: cada
-magnitud del robot se expresa en unidades SI antes de entrar en una fórmula.
+Una **magnitud** es un número por una unidad. 0.032 m y 32 mm son la misma magnitud escrita de
+dos formas. El número solo no dice nada.
+
+En un robot aparecen siempre tres conversiones:
+
+- De rpm a rad/s: una vuelta son 2π rad y un minuto son 60 s, así que se multiplica por 2π/60.
+- De mm a m: se divide entre 1000. Un radio de rueda de 32 mm son 0.032 m.
+- De minutos a s: se multiplica por 60. Una prueba de 2 min dura 120 s.
+
+El **análisis dimensional** es la prueba rápida de una fórmula: las unidades de los dos lados
+tienen que coincidir. Si divides metros entre segundos obtienes m/s, que es una velocidad. Si
+una velocidad te sale en m·s, la fórmula está mal antes de meter ningún número.
+
+La hoja de datos de un motor trae cuatro números que usarás en toda la ruta. La velocidad sin
+carga, en rpm, es la del eje cuando nada lo frena. El torque de bloqueo, en N·m, es el máximo,
+con el eje detenido. El voltaje nominal, en V, es el de funcionamiento. La corriente, en A, es
+la que consume a ese voltaje. De los cuatro, solo la velocidad necesita conversión: N·m, V y A
+ya son unidades SI.
 </Concepto>
 
 <Formulas>
-<Formula latex="v = \omega\,r" />
+<Formula latex="\omega = n \cdot \frac{2\pi}{60}" />
 
-- `v` · velocidad lineal · m/s
 - `ω` · velocidad angular · rad/s
-- `r` · radio de la rueda · m
+- `n` · velocidad de giro · rpm (dato de entrada, no SI)
+
+<Formula latex="1\ \text{m} = 100\ \text{cm} = 1000\ \text{mm}" />
+
+- Sin variables: relaciona tres unidades de longitud; la del SI es el metro (m).
+
+<Formula latex="P = V \cdot I" />
+
+- `P` · potencia · W
+- `V` · voltaje · V
+- `I` · corriente · A
+
+<Formula latex="[v] = \text{m/s} = \frac{\text{m}}{\text{s}}" />
+
+- `[v]` · unidad de la rapidez, en análisis dimensional · m/s
+- `v` · rapidez · m/s
 </Formulas>
 
 <Explora>
+El disco gira con la velocidad que eliges en rpm y muestra la misma velocidad en rad/s, junto
+con un punto en el borde a la distancia r del centro.
+
+<RotationWidget mode="disc" inputUnit="rpm" initial={{ omega_radps: 20.94, r_m: 0.032 }} />
+
 <Experimento
-  cambia="el radio de la rueda"
-  observa="la velocidad lineal"
-  porque="¿Por qué al duplicar el radio se duplica la velocidad si el motor no cambia?"
+  cambia="n de 200 rpm a 400 rpm"
+  observa="el valor de ω en rad/s"
+  porque="¿Por qué ω se duplica?"
 >
-Contenido de marcador: la respuesta razonada llega con T-0.1.
+La conversión multiplica n por un factor constante, 2π/60. Si n se duplica, ω también: pasa de
+20.94 rad/s a 41.89 rad/s.
 </Experimento>
 
 <Experimento
-  cambia="las revoluciones del motor"
-  observa="la velocidad lineal"
-  porque="¿Por qué hay que pasar de rpm a rad/s antes de multiplicar por el radio?"
+  cambia="n a 60 rpm"
+  observa="el valor de ω en rad/s"
+  porque="¿Por qué ω sale cerca de 6.28 rad/s?"
 >
-Contenido de marcador: la respuesta razonada llega con T-0.1.
+60 rpm es una vuelta por segundo, y una vuelta son 2π rad. Por eso ω = 2π rad/s ≈ 6.28 rad/s.
+</Experimento>
+
+<Experimento
+  cambia="el radio de 32 mm a 64 mm, sin tocar ω"
+  observa="el valor de ω"
+  porque="¿Por qué ω no cambia?"
+>
+ω mide el ángulo que gira el disco en cada segundo, y ese ángulo es el mismo para cualquier
+radio. ω es una propiedad del giro, no del tamaño del disco.
 </Experimento>
 </Explora>
 
 <AlRobot>
-Contenido de marcador: con T-0.1 esta sección toma el radio de rueda de *Mi robot* y sustituye
-sus números en la fórmula de arriba.
+Aquí creas **Mi robot**, el perfil que usan los temas de la ruta. El formulario empieza con los
+datos del robot de referencia; cambia los que no coincidan con tu robot y guarda.
+
+El formulario muestra cada dato de tu robot con su unidad.
+
+<MyRobotWidget mode="form" />
+
+Con tu perfil, la primera conversión de la ruta es la velocidad del motor. La hoja de datos da
+la velocidad sin carga en rpm; en SI es ω_motor:
+
+<RobotFormula calc="ruta-1/m00-t01/omega-motor" />
+
+El motor no mueve la rueda directamente: entre los dos está la reducción del motorreductor, de
+relación i. La rueda gira i veces más despacio que el eje del motor:
+
+<RobotFormula calc="ruta-1/m00-t01/omega-rueda" />
+
+Con el robot de referencia, 6000 rpm son 6000 · 2π/60 = 628.3 rad/s en el eje del motor, y con
+i = 30 la rueda gira a 628.3/30 = 20.94 rad/s. Es el valor inicial del disco de Explora. Si
+cambias la velocidad del motor o la reducción en el formulario, las dos fórmulas se recalculan
+con tus datos.
+
+Fíjate en las unidades: i no tiene unidad, así que ω_rueda sale en rad/s, igual que ω_motor. Es
+el análisis dimensional de este tema aplicado a tu robot.
 </AlRobot>
 
-<Verifica ejercicios={['demo/track-time']} topicId="ruta-1/m00-t01" obligatorios={['e1']} />
+<Verifica
+  ejercicios={['ruta-1/m00-t01/e1', 'ruta-1/m00-t01/e2', 'ruta-1/m00-t01/e3', 'ruta-1/m00-t01/e4']}
+  topicId="ruta-1/m00-t01"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
 
-<Profundiza referencias={['young-freedman-1']} topicId="ruta-1/m00-t01" />
+<Profundiza referencias={['young-freedman-1', 'serway-1']} topicId="ruta-1/m00-t01" />

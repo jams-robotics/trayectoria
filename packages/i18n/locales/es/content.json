@@ -1,4 +1,10 @@
 {
+  "ruta-1/m00-t01": {
+    "e1": "Convierte {{speed_rpm}} rpm a rad/s.",
+    "e2": "El eje de salida de un motorreductor gira a {{speed_rpm}} rpm. Convierte esa velocidad a rad/s.",
+    "e3": "Un robot recorre {{x_m}} m en {{t_s}} s. Expresa su rapidez en cm/s.",
+    "e4": "Un motor funciona a {{voltage_V}} V y consume {{current_A}} A. ¿Qué potencia consume, en W?"
+  },
   "ruta-1/m00-t03": {
     "e1": "Entre dos lecturas, tu robot avanza Δx = {{dx_m}} m en Δt = {{dt_s}} s. ¿Cuál es su velocidad media, en m/s?",
     "e2": "La posición de tu robot sigue x(t) = c·t² con c = {{coefC_mps2}} m/s². ¿Cuál es su velocidad en t = {{t_s}} s, en m/s?",
