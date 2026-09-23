@@ -2,23 +2,23 @@ import { useEffect } from 'react';
 import type { JSX } from 'react';
 
 /**
- * Único punto que conecta «Mi robot» con la sesión en toda página, no solo `/cuenta` (#238,
- * decisión del orquestador de PR #250, segunda ronda): una isla `client:load` en el layout
- * base, junto al patrón ya usado por el progreso (`ProgressSession`, §3.1).
+ * Single point that connects "Mi robot" with the session on every page, not just `/cuenta`
+ * (#238, orchestrator decision from PR #250, second round): a `client:load` island in the base
+ * layout, alongside the pattern already used by progress (`ProgressSession`, §3.1).
  *
- * Antes solo `MyRobotIsland` llamaba a `startRobotPersistence()`, así que `currentOwnerId`
- * (`packages/widgets/src/stores/myRobot.ts`) se quedaba en `null` fuera de `/cuenta`: un
- * alumno con sesión veía el robot de referencia en vez del suyo en los simuladores y en los
- * temas. `MyRobotIsland` ya no monta la persistencia, para no duplicarla.
+ * Previously only `MyRobotIsland` called `startRobotPersistence()`, so `currentOwnerId`
+ * (`packages/widgets/src/stores/myRobot.ts`) stayed `null` outside `/cuenta`: a signed-in
+ * student would see the reference robot instead of their own in the simulators and in the
+ * themes. `MyRobotIsland` no longer mounts the persistence, to avoid duplicating it.
  *
- * `robotPersistence.ts` arrastra `@trayectoria/auth` y `@trayectoria/db` (el cliente de
- * Supabase) de forma estática; como esta isla ahora monta en toda página, un `import` estático
- * de ese módulo entraría en el JS inicial también de la página de tema, que ya tiene su propio
- * presupuesto (docs/ARCHITECTURE.md §8, `bundleBudget.test.ts`). Por eso se carga con
- * `import()`, igual que `RobotSource` hace con los robots guardados: el navegador solo lo
- * descarga cuando esta isla se monta de verdad.
+ * `robotPersistence.ts` statically pulls in `@trayectoria/auth` and `@trayectoria/db` (the
+ * Supabase client); since this island now mounts on every page, a static `import` of that
+ * module would also enter the initial JS of the theme page, which already has its own budget
+ * (docs/ARCHITECTURE.md §8, `bundleBudget.test.ts`). That's why it's loaded with `import()`,
+ * just like `RobotSource` does with saved robots: the browser only downloads it when this
+ * island actually mounts.
  *
- * No renderiza nada: las islas que muestran el robot leen `$myRobot`, no props.
+ * Renders nothing: the islands that show the robot read `$myRobot`, not props.
  */
 export function RobotSession(): JSX.Element {
   useEffect(() => {

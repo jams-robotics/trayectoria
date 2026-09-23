@@ -5,13 +5,13 @@ import widgets from '../../../packages/i18n/locales/es/widgets.json' with { type
 import { E2E_PASSWORD, signUp } from './helpers/supabase';
 import { openMobileSim, readout } from './sim-movil.helpers';
 
-// Decisión del orquestador (2026-09-23, PR #250, segunda ronda de seguridad, #238): antes de
-// este fix, `startRobotPersistence()` solo se llamaba desde `MyRobotIsland`, que únicamente
-// monta en `/cuenta`. Fuera de ahí `currentOwnerId` se quedaba en `null`
-// (`packages/widgets/src/stores/myRobot.ts`) y un alumno con sesión veía el robot de
-// referencia en los simuladores en vez del suyo. `RobotSession` (montada ahora en
-// `apps/web/src/layouts/Base.astro`) corre en toda página; este test lo comprueba con sesión
-// de verdad, guardando el robot en `/cuenta` y viéndolo en `/simuladores/movil`.
+// Orchestrator decision (2026-09-23, PR #250, second security round, #238): before this fix,
+// `startRobotPersistence()` was only called from `MyRobotIsland`, which only mounts on
+// `/cuenta`. Outside of that, `currentOwnerId` (`packages/widgets/src/stores/myRobot.ts`)
+// stayed `null` and a signed-in student would see the reference robot in the simulators
+// instead of their own. `RobotSession` (now mounted in `apps/web/src/layouts/Base.astro`)
+// runs on every page; this test verifies that with a real session, saving the robot in
+// `/cuenta` and seeing it in `/simuladores/movil`.
 
 const MY_ROBOT = widgets.MyRobotWidget;
 
@@ -19,8 +19,8 @@ function uniqueEmail(prefix: string): string {
   return `${prefix}+${Date.now()}-${test.info().workerIndex}@example.com`;
 }
 
-// Astro quita el atributo `ssr` de una isla cuando React ya la hidrató; escribir antes de eso
-// se pierde (los inputs controlados empiezan vacíos).
+// Astro removes the `ssr` attribute from an island once React has hydrated it; typing before
+// that is lost (controlled inputs start out empty).
 async function openHydrated(page: Page, pathname: string): Promise<void> {
   await page.goto(pathname);
   await page.waitForFunction(() =>
@@ -28,7 +28,7 @@ async function openHydrated(page: Page, pathname: string): Promise<void> {
   );
 }
 
-/** Guarda un radio de rueda distinto del de referencia (0.032 m) desde el formulario de `/cuenta`. */
+/** Saves a wheel radius different from the reference one (0.032 m) from the `/cuenta` form. */
 async function saveCustomWheelRadius(page: Page): Promise<void> {
   await openHydrated(page, '/cuenta');
   const form = page.getByTestId('my-robot-form');
@@ -48,7 +48,7 @@ async function saveCustomWheelRadius(page: Page): Promise<void> {
     .toBeGreaterThan(0);
 }
 
-/** Cierra sesión desde `/cuenta`, donde vive el botón. */
+/** Signs out from `/cuenta`, where the button lives. */
 async function signOut(page: Page): Promise<void> {
   await openHydrated(page, '/cuenta');
   await page.getByRole('button', { name: auth.account.signOut }).click();
@@ -56,12 +56,12 @@ async function signOut(page: Page): Promise<void> {
 }
 
 /**
- * Reproduce a 4× hasta que el reloj simulado pasa de `minSimSeconds`, pausa y devuelve la `x`
- * resultante. `dt_s` por defecto es 1 ms (`DEFAULT_DT_S`, `@trayectoria/sim-core`), así que unos
- * pocos «Paso» no bastan para mover al robot lo suficiente como para que se note en la lectura
- * de 3 decimales; esperar un tramo del reloj simulado (una vuelta del óvalo tarda ≈ 8.6 s) sí
- * lo hace, y un radio de rueda distinto cambia la velocidad lineal (`v = ω·r`), así que la
- * misma ventana de tiempo deja al robot en una `x` distinta.
+ * Plays back at 4x until the simulated clock passes `minSimSeconds`, pauses, and returns the
+ * resulting `x`. `dt_s` defaults to 1 ms (`DEFAULT_DT_S`, `@trayectoria/sim-core`), so a few
+ * "Paso" clicks aren't enough to move the robot far enough to notice at 3 decimal places;
+ * waiting for a stretch of simulated clock (one lap of the oval takes ≈ 8.6 s) does, and a
+ * different wheel radius changes the linear speed (`v = ω·r`), so the same time window leaves
+ * the robot at a different `x`.
  */
 async function playUntilReadX(page: Page, minSimSeconds: number): Promise<string> {
   await page.getByRole('combobox', { name: 'Velocidad de reproducción' }).selectOption('4');
@@ -86,9 +86,9 @@ test('el robot guardado en /cuenta se ve en /simuladores/movil, no solo en /cuen
 
   await saveCustomWheelRadius(page);
 
-  // El selector de robot de `/simuladores/movil` abre en «Mi robot» por defecto
-  // (`useMobileSimState.ts`); ese robot ahora tiene un radio de rueda distinto del de
-  // referencia, así que la pose tras el mismo número de pasos también difiere.
+  // The robot selector in `/simuladores/movil` opens on "Mi robot" by default
+  // (`useMobileSimState.ts`); that robot now has a wheel radius different from the reference
+  // one, so the pose after the same number of steps also differs.
   await openMobileSim(page);
   await expect(page.getByTestId('robot-source-select')).toHaveValue('my-robot');
   const xWithOwnRobot = await playUntilReadX(page, 2);
