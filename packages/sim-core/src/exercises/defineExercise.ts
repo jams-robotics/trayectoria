@@ -25,29 +25,60 @@ export interface Exercise<V> {
   readonly generate: (rng: SeededRng) => GeneratedExercise<V>;
   /** Returns the i18n key of the statement; the UI interpolates the formatted `values`. */
   readonly statement: (values: V) => string;
-  readonly tolerance: Tolerance;
+  /**
+   * One tolerance for every component, or a list with one entry per component of the answer
+   * (e.g. relative for a magnitude and absolute for an angle).
+   */
+  readonly tolerance: Tolerance | readonly Tolerance[];
 }
 
 /**
  * Validates and freezes an exercise definition.
  *
- * `id` must be a non-empty identifier and `tolerance.value` must be strictly positive, so that a
- * misconfigured exercise fails at definition time instead of silently accepting every response.
+ * `id` must be a non-empty identifier and every tolerance value must be strictly positive, so that a
+ * misconfigured exercise fails at definition time instead of silently accepting every response. A
+ * tolerance list must not be empty; its length is checked against the answer by `check`.
  */
 export function defineExercise<V>(definition: Exercise<V>): Exercise<V> {
   if (definition.id.trim() === '') {
     throw new RangeError('defineExercise: id must be a non-empty string');
-  }
-  if (!Number.isFinite(definition.tolerance.value) || definition.tolerance.value <= 0) {
-    throw new RangeError(
-      `defineExercise: tolerance.value must be a finite number > 0, received ${definition.tolerance.value}`,
-    );
   }
 
   return Object.freeze({
     id: definition.id,
     generate: definition.generate,
     statement: definition.statement,
-    tolerance: Object.freeze({ ...definition.tolerance }),
+    tolerance: freezeTolerance(definition.tolerance),
   });
+}
+
+/** Validates a single tolerance or a per-component list and returns a frozen copy. */
+function freezeTolerance(
+  tolerance: Tolerance | readonly Tolerance[],
+): Tolerance | readonly Tolerance[] {
+  if (!isToleranceList(tolerance)) {
+    return validateTolerance(tolerance, 'tolerance');
+  }
+  if (tolerance.length === 0) {
+    throw new RangeError('defineExercise: tolerance list must have one entry per answer component');
+  }
+  return Object.freeze(
+    tolerance.map((entry, index) => validateTolerance(entry, `tolerance[${index}]`)),
+  );
+}
+
+function validateTolerance(tolerance: Tolerance, label: string): Tolerance {
+  if (!Number.isFinite(tolerance.value) || tolerance.value <= 0) {
+    throw new RangeError(
+      `defineExercise: ${label}.value must be a finite number > 0, received ${tolerance.value}`,
+    );
+  }
+  return Object.freeze({ ...tolerance });
+}
+
+/** Narrows a tolerance declaration to its per-component list form. */
+export function isToleranceList(
+  tolerance: Tolerance | readonly Tolerance[],
+): tolerance is readonly Tolerance[] {
+  return Array.isArray(tolerance);
 }
