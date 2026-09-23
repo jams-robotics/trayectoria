@@ -55,13 +55,21 @@ async function signOut(page: Page): Promise<void> {
   await expect(page.getByTestId('auth-gate')).toHaveAttribute('data-auth', 'anonymous');
 }
 
-/** Pulsa «Paso» `steps` veces y devuelve la `x` resultante; el modelo es determinista en pasos. */
-async function stepAndReadX(page: Page, steps: number): Promise<string> {
-  const step = page.getByRole('button', { name: 'Paso' });
-  for (let k = 0; k < steps; k += 1) {
-    await expect(step).toBeEnabled();
-    await step.click();
-  }
+/**
+ * Reproduce a 4× hasta que el reloj simulado pasa de `minSimSeconds`, pausa y devuelve la `x`
+ * resultante. `dt_s` por defecto es 1 ms (`DEFAULT_DT_S`, `@trayectoria/sim-core`), así que unos
+ * pocos «Paso» no bastan para mover al robot lo suficiente como para que se note en la lectura
+ * de 3 decimales; esperar un tramo del reloj simulado (una vuelta del óvalo tarda ≈ 8.6 s) sí
+ * lo hace, y un radio de rueda distinto cambia la velocidad lineal (`v = ω·r`), así que la
+ * misma ventana de tiempo deja al robot en una `x` distinta.
+ */
+async function playUntilReadX(page: Page, minSimSeconds: number): Promise<string> {
+  await page.getByRole('combobox', { name: 'Velocidad de reproducción' }).selectOption('4');
+  await page.getByRole('button', { name: 'Reproducir' }).first().click();
+  await expect
+    .poll(async () => Number.parseFloat((await readout(page)).t), { timeout: 20_000 })
+    .toBeGreaterThanOrEqual(minSimSeconds);
+  await page.getByRole('button', { name: 'Pausa' }).first().click();
   return (await readout(page)).x;
 }
 
@@ -83,13 +91,13 @@ test('el robot guardado en /cuenta se ve en /simuladores/movil, no solo en /cuen
   // referencia, así que la pose tras el mismo número de pasos también difiere.
   await openMobileSim(page);
   await expect(page.getByTestId('robot-source-select')).toHaveValue('my-robot');
-  const xWithOwnRobot = await stepAndReadX(page, 10);
+  const xWithOwnRobot = await playUntilReadX(page, 2);
 
   await signOut(page);
 
   await openMobileSim(page);
   await expect(page.getByTestId('robot-source-select')).toHaveValue('my-robot');
-  const xWithReferenceRobot = await stepAndReadX(page, 10);
+  const xWithReferenceRobot = await playUntilReadX(page, 2);
 
   expect(xWithOwnRobot).not.toEqual(xWithReferenceRobot);
 });
