@@ -18,8 +18,9 @@ import { catalogWidgetComponents } from './catalogWidgets';
  * `Formula` también va aquí, y no se importa desde el MDX: `content/` vive fuera de `apps/web`
  * (ADR-0005) y no resuelve los paquetes del workspace.
  *
- * F6-01 (#243): the topic widgets of the catalog enter under their own names through one generic
- * binding (`catalogWidgets.ts`), and `RobotFormula` renders an «Al robot» calc with «Mi robot».
+ * F6-01 (#243): the topic widgets of the catalog enter under their own names through the one-line
+ * wrappers of `catalog/` over `CatalogWidget` (`catalogWidgets.ts`), and `RobotFormula` renders
+ * an «Al robot» calc with «Mi robot».
  *
  * El mapa se tipa como `unknown`: el servicio de tipos de eslint no resuelve un `.astro`
  * importado desde un `.ts` (sí lo hace `astro check`, que corre en `pnpm typecheck`), y MDX solo
