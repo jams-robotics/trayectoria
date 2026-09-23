@@ -34,7 +34,9 @@ describe('demo calc omega-rueda', () => {
   it('substitutes the reference robot: 628.3 rad/s at the motor, 20.94 rad/s at the wheel', () => {
     const formula = calc?.compute(referenceRobot());
 
-    expect(formula?.latex).toBe(String.raw`\omega_{\text{rueda}} = \dfrac{\omega_{\text{motor}}}{i}`);
+    expect(formula?.latex).toBe(
+      String.raw`\omega_{\text{rueda}} = \dfrac{\omega_{\text{motor}}}{i}`,
+    );
     expect(formula?.substituted).toBe(
       String.raw`\omega_{\text{rueda}} = \dfrac{6000 \cdot 2\pi / 60}{30} = \dfrac{628.3\ \text{rad/s}}{30} = 20.94\ \text{rad/s}`,
     );
