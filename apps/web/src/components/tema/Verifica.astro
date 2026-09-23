@@ -42,7 +42,7 @@ for (const key of ejercicios) {
 
 <Section id="verifica" title={t('topic.sections.verifica')} number={6}>
   <ProgressSession client:load />
-  <ProgressNotice client:load />
+  <ProgressNotice client:only="react" />
   <div class="grid gap-5">
     {ejercicios.map((key, position) => {
       const exercise = findExercise(key)!;
