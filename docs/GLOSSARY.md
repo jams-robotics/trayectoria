@@ -53,7 +53,7 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | Símbolo | Nombre | Unidad | Código |
 |---|---|---|---|
 | d/dt | derivada respecto al tiempo (`v = dx/dt`, `a = dv/dt`) | la de la magnitud derivada entre s | — (solo notación) |
-| c (en derivadas) | coeficiente constante de c·tⁿ | la que da a c·tⁿ la unidad de la magnitud; en x = c·t², m/s² | sufijo según su unidad: `c_mps2` en x = c·t² |
+| c (en derivadas) | coeficiente constante de c·tⁿ | la que da a c·tⁿ la unidad de la magnitud; en x = c·t², m/s² | `coefC_mps2` |
 | n (en derivadas) | exponente de t en c·tⁿ | — | `exponent` |
 | a, b (en polinomios de posición) | coeficientes de x(t) = a·t + b·t² | m/s, m/s² | `coefA_mps`, `coefB_mps2` |
 
