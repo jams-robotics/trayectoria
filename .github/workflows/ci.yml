@@ -77,10 +77,6 @@ jobs:
     name: db
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # Pull the Supabase images from ECR, the CLI's default registry: GHCR rate-limits them
-    # with toomanyrequests even when authenticated (#265, #267).
-    env:
-      SUPABASE_INTERNAL_IMAGE_REGISTRY: public.ecr.aws
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -91,6 +87,13 @@ jobs:
         uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3.0.0
         with:
           version: 2.117.0
+
+      # Pull the Supabase images from ECR, the CLI's default registry: GHCR rate-limits them
+      # with toomanyrequests even when authenticated (#265, #267). setup-cli exports
+      # SUPABASE_INTERNAL_IMAGE_REGISTRY=ghcr.io to GITHUB_ENV, which overrides a job-level env,
+      # so the value is re-exported here for every later supabase command.
+      - name: Use ECR for Supabase images
+        run: echo "SUPABASE_INTERNAL_IMAGE_REGISTRY=public.ecr.aws" >> "$GITHUB_ENV"
 
       - name: Start local stack
         run: supabase start
@@ -109,10 +112,6 @@ jobs:
     name: e2e
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Pull the Supabase images from ECR, the CLI's default registry: GHCR rate-limits them
-    # with toomanyrequests even when authenticated (#265, #267).
-    env:
-      SUPABASE_INTERNAL_IMAGE_REGISTRY: public.ecr.aws
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -123,6 +122,13 @@ jobs:
         uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3.0.0
         with:
           version: 2.117.0
+
+      # Pull the Supabase images from ECR, the CLI's default registry: GHCR rate-limits them
+      # with toomanyrequests even when authenticated (#265, #267). setup-cli exports
+      # SUPABASE_INTERNAL_IMAGE_REGISTRY=ghcr.io to GITHUB_ENV, which overrides a job-level env,
+      # so the value is re-exported here for every later supabase command.
+      - name: Use ECR for Supabase images
+        run: echo "SUPABASE_INTERNAL_IMAGE_REGISTRY=public.ecr.aws" >> "$GITHUB_ENV"
 
       - name: Start local stack
         run: supabase start
