@@ -55,6 +55,24 @@ export function widgetNames(): readonly string[] {
   return Object.keys(LOADERS);
 }
 
+/**
+ * Topic widgets a topic MDX writes by name, with the props of docs/WIDGETS.md (#243, decision 1;
+ * #246). Only the ones whose props are all serializable to an island: `Formula` has its own
+ * block component, `ExerciseWidget` is mounted by `Verifica`, `ParamPanel` and `Plot` are pieces
+ * of other widgets, and the Module 6 widgets come with their own ticket.
+ */
+export const TOPIC_WIDGETS = [
+  'DiffDriveWidget',
+  'EnergyWidget',
+  'FreeBodyWidget',
+  'GearWidget',
+  'KinematicsWidget',
+  'MyRobotWidget',
+  'ProjectileWidget',
+  'RotationWidget',
+  'VectorWidget',
+] as const;
+
 /** El cargador de un widget, o `undefined` si el nombre no está en el registro. */
 export function findWidgetLoader(name: string): WidgetLoader | undefined {
   return LOADERS[name];
