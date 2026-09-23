@@ -188,9 +188,9 @@ function Simulator({
   onEmptyTrack,
   onSaveTrack,
 }: SimulatorProps): JSX.Element {
-  // #249: el widget solo se monta en el navegador. Renderizado en el servidor, React lo emitía
-  // entero en un `<div hidden>` a la espera de revelarlo; la hidratación lo volvía a pintar en el
-  // cliente y durante un instante había dos visores en el DOM, con los mismos `data-testid`.
+  // #249: the widget only mounts in the browser. Server-rendered, React emitted it
+  // in full inside a `<div hidden>` waiting to be revealed; hydration repainted it on the
+  // client and for an instant there were two viewers in the DOM, with the same `data-testid`.
   const mounted = useMounted();
   if (!mounted) return <SimulatorFallback />;
   return (

@@ -206,9 +206,9 @@ test.describe('guardar y compartir la configuración (F4-05)', () => {
   });
 });
 
-// #249: con el simulador renderizado en el servidor, React lo dejaba en un `<div hidden>` hasta
-// revelarlo, la hidratación lo volvía a pintar en el cliente y durante un instante había dos
-// visores con los mismos `data-testid`. Mirar el HTML del servidor lo comprueba sin carreras.
+// #249: with the simulator server-rendered, React left it in a `<div hidden>` until
+// revealing it; hydration repainted it on the client and for an instant there were two
+// viewers with the same `data-testid`. Checking the server HTML verifies this without races.
 test('el servidor no emite una copia oculta del simulador y la página monta uno solo', async ({
   page,
   request,
