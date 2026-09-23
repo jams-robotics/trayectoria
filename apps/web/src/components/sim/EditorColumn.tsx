@@ -53,7 +53,7 @@ export function EditorColumn({
   useEditorAccordion(mobile, openId, setOpenId);
   return (
     <div
-      className="flex min-w-0 flex-col gap-4 lg:w-80 lg:shrink-0"
+      className="flex min-w-0 flex-col gap-4 lg:w-panel lg:shrink-0"
       data-testid="sim-editor-column"
     >
       <Panel

@@ -240,7 +240,7 @@ export function FreeBodyWidget({
         <div className="min-w-0 flex-1">
           <Diagram readout={readout} slope_rad={slope_rad} showResultant={showResultant} t={t} />
         </div>
-        <div className="md:w-72">
+        <div className="md:w-panel">
           <ReadoutPanel
             title={t('widgets.FreeBodyWidget.panel')}
             rows={panelRows(readout, mass_kg, showResultant, t)}

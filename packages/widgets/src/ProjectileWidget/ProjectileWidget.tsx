@@ -93,7 +93,7 @@ function SidePanel({
   const legends = [t('widgets.ProjectileWidget.legendA'), t('widgets.ProjectileWidget.legendB')];
   const primary = launches[0];
   return (
-    <div className="flex flex-col gap-4 lg:w-80">
+    <div className="flex flex-col gap-4 lg:w-panel">
       <ResultsPanel mode={mode} launches={launches} t_s={t_s} t={t} />
       {primary === undefined ? null : <LiveStatus text={statusOf(mode, primary, t_s, t)} />}
       {launches.map((launch, index) => (

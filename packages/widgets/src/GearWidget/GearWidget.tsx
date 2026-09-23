@@ -88,7 +88,7 @@ function Panels({
   t: Translate;
 }): JSX.Element {
   return (
-    <div className="flex flex-col gap-4 lg:w-80">
+    <div className="flex flex-col gap-4 lg:w-panel">
       <ResultsPanel stages={stages} train={train} t={t} />
       <LiveStatus text={statusOf(stages, train, t)} />
       <ParamPanel

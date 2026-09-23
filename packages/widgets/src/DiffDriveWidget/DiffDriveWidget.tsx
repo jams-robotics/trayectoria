@@ -176,7 +176,7 @@ function Panels({
   t: Translate;
 }): JSX.Element {
   return (
-    <div className="flex flex-col gap-4 lg:w-80">
+    <div className="flex flex-col gap-4 lg:w-panel">
       <PosePanel
         mode={mode}
         readout={readout}

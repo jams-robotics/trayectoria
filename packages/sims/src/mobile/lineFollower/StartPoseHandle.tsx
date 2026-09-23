@@ -222,7 +222,7 @@ function SField({
       <input
         type="number"
         data-testid="start-pose-s"
-        className="border-border bg-bg text-fg h-9 w-24 rounded-sm border px-2 font-mono text-sm tabular-nums"
+        className="border-border bg-bg text-fg h-9 w-12 rounded-sm border px-2 font-mono text-sm tabular-nums"
         step={S_STEP_M}
         value={pose.s_m.toFixed(2)}
         onChange={(event) => {

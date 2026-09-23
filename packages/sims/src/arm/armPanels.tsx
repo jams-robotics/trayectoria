@@ -54,11 +54,14 @@ function matricesPanel(sim: ArmSim, t: Translate, matrices: MatricesPanelState):
     id: 'matrices',
     title: t('sims.matrices.title'),
     summary: matricesSummary(matrices.highlighted, t),
+    // `overflow-hidden` completes the `w-0 min-w-full` of MatrixPanel (docs/DESIGN.md §9.8, #223).
     content: (
-      <MatrixPanel
-        rows={linkTransforms(sim.arm, sim.q_rad)}
-        onHighlightLink={matrices.onHighlight}
-      />
+      <div className="overflow-hidden">
+        <MatrixPanel
+          rows={linkTransforms(sim.arm, sim.q_rad)}
+          onHighlightLink={matrices.onHighlight}
+        />
+      </div>
     ),
   };
 }
@@ -103,7 +106,7 @@ export function PanelColumn({
   renderPanel: ((panel: ArmViewerPanel) => ReactNode) | undefined;
 }): JSX.Element {
   return (
-    <div className="flex min-w-0 flex-col gap-5 md:w-72">
+    <div className="flex min-w-0 flex-col gap-5 md:w-panel">
       {panels.map((panel) => (
         <Fragment key={panel.id}>
           {renderPanel === undefined ? panel.content : renderPanel(panel)}

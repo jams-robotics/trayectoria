@@ -43,7 +43,7 @@ export function format(value: number): string {
 
 const TRACK = 'trayectoria-slider h-6 w-full min-w-0 cursor-pointer appearance-none bg-transparent';
 const FIELD =
-  'border-border bg-bg text-fg rounded-sm h-8 w-20 border px-2 text-right font-mono text-sm tabular-nums';
+  'border-border bg-bg text-fg rounded-sm h-8 w-11 border px-2 text-right font-mono text-sm tabular-nums';
 
 // Slider of docs/DESIGN.md §5: 4 px track in `border`, active segment in `primary`, 20 px thumb
 // filled `bg-raised` with a 2 px `primary` ring and `shadow-sm`. The pseudo-elements of

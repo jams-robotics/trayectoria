@@ -209,7 +209,7 @@ export function VectorWidget({
           <Handles a={a} b={b} setA={setA} setB={setB} t={t} />
         </Scene2D>
       </div>
-      <div className="md:w-72">
+      <div className="md:w-panel">
         <ReadoutPanel
           title={t('widgets.VectorWidget.panel')}
           rows={panelRows(readout, a, b, context)}
