@@ -196,3 +196,43 @@ describe('«Mi robot» when the session ends or changes hands (#238)', () => {
     expect(storedRobot()).toBeNull();
   });
 });
+
+// Regression the security review of PR #250 caught in its second round, outside `/cuenta`:
+// `hydrateMyRobot()` (`useMyRobot`'s effect) can run before the session settles, while
+// `currentOwnerId` is still `null`, and cache the reference robot for the life of the page —
+// its own guard then blocks a second read. `configureMyRobotPersistence` must override that
+// stale value itself, as soon as it learns the local copy belongs to the incoming learner,
+// instead of waiting for the remote load.
+describe('adopting the local copy right away when it matches the incoming session (#238, PR #250 second round)', () => {
+  test('the local copy is applied before the remote load resolves, not after', async () => {
+    localStorage.setItem(MY_ROBOT_STORAGE_KEY, JSON.stringify({ owner: 'owner-a', spec: ROBOT_A }));
+    vi.resetModules();
+    const fresh = await import('./myRobot');
+    // Reproduces `hydrateMyRobot` running first, with the session not settled yet: it reads
+    // `currentOwnerId === null`, so the copy (owned by A) does not match and it falls back.
+    fresh.hydrateMyRobot();
+    expect(fresh.$myRobot.get()).toEqual(fresh.referenceRobot());
+
+    const a = controlledAdapter('owner-a');
+    void fresh.configureMyRobotPersistence(a.adapter);
+
+    // Applied synchronously: it does not wait for `a.adapter.load()` to resolve.
+    expect(fresh.$myRobot.get()).toEqual(ROBOT_A);
+  });
+
+  test('a failed remote load leaves the learner with the robot adopted from the local copy', async () => {
+    localStorage.setItem(MY_ROBOT_STORAGE_KEY, JSON.stringify({ owner: 'owner-a', spec: ROBOT_A }));
+    vi.resetModules();
+    const fresh = await import('./myRobot');
+    const adapter: RobotPersistence = {
+      ownerId: 'owner-a',
+      load: vi.fn().mockRejectedValue(new Error('sin red')),
+      save: vi.fn().mockResolvedValue(undefined),
+    };
+
+    await fresh.configureMyRobotPersistence(adapter);
+
+    expect(fresh.$myRobot.get()).toEqual(ROBOT_A);
+    expect(storedRobot()).toEqual({ owner: 'owner-a', spec: ROBOT_A });
+  });
+});

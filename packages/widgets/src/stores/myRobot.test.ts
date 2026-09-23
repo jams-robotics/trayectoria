@@ -117,6 +117,28 @@ describe('$myRobot (F2-11)', () => {
     expect(JSON.parse(localStorage.getItem(MY_ROBOT_STORAGE_KEY) ?? 'null')).toEqual({ owner: null, spec });
   });
 
+  // Security finding baja-1 of the second review round of PR #250 (#238): a page with a
+  // session but no persistence configured used to write an edit as anonymous (`owner: null`),
+  // which the next learner on this browser could then adopt. `RobotSession` now attaches the
+  // adapter on every page, so `setMyRobot` always runs with the right `currentOwnerId`.
+  test('setMyRobot with a session configured stores the envelope under that owner, not anonymous', async () => {
+    const adapter: RobotPersistence = {
+      ownerId: 'user-1',
+      load: vi.fn().mockResolvedValue(null),
+      save: vi.fn().mockResolvedValue(undefined),
+    };
+    await configureMyRobotPersistence(adapter);
+
+    const spec = withWheelRadius(0.05);
+    const result = setMyRobot(spec);
+
+    expect(result.ok).toBe(true);
+    expect(JSON.parse(localStorage.getItem(MY_ROBOT_STORAGE_KEY) ?? 'null')).toEqual({
+      owner: 'user-1',
+      spec,
+    });
+  });
+
   test('resetMyRobot returns to the reference robot and clears the stored one', () => {
     setMyRobot(withWheelRadius(0.05));
     resetMyRobot();

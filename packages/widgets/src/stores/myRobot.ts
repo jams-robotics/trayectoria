@@ -206,6 +206,15 @@ export async function configureMyRobotPersistence(adapter: RobotPersistence | nu
   if (storedOwner !== null && storedOwner !== nextOwnerId) {
     $myRobot.set(referenceRobot());
     writeStoredRobot(null);
+  } else if (nextOwnerId !== null && storedOwner === nextOwnerId) {
+    // Adopt the local copy right away, without waiting for `adapter.load()`: on a page outside
+    // `/cuenta`, `hydrateMyRobot()` (`useMyRobot`'s effect) may already have run while
+    // `currentOwnerId` was still `null` from the previous, unsettled session and cached the
+    // reference robot — its own guard then blocks a second read for the life of the page.
+    // Setting `$myRobot` here overrides that stale value directly, and if the remote load below
+    // fails or is slow, the learner still sees and keeps their own robot instead of the
+    // reference one (decision of the orchestrator, PR #250, second round).
+    $myRobot.set(readStoredRobot());
   }
   if (adapter === null) return;
   const remote = await adapter.load().catch(() => null);
