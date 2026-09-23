@@ -3,13 +3,13 @@ import { useSession } from '@trayectoria/auth';
 import { useT } from '@trayectoria/i18n';
 
 /**
- * Aviso sobre la sección Verifica (#120, decisión 5): solo visible cuando la sesión ya se leyó
- * y no hay ninguna, para que el progreso que se guarda en este navegador no se pierda sin avisar.
+ * Notice about the Verifica section (#120, decision 5): only visible once the session has been
+ * read and there is none, so progress saved in this browser is not lost without a warning.
  *
- * No renderiza nada hasta que `$sessionReady` es cierto, para que el aviso no parpadee. Se monta
- * con `client:only` (#231): el servidor no conoce la sesión, y si esta se leía antes de hidratar
- * la isla, el primer render del cliente no coincidía con el marcado vacío del servidor y React
- * lanzaba el error de hidratación #418.
+ * Renders nothing until `$sessionReady` is true, same as `AuthGate`, so the server markup and
+ * the client's first render match and the notice does not flash. `useSession` (`packages/auth`)
+ * reads both stores with `ssr: 'initial'` so this holds regardless of hydration order between
+ * islands (#231, #236).
  */
 export function ProgressNotice(): JSX.Element {
   const { session, ready } = useSession();
