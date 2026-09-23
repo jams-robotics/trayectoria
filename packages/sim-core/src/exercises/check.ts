@@ -73,6 +73,20 @@ export function check<V>(
   return { ...base, correct, relError: worstRelError };
 }
 
+/** A per-component list (tolerances, units, ...) must have one entry per answer component. */
+function assertComponentCount(
+  exerciseId: string,
+  actualLength: number,
+  componentCount: number,
+  label: string,
+): void {
+  if (actualLength !== componentCount) {
+    throw new RangeError(
+      `check: exercise "${exerciseId}" declares ${actualLength} ${label} but its answer has ${componentCount} components`,
+    );
+  }
+}
+
 /** Expands the exercise tolerance into one entry per answer component. */
 function tolerancePerComponent<V>(
   exercise: Exercise<V>,
@@ -82,11 +96,7 @@ function tolerancePerComponent<V>(
   if (!isToleranceList(tolerance)) {
     return Array.from({ length: componentCount }, () => tolerance);
   }
-  if (tolerance.length !== componentCount) {
-    throw new RangeError(
-      `check: exercise "${exercise.id}" declares ${tolerance.length} tolerances but its answer has ${componentCount} components`,
-    );
-  }
+  assertComponentCount(exercise.id, tolerance.length, componentCount, 'tolerances');
   return tolerance;
 }
 
@@ -96,10 +106,8 @@ function assertUnitPerComponent(
   unit: string | readonly string[],
   componentCount: number,
 ): void {
-  if (typeof unit !== 'string' && unit.length !== componentCount) {
-    throw new RangeError(
-      `check: exercise "${exerciseId}" declares ${unit.length} units but its answer has ${componentCount} components`,
-    );
+  if (typeof unit !== 'string') {
+    assertComponentCount(exerciseId, unit.length, componentCount, 'units');
   }
 }
 
