@@ -1,6 +1,8 @@
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import type { Exercise } from '@trayectoria/sim-core';
 
+import { exercises as m00t03Exercises } from './es/ruta-1/m00-t03/ejercicios';
+
 /**
  * A topic exercise with its value type erased, so exercises of different topics share one map.
  *
@@ -79,7 +81,9 @@ function registerById<T extends { readonly id: string }>(
  * Every topic exercise, keyed `<topicId>/<exerciseId>`. Each topic adds one entry here with the
  * exercises of its `content/es/<ruta>/<mNN-tNN>/ejercicios.ts`; empty until T-0.1.
  */
-export const EXERCISES: ReadonlyMap<string, TopicExercise> = registerTopics({});
+export const EXERCISES: ReadonlyMap<string, TopicExercise> = registerTopics({
+  'ruta-1/m00-t03': m00t03Exercises,
+});
 
 /**
  * Every «Al robot» calc, keyed `<topicId>/<calcId>`. Each topic adds one entry here with the
