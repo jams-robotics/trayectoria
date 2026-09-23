@@ -201,7 +201,7 @@ describe('forwardKinematics, joint types and ordering', () => {
 describe('forwardKinematics, rejected configurations', () => {
   it('rejects a q of the wrong length', () => {
     expect(() => forwardKinematics(planar, [0])).toThrow(RangeError);
-    expect(() => forwardKinematics(planar, [0, 0, 0])).toThrow(/2 articulaciones/);
+    expect(() => forwardKinematics(planar, [0, 0, 0])).toThrow(/2 non-fixed joints/);
   });
 
   it('rejects a value above the upper limit, naming the joint', () => {

@@ -6,6 +6,9 @@ import { expect } from '@playwright/test';
 // #158, #189) y `sim-movil-nueva.spec.ts` (#190), que las separa para que ningún archivo pase de
 // las 300 líneas de docs/STANDARDS.md §4.
 
+/** Mobile viewport of the mockups (docs/DESIGN.md §9). */
+export const MOBILE_VIEWPORT = { width: 390, height: 844 };
+
 /**
  * Abre la página y espera a que la isla esté asentada: el asa de la pose inicial solo aparece
  * cuando el módulo del simulador ya resolvió la pose de apertura, y aplicarla reconstruye la
