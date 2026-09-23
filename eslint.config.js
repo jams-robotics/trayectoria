@@ -6,11 +6,24 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 const SCOPE = '@trayectoria';
-const PACKAGES = ['sim-core', 'robot-spec', 'widgets', 'sims', 'progress', 'auth', 'db', 'i18n'];
+// Workspace directory of each internal package: `content` lives at the root (F6-00).
+const PACKAGE_DIRS = {
+  'sim-core': 'packages/sim-core',
+  'robot-spec': 'packages/robot-spec',
+  widgets: 'packages/widgets',
+  sims: 'packages/sims',
+  progress: 'packages/progress',
+  auth: 'packages/auth',
+  db: 'packages/db',
+  i18n: 'packages/i18n',
+  content: 'content',
+};
+const PACKAGES = Object.keys(PACKAGE_DIRS);
 
 // Allowed internal imports per docs/ARCHITECTURE.md §2. Anything else is an architecture error.
 const ALLOWED_IMPORTS = {
-  'apps/web': ['sims', 'widgets', 'progress', 'auth', 'db', 'i18n', 'robot-spec'],
+  'apps/web': ['sims', 'widgets', 'progress', 'auth', 'db', 'i18n', 'robot-spec', 'content'],
+  content: ['sim-core', 'robot-spec'],
   'packages/sims': ['sim-core', 'widgets', 'robot-spec', 'i18n', 'progress'],
   'packages/widgets': ['sim-core', 'robot-spec', 'i18n'],
   'packages/progress': ['db', 'auth'],
@@ -21,9 +34,24 @@ const ALLOWED_IMPORTS = {
   'packages/i18n': [],
 };
 
+// `content` is topic data on top of sim-core: no other bare import, internal or external
+// (vitest only for its tests). Relative imports stay open; the path zones guard them.
+// `robot-spec` enters for its types only (#246): the `RobotSpec` of the `alrobot.ts` calcs.
+const CONTENT_BARE_IMPORTS = '^(?!(?:@trayectoria/sim-core|@trayectoria/robot-spec|vitest)$)[^.]';
+const CONTENT_TYPE_ONLY = {
+  group: [`${SCOPE}/robot-spec`],
+  allowTypeImports: true,
+  message: 'content imports robot-spec for its types only (#246).',
+};
+
+/** @param {string} message */
+function contentPatterns(message) {
+  return [{ regex: CONTENT_BARE_IMPORTS, message }, CONTENT_TYPE_ONLY];
+}
+
 const architectureBoundaries = Object.entries(ALLOWED_IMPORTS).map(([dir, allowed]) => {
   const forbidden = PACKAGES.filter(
-    (name) => !allowed.includes(name) && dir !== `packages/${name}`,
+    (name) => !allowed.includes(name) && dir !== PACKAGE_DIRS[name],
   );
   const message = `${dir} may only import ${allowed.length ? allowed.join(', ') : 'nothing internal'} (docs/ARCHITECTURE.md §2).`;
   return {
@@ -38,6 +66,7 @@ const architectureBoundaries = Object.entries(ALLOWED_IMPORTS).map(([dir, allowe
               message,
             },
             { group: ['**/apps/*', '**/apps/*/**'], message: 'Packages never import from apps/.' },
+            ...(dir === 'content' ? contentPatterns(message) : []),
           ],
         },
       ],
@@ -49,7 +78,7 @@ const architectureBoundaries = Object.entries(ALLOWED_IMPORTS).map(([dir, allowe
             {
               target: `./${dir}`,
               from: [
-                ...forbidden.map((name) => `./packages/${name}`),
+                ...forbidden.map((name) => `./${PACKAGE_DIRS[name]}`),
                 ...(dir.startsWith('apps/') ? [] : ['./apps']),
               ],
               message,

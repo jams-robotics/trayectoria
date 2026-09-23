@@ -1,0 +1,17 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import { temaComponents } from '../../components/tema';
+import TemaFixture from '../../components/dev/TemaFixture.mdx';
+import Base from '../../layouts/Base.astro';
+
+// F6-01 test page: an MDX outside content/es/ rendered with the topic MDX map, so e2e can check
+// that a catalog widget and a `RobotFormula` mount from MDX, and that the calc follows
+// «Mi robot». Not linked from Nav.astro, like /dev/widgets.
+---
+
+<Base title={t('widgets.playground.topicFixtureTitle')}>
+  <section class="mx-auto grid max-w-[1120px] gap-6 px-5 pt-11 pb-9 md:px-8">
+    <TemaFixture components={temaComponents} />
+  </section>
+</Base>
