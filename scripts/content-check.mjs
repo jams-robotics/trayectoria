@@ -3,13 +3,14 @@
  *
  * Recorre `content/es/<ruta>/<mNN-tNN>/index.mdx` y exige las 7 secciones como etiquetas JSX de nivel
  * superior, en el orden del estándar. Con `status` distinto de `draft` exige además de 2 a 4
- * `Experimento` dentro de `Explora` y de 3 a 5 ejercicios en `Verifica` (#97, decisión 3).
+ * `Experimento` dentro de `Explora` y de 3 a 5 ejercicios en `Verifica` (#97, decisión 3). En
+ * cualquier estado, cada clave de `Verifica` debe existir en el `ejercicios.ts` del tema (F6-00).
  *
  * Salida: una línea por incumplimiento `content/es/<id>/index.mdx: <motivo>`.
  * Código de salida 1 si algún tema incumple, 0 si todos pasan.
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, relative, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 
 /** @typedef {{ file: string; reason: string }} Finding */
 
@@ -18,6 +19,9 @@ const contentDir = join(repoRoot, 'content/es');
 
 /** Secciones obligatorias, en el orden de docs/CONTENT-STANDARDS.md §2. */
 const SECTIONS = ['Gancho', 'Concepto', 'Formulas', 'Explora', 'AlRobot', 'Verifica', 'Profundiza'];
+
+/** Prefijo de las claves de demostración del registro de ejercicios (`demo/track-time`). */
+const DEMO_KEY_PREFIX = 'demo/';
 
 /** Límites que el estándar fija para un tema ya escrito (§2, puntos 4 y 6). */
 const LIMITS = { experiments: { min: 2, max: 4 }, exercises: { min: 3, max: 5 } };
@@ -89,15 +93,54 @@ function countTag(body, tag) {
 }
 
 /**
- * Número de ejercicios que `Verifica` recibe en su prop `ejercicios={[…]}`.
+ * Claves que `Verifica` recibe en su prop `ejercicios={[…]}`, sin comillas.
  * @param {string} body
- * @returns {number}
+ * @returns {string[]}
  */
-function exerciseCount(body) {
+function exerciseKeys(body) {
   const match = /ejercicios=\{\[([^\]]*)\]\}/.exec(body);
-  if (match === null) return 0;
-  const inner = match[1].trim();
-  return inner === '' ? 0 : inner.split(',').filter((item) => item.trim() !== '').length;
+  if (match === null) return [];
+  return match[1]
+    .split(',')
+    .map((item) => item.trim().replace(/^['"`]|['"`]$/g, ''))
+    .filter((key) => key !== '');
+}
+
+/**
+ * Ids que declara el `ejercicios.ts` del tema (`id: '…'` de cada `defineExercise`); vacío si el
+ * tema no tiene `ejercicios.ts`.
+ * @param {string} topicDir
+ * @returns {Set<string>}
+ */
+function definedExerciseIds(topicDir) {
+  let source;
+  try {
+    source = readFileSync(join(topicDir, 'ejercicios.ts'), 'utf8');
+  } catch {
+    return new Set();
+  }
+  return new Set([...source.matchAll(/\bid:\s*['"`]([^'"`]+)['"`]/g)].map((match) => match[1]));
+}
+
+/**
+ * Cada clave de `Verifica` debe ser `<topicId>/<exerciseId>` con un ejercicio del `ejercicios.ts`
+ * del propio tema (F6-00). Las claves `demo/…` son la demostración del registro de `apps/web`, que
+ * `Verifica.astro` valida en el build.
+ * @param {string} file
+ * @param {string[]} keys
+ * @param {(reason: string) => void} report
+ */
+function checkExerciseKeys(file, keys, report) {
+  const topicDir = dirname(file);
+  const topicId = toPosix(relative(contentDir, topicDir));
+  const ids = definedExerciseIds(topicDir);
+  for (const key of keys) {
+    if (key.startsWith(DEMO_KEY_PREFIX)) continue;
+    const prefix = `${topicId}/`;
+    if (!key.startsWith(prefix) || !ids.has(key.slice(prefix.length))) {
+      report(`<Verifica> declara el ejercicio "${key}", que no existe en ${topicId}/ejercicios.ts`);
+    }
+  }
 }
 
 /**
@@ -121,6 +164,9 @@ function checkTopic(file, findings) {
     }
   }
 
+  const keys = exerciseKeys(body);
+  checkExerciseKeys(file, keys, report);
+
   if (status === 'draft') return;
 
   const experiments = countTag(body, 'Experimento');
@@ -130,7 +176,7 @@ function checkTopic(file, findings) {
       `<Explora> tiene ${experiments} <Experimento>; el estándar pide de ${exp.min} a ${exp.max}`,
     );
   }
-  const exercises = exerciseCount(body);
+  const exercises = keys.length;
   if (exercises < ex.min || exercises > ex.max) {
     report(`<Verifica> tiene ${exercises} ejercicios; el estándar pide de ${ex.min} a ${ex.max}`);
   }
