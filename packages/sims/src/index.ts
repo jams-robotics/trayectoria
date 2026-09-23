@@ -63,6 +63,9 @@ export {
 export { serializeTrack } from '@trayectoria/sim-core';
 export type { SavedTrack } from './mobile/trackEditor';
 
+// #210: the 64 KiB bound of the `jsonb` columns the client writes (docs/ARCHITECTURE.md §5.1).
+export { MAX_STORED_JSON_BYTES, fitsStoredJson } from './storedJson';
+
 export {
   CATALOG_MOBILE_IDS,
   catalogMobileUrl,
