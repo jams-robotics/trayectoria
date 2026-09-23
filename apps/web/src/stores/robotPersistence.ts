@@ -7,7 +7,7 @@
  * the existing policies of `supabase/migrations/0002_rls.sql` scope it to `owner_id = auth.uid()`.
  * No migration and no policy change.
  */
-import { $session, $sessionReady } from '@trayectoria/auth';
+import { subscribeSettledSession } from '@trayectoria/auth';
 import type { Session } from '@trayectoria/auth';
 import { getDbClient } from '@trayectoria/db';
 import type { DbClient, Json } from '@trayectoria/db';
@@ -66,27 +66,11 @@ export function robotPersistenceFor(session: Session): RobotPersistence {
 /**
  * Keeps the store's adapter in step with the session: the learner's own adapter while signed
  * in, and none at all otherwise, so a signed-out browser keeps «Mi robot» only in
- * `localStorage`. Returns the unsubscribe function of the listener.
+ * `localStorage`. Until the session is read the store keeps the local robot. Returns the
+ * unsubscribe function of the listener.
  */
 export function startRobotPersistence(): () => void {
-  let ownerId: string | null = null;
-  const apply = (session: Session | null): void => {
-    const next = session?.user.id ?? null;
-    if (next === ownerId) return;
-    ownerId = next;
+  return subscribeSettledSession((session) => {
     void configureMyRobotPersistence(session === null ? null : robotPersistenceFor(session));
-  };
-  // The session is read asynchronously on mount ($sessionReady of packages/auth); until then
-  // the store keeps the local robot.
-  const unsubscribe = $session.subscribe((session) => {
-    if (!$sessionReady.get()) return;
-    apply(session);
   });
-  const unsubscribeReady = $sessionReady.subscribe((ready) => {
-    if (ready) apply($session.get());
-  });
-  return () => {
-    unsubscribe();
-    unsubscribeReady();
-  };
 }

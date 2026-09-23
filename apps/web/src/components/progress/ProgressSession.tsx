@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import type { JSX } from 'react';
-import { $session, $sessionReady } from '@trayectoria/auth';
-import type { Session } from '@trayectoria/auth';
+import { subscribeSettledSession } from '@trayectoria/auth';
 import { configureProgressSession } from '@trayectoria/progress';
 
 /**
@@ -13,26 +12,15 @@ import { configureProgressSession } from '@trayectoria/progress';
  * No renderiza nada: las islas que muestran progreso leen `$progress`, no props.
  */
 export function startProgressSession(): () => void {
-  let userId: string | null = null;
-  const apply = (session: Session | null): void => {
-    const next = session?.user.id ?? null;
-    if (next === userId) return;
-    userId = next;
-    void configureProgressSession(next);
-  };
-  // La sesión se lee de forma asíncrona al montar ($sessionReady de packages/auth); hasta
-  // entonces el store conserva el progreso local de este navegador.
-  const unsubscribe = $session.subscribe((session) => {
-    if (!$sessionReady.get()) return;
-    apply(session);
+  // The store starts out anonymous, with the local progress of this browser: a visit that
+  // settles without a session leaves it untouched, since `configureProgressSession(null)` would
+  // hydrate `$progress` ahead of the islands that read it (`useProgress`).
+  let anonymous = true;
+  return subscribeSettledSession((session) => {
+    if (session === null && anonymous) return;
+    anonymous = session === null;
+    void configureProgressSession(session?.user.id ?? null);
   });
-  const unsubscribeReady = $sessionReady.subscribe((ready) => {
-    if (ready) apply($session.get());
-  });
-  return () => {
-    unsubscribe();
-    unsubscribeReady();
-  };
 }
 
 export function ProgressSession(): JSX.Element {
