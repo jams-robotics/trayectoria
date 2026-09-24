@@ -9,6 +9,7 @@ import { Vector } from '../Scene2D/primitives/Vector';
 import {
   PATH_PERIOD_S,
   flightTime,
+  launchTimeAt,
   maxHeight,
   positionAt,
   robotPositionAt,
@@ -117,17 +118,18 @@ function LaunchMarks({
   t: Translate;
 }): JSX.Element {
   const { launch, color } = drawn;
-  const at_m = positionAt(mode, launch, t_s);
+  const own_t_s = launchTimeAt(mode, launch, t_s);
+  const at_m = positionAt(mode, launch, own_t_s);
   return (
     <>
       <Trace points_m={samplePath(mode, launch, flightTime(mode, launch), PATH_PERIOD_S)} color={color} />
-      {traceDots(mode, launch, t_s).map(([x_m, y_m], index) => (
+      {traceDots(mode, launch, own_t_s).map(([x_m, y_m], index) => (
         <Circle key={index} center_m={[x_m, y_m]} radius_m={DOT_RADIUS_M} color={color} filled />
       ))}
       <Circle center_m={at_m} radius_m={PROJECTILE_RADIUS_M} color={color} filled />
       <VelocityArrows
         at_m={at_m}
-        v_mps={velocityAt(mode, launch, t_s)}
+        v_mps={velocityAt(mode, launch, own_t_s)}
         showVectors={showVectors}
         t={t}
       />
