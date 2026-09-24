@@ -22,5 +22,11 @@
     "e2": "Tu robot va a v₀ = {{v0_mps}} m/s y frena con a = {{a_mps2}} m/s² hasta detenerse. ¿Qué distancia recorre mientras frena, en m?",
     "e3": "Tu robot arranca desde el reposo con a = {{a_mps2}} m/s². ¿Cuánto tarda en recorrer Δx = {{dx_m}} m, en s?",
     "e4": "Tu robot recorre una pista recta de 4 m: arranca desde el reposo, acelera con a = 0.4 m/s² hasta v = 0.6 m/s y sigue a velocidad constante. ¿Cuánto tarda en total, en s?"
+  },
+  "ruta-1/m03-t01": {
+    "e1": "Tu robot de m = {{mass_kg}} kg avanza a v = {{v_mps}} m/s. ¿Cuál es su energía cinética, en J?",
+    "e2": "Tu robot llega a v = {{v_mps}} m/s al pie de una rampa y se le corta el motor. Sin fricción, ¿hasta qué altura sube por inercia, en m?",
+    "e3": "Tu robot de m = {{mass_kg}} kg arranca desde el reposo y llega a v = {{v_mps}} m/s. ¿Qué trabajo neto hacen sobre él todas las fuerzas, en J?",
+    "e4": "Una fricción de rodadura f = {{friction_N}} N actúa sobre tu robot a lo largo de D = {{distance_m}} m. ¿Cuánta energía disipa, en J?"
   }
 }
