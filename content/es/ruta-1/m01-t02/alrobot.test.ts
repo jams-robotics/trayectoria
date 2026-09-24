@@ -1,7 +1,7 @@
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import { describe, expect, it } from 'vitest';
 
-import { aceleracion, distanciaRampa, robotCalcs, tiempoRampa } from './alrobot';
+import { acceleration, rampDistance, rampTime, robotCalcs } from './alrobot';
 
 // Golden values of docs/CURRICULUM.md § T-1.2 (Al robot), with the reference robot:
 // a = 40·0.032 = 1.28 m/s², t = 0.670/1.28 = 0.524 s, x = 0.670²/(2·1.28) = 0.175 m.
@@ -55,32 +55,32 @@ function withoutWheels(): RobotSpec {
 }
 
 describe('T-1.2 «Al robot» calcs', () => {
-  it('are aceleracion, tiempo-rampa and distancia-rampa', () => {
+  it('are acceleration, ramp-time and ramp-distance', () => {
     expect(robotCalcs.map((calc) => calc.id)).toEqual([
-      'aceleracion',
-      'tiempo-rampa',
-      'distancia-rampa',
+      'acceleration',
+      'ramp-time',
+      'ramp-distance',
     ]);
   });
 
-  it('aceleracion: 40·0.032 → 1.28 m/s² with the reference robot', () => {
-    const { latex, substituted } = aceleracion.compute(REFERENCE);
+  it('acceleration: 40·0.032 → 1.28 m/s² with the reference robot', () => {
+    const { latex, substituted } = acceleration.compute(REFERENCE);
     expect(latex).toBe(String.raw`a = \alpha \cdot r`);
     expect(substituted).toBe(
       String.raw`a = 40\ \text{rad/s}^2 \cdot 0.032\ \text{m} = 1.28\ \text{m/s}^2`,
     );
   });
 
-  it('tiempo-rampa: 0.670/1.28 → 0.524 s with the reference robot', () => {
-    const { latex, substituted } = tiempoRampa.compute(REFERENCE);
+  it('ramp-time: 0.670/1.28 → 0.524 s with the reference robot', () => {
+    const { latex, substituted } = rampTime.compute(REFERENCE);
     expect(latex).toBe(String.raw`t = \dfrac{v_{\max}}{a}`);
     expect(substituted).toBe(
       String.raw`t = \dfrac{0.670\ \text{m/s}}{1.28\ \text{m/s}^2} = 0.524\ \text{s}`,
     );
   });
 
-  it('distancia-rampa: 0.670²/(2·1.28) → 0.175 m with the reference robot', () => {
-    const { latex, substituted } = distanciaRampa.compute(REFERENCE);
+  it('ramp-distance: 0.670²/(2·1.28) → 0.175 m with the reference robot', () => {
+    const { latex, substituted } = rampDistance.compute(REFERENCE);
     expect(latex).toBe(String.raw`x = \dfrac{v_{\max}^2}{2a}`);
     expect(substituted).toBe(
       String.raw`x = \dfrac{(0.670\ \text{m/s})^2}{2 \cdot 1.28\ \text{m/s}^2} = 0.175\ \text{m}`,
@@ -91,9 +91,9 @@ describe('T-1.2 «Al robot» calcs', () => {
     // α = 20 rad/s², r = 0.05 m: a = 1 m/s²; v_max = 20.94·0.05 = 1.05 m/s; t = 1.05 s;
     // x = 1.047²/2 = 0.548 m.
     const robot = withWheel(0.05, 20);
-    expect(aceleracion.compute(robot).substituted).toContain('= 1.00\\ \\text{m/s}^2');
-    expect(tiempoRampa.compute(robot).substituted).toContain('= 1.05\\ \\text{s}');
-    expect(distanciaRampa.compute(robot).substituted).toContain('= 0.548\\ \\text{m}');
+    expect(acceleration.compute(robot).substituted).toContain('= 1.00\\ \\text{m/s}^2');
+    expect(rampTime.compute(robot).substituted).toContain('= 1.05\\ \\text{s}');
+    expect(rampDistance.compute(robot).substituted).toContain('= 0.548\\ \\text{m}');
   });
 
   it('use the reference α = 40 rad/s² for a profile without maxAccel_radps2', () => {
@@ -107,7 +107,7 @@ describe('T-1.2 «Al robot» calcs', () => {
     const { maxAccel_radps2, ...mobile } = mobileOf(withWheel(0.05, 40));
     expect(maxAccel_radps2).toBe(40);
     const robot: RobotSpec = { ...REFERENCE, mobile };
-    expect(aceleracion.compute(robot).substituted).toBe(
+    expect(acceleration.compute(robot).substituted).toBe(
       String.raw`a = 40\ \text{rad/s}^2 \cdot 0.05\ \text{m} = 2.00\ \text{m/s}^2`,
     );
   });

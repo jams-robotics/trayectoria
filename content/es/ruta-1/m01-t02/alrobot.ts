@@ -5,7 +5,7 @@ import type { RobotCalc } from '../../../index';
 /**
  * «Al robot» calcs of T-1.2 (docs/CURRICULUM.md § T-1.2): the ramp of «Mi robot» from rest to
  * `v_max`, with `a = α · r`, `t = v_max / a` and `x = v_max² / (2a)`. The MDX renders them with
- * `<RobotFormula calc="ruta-1/m01-t02/aceleracion" />`, `…/tiempo-rampa` and `…/distancia-rampa`.
+ * `<RobotFormula calc="ruta-1/m01-t02/acceleration" />`, `…/ramp-time` and `…/ramp-distance`.
  */
 
 /** Three significant figures, keeping trailing zeros: 1.28 m/s², 0.670 m/s, 0.524 s, 0.175 m. */
@@ -75,8 +75,8 @@ function formatAlpha(alpha_radps2: number): string {
 }
 
 /** `a = α · r`. */
-export const aceleracion: RobotCalc = {
-  id: 'aceleracion',
+export const acceleration: RobotCalc = {
+  id: 'acceleration',
   compute(robot) {
     const { alpha_radps2, wheelRadius_m, a_mps2 } = ramp(robot);
     return {
@@ -89,8 +89,8 @@ export const aceleracion: RobotCalc = {
 };
 
 /** `t = v_max / a`: time of the ramp from rest to `v_max`. */
-export const tiempoRampa: RobotCalc = {
-  id: 'tiempo-rampa',
+export const rampTime: RobotCalc = {
+  id: 'ramp-time',
   compute(robot) {
     const { a_mps2, vMax_mps } = ramp(robot);
     return {
@@ -103,8 +103,8 @@ export const tiempoRampa: RobotCalc = {
 };
 
 /** `x = v_max² / (2a)`: distance of the ramp from rest to `v_max`. */
-export const distanciaRampa: RobotCalc = {
-  id: 'distancia-rampa',
+export const rampDistance: RobotCalc = {
+  id: 'ramp-distance',
   compute(robot) {
     const { a_mps2, vMax_mps } = ramp(robot);
     return {
@@ -117,4 +117,4 @@ export const distanciaRampa: RobotCalc = {
 };
 
 /** The calcs of the topic; `content/index.ts` registers them. */
-export const robotCalcs: readonly RobotCalc[] = [aceleracion, tiempoRampa, distanciaRampa];
+export const robotCalcs: readonly RobotCalc[] = [acceleration, rampTime, rampDistance];
