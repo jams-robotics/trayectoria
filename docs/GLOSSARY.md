@@ -15,14 +15,21 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | Δx | desplazamiento en un intervalo (x final − x inicial) | m | `dx_m` |
 | h | altura inicial | m | `h_m` |
 | s | distancia recorrida (arco) | m | `s_m` |
+| D (en enunciados) | distancia dada (longitud de pista o separación inicial) | m | `distance_m` |
 | v | rapidez / velocidad lineal | m/s | `v_mps` |
 | v₀ | velocidad inicial | m/s | `v0_mps` |
 | v₁, v₂ | velocidad en dos instantes dados | m/s | `v1_mps`, `v2_mps` |
+| v_A, v_B | velocidades de dos móviles A y B | m/s | `vA_mps`, `vB_mps` |
 | v̄ | velocidad media (Δx / Δt) | m/s | `vAvg_mps` |
 | vₓ, v_y | componentes de velocidad | m/s | `vx_mps`, `vy_mps` |
 | a | aceleración | m/s² | `a_mps2` |
 | g | aceleración gravitatoria | m/s² | `G_MPS2` (constante) |
+| t_caída | tiempo de caída | s | `fallTime_s` |
+| v_impacto | rapidez de impacto | m/s | `impactSpeed_mps` |
 | α (en tiro) | ángulo de lanzamiento | rad | `launchAngle_rad` |
+| t_v | tiempo de vuelo | s | `flightTime_s` |
+| R (en tiro) | alcance horizontal | m | `range_m` |
+| H (en tiro) | altura máxima | m | `maxHeight_m` |
 | m | masa | kg | `mass_kg` |
 | F | fuerza | N | `force_N` |
 | N | fuerza normal | N | `normal_N` |
