@@ -93,9 +93,9 @@ interface KinematicsWidgetProps { initial: { x0_m: number; v0_mps: number; a_mps
 ```
 
 ### ProjectileWidget
-Tiro parabólico, caída libre y objeto soltado desde un robot en movimiento.
+Tiro parabólico, caída libre y objeto soltado desde un robot en movimiento. `mode` es el modo inicial; con más de un modo en `modes`, un selector segmentado cambia entre ellos (vuelve a `t = 0` en pausa y conserva `h_m`). `overlay` superpone dos trayectorias A y B en `launch` y también en `drop`, donde B empieza con 4 veces la altura de A (#304).
 ```ts
-interface ProjectileWidgetProps { mode: 'launch' | 'drop' | 'dropFromRobot'; initial: { v0_mps?: number; launchAngle_rad?: number; h_m: number; vRobot_mps?: number }; overlay?: boolean; showVectors?: Array<'v' | 'vx' | 'vy'> }
+interface ProjectileWidgetProps { mode: 'launch' | 'drop' | 'dropFromRobot'; modes?: Array<'launch' | 'drop' | 'dropFromRobot'>; initial: { v0_mps?: number; launchAngle_rad?: number; h_m: number; vRobot_mps?: number }; overlay?: boolean; showVectors?: Array<'v' | 'vx' | 'vy'> }
 ```
 
 ### RotationWidget
