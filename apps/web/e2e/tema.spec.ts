@@ -110,7 +110,7 @@ test('Profundiza resuelve la clave del frontmatter a su referencia completa', as
   await openTopic(page);
   const reference = page.locator('[data-reference="young-freedman-1"]');
   await expect(reference).toBeVisible();
-  await expect(reference).toContainText('Young, H. D. y Freedman, R. A.');
+  await expect(reference).toContainText('Young, H. D., Freedman, R. A. (con Ford, A. L.)');
   await expect(reference).toContainText('Unidades, cantidades físicas y vectores');
 });
 
