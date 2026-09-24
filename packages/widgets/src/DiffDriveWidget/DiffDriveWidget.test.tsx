@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, test } from 'vitest';
 
@@ -37,6 +37,18 @@ async function typeValue(
   const field = screen.getByRole('textbox', { name: new RegExp(label) });
   await user.clear(field);
   await user.type(field, `${value}{Enter}`);
+}
+
+/**
+ * Advances the simulation `steps` explicit steps of «Paso», one render per step, with no wait
+ * on the wall clock (#258). The button is looked up once and clicked with `fireEvent`: the
+ * pointer sequence of `userEvent` and a role query per click cost about 60 ms each, which is
+ * what pushed the long runs over the timeout. Each step still goes through its own render, so
+ * the odometry integrates the encoders once per step as it does in the widget.
+ */
+function stepSimulation(steps: number): void {
+  const button = screen.getByRole('button', { name: 'Paso' });
+  for (let step = 0; step < steps; step += 1) fireEvent.click(button);
 }
 
 describe('DiffDriveWidget (F2-09a)', () => {
@@ -162,9 +174,7 @@ describe('DiffDriveWidget (F2-09a)', () => {
     const user = userEvent.setup();
     render(<DiffDriveWidget mode="forward" show={['trace']} initial={T52} duration_s={1} />);
 
-    for (let click = 0; click < 12; click += 1) {
-      await user.click(screen.getByRole('button', { name: 'Paso' }));
-    }
+    stepSimulation(12);
     expect(Number.parseFloat(valueOf('Posición x'))).toBeGreaterThan(0);
 
     await user.click(screen.getByRole('button', { name: 'Reiniciar' }));
@@ -211,13 +221,10 @@ describe('DiffDriveWidget odometría (F2-09b)', () => {
     expect(valueOf('Avance del paso Δs')).toBe('0.00 m');
   });
 
-  test('con la calibración exacta la estimación sigue a la real tras varios pasos', async () => {
-    const user = userEvent.setup();
+  test('con la calibración exacta la estimación sigue a la real tras varios pasos', () => {
     render(<DiffDriveWidget mode="odometry" show={['trace']} initial={T54} duration_s={20} />);
 
-    for (let click = 0; click < 30; click += 1) {
-      await user.click(screen.getByRole('button', { name: 'Paso' }));
-    }
+    stepSimulation(30);
     expect(Number.parseFloat(valueOf('Posición x estimada'))).toBeGreaterThan(0);
     // La cuantización de 360 ticks por vuelta deja un error de milímetros, no de centímetros.
     expect(Number.parseFloat(valueOf('Error de posición'))).toBeLessThan(0.01);
@@ -228,9 +235,7 @@ describe('DiffDriveWidget odometría (F2-09b)', () => {
     render(<DiffDriveWidget mode="odometry" show={['trace']} initial={T54} duration_s={20} />);
 
     await typeValue(user, 'Radio de rueda creído', '0.04');
-    for (let click = 0; click < 30; click += 1) {
-      await user.click(screen.getByRole('button', { name: 'Paso' }));
-    }
+    stepSimulation(30);
     expect(Number.parseFloat(valueOf('Posición x estimada'))).toBeGreaterThan(
       Number.parseFloat(valueOf('Posición x')),
     );
@@ -242,9 +247,7 @@ describe('DiffDriveWidget odometría (F2-09b)', () => {
     render(<DiffDriveWidget mode="odometry" show={['trace']} initial={T54} duration_s={20} />);
 
     await typeValue(user, 'Distancia entre ruedas creída', '0.2');
-    for (let click = 0; click < 40; click += 1) {
-      await user.click(screen.getByRole('button', { name: 'Paso' }));
-    }
+    stepSimulation(40);
     // Con L creída 0.2 en vez de 0.15 el Δθ estimado es tres cuartos del real, así que el rumbo
     // estimado se queda corto desde el primer paso y el error solo crece mientras el robot gire.
     // El signo es lo que prueba la desviación: el margen exacto depende de cuánto haya avanzado
@@ -278,9 +281,7 @@ describe('DiffDriveWidget odometría (F2-09b)', () => {
     const user = userEvent.setup();
     render(<DiffDriveWidget mode="odometry" show={['trace']} initial={T54} duration_s={20} />);
 
-    for (let click = 0; click < 20; click += 1) {
-      await user.click(screen.getByRole('button', { name: 'Paso' }));
-    }
+    stepSimulation(20);
     expect(Number.parseFloat(valueOf('Posición x estimada'))).toBeGreaterThan(0);
 
     await user.click(screen.getByRole('button', { name: 'Reiniciar' }));
