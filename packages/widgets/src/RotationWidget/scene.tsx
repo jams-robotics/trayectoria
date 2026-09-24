@@ -9,7 +9,7 @@ import { Vector } from '../Scene2D/primitives/Vector';
 import { angleAt, rimSpeed, rollingAdvance } from './compute';
 import type { Rotation, RotationMode } from './compute';
 
-/** Share of the radius the disc leaves around itself, so the view is not flush with it. */
+/** Height of the disc view in radii: the disc (2 radii) plus half a radius above and below it. */
 const DISC_VIEW_FACTOR = 3;
 /** Radius of the marked point of the rim, as a share of the wheel radius. */
 const POINT_RADIUS_FACTOR = 0.12;
@@ -39,12 +39,13 @@ export function rimPoint(
 }
 
 /**
- * Width of the scene in metres: three radii around the disc (#89, decision 5), or the advance
+ * Width of the scene in metres: three radii of height around the disc (#89, decision 5; #293),
+ * stretched to the aspect of the view so the disc is not cut top and bottom, or the advance
  * of `ROLLING_TURNS` turns plus a wheel on each side while it rolls (#89, decision 6).
  */
 export function worldWidthOf(mode: RotationMode, r_m: number): number {
   const radius_m = Math.max(r_m, 0.001);
-  if (mode !== 'rolling') return DISC_VIEW_FACTOR * radius_m;
+  if (mode !== 'rolling') return DISC_VIEW_FACTOR * DISC_ASPECT * radius_m;
   return ROLLING_TURNS * 2 * Math.PI * radius_m + 4 * radius_m;
 }
 
