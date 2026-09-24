@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 import common from '../../../packages/i18n/locales/es/common.json' with { type: 'json' };
 import route from '../../../content/es/ruta-1/ruta.json' with { type: 'json' };
@@ -182,3 +182,114 @@ test('el aviso de progreso no rompe la hidratación aunque la sesión se lea ant
 
   expect(pageErrors).toEqual([]);
 });
+
+// #284: on the real topics of module 0, running text keeps the 72ch reading width while each
+// Explora widget takes the whole content column (docs/design/03-tema-oscuro.png). At 1280 px the
+// column is 1200 − 2·40 padding − 200 outline − 64 gap = 856 px.
+const MODULE_0_TOPICS = ['t01', 't02', 't03'] as const;
+const DESKTOP = { width: 1280, height: 800 };
+const MIN_WIDGET_WIDTH_PX = 850;
+/** A canvas or svg at least this wide is a viewer or a chart, not an icon. */
+const MIN_VIEWER_WIDTH_PX = 200;
+
+interface Box {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
+/** Opens a module 0 topic and waits for the first Explora widget to paint its viewer. */
+async function openExplora(page: Page, topic: string): Promise<Locator> {
+  await page.goto(`/ruta/ruta-1/m00/${topic}`);
+  const widget = page.locator('#explora [data-topic-widget]').first();
+  await expect(widget.getByTestId('readout-panel').first()).toBeVisible();
+  await expect(widget.locator('canvas, svg').first()).toBeVisible();
+  return widget;
+}
+
+/** The value panel and the viewers (canvas or svg wider than an icon) of a widget, in DOM order. */
+async function widgetBoxes(widget: Locator): Promise<{ panel: Box; viewers: Box[] }> {
+  return widget.evaluate((root, minWidth) => {
+    const box = (element: Element): Box => {
+      const { left, right, top, bottom } = element.getBoundingClientRect();
+      return { left, right, top, bottom };
+    };
+    const panel = root.querySelector('[data-testid="readout-panel"]');
+    if (panel === null) throw new Error('widget without readout panel');
+    const viewers = [...root.querySelectorAll('canvas, svg')]
+      .filter((element) => !panel.contains(element))
+      .map(box)
+      .filter(({ left, right }) => right - left >= minWidth);
+    return { panel: box(panel), viewers };
+  }, MIN_VIEWER_WIDTH_PX);
+}
+
+for (const topic of MODULE_0_TOPICS) {
+  test(`${topic} a 1280 px: el widget de Explora ocupa la columna, con el visor al lado del panel`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(DESKTOP);
+    const widget = await openExplora(page, topic);
+
+    const { width } = (await widget.boundingBox())!;
+    expect(width).toBeGreaterThanOrEqual(MIN_WIDGET_WIDTH_PX);
+    const { panel, viewers } = await widgetBoxes(widget);
+    // Starts left of the panel and overlaps it vertically: same row. The right edge is not
+    // compared because the growing charts of t03 are #283, fixed in its own PR.
+    const beside = viewers.filter(
+      (viewer) =>
+        viewer.left < panel.left && viewer.top < panel.bottom && viewer.bottom > panel.top,
+    );
+    expect(beside.length).toBeGreaterThan(0);
+  });
+
+  test(`${topic} a 1280 px: los párrafos del texto corrido no pasan de 72ch`, async ({ page }) => {
+    await page.setViewportSize(DESKTOP);
+    await openExplora(page, topic);
+
+    // Each paragraph written in the MDX (outside any island) is measured against a 72ch probe in
+    // its own font.
+    const overflows = await page.locator('article [data-section]').evaluateAll((sections) =>
+      sections
+        .flatMap((section) => [...section.querySelectorAll('p')])
+        .filter((paragraph) => paragraph.closest('astro-island') === null)
+        .map((paragraph) => {
+          const probe = document.createElement('span');
+          probe.style.cssText = 'display:inline-block;width:72ch';
+          paragraph.append(probe);
+          const limit = probe.getBoundingClientRect().width;
+          probe.remove();
+          return {
+            text: paragraph.textContent?.slice(0, 40),
+            excess: paragraph.getBoundingClientRect().width - limit,
+          };
+        })
+        .filter(({ excess }) => excess > 0.5),
+    );
+    expect(overflows).toEqual([]);
+  });
+
+  test(`${topic} a 390 px: el visor queda sobre el panel`, async ({ page }) => {
+    await page.setViewportSize(MOBILE);
+    const widget = await openExplora(page, topic);
+
+    const { panel, viewers } = await widgetBoxes(widget);
+    expect(viewers[0]!.bottom).toBeLessThanOrEqual(panel.top);
+  });
+}
+
+// t03 is left out: its horizontal scroll comes from the growing charts of #283, which
+// tema-m00-t03.spec.ts checks with its fix.
+for (const topic of ['t01', 't02'] as const) {
+  test(`${topic} a 390 px: sin scroll horizontal`, async ({ page }) => {
+    await page.setViewportSize(MOBILE);
+    await openExplora(page, topic);
+
+    const { scrollWidth, clientWidth } = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    }));
+    expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
+  });
+}

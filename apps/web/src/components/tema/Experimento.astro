@@ -15,7 +15,10 @@ interface Props {
 const { cambia, observa, porque } = Astro.props;
 ---
 
-<article class="bg-bg-raised border-border rounded-lg border p-5" data-testid="experiment">
+<article
+  class="bg-bg-raised border-border max-w-[72ch] rounded-lg border p-5"
+  data-testid="experiment"
+>
   <p class="m-0 flex flex-wrap items-baseline gap-2">
     <span class="text-fg-muted text-sm">{t('topic.experiment.change')}</span>
     <span>{cambia}</span>
