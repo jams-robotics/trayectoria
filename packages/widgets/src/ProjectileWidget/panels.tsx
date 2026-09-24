@@ -6,7 +6,7 @@ import { ParamPanel } from '../ParamPanel/ParamPanel';
 import type { ParamPanelParam } from '../ParamPanel/ParamPanel';
 import { ReadoutPanel } from '../shared/ReadoutPanel';
 import type { ReadoutRow } from '../shared/ReadoutPanel';
-import { flightTime, maxHeight, positionAt, range, velocityAt } from './compute';
+import { flightTime, launchTimeAt, maxHeight, positionAt, range, velocityAt } from './compute';
 import type { Launch, ProjectileMode } from './compute';
 
 /** Which value of the launch a slider edits (#88, decision 6). */
@@ -69,8 +69,9 @@ export function readoutValues(
 ): readonly string[] {
   const unitM = t('widgets.ProjectileWidget.unitM');
   const unitMps = t('widgets.ProjectileWidget.unitMps');
-  const [x_m, y_m] = positionAt(mode, launch, t_s);
-  const [vx_mps, vy_mps] = velocityAt(mode, launch, t_s);
+  const own_t_s = launchTimeAt(mode, launch, t_s);
+  const [x_m, y_m] = positionAt(mode, launch, own_t_s);
+  const [vx_mps, vy_mps] = velocityAt(mode, launch, own_t_s);
   return [
     format(range(mode, launch), unitM),
     format(maxHeight(mode, launch), unitM),
@@ -119,7 +120,7 @@ export function statusOf(
   t_s: number,
   t: Translate,
 ): string {
-  const [x_m, y_m] = positionAt(mode, launch, t_s);
+  const [x_m, y_m] = positionAt(mode, launch, launchTimeAt(mode, launch, t_s));
   return t('widgets.ProjectileWidget.status', {
     time: format(t_s, t('widgets.ProjectileWidget.unitS')),
     x: format(x_m, t('widgets.ProjectileWidget.unitM')),

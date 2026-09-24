@@ -5,6 +5,7 @@ import { degToRad } from '@trayectoria/sim-core';
 import { describe, expect, test } from 'vitest';
 
 import { ProjectileWidget } from './ProjectileWidget';
+import { flightTime, range, speedAt } from './compute';
 
 /** The value of one row of the values panel, by the text of its term. */
 function valueOf(term: string): string {
@@ -129,10 +130,11 @@ describe('ProjectileWidget (F2-05)', () => {
     expect(rangeA).toBe(rangeB);
   });
 
-  test('`overlay` se ignora fuera del modo launch (decisión 7 de #88)', () => {
-    render(<ProjectileWidget mode="drop" initial={{ h_m: 0.25 }} overlay />);
+  test('`overlay` se ignora en dropFromRobot (#304)', () => {
+    render(<ProjectileWidget mode="dropFromRobot" initial={{ vRobot_mps: 0.6, h_m: 0.25 }} overlay />);
 
     expect(screen.queryByText('Lanzamiento A')).not.toBeInTheDocument();
+    expect(screen.queryByText('Caída A')).not.toBeInTheDocument();
     expect(valueOf('Tiempo de vuelo')).toBe('0.226 s');
   });
 
@@ -169,5 +171,137 @@ describe('ProjectileWidget (F2-05)', () => {
     expect(valueOf('Tiempo')).toBe('0.0100 s');
     // y(0.01) = 0.25 − ½·9.81·0.0001 = 0.24951 m.
     expect(valueOf('Altura y')).toBe('0.250 m');
+  });
+});
+
+describe('ProjectileWidget · dos caídas y selector de modo (#304)', () => {
+  test('en drop con overlay, B cae desde 4·h: 0.25 m y 1 m dan 0.2258 s y 0.4515 s', () => {
+    // Abierto más allá del final: el tiempo se queda en el aterrizaje de B y A sigue en el suelo.
+    render(<ProjectileWidget mode="drop" initial={{ h_m: 0.25 }} overlay initialTime_s={1} />);
+
+    expect(screen.getByText('Caída A')).toBeInTheDocument();
+    expect(screen.getByText('Caída B')).toBeInTheDocument();
+    expect(valueOf('Altura máxima')).toBe('0.250 m  ·  1.00 m');
+    expect(valueOf('Tiempo de vuelo')).toBe('0.226 s  ·  0.452 s');
+    expect(valueOf('Tiempo')).toBe('0.452 s  ·  0.452 s');
+    // Velocidad de impacto: vy en el aterrizaje de cada caída, −√(2gh).
+    expect(valueOf('Altura y')).toBe('0.00 m  ·  0.00 m');
+    expect(valueOf('Velocidad vy')).toBe('-2.21 m/s  ·  -4.43 m/s');
+
+    const [a, b] = [0.25, 1].map((h_m) => ({ v0_mps: 0, launchAngle_rad: 0, h_m, vRobot_mps: 0 }));
+    if (a === undefined || b === undefined) throw new Error('missing drops');
+    expect(flightTime('drop', a)).toBeCloseTo(0.2258, 4);
+    expect(flightTime('drop', b)).toBeCloseTo(0.4515, 4);
+    expect(speedAt('drop', a, flightTime('drop', a))).toBeCloseTo(2.215, 3);
+    expect(speedAt('drop', b, flightTime('drop', b))).toBeCloseTo(4.429, 3);
+  });
+
+  test('con modes aparece el selector; «Soltar desde robot» da el adelanto de 0.1355 m', async () => {
+    const user = userEvent.setup();
+    render(
+      <ProjectileWidget
+        mode="launch"
+        modes={['launch', 'dropFromRobot']}
+        initial={{ v0_mps: 4, launchAngle_rad: degToRad(40), h_m: 0.25, vRobot_mps: 0.6 }}
+      />,
+    );
+
+    const selector = screen.getByRole('group', { name: 'Situación' });
+    const buttons = within(selector).getAllByRole('button');
+    expect(buttons.map((button) => button.textContent)).toEqual(['Lanzar', 'Soltar desde robot']);
+    expect(within(selector).getByRole('button', { name: 'Lanzar' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    await user.click(within(selector).getByRole('button', { name: 'Soltar desde robot' }));
+
+    expect(within(selector).getByRole('button', { name: 'Soltar desde robot' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(within(selector).getByRole('button', { name: 'Lanzar' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    expect(valueOf('Alcance')).toBe('0.135 m');
+    expect(
+      range('dropFromRobot', { v0_mps: 0, launchAngle_rad: 0, h_m: 0.25, vRobot_mps: 0.6 }),
+    ).toBeCloseTo(0.1355, 4);
+    expect(sliderLabels()).toEqual(['Velocidad del robot en m/s', 'Altura inicial en m']);
+  });
+
+  test('sin modes, o con un solo modo, no hay selector', () => {
+    const { unmount } = render(<ProjectileWidget mode="drop" initial={{ h_m: 0.25 }} />);
+    expect(screen.queryByRole('group', { name: 'Situación' })).not.toBeInTheDocument();
+    unmount();
+
+    render(<ProjectileWidget mode="drop" modes={['drop']} initial={{ h_m: 0.25 }} />);
+    expect(screen.queryByRole('group', { name: 'Situación' })).not.toBeInTheDocument();
+  });
+
+  test('el selector se opera con teclado', async () => {
+    const user = userEvent.setup();
+    render(
+      <ProjectileWidget
+        mode="launch"
+        modes={['launch', 'drop', 'dropFromRobot']}
+        initial={{ v0_mps: 4, launchAngle_rad: degToRad(40), h_m: 0.25 }}
+      />,
+    );
+
+    const selector = screen.getByRole('group', { name: 'Situación' });
+    const drop = within(selector).getByRole('button', { name: 'Soltar' });
+    await user.tab();
+    expect(within(selector).getByRole('button', { name: 'Lanzar' })).toHaveFocus();
+    await user.tab();
+    expect(drop).toHaveFocus();
+    await user.keyboard('{Enter}');
+
+    expect(drop).toHaveAttribute('aria-pressed', 'true');
+    expect(drop).toHaveFocus();
+    expect(valueOf('Tiempo de vuelo')).toBe('0.226 s');
+
+    await user.tab();
+    await user.keyboard(' ');
+    expect(within(selector).getByRole('button', { name: 'Soltar desde robot' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
+  test('cambiar de modo vuelve a t = 0 en pausa y conserva h', async () => {
+    const user = userEvent.setup();
+    render(
+      <ProjectileWidget
+        mode="launch"
+        modes={['launch', 'drop']}
+        initial={{ v0_mps: 4, launchAngle_rad: degToRad(40), h_m: 0.3 }}
+        initialTime_s={0.3}
+      />,
+    );
+
+    const h = screen.getByRole('slider', { name: 'Altura inicial en m' });
+    h.focus();
+    // Dos pasos de 0.05 m llevan h de 0.3 a 0.4 m.
+    await user.keyboard('{ArrowRight}{ArrowRight}');
+    await user.click(screen.getByRole('button', { name: 'Soltar' }));
+
+    expect(valueOf('Tiempo')).toBe('0.00 s');
+    expect(valueOf('Altura máxima')).toBe('0.400 m');
+    expect(screen.getByRole('button', { name: 'Reproducir' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Lanzar' }));
+    expect(valueOf('Tiempo')).toBe('0.00 s');
+    expect(sliderLabels()).toContain('Velocidad inicial en m/s');
+    // v0 y α también se conservan: H = 0.4 + (4·sen40°)²/(2·9.81) = 0.737 m.
+    expect(valueOf('Altura máxima')).toBe('0.737 m');
+  });
+
+  test('con overlay, la caída que aterriza antes se queda en el suelo', () => {
+    render(<ProjectileWidget mode="drop" initial={{ h_m: 0.25 }} overlay initialTime_s={0.3} />);
+
+    // En t = 0.3 s A ya aterrizó (0.226 s): su altura es 0, no negativa.
+    expect(valueOf('Altura y').split('  ·  ')[0]).toBe('0.00 m');
   });
 });
