@@ -311,8 +311,9 @@ describe('Plot: entornos sin canvas', () => {
       await waitForData();
       const before = (await lastOptions()).width;
 
-      // The chart area now measures 300 px, and the card 334 px with its padding and border:
-      // the chart is rebuilt at the content width, not the card's, or it would overflow it.
+      // The chart area now measures 300 px, and the card 334 px with its padding (clientWidth
+      // excludes the border): the chart is rebuilt at the content width, not the card's, or it
+      // would overflow it.
       Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
         configurable: true,
         get(this: HTMLElement) {

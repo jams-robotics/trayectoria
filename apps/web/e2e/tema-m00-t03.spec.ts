@@ -66,27 +66,29 @@ async function readLayout(page: Page): Promise<Layout> {
       }
       return right < 0 ? null : right;
     };
+    /** Widths and last-label edge of one chart's card and canvas. */
+    const measureChart = (canvas: HTMLCanvasElement): ChartWidths => {
+      const card = canvas.closest('figure') ?? canvas;
+      const style = getComputedStyle(card);
+      const cardBox = card.getBoundingClientRect();
+      const canvasBox = canvas.getBoundingClientRect();
+      const ratio = canvas.width / canvasBox.width;
+      const labelsRight = tickLabelsRight(rightmostInk(canvas));
+      return {
+        canvas_px: canvasBox.width,
+        column_px: card.parentElement?.getBoundingClientRect().width ?? 0,
+        cardContent_px:
+          card.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight),
+        lastLabelRight_px: labelsRight === null ? null : canvasBox.left + labelsRight / ratio,
+        cardContentRight_px:
+          cardBox.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight),
+      };
+    };
     const root = document.documentElement;
     const canvases = document.querySelectorAll<HTMLCanvasElement>(selector);
     return {
       overflow_px: root.scrollWidth - root.clientWidth,
-      charts: [...canvases].map((canvas) => {
-        const card = canvas.closest('figure') ?? canvas;
-        const style = getComputedStyle(card);
-        const cardBox = card.getBoundingClientRect();
-        const canvasBox = canvas.getBoundingClientRect();
-        const ratio = canvas.width / canvasBox.width;
-        const labelsRight = tickLabelsRight(rightmostInk(canvas));
-        return {
-          canvas_px: canvasBox.width,
-          column_px: card.parentElement?.getBoundingClientRect().width ?? 0,
-          cardContent_px:
-            card.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight),
-          lastLabelRight_px: labelsRight === null ? null : canvasBox.left + labelsRight / ratio,
-          cardContentRight_px:
-            cardBox.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight),
-        };
-      }),
+      charts: [...canvases].map(measureChart),
     };
   }, CANVAS_SELECTOR);
 }
