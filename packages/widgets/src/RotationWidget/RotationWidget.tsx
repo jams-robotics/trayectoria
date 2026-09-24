@@ -58,23 +58,27 @@ function OmegaPlot({
 }): JSX.Element {
   const samples = sampleOmega(rotation, PLOT_SPAN_S, PLOT_PERIOD_S);
   return (
-    <Plot
-      x={{
-        label: t('widgets.RotationWidget.axisT'),
-        unit: t('widgets.RotationWidget.unitS'),
-        data: samples.t_s,
-      }}
-      series={[
-        {
-          key: 'omega',
-          label: t('widgets.RotationWidget.axisOmega'),
-          unit: t('widgets.RotationWidget.unitRadps'),
-          data: samples.omega_radps,
-        },
-      ]}
-      marker={{ x: Math.min(t_s, PLOT_SPAN_S) }}
-      height={PLOT_HEIGHT_PX}
-    />
+    // `width: 0` keeps uPlot's pixel-wide canvas from widening the column it measures, which
+    // otherwise feeds back and never settles (docs/DESIGN.md §9.8, #283).
+    <div className="w-0 min-w-full overflow-hidden">
+      <Plot
+        x={{
+          label: t('widgets.RotationWidget.axisT'),
+          unit: t('widgets.RotationWidget.unitS'),
+          data: samples.t_s,
+        }}
+        series={[
+          {
+            key: 'omega',
+            label: t('widgets.RotationWidget.axisOmega'),
+            unit: t('widgets.RotationWidget.unitRadps'),
+            data: samples.omega_radps,
+          },
+        ]}
+        marker={{ x: Math.min(t_s, PLOT_SPAN_S) }}
+        height={PLOT_HEIGHT_PX}
+      />
+    </div>
   );
 }
 

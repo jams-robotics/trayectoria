@@ -20,7 +20,11 @@ const FALLBACK_WIDTH_PX = 480;
 /** uPlot data is `[xs, ...series]`, each row of the same length. */
 type AlignedData = UPlot.AlignedData;
 
-/** Width of the container, kept in sync with a `ResizeObserver` so the chart fills its card. */
+/**
+ * Content width of the chart area, kept in sync with a `ResizeObserver` so the chart fills its
+ * card. It is measured on the host, not on the card: the card's `clientWidth` includes its
+ * padding, and a canvas that wide overflows the card (#283).
+ */
 function useMeasuredWidth(ref: RefObject<HTMLDivElement | null>): number {
   const [width_px, setWidth] = useState(FALLBACK_WIDTH_PX);
   useEffect(() => {
@@ -247,7 +251,7 @@ export function usePlotChart(props: PlotProps, t: Translate): ChartState {
   const cardRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const theme = usePlotTheme(cardRef);
-  const width_px = useMeasuredWidth(cardRef);
+  const width_px = useMeasuredWidth(hostRef);
   const height_px = height ?? DEFAULT_HEIGHT_PX;
   const lines = useMemo(() => refLines ?? [], [refLines]);
   const marks = useMemo(() => segments ?? [], [segments]);
