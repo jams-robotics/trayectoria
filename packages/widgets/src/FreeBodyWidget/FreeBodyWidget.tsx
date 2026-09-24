@@ -12,7 +12,9 @@ import { Rect } from '../Scene2D/primitives/Rect';
 import { Vector } from '../Scene2D/primitives/Vector';
 import { LiveStatus, ReadoutPanel } from '../shared/ReadoutPanel';
 import { NORMAL_KEY, WEIGHT_KEY, readFreeBody } from './compute';
-import type { ForceInput, FreeBodyReadout, ResolvedForce } from './compute';
+import type { ForceInput, FreeBodyReadout, ResolvedForce, StaticFriction } from './compute';
+import { applyBodyChange, bodyParamsOf, isBodyParam } from './params';
+import type { Body, BodyParam } from './params';
 
 export interface FreeBodyWidgetProps {
   mass_kg: number;
@@ -21,6 +23,10 @@ export interface FreeBodyWidgetProps {
   slope_rad?: number;
   /** Draws the resultant and shows its magnitude and angle. Defaults to false. */
   showResultant?: boolean;
+  /** Static friction coefficient of the wheels; turns on the friction model (#305). */
+  mu_s?: number;
+  /** Body parameters opened to a slider: mass, slope and `μs` (#305). */
+  editableParams?: Array<BodyParam>;
 }
 
 /** Width of the view, in metres of the scene; the diagram is drawn at this scale. */
@@ -80,7 +86,28 @@ function ForceArrows({
   );
 }
 
-/** The lines of the panel: weight, normal and, with `showResultant`, `|R|`, its angle and `a`. */
+/** The rows of the friction model after the normal: `f_max = μs·N` and `a_max = f_max/m`. */
+function frictionRows(
+  friction: StaticFriction | null,
+  t: Translate,
+): ReadonlyArray<readonly [string, string]> {
+  if (friction === null) return [];
+  return [
+    [
+      t('widgets.FreeBodyWidget.frictionMax'),
+      format(friction.frictionMax_N, t('widgets.FreeBodyWidget.unitN')),
+    ],
+    [
+      t('widgets.FreeBodyWidget.accelMax'),
+      format(friction.accelMax_mps2, t('widgets.FreeBodyWidget.unitMps2')),
+    ],
+  ];
+}
+
+/**
+ * The lines of the panel: weight, normal, the friction rows with `mu_s` and, with
+ * `showResultant`, `|R|`, its angle and `a`.
+ */
 function panelRows(
   readout: FreeBodyReadout,
   mass_kg: number,
@@ -93,6 +120,7 @@ function panelRows(
     [t('widgets.FreeBodyWidget.weight'), format(readout.weight_N, unit_N)],
     [t('widgets.FreeBodyWidget.weightAlong'), format(readout.weightAlong_N, unit_N)],
     [t('widgets.FreeBodyWidget.normal'), format(readout.normal_N, unit_N)],
+    ...frictionRows(readout.friction, t),
   ];
   if (!showResultant) return rows;
   rows.push(
@@ -173,13 +201,24 @@ function Surface({ slope_rad }: { slope_rad: number }): JSX.Element {
   );
 }
 
-/** One sentence with the resultant and the acceleration, for the `aria-live` region. */
+/** The «desliza» notice of the current state, or null while static friction holds (#305). */
+function slipNotice(readout: FreeBodyReadout, t: Translate): string | null {
+  const slip = readout.friction?.slip ?? null;
+  if (slip === null) return null;
+  return slip === 'traction'
+    ? t('widgets.FreeBodyWidget.slipTraction')
+    : t('widgets.FreeBodyWidget.slipHold');
+}
+
+/** One sentence with the resultant, the acceleration and any slip, for the `aria-live` region. */
 function statusOf(readout: FreeBodyReadout, t: Translate): string {
-  return t('widgets.FreeBodyWidget.status', {
+  const status = t('widgets.FreeBodyWidget.status', {
     magnitude: format(readout.resultantMagnitude_N, t('widgets.FreeBodyWidget.unitN')),
     angle: readout.resultantAngle_deg.toFixed(ANGLE_DECIMALS),
     accel: format(readout.accel_mps2, t('widgets.FreeBodyWidget.unitMps2')),
   });
+  const notice = slipNotice(readout, t);
+  return notice === null ? status : `${status}. ${notice}`;
 }
 
 /** The whole scene: the ramp, the body, one arrow per force and, optionally, the resultant. */
@@ -214,48 +253,91 @@ function Diagram({
   );
 }
 
+/** The values panel, the «desliza» notice with `mu_s` and the `aria-live` description. */
+function Values({
+  readout,
+  mass_kg,
+  showResultant,
+  t,
+}: {
+  readout: FreeBodyReadout;
+  mass_kg: number;
+  showResultant: boolean;
+  t: Translate;
+}): JSX.Element {
+  const notice = slipNotice(readout, t);
+  return (
+    <div className="md:w-panel">
+      <ReadoutPanel
+        title={t('widgets.FreeBodyWidget.panel')}
+        rows={panelRows(readout, mass_kg, showResultant, t)}
+      />
+      {notice === null ? null : (
+        <p role="note" className="text-error mt-2 text-sm" data-testid="freebody-slip">
+          {notice}
+        </p>
+      )}
+      <LiveStatus text={statusOf(readout, t)} />
+    </div>
+  );
+}
+
+/** The forces and the body, each edited by its own sliders of the shared `ParamPanel`. */
+function useEditable(
+  initialForces: readonly ForceInput[],
+  initialBody: Body,
+): { forces: readonly ForceInput[]; body: Body; onChange: (key: string, value: number) => void } {
+  const [forces, setForces] = useState(initialForces);
+  const [body, setBody] = useState(initialBody);
+  const onChange = (key: string, value: number): void => {
+    if (isBodyParam(key)) setBody((current) => applyBodyChange(current, key, value));
+    else setForces((current) => applyChange(current, key, value));
+  };
+  return { forces, body, onChange };
+}
+
 /**
  * Free-body diagram of a body on a plane or a ramp (docs/WIDGETS.md, FreeBodyWidget;
  * docs/CURRICULUM.md T-2.1). Weight and normal come from `mass_kg` and `slope_rad` and are not
- * editable; the forces marked `editable` are adjusted with `ParamPanel` (#86, decision 5). Every
- * number comes from `compute.ts`, which delegates to `vec2` and `G_MPS2` of sim-core.
+ * editable; the forces marked `editable` are adjusted with `ParamPanel` (#86, decision 5). With
+ * `mu_s` the wheels have static friction and a «desliza» notice; `editableParams` opens mass,
+ * slope and `μs` to sliders (#305). Every number comes from `compute.ts`, which delegates to
+ * `vec2` and `G_MPS2` of sim-core.
  */
 export function FreeBodyWidget({
   mass_kg,
   forces: initialForces,
   slope_rad = 0,
   showResultant = false,
+  mu_s,
+  editableParams = [],
 }: FreeBodyWidgetProps): JSX.Element {
   const t = useT();
-  const [forces, setForces] = useState<readonly ForceInput[]>(initialForces);
+  const { forces, body, onChange } = useEditable(initialForces, {
+    mass_kg,
+    slope_rad,
+    mu_s: mu_s ?? null,
+  });
   const readout = useMemo(
-    () => readFreeBody(mass_kg, forces, slope_rad),
-    [mass_kg, forces, slope_rad],
+    () => readFreeBody(body.mass_kg, forces, body.slope_rad, body.mu_s ?? undefined),
+    [body, forces],
   );
-  const params = paramsOf(forces, t);
+  const params = [...bodyParamsOf(editableParams, body, t), ...paramsOf(forces, t)];
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-start">
         <div className="min-w-0 flex-1">
-          <Diagram readout={readout} slope_rad={slope_rad} showResultant={showResultant} t={t} />
-        </div>
-        <div className="md:w-panel">
-          <ReadoutPanel
-            title={t('widgets.FreeBodyWidget.panel')}
-            rows={panelRows(readout, mass_kg, showResultant, t)}
+          <Diagram
+            readout={readout}
+            slope_rad={body.slope_rad}
+            showResultant={showResultant}
+            t={t}
           />
-          <LiveStatus text={statusOf(readout, t)} />
         </div>
+        <Values readout={readout} mass_kg={body.mass_kg} showResultant={showResultant} t={t} />
       </div>
-      {params.length === 0 ? null : (
-        <ParamPanel
-          params={params}
-          onChange={(key, value) => {
-            setForces((current) => applyChange(current, key, value));
-          }}
-        />
-      )}
+      {params.length === 0 ? null : <ParamPanel params={params} onChange={onChange} />}
     </div>
   );
 }
