@@ -19,6 +19,10 @@ export const TANGENT_HALF_WIDTH_S = 0.5;
 const VIEW_MARGIN = 0.1;
 /** Narrowest world the scene ever shows, in metres, so an almost still particle still has scale. */
 const MIN_WORLD_WIDTH_M = 1;
+/** Share of the view width the velocity arrow takes per m/s, at any scale (#303). */
+const ARROW_SHARE_PER_MPS = 0.15;
+/** Share of the view width kept between the arrow tip and the edge, room for its label (#303). */
+const ARROW_EDGE_SHARE = 0.04;
 
 /** Position `x = x0 + v0 t + ½ a t²`, in metres (T-1.2). */
 export function positionAt(motion: Motion, t_s: number): number {
@@ -110,4 +114,32 @@ export function positionRange(motion: Motion, duration_s: number): [number, numb
 export function worldWidthOf(motion: Motion, duration_s: number): number {
   const [min_m, max_m] = positionRange(motion, duration_s);
   return Math.max((max_m - min_m) * (1 + VIEW_MARGIN), MIN_WORLD_WIDTH_M);
+}
+
+/** What the scene frames: its width and the x at its centre, in metres (#303). */
+export interface SceneView {
+  worldWidth_m: number;
+  centerX_m: number;
+}
+
+/**
+ * View of the scene: the whole range travelled over `[0, duration_s]`, turning points included,
+ * centred and with the margin of `worldWidthOf` (#303).
+ */
+export function sceneViewOf(motion: Motion, duration_s: number): SceneView {
+  const [min_m, max_m] = positionRange(motion, duration_s);
+  return { worldWidth_m: worldWidthOf(motion, duration_s), centerX_m: (min_m + max_m) / 2 };
+}
+
+/**
+ * Tip of the velocity arrow drawn from `x_m`, in metres (#303). Its length is proportional to
+ * `v` as a share of the view, so it does not change with the scale; it stops short of the edge
+ * and never points backwards.
+ */
+export function velocityTipOf(x_m: number, v_mps: number, view: SceneView): number {
+  const reach_m = view.worldWidth_m * (0.5 - ARROW_EDGE_SHARE);
+  const tip_m = x_m + v_mps * ARROW_SHARE_PER_MPS * view.worldWidth_m;
+  const lowest_m = Math.min(view.centerX_m - reach_m, x_m);
+  const highest_m = Math.max(view.centerX_m + reach_m, x_m);
+  return Math.min(Math.max(tip_m, lowest_m), highest_m);
 }
