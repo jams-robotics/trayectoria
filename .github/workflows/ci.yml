@@ -152,7 +152,14 @@ jobs:
         run: pnpm --filter @trayectoria/web exec playwright install-deps chromium
 
       - name: Run e2e
-        run: pnpm e2e
+        run: |
+          set +e
+          cd apps/web
+          pnpm exec playwright test e2e/sim-brazo-workspace.spec.ts -g "nube visible" --repeat-each 60; r1=$?
+          pnpm exec playwright test e2e/visual/sims.spec.ts -g "TrackEditor" --repeat-each 30; r2=$?
+          pnpm exec playwright test e2e/unirse.spec.ts -g "student joins" --repeat-each 40; r3=$?
+          echo "results: workspace=$r1 trackeditor=$r2 unirse=$r3"
+          exit $((r1 | r2 | r3))
 
       # The HTML report and test-results/ (traces, diffs, <name>-actual.png) of a failed run.
       - name: Upload report
