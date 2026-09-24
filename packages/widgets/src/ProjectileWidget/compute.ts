@@ -68,6 +68,14 @@ export function flightTime(mode: ProjectileMode, launch: Launch): number {
   return (vy0_mps + Math.sqrt(vy0_mps * vy0_mps + 2 * G_MPS2 * h_m)) / G_MPS2;
 }
 
+/**
+ * The time `t_s` seen by one launch: it stops at its own landing, so the launch that lands first
+ * stays on the ground while an overlaid, longer one is still in the air (#304).
+ */
+export function launchTimeAt(mode: ProjectileMode, launch: Launch, t_s: number): number {
+  return Math.min(t_s, flightTime(mode, launch));
+}
+
 /** Horizontal range in metres: `R = vx · t_v` (T-1.4). */
 export function range(mode: ProjectileMode, launch: Launch): number {
   const [vx_mps] = initialVelocity(mode, launch);
