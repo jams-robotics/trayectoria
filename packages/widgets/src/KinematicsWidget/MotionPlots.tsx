@@ -87,14 +87,17 @@ export function MotionPlots({
   return (
     <>
       {seriesOf(samples, t).map((series) => (
-        <Plot
-          key={series.key}
-          x={x}
-          series={[series]}
-          marker={marker}
-          height={PLOT_HEIGHT_PX}
-          {...(series.key === 'x' && segments !== undefined ? { segments } : {})}
-        />
+        // `width: 0` keeps uPlot's pixel-wide canvas from widening the column it measures, which
+        // otherwise feeds back and never settles (docs/DESIGN.md §9.8, #283).
+        <div key={series.key} className="w-0 min-w-full overflow-hidden">
+          <Plot
+            x={x}
+            series={[series]}
+            marker={marker}
+            height={PLOT_HEIGHT_PX}
+            {...(series.key === 'x' && segments !== undefined ? { segments } : {})}
+          />
+        </div>
       ))}
     </>
   );
