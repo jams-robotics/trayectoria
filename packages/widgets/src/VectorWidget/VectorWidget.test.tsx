@@ -1,8 +1,10 @@
 import '@testing-library/jest-dom/vitest';
-import { render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
+import { createTransform, worldToPx } from '../Scene2D/transform';
+import { VIEW_ASPECT, VIEW_CENTER, viewWidth } from './compute';
 import { VectorWidget } from './VectorWidget';
 
 /** Props of the «Explora» of T-0.2 (docs/CURRICULUM.md), the case the story captures. */
@@ -114,5 +116,108 @@ describe('VectorWidget (F2-03)', () => {
     expect(valueOf('Magnitud de a + b')).toBe('0.500 m');
     // The zero vector has no direction, so the angle against it is reported as zero, not NaN.
     expect(valueOf('Ángulo entre a y b')).toBe('0.00°');
+  });
+});
+
+/** Width the fake `ResizeObserver` reports, so the scene has a real mapping in jsdom. */
+const WIDTH_PX = 400;
+/** Height of the scene of the widget, in CSS pixels. */
+const HEIGHT_PX = WIDTH_PX / VIEW_ASPECT;
+
+/** jsdom has no layout: the scene is faked as a 400 px wide box at the top left corner. */
+function installLayout(): void {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      constructor(private readonly callback: () => void) {}
+      observe(): void {
+        this.callback();
+      }
+      disconnect(): void {
+        // Nothing to release: the fake never subscribes to anything.
+      }
+    },
+  );
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(WIDTH_PX);
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+    x: 0,
+    y: 0,
+    width: WIDTH_PX,
+    height: HEIGHT_PX,
+    top: 0,
+    left: 0,
+    right: WIDTH_PX,
+    bottom: HEIGHT_PX,
+    toJSON: () => ({}),
+  });
+  Element.prototype.setPointerCapture = vi.fn();
+  Element.prototype.releasePointerCapture = vi.fn();
+  Element.prototype.hasPointerCapture = vi.fn(() => true);
+}
+
+/** Half the side of the hit area of a handle, in CSS pixels (DESIGN.md §5 Slider). */
+const HANDLE_HALF_PX = 12;
+
+/** Components of a vector as the panel shows them, `(x unit, y unit)`. */
+function componentsIn(term: string): [number, number] {
+  const [x, y] = (valueOf(term).match(/-?\d+(\.\d+)?/g) ?? []).map(Number);
+  return [x ?? NaN, y ?? NaN];
+}
+
+/** Where the canvas draws the tip of `a`, in CSS pixels, for the view fitted to the tips. */
+function drawnTip(a: [number, number], b: [number, number]): [number, number] {
+  const sum: [number, number] = [a[0] + b[0], a[1] + b[1]];
+  const transform = createTransform({
+    widthPx: WIDTH_PX,
+    heightPx: HEIGHT_PX,
+    worldWidth_m: viewWidth([a, b, sum], VIEW_ASPECT),
+    center_m: VIEW_CENTER,
+    dpr: 1,
+  });
+  return worldToPx(transform, a[0], a[1]);
+}
+
+/** Centre of a handle over the scene, in CSS pixels, from its absolute placement. */
+function centreOf(handle: HTMLElement): [number, number] {
+  const side_px = parseFloat(handle.style.width);
+  return [parseFloat(handle.style.left) + side_px / 2, parseFloat(handle.style.top) + side_px / 2];
+}
+
+describe('VectorWidget · view fit (#285)', () => {
+  beforeEach(installLayout);
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  test('dragging a straight up to the top edge, again and again, keeps its tip in reach', () => {
+    renderCurriculum();
+    // The y axis, where a vertical tip is the tallest it can be for its length.
+    const axis_px = WIDTH_PX / 2;
+    const tip = screen.getByRole('button', { name: 'Punta del vector a' });
+
+    let previousY = 0;
+    for (let drag = 0; drag < 5; drag += 1) {
+      const [x_px, y_px] = centreOf(tip);
+      act(() => {
+        fireEvent.pointerDown(tip, { clientX: x_px, clientY: y_px, pointerId: 1 });
+        fireEvent.pointerMove(tip, { clientX: axis_px, clientY: 1, pointerId: 1 });
+        fireEvent.pointerUp(tip, { clientX: axis_px, clientY: 1, pointerId: 1 });
+      });
+
+      const a = componentsIn('Componentes de a');
+      const [drawnX_px, drawnY_px] = drawnTip(a, [0.2, -0.1]);
+      const [handleX_px, handleY_px] = centreOf(tip);
+      // The tip is drawn with room for its whole handle, and the handle sits on it.
+      expect(drawnY_px).toBeGreaterThan(HANDLE_HALF_PX);
+      expect(drawnY_px).toBeLessThan(HEIGHT_PX - HANDLE_HALF_PX);
+      expect(drawnX_px).toBeGreaterThan(HANDLE_HALF_PX);
+      expect(drawnX_px).toBeLessThan(WIDTH_PX - HANDLE_HALF_PX);
+      expect(handleX_px).toBeCloseTo(drawnX_px, 0);
+      expect(handleY_px).toBeCloseTo(drawnY_px, 0);
+      // Each drag stretches a further: the edge keeps moving away.
+      expect(a[1]).toBeGreaterThan(previousY);
+      previousY = a[1];
+    }
   });
 });
