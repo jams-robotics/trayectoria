@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { JSX } from 'react';
-import { degToRad, format, radToDeg, rotate2 } from '@trayectoria/sim-core';
+import { degToRad, radToDeg, rotate2 } from '@trayectoria/sim-core';
 import type { Vec2 } from '@trayectoria/sim-core';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
@@ -10,11 +10,11 @@ import type { ParamPanelParam } from '../ParamPanel/ParamPanel';
 import { Scene2D } from '../Scene2D/Scene2D';
 import { Rect } from '../Scene2D/primitives/Rect';
 import { Vector } from '../Scene2D/primitives/Vector';
-import { LiveStatus, ReadoutPanel } from '../shared/ReadoutPanel';
 import { NORMAL_KEY, WEIGHT_KEY, readFreeBody } from './compute';
-import type { ForceInput, FreeBodyReadout, ResolvedForce, StaticFriction } from './compute';
+import type { ForceInput, FreeBodyReadout, ResolvedForce } from './compute';
 import { applyBodyChange, bodyParamsOf, isBodyParam } from './params';
 import type { Body, BodyParam } from './params';
+import { Values } from './panels';
 
 export interface FreeBodyWidgetProps {
   mass_kg: number;
@@ -86,59 +86,6 @@ function ForceArrows({
   );
 }
 
-/** The rows of the friction model after the normal: `f_max = μs·N` and `a_max = f_max/m`. */
-function frictionRows(
-  friction: StaticFriction | null,
-  t: Translate,
-): ReadonlyArray<readonly [string, string]> {
-  if (friction === null) return [];
-  return [
-    [
-      t('widgets.FreeBodyWidget.frictionMax'),
-      format(friction.frictionMax_N, t('widgets.FreeBodyWidget.unitN')),
-    ],
-    [
-      t('widgets.FreeBodyWidget.accelMax'),
-      format(friction.accelMax_mps2, t('widgets.FreeBodyWidget.unitMps2')),
-    ],
-  ];
-}
-
-/**
- * The lines of the panel: weight, normal, the friction rows with `mu_s` and, with
- * `showResultant`, `|R|`, its angle and `a`.
- */
-function panelRows(
-  readout: FreeBodyReadout,
-  mass_kg: number,
-  showResultant: boolean,
-  t: Translate,
-): ReadonlyArray<readonly [string, string]> {
-  const unit_N = t('widgets.FreeBodyWidget.unitN');
-  const rows: Array<readonly [string, string]> = [
-    [t('widgets.FreeBodyWidget.mass'), format(mass_kg, t('widgets.FreeBodyWidget.unitKg'))],
-    [t('widgets.FreeBodyWidget.weight'), format(readout.weight_N, unit_N)],
-    [t('widgets.FreeBodyWidget.weightAlong'), format(readout.weightAlong_N, unit_N)],
-    [t('widgets.FreeBodyWidget.normal'), format(readout.normal_N, unit_N)],
-    ...frictionRows(readout.friction, t),
-  ];
-  if (!showResultant) return rows;
-  rows.push(
-    [t('widgets.FreeBodyWidget.resultant'), format(readout.resultantMagnitude_N, unit_N)],
-    [
-      t('widgets.FreeBodyWidget.resultantAngle'),
-      t('widgets.FreeBodyWidget.degrees', {
-        value: readout.resultantAngle_deg.toFixed(ANGLE_DECIMALS),
-      }),
-    ],
-    [
-      t('widgets.FreeBodyWidget.accel'),
-      format(readout.accel_mps2, t('widgets.FreeBodyWidget.unitMps2')),
-    ],
-  );
-  return rows;
-}
-
 /** Two sliders per editable force: its magnitude in newtons and its angle in degrees. */
 function paramsOf(forces: readonly ForceInput[], t: Translate): readonly ParamPanelParam[] {
   return forces
@@ -201,26 +148,6 @@ function Surface({ slope_rad }: { slope_rad: number }): JSX.Element {
   );
 }
 
-/** The «desliza» notice of the current state, or null while static friction holds (#305). */
-function slipNotice(readout: FreeBodyReadout, t: Translate): string | null {
-  const slip = readout.friction?.slip ?? null;
-  if (slip === null) return null;
-  return slip === 'traction'
-    ? t('widgets.FreeBodyWidget.slipTraction')
-    : t('widgets.FreeBodyWidget.slipHold');
-}
-
-/** One sentence with the resultant, the acceleration and any slip, for the `aria-live` region. */
-function statusOf(readout: FreeBodyReadout, t: Translate): string {
-  const status = t('widgets.FreeBodyWidget.status', {
-    magnitude: format(readout.resultantMagnitude_N, t('widgets.FreeBodyWidget.unitN')),
-    angle: readout.resultantAngle_deg.toFixed(ANGLE_DECIMALS),
-    accel: format(readout.accel_mps2, t('widgets.FreeBodyWidget.unitMps2')),
-  });
-  const notice = slipNotice(readout, t);
-  return notice === null ? status : `${status}. ${notice}`;
-}
-
 /** The whole scene: the ramp, the body, one arrow per force and, optionally, the resultant. */
 function Diagram({
   readout,
@@ -250,35 +177,6 @@ function Diagram({
         />
       ) : null}
     </Scene2D>
-  );
-}
-
-/** The values panel, the «desliza» notice with `mu_s` and the `aria-live` description. */
-function Values({
-  readout,
-  mass_kg,
-  showResultant,
-  t,
-}: {
-  readout: FreeBodyReadout;
-  mass_kg: number;
-  showResultant: boolean;
-  t: Translate;
-}): JSX.Element {
-  const notice = slipNotice(readout, t);
-  return (
-    <div className="md:w-panel">
-      <ReadoutPanel
-        title={t('widgets.FreeBodyWidget.panel')}
-        rows={panelRows(readout, mass_kg, showResultant, t)}
-      />
-      {notice === null ? null : (
-        <p role="note" className="text-error mt-2 text-sm" data-testid="freebody-slip">
-          {notice}
-        </p>
-      )}
-      <LiveStatus text={statusOf(readout, t)} />
-    </div>
   );
 }
 
