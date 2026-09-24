@@ -47,6 +47,7 @@ status: draft | review | published
 
 - Definidos en `ejercicios.ts` con `defineExercise` (sim-core). Valores generados con rangos **realistas para robots educativos** (por ejemplo, `r ∈ [0.015, 0.05] m`, `L ∈ [0.08, 0.25] m`, `rpm ∈ [60, 600]`, `m ∈ [0.2, 3] kg`).
 - Tolerancia relativa del 2 % por defecto; absoluta solo para ángulos (0.5°) y tiempos cortos (0.01 s).
+- En una respuesta vectorial, `tolerance` y `unit` admiten una lista con una entrada por componente, de la misma longitud que la respuesta (F1-10b #256, F1-10c #262); p. ej. magnitud y ángulo: `unit: ['m/s', '°']` con tolerancia relativa en la magnitud y absoluta de 0.5° en el ángulo. Un solo valor se aplica a todas las componentes.
 - Enunciados con la unidad de respuesta esperada explícita. El texto va en `packages/i18n/locales/es/content.json` con la clave `content.<topicId>.<exerciseId>`; `ejercicios.ts` solo la referencia (ARCHITECTURE §3.3).
 - Dificultad creciente: e1 aplicación directa, e2 con conversión de unidades o dos pasos, e3 en el contexto del robot, e4 y e5 opcionales con inversión de la fórmula o razonamiento.
 - Cada ejercicio tiene un test con un valor dorado calculado a mano en `CURRICULUM.md`.
