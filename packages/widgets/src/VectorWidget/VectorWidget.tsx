@@ -9,9 +9,11 @@ import { Scene2D } from '../Scene2D/Scene2D';
 import { Axes } from '../Scene2D/primitives/Axes';
 import { Grid } from '../Scene2D/primitives/Grid';
 import { Vector } from '../Scene2D/primitives/Vector';
+import { createTransform } from '../Scene2D/transform';
+import type { Transform } from '../Scene2D/transform';
 import { DragHandle, SceneOverlay } from '../shared/SceneOverlay';
 import { LiveStatus, ReadoutPanel } from '../shared/ReadoutPanel';
-import { readVectors } from './compute';
+import { VIEW_ASPECT, VIEW_CENTER, readVectors, viewWidth } from './compute';
 import type { Polar, VectorReadout } from './compute';
 
 /** What the panel may show, as docs/WIDGETS.md declares it. */
@@ -25,18 +27,8 @@ export interface VectorWidgetProps {
   unit: string;
 }
 
-/** Margin around the longest vector, so a dragged tip does not leave the view at once. */
-const VIEW_MARGIN = 2.6;
-/** Smallest view width, in the unit of the vectors, for a pair close to zero. */
-const MIN_VIEW = 1;
 /** Decimals of an angle in degrees (#86, decision 6). */
 const ANGLE_DECIMALS = 2;
-
-/** View width that keeps both vectors and their sum comfortably visible. */
-function viewWidth(readout: VectorReadout): number {
-  const reach = Math.max(readout.a.magnitude, readout.b.magnitude, readout.sum.magnitude);
-  return Math.max(reach * VIEW_MARGIN, MIN_VIEW);
-}
 
 interface RowContext {
   show: readonly VectorShow[];
@@ -135,41 +127,79 @@ function Arrows({
   );
 }
 
+/**
+ * The mapping of the current view for the handles. The overlay re-reads the mapping of the scene
+ * only when it is resized, so once the view refits to the tips (#285) its copy is stale and a
+ * handle would sit away from the tip drawn on the canvas; this rebuilds it with the current width.
+ */
+function currentView(overlay: Transform | null, worldWidth_m: number): Transform | null {
+  if (overlay === null) return null;
+  const { widthPx, heightPx, dpr } = overlay;
+  return createTransform({ widthPx, heightPx, worldWidth_m, center_m: VIEW_CENTER, dpr });
+}
+
+/** A draggable tip: the vector it moves, its accessible name and where it reports a move. */
+interface Tip {
+  value: Vec2;
+  label: string;
+  onChange: (next: Vec2) => void;
+}
+
 /** The overlay with the two draggable tips, one per vector (#86, decisions 3 and 4). */
 function Handles({
+  tips,
+  worldWidth_m,
+}: {
+  tips: readonly Tip[];
+  worldWidth_m: number;
+}): JSX.Element {
+  return (
+    <SceneOverlay>
+      {({ transform: overlay, hostRef }) => {
+        const transform = currentView(overlay, worldWidth_m);
+        return tips.map((tip) => (
+          <DragHandle key={tip.label} {...tip} transform={transform} hostRef={hostRef} />
+        ));
+      }}
+    </SceneOverlay>
+  );
+}
+
+/** The scene: grid, axes, the arrows and the handles, in a view fitted to the tips (#285). */
+function VectorScene({
   a,
   b,
+  sum,
   setA,
   setB,
+  withSum,
   t,
 }: {
   a: Vec2;
   b: Vec2;
+  sum: Vec2;
   setA: (next: Vec2) => void;
   setB: (next: Vec2) => void;
+  withSum: boolean;
   t: Translate;
 }): JSX.Element {
+  const worldWidth_m = viewWidth([a, b, sum], VIEW_ASPECT);
+  const tips: Tip[] = [
+    { value: a, label: t('widgets.VectorWidget.handleA'), onChange: setA },
+    { value: b, label: t('widgets.VectorWidget.handleB'), onChange: setB },
+  ];
   return (
-    <SceneOverlay>
-      {({ transform, hostRef }) => (
-        <>
-          <DragHandle
-            value={a}
-            label={t('widgets.VectorWidget.handleA')}
-            onChange={setA}
-            transform={transform}
-            hostRef={hostRef}
-          />
-          <DragHandle
-            value={b}
-            label={t('widgets.VectorWidget.handleB')}
-            onChange={setB}
-            transform={transform}
-            hostRef={hostRef}
-          />
-        </>
-      )}
-    </SceneOverlay>
+    <Scene2D
+      worldWidth_m={worldWidth_m}
+      center_m={[VIEW_CENTER[0], VIEW_CENTER[1]]}
+      aspect={VIEW_ASPECT}
+      description={t('widgets.VectorWidget.scene')}
+    >
+      <Grid />
+      <Axes />
+      <Arrows a={a} b={b} sum={sum} withSum={withSum} t={t} />
+      <Handles tips={tips} worldWidth_m={worldWidth_m} />
+    </Scene2D>
   );
 }
 
@@ -189,7 +219,6 @@ export function VectorWidget({
   const [b, setB] = useState<Vec2>(initialB);
   const readout = useMemo(() => readVectors(a, b), [a, b]);
   const context: RowContext = { show, unit, t };
-  const withSum = show.includes('sum');
   const status = t('widgets.VectorWidget.status', {
     magnitude: format(readout.sum.magnitude, unit),
     angle: readout.sum.angle_deg.toFixed(ANGLE_DECIMALS),
@@ -198,16 +227,15 @@ export function VectorWidget({
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-start">
       <div className="min-w-0 flex-1">
-        <Scene2D
-          worldWidth_m={viewWidth(readout)}
-          aspect={1.4}
-          description={t('widgets.VectorWidget.scene')}
-        >
-          <Grid />
-          <Axes />
-          <Arrows a={a} b={b} sum={readout.sum_components} withSum={withSum} t={t} />
-          <Handles a={a} b={b} setA={setA} setB={setB} t={t} />
-        </Scene2D>
+        <VectorScene
+          a={a}
+          b={b}
+          sum={readout.sum_components}
+          setA={setA}
+          setB={setB}
+          withSum={show.includes('sum')}
+          t={t}
+        />
       </div>
       <div className="md:w-panel">
         <ReadoutPanel

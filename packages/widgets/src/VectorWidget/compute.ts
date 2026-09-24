@@ -3,8 +3,17 @@
  * Every operation delegates to `vec2` and `angles` of sim-core: the widget owns no maths of its
  * own (#86, decision 2 of the assignment). Nothing here touches the DOM.
  */
-import { add2, dot2, length2, radToDeg } from '@trayectoria/sim-core';
+import { add2, dot2, length2, radToDeg, sub2 } from '@trayectoria/sim-core';
 import type { Vec2 } from '@trayectoria/sim-core';
+
+/** Width over height of the scene of the widget. */
+export const VIEW_ASPECT = 1.4;
+/** World point at the centre of the scene: the origin, where both vectors start. */
+export const VIEW_CENTER: Vec2 = [0, 0];
+/** How many times the farthest tip, on each axis, the view spans: room to keep dragging it. */
+const VIEW_MARGIN = 2.6;
+/** Smallest view width, in the unit of the vectors, for tips close to zero. */
+const MIN_VIEW = 1;
 
 /** Magnitude and direction of a vector, with the angle measured by `atan2` (T-0.2). */
 export interface Polar {
@@ -72,4 +81,17 @@ export function readVectors(a: Vec2, b: Vec2): VectorReadout {
     between_rad,
     between_deg: radToDeg(between_rad),
   };
+}
+
+/**
+ * View width, in the unit of the vectors, that keeps every tip inside the scene with a margin
+ * on both axes (#285). The width follows the longest vector, so turning a tip does not zoom;
+ * it grows further only when a tip rises past what the height of the scene, `width / aspect`,
+ * would show.
+ */
+export function viewWidth(tips: readonly Vec2[], aspect: number): number {
+  const offsets = tips.map((tip) => sub2(tip, VIEW_CENTER));
+  const reach = Math.max(...offsets.map(length2));
+  const rise = Math.max(...offsets.map((offset) => Math.abs(offset[1])));
+  return Math.max(reach * VIEW_MARGIN, rise * VIEW_MARGIN * aspect, MIN_VIEW);
 }
