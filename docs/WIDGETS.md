@@ -81,9 +81,9 @@ interface VectorWidgetProps { initialA: [number, number]; initialB?: [number, nu
 ```
 
 ### FreeBodyWidget
-Cuerpo con fuerzas editables, resultante, plano inclinado opcional.
+Cuerpo con fuerzas editables, resultante, plano inclinado opcional. `editableParams` añade sliders de masa `[0.2, 3]` kg, pendiente `[0, 45]`° y μₛ `[0.1, 1]`. Con `mu_s`, el panel muestra `N`, `f_max = μₛ·N` y `a_max = f_max/m`, y el aviso «desliza» aparece cuando la tracción supera `f_max` (la fuerza aplicada se limita a `f_max`) o, sin tracción, cuando `m·g·sinφ > μₛ·N`. Sin `mu_s` ni `editableParams`, el widget no cambia (#305).
 ```ts
-interface FreeBodyWidgetProps { mass_kg: number; forces: Array<{ key: string; label: string; magnitude_N: number; angle_rad: number; editable?: boolean }>; slope_rad?: number; showResultant?: boolean }
+interface FreeBodyWidgetProps { mass_kg: number; forces: Array<{ key: string; label: string; magnitude_N: number; angle_rad: number; editable?: boolean }>; slope_rad?: number; showResultant?: boolean; mu_s?: number; editableParams?: Array<'mass' | 'slope' | 'mu_s'> }
 ```
 
 ### KinematicsWidget
@@ -129,6 +129,7 @@ interface DiffDriveWidgetProps {
   duration_s?: number;
 }
 ```
+En `mode="odometry"`, el panel muestra la velocidad estimada por los encoders, por rueda y del robot, junto a la real: `v ≈ 2π·r·Δticks / (N_e·Δt)`, con `Δticks` y `Δt` del último paso de muestreo. Con pocos ticks por vuelta o a baja velocidad salta en escalones (#306). El slider «ticks por vuelta» del propio widget cambia `N_e` en `[16, 4096]` (#301).
 
 ### LineSensorWidget
 Arreglo de sensores sobre un tramo de línea desplazable; lecturas, posición ponderada, umbral.

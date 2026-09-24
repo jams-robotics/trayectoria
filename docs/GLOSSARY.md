@@ -13,7 +13,7 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | x, y, z | posición | m | `x_m`, `y_m`, `z_m` |
 | x₀ | posición inicial | m | `x0_m` |
 | Δx | desplazamiento en un intervalo (x final − x inicial) | m | `dx_m` |
-| h | altura inicial | m | `h_m` |
+| h | altura inicial; en `E_p = mgh`, altura sobre el nivel de referencia | m | `h_m` |
 | s | distancia recorrida (arco) | m | `s_m` |
 | v | rapidez / velocidad lineal | m/s | `v_mps` |
 | v₀ | velocidad inicial | m/s | `v0_mps` |
@@ -25,17 +25,32 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | α (en tiro) | ángulo de lanzamiento | rad | `launchAngle_rad` |
 | m | masa | kg | `mass_kg` |
 | F | fuerza | N | `force_N` |
+| F_∥ | componente del peso a lo largo de la rampa (mg·sinφ) | N | `weightAlong_N` |
+| F_rueda | fuerza de tracción de una rueda | N | `wheelForce_N` |
 | N | fuerza normal | N | `normal_N` |
 | f | fuerza de fricción | N | `friction_N` |
+| f_max | fricción estática máxima (μₛ·N) | N | `maxFriction_N` |
+| a_max | aceleración máxima sin patinar | m/s² | `maxAccel_mps2` |
+| β | fracción del peso sobre las ruedas motrices | — | `drivenWeightFraction` |
+| d_frenado | distancia de frenado deslizando | m | `brakingDistance_m` |
 | μₛ, μₖ | coeficientes de fricción estática y cinética | — | `mu_s`, `mu_k` |
 | φ | ángulo de pendiente | rad | `slope_rad` |
+| φ_max | pendiente máxima sin deslizar (tanφ_max = μₛ) | rad | `maxSlope_rad` |
 | τ | torque | N·m | `torque_Nm` |
+| τ_motor, τ_rueda | torque en el eje del motor y en la rueda | N·m | `motorTorque_Nm`, `wheelTorque_Nm` |
+| ℓ (en brazo) | brazo de palanca | m | `leverArm_m` |
 | W | trabajo | J | `work_J` |
+| W_neto | trabajo neto (suma del trabajo de todas las fuerzas) | J | `netWork_J` |
+| d (en trabajo) | distancia recorrida por el punto de aplicación de la fuerza | m | `workDistance_m` |
+| θ (en trabajo) | ángulo entre F⃗ y el desplazamiento | rad | `forceAngle_rad` |
 | Eₖ, Eₚ, E | energía cinética, potencial, mecánica | J | `kineticEnergy_J`, `potentialEnergy_J`, `mechanicalEnergy_J` |
+| h_max | altura máxima que alcanza por inercia (v² / 2g) | m | `maxHeight_m` |
 | P | potencia | W | `power_W` |
+| P_el, P_mec | potencia eléctrica y mecánica | W | `electricalPower_W`, `mechanicalPower_W` |
 | η | eficiencia | — | `efficiency` |
 | V, I | voltaje, corriente | V, A | `voltage_V`, `current_A` |
 | C | capacidad de batería | Wh | `batteryCapacity_Wh` |
+| t_autonomía | autonomía (C / P_el) | h | `autonomy_h` |
 | [q] | unidad de la magnitud q, en análisis dimensional (`[v] = m/s`) | — | — (solo notación) |
 
 ## Vectores
@@ -43,6 +58,7 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | Símbolo | Nombre | Unidad | Código |
 |---|---|---|---|
 | v⃗ | velocidad como vector, con magnitud \|v⃗\| = v y componentes vₓ, v_y | m/s | `[vx_mps, vy_mps]` |
+| F⃗, a⃗ (en dinámica) | fuerza y aceleración como vectores | N, m/s² | `[fx_N, fy_N]`, `[ax_mps2, ay_mps2]` |
 | a⃗, b⃗ (en vectores) | vector genérico, con componentes a_x, a_y, b_x, b_y y magnitud \|a⃗\|, \|b⃗\| | la de la magnitud que representa | `a: [number, number]`, `b: [number, number]` |
 | (a, b) (en enunciados de vectores) | vector dado por sus componentes x e y | la de la magnitud que representa | `[number, number]` |
 | a⃗ · b⃗ | producto escalar (a_x·b_x + a_y·b_y) | producto de las unidades de a⃗ y b⃗ | `dot` |
@@ -62,19 +78,30 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | Símbolo | Nombre | Unidad | Código |
 |---|---|---|---|
 | θ | ángulo / orientación (heading) | rad | `theta_rad` |
+| θ₀ | ángulo inicial | rad | `theta0_rad` |
 | ω | velocidad angular | rad/s | `omega_radps` |
 | ω_motor | velocidad angular del eje del motor | rad/s | `omegaMotor_radps` |
 | ω_rueda | velocidad angular de la rueda (ω_motor / i) | rad/s | `omegaWheel_radps` |
 | ω_max | velocidad angular máxima de la rueda (ω_motor sin carga / i) | rad/s | `omegaMax_radps` |
+| ω₀ | velocidad angular inicial | rad/s | `omega0_radps` |
+| Δω | cambio de velocidad angular en un intervalo | rad/s | `dOmega_radps` |
 | α | aceleración angular | rad/s² | `alpha_radps2` |
+| a_t | aceleración tangencial (α·r) | m/s² | `tangentialAccel_mps2` |
 | n | velocidad de giro | rpm | `speed_rpm` (solo entrada de usuario) |
+| n_motor, n_rueda | velocidad de giro del motor y de la rueda | rpm | `motorSpeed_rpm`, `wheelSpeed_rpm` |
 | T | período | s | `period_s` |
 | f | frecuencia | Hz | `frequency_Hz` |
 | r | radio de rueda | m | `wheelRadius_m` |
 | a_c | aceleración centrípeta | m/s² | `centripetalAccel_mps2` |
 | i | relación de reducción (n_motor / n_salida) | — | `gearRatio` |
 | z | número de dientes | — | `teeth` |
+| subíndices 1, 2 (en transmisión) | eje de entrada y de salida de un par (z₁, z₂, n₁, n₂, ω₁, ω₂, τ₁, τ₂, P₁, P₂); z₃, z₄, los de la segunda etapa | la de la magnitud | `z1`…`z4`; entrada `nIn_rpm`, `torqueIn_Nm` |
+| i₁, i₂ | relación de cada etapa de un tren | — | `stageRatio` |
+| i_total | relación del tren (i₁·i₂) | — | `totalRatio` |
 | N_e | ticks del encoder por revolución | — | `encoderTicksPerRev` |
+| ticks | cuenta del encoder | — | `ticks` |
+| Δticks | ticks contados en un intervalo | — | `deltaTicks` |
+| res | resolución lineal del encoder (2πr / N_e) | m | `encoderResolution_m` |
 
 ## Robot diferencial
 
@@ -86,6 +113,7 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | v_L, v_R | velocidad lineal de rueda | m/s | `vL_mps`, `vR_mps` |
 | v, ω | velocidad lineal y angular del robot | m/s, rad/s | `v_mps`, `omega_radps` |
 | v_max | velocidad lineal máxima del robot (ω_max · r) | m/s | `vMax_mps` |
+| v_max,curva | rapidez máxima en curva sin patinar (√(μₛ·g·R)) | m/s | `maxCurveSpeed_mps` |
 | R | radio de giro | m | `turnRadius_m` |
 | CIR | centro instantáneo de rotación | m | `icr: { x_m, y_m }` |
 | N | número de sensores de línea | — | `lineSensors.count` |
