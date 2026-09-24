@@ -76,7 +76,7 @@ export function KinematicsWidget({
     <div className="flex flex-col gap-4">
       <MotionScene motion={motion} t_s={t_s} duration_s={duration_s} t={t} />
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-        <div className="flex min-w-0 flex-1 flex-col gap-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden">
           <Charts
             motion={motion}
             timeline={timeline}
