@@ -29,7 +29,7 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | α (en tiro) | ángulo de lanzamiento | rad | `launchAngle_rad` |
 | t_v | tiempo de vuelo | s | `flightTime_s` |
 | R (en tiro) | alcance horizontal | m | `range_m` |
-| H (en tiro) | altura máxima | m | `maxHeight_m` |
+| H (en tiro) | altura máxima | m | `apexHeight_m` |
 | m | masa | kg | `mass_kg` |
 | F | fuerza | N | `force_N` |
 | N | fuerza normal | N | `normal_N` |
