@@ -17,7 +17,7 @@ import {
 } from './compute';
 import type { Pose, Twist, WheelCommand } from './compute';
 import { headingError_deg, positionError_m } from './odometry';
-import type { Step, Ticks } from './odometry';
+import type { EstimatedVelocity, Step, Ticks } from './odometry';
 
 /** Everything the panels read: the pose, the twist it comes from and the wheel commands. */
 export interface Readout {
@@ -130,11 +130,14 @@ export interface OdometryReadout {
   ticks: Ticks;
   /** Advance and turn of the last step the estimator took. */
   step: Step;
+  /** Velocity the encoders estimate from that step, per wheel and for the robot (T-4.5). */
+  velocity: EstimatedVelocity;
 }
 
 /**
- * The lines of the odometry panel: `Δs` and `Δθ` of the last step, the estimated pose and the
- * two errors against the real one (#93, decision 3). The real pose already has its own panel.
+ * The lines of the odometry panel: `Δs` and `Δθ` of the last step, the velocity the encoders
+ * estimate from it, the estimated pose and the two errors against the real one (#93, decision 3;
+ * T-4.5). The real pose and the real velocity already have their own panel.
  */
 export function odometryRows(
   odometry: OdometryReadout,
@@ -143,10 +146,14 @@ export function odometryRows(
 ): readonly ReadoutRow[] {
   const key = (name: string): string => t(`widgets.DiffDriveWidget.${name}`);
   const unitM = key('unitM');
-  const { estimated, step } = odometry;
+  const unitMps = key('unitMps');
+  const { estimated, step, velocity } = odometry;
   return [
     [key('deltaS'), format(step.deltaS_m, unitM)],
     [key('deltaTheta'), format(step.deltaTheta_rad, key('unitRad'))],
+    [key('estimatedVL'), format(velocity.left_mps, unitMps)],
+    [key('estimatedVR'), format(velocity.right_mps, unitMps)],
+    [key('estimatedV'), format(velocity.robot_mps, unitMps)],
     [key('estimatedX'), format(estimated.x_m, unitM)],
     [key('estimatedY'), format(estimated.y_m, unitM)],
     [key('estimatedTheta'), format(radToDeg(estimated.theta_rad), key('unitDeg'))],
