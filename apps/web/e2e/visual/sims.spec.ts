@@ -22,6 +22,14 @@ const SECTION = 'TrackEditor';
 const INTRINSIC_CANVAS_WIDTH_PX = 300;
 
 /**
+ * Viewport de las capturas del editor (#281): el ancho por defecto del proyecto, con alto de sobra
+ * para la story más alta. Si la story no cabe, Chromium agranda el viewport mientras la captura;
+ * el `ResizeObserver` de Scene2D repinta el lienzo a mitad de captura y ese repintado rasteriza el
+ * texto de la escala con otro antialiasado que la primera pintura.
+ */
+const CAPTURE_VIEWPORT = { width: 1280, height: 1400 };
+
+/**
  * Abre el playground de sims en tema claro, filtrado a una sección. Con el filtro la captura se
  * toma sobre una página que solo lleva su propio componente, de modo que añadir una story a otro
  * no la desplaza ni invalida su instantánea (#108, decisión 2; spec gap #117).
@@ -43,9 +51,13 @@ async function openPlayground(page: Page): Promise<void> {
 
 for (const { story, shot } of STORIES) {
   test(`${shot} looks as approved`, async ({ page }) => {
+    await page.setViewportSize(CAPTURE_VIEWPORT);
     await openPlayground(page);
     const target = page.locator(`[data-section="${SECTION}"] [data-story="${story}"]`);
     await expect(target).toBeVisible();
+    // Una story que crezca por encima del viewport volvería a la captura con repintado: falla aquí.
+    const box = await target.boundingBox();
+    expect(box?.height ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(CAPTURE_VIEWPORT.height);
     // La story `Selected` hace su selección al montar: la marca del segmento es la puerta de
     // «el resaltado ya está en el lienzo» (#160).
     if (story === 'Selected') {
