@@ -1,4 +1,4 @@
-import { defineExercise } from '@trayectoria/sim-core';
+import { defineExercise, degToRad, radToDeg } from '@trayectoria/sim-core';
 import type { SeededRng } from '@trayectoria/sim-core';
 
 import type { TopicExercise } from '../../../index';
@@ -16,7 +16,6 @@ const STATEMENT_PREFIX = 'content.ruta-1/m00-t02';
 const RELATIVE_2_PERCENT = { type: 'relative', value: 0.02 } as const;
 const ABSOLUTE_HALF_DEGREE = { type: 'absolute', value: 0.5 } as const;
 
-const DEG_TO_RAD = Math.PI / 180;
 const HUNDREDTHS = 100;
 
 /** e4 asks for the angle between two fixed vectors of the spec. */
@@ -25,7 +24,7 @@ const E4_B: readonly [number, number] = [0.5, 0];
 
 /** `vₓ = v cosθ`, `v_y = v sinθ`, with θ in degrees. */
 export function components_mps(v_mps: number, theta_deg: number): [number, number] {
-  const theta_rad = theta_deg * DEG_TO_RAD;
+  const theta_rad = degToRad(theta_deg);
   return [v_mps * Math.cos(theta_rad), v_mps * Math.sin(theta_rad)];
 }
 
@@ -36,7 +35,7 @@ export function magnitude(x: number, y: number): number {
 
 /** `θ = atan2(v_y, vₓ)` in degrees, in (−180°, 180°]: atan2 keeps the quadrant that atan loses. */
 export function heading_deg(x: number, y: number): number {
-  return Math.atan2(y, x) / DEG_TO_RAD;
+  return radToDeg(Math.atan2(y, x));
 }
 
 /** `φ` in degrees, from `a⃗ · b⃗ = |a⃗||b⃗| cos φ`. */
@@ -47,7 +46,7 @@ export function angleBetween_deg(
   const dot = a[0] * b[0] + a[1] * b[1];
   const cosine = dot / (magnitude(a[0], a[1]) * magnitude(b[0], b[1]));
   // Rounding can push the cosine of (anti)parallel vectors just past ±1.
-  return Math.acos(Math.min(1, Math.max(-1, cosine))) / DEG_TO_RAD;
+  return radToDeg(Math.acos(Math.min(1, Math.max(-1, cosine))));
 }
 
 /** A value on the hundredth grid, in [min, max]. */
