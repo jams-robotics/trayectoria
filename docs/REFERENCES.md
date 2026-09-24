@@ -4,7 +4,7 @@ Claves usadas en el frontmatter de los temas. Solo se añaden libros de la lista
 
 | Clave | Referencia |
 |---|---|
-| young-freedman-1 | Young, H. D. y Freedman, R. A. *Física universitaria*, vol. 1. Cap. 1, "Unidades, cantidades físicas y vectores". |
+| young-freedman-1 | Young, H. D., Freedman, R. A. (con Ford, A. L.). *Sears y Zemansky. Física universitaria con física moderna*, vol. 1, 14.ª ed. Pearson Educación de México, 2018. ISBN 978-607-32-4439-8 (traducción de *University Physics with Modern Physics*, 14.ª ed., 2016). Cap. 1, "Unidades, cantidades físicas y vectores". |
 | young-freedman-2 | Ídem. Cap. 2, "Movimiento rectilíneo". |
 | young-freedman-3 | Ídem. Cap. 3, "Movimiento en dos o tres dimensiones". |
 | young-freedman-4 | Ídem. Cap. 4, "Leyes del movimiento de Newton". |
@@ -13,7 +13,7 @@ Claves usadas en el frontmatter de los temas. Solo se añaden libros de la lista
 | young-freedman-7 | Ídem. Cap. 7, "Energía potencial y conservación de la energía". |
 | young-freedman-9 | Ídem. Cap. 9, "Rotación de cuerpos rígidos". |
 | young-freedman-10 | Ídem. Cap. 10, "Dinámica del movimiento de rotación". |
-| serway-1 | Serway, R. A. y Jewett, J. W. *Física para ciencias e ingeniería*, vol. 1. Cap. 1, "Física y medición". |
+| serway-1 | Serway, R. A. y Jewett, J. W. *Física para ciencias e ingeniería*, vol. 1, 10.ª ed. Cengage, 2019. ISBN 978-607-526-669-5. Cap. 1, "Física y medición". |
 | serway-2 | Ídem. Cap. 2, "Movimiento en una dimensión". |
 | serway-4 | Ídem. Cap. 4, "Movimiento en dos dimensiones". |
 | serway-5 | Ídem. Cap. 5, "Las leyes del movimiento". |
@@ -25,3 +25,7 @@ Claves usadas en el frontmatter de los temas. Solo se añaden libros de la lista
 | craig-2 | Craig, J. J. *Robótica*, 3.ª ed. Cap. 2, "Descripciones espaciales y transformaciones". |
 | craig-3 | Ídem. Cap. 3, "Cinemática de manipuladores". |
 | astrom-murray-11 | Åström, K. J. y Murray, R. M. *Feedback Systems*, 2.ª ed. Cap. 11, "PID Control". |
+
+## Capítulos confirmados
+
+- `young-freedman-1`, `young-freedman-2`, `serway-1` y `serway-2` (Módulo 0, #276): capítulos confirmados con el índice de la edición original; títulos en español según la traducción. Fuente: índice público de la edición original de cada libro, en el catálogo de la editorial (*University Physics with Modern Physics*, 14.ª ed., para Young y Freedman; *Physics for Scientists and Engineers*, 10.ª ed., para Serway y Jewett), cuya numeración de capítulos coincide con la de la traducción.
