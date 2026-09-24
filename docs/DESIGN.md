@@ -91,6 +91,8 @@ Sombras: `--shadow-sm` para thumbs de slider y tarjetas flotantes dentro de un v
 
 Anchos: contenido 1120 px (Inicio, Ruta), 1200 px (Tema), 1240 px (Aula); simuladores a ancho completo con padding 32. Panel lateral de simulador 340–360 px, token `--size-panel-side` = 352 px (utilidad `w-panel`); índice de secciones 200 px; lateral de Ruta 300 px.
 
+Página de tema (#302): texto corrido, tarjetas `Formula` y `RobotFormula`, tarjetas `Experimento`, `MyRobotWidget` y ejercicios de Verifica comparten una sola columna de lectura de 72ch, con los mismos bordes izquierdo y derecho. Solo los widgets grandes de Explora (simuladores con visor) usan todo el ancho de la columna de contenido. En móvil no cambia nada (§9).
+
 ---
 
 ## 5. Componentes base
