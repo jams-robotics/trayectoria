@@ -11,6 +11,9 @@ const ISLAND_TIMEOUT_MS = 30_000;
 /** Muestras del cálculo del e2e (decisión 6). */
 const SAMPLE_COUNT = 5_000;
 
+/** Salto del reloj falso al pararlo: `pauseAt` solo avanza, nunca retrocede. */
+const CLOCK_JUMP_MS = 1_000;
+
 /** Viewport móvil de las maquetas (docs/DESIGN.md §9). */
 const MOBILE_VIEWPORT = { width: 390, height: 900 };
 
@@ -60,12 +63,19 @@ test.describe('/simuladores/brazo · espacio de trabajo (F5-03)', () => {
   }) => {
     await openArm(page, 'planar2dof');
     await enableWorkspace(page);
+    // #281: con n = 5 000 los lotes, planificados en tiempo ocioso, pueden acabar entre una
+    // aserción y la siguiente. Con el reloj de la página parado no corre ningún lote, así que el
+    // estado «calculando» se queda quieto mientras se comprueba.
+    await page.clock.install();
+    await page.clock.pauseAt(Date.now() + CLOCK_JUMP_MS);
     await compute(page, SAMPLE_COUNT);
 
     // Mientras corre, el botón ofrece cancelar y la barra anuncia el progreso.
     await expect(page.locator('[data-testid="workspace-compute"]')).toHaveText('Cancelar');
     await expect(page.locator('[data-testid="workspace-progress"]')).toBeVisible();
 
+    // Con el reloj en marcha de nuevo, los lotes corren hasta el final.
+    await page.clock.resume();
     // Al terminar, el botón vuelve a Calcular y el estado declara las muestras de la nube.
     await expect(page.locator('[data-testid="workspace-compute"]')).toHaveText('Calcular', {
       timeout: ISLAND_TIMEOUT_MS,
