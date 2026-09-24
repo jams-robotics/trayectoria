@@ -292,7 +292,7 @@ describe('Plot: entornos sin canvas', () => {
     }
   });
 
-  it('follows the container width through a ResizeObserver', async () => {
+  it('follows the content width of its card through a ResizeObserver (#283)', async () => {
     const observers: (() => void)[] = [];
     class FakeResizeObserver {
       constructor(private readonly callback: () => void) {
@@ -311,10 +311,14 @@ describe('Plot: entornos sin canvas', () => {
       await waitForData();
       const before = (await lastOptions()).width;
 
-      // The card now measures 300 px: the chart is rebuilt at that width.
+      // The chart area now measures 300 px, and the card 334 px with its padding (clientWidth
+      // excludes the border): the chart is rebuilt at the content width, not the card's, or it
+      // would overflow it.
       Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
         configurable: true,
-        value: 300,
+        get(this: HTMLElement) {
+          return this.tagName === 'FIGURE' ? 334 : 300;
+        },
       });
       observers.forEach((notify) => {
         notify();
