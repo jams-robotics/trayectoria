@@ -22,5 +22,11 @@
     "e2": "Tu robot va a v₀ = {{v0_mps}} m/s y frena con a = {{a_mps2}} m/s² hasta detenerse. ¿Qué distancia recorre mientras frena, en m?",
     "e3": "Tu robot arranca desde el reposo con a = {{a_mps2}} m/s². ¿Cuánto tarda en recorrer Δx = {{dx_m}} m, en s?",
     "e4": "Tu robot recorre una pista recta de 4 m: arranca desde el reposo, acelera con a = 0.4 m/s² hasta v = 0.6 m/s y sigue a velocidad constante. ¿Cuánto tarda en total, en s?"
+  },
+  "ruta-1/m04-t01": {
+    "e1": "El eje de salida de tu motorreductor gira a n = {{speed_rpm}} rpm. ¿Cuál es su velocidad angular ω, en rad/s?",
+    "e2": "La rueda de tu robot gira a n = {{speed_rpm}} rpm. ¿Cuánto dura una vuelta, es decir, su período T, en s?",
+    "e3": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s. ¿Cuántas vueltas da?",
+    "e4": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s, desde θ₀ = 0 rad. ¿Qué ángulo θ gira, en rad?"
   }
 }
