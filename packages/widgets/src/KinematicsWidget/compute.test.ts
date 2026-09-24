@@ -4,11 +4,13 @@ import {
   accelAt,
   positionAt,
   sampleMotion,
+  sceneViewOf,
   tangentSegment,
   velocityAt,
+  velocityTipOf,
   worldWidthOf,
 } from './compute';
-import type { Motion } from './compute';
+import type { Motion, SceneView } from './compute';
 
 /** The motion of the «Explora» of T-0.3: `v0 = 0.5 m/s`, `a = 0.2 m/s²` over 5 s. */
 const T03: Motion = { x0_m: 0, v0_mps: 0.5, a_mps2: 0.2 };
@@ -93,5 +95,67 @@ describe('muestreo y encuadre (F2-04)', () => {
     expect(worldWidthOf(T03, T03_DURATION_S)).toBeCloseTo(5.5, 12);
     // Un movimiento casi quieto no colapsa la escena.
     expect(worldWidthOf({ x0_m: 0, v0_mps: 0, a_mps2: 0 }, 4)).toBe(1);
+  });
+});
+
+/** Least and greatest x the view shows, in metres. */
+function boundsOf(view: SceneView): [number, number] {
+  return [view.centerX_m - view.worldWidth_m / 2, view.centerX_m + view.worldWidth_m / 2];
+}
+
+describe('vista de la escena (#303)', () => {
+  it('con a < 0 contiene x(t) en todo [0, 5 s], incluido x(5) = −10.25 m', () => {
+    const motion: Motion = { x0_m: 0, v0_mps: 0.7, a_mps2: -1.1 };
+    expect(positionAt(motion, 5)).toBeCloseTo(-10.25, 12);
+    const [min_m, max_m] = boundsOf(sceneViewOf(motion, 5));
+    for (const x_m of sampleMotion(motion, 5).x_m) {
+      expect(x_m).toBeGreaterThan(min_m);
+      expect(x_m).toBeLessThan(max_m);
+    }
+  });
+
+  it('con los valores del gancho de m00-t03 contiene toda la trayectoria', () => {
+    const [min_m, max_m] = boundsOf(sceneViewOf(T03, T03_DURATION_S));
+    for (const x_m of sampleMotion(T03, T03_DURATION_S).x_m) {
+      expect(x_m).toBeGreaterThan(min_m);
+      expect(x_m).toBeLessThan(max_m);
+    }
+  });
+
+  it('centra el rango recorrido, también cuando la partícula retrocede', () => {
+    // x sube hasta x(0.7/1.1) ≈ 0.2227 m y baja hasta x(5) = −10.25 m.
+    const view = sceneViewOf({ x0_m: 0, v0_mps: 0.7, a_mps2: -1.1 }, 5);
+    expect(view.centerX_m).toBeCloseTo((0.7 * 0.7) / (2 * 1.1) / 2 - 10.25 / 2, 12);
+  });
+
+  it('deja sitio a la flecha en los extremos del recorrido', () => {
+    const view = sceneViewOf(T03, T03_DURATION_S);
+    // Al final, x(5) = 5 m con v(5) = 1.5 m/s: la flecha sigue midiendo al menos el 5 % de la vista.
+    const tip_m = velocityTipOf(5, velocityAt(T03, 5), view);
+    expect(tip_m - 5).toBeGreaterThan(0.05 * view.worldWidth_m);
+  });
+});
+
+describe('flecha de velocidad (#303)', () => {
+  const view: SceneView = { worldWidth_m: 10, centerX_m: 0 };
+
+  it('su largo es proporcional a v mientras no llega al borde', () => {
+    const short_m = velocityTipOf(0, 0.5, view);
+    const long_m = velocityTipOf(0, 1, view);
+    expect(long_m).toBeCloseTo(2 * short_m, 12);
+    expect(velocityTipOf(0, -1, view)).toBeCloseTo(-long_m, 12);
+    expect(velocityTipOf(1, 0, view)).toBe(1);
+  });
+
+  it('tiene un tope: la punta no sale de la vista y no invierte el sentido', () => {
+    const [min_m, max_m] = boundsOf(view);
+    const right_m = velocityTipOf(3, 50, view);
+    const left_m = velocityTipOf(-3, -50, view);
+    expect(right_m).toBeGreaterThan(3);
+    expect(right_m).toBeLessThan(max_m);
+    expect(left_m).toBeLessThan(-3);
+    expect(left_m).toBeGreaterThan(min_m);
+    // Pegada al borde, la flecha no apunta hacia atrás.
+    expect(velocityTipOf(max_m - 0.01, 50, view)).toBe(max_m - 0.01);
   });
 });
