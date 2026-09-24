@@ -1,0 +1,152 @@
+---
+id: ruta-1/m00-t02
+title: 'Vectores'
+module: 0
+order: 2
+estimatedMinutes: 30
+prerequisites: [ruta-1/m00-t01]
+objectives:
+  - Descomponer un vector en componentes y recomponerlo
+  - Sumar vectores
+  - Usar el producto escalar para el ángulo entre dos vectores
+widgets: [VectorWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [young-freedman-1]
+status: review
+---
+
+<Gancho>
+Tu robot avanza a 0.5 m/s apuntando 30° respecto al eje x de la mesa. ¿Cuánto avanza en x y
+cuánto en y cada segundo?
+</Gancho>
+
+<Concepto>
+Un **vector** es una magnitud con dirección. Se describe con dos datos: su **magnitud**, que dice
+cuánto, y su dirección, el ángulo θ que forma con el eje x, medido en sentido antihorario.
+
+El mismo vector se escribe también con sus **componentes**: cuánto mide a lo largo de x y cuánto
+a lo largo de y. Si una velocidad v⃗ tiene magnitud v y ángulo θ, sus componentes son
+vₓ = v cosθ y v_y = v sinθ. Con los números del gancho, vₓ = 0.5 · cos 30° = 0.433 m/s y
+v_y = 0.5 · sin 30° = 0.25 m/s: cada segundo tu robot avanza 0.433 m en x y 0.25 m en y.
+
+El camino inverso recompone el vector. La magnitud sale del teorema de Pitágoras,
+|v⃗| = √(vₓ² + v_y²), y el ángulo, de θ = atan2(v_y, vₓ). No uses atan(v_y/vₓ): el cociente
+pierde los signos, y (0.3, 0.4) y (−0.3, −0.4) dan el mismo valor aunque apunten en sentidos
+opuestos. atan2 recibe las dos componentes por separado, mira sus signos y devuelve el ángulo en
+el cuadrante correcto, entre −180° y 180°.
+
+Para sumar dos vectores se suman sus componentes: a⃗ + b⃗ = (a_x + b_x, a_y + b_y). Las
+magnitudes no se suman: dos desplazamientos de 1 m en sentidos opuestos dan un desplazamiento
+total de 0 m.
+
+El **producto escalar** combina dos vectores en un número: a⃗ · b⃗ = a_x·b_x + a_y·b_y. También
+vale |a⃗||b⃗| cos φ, con φ el ángulo entre ellos, así que igualando las dos formas se despeja φ.
+Si el producto escalar es cero, los vectores son perpendiculares; si es negativo, forman más de
+90°.
+
+La velocidad de tu robot es un vector. Su magnitud es la rapidez, en m/s; su dirección es el
+rumbo θ. Solo con las dos sabes hacia dónde va y qué tan rápido.
+</Concepto>
+
+<Formulas>
+<Formula latex="v_x = v\cos\theta,\quad v_y = v\sin\theta" />
+
+- `vₓ, v_y` · componentes de velocidad · m/s
+- `v` · rapidez · m/s
+- `θ` · ángulo respecto al eje x · rad
+
+<Formula latex="|\vec v| = \sqrt{v_x^2+v_y^2}" />
+
+- `|v⃗|` · magnitud de la velocidad como vector · m/s
+- `vₓ, v_y` · componentes de velocidad · m/s
+
+<Formula latex="\theta = \operatorname{atan2}(v_y, v_x)" />
+
+- `θ` · ángulo respecto al eje x · rad
+- `vₓ, v_y` · componentes de velocidad · m/s
+
+<Formula latex="\vec a + \vec b = (a_x+b_x,\ a_y+b_y)" />
+
+- `a⃗, b⃗` · vector genérico · la de la magnitud que representa
+- `a_x, a_y, b_x, b_y` · componentes de a⃗ y de b⃗ · la de la magnitud que representa
+
+<Formula latex="\vec a\cdot\vec b = a_xb_x+a_yb_y = |\vec a||\vec b|\cos\varphi" />
+
+- `a⃗ · b⃗` · producto escalar · producto de las unidades de a⃗ y b⃗
+- `|a⃗|, |b⃗|` · magnitudes de a⃗ y de b⃗ · la de la magnitud que representan
+- `φ` · ángulo entre dos vectores · rad
+</Formulas>
+
+<Explora>
+Dos vectores de velocidad, a y b, salen del origen y se arrastran por la punta. El panel muestra
+las componentes y el ángulo de cada uno, su suma y su producto escalar. a empieza como la
+velocidad del gancho: 0.5 m/s a 30°.
+
+<VectorWidget
+  initialA={[0.433, 0.25]}
+  initialB={[0.2, -0.1]}
+  show={['components', 'sum', 'angle', 'dot']}
+  unit="m/s"
+/>
+
+<Experimento
+  cambia="la punta de a, arrastrándola sin cambiar su longitud"
+  observa="las componentes de a"
+  porque="¿Por qué una componente crece mientras la otra decrece?"
+>
+La longitud fija la magnitud, y |a⃗|² = a_x² + a_y² no cambia. Si una componente crece, la otra
+tiene que decrecer para que la suma de sus cuadrados siga igual. Solo cambia el ángulo, que
+reparte la magnitud entre x e y.
+</Experimento>
+
+<Experimento
+  cambia="b, hasta que apunte en sentido opuesto a a"
+  observa="la suma a + b"
+  porque="¿Por qué la suma se acerca a cero?"
+>
+Las componentes de b tienen signo contrario a las de a, y al sumarlas componente a componente se
+cancelan. Si además b mide lo mismo que a, la suma es exactamente el vector cero.
+</Experimento>
+
+<Experimento
+  cambia="b, hasta que quede perpendicular a a"
+  observa="el producto escalar a · b"
+  porque="¿Por qué vale cero?"
+>
+a⃗ · b⃗ = |a⃗||b⃗| cos φ, y con φ = 90° el coseno es cero. Da igual cuánto midan los dos vectores:
+el producto escalar es cero siempre que sean perpendiculares.
+</Experimento>
+</Explora>
+
+<AlRobot>
+En [Unidades y magnitudes](/ruta/ruta-1/m00/t01) calculaste la velocidad de giro de la rueda con
+el motor sin carga. Es ω_max, la velocidad angular máxima de la rueda. Este tema no pide ningún
+dato nuevo de «Mi robot»: con ω_max y el radio r de la rueda sale v_max, la velocidad lineal
+máxima de tu robot.
+
+<RobotFormula calc="ruta-1/m00-t02/v-max" />
+
+v_max es una rapidez: dice qué tan rápido puede ir tu robot, pero no hacia dónde. Para tener el
+vector velocidad falta el rumbo. Si tu robot avanza a v_max con un rumbo θ = 30° respecto al eje
+x de la mesa, como en el gancho, sus componentes son:
+
+<RobotFormula calc="ruta-1/m00-t02/vx" />
+
+<RobotFormula calc="ruta-1/m00-t02/vy" />
+
+Con el robot de referencia, ω_max = 20.94 rad/s y r = 0.032 m dan v_max = 0.670 m/s. A 30°,
+cada segundo avanza 0.580 m en x y 0.335 m en y. Si cambias el motor, la reducción o el radio
+de la rueda en tu perfil, las tres fórmulas se recalculan con tus datos.
+
+Comprueba la recomposición: √(0.580² + 0.335²) = 0.670 m/s. Las componentes reparten la rapidez
+entre los dos ejes, pero no la aumentan: ningún rumbo hace que tu robot vaya más rápido que
+v_max.
+</AlRobot>
+
+<Verifica
+  ejercicios={['ruta-1/m00-t02/e1', 'ruta-1/m00-t02/e2', 'ruta-1/m00-t02/e3', 'ruta-1/m00-t02/e4']}
+  topicId="ruta-1/m00-t02"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['young-freedman-1']} topicId="ruta-1/m00-t02" />

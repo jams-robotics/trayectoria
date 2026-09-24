@@ -5,6 +5,12 @@
     "e3": "Un robot recorre {{x_m}} m en {{t_s}} s. Expresa su rapidez en cm/s.",
     "e4": "Un motor funciona a {{voltage_V}} V y consume {{current_A}} A. ¿Qué potencia consume, en W?"
   },
+  "ruta-1/m00-t02": {
+    "e1": "Tu robot avanza a v = {{v_mps}} m/s con un rumbo θ = {{theta_deg}}° respecto al eje x. ¿Cuáles son sus componentes vₓ y v_y, en m/s?",
+    "e2": "La velocidad de tu robot es el vector ({{a_mps}}, {{b_mps}}) m/s. ¿Cuál es su magnitud, en m/s, y su ángulo respecto al eje x, en grados entre −180° y 180°?",
+    "e3": "Tu robot hace dos desplazamientos seguidos: a⃗ = ({{ax_m}}, {{ay_m}}) m y b⃗ = ({{bx_m}}, {{by_m}}) m. ¿Cuál es la magnitud del desplazamiento total a⃗ + b⃗, en m?",
+    "e4": "¿Qué ángulo φ forman los vectores (0.3, 0.4) y (0.5, 0)? Responde en grados."
+  },
   "ruta-1/m00-t03": {
     "e1": "Entre dos lecturas, tu robot avanza Δx = {{dx_m}} m en Δt = {{dt_s}} s. ¿Cuál es su velocidad media, en m/s?",
     "e2": "La posición de tu robot sigue x(t) = c·t² con c = {{coefC_mps2}} m/s². ¿Cuál es su velocidad en t = {{t_s}} s, en m/s?",

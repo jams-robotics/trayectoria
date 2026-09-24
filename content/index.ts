@@ -3,6 +3,8 @@ import type { Exercise } from '@trayectoria/sim-core';
 
 import { robotCalcs as m00t01RobotCalcs } from './es/ruta-1/m00-t01/alrobot';
 import { exercises as m00t01Exercises } from './es/ruta-1/m00-t01/ejercicios';
+import { robotCalcs as m00t02RobotCalcs } from './es/ruta-1/m00-t02/alrobot';
+import { exercises as m00t02Exercises } from './es/ruta-1/m00-t02/ejercicios';
 import { exercises as m00t03Exercises } from './es/ruta-1/m00-t03/ejercicios';
 
 /**
@@ -85,6 +87,7 @@ function registerById<T extends { readonly id: string }>(
  */
 export const EXERCISES: ReadonlyMap<string, TopicExercise> = registerTopics({
   'ruta-1/m00-t01': m00t01Exercises,
+  'ruta-1/m00-t02': m00t02Exercises,
   'ruta-1/m00-t03': m00t03Exercises,
 });
 
@@ -94,4 +97,5 @@ export const EXERCISES: ReadonlyMap<string, TopicExercise> = registerTopics({
  */
 export const ROBOT_CALCS: ReadonlyMap<string, RobotCalc> = registerRobotCalcs({
   'ruta-1/m00-t01': m00t01RobotCalcs,
+  'ruta-1/m00-t02': m00t02RobotCalcs,
 });

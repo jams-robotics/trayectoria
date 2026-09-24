@@ -29,7 +29,9 @@ function within(value: number, expected: number, tolerance: Tolerance): boolean 
 }
 
 /** Narrows a tolerance declaration to its per-component list form, like sim-core's own `isToleranceList`. */
-function isToleranceList(tolerance: Tolerance | readonly Tolerance[]): tolerance is readonly Tolerance[] {
+function isToleranceList(
+  tolerance: Tolerance | readonly Tolerance[],
+): tolerance is readonly Tolerance[] {
   return Array.isArray(tolerance);
 }
 
@@ -54,15 +56,13 @@ describe('T-0.2 golden values', () => {
   });
 
   it('e3: (1.2, 0.5) + (−0.4, 0.8) → 1.526 m', () => {
-    expect(within(magnitude(1.2 - 0.4, 0.5 + 0.8), 1.526, toleranceAt(e3.tolerance, 0))).toBe(
-      true,
-    );
+    expect(within(magnitude(1.2 - 0.4, 0.5 + 0.8), 1.526, toleranceAt(e3.tolerance, 0))).toBe(true);
   });
 
   it('e4: angle between (0.3, 0.4) and (0.5, 0) → 53.13°', () => {
-    expect(within(angleBetween_deg([0.3, 0.4], [0.5, 0]), 53.13, toleranceAt(e4.tolerance, 0))).toBe(
-      true,
-    );
+    expect(
+      within(angleBetween_deg([0.3, 0.4], [0.5, 0]), 53.13, toleranceAt(e4.tolerance, 0)),
+    ).toBe(true);
   });
 
   it('declare relative 2 % for magnitudes and components, absolute 0.5° for angles', () => {
