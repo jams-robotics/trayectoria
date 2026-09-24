@@ -23,6 +23,8 @@ const MIN_WORLD_WIDTH_M = 1;
 const ARROW_SHARE_PER_MPS = 0.15;
 /** Share of the view width kept between the arrow tip and the edge, room for its label (#303). */
 const ARROW_EDGE_SHARE = 0.04;
+/** Share of the view width left free on each side of the range, room for the arrow (#303). */
+const ARROW_ROOM_SHARE = 0.1;
 
 /** Position `x = x0 + v0 t + ½ a t²`, in metres (T-1.2). */
 export function positionAt(motion: Motion, t_s: number): number {
@@ -108,8 +110,8 @@ export function positionRange(motion: Motion, duration_s: number): [number, numb
 }
 
 /**
- * Width of the scene in metres: the travelled range widened by `VIEW_MARGIN`, never below
- * `MIN_WORLD_WIDTH_M` (#87, decision 6).
+ * Width framed around the motion in metres: the travelled range widened by `VIEW_MARGIN`, never
+ * below `MIN_WORLD_WIDTH_M` (#87, decision 6). The scene adds room for the arrow on top of it.
  */
 export function worldWidthOf(motion: Motion, duration_s: number): number {
   const [min_m, max_m] = positionRange(motion, duration_s);
@@ -124,11 +126,15 @@ export interface SceneView {
 
 /**
  * View of the scene: the whole range travelled over `[0, duration_s]`, turning points included,
- * centred and with the margin of `worldWidthOf` (#303).
+ * centred, with the margin of `worldWidthOf` and `ARROW_ROOM_SHARE` free on each side so the
+ * velocity arrow still shows at either end (#303).
  */
 export function sceneViewOf(motion: Motion, duration_s: number): SceneView {
   const [min_m, max_m] = positionRange(motion, duration_s);
-  return { worldWidth_m: worldWidthOf(motion, duration_s), centerX_m: (min_m + max_m) / 2 };
+  return {
+    worldWidth_m: worldWidthOf(motion, duration_s) / (1 - 2 * ARROW_ROOM_SHARE),
+    centerX_m: (min_m + max_m) / 2,
+  };
 }
 
 /**

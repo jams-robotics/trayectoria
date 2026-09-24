@@ -127,6 +127,13 @@ describe('vista de la escena (#303)', () => {
     const view = sceneViewOf({ x0_m: 0, v0_mps: 0.7, a_mps2: -1.1 }, 5);
     expect(view.centerX_m).toBeCloseTo((0.7 * 0.7) / (2 * 1.1) / 2 - 10.25 / 2, 12);
   });
+
+  it('deja sitio a la flecha en los extremos del recorrido', () => {
+    const view = sceneViewOf(T03, T03_DURATION_S);
+    // Al final, x(5) = 5 m con v(5) = 1.5 m/s: la flecha sigue midiendo al menos el 5 % de la vista.
+    const tip_m = velocityTipOf(5, velocityAt(T03, 5), view);
+    expect(tip_m - 5).toBeGreaterThan(0.05 * view.worldWidth_m);
+  });
 });
 
 describe('flecha de velocidad (#303)', () => {
