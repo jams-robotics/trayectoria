@@ -28,4 +28,4 @@ Claves usadas en el frontmatter de los temas. Solo se añaden libros de la lista
 
 ## Capítulos confirmados
 
-- `young-freedman-1`, `young-freedman-2`, `serway-1` y `serway-2` (Módulo 0, #276): capítulos confirmados con el índice de la edición original; títulos en español según la traducción. Fuente: índice público de la edición original de cada libro, en el catálogo de la editorial (*University Physics with Modern Physics*, 14.ª ed., para Young y Freedman; *Physics for Scientists and Engineers*, 10.ª ed., para Serway y Jewett), cuya numeración de capítulos coincide con la de la traducción.
+- `young-freedman-1`, `young-freedman-2`, `serway-1` y `serway-2` (Módulo 0, #276): capítulos confirmados con el índice de la edición original; títulos en español según la traducción. Fuente: índice de la edición original de cada libro (*University Physics with Modern Physics*, 14.ª ed., para Young y Freedman; *Physics for Scientists and Engineers*, 10.ª ed., para Serway y Jewett), cuya numeración de capítulos coincide con la de la traducción. El índice de la traducción al español no se consultó; se confirma cuando alguien tenga el libro.
