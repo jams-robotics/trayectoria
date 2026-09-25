@@ -60,6 +60,42 @@ describe('SimLayout (docs/DESIGN.md §6)', () => {
   });
 });
 
+describe('SimLayout with content after the parameters (QA #365)', () => {
+  test('on desktop orders the left column viewer, parameters, then the extra content', () => {
+    const { container } = render(
+      <SimLayout
+        viewer={<i data-testid="viewer" />}
+        values={<i data-testid="values" />}
+        params={<i data-testid="params" />}
+        after={<i data-testid="after" />}
+      />,
+    );
+    const region = (name: string): HTMLElement =>
+      container.querySelector(`[data-sim-region="${name}"]`) as HTMLElement;
+    expect(regionOrder(container)).toEqual(['viewer', 'values', 'params', 'after']);
+    expect(region('params')).toHaveClass('lg:row-start-2');
+    expect(region('after')).toHaveClass('lg:col-start-1', 'lg:row-start-3');
+    expect(region('values')).toHaveClass('lg:row-span-3');
+  });
+
+  test('on mobile keeps the extra content right after the first child of the viewer', () => {
+    const { container } = render(
+      <SimLayout
+        viewer={<i data-testid="viewer" />}
+        values={<i data-testid="values" />}
+        params={<i data-testid="params" />}
+        after={<i data-testid="after" />}
+      />,
+    );
+    const region = (name: string): HTMLElement =>
+      container.querySelector(`[data-sim-region="${name}"]`) as HTMLElement;
+    expect(region('viewer')).toHaveClass('max-lg:contents');
+    expect(region('after')).toHaveClass('max-lg:order-1');
+    expect(region('values')).toHaveClass('max-lg:order-3');
+    expect(region('params')).toHaveClass('max-lg:order-3');
+  });
+});
+
 describe('ParamGrid (docs/DESIGN.md §6, A/B)', () => {
   test('lays the A/B panels side by side when each gets at least 280 px', () => {
     render(

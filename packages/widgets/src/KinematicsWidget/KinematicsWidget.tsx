@@ -4,11 +4,12 @@ import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 
 import { ParamPanel } from '../ParamPanel/ParamPanel';
+import { SimControls } from '../SimControls/SimControls';
 import { SimLayout } from '../shared/SimLayout';
 import { MotionPlots } from './MotionPlots';
 import { sampleMotion, tangentSegment, velocityAt } from './compute';
 import type { Motion } from './compute';
-import { Controls, MotionScene, Values, applyChange, paramsOf } from './panels';
+import { MotionScene, Values, applyChange, paramsOf } from './panels';
 import { useTimeline } from './timeline';
 import type { KinematicsEditable, Timeline } from './timeline';
 
@@ -55,35 +56,23 @@ function Charts({
   );
 }
 
-/** The left column: the scene, the playback controls and the charts (docs/DESIGN.md §6). */
+/** The viewer: the scene and, under it, the playback controls (docs/DESIGN.md §6). */
 function Viewer({
   motion,
   timeline,
   duration_s,
-  showTangent,
   t,
 }: {
   motion: Motion;
   timeline: Timeline;
   duration_s: number;
-  showTangent: boolean;
   t: Translate;
 }): JSX.Element {
-  // gap-4 keeps the spacing the single mobile column had before the §6 layout.
   return (
-    <div className="flex flex-col gap-4">
+    <>
       <MotionScene motion={motion} t_s={timeline.t_s} duration_s={duration_s} t={t} />
-      <Controls timeline={timeline} />
-      <div className="flex min-w-0 flex-col gap-3 overflow-hidden">
-        <Charts
-          motion={motion}
-          timeline={timeline}
-          duration_s={duration_s}
-          showTangent={showTangent}
-          t={t}
-        />
-      </div>
-    </div>
+      <SimControls {...timeline.driver} {...timeline.controls} t_s={timeline.t_s} />
+    </>
   );
 }
 
@@ -107,15 +96,7 @@ export function KinematicsWidget({
   const timeline = useTimeline(duration_s, initialTime_s);
   return (
     <SimLayout
-      viewer={
-        <Viewer
-          motion={motion}
-          timeline={timeline}
-          duration_s={duration_s}
-          showTangent={showTangent}
-          t={t}
-        />
-      }
+      viewer={<Viewer motion={motion} timeline={timeline} duration_s={duration_s} t={t} />}
       values={<Values timeline={timeline} motion={motion} showTangent={showTangent} t={t} />}
       params={
         editable.length === 0 ? null : (
@@ -126,6 +107,17 @@ export function KinematicsWidget({
             }}
           />
         )
+      }
+      after={
+        <div className="flex min-w-0 flex-col gap-3 overflow-hidden">
+          <Charts
+            motion={motion}
+            timeline={timeline}
+            duration_s={duration_s}
+            showTangent={showTangent}
+            t={t}
+          />
+        </div>
       }
     />
   );

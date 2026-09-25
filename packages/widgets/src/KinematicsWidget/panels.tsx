@@ -6,7 +6,6 @@ import type { ParamPanelParam } from '../ParamPanel/ParamPanel';
 import { Scene2D } from '../Scene2D/Scene2D';
 import { Axes } from '../Scene2D/primitives/Axes';
 import { Vector } from '../Scene2D/primitives/Vector';
-import { SimControls } from '../SimControls/SimControls';
 import { LiveStatus, ReadoutPanel } from '../shared/ReadoutPanel';
 import { positionAt, sceneViewOf, velocityAt, velocityTipOf } from './compute';
 import type { Motion } from './compute';
@@ -143,17 +142,5 @@ export function Values({
       />
       <LiveStatus text={statusOf(motion, t_s, t)} />
     </>
-  );
-}
-
-/**
- * The playback controls under the scene. Below `lg` they keep their place after the charts,
- * so the single mobile column does not change (docs/DESIGN.md §6 and §9).
- */
-export function Controls({ timeline }: { timeline: Timeline }): JSX.Element {
-  return (
-    <div className="max-lg:order-last">
-      <SimControls {...timeline.driver} {...timeline.controls} t_s={timeline.t_s} />
-    </div>
   );
 }
