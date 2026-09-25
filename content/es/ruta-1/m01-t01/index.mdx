@@ -1,0 +1,127 @@
+---
+id: ruta-1/m01-t01
+title: 'Movimiento rectilíneo uniforme'
+module: 1
+order: 1
+estimatedMinutes: 20
+prerequisites: [ruta-1/m00-t03]
+objectives:
+  - Usar x = x₀ + v·t
+  - Leer v de una gráfica x–t
+  - Resolver encuentros de dos móviles
+widgets: [KinematicsWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [young-freedman-2]
+status: review
+---
+
+<Gancho>
+Tu robot avanza a 0.4 m/s por una pista recta de 4 m. ¿Cuánto tarda?
+</Gancho>
+
+<Concepto>
+Si la velocidad de tu robot no cambia, avanza la misma distancia en cada segundo. A 0.4 m/s,
+cada segundo suma 0.4 m. Ese es el **movimiento rectilíneo uniforme** (MRU): movimiento en línea
+recta con v constante.
+
+La posición crece lo mismo en cada intervalo igual, así que depende de t de forma lineal:
+x = x₀ + v·t. En la gráfica x–t es una recta. Su ordenada en t = 0 es x₀ y su pendiente es v.
+Por eso, para leer v de una gráfica x–t, tomas dos puntos de la recta y divides Δx entre Δt.
+
+La gráfica v–t es una recta horizontal a la altura de v, y a–t vale cero todo el tiempo. El
+área bajo la recta v–t entre dos instantes es un rectángulo de base Δt y altura v. Esa área es
+el desplazamiento: Δx = v·Δt.
+
+El signo de v da el sentido. Con v positiva, x crece y el robot avanza. Con v negativa, x
+decrece, la recta x–t baja y el robot retrocede.
+
+Con dos móviles en la misma recta, cada uno tiene su propia ecuación de posición. Se encuentran
+cuando están en el mismo lugar en el mismo instante. Para hallar ese instante, igualas las dos
+posiciones y despejas t. Con ese t, cualquiera de las dos ecuaciones da el punto de encuentro.
+
+Con los datos del gancho, el robot parte de x₀ = 0 m y la pista mide Δx = 4 m. De Δx = v·Δt,
+tarda Δt = 4/0.4 = 10 s.
+</Concepto>
+
+<Formulas>
+<Formula latex="x = x_0 + v\,t" />
+
+- `x` · posición · m
+- `x₀` · posición inicial · m
+- `v` · velocidad lineal · m/s
+- `t` · tiempo · s
+
+<Formula latex="\Delta x = v\,\Delta t" />
+
+- `Δx` · desplazamiento en un intervalo · m
+- `v` · velocidad lineal · m/s
+- `Δt` · intervalo de tiempo · s
+</Formulas>
+
+<Explora>
+Una partícula parte de x₀ = 0 m a v = 0.4 m/s constante, durante 10 s: el robot del gancho. Las
+gráficas x–t, v–t y a–t muestran el mismo movimiento con un marcador de tiempo común.
+
+<KinematicsWidget
+  initial={{ x0_m: 0, v0_mps: 0.4, a_mps2: 0 }}
+  editable={['x0', 'v0']}
+  duration_s={10}
+/>
+
+<Experimento
+  cambia="la velocidad v₀ al doble, de 0.4 a 0.8 m/s"
+  observa="el instante en que x–t llega a 4 m, con el marcador de tiempo"
+  porque="¿Por qué el tiempo se reduce a la mitad?"
+>
+De Δx = v·Δt, el tiempo para recorrer 4 m es Δt = 4/v. Al doble de v, la mitad de tiempo: pasa
+de 10 s a 5 s.
+</Experimento>
+
+<Experimento
+  cambia="x₀ de 0 a 1 m"
+  observa="la recta x–t"
+  porque="¿Por qué tiene la misma pendiente, pero desplazada?"
+>
+La pendiente de x–t es v, que no cambió. x₀ solo mueve el punto de partida: toda la recta sube
+1 m y en t = 10 s el robot está en 5 m en vez de 4 m.
+</Experimento>
+
+<Experimento
+  cambia="v₀ a un valor negativo, por ejemplo −0.4 m/s"
+  observa="la recta x–t y la de v–t"
+  porque="¿Por qué la pendiente de x–t es negativa?"
+>
+Con v negativa, x decrece 0.4 m en cada segundo: el robot retrocede. La pendiente de x–t es v,
+así que la recta baja, y v–t queda por debajo de cero.
+</Experimento>
+</Explora>
+
+<AlRobot>
+La pista del gancho mide D = 4 m. Lo más rápido que tu robot puede recorrerla es a su velocidad
+lineal máxima v_max, la que calculaste en [Vectores](/ruta/ruta-1/m00/t02) con v_max = ω_max·r.
+Si mantiene v_max constante durante toda la pista, es un MRU y de Δx = v·Δt sale el tiempo:
+
+<RobotFormula calc="ruta-1/m01-t01/track-time" />
+
+Si tu perfil de «Mi robot» no es un robot móvil, el cálculo usa el robot de referencia.
+
+Con el robot de referencia, v_max = 0.670 m/s y recorre la pista en 4/0.670 = 5.97 s. Un robot
+con ruedas del doble de radio y el mismo motor tiene el doble de v_max y tarda la mitad.
+
+Ese tiempo es un límite inferior. Tu robot parte del reposo y no alcanza v_max al instante: antes
+acelera. En el tema siguiente, [Movimiento uniformemente acelerado](/ruta/ruta-1/m01/t02),
+calculas cuánto tarda esa rampa y cuánta pista ocupa.
+</AlRobot>
+
+<Verifica
+  ejercicios={[
+    'ruta-1/m01-t01/e1',
+    'ruta-1/m01-t01/e2',
+    'ruta-1/m01-t01/e3',
+    'ruta-1/m01-t01/e4',
+  ]}
+  topicId="ruta-1/m01-t01"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['young-freedman-2']} topicId="ruta-1/m01-t01" />
