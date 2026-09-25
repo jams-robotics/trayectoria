@@ -15,6 +15,7 @@
     "./MyRobotWidget": "./src/MyRobotWidget/index.ts",
     "./ParamPanel": "./src/ParamPanel/index.ts",
     "./Plot": "./src/Plot/index.ts",
+    "./PowerWidget": "./src/PowerWidget/index.ts",
     "./ProjectileWidget": "./src/ProjectileWidget/index.ts",
     "./RotationWidget": "./src/RotationWidget/index.ts",
     "./Scene2D": "./src/Scene2D/index.ts",

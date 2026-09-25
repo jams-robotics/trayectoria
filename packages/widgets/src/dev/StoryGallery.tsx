@@ -11,6 +11,7 @@ import * as kinematicsStories from '../KinematicsWidget/KinematicsWidget.stories
 import * as myRobotStories from '../MyRobotWidget/MyRobotWidget.stories';
 import * as paramPanelStories from '../ParamPanel/ParamPanel.stories';
 import * as plotStories from '../Plot/Plot.stories';
+import * as powerStories from '../PowerWidget/PowerWidget.stories';
 import * as projectileStories from '../ProjectileWidget/ProjectileWidget.stories';
 import * as rotationStories from '../RotationWidget/RotationWidget.stories';
 import * as scene2DStories from '../Scene2D/Scene2D.stories';
@@ -62,6 +63,7 @@ export const stories: readonly WidgetStories[] = [
   collect(projectileStories),
   collect(rotationStories),
   collect(energyStories),
+  collect(powerStories),
   collect(gearStories),
   collect(diffDriveStories),
   collect(exerciseStories),
