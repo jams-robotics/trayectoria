@@ -1,0 +1,150 @@
+---
+id: ruta-1/m04-t03
+title: 'Aceleración angular y centrípeta'
+module: 4
+order: 3
+estimatedMinutes: 30
+prerequisites: [ruta-1/m04-t02, ruta-1/m02-t02]
+objectives:
+  - Calcular la aceleración angular y la aceleración tangencial
+  - Calcular la aceleración centrípeta de un robot en curva
+  - Relacionar la velocidad máxima en curva con la fricción
+widgets: [RotationWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [young-freedman-9, serway-10]
+status: review
+---
+
+<Gancho>
+Tu rueda pasa de 0 a 200 rpm en 0.5 s. ¿Qué aceleración angular es? Y si el robot toma una curva
+de 0.5 m de radio a 0.6 m/s, ¿qué aceleración centrípeta sufre?
+</Gancho>
+
+<Concepto>
+Cuando la velocidad angular cambia, la rueda tiene **aceleración angular** α: el cambio de
+velocidad angular Δω dividido entre el intervalo Δt en que ocurre, α = Δω/Δt. Se mide en rad/s².
+
+Es el paralelo exacto del movimiento uniformemente acelerado. Con α constante, la velocidad
+angular crece lo mismo en cada segundo: ω = ω₀ + α·t, igual que v = v₀ + a·t en
+[Movimiento uniformemente acelerado](/ruta/ruta-1/m01/t02).
+
+Con los datos del gancho, 200 rpm son 20.94 rad/s. Si la rueda llega desde el reposo en 0.5 s,
+α = 20.94/0.5 = 41.89 rad/s².
+
+Un punto del borde, a la distancia r del centro, acelera a lo largo de su trayectoria. Esa es la
+**aceleración tangencial**, a_t = α·r. Con r = 0.032 m, a_t = 41.89·0.032 = 1.34 m/s². Si la
+rueda no desliza, es también la aceleración con la que avanza el robot.
+
+En una curva, aunque la rapidez sea constante, la velocidad cambia de dirección. Ese cambio es
+una aceleración que apunta hacia el centro de la curva: la **aceleración centrípeta**,
+a_c = v²/R, con R el radio de giro. Como el robot recorre la curva con v = ω·R, también
+a_c = ω²·R. Con los datos del gancho, a_c = 0.6²/0.5 = 0.72 m/s².
+
+Esa aceleración la provee la fricción entre las ruedas y el suelo. La fricción estática tiene un
+máximo, μₛ·m·g; dividido entre la masa, la mayor aceleración centrípeta posible es μₛ·g.
+Igualando v²/R = μₛ·g sale la rapidez máxima en curva sin patinar, v_max,curva = √(μₛ·g·R). Por
+encima de ella, el robot derrapa hacia fuera de la curva.
+
+La aceleración angular de tu rueda tampoco es ilimitada: el perfil de «Mi robot» la guarda como
+la rampa de aceleración que usa el simulador al arrancar.
+</Concepto>
+
+<Formulas>
+<Formula latex="\alpha = \frac{\Delta\omega}{\Delta t}" />
+
+- `α` · aceleración angular · rad/s²
+- `Δω` · cambio de velocidad angular · rad/s
+- `Δt` · intervalo de tiempo · s
+
+<Formula latex="\omega = \omega_0 + \alpha t" />
+
+- `ω` · velocidad angular · rad/s
+- `ω₀` · velocidad angular inicial · rad/s
+- `α` · aceleración angular · rad/s²
+- `t` · tiempo · s
+
+<Formula latex="a_t = \alpha\,r" />
+
+- `a_t` · aceleración tangencial · m/s²
+- `α` · aceleración angular · rad/s²
+- `r` · radio de rueda · m
+
+<Formula latex="a_c = \frac{v^2}{R} = \omega^2 R" />
+
+- `a_c` · aceleración centrípeta · m/s²
+- `v` · rapidez · m/s
+- `ω` · velocidad angular · rad/s
+- `R` · radio de giro · m
+
+<Formula latex="v_{max,curva} = \sqrt{\mu_s g R}" />
+
+- `v_max,curva` · rapidez máxima en curva sin patinar · m/s
+- `μₛ` · coeficiente de fricción estática · adimensional
+- `g` · aceleración gravitatoria · m/s²
+- `R` · radio de giro · m
+</Formulas>
+
+<Explora>
+La rueda arranca desde el reposo con la aceleración angular que eliges. El panel muestra ω, la
+aceleración tangencial del borde y el tiempo que tarda en llegar a 200 rpm. El panel de curva
+calcula la aceleración centrípeta y la velocidad máxima sin patinar para el radio, la velocidad y
+el coeficiente de fricción que elijas.
+
+<RotationWidget mode="angularAccel" initial={{ omega_radps: 0, r_m: 0.032, alpha_radps2: 41.89 }} />
+
+<Experimento
+  cambia="el tiempo: reinicia y reproduce 0.5 s"
+  observa="la velocidad angular ω"
+  porque="¿Por qué llega a 20.9 rad/s?"
+>
+Con α constante desde el reposo, ω = α·t = 41.89·0.5 = 20.94 rad/s. Son justo los 200 rpm del
+gancho.
+</Experimento>
+
+<Experimento
+  cambia="α de 41.89 rad/s² a 83.78 rad/s²"
+  observa="el tiempo hasta 200 rpm"
+  porque="¿Por qué se reduce a la mitad?"
+>
+El tiempo para ganar Δω es Δt = Δω/α. Con el mismo Δω de 20.94 rad/s y el doble de α, tarda la
+mitad: 0.25 s en lugar de 0.5 s.
+</Experimento>
+
+<Experimento
+  cambia="en el panel de curva, el radio R de 0.5 m a 0.25 m, con la misma v"
+  observa="la aceleración centrípeta a_c"
+  porque="¿Por qué se duplica?"
+>
+En a_c = v²/R, con v fija, a_c es inversamente proporcional a R. La mitad de radio da el doble de
+aceleración: de 0.72 m/s² a 1.44 m/s².
+</Experimento>
+</Explora>
+
+<AlRobot>
+Tu robot no alcanza su velocidad de golpe: el simulador acelera las ruedas con la aceleración
+angular α de la rampa de tu perfil de «Mi robot». Si tu perfil no la indica, se usa la del robot
+de referencia, 40 rad/s². Con el radio r de tu rueda, el borde, y el robot entero si la rueda no
+desliza, acelera a:
+
+<RobotFormula calc="ruta-1/m04-t03/tangential-accel" />
+
+Si tu perfil de «Mi robot» no es un robot móvil, los cálculos usan el robot de referencia.
+
+La pista preset tiene una curva cerrada de R = 0.15 m. Con un coeficiente de fricción estática
+μₛ = 0.6 entre ruedas y suelo, la rapidez máxima sin patinar en esa curva es:
+
+<RobotFormula calc="ruta-1/m04-t03/max-curve-speed" />
+
+Ese límite no depende de tu robot, solo de la fricción y del radio de la curva. Compáralo con la
+velocidad lineal máxima de tu robot, la de sus ruedas a ω_max: si es mayor que v_max de tu perfil,
+no patina. Si tu robot supera v_max,curva, tiene que frenar antes de la curva, y la distancia que
+necesita la calculas como en el movimiento uniformemente acelerado.
+</AlRobot>
+
+<Verifica
+  ejercicios={['ruta-1/m04-t03/e1', 'ruta-1/m04-t03/e2', 'ruta-1/m04-t03/e3', 'ruta-1/m04-t03/e4']}
+  topicId="ruta-1/m04-t03"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['young-freedman-9', 'serway-10']} topicId="ruta-1/m04-t03" />

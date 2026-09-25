@@ -22,8 +22,16 @@ import { robotCalcs as m02t03RobotCalcs } from './es/ruta-1/m02-t03/alrobot';
 import { exercises as m02t03Exercises } from './es/ruta-1/m02-t03/ejercicios';
 import { robotCalcs as m03t01RobotCalcs } from './es/ruta-1/m03-t01/alrobot';
 import { exercises as m03t01Exercises } from './es/ruta-1/m03-t01/ejercicios';
+import { robotCalcs as m03t02RobotCalcs } from './es/ruta-1/m03-t02/alrobot';
+import { exercises as m03t02Exercises } from './es/ruta-1/m03-t02/ejercicios';
 import { robotCalcs as m04t01RobotCalcs } from './es/ruta-1/m04-t01/alrobot';
 import { exercises as m04t01Exercises } from './es/ruta-1/m04-t01/ejercicios';
+import { robotCalcs as m04t02RobotCalcs } from './es/ruta-1/m04-t02/alrobot';
+import { exercises as m04t02Exercises } from './es/ruta-1/m04-t02/ejercicios';
+import { robotCalcs as m04t03RobotCalcs } from './es/ruta-1/m04-t03/alrobot';
+import { exercises as m04t03Exercises } from './es/ruta-1/m04-t03/ejercicios';
+import { robotCalcs as m04t04RobotCalcs } from './es/ruta-1/m04-t04/alrobot';
+import { exercises as m04t04Exercises } from './es/ruta-1/m04-t04/ejercicios';
 import { robotCalcs as m04t05RobotCalcs } from './es/ruta-1/m04-t05/alrobot';
 import { exercises as m04t05Exercises } from './es/ruta-1/m04-t05/ejercicios';
 
@@ -117,7 +125,11 @@ export const EXERCISES: ReadonlyMap<string, TopicExercise> = registerTopics({
   'ruta-1/m02-t02': m02t02Exercises,
   'ruta-1/m02-t03': m02t03Exercises,
   'ruta-1/m03-t01': m03t01Exercises,
+  'ruta-1/m03-t02': m03t02Exercises,
   'ruta-1/m04-t01': m04t01Exercises,
+  'ruta-1/m04-t02': m04t02Exercises,
+  'ruta-1/m04-t03': m04t03Exercises,
+  'ruta-1/m04-t04': m04t04Exercises,
   'ruta-1/m04-t05': m04t05Exercises,
 });
 
@@ -136,6 +148,10 @@ export const ROBOT_CALCS: ReadonlyMap<string, RobotCalc> = registerRobotCalcs({
   'ruta-1/m02-t02': m02t02RobotCalcs,
   'ruta-1/m02-t03': m02t03RobotCalcs,
   'ruta-1/m03-t01': m03t01RobotCalcs,
+  'ruta-1/m03-t02': m03t02RobotCalcs,
   'ruta-1/m04-t01': m04t01RobotCalcs,
+  'ruta-1/m04-t02': m04t02RobotCalcs,
+  'ruta-1/m04-t03': m04t03RobotCalcs,
+  'ruta-1/m04-t04': m04t04RobotCalcs,
   'ruta-1/m04-t05': m04t05RobotCalcs,
 });
