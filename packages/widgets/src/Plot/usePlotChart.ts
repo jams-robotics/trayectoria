@@ -7,13 +7,16 @@ import { buildOptions } from './options';
 import type { PlotArea } from './options';
 import { readTheme, sameTheme } from '../shared/theme';
 import type { PlotTheme } from '../shared/theme';
-import type { PlotAxis, PlotLive, PlotProps, PlotSeries } from './types';
+import type { PlotAxis, PlotLive, PlotProps, PlotRefLine, PlotSegment, PlotSeries } from './types';
 
 /** Plot area before uPlot has reported its first layout (docs/DESIGN.md §5 padding, #104). */
 const INITIAL_PLOT_AREA: PlotArea = { left_px: 0, width_px: 0 };
 
 /** Default plot area height in CSS pixels (docs/DESIGN.md §5: 200 en simulador). */
 export const DEFAULT_HEIGHT_PX = 200;
+/** Shared empty lists, so an absent prop keeps the same identity across renders. */
+const NO_REF_LINES: readonly PlotRefLine[] = [];
+const NO_SEGMENTS: readonly PlotSegment[] = [];
 /** Width used before the container has been measured. */
 const FALLBACK_WIDTH_PX = 480;
 
@@ -87,6 +90,40 @@ function padTo(values: readonly number[], length: number): Float64Array {
   return row;
 }
 
+/**
+ * Keeps the first value seen for each `key`: callers pass fresh object literals on every render,
+ * and rebuilding the chart for an identical structure blanks it until the new one paints (#338).
+ */
+function useStableBy<T>(value: T, key: string): T {
+  const ref = useRef({ key, value });
+  if (ref.current.key !== key) ref.current = { key, value };
+  return ref.current.value;
+}
+
+/** What `buildOptions` reads from the axis and series: everything except their data. */
+function structureKey(x: PlotAxis, series: readonly PlotSeries[]): string {
+  return JSON.stringify([
+    x.label,
+    x.unit,
+    series.map((item) => [item.key, item.label, item.unit, item.color ?? null]),
+  ]);
+}
+
+/**
+ * One array per chart that the segments plugin reads when it draws: moving a segment (a tangent
+ * following the time marker) refills it and redraws instead of rebuilding the chart (#338).
+ */
+function useSegmentList(segments: readonly PlotSegment[]): { list: PlotSegment[]; key: string } {
+  const [list] = useState<PlotSegment[]>(() => []);
+  const key = JSON.stringify(segments);
+  const filledRef = useRef<string | null>(null);
+  if (filledRef.current !== key) {
+    filledRef.current = key;
+    list.splice(0, list.length, ...segments);
+  }
+  return { list, key };
+}
+
 /** The rows of the chart plus the x range they span. */
 interface Window {
   data: AlignedData;
@@ -115,9 +152,10 @@ function liveWindow(live: PlotLive): Window {
  */
 function useLiveFrames(live: PlotLive | undefined): number {
   const [frame, setFrame] = useState(0);
+  // Keyed on the buffer, not on the `live` object a caller may rebuild on every render.
+  const buffer = live?.buffer;
   useEffect(() => {
-    if (live === undefined || typeof requestAnimationFrame !== 'function') return;
-    const buffer = live.buffer;
+    if (buffer === undefined || typeof requestAnimationFrame !== 'function') return;
     let handle = 0;
     let seen = -1;
     const tick = (): void => {
@@ -131,7 +169,7 @@ function useLiveFrames(live: PlotLive | undefined): number {
     return () => {
       cancelAnimationFrame(handle);
     };
-  }, [live]);
+  }, [buffer]);
   return frame;
 }
 
@@ -196,6 +234,33 @@ function usePlotArea(): { plotArea: PlotArea; onPlotArea: (area: PlotArea) => vo
   return { plotArea, onPlotArea };
 }
 
+/** The inputs of `buildOptions` that describe the chart's structure, stable across renders. */
+interface Structure {
+  x: PlotAxis;
+  y: PlotAxis;
+  series: readonly PlotSeries[];
+  lines: readonly PlotRefLine[];
+  marks: readonly PlotSegment[];
+  /** Changes whenever a segment moves, so the chart can redraw them. */
+  marksKey: string;
+}
+
+/**
+ * Only a change of structure rebuilds the chart; new data, moved segments or new literals of the
+ * same shape reach the existing one (#338).
+ */
+function useStructure(props: PlotProps, t: Translate): Structure {
+  const { x, series, refLines, segments } = props;
+  const shape = structureKey(x, series);
+  const stableX = useStableBy(x, shape);
+  const stableSeries = useStableBy(series, shape);
+  const lines = useStableBy(refLines ?? NO_REF_LINES, JSON.stringify(refLines ?? NO_REF_LINES));
+  const segmentList = useSegmentList(segments ?? NO_SEGMENTS);
+  const marks = segmentList.list.length > 0 ? segmentList.list : NO_SEGMENTS;
+  const y = useMemo(() => yAxisOf(stableSeries, t), [stableSeries, t]);
+  return { x: stableX, y, series: stableSeries, lines, marks, marksKey: segmentList.key };
+}
+
 interface ChartOptionsInput {
   x: PlotAxis;
   y: PlotAxis;
@@ -247,15 +312,13 @@ export interface ChartState {
  * instance. Only structural changes rebuild the chart; the live x window is patched in place.
  */
 export function usePlotChart(props: PlotProps, t: Translate): ChartState {
-  const { x, series, live, refLines, segments, height } = props;
+  const { x, series, live, height } = props;
   const cardRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const theme = usePlotTheme(cardRef);
   const width_px = useMeasuredWidth(hostRef);
   const height_px = height ?? DEFAULT_HEIGHT_PX;
-  const lines = useMemo(() => refLines ?? [], [refLines]);
-  const marks = useMemo(() => segments ?? [], [segments]);
-  const y = useMemo(() => yAxisOf(series, t), [series, t]);
+  const structure = useStructure(props, t);
   const isLive = live !== undefined;
 
   const frame = useLiveFrames(live);
@@ -266,7 +329,7 @@ export function usePlotChart(props: PlotProps, t: Translate): ChartState {
     [live, x, series, frame],
   );
 
-  const { options, plotArea } = useChartOptions({ x, y, series, theme, width_px, height_px, lines, marks });
+  const { options, plotArea } = useChartOptions({ ...structure, theme, width_px, height_px });
 
   const windowRef = useRef({ data, xRange, isLive });
   windowRef.current = { data, xRange, isLive };
@@ -285,6 +348,9 @@ export function usePlotChart(props: PlotProps, t: Translate): ChartState {
   useEffect(() => {
     push(chartRef.current);
   }, [chartRef, push, data, isLive, xRange, options]);
+  useEffect(() => {
+    chartRef.current?.redraw(false);
+  }, [chartRef, structure.marksKey]);
 
-  return { cardRef, hostRef, theme, xRange, y, plotArea };
+  return { cardRef, hostRef, theme, xRange, y: structure.y, plotArea };
 }
