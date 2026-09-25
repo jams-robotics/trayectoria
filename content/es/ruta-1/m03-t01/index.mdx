@@ -1,0 +1,164 @@
+---
+id: ruta-1/m03-t01
+title: 'Trabajo y energía'
+module: 3
+order: 1
+estimatedMinutes: 30
+prerequisites: [ruta-1/m02-t01]
+objectives:
+  - Calcular trabajo, energía cinética y energía potencial
+  - Aplicar la conservación de la energía con y sin fricción
+  - Relacionar el trabajo neto con el cambio de energía cinética
+widgets: [EnergyWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [young-freedman-6, young-freedman-7]
+status: review
+---
+
+<Gancho>
+Tu robot de 0.9 kg va a 0.6 m/s y se le corta el motor al pie de una rampa. ¿Hasta qué altura
+sube?
+</Gancho>
+
+<Concepto>
+Una fuerza hace **trabajo** cuando su punto de aplicación se desplaza. Si la fuerza F forma un
+ángulo θ con el desplazamiento y ese punto recorre una distancia d, el trabajo es W = F·d·cosθ.
+Con θ = 0, la fuerza empuja a favor y W es positivo. Con θ = π/2 rad, como el peso en un tramo
+horizontal, W = 0. Con θ = π rad, como la fricción, W es negativo.
+
+La **energía cinética** de un cuerpo de masa m con rapidez v es Eₖ = ½·m·v². El **teorema
+trabajo–energía** dice que el trabajo neto, la suma del trabajo de todas las fuerzas, es igual al
+cambio de energía cinética: W_neto = ΔEₖ. Para llevar tu robot de 0.9 kg del reposo a 0.6 m/s,
+las fuerzas hacen un trabajo neto de ½·0.9·0.6² = 0.162 J.
+
+La **energía potencial** gravitatoria a una altura h sobre un nivel de referencia es Eₚ = m·g·h.
+Cuando el robot sube una rampa, el peso hace trabajo negativo: la energía cinética que pierde no
+desaparece, queda guardada como potencial.
+
+La suma E = Eₖ + Eₚ es la **energía mecánica**. Sin fricción, E es constante. Si el robot llega
+al pie de la rampa con rapidez v y se detiene arriba, toda su Eₖ pasó a Eₚ: ½·m·v² = m·g·h_max.
+La masa se cancela y queda h_max = v²/(2·g).
+
+Con los datos del gancho, h_max = 0.6²/(2·9.81) = 0.0183 m. Tu robot sube menos de 2 cm.
+
+La fricción cinética siempre se opone al movimiento, así que su trabajo es negativo y no se
+recupera. Con fricción, E cae a lo largo del recorrido y el robot sube menos.
+
+Lo mismo pasa en el tiro parabólico. Sin rozamiento con el aire, la pelota cambia energía cinética
+por potencial al subir y la recupera al bajar, pero Eₖ + Eₚ es la misma en todo el vuelo.
+</Concepto>
+
+<Formulas>
+<Formula latex="W = F\,d\cos\theta" />
+
+- `W` · trabajo · J
+- `F` · fuerza · N
+- `d` · distancia recorrida por el punto de aplicación de la fuerza · m
+- `θ` · ángulo entre F⃗ y el desplazamiento · rad
+
+<Formula latex="E_k = \tfrac12 m v^2" />
+
+- `Eₖ` · energía cinética · J
+- `m` · masa · kg
+- `v` · rapidez · m/s
+
+<Formula latex="E_p = m g h" />
+
+- `Eₚ` · energía potencial · J
+- `m` · masa · kg
+- `g` · aceleración gravitatoria · m/s²
+- `h` · altura sobre el nivel de referencia · m
+
+<Formula latex="W_{neto} = \Delta E_k" />
+
+- `W_neto` · trabajo neto (suma del trabajo de todas las fuerzas) · J
+- `ΔEₖ` · cambio de energía cinética (Eₖ final − Eₖ inicial) · J
+
+Sin fricción:
+
+<Formula latex="E_k + E_p = \text{const}" />
+
+- `Eₖ` · energía cinética · J
+- `Eₚ` · energía potencial · J
+
+<Formula latex="h_{max} = \frac{v^2}{2g}" />
+
+- `h_max` · altura máxima que alcanza por inercia · m
+- `v` · rapidez · m/s
+- `g` · aceleración gravitatoria · m/s²
+</Formulas>
+
+<Explora>
+Un robot de 0.9 kg recorre un tramo horizontal a 0.6 m/s y sube una rampa de 0.26 rad: el robot
+del gancho. Las barras muestran en cada instante su energía cinética, su energía potencial, su
+energía mecánica y el trabajo de la fricción.
+
+<EnergyWidget mode="ramp" initial={{ mass_kg: 0.9, v0_mps: 0.6, slope_rad: 0.26 }} />
+
+<Experimento
+  cambia="la velocidad inicial v₀ al doble, de 0.6 a 1.2 m/s"
+  observa="la altura que alcanza el robot en la rampa"
+  porque="¿Por qué la altura se cuadruplica?"
+>
+Sin fricción, toda la energía cinética se convierte en potencial: h_max = v²/(2·g). La altura
+depende del cuadrado de la rapidez, así que duplicarla multiplica h_max por 2² = 4. Pasa de
+0.0183 m a 0.0734 m.
+</Experimento>
+
+<Experimento
+  cambia="la masa m al doble, de 0.9 a 1.8 kg"
+  observa="la altura que alcanza el robot en la rampa"
+  porque="¿Por qué la altura no cambia?"
+>
+Eₖ = ½·m·v² y Eₚ = m·g·h son proporcionales a m: al duplicar la masa, las dos se duplican. En
+½·m·v² = m·g·h la masa se cancela, y h_max = v²/(2·g) no depende de ella. El robot sube los mismos
+0.0183 m.
+</Experimento>
+
+<Experimento
+  cambia="el coeficiente de fricción cinética μₖ de 0 a 0.05"
+  observa="la barra de energía mecánica mientras el robot avanza y sube, y la altura final"
+  porque="¿Por qué E decrece y el robot sube menos?"
+>
+La fricción se opone al movimiento, así que su trabajo es negativo y saca energía mecánica que no
+vuelve. La barra de E baja a lo largo de todo el recorrido, también en la rampa. Queda menos Eₖ
+para convertirse en Eₚ, y el robot se detiene más abajo.
+</Experimento>
+</Explora>
+
+<AlRobot>
+Sin motor y sin fricción, lo más alto que sube tu robot por inercia depende solo de la rapidez
+con la que llega al pie de la rampa. La mayor que puede tener es su velocidad lineal máxima
+v_max, la que calculaste en [Vectores](/ruta/ruta-1/m00/t02).
+
+A esa rapidez, con la masa m de tu perfil de «Mi robot», su energía cinética es:
+
+<RobotFormula calc="ruta-1/m03-t01/kinetic-energy" />
+
+Si al pie de la rampa se le corta el motor, toda esa energía pasa a potencial. La altura que
+alcanza no depende de la masa:
+
+<RobotFormula calc="ruta-1/m03-t01/max-height" />
+
+Si tu perfil no es un robot móvil, el cálculo usa el robot de referencia.
+
+Con el robot de referencia, m = 0.9 kg y v_max = 0.670 m/s: Eₖ = 0.5·0.9·0.670² = 0.202 J y
+h_max = 0.670²/(2·9.81) = 0.0229 m. A su rapidez máxima, sube por inercia poco más de 2 cm.
+
+Esa Eₖ es también el trabajo neto que hay que hacer sobre tu robot para llevarlo del reposo a
+v_max, y la energía que la fricción tiene que disipar para detenerlo cuando el motor se corta en
+llano.
+</AlRobot>
+
+<Verifica
+  ejercicios={[
+    'ruta-1/m03-t01/e1',
+    'ruta-1/m03-t01/e2',
+    'ruta-1/m03-t01/e3',
+    'ruta-1/m03-t01/e4',
+  ]}
+  topicId="ruta-1/m03-t01"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['young-freedman-6', 'young-freedman-7']} topicId="ruta-1/m03-t01" />
