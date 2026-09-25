@@ -77,5 +77,11 @@
     "e2": "La rueda de tu robot gira a n = {{speed_rpm}} rpm. ¿Cuánto dura una vuelta, es decir, su período T, en s?",
     "e3": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s. ¿Cuántas vueltas da?",
     "e4": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s, desde θ₀ = 0 rad. ¿Qué ángulo θ gira, en rad?"
+  },
+  "ruta-1/m04-t02": {
+    "e1": "La rueda de tu robot gira a ω = {{omega_radps}} rad/s y mide r = {{wheelRadius_m}} m de radio. Sin deslizamiento, ¿a qué velocidad avanza tu robot, en m/s?",
+    "e2": "Quieres que tu robot avance a v = {{v_mps}} m/s con ruedas de r = {{wheelRadius_m}} m de radio. ¿Qué velocidad angular ω necesita cada rueda, en rad/s, y cuál es su velocidad de giro n_rueda, en rpm?",
+    "e3": "El motor de tu robot gira a n_motor = {{motorSpeed_rpm}} rpm, la reducción es i = {{gearRatio}} y la rueda mide r = {{wheelRadius_m}} m de radio. Sin deslizamiento, ¿a qué velocidad avanza tu robot, en m/s?",
+    "e4": "El motor de tu robot gira a n_motor = {{motorSpeed_rpm}} rpm, la reducción es i = {{gearRatio}} y la rueda mide r = {{wheelRadius_m}} m de radio. A esa velocidad constante, ¿cuánto tarda en recorrer una pista recta de 4 m, en s?"
   }
 }
