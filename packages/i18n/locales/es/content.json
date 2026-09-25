@@ -40,5 +40,11 @@
     "e2": "Un motor funciona a V = {{voltage_V}} V, consume I = {{current_A}} A y tiene una eficiencia η = {{efficiency}}. ¿Qué potencia mecánica entrega, en W?",
     "e3": "Tu robot tiene una batería de C = {{batteryCapacity_Wh}} Wh y dos motores que funcionan a V = {{voltage_V}} V y consumen I = {{current_A}} A cada uno. ¿Cuál es su autonomía, en min?",
     "e4": "Las ruedas empujan a tu robot con una fuerza F = {{force_N}} N mientras avanza a v = {{v_mps}} m/s. ¿Qué potencia mecánica entregan, en W?"
+  },
+  "ruta-1/m04-t01": {
+    "e1": "El eje de salida de tu motorreductor gira a n = {{speed_rpm}} rpm. ¿Cuál es su velocidad angular ω, en rad/s?",
+    "e2": "La rueda de tu robot gira a n = {{speed_rpm}} rpm. ¿Cuánto dura una vuelta, es decir, su período T, en s?",
+    "e3": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s. ¿Cuántas vueltas da?",
+    "e4": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s, desde θ₀ = 0 rad. ¿Qué ángulo θ gira, en rad?"
   }
 }
