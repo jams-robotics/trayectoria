@@ -65,5 +65,11 @@
     "e2": "La rueda de tu robot gira a n = {{speed_rpm}} rpm. ¿Cuánto dura una vuelta, es decir, su período T, en s?",
     "e3": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s. ¿Cuántas vueltas da?",
     "e4": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s, desde θ₀ = 0 rad. ¿Qué ángulo θ gira, en rad?"
+  },
+  "ruta-1/m04-t05": {
+    "e1": "El encoder de tu robot da N_e = {{encoderTicksPerRev}} ticks por vuelta de rueda y la rueda tiene r = {{wheelRadius_m}} m. ¿Cuál es su resolución lineal res, en m?",
+    "e2": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. En Δt = {{dt_s}} s cuentas Δticks = {{deltaTicks}}. ¿Cuál es la velocidad angular ω de la rueda, en rad/s, y la velocidad lineal v del robot, en m/s?",
+    "e3": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. ¿Cuántos ticks cuentas mientras el robot recorre D = {{distance_m}} m en línea recta?",
+    "e4": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. Cuentas ticks = {{ticks}}. ¿Qué distancia s recorre la rueda, en m?"
   }
 }
