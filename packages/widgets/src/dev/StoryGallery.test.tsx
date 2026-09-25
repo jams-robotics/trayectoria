@@ -107,6 +107,14 @@ describe('stories catalogue', () => {
         ],
       },
       {
+        title: 'PowerWidget',
+        stories: [
+          ['Lift', expect.any(Function)],
+          ['Top', expect.any(Function)],
+          ['DoublePower', expect.any(Function)],
+        ],
+      },
+      {
         title: 'GearWidget',
         stories: [
           ['OneStage', expect.any(Function)],

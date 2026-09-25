@@ -40,6 +40,10 @@ const WIDGETS = [
   // cuerpo ya va por la rampa y las cuatro barras tienen valor, y como la reproducción solo
   // avanza con «Reproducir», la escena y las barras son comparables fotograma a fotograma.
   { name: 'EnergyWidget', story: 'Ramp', shot: 'EnergyWidget' },
+  // El caso dorado de PowerWidget (#360) abierto en t = 1 s: la carga va a media subida y la
+  // barra de E_p marca 4.32 J. La reproducción solo avanza con «Reproducir», así que la escena
+  // y la barra son comparables fotograma a fotograma.
+  { name: 'PowerWidget', story: 'Lift', shot: 'PowerWidget' },
   // La «Explora» de T-4.4 (tren 12:60 y 10:50) abierta en t = 0: el caso aprobado de F2-08
   // (#91, decisión 6). La reproducción solo avanza con «Reproducir», así que los cuatro
   // engranajes están quietos y la escena es comparable fotograma a fotograma.
@@ -81,6 +85,7 @@ const SCENE_WIDGETS: readonly string[] = [
   'ProjectileWidget',
   'RotationWidget',
   'EnergyWidget',
+  'PowerWidget',
   'GearWidget',
   'DiffDriveWidget',
 ];
