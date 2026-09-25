@@ -8,8 +8,8 @@ import type { DiffDriveState } from '@trayectoria/sim-core';
 
 import { INITIAL_POSE } from './timeline';
 import type { Path, Preroll } from './timeline';
-import { odometryStep, stepOf, ticksAt } from './odometry';
-import type { Calibration, Step, Ticks } from './odometry';
+import { estimatedVelocity, odometryStep, stepOf, ticksAt } from './odometry';
+import type { Calibration, EstimatedVelocity, Step, Ticks } from './odometry';
 import type { Pose } from './compute';
 
 /** Samples of the estimated trace kept; the same budget the real trace uses. */
@@ -17,6 +17,9 @@ const TRACE_LIMIT = 600;
 
 /** A step of no ticks: what the panel shows before the simulation has advanced. */
 const NO_STEP: Step = { deltaSL_m: 0, deltaSR_m: 0, deltaS_m: 0, deltaTheta_rad: 0 };
+
+/** No velocity estimated yet: what the panel shows before a first step has a duration. */
+const NO_VELOCITY: EstimatedVelocity = { left_mps: 0, right_mps: 0, robot_mps: 0 };
 
 /** Everything `mode: 'odometry'` draws and reads beside the real pose. */
 export interface Odometry {
@@ -26,6 +29,8 @@ export interface Odometry {
   ticks: Ticks;
   /** Advance and turn of the last step taken. */
   step: Step;
+  /** Velocity the encoders estimate from that step, per wheel and for the robot (T-4.5). */
+  velocity: EstimatedVelocity;
   /** Path the estimated pose has drawn since the last reset, in world metres. */
   trace_m: Path;
 }
@@ -35,6 +40,7 @@ interface EstimatorState {
   estimated: Pose;
   ticks: Ticks;
   step: Step;
+  velocity: EstimatedVelocity;
   trace: Array<readonly [number, number]>;
   lastAt_s: number;
   calibration: Calibration;
@@ -52,6 +58,7 @@ function restart(preroll: Preroll, calibration: Calibration): EstimatorState {
     estimated: INITIAL_POSE,
     ticks: ticksAt(first, calibration.ticksPerRev),
     step: NO_STEP,
+    velocity: NO_VELOCITY,
     trace: [],
     lastAt_s: first.t_s,
     calibration,
@@ -80,11 +87,13 @@ function advance(current: EstimatorState, state: DiffDriveState): EstimatorState
   };
   const step = stepOf(delta, current.calibration);
   const estimated = odometryStep(current.estimated, step);
+  const dt_s = state.t_s - current.lastAt_s;
   return {
     ...current,
     estimated,
     ticks,
     step,
+    velocity: estimatedVelocity(step, dt_s),
     trace: [...current.trace.slice(-TRACE_LIMIT), [estimated.x_m, estimated.y_m]],
     lastAt_s: state.t_s,
   };
@@ -113,5 +122,11 @@ export function useOdometry(
     next = current;
   }
   estimator.current = next;
-  return { estimated: next.estimated, ticks: next.ticks, step: next.step, trace_m: next.trace };
+  return {
+    estimated: next.estimated,
+    ticks: next.ticks,
+    step: next.step,
+    velocity: next.velocity,
+    trace_m: next.trace,
+  };
 }
