@@ -1,0 +1,176 @@
+---
+id: ruta-1/m02-t03
+title: 'Torque'
+module: 2
+order: 3
+estimatedMinutes: 30
+prerequisites: [ruta-1/m02-t01]
+objectives:
+  - Relacionar torque, fuerza y radio
+  - Convertir el torque del motor en fuerza en la rueda pasando por la reducción
+  - Calcular el torque para sostener una carga
+widgets: [GearWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [young-freedman-10, serway-10]
+status: review
+---
+
+<Gancho>
+  El motor entrega 0.012 N·m en bloqueo y la reducción es 30:1. ¿Cuánta fuerza puede empujar cada
+  rueda contra el suelo?
+</Gancho>
+
+<Concepto>
+El **torque** mide cuánto hace girar una fuerza alrededor de un eje. Es la fuerza por su brazo,
+la distancia perpendicular entre el eje y la línea de la fuerza: τ = F·r. Se mide en N·m. La
+misma fuerza aplicada al doble de distancia del eje da el doble de torque.
+
+En la rueda de tu robot, el eje recibe un torque y el suelo responde en el punto de contacto, a
+una distancia r del eje. Sin deslizamiento, la fuerza de tracción de cada rueda es
+F_rueda = τ_rueda/r. Con el mismo torque, una rueda más pequeña empuja más fuerte.
+
+El motor entrega poco torque a mucha velocidad. La caja de engranajes, de relación i, multiplica
+el torque por i y divide la velocidad entre i; el detalle está en el tema Transmisión y reducción.
+
+Parte de la potencia se pierde por fricción entre los engranajes. La **eficiencia** η, entre 0 y
+1, es la fracción que llega a la salida. Así, τ_rueda = τ_motor·i·η.
+
+En una rampa de ángulo φ, la componente del peso a lo largo de ella es mg·sinφ. Para subir a
+velocidad constante, la fuerza neta es cero: la tracción total iguala mg·sinφ. Con dos ruedas
+motrices, cada una aporta la mitad, y su torque es τ_rueda = (mg·sinφ/2)·r.
+
+Un brazo robótico usa la misma idea. Si un brazo horizontal sostiene una masa m en la punta, el
+peso mg actúa con un brazo de palanca ℓ respecto a la articulación. Para que no caiga, la
+articulación debe hacer τ = mg·ℓ.
+
+Con los datos del gancho, η = 0.6 y ruedas de r = 0.032 m, llegan a cada rueda
+τ_rueda = 0.012·30·0.6 = 0.216 N·m, y cada una empuja F_rueda = 0.216/0.032 = 6.75 N.
+
+</Concepto>
+
+<Formulas>
+<Formula latex="\tau = F\,r" />
+
+- `τ` · torque · N·m
+- `F` · fuerza · N
+- `r` · radio de rueda · m
+
+<Formula latex="F_{rueda} = \frac{\tau_{rueda}}{r}" />
+
+- `F_rueda` · fuerza de tracción de una rueda · N
+- `τ_rueda` · torque en la rueda · N·m
+- `r` · radio de rueda · m
+
+<Formula latex="\tau_{rueda} = \tau_{motor}\,i\,\eta" />
+
+- `τ_rueda` · torque en la rueda · N·m
+- `τ_motor` · torque en el eje del motor · N·m
+- `i` · relación de reducción · —
+- `η` · eficiencia · —
+
+<Formula latex="\tau_{rueda} = \frac{mg\sin\varphi}{2}\,r" />
+
+- `τ_rueda` · torque en la rueda · N·m
+- `m` · masa · kg
+- `g` · aceleración gravitatoria · m/s²
+- `φ` · ángulo de pendiente · rad
+- `r` · radio de rueda · m
+
+<Formula latex="\tau = m g\,\ell" />
+
+- `τ` · torque · N·m
+- `ℓ` · brazo de palanca · m
+- `m` · masa · kg
+- `g` · aceleración gravitatoria · m/s²
+  </Formulas>
+
+<Explora>
+Un tren de dos etapas, 10:60 y 10:50, es decir 6:1 y 5:1: i = 30 en total. Entra el motor del
+gancho, 6000 rpm y 0.012 N·m, y η = 0.6 se aplica una vez al total. El widget dibuja los
+engranajes con el sentido de giro de cada eje y muestra la velocidad y el torque de salida.
+
+<GearWidget
+  stages={2}
+  initial={{
+    z1: 10,
+    z2: 60,
+    z3: 10,
+    z4: 50,
+    nIn_rpm: 6000,
+    torqueIn_Nm: 0.012,
+    efficiency: 0.6,
+  }}
+/>
+
+<Experimento
+  cambia="z₄, los dientes del último engranaje, de 50 a 60"
+  observa="la velocidad y el torque de salida"
+  porque="¿Por qué uno sube y el otro baja en la misma proporción?"
+>
+  La relación pasa de i = 6·5 = 30 a i = 6·6 = 36, 1.2 veces mayor. La velocidad de salida se divide
+  entre i y baja de 200 rpm a 167 rpm. El torque se multiplica por i y sube de 0.216 N·m a 0.259
+  N·m, el mismo factor 1.2.
+</Experimento>
+
+<Experimento
+  cambia="la eficiencia η de 0.6 a 1"
+  observa="el torque de salida"
+  porque="¿Por qué sube de 0.216 a 0.36 N·m?"
+>
+  Con η = 1 la caja no pierde nada: τ = 0.012·30 = 0.36 N·m. Con η = 0.6, el 40 % se pierde en
+  fricción entre dientes y ejes, y la salida se queda en 0.6·0.36 = 0.216 N·m. La velocidad de
+  salida no cambia: la eficiencia solo recorta el torque.
+</Experimento>
+
+La rampa del tercer experimento no está en el widget: es la componente del peso del robot de
+0.9 kg en una rampa de 20°, calculada con la fórmula.
+
+<Formula latex="F_{\parallel} = mg\sin\varphi = 3.02\ \text{N}" />
+
+<Experimento
+  cambia="el suelo, de plano a una rampa de φ = 20°, con el robot de 0.9 kg"
+  observa="F_∥, la componente del peso a lo largo de la rampa"
+  porque="¿Por qué cada rueda necesita solo 0.0483 N·m para subirla?"
+>
+En plano sinφ = 0 y el peso no tira hacia atrás; a 20°, F_∥ = 0.9·9.81·sin20° = 3.02 N. Las dos
+ruedas vencen esa fuerza entre las dos, 1.51 N cada una, y con r = 0.032 m eso pide
+1.51·0.032 = 0.0483 N·m por rueda. Es menos de un cuarto de los 0.216 N·m que da la caja.
+</Experimento>
+</Explora>
+
+<AlRobot>
+El torque de bloqueo τ_motor es el máximo que da tu motor, con el eje detenido. Pasa por la
+reducción de tu perfil y llega a cada rueda:
+
+<RobotFormula calc="ruta-1/m02-t03/wheel-torque" />
+
+Si tu perfil de «Mi robot» no define el motor, el cálculo usa el del robot de referencia:
+τ_motor = 0.012 N·m y η = 0.6. Si no es un robot móvil, usa el robot de referencia completo.
+
+Cada rueda convierte ese torque en tracción contra el suelo:
+
+<RobotFormula calc="ruta-1/m02-t03/wheel-force" />
+
+Con el robot de referencia, τ_rueda = 0.216 N·m y cada rueda empuja 6.75 N: 13.5 N entre las
+dos.
+
+Esa fuerza solo llega al suelo si las ruedas no patinan. En el tema Fricción viste el límite: la
+tracción no supera μₛ·N sobre las ruedas motrices. Con goma, μₛ = 0.6, y con una rueda loca,
+β = 0.6 del peso cae sobre las ruedas motrices:
+
+<RobotFormula calc="ruta-1/m02-t03/max-friction" />
+
+Con el robot de referencia, f_max = 3.18 N frente a los 13.5 N del motor. Manda el menor de los
+dos: la fricción. Si pides más, las ruedas patinan mucho antes de que el motor se detenga. Un
+motor con más torque no empuja más a tu robot; más agarre o más peso sobre las ruedas motrices,
+sí.
+
+</AlRobot>
+
+<Verifica
+  ejercicios={['ruta-1/m02-t03/e1', 'ruta-1/m02-t03/e2', 'ruta-1/m02-t03/e3', 'ruta-1/m02-t03/e4']}
+  topicId="ruta-1/m02-t03"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['young-freedman-10', 'serway-10']} topicId="ruta-1/m02-t03" />
