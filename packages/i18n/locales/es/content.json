@@ -54,6 +54,12 @@
     "e3": "Las ruedas motrices de tu robot tienen μₛ = {{mu_s}} con el suelo y cargan la fracción β = {{drivenWeightFraction}} de su peso; el resto lo carga una rueda loca. ¿Cuál es la aceleración máxima que puede lograr en plano sin patinar, en m/s²?",
     "e4": "Tu robot va a v = {{v_mps}} m/s y frena con las ruedas bloqueadas, deslizando sobre un suelo con μₖ = {{mu_k}}. ¿Qué distancia recorre hasta detenerse, en m?"
   },
+  "ruta-1/m02-t03": {
+    "e1": "El motor de tu robot entrega τ_motor = {{motorTorque_Nm}} N·m, la reducción es i = {{gearRatio}} y la eficiencia de la caja es η = {{efficiency}}. ¿Qué torque llega a la rueda, en N·m?",
+    "e2": "Una rueda de radio r = {{wheelRadius_m}} m recibe un torque τ_rueda = {{wheelTorque_Nm}} N·m. ¿Qué fuerza de tracción empuja contra el suelo, en N?",
+    "e3": "Tu robot de m = {{mass_kg}} kg sube a velocidad constante una rampa de φ = {{slope_deg}}° con dos ruedas motrices de radio r = {{wheelRadius_m}} m. ¿Qué torque necesita cada rueda, en N·m?",
+    "e4": "Un brazo horizontal de ℓ = {{leverArm_m}} m sostiene una masa de m = {{mass_kg}} kg en la punta. Sin contar la masa del brazo, ¿qué torque hace la articulación, en N·m?"
+  },
   "ruta-1/m03-t01": {
     "e1": "Tu robot de m = {{mass_kg}} kg avanza a v = {{v_mps}} m/s. ¿Cuál es su energía cinética, en J?",
     "e2": "Tu robot llega a v = {{v_mps}} m/s al pie de una rampa y se le corta el motor. Sin fricción, ¿hasta qué altura sube por inercia, en m?",
