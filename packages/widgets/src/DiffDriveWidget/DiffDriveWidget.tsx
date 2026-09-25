@@ -16,7 +16,7 @@ import {
   OdometryPanel,
   PosePanel,
   applyCalibration,
-  applyTheta,
+  theta0Of,
   applyTwist,
   applyWheel,
   calibrationParams,
@@ -107,10 +107,10 @@ function dragHandler(
   };
 }
 
-/** Turns the `θ` slider of the pose panel into a pose change (#92, decision 6). */
+/** Turns the `θ₀` slider of the pose panel into a new initial orientation (#371). */
 function thetaHandler(timeline: Timeline): (value_deg: number) => void {
   return (value_deg) => {
-    timeline.setPose((current) => applyTheta(current, value_deg));
+    timeline.setTheta0(theta0Of(value_deg));
   };
 }
 
@@ -158,6 +158,8 @@ function Values({
         readout={readout}
         spec={spec}
         withFrames={show.includes('frames')}
+        theta0_rad={timeline.theta0_rad}
+        running={timeline.driver.running}
         onTheta={thetaHandler(timeline)}
         t={t}
       />
