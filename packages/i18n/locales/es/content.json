@@ -95,5 +95,11 @@
     "e2": "Un motor entrega τ₁ = {{motorTorque_Nm}} N·m a una reducción de i = {{gearRatio}} con eficiencia η = {{efficiency}}. ¿Qué torque τ₂ hay en el eje de salida, en N·m?",
     "e3": "Un tren de dos etapas tiene una primera etapa z₁:z₂ = {{z1}}:{{z2}} y una segunda z₃:z₄ = {{z3}}:{{z4}}. ¿Cuál es la relación total i_total, sin unidad?",
     "e4": "Tu robot tiene un motorreductor de i = 25, con el motor a 6000 rpm y ruedas de r = 0.032 m. ¿A qué velocidad v avanza, en m/s?"
+  },
+  "ruta-1/m04-t05": {
+    "e1": "El encoder de tu robot da N_e = {{encoderTicksPerRev}} ticks por vuelta de rueda y la rueda tiene r = {{wheelRadius_m}} m. ¿Cuál es su resolución lineal res, en m?",
+    "e2": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. En Δt = {{dt_s}} s cuentas Δticks = {{deltaTicks}}. ¿Cuál es la velocidad angular ω de la rueda, en rad/s, y la velocidad lineal v del robot, en m/s?",
+    "e3": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. ¿Cuántos ticks cuentas mientras el robot recorre D = {{distance_m}} m en línea recta?",
+    "e4": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. Cuentas ticks = {{ticks}}. ¿Qué distancia s recorre la rueda, en m?"
   }
 }
