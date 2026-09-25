@@ -46,5 +46,11 @@
     "e2": "La rueda de tu robot gira a n = {{speed_rpm}} rpm. ¿Cuánto dura una vuelta, es decir, su período T, en s?",
     "e3": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s. ¿Cuántas vueltas da?",
     "e4": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s, desde θ₀ = 0 rad. ¿Qué ángulo θ gira, en rad?"
+  },
+  "ruta-1/m04-t03": {
+    "e1": "La rueda de tu robot pasa del reposo a n = {{speed_rpm}} rpm en t = {{t_s}} s con aceleración angular constante. ¿Cuál es su aceleración angular α, en rad/s²?",
+    "e2": "Tu robot toma una curva de radio R = {{turnRadius_m}} m a v = {{v_mps}} m/s. ¿Cuál es su aceleración centrípeta a_c, en m/s²?",
+    "e3": "La rueda de tu robot, de radio r = {{wheelRadius_m}} m, acelera con α = {{alpha_radps2}} rad/s². ¿Cuál es la aceleración tangencial a_t de un punto del borde, en m/s²?",
+    "e4": "Las ruedas de tu robot tienen un coeficiente de fricción estática μs = {{mu_s}} con el suelo. ¿Cuál es la rapidez máxima sin patinar v_max,curva en una curva de radio R = {{turnRadius_m}} m, en m/s? Usa g = 9.81 m/s²."
   }
 }
