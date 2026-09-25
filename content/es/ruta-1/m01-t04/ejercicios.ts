@@ -135,5 +135,5 @@ const e5 = defineExercise<Record<string, never>>({
   tolerance: RELATIVE_2_PERCENT,
 });
 
-/** The exercises of T-1.4, in the order of Verifica; e1–e3 are required. */
+/** The exercises of T-1.4, in the order of Verifica; e1–e4 are required (only e5 is optional). */
 export const exercises = [e1, e2, e3, e4, e5] as const;
