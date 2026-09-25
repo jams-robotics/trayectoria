@@ -101,7 +101,7 @@ interface ProjectileWidgetProps { mode: 'launch' | 'drop' | 'dropFromRobot'; mod
 
 ### RotationWidget
 Disco o rueda con ω, punto en el borde, `v = ω·r`, período, vueltas; modos rodadura y aceleración angular.
-Escala (#351): la escena de cada modo tiene tamaño fijo en metros, calculado con el radio máximo del slider (`r_max = 0.1 m`, o `initial.r_m` si es mayor); el disco se dibuja con su radio real `r`, así que cambiar `r` cambia su tamaño en pantalla. Radio dibujado mínimo: 8 % de la altura de la escena; por debajo, el disco se dibuja con ese mínimo y los valores siguen usando el `r` real. Los vectores (velocidad del borde `v = ω·r`) usan una escala fija por modo, `k = L_max / (ω_max · r_max)` con los máximos de los sliders, donde `L_max` es la longitud con la que la punta cae dentro de la escena en el peor caso; si aun así la punta saldría (p. ej. ω creciente en `angularAccel`), la longitud se satura en `L_max`.
+Escala (#351): la escena de cada modo tiene tamaño fijo en metros, calculado con el radio máximo del slider (`r_max = 0.1 m`, o `initial.r_m` si es mayor); el disco se dibuja con su radio real `r`, así que cambiar `r` cambia su tamaño en pantalla. Radio dibujado mínimo: 8 % de la altura de la escena; por debajo, el disco se dibuja con ese mínimo y los valores siguen usando el `r` real. Los vectores (velocidad del borde `v = ω·r`) usan una escala fija, igual en los tres modos: `k = L_max / v_ref`, con `v_ref = 2 m/s` (el máximo del slider `v` del modo rodadura), donde `L_max` es la longitud con la que la punta cae dentro de la escena en el peor caso (#366). Con los valores iniciales de m04-t01 y m04-t02 (`v ≈ 0.67 m/s`) la flecha mide ≈ 33 % de `L_max`. Por encima de `v_ref`, o si la punta saldría por otro motivo (p. ej. ω creciente en `angularAccel`), la longitud se satura en `L_max`: la punta nunca sale de la escena.
 ```ts
 interface RotationWidgetProps { mode: 'disc' | 'rolling' | 'angularAccel'; initial: { omega_radps: number; r_m: number; alpha_radps2?: number }; inputUnit?: 'rpm' | 'radps' }
 ```
@@ -146,6 +146,8 @@ interface DiffDriveWidgetProps {
 }
 ```
 En `mode="odometry"`, el panel muestra la velocidad estimada por los encoders, por rueda y del robot, junto a la real: `v ≈ 2π·r·Δticks / (N_e·Δt)`, con `Δticks` y `Δt` del último paso de muestreo. Con pocos ticks por vuelta o a baja velocidad salta en escalones (#306). El slider «ticks por vuelta» del propio widget cambia `N_e` en `[16, 4096]` (#301).
+
+El slider de orientación del panel es la orientación inicial `θ₀` y se etiqueta «Orientación inicial» (#371). Al reproducir, el robot parte de `θ₀`; «Reiniciar» lo devuelve a `θ₀`. Mientras la simulación corre, el slider queda deshabilitado y sigue mostrando `θ₀`; la orientación actual se lee en la lectura «Orientación» del panel de valores. Sin props nuevas.
 
 ### LineSensorWidget
 Arreglo de sensores sobre un tramo de línea desplazable; lecturas, posición ponderada, umbral.
