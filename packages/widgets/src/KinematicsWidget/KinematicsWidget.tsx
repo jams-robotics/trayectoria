@@ -3,10 +3,12 @@ import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 
+import { ParamPanel } from '../ParamPanel/ParamPanel';
+import { SimLayout } from '../shared/SimLayout';
 import { MotionPlots } from './MotionPlots';
 import { sampleMotion, tangentSegment, velocityAt } from './compute';
 import type { Motion } from './compute';
-import { MotionScene, SidePanel, applyChange } from './panels';
+import { Controls, MotionScene, Values, applyChange, paramsOf } from './panels';
 import { useTimeline } from './timeline';
 import type { KinematicsEditable, Timeline } from './timeline';
 
@@ -53,6 +55,38 @@ function Charts({
   );
 }
 
+/** The left column: the scene, the playback controls and the charts (docs/DESIGN.md §6). */
+function Viewer({
+  motion,
+  timeline,
+  duration_s,
+  showTangent,
+  t,
+}: {
+  motion: Motion;
+  timeline: Timeline;
+  duration_s: number;
+  showTangent: boolean;
+  t: Translate;
+}): JSX.Element {
+  // gap-4 keeps the spacing the single mobile column had before the §6 layout.
+  return (
+    <div className="flex flex-col gap-4">
+      <MotionScene motion={motion} t_s={timeline.t_s} duration_s={duration_s} t={t} />
+      <Controls timeline={timeline} />
+      <div className="flex min-w-0 flex-col gap-3 overflow-hidden">
+        <Charts
+          motion={motion}
+          timeline={timeline}
+          duration_s={duration_s}
+          showTangent={showTangent}
+          t={t}
+        />
+      </div>
+    </div>
+  );
+}
+
 /**
  * 1D particle with its `x–t`, `v–t` and `a–t` charts synchronised and a tangent mode
  * (docs/WIDGETS.md, KinematicsWidget; docs/CURRICULUM.md T-0.3, T-1.1, T-1.2).
@@ -71,31 +105,28 @@ export function KinematicsWidget({
   const t = useT();
   const [motion, setMotion] = useState<Motion>(initial);
   const timeline = useTimeline(duration_s, initialTime_s);
-  const { t_s } = timeline;
   return (
-    <div className="flex flex-col gap-4">
-      <MotionScene motion={motion} t_s={t_s} duration_s={duration_s} t={t} />
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-        <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden">
-          <Charts
-            motion={motion}
-            timeline={timeline}
-            duration_s={duration_s}
-            showTangent={showTangent}
-            t={t}
-          />
-        </div>
-        <SidePanel
-          timeline={timeline}
+    <SimLayout
+      viewer={
+        <Viewer
           motion={motion}
-          editable={editable}
+          timeline={timeline}
+          duration_s={duration_s}
           showTangent={showTangent}
-          onChange={(key, value) => {
-            setMotion((current) => applyChange(current, key, value));
-          }}
           t={t}
         />
-      </div>
-    </div>
+      }
+      values={<Values timeline={timeline} motion={motion} showTangent={showTangent} t={t} />}
+      params={
+        editable.length === 0 ? null : (
+          <ParamPanel
+            params={paramsOf(motion, editable, t)}
+            onChange={(key, value) => {
+              setMotion((current) => applyChange(current, key, value));
+            }}
+          />
+        )
+      }
+    />
   );
 }

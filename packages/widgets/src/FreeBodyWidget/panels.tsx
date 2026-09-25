@@ -21,7 +21,7 @@ export function Values({
 }): JSX.Element {
   const notice = slipNotice(readout, t);
   return (
-    <div className="md:w-panel">
+    <div>
       <ReadoutPanel
         title={t('widgets.FreeBodyWidget.panel')}
         rows={panelRows(readout, mass_kg, showResultant, t)}

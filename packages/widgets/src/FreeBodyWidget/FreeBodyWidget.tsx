@@ -9,6 +9,7 @@ import type { ParamPanelParam } from '../ParamPanel/ParamPanel';
 import { Scene2D } from '../Scene2D/Scene2D';
 import { Rect } from '../Scene2D/primitives/Rect';
 import { Vector } from '../Scene2D/primitives/Vector';
+import { SimLayout } from '../shared/SimLayout';
 import { NORMAL_KEY, WEIGHT_KEY, readFreeBody } from './compute';
 import type { ForceInput, FreeBodyReadout, ResolvedForce } from './compute';
 import { applyBodyChange, bodyParamsOf, isBodyParam } from './params';
@@ -225,19 +226,15 @@ export function FreeBodyWidget({
   const params = [...bodyParamsOf(editableParams, body, t), ...paramsOf(forces, t)];
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start">
-        <div className="min-w-0 flex-1">
-          <Diagram
-            readout={readout}
-            slope_rad={body.slope_rad}
-            showResultant={showResultant}
-            t={t}
-          />
-        </div>
+    <SimLayout
+      from="md"
+      viewer={
+        <Diagram readout={readout} slope_rad={body.slope_rad} showResultant={showResultant} t={t} />
+      }
+      values={
         <Values readout={readout} mass_kg={body.mass_kg} showResultant={showResultant} t={t} />
-      </div>
-      {params.length === 0 ? null : <ParamPanel params={params} onChange={onChange} />}
-    </div>
+      }
+      params={params.length === 0 ? null : <ParamPanel params={params} onChange={onChange} />}
+    />
   );
 }

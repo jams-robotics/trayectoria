@@ -5,6 +5,7 @@ import type { Translate } from '@trayectoria/i18n';
 
 import { SimControls } from '../SimControls/SimControls';
 import { LiveStatus } from '../shared/ReadoutPanel';
+import { ParamGrid, SimLayout } from '../shared/SimLayout';
 import { flightTime, range, worldWidthOf } from './compute';
 import type { Launch, ProjectileMode } from './compute';
 import { ModeToggle } from './ModeToggle';
@@ -108,30 +109,46 @@ function legendsOf(mode: ProjectileMode, t: Translate): readonly [string, string
     : [t('widgets.ProjectileWidget.legendA'), t('widgets.ProjectileWidget.legendB')];
 }
 
-/**
- * The right-hand column: the values panel, the live description and one `ParamPanel` per drawn
- * launch. With an overlay each panel carries its `A` or `B` legend (#88, decision 7).
- */
-function SidePanel({
+/** The right-hand column: the values panel and the live description (docs/DESIGN.md §6). */
+function Values({
   mode,
   launches,
   t_s,
-  onChange,
   t,
 }: {
   mode: ProjectileMode;
   launches: readonly Launch[];
   t_s: number;
+  t: Translate;
+}): JSX.Element {
+  const primary = launches[0];
+  return (
+    <>
+      <ResultsPanel mode={mode} launches={launches} t_s={t_s} t={t} />
+      {primary === undefined ? null : <LiveStatus text={statusOf(mode, primary, t_s, t)} />}
+    </>
+  );
+}
+
+/**
+ * One `ParamPanel` per drawn launch, under the viewer. With an overlay each panel carries its
+ * `A` or `B` legend (#88, decision 7) and the two sit side by side when they fit (§6).
+ */
+function Params({
+  mode,
+  launches,
+  onChange,
+  t,
+}: {
+  mode: ProjectileMode;
+  launches: readonly Launch[];
   onChange: readonly [SetLaunch, SetLaunch];
   t: Translate;
 }): JSX.Element {
   const overlaid = launches.length > 1;
   const legends = legendsOf(mode, t);
-  const primary = launches[0];
   return (
-    <div className="flex flex-col gap-4 lg:w-panel">
-      <ResultsPanel mode={mode} launches={launches} t_s={t_s} t={t} />
-      {primary === undefined ? null : <LiveStatus text={statusOf(mode, primary, t_s, t)} />}
+    <ParamGrid>
       {launches.map((launch, index) => (
         <LaunchParams
           key={legends[index]}
@@ -144,7 +161,7 @@ function SidePanel({
           t={t}
         />
       ))}
-    </div>
+    </ParamGrid>
   );
 }
 
@@ -176,20 +193,23 @@ function ProjectileView({
   const timeline = useTimeline(flightTime_s, initialTime_s);
   const { t_s } = timeline;
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-      <div className="flex min-w-0 flex-1 flex-col gap-3">
-        <ProjectileScene
-          mode={mode}
-          launches={launches.map(drawnLaunch)}
-          t_s={t_s}
-          worldWidth_m={worldWidthOf(launches.map((launch) => range(mode, launch)))}
-          showVectors={showVectors}
-          t={t}
-        />
-        <SimControls {...timeline.driver} {...timeline.controls} t_s={t_s} />
-      </div>
-      <SidePanel mode={mode} launches={launches} t_s={t_s} onChange={setters} t={t} />
-    </div>
+    <SimLayout
+      viewer={
+        <>
+          <ProjectileScene
+            mode={mode}
+            launches={launches.map(drawnLaunch)}
+            t_s={t_s}
+            worldWidth_m={worldWidthOf(launches.map((launch) => range(mode, launch)))}
+            showVectors={showVectors}
+            t={t}
+          />
+          <SimControls {...timeline.driver} {...timeline.controls} t_s={t_s} />
+        </>
+      }
+      values={<Values mode={mode} launches={launches} t_s={t_s} t={t} />}
+      params={<Params mode={mode} launches={launches} onChange={setters} t={t} />}
+    />
   );
 }
 

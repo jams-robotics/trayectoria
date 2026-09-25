@@ -6,6 +6,7 @@ import type { Translate } from '@trayectoria/i18n';
 import { ParamPanel } from '../ParamPanel/ParamPanel';
 import { SimControls } from '../SimControls/SimControls';
 import { LiveStatus } from '../shared/ReadoutPanel';
+import { SimLayout } from '../shared/SimLayout';
 import type { GearStages, Train } from './compute';
 import { ResultsPanel, animationScale, applyChange, paramsOf, statusOf } from './panels';
 import { GearScene } from './scene';
@@ -47,7 +48,9 @@ function labelsOf(train: Train, t: Translate): readonly string[] {
 function SpeedLegend({ train, t }: { train: Train; t: Translate }): JSX.Element {
   return (
     <p className="text-fg-muted font-mono text-xs tracking-[0.06em]">
-      {t('widgets.GearWidget.animationScale', { factor: String(Math.round(animationScale(train.nIn_rpm))) })}
+      {t('widgets.GearWidget.animationScale', {
+        factor: String(Math.round(animationScale(train.nIn_rpm))),
+      })}
     </p>
   );
 }
@@ -67,16 +70,34 @@ function Viewer({
   t: Translate;
 }): JSX.Element {
   return (
-    <div className="flex min-w-0 flex-1 flex-col gap-3">
+    <>
       <GearScene stages={stages} train={train} t_s={t_s} t={t} labels={labelsOf(train, t)} />
       <SpeedLegend train={train} t={t} />
       <SimControls {...timeline.driver} {...timeline.controls} t_s={t_s} />
-    </div>
+    </>
   );
 }
 
-/** The right-hand column: the values of the train, the live sentence and the sliders. */
-function Panels({
+/** The right-hand column: the values of the train and the live sentence (docs/DESIGN.md §6). */
+function Values({
+  stages,
+  train,
+  t,
+}: {
+  stages: GearStages;
+  train: Train;
+  t: Translate;
+}): JSX.Element {
+  return (
+    <>
+      <ResultsPanel stages={stages} train={train} t={t} />
+      <LiveStatus text={statusOf(stages, train, t)} />
+    </>
+  );
+}
+
+/** The sliders of the train, under the viewer (docs/DESIGN.md §6). */
+function Sliders({
   stages,
   train,
   setTrain,
@@ -88,16 +109,12 @@ function Panels({
   t: Translate;
 }): JSX.Element {
   return (
-    <div className="flex flex-col gap-4 lg:w-panel">
-      <ResultsPanel stages={stages} train={train} t={t} />
-      <LiveStatus text={statusOf(stages, train, t)} />
-      <ParamPanel
-        params={paramsOf(stages, train, t)}
-        onChange={(key, value) => {
-          setTrain((current) => applyChange(current, key, value));
-        }}
-      />
-    </div>
+    <ParamPanel
+      params={paramsOf(stages, train, t)}
+      onChange={(key, value) => {
+        setTrain((current) => applyChange(current, key, value));
+      }}
+    />
   );
 }
 
@@ -124,9 +141,10 @@ export function GearWidget({ stages, initial, initialTime_s = 0 }: GearWidgetPro
   const timeline = useTimeline(initialTime_s);
   const { t_s } = timeline;
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-      <Viewer stages={stages} train={train} t_s={t_s} timeline={timeline} t={t} />
-      <Panels stages={stages} train={train} setTrain={setTrain} t={t} />
-    </div>
+    <SimLayout
+      viewer={<Viewer stages={stages} train={train} t_s={t_s} timeline={timeline} t={t} />}
+      values={<Values stages={stages} train={train} t={t} />}
+      params={<Sliders stages={stages} train={train} setTrain={setTrain} t={t} />}
+    />
   );
 }

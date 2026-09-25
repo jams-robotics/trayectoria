@@ -8,12 +8,8 @@ import { useMyRobot } from '../MyRobotWidget/useMyRobot';
 import { ParamPanel } from '../ParamPanel/ParamPanel';
 import { SimControls } from '../SimControls/SimControls';
 import { LiveStatus } from '../shared/ReadoutPanel';
-import {
-  forwardKinematics,
-  inverseKinematics,
-  mobileOf,
-  saturate,
-} from './compute';
+import { SimLayout } from '../shared/SimLayout';
+import { forwardKinematics, inverseKinematics, mobileOf, saturate } from './compute';
 import type { DiffDriveMode, DiffDriveShow, Pose, WheelCommand } from './compute';
 import {
   Notice,
@@ -71,22 +67,6 @@ function initialCommand(initial: DiffDriveWidgetProps['initial']): WheelCommand 
 /** The twist the widget starts from in `inverse` (docs/WIDGETS.md, `initial`). */
 function initialTwist(initial: DiffDriveWidgetProps['initial']): TwistInput {
   return { v_mps: initial.v_mps ?? 0, omega_radps: initial.omega_radps ?? 0 };
-}
-
-/** The viewer column: the scene and the playback controls. */
-function Viewer({
-  scene,
-  timeline,
-}: {
-  scene: JSX.Element;
-  timeline: Timeline;
-}): JSX.Element {
-  return (
-    <div className="flex min-w-0 flex-1 flex-col gap-3">
-      {scene}
-      <SimControls {...timeline.driver} {...timeline.controls} t_s={timeline.t_s} />
-    </div>
-  );
 }
 
 /** The sliders of the mode, with the saturation notice above them (#92, decision 4). */
@@ -153,15 +133,13 @@ function OdometryReadouts({
   );
 }
 
-/** The whole right-hand column: the pose panel, the live description and the sliders. */
-function Panels({
+/** The right-hand column: the pose panel and the live descriptions (docs/DESIGN.md §6). */
+function Values({
   mode,
   readout,
   spec,
   show,
   timeline,
-  params,
-  onSlider,
   odometry,
   t,
 }: {
@@ -170,13 +148,11 @@ function Panels({
   spec: MobileSpec;
   show: readonly DiffDriveShow[];
   timeline: Timeline;
-  params: ReturnType<typeof wheelParams>;
-  onSlider: (key: string, value: number) => void;
   odometry: Odometry | null;
   t: Translate;
 }): JSX.Element {
   return (
-    <div className="flex flex-col gap-4 lg:w-panel">
+    <>
       <PosePanel
         mode={mode}
         readout={readout}
@@ -187,8 +163,7 @@ function Panels({
       />
       <OdometryReadouts odometry={odometry} real={readout.pose} t={t} />
       <LiveStatus text={statusOf(readout, t)} />
-      <Sliders params={params} onChange={onSlider} feasible={readout.feasible} t={t} />
-    </div>
+    </>
   );
 }
 
@@ -215,8 +190,7 @@ function useCommand(
   const params = inverse ? twistParams(twist, spec, t) : wheelParams(wheels, spec, t);
   return {
     command: inverse ? inverseKinematics(twist.v_mps, twist.omega_radps, spec) : wheels,
-    params:
-      mode === 'odometry' ? [...params, ...calibrationParams(calibration, t)] : params,
+    params: mode === 'odometry' ? [...params, ...calibrationParams(calibration, t)] : params,
     onSlider: (key, value) => {
       if (inverse) setTwist((current) => applyTwist(current, key, value));
       else setWheels((current) => applyWheel(current, key, value));
@@ -259,24 +233,23 @@ export function DiffDriveWidget({
   const readout = readDiffDrive(timeline.pose, command, twist, spec);
   const estimator = useOdometry(timeline.state, timeline.preroll, calibration);
   const odometry = mode === 'odometry' ? estimator : null;
-
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-      <Viewer
-        timeline={timeline}
-        scene={
+    <SimLayout
+      viewer={
+        <>
           <DiffDriveScene
-            {...{ spec, twist, command, show, t }}
-            robot={applicable}
+            {...{ spec, twist, command, show, t, robot: applicable }}
             pose={timeline.pose}
             feasible={readout.feasible}
             trace_m={timeline.trace_m}
             onDrag={dragHandler(timeline)}
             odometry={sceneOdometry(odometry)}
           />
-        }
-      />
-      <Panels {...{ mode, readout, spec, show, timeline, params, onSlider, odometry, t }} />
-    </div>
+          <SimControls {...timeline.driver} {...timeline.controls} t_s={timeline.t_s} />
+        </>
+      }
+      values={<Values {...{ mode, readout, spec, show, timeline, odometry, t }} />}
+      params={<Sliders params={params} onChange={onSlider} feasible={readout.feasible} t={t} />}
+    />
   );
 }
