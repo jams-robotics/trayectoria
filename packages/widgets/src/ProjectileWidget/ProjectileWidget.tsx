@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react';
-import type { Dispatch, JSX, SetStateAction } from 'react';
+import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 
 import { SimControls } from '../SimControls/SimControls';
 import { LiveStatus } from '../shared/ReadoutPanel';
-import { ParamGrid, SimLayout } from '../shared/SimLayout';
+import { SimLayout } from '../shared/SimLayout';
 import { flightTime, range, worldWidthOf } from './compute';
 import type { Launch, ProjectileMode } from './compute';
 import { ModeToggle } from './ModeToggle';
-import { LaunchParams, ResultsPanel, applyChange, statusOf } from './panels';
+import { Params, useOverlayToggle } from './OverlayParams';
+import type { OverlayToggleState, SetLaunch } from './OverlayParams';
+import { ResultsPanel, statusOf } from './panels';
 import { ProjectileScene } from './scene';
 import type { DrawnLaunch, VectorKind } from './scene';
 import { useTimeline } from './timeline';
@@ -37,6 +39,8 @@ export interface ProjectileWidgetProps {
   };
   /** Adds a second launch or drop with its own sliders, in `launch` and `drop` (#88; #304). */
   overlay?: boolean;
+  /** Whether B opens shown; the toggle of B changes it (#361). Defaults to `true`. */
+  initialShowOverlay?: boolean;
   /** Velocity arrows drawn at the projectile. Defaults to none. */
   showVectors?: VectorKind[];
   /** Time the widget opens at, in seconds. Defaults to the start of the flight. */
@@ -60,9 +64,6 @@ function launchOf(initial: ProjectileWidgetProps['initial']): Launch {
 function overlaidOf(mode: ProjectileMode, launch: Launch): Launch {
   return mode === 'drop' ? { ...launch, h_m: launch.h_m * OVERLAY_DROP_HEIGHT_FACTOR } : launch;
 }
-
-/** One launch state setter, so the side panel can edit either of the two drawn launches. */
-type SetLaunch = Dispatch<SetStateAction<Launch>>;
 
 /** The launches the widget draws and the setter of each one, in draw order. */
 interface Launches {
@@ -102,13 +103,6 @@ function drawnLaunch(launch: Launch, index: number): DrawnLaunch {
   return { launch, color: LAUNCH_COLORS[index] ?? LAUNCH_COLORS[0] ?? 'color-data-1' };
 }
 
-/** The `A` and `B` legends of the mode: two launches, or two drops in `drop` (#304). */
-function legendsOf(mode: ProjectileMode, t: Translate): readonly [string, string] {
-  return mode === 'drop'
-    ? [t('widgets.ProjectileWidget.legendDropA'), t('widgets.ProjectileWidget.legendDropB')]
-    : [t('widgets.ProjectileWidget.legendA'), t('widgets.ProjectileWidget.legendB')];
-}
-
 /** The right-hand column: the values panel and the live description (docs/DESIGN.md §6). */
 function Values({
   mode,
@@ -130,46 +124,12 @@ function Values({
   );
 }
 
-/**
- * One `ParamPanel` per drawn launch, under the viewer. With an overlay each panel carries its
- * `A` or `B` legend (#88, decision 7) and the two sit side by side when they fit (§6).
- */
-function Params({
-  mode,
-  launches,
-  onChange,
-  t,
-}: {
-  mode: ProjectileMode;
-  launches: readonly Launch[];
-  onChange: readonly [SetLaunch, SetLaunch];
-  t: Translate;
-}): JSX.Element {
-  const overlaid = launches.length > 1;
-  const legends = legendsOf(mode, t);
-  return (
-    <ParamGrid>
-      {launches.map((launch, index) => (
-        <LaunchParams
-          key={legends[index]}
-          mode={mode}
-          launch={launch}
-          legend={overlaid ? legends[index] : undefined}
-          onChange={(key, value) => {
-            onChange[index === 0 ? 0 : 1]((current) => applyChange(current, key, value));
-          }}
-          t={t}
-        />
-      ))}
-    </ParamGrid>
-  );
-}
-
 /** What `ProjectileView` draws: one mode and its launches. */
 interface ProjectileViewProps {
   mode: ProjectileMode;
   launches: readonly Launch[];
   setters: readonly [SetLaunch, SetLaunch];
+  overlayToggle: OverlayToggleState;
   showVectors: VectorKind[];
   initialTime_s: number;
   t: Translate;
@@ -184,31 +144,36 @@ function ProjectileView({
   mode,
   launches,
   setters,
+  overlayToggle,
   showVectors,
   initialTime_s,
   t,
 }: ProjectileViewProps): JSX.Element {
-  // The flight lasts as long as the longest of the drawn launches, so neither is cut short.
+  // The flight lasts as long as the longest of the launches, B included while hidden, so
+  // neither is cut short and toggling B keeps the duration (#361).
   const flightTime_s = Math.max(...launches.map((launch) => flightTime(mode, launch)));
   const timeline = useTimeline(flightTime_s, initialTime_s);
   const { t_s } = timeline;
+  const drawn = overlayToggle.shown ? launches : launches.slice(0, 1);
   return (
     <SimLayout
       viewer={
         <>
           <ProjectileScene
             mode={mode}
-            launches={launches.map(drawnLaunch)}
+            launches={drawn.map(drawnLaunch)}
             t_s={t_s}
-            worldWidth_m={worldWidthOf(launches.map((launch) => range(mode, launch)))}
+            worldWidth_m={worldWidthOf(drawn.map((launch) => range(mode, launch)))}
             showVectors={showVectors}
             t={t}
           />
           <SimControls {...timeline.driver} {...timeline.controls} t_s={t_s} />
         </>
       }
-      values={<Values mode={mode} launches={launches} t_s={t_s} t={t} />}
-      params={<Params mode={mode} launches={launches} onChange={setters} t={t} />}
+      values={<Values mode={mode} launches={drawn} t_s={t_s} t={t} />}
+      params={
+        <Params mode={mode} launches={launches} onChange={setters} toggle={overlayToggle} t={t} />
+      }
     />
   );
 }
@@ -230,6 +195,7 @@ export function ProjectileWidget({
   modes = [],
   initial,
   overlay = false,
+  initialShowOverlay = true,
   showVectors = [],
   initialTime_s = 0,
 }: ProjectileWidgetProps): JSX.Element {
@@ -238,6 +204,8 @@ export function ProjectileWidget({
   // `initialTime_s` opens the first mode only: a mode switched to starts at `t = 0` (#304).
   const [switched, setSwitched] = useState(false);
   const { launches, setters, restartOverlay } = useLaunches(initial, mode, overlay);
+  // Lives above the remounted view, so a mode switch keeps it (#361).
+  const overlayToggle = useOverlayToggle(initialShowOverlay);
   const selectMode = (next: ProjectileMode): void => {
     if (next === mode) return;
     setMode(next);
@@ -250,6 +218,7 @@ export function ProjectileWidget({
       mode={mode}
       launches={launches}
       setters={setters}
+      overlayToggle={overlayToggle}
       showVectors={showVectors}
       initialTime_s={switched ? 0 : initialTime_s}
       t={t}
