@@ -1,0 +1,163 @@
+---
+id: ruta-1/m03-t02
+title: 'Potencia'
+module: 3
+order: 2
+estimatedMinutes: 30
+prerequisites: [ruta-1/m03-t01, ruta-1/m02-t03]
+objectives:
+  - Calcular la potencia mecánica τ·ω y F·v
+  - Relacionar la potencia eléctrica y la mecánica con la eficiencia
+  - Estimar la autonomía desde la capacidad de la batería
+widgets: [EnergyWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [young-freedman-6]
+status: review
+---
+
+<Gancho>
+Tu motor entrega 0.03 N·m a 5000 rpm. ¿Cuántos vatios mecánicos son? Y con una batería de
+11.1 Wh, ¿cuántos minutos corre el robot?
+</Gancho>
+
+<Concepto>
+La **potencia** es la energía que se transfiere por unidad de tiempo: P = W/t. Se mide en
+vatios, 1 W = 1 J/s. Dos motores pueden hacer el mismo trabajo; el más potente lo hace en menos
+tiempo.
+
+Un eje que gira con torque τ a velocidad angular ω entrega P = τ·ω. Con los datos del gancho,
+5000 rpm son 5000·2π/60 = 523.6 rad/s, y el motor entrega 0.03·523.6 = 15.71 W mecánicos.
+
+Una fuerza F que empuja a un cuerpo que avanza a v en su misma dirección entrega P = F·v. Es la
+misma idea en línea recta: el trabajo F·d que se hace en cada segundo.
+
+El motor toma potencia eléctrica de la batería, P_el = V·I, y entrega potencia mecánica en el
+eje. La diferencia se pierde como calor. La **eficiencia** es la fracción que llega al eje:
+η = P_mec/P_el, un número entre 0 y 1. Con η = 0.6, de cada 10 W eléctricos llegan 6 W al eje.
+
+La **capacidad** C de una batería es la energía que guarda, en vatios-hora. 1 Wh es la energía
+de 1 W durante una hora: 1 Wh = 3600 J. La batería del gancho guarda 11.1·3600 = 39960 J.
+
+La **autonomía** es el tiempo que la batería sostiene el consumo: t_autonomía = C/P_el, en horas
+si C va en Wh y P_el en W. Con dos motores a 6 V y 1.2 A cada uno, los de la hoja de datos de
+T-0.1, P_el = 2·6·1.2 = 14.4 W. La batería dura 11.1/14.4 = 0.771 h, unos 46.25 min.
+
+Un motor de corriente continua entrega su potencia mecánica máxima a la mitad de su velocidad
+sin carga.
+</Concepto>
+
+<Formulas>
+<Formula latex="P = \frac{W}{t}" />
+
+- `P` · potencia · W
+- `W` · trabajo · J
+- `t` · tiempo · s
+
+<Formula latex="P = \tau\,\omega" />
+
+- `P` · potencia · W
+- `τ` · torque · N·m
+- `ω` · velocidad angular · rad/s
+
+<Formula latex="P = F\,v" />
+
+- `P` · potencia · W
+- `F` · fuerza · N
+- `v` · velocidad lineal · m/s
+
+<Formula latex="P_{el} = V I" />
+
+- `P_el` · potencia eléctrica · W
+- `V` · voltaje · V
+- `I` · corriente · A
+
+<Formula latex="\eta = \frac{P_{mec}}{P_{el}}" />
+
+- `η` · eficiencia · sin unidad
+- `P_mec` · potencia mecánica · W
+- `P_el` · potencia eléctrica · W
+
+<Formula latex="t_{\text{autonomía}} = \frac{C}{P_{el}}" />
+
+- `t_autonomía` · autonomía · h
+- `C` · capacidad de batería · Wh
+- `P_el` · potencia eléctrica · W
+
+<Formula latex="1\ \text{Wh} = 3600\ \text{J}" />
+
+- Sin variables: relaciona dos unidades de energía; la del SI es el julio (J).
+</Formulas>
+
+<Explora>
+El motor del gancho, con τ = 0.03 N·m a 5000 rpm, y dos motores a 6 V y 1.2 A con η = 0.6 y una
+batería de 11.1 Wh. El bloque mecánico muestra la potencia del eje; el eléctrico, la potencia
+eléctrica, la mecánica entregada y la autonomía en minutos.
+
+<EnergyWidget
+  mode="power"
+  initial={{ mass_kg: 0.9, v0_mps: 0.6, slope_rad: 0.26 }}
+  power={{ torque_Nm: 0.03, omega_radps: 523.6, voltage_V: 6, current_A: 1.2, battery_Wh: 11.1 }}
+/>
+
+<Experimento
+  cambia="la corriente I al doble, de 1.2 a 2.4 A"
+  observa="la potencia eléctrica y la autonomía"
+  porque="¿Por qué una se duplica y la otra se reduce a la mitad?"
+>
+P_el = 2·V·I es proporcional a I: pasa de 14.4 W a 28.8 W. La autonomía es C/P_el, y la misma
+energía repartida al doble de ritmo dura la mitad: de 46.25 min a unos 23.1 min.
+</Experimento>
+
+<Experimento
+  cambia="la eficiencia η, de 0.6 a 0.3"
+  observa="la potencia mecánica entregada y la potencia eléctrica"
+  porque="¿Por qué cae la mecánica si la eléctrica no cambia?"
+>
+P_el = 2·V·I no depende de η. η solo fija la fracción que llega a los ejes, P_mec = η·P_el: pasa
+de 8.64 W a 4.32 W. El resto se pierde como calor.
+</Experimento>
+
+<Experimento
+  cambia="la capacidad C al doble, de 11.1 a 22.2 Wh"
+  observa="la autonomía"
+  porque="¿Por qué se duplica?"
+>
+t_autonomía = C/P_el, y P_el no depende de C. Con el doble de energía guardada y el mismo
+consumo, la batería dura el doble: de 46.25 min a 92.5 min.
+</Experimento>
+</Explora>
+
+<AlRobot>
+Tu robot tiene dos motores que se alimentan de la misma batería. Juntos consumen
+P_el = 2·V·I. V es el voltaje nominal del motor de tu perfil de «Mi robot». I no está en el
+perfil: es la corriente de la hoja de datos del gancho de
+[Unidades y magnitudes](/ruta/ruta-1/m00/t01), 1.2 A por motor.
+
+<RobotFormula calc="ruta-1/m03-t02/electrical-power" />
+
+Con esa potencia, la capacidad C de tu batería da la autonomía, en horas y en minutos:
+
+<RobotFormula calc="ruta-1/m03-t02/autonomy" />
+
+Si tu perfil no define el voltaje del motor o la capacidad de la batería, o no es un robot
+móvil, el cálculo usa los del robot de referencia: 6 V y 11.1 Wh.
+
+Con el robot de referencia, P_el = 2·6·1.2 = 14.4 W y t_autonomía = 11.1/14.4 = 0.771 h, unos
+46.3 min.
+
+Si cada motor consume más corriente, por ejemplo al subir una rampa, la autonomía baja en la
+misma proporción. Es lo que viste en el primer experimento de Explora.
+</AlRobot>
+
+<Verifica
+  ejercicios={[
+    'ruta-1/m03-t02/e1',
+    'ruta-1/m03-t02/e2',
+    'ruta-1/m03-t02/e3',
+    'ruta-1/m03-t02/e4',
+  ]}
+  topicId="ruta-1/m03-t02"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['young-freedman-6']} topicId="ruta-1/m03-t02" />

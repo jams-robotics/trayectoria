@@ -21,7 +21,7 @@ export const PATH_PERIOD_S = 0.01;
 /** Period of the dots left along the flight, in seconds (#88, decision 4). */
 export const TRACE_PERIOD_S = 0.1;
 /** Share of the range added around the flight so the scene is not flush with it (decision 4). */
-const VIEW_MARGIN = 0.15;
+export const VIEW_MARGIN = 0.15;
 /** Narrowest world the scene ever shows, in metres, so a short drop still has scale. */
 const MIN_WORLD_WIDTH_M = 1;
 
