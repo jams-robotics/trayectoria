@@ -29,6 +29,12 @@
     "e3": "Tu robot arranca desde el reposo con a = {{a_mps2}} m/s². ¿Cuánto tarda en recorrer Δx = {{dx_m}} m, en s?",
     "e4": "Tu robot recorre una pista recta de 4 m: arranca desde el reposo, acelera con a = 0.4 m/s² hasta v = 0.6 m/s y sigue a velocidad constante. ¿Cuánto tarda en total, en s?"
   },
+  "ruta-1/m02-t01": {
+    "e1": "Tu robot tiene una masa m = {{mass_kg}} kg y debe acelerar a a = {{a_mps2}} m/s². ¿Qué fuerza neta necesita, en N?",
+    "e2": "Tu robot de m = {{mass_kg}} kg está sobre un suelo horizontal. ¿Cuánto vale la fuerza normal que el suelo ejerce sobre él, en N? Usa g = 9.81 m/s².",
+    "e3": "Tu robot de m = {{mass_kg}} kg está sobre una rampa de φ = {{slope_deg}}°. ¿Cuánto vale la componente del peso a lo largo de la rampa, F_∥, en N, y la fuerza normal N, en N? Usa g = 9.81 m/s².",
+    "e4": "Las ruedas de tu robot de m = 0.9 kg dan una tracción de 1.5 N hacia adelante y la fricción de rodadura vale 0.4 N hacia atrás. ¿Cuál es su aceleración, en m/s²?"
+  },
   "ruta-1/m03-t01": {
     "e1": "Tu robot de m = {{mass_kg}} kg avanza a v = {{v_mps}} m/s. ¿Cuál es su energía cinética, en J?",
     "e2": "Tu robot llega a v = {{v_mps}} m/s al pie de una rampa y se le corta el motor. Sin fricción, ¿hasta qué altura sube por inercia, en m?",
