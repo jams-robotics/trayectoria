@@ -1,0 +1,169 @@
+---
+id: ruta-1/m02-t02
+title: 'Fricción'
+module: 2
+order: 2
+estimatedMinutes: 30
+prerequisites: [ruta-1/m02-t01]
+objectives:
+  - Distinguir la fricción estática de la cinética
+  - Calcular la aceleración máxima sin patinar y la pendiente máxima
+  - Entender que la tracción limita al robot antes que el motor
+widgets: [FreeBodyWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [young-freedman-5, serway-5]
+status: review
+---
+
+<Gancho>
+Con ruedas de μₛ = 0.6, ¿cuál es la aceleración máxima que tu robot puede lograr sin patinar, sin
+importar cuánto torque tenga el motor?
+</Gancho>
+
+<Concepto>
+La rueda motriz empuja el suelo hacia atrás en el punto de contacto, y el suelo empuja la rueda
+hacia adelante. Esa fuerza de fricción f es la tracción que mueve a tu robot.
+
+Mientras la rueda no desliza, su punto de contacto está quieto respecto al suelo y la fricción es
+**estática**. No tiene un valor fijo: vale lo necesario para que no haya deslizamiento, hasta un
+límite f_max = μₛ·N. N es la fuerza normal y μₛ, el coeficiente de fricción estática del par de
+materiales.
+
+Si la rueda pide más fuerza que f_max, desliza. Entonces actúa la fricción **cinética**,
+f = μₖ·N, con μₖ menor que μₛ. Una rueda que patina transmite menos fuerza que una que agarra.
+
+En plano, con todo el peso sobre las ruedas motrices, N = m·g. De ΣF = m·a, la aceleración máxima
+sin patinar es a_max = μₛ·m·g/m = μₛ·g: la masa se cancela. Con μₛ = 0.6,
+a_max = 0.6·9.81 = 5.886 m/s². Por encima de ese límite, más torque solo hace patinar la rueda.
+
+Si tu robot se apoya también en una rueda loca, esa rueda carga parte del peso y no empuja. Solo
+la fracción β del peso que cargan las ruedas motrices da tracción, y a_max = μₛ·g·β.
+
+En una rampa de ángulo φ, la fricción estática debe sostener la componente del peso m·g·sinφ, y
+la normal baja a N = m·g·cosφ. El robot se sostiene mientras m·g·sinφ ≤ μₛ·m·g·cosφ, es decir,
+tanφ ≤ μₛ. La pendiente máxima cumple tanφ_max = μₛ: con μₛ = 0.6, φ_max = 30.96°.
+
+Al frenar con las ruedas bloqueadas, el robot desliza y la fricción cinética lo detiene con una
+aceleración de módulo μₖ·g. De v² = v₀² + 2·a·Δx con velocidad final cero, la distancia de
+frenado es d_frenado = v²/(2·μₖ·g).
+</Concepto>
+
+<Formulas>
+<Formula latex="f_{max} = \mu_s N" />
+
+- `f_max` · fricción estática máxima · N
+- `μₛ` · coeficiente de fricción estática · —
+- `N` · fuerza normal · N
+
+<Formula latex="a_{max} = \mu_s g" />
+
+- `a_max` · aceleración máxima sin patinar, con todo el peso sobre ruedas motrices · m/s²
+- `μₛ` · coeficiente de fricción estática · —
+- `g` · aceleración gravitatoria · m/s²
+
+<Formula latex="a_{max} = \mu_s g\,\beta" />
+
+- `a_max` · aceleración máxima sin patinar · m/s²
+- `μₛ` · coeficiente de fricción estática · —
+- `g` · aceleración gravitatoria · m/s²
+- `β` · fracción del peso sobre las ruedas motrices · —
+
+<Formula latex="\tan\varphi_{max} = \mu_s" />
+
+- `φ_max` · pendiente máxima sin deslizar · rad
+- `μₛ` · coeficiente de fricción estática · —
+
+<Formula latex="d_{frenado} = \frac{v^2}{2\mu_k g}" />
+
+- `d_frenado` · distancia de frenado deslizando · m
+- `v` · velocidad lineal al empezar a frenar · m/s
+- `μₖ` · coeficiente de fricción cinética · —
+- `g` · aceleración gravitatoria · m/s²
+</Formulas>
+
+<Explora>
+Un robot de 0.9 kg está en una rampa de 15° con ruedas de μₛ = 0.6 y una tracción de 3 N cuesta
+arriba. El diagrama muestra el peso, la normal, la tracción y la resultante; el panel da N, f_max
+y a_max, y avisa «desliza» cuando las ruedas no agarran.
+
+<FreeBodyWidget
+  mass_kg={0.9}
+  forces={[
+    { key: 'traction', label: 'Tracción', magnitude_N: 3, angle_rad: 0, editable: true },
+  ]}
+  slope_rad={0.26}
+  mu_s={0.6}
+  editableParams={['slope', 'mu_s']}
+  showResultant
+/>
+
+<Experimento
+  cambia="la tracción por encima de μₛ·N, de 3 N a 6 N"
+  observa="el aviso «desliza» y la tracción que llega a la resultante"
+  porque="¿Por qué la tracción no pasa de f_max?"
+>
+En la rampa de 15°, N = 8.53 N y f_max = 0.6·8.53 = 5.12 N. Las ruedas no pueden transmitir más
+fuerza que f_max: el torque de más solo las hace girar en falso. Por eso la fuerza real se limita
+a 5.12 N.
+</Experimento>
+
+<Experimento
+  cambia="la tracción a 0 N y luego la pendiente, grado a grado desde 15°"
+  observa="el ángulo al que aparece «desliza»"
+  porque="¿Por qué el robot deja de sostenerse cerca de 31°?"
+>
+Sin tracción, la fricción estática sostiene m·g·sinφ con un límite de μₛ·m·g·cosφ. El robot
+resbala cuando tanφ supera μₛ = 0.6, pasado φ_max = 30.96°. A 30° aún se sostiene y a 31° ya no,
+sea cual sea la masa.
+</Experimento>
+
+<Experimento
+  cambia="μₛ de 0.6 a 0.3 (goma dura), con la pendiente en 0°"
+  observa="a_max en el panel"
+  porque="¿Por qué la aceleración máxima se reduce a la mitad?"
+>
+En plano, a_max = μₛ·g: es proporcional a μₛ. Pasa de 5.89 m/s² a 2.94 m/s² sin que cambien la
+masa ni el motor.
+</Experimento>
+</Explora>
+
+<AlRobot>
+El límite de tracción vale para cualquier motor; la pregunta es si tu robot llega a él. Sin
+deslizamiento, la aceleración que piden sus ruedas es a = α·r, la de
+[Movimiento uniformemente acelerado](/ruta/ruta-1/m01/t02), con α la aceleración angular máxima
+de la rueda y r su radio:
+
+<RobotFormula calc="ruta-1/m02-t02/acceleration" />
+
+Si tu perfil de «Mi robot» no define α, o no es un robot móvil, el cálculo usa la del robot de
+referencia: α = 40 rad/s².
+
+El robot de referencia se apoya en dos ruedas motrices y una rueda loca. Con μₛ = 0.6 y la
+fracción β = 0.6 del peso sobre las ruedas motrices, su límite de tracción es:
+
+<Formula
+  latex="a_{max} = \mu_s g\,\beta"
+  substituted="a_{max} = 0.6 \cdot 9.81\ \text{m/s}^2 \cdot 0.6 = 3.53\ \text{m/s}^2"
+/>
+
+Con α = 40 rad/s² y r = 0.032 m, a = 1.28 m/s², menor que 3.53 m/s²: el robot de referencia no
+patina al arrancar. Compara tu a con 3.53 m/s². Si la supera, las ruedas patinan y el robot
+acelera como mucho a a_max, por mucho torque que tenga el motor.
+
+El simulador de robot móvil no modela el deslizamiento: supone siempre a = α·r. Este cálculo dice
+hasta dónde es válido. Si tu a queda por encima de a_max, la rampa del simulador es más corta que
+la real.
+</AlRobot>
+
+<Verifica
+  ejercicios={[
+    'ruta-1/m02-t02/e1',
+    'ruta-1/m02-t02/e2',
+    'ruta-1/m02-t02/e3',
+    'ruta-1/m02-t02/e4',
+  ]}
+  topicId="ruta-1/m02-t02"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['young-freedman-5', 'serway-5']} topicId="ruta-1/m02-t02" />

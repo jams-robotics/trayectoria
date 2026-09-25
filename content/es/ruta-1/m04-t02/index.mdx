@@ -1,0 +1,161 @@
+---
+id: ruta-1/m04-t02
+title: 'v = ω·r: la velocidad del robot'
+module: 4
+order: 2
+estimatedMinutes: 25
+prerequisites: [ruta-1/m04-t01, ruta-1/m00-t01]
+objectives:
+  - Convertir la velocidad angular de la rueda en velocidad lineal del robot
+  - Invertir la relación para obtener las rpm necesarias para una velocidad
+  - Componer la cadena motor → reducción → rueda → robot
+widgets: [RotationWidget, ExerciseWidget, MyRobotWidget]
+requiredExercises: [e1, e2, e3]
+references: [young-freedman-9, siegwart-3]
+status: review
+---
+
+<Gancho>
+Tu motor gira a 6000 rpm, la reducción es 30:1 y la rueda mide 32 mm de radio. ¿A qué velocidad
+avanza tu robot? Este es el cálculo al que apuntaba toda la ruta hasta aquí.
+</Gancho>
+
+<Concepto>
+Una rueda que rueda **sin deslizamiento** no resbala sobre el suelo: el punto que toca el suelo
+está, en ese instante, en reposo respecto a él. La rueda gira alrededor de ese punto, y su
+centro, a la distancia r, avanza con velocidad v = ω·r.
+
+En cada vuelta, la rueda apoya en el suelo todo su perímetro. Sin deslizar, el robot avanza
+exactamente 2π·r por vuelta. Con r = 0.032 m, son 0.201 m.
+
+Si la rueda da n_rueda vueltas por minuto, el robot avanza n_rueda perímetros por minuto. Entre
+60 s: v = 2π·r·n_rueda/60. Es la misma v = ω·r, con ω = n_rueda·2π/60 de
+[Movimiento circular y velocidad angular](/ruta/ruta-1/m04/t01).
+
+La rueda no gira a la velocidad del motor. El motorreductor divide la velocidad de giro del
+motor entre su relación de reducción i: n_rueda = n_motor/i. La cadena completa va del dato de
+la hoja del motor a la velocidad del robot: n_motor → n_rueda = n_motor/i →
+ω = n_rueda·2π/60 → v = ω·r.
+
+Con los datos del gancho, la rueda gira a 6000/30 = 200 rpm. Eso son 200·2π/60 = 20.94 rad/s,
+y el robot avanza a 20.94·0.032 = 0.670 m/s.
+
+La cadena también se recorre al revés. Para que tu robot avance a una velocidad v, cada rueda
+necesita ω = v/r, y de ahí salen sus rpm: n_rueda = ω·60/(2π). Para 1 m/s con r = 0.032 m,
+ω = 31.25 rad/s, unas 298 rpm.
+
+Todo lo anterior supone que la rueda no patina. Si patina, por ejemplo al arrancar sobre una
+superficie lisa, el punto de contacto resbala hacia atrás y el robot avanza menos de un
+perímetro por vuelta: v < ω·r. La rueda gira igual, pero el robot va más lento de lo que da la
+fórmula.
+</Concepto>
+
+<Formulas>
+<Formula latex="v = \omega\,r" />
+
+- `v` · velocidad lineal · m/s
+- `ω` · velocidad angular · rad/s
+- `r` · radio de rueda · m
+
+<Formula latex="v = \frac{2\pi r\,n_{rueda}}{60}" />
+
+- `v` · velocidad lineal · m/s
+- `r` · radio de rueda · m
+- `n_rueda` · velocidad de giro de la rueda · rpm (dato de entrada, no SI)
+
+<Formula latex="n_{rueda} = \frac{n_{motor}}{i}" />
+
+- `n_rueda` · velocidad de giro de la rueda · rpm (dato de entrada, no SI)
+- `n_motor` · velocidad de giro del motor · rpm (dato de entrada, no SI)
+- `i` · relación de reducción · —
+
+<Formula latex="v = \frac{2\pi r\,n_{motor}}{60\,i}" />
+
+- `v` · velocidad lineal · m/s
+- `r` · radio de rueda · m
+- `n_motor` · velocidad de giro del motor · rpm (dato de entrada, no SI)
+- `i` · relación de reducción · —
+
+<Formula latex="\omega = \frac{v}{r}" />
+
+- `ω` · velocidad angular · rad/s
+- `v` · velocidad lineal · m/s
+- `r` · radio de rueda · m
+</Formulas>
+
+<Explora>
+Una rueda de radio r = 0.032 m rueda sin deslizar a 200 rpm: la rueda del robot de referencia.
+La traza marca el camino del centro. El panel muestra el avance del centro, las vueltas, ω en
+rad/s y en rpm y la velocidad del borde, que al rodar sin deslizar es la v del robot.
+
+<RotationWidget mode="rolling" inputUnit="rpm" initial={{ omega_radps: 20.94, r_m: 0.032 }} />
+
+<Experimento
+  cambia="el tiempo: reinicia y reproduce una vuelta completa, 0.3 s a 200 rpm"
+  observa="el avance del centro"
+  porque="¿Por qué avanza 0.201 m?"
+>
+Sin deslizar, cada punto del perímetro toca el suelo una vez por vuelta. El centro avanza lo
+mismo que el perímetro apoyado: 2π·r = 2π·0.032 = 0.201 m.
+</Experimento>
+
+<Experimento
+  cambia="r al doble, de 0.032 a 0.064 m, con la misma velocidad de giro"
+  observa="la velocidad v del robot"
+  porque="¿Por qué v se duplica?"
+>
+Con ω fija, v = ω·r es proporcional a r. En el mismo tiempo la rueda da las mismas vueltas, pero
+cada una apoya el doble de perímetro. v pasa de 0.670 m/s a 1.34 m/s.
+</Experimento>
+
+<Experimento
+  cambia="r de vuelta a 0.032 m y fija v = 1 m/s con el control v"
+  observa="ω en rad/s y en rpm"
+  porque="¿Por qué la rueda necesita 31.25 rad/s?"
+>
+El control v fija ω = v/r. Con r = 0.032 m, ω = 1/0.032 = 31.25 rad/s, que son
+31.25·60/(2π) = 298 rpm.
+</Experimento>
+</Explora>
+
+<AlRobot>
+Este es el cálculo central de la ruta: la velocidad máxima de tu robot a partir de su motor. La
+tarjeta resume tu perfil de «Mi robot», del que salen la velocidad sin carga del motor n_motor,
+la relación de reducción i y el radio r de la rueda.
+
+<MyRobotWidget mode="card" />
+
+Si tu perfil de «Mi robot» no es un robot móvil, el cálculo usa el robot de referencia.
+
+Primero, el motorreductor reduce la velocidad de giro del motor:
+
+<RobotFormula calc="ruta-1/m04-t02/wheel-speed" />
+
+Después, la velocidad de giro de la rueda pasa a rad/s. Con el motor sin carga es ω_max, la
+velocidad angular máxima de la rueda:
+
+<RobotFormula calc="ruta-1/m04-t02/omega-max" />
+
+Por último, sin deslizamiento, la rueda convierte ω_max en v_max, la velocidad lineal máxima del
+robot:
+
+<RobotFormula calc="ruta-1/m04-t02/v-max" />
+
+Con el robot de referencia, 6000 rpm con i = 30 dejan la rueda a 200 rpm, es decir,
+20.94 rad/s, y el robot avanza a v_max = 0.670 m/s. A esa velocidad, una pista recta de 4 m le
+lleva:
+
+<RobotFormula calc="ruta-1/m04-t02/track-time" />
+
+Es el tiempo mínimo: supone todo el trayecto a v_max, sin la rampa de arranque ni el frenado de
+[Movimiento uniformemente acelerado](/ruta/ruta-1/m01/t02). Si cambias el motor, la reducción o
+el radio de la rueda en tu perfil, las cuatro fórmulas se recalculan con tus datos.
+</AlRobot>
+
+<Verifica
+  ejercicios={['ruta-1/m04-t02/e1', 'ruta-1/m04-t02/e2', 'ruta-1/m04-t02/e3', 'ruta-1/m04-t02/e4']}
+  topicId="ruta-1/m04-t02"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['young-freedman-9', 'siegwart-3']} topicId="ruta-1/m04-t02" />
