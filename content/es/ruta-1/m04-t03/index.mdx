@@ -135,14 +135,10 @@ La pista preset tiene una curva cerrada de R = 0.15 m. Con un coeficiente de fri
 
 <RobotFormula calc="ruta-1/m04-t03/max-curve-speed" />
 
-Ese límite no depende de tu robot, solo de la fricción y del radio de la curva. Lo que sí depende
-de tu robot es su velocidad lineal máxima, con las ruedas a ω_max:
-
-<RobotFormula calc="ruta-1/m04-t03/max-speed" />
-
-Con el robot de referencia, v_max = 0.67 m/s queda por debajo de 0.94 m/s: aunque tome la curva
-cerrada a toda velocidad, no patina. Si tu robot supera v_max,curva, tiene que frenar antes de la
-curva, y la distancia que necesita la calculas como en el movimiento uniformemente acelerado.
+Ese límite no depende de tu robot, solo de la fricción y del radio de la curva. Compáralo con la
+velocidad lineal máxima de tu robot, la de sus ruedas a ω_max: si es mayor que v_max de tu perfil,
+no patina. Si tu robot supera v_max,curva, tiene que frenar antes de la curva, y la distancia que
+necesita la calculas como en el movimiento uniformemente acelerado.
 </AlRobot>
 
 <Verifica

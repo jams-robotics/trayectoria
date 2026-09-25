@@ -1,11 +1,10 @@
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import { describe, expect, it } from 'vitest';
 
-import { maxCurveSpeed, maxSpeed, robotCalcs, tangentialAccel } from './alrobot';
+import { maxCurveSpeed, robotCalcs, tangentialAccel } from './alrobot';
 
 // Golden values of docs/CURRICULUM.md § T-4.3 (Al robot), with the reference robot:
-// a_t = 40 · 0.032 = 1.28 m/s², v_max,curva = √(0.6 · 9.81 · 0.15) = 0.94 m/s, above
-// v_max = 20.94 · 0.032 = 0.67 m/s.
+// a_t = 40 · 0.032 = 1.28 m/s², v_max,curva = √(0.6 · 9.81 · 0.15) = 0.94 m/s.
 // `content` takes robot-spec for its types only (#246), so the reference robot of
 // docs/ROBOT-SPEC.md §3 is written out here.
 const REFERENCE: RobotSpec = {
@@ -58,12 +57,8 @@ function withoutWheels(): RobotSpec {
 }
 
 describe('T-4.3 «Al robot» calcs', () => {
-  it('are tangential-accel, max-curve-speed and max-speed', () => {
-    expect(robotCalcs.map((calc) => calc.id)).toEqual([
-      'tangential-accel',
-      'max-curve-speed',
-      'max-speed',
-    ]);
+  it('are tangential-accel and max-curve-speed', () => {
+    expect(robotCalcs.map((calc) => calc.id)).toEqual(['tangential-accel', 'max-curve-speed']);
   });
 
   it('tangential-accel: 40 · 0.032 → 1.28 m/s² with the reference robot', () => {
@@ -82,22 +77,11 @@ describe('T-4.3 «Al robot» calcs', () => {
     );
   });
 
-  it('max-speed: 20.94 · 0.032 → 0.67 m/s, below v_max,curva: the robot does not skid', () => {
-    const { latex, substituted } = maxSpeed.compute(REFERENCE);
-    expect(latex).toBe(String.raw`v_{\max} = \omega_{\max} \cdot r`);
-    expect(substituted).toBe(
-      String.raw`v_{\max} = 20.94\ \text{rad/s} \cdot 0.032\ \text{m} = 0.67\ \text{m/s}`,
-    );
-  });
-
   it('follow the numbers of «Mi robot»', () => {
-    // r = 0.05 m, α = 20 rad/s²: a_t = 1 m/s²; v_max = 20.94 · 0.05 = 1.05 m/s.
+    // r = 0.05 m, α = 20 rad/s²: a_t = 1 m/s².
     const robot = withWheel(0.05, 20);
     expect(tangentialAccel.compute(robot).substituted).toBe(
       String.raw`a_t = 20\ \text{rad/s}^2 \cdot 0.05\ \text{m} = 1\ \text{m/s}^2`,
-    );
-    expect(maxSpeed.compute(robot).substituted).toBe(
-      String.raw`v_{\max} = 20.94\ \text{rad/s} \cdot 0.05\ \text{m} = 1.05\ \text{m/s}`,
     );
   });
 
