@@ -1,0 +1,165 @@
+---
+id: ruta-1/m02-t01
+title: 'Leyes de Newton y diagrama de cuerpo libre'
+module: 2
+order: 1
+estimatedMinutes: 30
+prerequisites: [ruta-1/m00-t02, ruta-1/m01-t02]
+objectives:
+  - Dibujar el diagrama de cuerpo libre de un robot en plano y en rampa
+  - Aplicar ΣF = m·a
+  - Descomponer el peso en una pendiente
+widgets: [FreeBodyWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [young-freedman-4, serway-5]
+status: review
+---
+
+<Gancho>
+Tu robot de 0.9 kg debe acelerar a 0.8 m/s². ¿Qué fuerza neta necesitan sus ruedas?
+</Gancho>
+
+<Concepto>
+Si la fuerza neta sobre tu robot es cero, su velocidad no cambia: sigue en reposo o avanza en
+línea recta a velocidad constante. Es la **primera ley de Newton**. Un robot que avanza a
+0.3 m/s sin acelerar no tiene fuerza neta, aunque sus motores estén funcionando.
+
+Si la fuerza neta no es cero, el robot acelera. La **segunda ley de Newton** lo cuantifica:
+ΣF⃗ = m·a⃗. Es una ecuación entre vectores: a⃗ apunta hacia donde apunta la suma de fuerzas, y la
+igualdad se cumple componente a componente.
+
+La **tercera ley de Newton** dice que las fuerzas vienen en pares: si un cuerpo empuja a otro, el
+otro lo empuja con la misma magnitud y en sentido contrario. La rueda empuja el suelo hacia
+atrás y el suelo empuja la rueda hacia adelante. Esa fuerza del suelo, la tracción, es la que
+acelera a tu robot.
+
+Para aplicar la segunda ley dibujas el **diagrama de cuerpo libre**: el robot aislado, con cada
+fuerza que actúa sobre él. En un plano son cuatro: el peso m·g hacia abajo, la normal N del
+suelo hacia arriba, la tracción hacia adelante y la fricción de rodadura hacia atrás. En
+vertical no hay aceleración, así que N = m·g. En horizontal, la tracción menos la fricción es
+igual a m·a.
+
+En una rampa de ángulo φ conviene usar un eje a lo largo de la superficie y otro perpendicular a
+ella. El peso se descompone en F_∥ = m·g·sinφ, a lo largo de la rampa y hacia abajo, y
+m·g·cosφ, contra la superficie. La normal equilibra esa segunda componente: N = m·g·cosφ. La
+primera se opone a la tracción cuando el robot sube.
+
+Con los datos del gancho, la fuerza neta es ΣF = m·a = 0.9·0.8 = 0.72 N. Las ruedas tienen que
+dar esa fuerza más la que se lleve la fricción de rodadura.
+</Concepto>
+
+<Formulas>
+<Formula latex="\sum\vec F = m\vec a" />
+
+- `F⃗` · fuerza como vector · N
+- `m` · masa · kg
+- `a⃗` · aceleración como vector · m/s²
+
+<Formula latex="N = mg" />
+
+- `N` · fuerza normal · N
+- `m` · masa · kg
+- `g` · aceleración gravitatoria · m/s²
+
+<Formula latex="N = mg\cos\varphi,\quad F_{\parallel} = mg\sin\varphi" />
+
+- `N` · fuerza normal · N
+- `F_∥` · componente del peso a lo largo de la rampa · N
+- `m` · masa · kg
+- `g` · aceleración gravitatoria · m/s²
+- `φ` · ángulo de pendiente · rad
+</Formulas>
+
+<Explora>
+Un robot de 0.9 kg sobre un suelo horizontal, el del gancho, con una tracción de 1.5 N hacia
+adelante y una fricción de rodadura de 0.4 N hacia atrás. El diagrama muestra el peso, la
+normal, las dos fuerzas y la resultante R; el panel da sus valores y la aceleración.
+
+<FreeBodyWidget
+  mass_kg={0.9}
+  forces={[
+    {
+      key: 'traction',
+      label: 'Tracción',
+      magnitude_N: 1.5,
+      angle_rad: 0,
+      editable: true,
+    },
+    {
+      key: 'friction',
+      label: 'Fricción de rodadura',
+      magnitude_N: 0.4,
+      angle_rad: 3.1416,
+      editable: true,
+    },
+  ]}
+  slope_rad={0}
+  editableParams={['mass', 'slope']}
+  showResultant
+/>
+
+<Experimento
+  cambia="la tracción hasta igualar la fricción: 0.4 N"
+  observa="la resultante y la aceleración"
+  porque="¿Por qué una resultante cero no significa que el robot esté en reposo?"
+>
+Con tracción y fricción iguales, la fuerza neta es cero y a = 0. La primera ley dice que la
+velocidad no cambia, no que sea cero. Si el robot ya avanzaba, sigue a velocidad constante.
+</Experimento>
+
+<Experimento
+  cambia="la pendiente de 0° a 15°"
+  observa="el peso a lo largo de la superficie y la resultante"
+  porque="¿Por qué aparece una fuerza de 2.29 N en contra de la tracción?"
+>
+En la rampa, el peso tiene una componente a lo largo de la superficie:
+F_∥ = m·g·sinφ = 0.9·9.81·sin 15° = 2.29 N, rampa abajo. Supera los 1.1 N que dejan la tracción
+y la fricción, así que la resultante apunta rampa abajo. La normal baja a m·g·cos 15° = 8.53 N.
+</Experimento>
+
+<Experimento
+  cambia="la masa al doble, de 0.9 a 1.8 kg, en plano y con la misma tracción"
+  observa="la aceleración"
+  porque="¿Por qué se reduce a la mitad?"
+>
+La fuerza neta sigue siendo 1.5 − 0.4 = 1.1 N, porque tracción y fricción no cambian. De
+a = ΣF/m, al duplicar m la aceleración pasa de 1.22 m/s² a 0.611 m/s².
+</Experimento>
+</Explora>
+
+<AlRobot>
+Tu robot acelera lo más rápido que puede cuando sus ruedas llegan a su aceleración angular
+máxima α. Sin deslizamiento, su aceleración lineal es a = α·r, como en
+[Movimiento uniformemente acelerado](/ruta/ruta-1/m01/t02). La segunda ley da la fuerza neta que
+el suelo tiene que ejercer sobre tu robot, de masa m, para lograrla:
+
+<RobotFormula calc="ruta-1/m02-t01/net-force" />
+
+Si tu perfil de «Mi robot» no define α, el cálculo usa la del robot de referencia: α = 40 rad/s².
+Si no es un robot móvil, usa el robot de referencia completo.
+
+En un suelo horizontal, la normal equilibra el peso:
+
+<RobotFormula calc="ruta-1/m02-t01/normal" />
+
+Con el robot de referencia, a = 40·0.032 = 1.28 m/s² y la fuerza neta es F = 0.9·1.28 = 1.152 N.
+La normal vale N = 0.9·9.81 = 8.83 N: el suelo empuja hacia arriba casi ocho veces más de lo
+que empuja hacia adelante.
+
+Esa fuerza neta es la tracción menos la fricción de rodadura, así que la tracción tiene que
+superar 1.152 N. El suelo solo da tracción mientras la rueda no patina, y cuánta puede dar
+depende de la normal: es el tema siguiente, la fricción.
+</AlRobot>
+
+<Verifica
+  ejercicios={[
+    'ruta-1/m02-t01/e1',
+    'ruta-1/m02-t01/e2',
+    'ruta-1/m02-t01/e3',
+    'ruta-1/m02-t01/e4',
+  ]}
+  topicId="ruta-1/m02-t01"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['young-freedman-4', 'serway-5']} topicId="ruta-1/m02-t01" />

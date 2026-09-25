@@ -1,0 +1,145 @@
+---
+id: ruta-1/m01-t03
+title: 'Caída libre'
+module: 1
+order: 3
+estimatedMinutes: 20
+prerequisites: [ruta-1/m01-t02]
+objectives:
+  - Aplicar el MRUA con a = −g
+  - Calcular el tiempo de caída y la velocidad de impacto
+  - Entender que la masa no importa
+widgets: [ProjectileWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [young-freedman-2]
+status: review
+---
+
+<Gancho>
+La pinza de tu robot suelta una pieza a 0.25 m sobre la banda. ¿Cuánto tarda en caer y a qué
+velocidad llega?
+</Gancho>
+
+<Concepto>
+Soltar una pieza es dejarla caer desde el reposo. Si el aire no la frena, su única aceleración es
+la gravitatoria, g = 9.81 m/s², hacia abajo. Esa es la **caída libre**: un MRUA vertical con
+a = −g, con el eje y hacia arriba.
+
+Esa aceleración no depende de la masa. Sin aire, una pieza de 0.01 kg y otra de 0.5 kg soltadas a
+la vez desde la misma altura llegan juntas. Por eso m no aparece en ninguna fórmula de este tema.
+
+La pieza parte de la altura y = h con v₀ = 0. La ecuación de la posición del MRUA queda
+y = h − ½·g·t², y la rapidez crece al mismo ritmo en cada segundo: v = g·t.
+
+La pieza llega abajo cuando y = 0. Despejando t sale el tiempo de caída, t_caída = √(2h/g).
+Depende de la raíz cuadrada de h: para tardar el doble, la pieza tiene que caer desde cuatro
+veces más alto.
+
+Sustituyendo t_caída en v = g·t sale la rapidez de impacto, v_impacto = √(2gh). También crece
+con √h. Es la misma que da v² = v₀² + 2·a·Δx con v₀ = 0 y |Δx| = h.
+
+Con los datos del gancho, h = 0.25 m. La pieza tarda t_caída = √(2·0.25/9.81) = 0.226 s y llega
+a v_impacto = √(2·9.81·0.25) = 2.21 m/s.
+
+En un robot, ese tiempo cuenta. La pieza no aparece abajo al instante: si la banda avanza
+mientras cae, la pinza tiene que abrirse antes de que el punto de destino pase por debajo. Si
+cae en un contenedor, v_impacto dice con qué rapidez golpea el fondo.
+</Concepto>
+
+<Formulas>
+<Formula latex="y = h - \tfrac12 g t^2" />
+
+- `y` · posición · m
+- `h` · altura inicial · m
+- `g` · aceleración gravitatoria · m/s²
+- `t` · tiempo · s
+
+<Formula latex="v = g\,t" />
+
+- `v` · rapidez · m/s
+- `g` · aceleración gravitatoria · m/s²
+- `t` · tiempo · s
+
+<Formula latex="t_{caída} = \sqrt{2h/g}" />
+
+- `t_caída` · tiempo de caída · s
+- `h` · altura inicial · m
+- `g` · aceleración gravitatoria · m/s²
+
+<Formula latex="v_{impacto} = \sqrt{2gh}" />
+
+- `v_impacto` · rapidez de impacto · m/s
+- `g` · aceleración gravitatoria · m/s²
+- `h` · altura inicial · m
+</Formulas>
+
+<Explora>
+Dos piezas caen desde el reposo, superpuestas: A desde h = 0.25 m, la altura de la pinza del
+gancho, y B desde cuatro veces más alto, 1 m. La vista lateral marca la posición de cada pieza
+cada 0.1 s y dibuja su vector velocidad; el panel da el tiempo de vuelo y la velocidad de las dos.
+
+<ProjectileWidget mode="drop" initial={{ h_m: 0.25 }} showVectors={['v']} overlay />
+
+<Experimento
+  cambia="h de la caída A al cuádruple, de 0.25 m a 1 m"
+  observa="el tiempo de vuelo de A en el panel, que en una caída es t_caída"
+  porque="¿Por qué el tiempo solo se duplica?"
+>
+El tiempo de caída es t_caída = √(2h/g): depende de la raíz cuadrada de h. Multiplicar h por 4
+multiplica t_caída por √4 = 2. Pasa de 0.226 s a 0.452 s.
+</Experimento>
+
+<Experimento
+  cambia="h de A de vuelta a 0.25 m, con B en 1 m: las dos caídas superpuestas, h y 4h"
+  observa="la velocidad vy de cada pieza al final de su caída"
+  porque="¿Por qué B llega con el doble de rapidez y no con el cuádruple?"
+>
+La rapidez de impacto es v_impacto = √(2gh): crece con √h, así que cuatro veces la altura da
+√4 = 2 veces la rapidez. vy sale negativa porque la pieza baja, y su valor pasa de 2.21 m/s
+desde 0.25 m a 4.43 m/s desde 1 m. B cae el doble de tiempo con la misma g, y v = g·t.
+</Experimento>
+
+<Experimento
+  cambia="la masa de la pieza"
+  observa="los controles del widget: ninguno es de masa"
+  porque="¿Por qué el widget no tiene control de masa?"
+>
+Sin aire, la única aceleración de la pieza es g, la misma para cualquier masa. Ninguna fórmula de
+la caída libre contiene m, así que cambiarla no movería ninguna trayectoria. Por eso el widget no
+la expone.
+</Experimento>
+</Explora>
+
+<AlRobot>
+Cuando la pinza de tu robot se abre, la pieza no llega a la banda al instante: tarda t_caída en
+caer, y durante ese tiempo la banda sigue avanzando. Para que la pieza caiga en su sitio, la
+pinza tiene que abrirse t_caída antes de que ese sitio pase por debajo.
+
+La altura de la pinza sobre la banda no es un dato de tu perfil de «Mi robot», así que este
+cálculo usa la del gancho, h = 0.25 m, sea cual sea tu perfil:
+
+<RobotFormula calc="ruta-1/m01-t03/fall-time" />
+
+La pieza tarda 0.2258 s en caer. Con la misma h, la rapidez con la que golpea la banda es:
+
+<RobotFormula calc="ruta-1/m01-t03/impact-speed" />
+
+Llega a 2.215 m/s. La masa de la pieza no aparece en ninguno de los dos cálculos: una pieza más
+pesada tarda lo mismo en caer y llega con la misma rapidez.
+
+Si es tu robot el que avanza mientras suelta la pieza, esta conserva la velocidad del robot y cae
+por delante del punto donde la soltó. Ese caso es tiro parabólico, el tema siguiente.
+</AlRobot>
+
+<Verifica
+  ejercicios={[
+    'ruta-1/m01-t03/e1',
+    'ruta-1/m01-t03/e2',
+    'ruta-1/m01-t03/e3',
+    'ruta-1/m01-t03/e4',
+  ]}
+  topicId="ruta-1/m01-t03"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['young-freedman-2']} topicId="ruta-1/m01-t03" />
