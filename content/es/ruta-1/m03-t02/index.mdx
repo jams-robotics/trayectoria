@@ -9,7 +9,7 @@ objectives:
   - Calcular la potencia mecánica τ·ω y F·v
   - Relacionar la potencia eléctrica y la mecánica con la eficiencia
   - Estimar la autonomía desde la capacidad de la batería
-widgets: [EnergyWidget, ExerciseWidget]
+widgets: [PowerWidget, ExerciseWidget]
 requiredExercises: [e1, e2, e3]
 references: [young-freedman-6]
 status: review
@@ -89,41 +89,38 @@ sin carga.
 </Formulas>
 
 <Explora>
-El motor del gancho, con τ = 0.03 N·m a 5000 rpm, y dos motores a 6 V y 1.2 A con η = 0.6 y una
-batería de 11.1 Wh. El bloque mecánico muestra la potencia del eje; el eléctrico, la potencia
-eléctrica, la mecánica entregada y la autonomía en minutos.
+Un motor levanta una carga de 0.9 kg hasta 1 m de altura a velocidad constante. Entrega 4.32 W
+mecánicos, los del segundo ejercicio de Verifica. La barra de la izquierda es la energía
+potencial que gana la carga, con escala fija m·g·H.
 
-<EnergyWidget
-  mode="power"
-  initial={{ mass_kg: 0.9, v0_mps: 0.6, slope_rad: 0.26 }}
-  power={{ torque_Nm: 0.03, omega_radps: 523.6, voltage_V: 6, current_A: 1.2, battery_Wh: 11.1 }}
-/>
+<PowerWidget initial={{ power_W: 4.32, mass_kg: 0.9 }} liftHeight_m={1} />
 
 <Experimento
-  cambia="la corriente I al doble, de 1.2 a 2.4 A"
-  observa="la potencia eléctrica y la autonomía"
-  porque="¿Por qué una se duplica y la otra se reduce a la mitad?"
+  cambia="la potencia P al doble, de 4.32 a 8.64 W"
+  observa="el tiempo de subida y la barra de energía"
+  porque="¿Por qué el tiempo se reduce a la mitad y la energía final no cambia?"
 >
-P_el = 2·V·I es proporcional a I: pasa de 14.4 W a 28.8 W. La autonomía es C/P_el, y la misma
-energía repartida al doble de ritmo dura la mitad: de 46.25 min a unos 23.1 min.
+La energía final es m·g·H = 8.829 J y no depende de P. Con el doble de potencia esa energía se
+entrega al doble de ritmo: t_subida = m·g·H/P pasa de 2.044 s a 1.022 s.
 </Experimento>
 
 <Experimento
-  cambia="la eficiencia η, de 0.6 a 0.3"
-  observa="la potencia mecánica entregada y la potencia eléctrica"
-  porque="¿Por qué cae la mecánica si la eléctrica no cambia?"
+  cambia="la masa m al doble, de 0.9 a 1.8 kg"
+  observa="la velocidad de la carga"
+  porque="¿Por qué se reduce a la mitad y el tiempo de subida se duplica?"
 >
-P_el = 2·V·I no depende de η. η solo fija la fracción que llega a los ejes, P_mec = η·P_el: pasa
-de 8.64 W a 4.32 W. El resto se pierde como calor.
+Con la misma potencia, P = F·v con F = m·g: si la fuerza se duplica, v = P/(m·g) se reduce a la
+mitad, de 0.4893 m/s a 0.2447 m/s. A la mitad de velocidad, subir el mismo metro tarda el doble:
+de 2.044 s a 4.088 s.
 </Experimento>
 
 <Experimento
-  cambia="la capacidad C al doble, de 11.1 a 22.2 Wh"
-  observa="la autonomía"
-  porque="¿Por qué se duplica?"
+  cambia="el tiempo: reinicia y pausa a media subida, por ejemplo en t = 1 s"
+  observa="E_p y W = P·t"
+  porque="¿Por qué coinciden?"
 >
-t_autonomía = C/P_el, y P_el no depende de C. Con el doble de energía guardada y el mismo
-consumo, la batería dura el doble: de 46.25 min a 92.5 min.
+Sin pérdidas, todo el trabajo que entrega el motor se guarda como energía potencial de la carga.
+En t = 1 s la carga está a 0.4893 m: E_p = m·g·h = 4.32 J, igual que W = 4.32·1 = 4.32 J.
 </Experimento>
 </Explora>
 
@@ -145,8 +142,8 @@ móvil, el cálculo usa los del robot de referencia: 6 V y 11.1 Wh.
 Con el robot de referencia, P_el = 2·6·1.2 = 14.4 W y t_autonomía = 11.1/14.4 = 0.771 h, unos
 46.3 min.
 
-Si cada motor consume más corriente, por ejemplo al subir una rampa, la autonomía baja en la
-misma proporción. Es lo que viste en el primer experimento de Explora.
+Si cada motor consume más corriente, por ejemplo al subir una rampa, la potencia eléctrica sube
+y la autonomía baja en la misma proporción.
 </AlRobot>
 
 <Verifica
