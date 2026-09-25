@@ -9,9 +9,14 @@ interface Props {
   title: string;
   /** Position in the topic, painted in mono before the title (docs/design/03-tema-claro.png). */
   number: number;
+  /**
+   * Explora only: its simulators take the whole content column. Every other section keeps one
+   * reading column of 72ch for text, formulas, «Mi robot» and exercises alike (#302).
+   */
+  wide?: boolean;
 }
 
-const { id, title, number } = Astro.props;
+const { id, title, number, wide = false } = Astro.props;
 const label = String(number).padStart(2, '0');
 ---
 
@@ -20,7 +25,7 @@ const label = String(number).padStart(2, '0');
     <span class="text-fg-muted font-mono text-xs font-normal">{label}</span>
     {title}
   </h2>
-  <div class="prose leading-body mt-4">
+  <div class:list={['prose leading-body mt-4', { 'max-w-[72ch]': !wide }]}>
     <slot />
   </div>
 </section>
@@ -46,9 +51,9 @@ const label = String(number).padStart(2, '0');
     font-weight: 600;
   }
   /*
-    Running text keeps the 72ch reading width (docs/DESIGN.md §Tipografía) while widgets,
-    formulas and exercises take the whole content column (docs/design/03-tema-oscuro.png, #284).
-    Islands are left out: the text inside a widget follows the widget's own layout.
+    Running text keeps the 72ch reading width (docs/DESIGN.md §Tipografía) also inside a `wide`
+    section, where the widgets take the whole content column (#284, #302). Islands are left out:
+    the text inside a widget follows the widget's own layout.
   */
   .prose :global(:is(p, ul, ol):not(astro-island *)) {
     max-width: 72ch;

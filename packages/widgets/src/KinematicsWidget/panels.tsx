@@ -6,18 +6,14 @@ import { ParamPanel } from '../ParamPanel/ParamPanel';
 import type { ParamPanelParam } from '../ParamPanel/ParamPanel';
 import { Scene2D } from '../Scene2D/Scene2D';
 import { Axes } from '../Scene2D/primitives/Axes';
-import { Circle } from '../Scene2D/primitives/Circle';
 import { Vector } from '../Scene2D/primitives/Vector';
 import { SimControls } from '../SimControls/SimControls';
 import { LiveStatus, ReadoutPanel } from '../shared/ReadoutPanel';
-import { positionAt, velocityAt, worldWidthOf } from './compute';
+import { positionAt, sceneViewOf, velocityAt, velocityTipOf } from './compute';
 import type { Motion } from './compute';
+import { Particle } from './Particle';
 import type { KinematicsEditable, Timeline } from './timeline';
 
-/** Radius of the particle drawn in the scene, in metres of the world. */
-const PARTICLE_RADIUS_M = 0.06;
-/** Scene metres per m/s, so the velocity arrow stays inside the view. */
-const M_PER_MPS = 0.4;
 /** Width over height of the scene: a wide strip, since the motion is one-dimensional. */
 const SCENE_ASPECT = 6;
 
@@ -94,7 +90,7 @@ export function applyChange(motion: Motion, key: string, value: number): Motion 
   return motion;
 }
 
-/** The particle on its axis, with the velocity arrow over it (#87, decision 6). */
+/** The particle on its axis, with the velocity arrow over it (#87, decision 6; #303). */
 export function MotionScene({
   motion,
   t_s,
@@ -108,19 +104,19 @@ export function MotionScene({
 }): JSX.Element {
   const x_m = positionAt(motion, t_s);
   const v_mps = velocityAt(motion, t_s);
-  const worldWidth_m = worldWidthOf(motion, duration_s);
+  const view = sceneViewOf(motion, duration_s);
   return (
     <Scene2D
-      worldWidth_m={worldWidth_m}
-      center_m={[worldWidth_m / 2, 0]}
+      worldWidth_m={view.worldWidth_m}
+      center_m={[view.centerX_m, 0]}
       aspect={SCENE_ASPECT}
       description={t('widgets.KinematicsWidget.scene')}
     >
       <Axes />
-      <Circle center_m={[x_m, 0]} radius_m={PARTICLE_RADIUS_M} color="sim-robot" filled />
+      <Particle x_m={x_m} />
       <Vector
         from_m={[x_m, 0]}
-        to_m={[x_m + v_mps * M_PER_MPS, 0]}
+        to_m={[velocityTipOf(x_m, v_mps, view), 0]}
         label={t('widgets.KinematicsWidget.vectorV')}
       />
     </Scene2D>
