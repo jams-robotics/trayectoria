@@ -202,6 +202,12 @@ export function useSimulationDriver<S, I>(
     setSnapshot({ state: sim.state, t_s: sim.time_s });
   }, [sim]);
 
+  // A widget rebuilds its simulation when a parameter changes, and a new `Simulation` starts at
+  // speed 1: carry the chosen speed over so the selector always shows the real one (#346).
+  useEffect(() => {
+    sim.setSpeed(speed);
+  }, [sim, speed]);
+
   const actions = useActions(sim, publish, setRunning, setSpeedState, lastAdvance_ms);
   useFrameLoop(sim, running, options, publish, lastAdvance_ms);
   usePauseWhenHidden(actions.pause);
