@@ -293,3 +293,67 @@ for (const topic of ['t01', 't02'] as const) {
     expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
   });
 }
+
+// #302: everything that is not an Explora simulator shares one reading column (72ch): running
+// text, formula cards, experiments, the «Mi robot» form and the exercises have the same width and
+// the same left edge. Only the Explora widgets take the whole content column (checked above).
+const READING_BLOCKS = {
+  formula: '[data-block="true"]',
+  experiment: '[data-testid="experiment"]',
+  myRobot: '[data-testid="my-robot-form"]',
+  exercise: '[data-testid="exercise"]',
+} as const;
+const EDGE_TOLERANCE_PX = 1;
+
+for (const topic of MODULE_0_TOPICS) {
+  test(`${topic} a 1280 px: texto, fórmulas, experimentos, Mi robot y ejercicios comparten la columna de lectura`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(DESKTOP);
+    await openExplora(page, topic);
+    // Formula cards and «Mi robot» are `client:only` islands that paint after a dynamic import.
+    await expect
+      .poll(() =>
+        page
+          .locator('article astro-island[client="only"]')
+          .evaluateAll((islands) => islands.every((island) => island.childElementCount > 0)),
+      )
+      .toBe(true);
+
+    const blocks = await page
+      .locator('article:has([data-section])')
+      .evaluate((article, selectors) => {
+        const box = (kind: string) => (element: Element) => {
+          const { left, width } = element.getBoundingClientRect();
+          return { kind, left, width };
+        };
+        const paragraphs = [...article.querySelectorAll('[data-section] p')].filter(
+          (paragraph) => paragraph.closest('astro-island, [data-testid="experiment"]') === null,
+        );
+        return [
+          ...paragraphs.map(box('paragraph')),
+          ...Object.entries(selectors).flatMap(([kind, selector]) =>
+            [...article.querySelectorAll(selector)].map(box(kind)),
+          ),
+        ];
+      }, READING_BLOCKS);
+
+    const kinds = new Set(blocks.map(({ kind }) => kind));
+    expect([...kinds].sort()).toEqual(
+      [
+        'paragraph',
+        'formula',
+        'experiment',
+        'exercise',
+        ...(topic === 't01' ? ['myRobot'] : []),
+      ].sort(),
+    );
+    const { left, width } = blocks[0]!;
+    const misaligned = blocks.filter(
+      (block) =>
+        Math.abs(block.left - left) > EDGE_TOLERANCE_PX ||
+        Math.abs(block.width - width) > EDGE_TOLERANCE_PX,
+    );
+    expect(misaligned).toEqual([]);
+  });
+}
