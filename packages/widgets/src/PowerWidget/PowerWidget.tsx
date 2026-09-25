@@ -6,6 +6,7 @@ import type { Translate } from '@trayectoria/i18n';
 import { ParamPanel } from '../ParamPanel/ParamPanel';
 import { SimControls } from '../SimControls/SimControls';
 import { LiveStatus, ReadoutPanel } from '../shared/ReadoutPanel';
+import { SimLayout } from '../shared/SimLayout';
 import { PotentialBar } from './bar';
 import { heightAt, liftSpeed, potentialEnergyAt, reachedTop, riseTime, topEnergy } from './compute';
 import type { Lift } from './compute';
@@ -62,21 +63,27 @@ export function PowerWidget({
   const timeline = useTimeline(riseTime(shown), initialTime_s);
   const { t_s } = timeline;
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-      <div className="flex min-w-0 flex-1 flex-col gap-3">
-        <LiftView lift={shown} t_s={t_s} t={t} />
-        <SimControls {...timeline.driver} {...timeline.controls} t_s={t_s} />
+    <SimLayout
+      viewer={
+        <>
+          <LiftView lift={shown} t_s={t_s} t={t} />
+          <SimControls {...timeline.driver} {...timeline.controls} t_s={t_s} />
+        </>
+      }
+      values={
+        <>
+          <ReadoutPanel title={t('widgets.PowerWidget.panel')} rows={panelRows(shown, t_s, t)} />
+          <LiveStatus text={statusOf(shown, t_s, t)} />
+        </>
+      }
+      params={
         <ParamPanel
           params={paramsOf(shown, t)}
           onChange={(key, value) => {
             setLift((current) => applyChange(current, key, value));
           }}
         />
-      </div>
-      <div className="flex flex-col gap-4 lg:w-panel">
-        <ReadoutPanel title={t('widgets.PowerWidget.panel')} rows={panelRows(shown, t_s, t)} />
-        <LiveStatus text={statusOf(shown, t_s, t)} />
-      </div>
-    </div>
+      }
+    />
   );
 }

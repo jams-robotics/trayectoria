@@ -3,10 +3,13 @@ import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 
+import { ParamPanel } from '../ParamPanel/ParamPanel';
+import { SimControls } from '../SimControls/SimControls';
+import { SimLayout } from '../shared/SimLayout';
 import { MotionPlots } from './MotionPlots';
 import { sampleMotion, tangentSegment, velocityAt } from './compute';
 import type { Motion } from './compute';
-import { MotionScene, SidePanel, applyChange } from './panels';
+import { MotionScene, Values, applyChange, paramsOf } from './panels';
 import { useTimeline } from './timeline';
 import type { KinematicsEditable, Timeline } from './timeline';
 
@@ -53,6 +56,26 @@ function Charts({
   );
 }
 
+/** The viewer: the scene and, under it, the playback controls (docs/DESIGN.md §6). */
+function Viewer({
+  motion,
+  timeline,
+  duration_s,
+  t,
+}: {
+  motion: Motion;
+  timeline: Timeline;
+  duration_s: number;
+  t: Translate;
+}): JSX.Element {
+  return (
+    <>
+      <MotionScene motion={motion} t_s={timeline.t_s} duration_s={duration_s} t={t} />
+      <SimControls {...timeline.driver} {...timeline.controls} t_s={timeline.t_s} />
+    </>
+  );
+}
+
 /**
  * 1D particle with its `x–t`, `v–t` and `a–t` charts synchronised and a tangent mode
  * (docs/WIDGETS.md, KinematicsWidget; docs/CURRICULUM.md T-0.3, T-1.1, T-1.2).
@@ -71,12 +94,22 @@ export function KinematicsWidget({
   const t = useT();
   const [motion, setMotion] = useState<Motion>(initial);
   const timeline = useTimeline(duration_s, initialTime_s);
-  const { t_s } = timeline;
   return (
-    <div className="flex flex-col gap-4">
-      <MotionScene motion={motion} t_s={t_s} duration_s={duration_s} t={t} />
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-        <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden">
+    <SimLayout
+      viewer={<Viewer motion={motion} timeline={timeline} duration_s={duration_s} t={t} />}
+      values={<Values timeline={timeline} motion={motion} showTangent={showTangent} t={t} />}
+      params={
+        editable.length === 0 ? null : (
+          <ParamPanel
+            params={paramsOf(motion, editable, t)}
+            onChange={(key, value) => {
+              setMotion((current) => applyChange(current, key, value));
+            }}
+          />
+        )
+      }
+      after={
+        <div className="flex min-w-0 flex-col gap-3 overflow-hidden">
           <Charts
             motion={motion}
             timeline={timeline}
@@ -85,17 +118,7 @@ export function KinematicsWidget({
             t={t}
           />
         </div>
-        <SidePanel
-          timeline={timeline}
-          motion={motion}
-          editable={editable}
-          showTangent={showTangent}
-          onChange={(key, value) => {
-            setMotion((current) => applyChange(current, key, value));
-          }}
-          t={t}
-        />
-      </div>
-    </div>
+      }
+    />
   );
 }

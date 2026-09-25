@@ -7,6 +7,7 @@ import { Plot } from '../Plot/Plot';
 import { SimControls } from '../SimControls/SimControls';
 import { ParamPanel } from '../ParamPanel/ParamPanel';
 import { LiveStatus } from '../shared/ReadoutPanel';
+import { SimLayout } from '../shared/SimLayout';
 import { omegaAt, sampleOmega } from './compute';
 import type { Curve, Rotation, RotationInputUnit, RotationMode } from './compute';
 import {
@@ -82,7 +83,7 @@ function OmegaPlot({
   );
 }
 
-/** Everything the right-hand column needs, so no single component owns all of the state. */
+/** Everything the parameters and values need, so no single component owns all of the state. */
 interface PanelsProps {
   mode: RotationMode;
   rotation: Rotation;
@@ -95,20 +96,32 @@ interface PanelsProps {
   t: Translate;
 }
 
-/** The values panel, the live description, the unit chips and the sliders of the mode. */
-function SidePanel({
+/** The right-hand column: the values panel and the live description (docs/DESIGN.md §6). */
+function Values({
+  mode,
+  rotation,
+  t_s,
+  t,
+}: Pick<PanelsProps, 'mode' | 'rotation' | 't_s' | 't'>): JSX.Element {
+  return (
+    <>
+      <ResultsPanel mode={mode} rotation={rotation} t_s={t_s} t={t} />
+      <LiveStatus text={statusOf(mode, rotation, t_s, t)} />
+    </>
+  );
+}
+
+/** The unit chips and the sliders of the mode. */
+function Sliders({
   mode,
   rotation,
   inputUnit,
   setInputUnit,
   setRotation,
-  t_s,
   t,
-}: Omit<PanelsProps, 'curve' | 'setCurve'>): JSX.Element {
+}: Omit<PanelsProps, 'curve' | 'setCurve' | 't_s'>): JSX.Element {
   return (
-    <div className="flex flex-col gap-4 lg:w-panel">
-      <ResultsPanel mode={mode} rotation={rotation} t_s={t_s} t={t} />
-      <LiveStatus text={statusOf(mode, rotation, t_s, t)} />
+    <div className="flex flex-col gap-4">
       <UnitToggle value={inputUnit} onChange={setInputUnit} t={t} />
       <ParamPanel
         params={paramsOf(mode, rotation, inputUnit, t)}
@@ -120,11 +133,11 @@ function SidePanel({
   );
 }
 
-/** The whole right-hand column: the sliders and values, plus the curve panel of `angularAccel`. */
-function Panels({ curve, setCurve, ...side }: PanelsProps): JSX.Element {
+/** The parameters under the viewer: the sliders, plus the curve panel of `angularAccel`. */
+function Params({ curve, setCurve, ...side }: PanelsProps): JSX.Element {
   return (
-    <div className="flex flex-col gap-4">
-      <SidePanel {...side} />
+    <>
+      <Sliders {...side} />
       {side.mode === 'angularAccel' ? (
         <CurvePanel
           curve={curve}
@@ -134,7 +147,7 @@ function Panels({ curve, setCurve, ...side }: PanelsProps): JSX.Element {
           t={side.t}
         />
       ) : null}
-    </div>
+    </>
   );
 }
 
@@ -153,7 +166,7 @@ function Viewer({
   t: Translate;
 }): JSX.Element {
   return (
-    <div className="flex min-w-0 flex-1 flex-col gap-3">
+    <>
       <RotationScene
         mode={mode}
         rotation={rotation}
@@ -163,7 +176,7 @@ function Viewer({
       />
       <SimControls {...timeline.driver} {...timeline.controls} t_s={t_s} />
       {mode === 'angularAccel' ? <OmegaPlot rotation={rotation} t_s={t_s} t={t} /> : null}
-    </div>
+    </>
   );
 }
 
@@ -193,19 +206,22 @@ export function RotationWidget({
   const timeline = useTimeline(initialTime_s);
   const { t_s } = timeline;
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-      <Viewer mode={mode} rotation={rotation} t_s={t_s} timeline={timeline} t={t} />
-      <Panels
-        mode={mode}
-        rotation={rotation}
-        inputUnit={inputUnit}
-        setInputUnit={setInputUnit}
-        setRotation={setRotation}
-        curve={curve}
-        setCurve={setCurve}
-        t_s={t_s}
-        t={t}
-      />
-    </div>
+    <SimLayout
+      viewer={<Viewer mode={mode} rotation={rotation} t_s={t_s} timeline={timeline} t={t} />}
+      values={<Values mode={mode} rotation={rotation} t_s={t_s} t={t} />}
+      params={
+        <Params
+          mode={mode}
+          rotation={rotation}
+          inputUnit={inputUnit}
+          setInputUnit={setInputUnit}
+          setRotation={setRotation}
+          curve={curve}
+          setCurve={setCurve}
+          t_s={t_s}
+          t={t}
+        />
+      }
+    />
   );
 }

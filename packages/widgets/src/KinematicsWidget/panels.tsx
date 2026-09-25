@@ -2,12 +2,10 @@ import type { JSX } from 'react';
 import { format } from '@trayectoria/sim-core';
 import type { Translate } from '@trayectoria/i18n';
 
-import { ParamPanel } from '../ParamPanel/ParamPanel';
 import type { ParamPanelParam } from '../ParamPanel/ParamPanel';
 import { Scene2D } from '../Scene2D/Scene2D';
 import { Axes } from '../Scene2D/primitives/Axes';
 import { Vector } from '../Scene2D/primitives/Vector';
-import { SimControls } from '../SimControls/SimControls';
 import { LiveStatus, ReadoutPanel } from '../shared/ReadoutPanel';
 import { positionAt, sceneViewOf, velocityAt, velocityTipOf } from './compute';
 import type { Motion } from './compute';
@@ -123,34 +121,26 @@ export function MotionScene({
   );
 }
 
-/** The right-hand column: playback controls, values panel, live status and the sliders. */
-export function SidePanel({
+/** The right-hand column: the values panel and its live description (docs/DESIGN.md §6). */
+export function Values({
   timeline,
   motion,
-  editable,
   showTangent,
-  onChange,
   t,
 }: {
   timeline: Timeline;
   motion: Motion;
-  editable: readonly KinematicsEditable[];
   showTangent: boolean;
-  onChange: (key: string, value: number) => void;
   t: Translate;
 }): JSX.Element {
   const { t_s } = timeline;
   return (
-    <div className="flex flex-col gap-4 lg:w-panel">
-      <SimControls {...timeline.driver} {...timeline.controls} t_s={t_s} />
+    <>
       <ReadoutPanel
         title={t('widgets.KinematicsWidget.panel')}
         rows={panelRows(motion, t_s, showTangent, t)}
       />
       <LiveStatus text={statusOf(motion, t_s, t)} />
-      {editable.length === 0 ? null : (
-        <ParamPanel params={paramsOf(motion, editable, t)} onChange={onChange} />
-      )}
-    </div>
+    </>
   );
 }

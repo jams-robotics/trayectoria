@@ -7,6 +7,7 @@ import type { Translate } from '@trayectoria/i18n';
 import { ParamPanel } from '../ParamPanel/ParamPanel';
 import { SimControls } from '../SimControls/SimControls';
 import { LiveStatus, ReadoutPanel } from '../shared/ReadoutPanel';
+import { SimLayout } from '../shared/SimLayout';
 import { EnergyBars } from './bars';
 import type { Electrical, EnergyMode, Mechanical, MotorCount, Ramp } from './compute';
 import { energiesOf } from './model';
@@ -51,29 +52,26 @@ export interface EnergyWidgetProps {
   initialTime_s?: number;
 }
 
-/** The right-hand column of `ramp`: the values, the live sentence and the four sliders. */
-function RampPanels({
+/** The right-hand column of `ramp`: the values and the live sentence (docs/DESIGN.md §6). */
+function RampValues({
   ramp,
   energies,
   v_mps,
-  onChange,
   t,
 }: {
   ramp: Ramp;
   energies: Energies;
   v_mps: number;
-  onChange: (key: string, value: number) => void;
   t: Translate;
 }): JSX.Element {
   return (
-    <div className="flex flex-col gap-4 lg:w-panel">
+    <>
       <ReadoutPanel
         title={t('widgets.EnergyWidget.panel')}
         rows={rampRows(ramp, energies, v_mps, t)}
       />
       <LiveStatus text={rampStatus(energies, v_mps, t)} />
-      <ParamPanel params={rampParamsOf(ramp, t)} onChange={onChange} />
-    </div>
+    </>
   );
 }
 
@@ -98,22 +96,24 @@ function RampMode({
   // Common scale of the four bars: the mechanical energy the body started with (decision 4).
   const scale_J = 0.5 * ramp.mass_kg * ramp.v0_mps * ramp.v0_mps;
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-      <div className="flex min-w-0 flex-1 flex-col gap-3">
-        <EnergyScene ramp={ramp} state={timeline.state} t={t} />
-        <SimControls {...timeline.driver} {...timeline.controls} t_s={timeline.t_s} />
-        <EnergyBars energies={energies} scale_J={scale_J} t={t} />
-      </div>
-      <RampPanels
-        ramp={ramp}
-        energies={energies}
-        v_mps={timeline.state.v_mps}
-        onChange={(key, value) => {
-          setRamp((current) => applyRampChange(current, key, value));
-        }}
-        t={t}
-      />
-    </div>
+    <SimLayout
+      viewer={
+        <>
+          <EnergyScene ramp={ramp} state={timeline.state} t={t} />
+          <SimControls {...timeline.driver} {...timeline.controls} t_s={timeline.t_s} />
+          <EnergyBars energies={energies} scale_J={scale_J} t={t} />
+        </>
+      }
+      values={<RampValues ramp={ramp} energies={energies} v_mps={timeline.state.v_mps} t={t} />}
+      params={
+        <ParamPanel
+          params={rampParamsOf(ramp, t)}
+          onChange={(key, value) => {
+            setRamp((current) => applyRampChange(current, key, value));
+          }}
+        />
+      }
+    />
   );
 }
 
