@@ -35,6 +35,13 @@
     "e3": "Una pieza soltada desde el reposo tarda t = {{t_s}} s en caer hasta la banda. Sin resistencia del aire, ¿desde qué altura cayó, en m?",
     "e4": "Tu robot avanza a v = {{v_mps}} m/s y su pinza suelta una pieza a 0.25 m sobre el suelo. Sin resistencia del aire, ¿a qué distancia horizontal de donde la soltó cae la pieza, en m?"
   },
+  "ruta-1/m01-t04": {
+    "e1": "Lanzas una pelota desde el suelo (h = 0) a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal. ¿Cuál es su alcance R, en m?",
+    "e2": "Lanzas una pelota a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal, desde una altura h = {{h_m}} m. ¿Cuál es la altura máxima H sobre el suelo, en m?",
+    "e3": "Lanzas una pelota a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal, desde una altura h = {{h_m}} m. ¿Cuál es su tiempo de vuelo t_v hasta tocar el suelo, en s?",
+    "e4": "Lanzas una pelota a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal, desde una altura h = {{h_m}} m. ¿Cuál es su alcance R hasta tocar el suelo, en m?",
+    "e5": "Tu robot avanza a 0.6 m/s y suelta una pieza desde su pinza, a 0.25 m del suelo. ¿Cuánto más adelante del punto de suelta cae la pieza, en m?"
+  },
   "ruta-1/m03-t01": {
     "e1": "Tu robot de m = {{mass_kg}} kg avanza a v = {{v_mps}} m/s. ¿Cuál es su energía cinética, en J?",
     "e2": "Tu robot llega a v = {{v_mps}} m/s al pie de una rampa y se le corta el motor. Sin fricción, ¿hasta qué altura sube por inercia, en m?",
