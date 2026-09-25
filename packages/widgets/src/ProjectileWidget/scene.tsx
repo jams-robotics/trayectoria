@@ -8,10 +8,12 @@ import { Trace } from '../Scene2D/primitives/Trace';
 import { Vector } from '../Scene2D/primitives/Vector';
 import {
   PATH_PERIOD_S,
+  VIEW_MARGIN,
   flightTime,
   launchTimeAt,
   maxHeight,
   positionAt,
+  range,
   robotPositionAt,
   samplePath,
   traceDots,
@@ -48,14 +50,18 @@ export interface DrawnLaunch {
  * Centre of the scene so the view runs from the ground up to the apex with room to spare
  * (#88, decision 4). The ground always sits just below the bottom edge; when the apex needs
  * more height than the aspect gives, the scene widens instead of cutting the flight off.
+ * Horizontally the view centres the widest range `reach_m` widened by `VIEW_MARGIN`: past the
+ * minimum width that is the whole view, from `x = 0`; below it (a drop, #337) the flight sits in
+ * the middle instead of flush with the left edge.
  */
 export function sceneCentre(
   worldWidth_m: number,
   apex_m: number,
+  reach_m: number,
 ): [number, number] {
   const height_m = Math.max(worldWidth_m / SCENE_ASPECT, apex_m * (1 + HEADROOM));
   // `GROUND_HEIGHT_M` of headroom under `y = 0` so the ground strip is fully inside the view.
-  return [worldWidth_m / 2, height_m / 2 - GROUND_HEIGHT_M];
+  return [Math.min(worldWidth_m, reach_m * (1 + VIEW_MARGIN)) / 2, height_m / 2 - GROUND_HEIGHT_M];
 }
 
 /** Aspect of the scene: the default strip, made taller when the apex would not fit (decision 4). */
@@ -138,10 +144,16 @@ function LaunchMarks({
 }
 
 /** The ground at `y = 0`, a thin `--sim-track` strip across the view (#88, decision 4). */
-function Ground({ worldWidth_m }: { worldWidth_m: number }): JSX.Element {
+function Ground({
+  worldWidth_m,
+  centreX_m,
+}: {
+  worldWidth_m: number;
+  centreX_m: number;
+}): JSX.Element {
   return (
     <Rect
-      center_m={[worldWidth_m / 2, -GROUND_HEIGHT_M / 2]}
+      center_m={[centreX_m, -GROUND_HEIGHT_M / 2]}
       width_m={worldWidth_m}
       height_m={GROUND_HEIGHT_M}
       color="sim-track"
@@ -187,15 +199,17 @@ export function ProjectileScene({
   t,
 }: ProjectileSceneProps): JSX.Element {
   const apex_m = Math.max(...launches.map(({ launch }) => maxHeight(mode, launch)));
+  const reach_m = Math.max(...launches.map(({ launch }) => range(mode, launch)));
+  const centre_m = sceneCentre(worldWidth_m, apex_m, reach_m);
   const first = launches[0];
   return (
     <Scene2D
       worldWidth_m={worldWidth_m}
-      center_m={sceneCentre(worldWidth_m, apex_m)}
+      center_m={centre_m}
       aspect={sceneAspect(worldWidth_m, apex_m)}
       description={t(`widgets.ProjectileWidget.scene${mode}`)}
     >
-      <Ground worldWidth_m={worldWidth_m} />
+      <Ground worldWidth_m={worldWidth_m} centreX_m={centre_m[0]} />
       {mode === 'dropFromRobot' && first !== undefined ? (
         <RobotChassis launch={first.launch} t_s={t_s} />
       ) : null}

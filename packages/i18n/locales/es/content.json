@@ -54,17 +54,41 @@
     "e3": "Las ruedas motrices de tu robot tienen μₛ = {{mu_s}} con el suelo y cargan la fracción β = {{drivenWeightFraction}} de su peso; el resto lo carga una rueda loca. ¿Cuál es la aceleración máxima que puede lograr en plano sin patinar, en m/s²?",
     "e4": "Tu robot va a v = {{v_mps}} m/s y frena con las ruedas bloqueadas, deslizando sobre un suelo con μₖ = {{mu_k}}. ¿Qué distancia recorre hasta detenerse, en m?"
   },
+  "ruta-1/m02-t03": {
+    "e1": "El motor de tu robot entrega τ_motor = {{motorTorque_Nm}} N·m, la reducción es i = {{gearRatio}} y la eficiencia de la caja es η = {{efficiency}}. ¿Qué torque llega a la rueda, en N·m?",
+    "e2": "Una rueda de radio r = {{wheelRadius_m}} m recibe un torque τ_rueda = {{wheelTorque_Nm}} N·m. ¿Qué fuerza de tracción empuja contra el suelo, en N?",
+    "e3": "Tu robot de m = {{mass_kg}} kg sube a velocidad constante una rampa de φ = {{slope_deg}}° con dos ruedas motrices de radio r = {{wheelRadius_m}} m. ¿Qué torque necesita cada rueda, en N·m?",
+    "e4": "Un brazo horizontal de ℓ = {{leverArm_m}} m sostiene una masa de m = {{mass_kg}} kg en la punta. Sin contar la masa del brazo, ¿qué torque hace la articulación, en N·m?"
+  },
   "ruta-1/m03-t01": {
     "e1": "Tu robot de m = {{mass_kg}} kg avanza a v = {{v_mps}} m/s. ¿Cuál es su energía cinética, en J?",
     "e2": "Tu robot llega a v = {{v_mps}} m/s al pie de una rampa y se le corta el motor. Sin fricción, ¿hasta qué altura sube por inercia, en m?",
     "e3": "Tu robot de m = {{mass_kg}} kg arranca desde el reposo y llega a v = {{v_mps}} m/s. ¿Qué trabajo neto hacen sobre él todas las fuerzas, en J?",
     "e4": "Una fricción de rodadura f = {{friction_N}} N actúa sobre tu robot a lo largo de D = {{distance_m}} m. ¿Cuánta energía disipa, en J?"
   },
+  "ruta-1/m03-t02": {
+    "e1": "El motor de tu robot entrega un torque τ = {{torque_Nm}} N·m a n = {{speed_rpm}} rpm. ¿Qué potencia mecánica entrega, en W?",
+    "e2": "Un motor funciona a V = {{voltage_V}} V, consume I = {{current_A}} A y tiene una eficiencia η = {{efficiency}}. ¿Qué potencia mecánica entrega, en W?",
+    "e3": "Tu robot tiene una batería de C = {{batteryCapacity_Wh}} Wh y dos motores que funcionan a V = {{voltage_V}} V y consumen I = {{current_A}} A cada uno. ¿Cuál es su autonomía, en min?",
+    "e4": "Las ruedas empujan a tu robot con una fuerza F = {{force_N}} N mientras avanza a v = {{v_mps}} m/s. ¿Qué potencia mecánica entregan, en W?"
+  },
   "ruta-1/m04-t01": {
     "e1": "El eje de salida de tu motorreductor gira a n = {{speed_rpm}} rpm. ¿Cuál es su velocidad angular ω, en rad/s?",
     "e2": "La rueda de tu robot gira a n = {{speed_rpm}} rpm. ¿Cuánto dura una vuelta, es decir, su período T, en s?",
     "e3": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s. ¿Cuántas vueltas da?",
     "e4": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s, desde θ₀ = 0 rad. ¿Qué ángulo θ gira, en rad?"
+  },
+  "ruta-1/m04-t02": {
+    "e1": "La rueda de tu robot gira a ω = {{omega_radps}} rad/s y mide r = {{wheelRadius_m}} m de radio. Sin deslizamiento, ¿a qué velocidad avanza tu robot, en m/s?",
+    "e2": "Quieres que tu robot avance a v = {{v_mps}} m/s con ruedas de r = {{wheelRadius_m}} m de radio. ¿Qué velocidad angular ω necesita cada rueda, en rad/s, y cuál es su velocidad de giro n_rueda, en rpm?",
+    "e3": "El motor de tu robot gira a n_motor = {{motorSpeed_rpm}} rpm, la reducción es i = {{gearRatio}} y la rueda mide r = {{wheelRadius_m}} m de radio. Sin deslizamiento, ¿a qué velocidad avanza tu robot, en m/s?",
+    "e4": "El motor de tu robot gira a n_motor = {{motorSpeed_rpm}} rpm, la reducción es i = {{gearRatio}} y la rueda mide r = {{wheelRadius_m}} m de radio. A esa velocidad constante, ¿cuánto tarda en recorrer una pista recta de 4 m, en s?"
+  },
+  "ruta-1/m04-t03": {
+    "e1": "La rueda de tu robot pasa del reposo a n = {{speed_rpm}} rpm en t = {{t_s}} s con aceleración angular constante. ¿Cuál es su aceleración angular α, en rad/s²?",
+    "e2": "Tu robot toma una curva de radio R = {{turnRadius_m}} m a v = {{v_mps}} m/s. ¿Cuál es su aceleración centrípeta a_c, en m/s²?",
+    "e3": "La rueda de tu robot, de radio r = {{wheelRadius_m}} m, acelera con α = {{alpha_radps2}} rad/s². ¿Cuál es la aceleración tangencial a_t de un punto del borde, en m/s²?",
+    "e4": "Las ruedas de tu robot tienen un coeficiente de fricción estática μs = {{mu_s}} con el suelo. ¿Cuál es la rapidez máxima sin patinar v_max,curva en una curva de radio R = {{turnRadius_m}} m, en m/s? Usa g = 9.81 m/s²."
   },
   "ruta-1/m04-t04": {
     "e1": "El motor de tu robot gira a n_motor = {{motorSpeed_rpm}} rpm y la rueda, a n_rueda = {{wheelSpeed_rpm}} rpm. ¿Cuál es la relación de reducción i del motorreductor, sin unidad?",
