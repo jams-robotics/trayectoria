@@ -17,6 +17,8 @@ import {
 const R_MIN_M = 0.015;
 const R_MAX_M = 0.1;
 const OMEGA_MAX_RADPS = rpmToRadps(600);
+/** Reference speed of the arrow scale: the largest `v` of the rolling slider (#366). */
+const V_REF_MPS = 2;
 /** Fastest `ω` the rolling mode reaches: `v = 2 m/s` on the smallest wheel. */
 const OMEGA_ROLLING_MAX_RADPS = 2 / R_MIN_M;
 /** `ω` at the end of the chart of `angularAccel` with `α` at its maximum: `ω0 + α t`. */
@@ -55,20 +57,29 @@ describe('escena de RotationWidget a escala del radio (#359)', () => {
       expect(drawnRadius(mode, R_MIN_M, R_MAX_M)).toBeCloseTo(0.08 * height_m, 12);
     });
 
-    it(`${mode}: la escala de vectores es fija y satura en L_max`, () => {
+    it(`${mode}: la escala de vectores es fija, k = L_max / 2 m/s, y satura en L_max (#366)`, () => {
       const lMax_m = maxVectorLength(mode, R_MAX_M);
       expect(lMax_m).toBeGreaterThan(0);
-      expect(vectorLength(mode, OMEGA_MAX_RADPS * R_MAX_M, R_MAX_M)).toBeCloseTo(lMax_m, 12);
-      expect(vectorLength(mode, (OMEGA_MAX_RADPS * R_MAX_M) / 2, R_MAX_M)).toBeCloseTo(
-        lMax_m / 2,
-        12,
-      );
-      expect(vectorLength(mode, -(OMEGA_MAX_RADPS * R_MAX_M) / 4, R_MAX_M)).toBeCloseTo(
-        -lMax_m / 4,
-        12,
-      );
-      expect(vectorLength(mode, 10 * OMEGA_MAX_RADPS * R_MAX_M, R_MAX_M)).toBe(lMax_m);
-      expect(vectorLength(mode, -10 * OMEGA_MAX_RADPS * R_MAX_M, R_MAX_M)).toBe(-lMax_m);
+      expect(vectorLength(mode, V_REF_MPS, R_MAX_M)).toBeCloseTo(lMax_m, 12);
+      expect(vectorLength(mode, V_REF_MPS / 2, R_MAX_M)).toBeCloseTo(lMax_m / 2, 12);
+      expect(vectorLength(mode, -V_REF_MPS / 4, R_MAX_M)).toBeCloseTo(-lMax_m / 4, 12);
+      expect(vectorLength(mode, 10 * V_REF_MPS, R_MAX_M)).toBe(lMax_m);
+      expect(vectorLength(mode, -10 * V_REF_MPS, R_MAX_M)).toBe(-lMax_m);
+    });
+
+    it(`${mode}: con los valores iniciales de m04-t01 la flecha mide ≈ 33 % de L_max`, () => {
+      const lMax_m = maxVectorLength(mode, R_MAX_M);
+      // ω = 20.94 rad/s, r = 0.032 m → v ≈ 0.67 m/s.
+      const share = vectorLength(mode, 20.94 * 0.032, R_MAX_M) / lMax_m;
+      expect(share).toBeCloseTo(0.335, 3);
+      expect(share).toBeGreaterThan(0.33);
+      expect(share).toBeLessThan(0.34);
+    });
+
+    it(`${mode}: con ω y r máximos la flecha satura en L_max`, () => {
+      const lMax_m = maxVectorLength(mode, R_MAX_M);
+      expect(vectorLength(mode, OMEGA_MAX_RADPS * R_MAX_M, R_MAX_M)).toBe(lMax_m);
+      expect(vectorLength(mode, -OMEGA_MAX_RADPS * R_MAX_M, R_MAX_M)).toBe(-lMax_m);
     });
 
     for (const r_m of [R_MIN_M, R_MAX_M]) {
