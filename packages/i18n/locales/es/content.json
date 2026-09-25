@@ -29,6 +29,25 @@
     "e3": "Tu robot arranca desde el reposo con a = {{a_mps2}} m/s². ¿Cuánto tarda en recorrer Δx = {{dx_m}} m, en s?",
     "e4": "Tu robot recorre una pista recta de 4 m: arranca desde el reposo, acelera con a = 0.4 m/s² hasta v = 0.6 m/s y sigue a velocidad constante. ¿Cuánto tarda en total, en s?"
   },
+  "ruta-1/m01-t03": {
+    "e1": "La pinza de tu robot suelta una pieza desde el reposo a h = {{h_m}} m sobre la banda. Sin resistencia del aire, ¿cuánto tarda en caer, en s?",
+    "e2": "La pinza de tu robot suelta una pieza desde el reposo a h = {{h_m}} m sobre la banda. Sin resistencia del aire, ¿con qué rapidez llega a la banda, en m/s?",
+    "e3": "Una pieza soltada desde el reposo tarda t = {{t_s}} s en caer hasta la banda. Sin resistencia del aire, ¿desde qué altura cayó, en m?",
+    "e4": "Tu robot avanza a v = {{v_mps}} m/s y su pinza suelta una pieza a 0.25 m sobre el suelo. Sin resistencia del aire, ¿a qué distancia horizontal de donde la soltó cae la pieza, en m?"
+  },
+  "ruta-1/m01-t04": {
+    "e1": "Lanzas una pelota desde el suelo (h = 0) a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal. ¿Cuál es su alcance R, en m?",
+    "e2": "Lanzas una pelota a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal, desde una altura h = {{h_m}} m. ¿Cuál es la altura máxima H sobre el suelo, en m?",
+    "e3": "Lanzas una pelota a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal, desde una altura h = {{h_m}} m. ¿Cuál es su tiempo de vuelo t_v hasta tocar el suelo, en s?",
+    "e4": "Lanzas una pelota a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal, desde una altura h = {{h_m}} m. ¿Cuál es su alcance R hasta tocar el suelo, en m?",
+    "e5": "Tu robot avanza a 0.6 m/s y suelta una pieza desde su pinza, a 0.25 m del suelo. ¿Cuánto más adelante del punto de suelta cae la pieza, en m?"
+  },
+  "ruta-1/m02-t01": {
+    "e1": "Tu robot tiene una masa m = {{mass_kg}} kg y debe acelerar a a = {{a_mps2}} m/s². ¿Qué fuerza neta necesita, en N?",
+    "e2": "Tu robot de m = {{mass_kg}} kg está sobre un suelo horizontal. ¿Cuánto vale la fuerza normal que el suelo ejerce sobre él, en N? Usa g = 9.81 m/s².",
+    "e3": "Tu robot de m = {{mass_kg}} kg está sobre una rampa de φ = {{slope_deg}}°. ¿Cuánto vale la componente del peso a lo largo de la rampa, F_∥, en N, y la fuerza normal N, en N? Usa g = 9.81 m/s².",
+    "e4": "Las ruedas de tu robot de m = 0.9 kg dan una tracción de 1.5 N hacia adelante y la fricción de rodadura vale 0.4 N hacia atrás. ¿Cuál es su aceleración, en m/s²?"
+  },
   "ruta-1/m02-t02": {
     "e1": "Las ruedas motrices de tu robot tienen μₛ = {{mu_s}} con el suelo y cargan todo su peso. ¿Cuál es la aceleración máxima que puede lograr en plano sin patinar, en m/s²?",
     "e2": "Las ruedas de tu robot tienen μₛ = {{mu_s}} con el suelo. ¿Cuál es la pendiente máxima de una rampa en la que se sostiene sin deslizar, en °?",
@@ -40,5 +59,11 @@
     "e2": "Tu robot llega a v = {{v_mps}} m/s al pie de una rampa y se le corta el motor. Sin fricción, ¿hasta qué altura sube por inercia, en m?",
     "e3": "Tu robot de m = {{mass_kg}} kg arranca desde el reposo y llega a v = {{v_mps}} m/s. ¿Qué trabajo neto hacen sobre él todas las fuerzas, en J?",
     "e4": "Una fricción de rodadura f = {{friction_N}} N actúa sobre tu robot a lo largo de D = {{distance_m}} m. ¿Cuánta energía disipa, en J?"
+  },
+  "ruta-1/m04-t01": {
+    "e1": "El eje de salida de tu motorreductor gira a n = {{speed_rpm}} rpm. ¿Cuál es su velocidad angular ω, en rad/s?",
+    "e2": "La rueda de tu robot gira a n = {{speed_rpm}} rpm. ¿Cuánto dura una vuelta, es decir, su período T, en s?",
+    "e3": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s. ¿Cuántas vueltas da?",
+    "e4": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s, desde θ₀ = 0 rad. ¿Qué ángulo θ gira, en rad?"
   }
 }
