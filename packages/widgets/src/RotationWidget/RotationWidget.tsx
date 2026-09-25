@@ -8,6 +8,7 @@ import { SimControls } from '../SimControls/SimControls';
 import { ParamPanel } from '../ParamPanel/ParamPanel';
 import { LiveStatus } from '../shared/ReadoutPanel';
 import { SimLayout } from '../shared/SimLayout';
+import type { SimExtra } from '../shared/SimLayout';
 import { omegaAt, sampleOmega } from './compute';
 import type { Curve, Rotation, RotationInputUnit, RotationMode } from './compute';
 import {
@@ -133,25 +134,42 @@ function Sliders({
   );
 }
 
-/** The parameters under the viewer: the sliders, plus the curve panel of `angularAccel`. */
-function Params({ curve, setCurve, ...side }: PanelsProps): JSX.Element {
-  return (
-    <>
-      <Sliders {...side} />
-      {side.mode === 'angularAccel' ? (
+/**
+ * The extras of `angularAccel` (docs/DESIGN.md §6, point 3): the `ω–t` chart, right after the
+ * viewer on mobile, and the curve panel, at the end.
+ */
+function extrasOf({
+  mode,
+  rotation,
+  t_s,
+  curve,
+  setCurve,
+  t,
+}: Pick<PanelsProps, 'mode' | 'rotation' | 't_s' | 'curve' | 'setCurve' | 't'>): SimExtra[] {
+  if (mode !== 'angularAccel') return [];
+  return [
+    {
+      key: 'omega',
+      mobile: 'afterViewer',
+      node: <OmegaPlot rotation={rotation} t_s={t_s} t={t} />,
+    },
+    {
+      key: 'curve',
+      mobile: 'end',
+      node: (
         <CurvePanel
           curve={curve}
           onChange={(key, value) => {
             setCurve((current) => applyCurveChange(current, key, value));
           }}
-          t={side.t}
+          t={t}
         />
-      ) : null}
-    </>
-  );
+      ),
+    },
+  ];
 }
 
-/** The viewer column: the scene, the playback controls and, in `angularAccel`, the chart. */
+/** The viewer column: the scene and the playback controls. */
 function Viewer({
   mode,
   rotation,
@@ -175,7 +193,6 @@ function Viewer({
         t={t}
       />
       <SimControls {...timeline.driver} {...timeline.controls} t_s={t_s} />
-      {mode === 'angularAccel' ? <OmegaPlot rotation={rotation} t_s={t_s} t={t} /> : null}
     </>
   );
 }
@@ -210,18 +227,16 @@ export function RotationWidget({
       viewer={<Viewer mode={mode} rotation={rotation} t_s={t_s} timeline={timeline} t={t} />}
       values={<Values mode={mode} rotation={rotation} t_s={t_s} t={t} />}
       params={
-        <Params
+        <Sliders
           mode={mode}
           rotation={rotation}
           inputUnit={inputUnit}
           setInputUnit={setInputUnit}
           setRotation={setRotation}
-          curve={curve}
-          setCurve={setCurve}
-          t_s={t_s}
           t={t}
         />
       }
+      extras={extrasOf({ mode, rotation, t_s, curve, setCurve, t })}
     />
   );
 }

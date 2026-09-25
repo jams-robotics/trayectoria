@@ -56,6 +56,15 @@ function Charts({
   );
 }
 
+/** The charts as an extra of the layout: full width under the sliders (docs/DESIGN.md §6). */
+function ChartsExtra(props: Parameters<typeof Charts>[0]): JSX.Element {
+  return (
+    <div className="flex min-w-0 flex-col gap-3 overflow-hidden">
+      <Charts {...props} />
+    </div>
+  );
+}
+
 /** The viewer: the scene and, under it, the playback controls (docs/DESIGN.md §6). */
 function Viewer({
   motion,
@@ -108,17 +117,13 @@ export function KinematicsWidget({
           />
         )
       }
-      after={
-        <div className="flex min-w-0 flex-col gap-3 overflow-hidden">
-          <Charts
-            motion={motion}
-            timeline={timeline}
-            duration_s={duration_s}
-            showTangent={showTangent}
-            t={t}
-          />
-        </div>
-      }
+      extras={[
+        {
+          key: 'charts',
+          mobile: 'afterViewerFirst',
+          node: <ChartsExtra {...{ motion, timeline, duration_s, showTangent, t }} />,
+        },
+      ]}
     />
   );
 }
