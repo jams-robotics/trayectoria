@@ -37,6 +37,13 @@ export interface Step {
   deltaTheta_rad: number;
 }
 
+/** Velocity the encoders estimate from the last step, per wheel and for the robot (T-4.5). */
+export interface EstimatedVelocity {
+  left_mps: number;
+  right_mps: number;
+  robot_mps: number;
+}
+
 /** The calibration the widget opens with: the real one of the spec (#93, decision 3). */
 export function calibrationOf(spec: MobileSpec): Calibration {
   return {
@@ -85,6 +92,20 @@ export function odometryStep(pose: Pose, step: Step): Pose {
     x_m: pose.x_m + step.deltaS_m * Math.cos(mid_rad),
     y_m: pose.y_m + step.deltaS_m * Math.sin(mid_rad),
     theta_rad: wrapPi(pose.theta_rad + step.deltaTheta_rad),
+  };
+}
+
+/**
+ * Velocity estimated from one sampling step: `v ≈ 2π r Δticks / (N_e Δt)`, the arc of `stepOf`
+ * divided by the step's duration `dt_s` (T-4.5). With few ticks per revolution or at low speed
+ * this quantises into steps of `2π r / (N_e Δt)`, which is the effect T-4.5 teaches.
+ */
+export function estimatedVelocity(step: Step, dt_s: number): EstimatedVelocity {
+  if (dt_s <= 0) return { left_mps: 0, right_mps: 0, robot_mps: 0 };
+  return {
+    left_mps: step.deltaSL_m / dt_s,
+    right_mps: step.deltaSR_m / dt_s,
+    robot_mps: step.deltaS_m / dt_s,
   };
 }
 

@@ -30,6 +30,7 @@ export {
   DEFAULT_TICKS_PER_REV,
   baseDriftError_deg,
   calibrationOf,
+  estimatedVelocity,
   headingError_deg,
   odometryStep,
   positionError_m,
@@ -37,7 +38,7 @@ export {
   stepOf,
   ticksAt,
 } from './odometry';
-export type { Calibration, Step, Ticks } from './odometry';
+export type { Calibration, EstimatedVelocity, Step, Ticks } from './odometry';
 export { INITIAL_POSE, DT_S } from './timeline';
 export { useOdometry } from './useOdometry';
 export type { Odometry } from './useOdometry';
