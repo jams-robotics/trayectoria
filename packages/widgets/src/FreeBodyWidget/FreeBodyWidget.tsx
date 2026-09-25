@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { JSX } from 'react';
 import { degToRad, radToDeg, rotate2 } from '@trayectoria/sim-core';
-import type { Vec2 } from '@trayectoria/sim-core';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 
@@ -15,6 +14,9 @@ import type { ForceInput, FreeBodyReadout, ResolvedForce } from './compute';
 import { applyBodyChange, bodyParamsOf, isBodyParam } from './params';
 import type { Body, BodyParam } from './params';
 import { Values } from './panels';
+import { ArrowLabels } from './labels';
+import type { ArrowLabel } from './labels';
+import { VIEW_ASPECT, VIEW_WIDTH_M, arrowTips_m } from './layout';
 
 export interface FreeBodyWidgetProps {
   mass_kg: number;
@@ -29,8 +31,6 @@ export interface FreeBodyWidgetProps {
   editableParams?: Array<BodyParam>;
 }
 
-/** Width of the view, in metres of the scene; the diagram is drawn at this scale. */
-const VIEW_WIDTH_M = 1.2;
 /** Size of the body drawn at the origin, in metres of the scene. */
 const BODY_WIDTH_M = 0.26;
 const BODY_HEIGHT_M = 0.16;
@@ -38,8 +38,6 @@ const BODY_HEIGHT_M = 0.16;
 const RAMP_LENGTH_M = 1.1;
 /** Thickness of the ramp segment, in metres of the scene. */
 const RAMP_THICKNESS_M = 0.05;
-/** Scene metres per newton, so the weight of a ~1 kg body still fits in the view. */
-const M_PER_N = 0.045;
 /** Decimals of an angle in degrees (#86, decision 6). */
 const ANGLE_DECIMALS = 2;
 /** Range and step of the magnitude sliders, in newtons. */
@@ -59,29 +57,41 @@ function labelOf(force: ResolvedForce, t: Translate): string {
   return force.derived ? t(`widgets.FreeBodyWidget.${force.key}`) : force.label;
 }
 
-/** The arrows of the diagram, drawn in world components over the inclined surface. */
-function ForceArrows({
-  forces,
+/** Palette token of the resultant arrow. */
+const RESULTANT_COLOR = 'color-data-4';
+
+/**
+ * The arrows of the diagram, drawn in world components over the inclined surface, and their
+ * labels, painted after them inside the view (#347). The resultant, when shown, goes last.
+ */
+function Arrows({
+  readout,
   slope_rad,
+  showResultant,
   t,
 }: {
-  forces: readonly ResolvedForce[];
+  readout: FreeBodyReadout;
   slope_rad: number;
+  showResultant: boolean;
   t: Translate;
 }): JSX.Element {
+  const labels = useMemo<ArrowLabel[]>(() => {
+    const tips = arrowTips_m(readout, slope_rad, showResultant);
+    const named = readout.forces.map((force) => ({
+      text: labelOf(force, t),
+      color: colorOf(force),
+    }));
+    if (showResultant) {
+      named.push({ text: t('widgets.FreeBodyWidget.resultantLabel'), color: RESULTANT_COLOR });
+    }
+    return named.map((label, index) => ({ ...label, tip_m: tips[index] ?? [0, 0] }));
+  }, [readout, slope_rad, showResultant, t]);
   return (
     <>
-      {forces.map((force) => {
-        const world = rotate2(force.components_N, slope_rad);
-        return (
-          <Vector
-            key={force.key}
-            to_m={[world[0] * M_PER_N, world[1] * M_PER_N]}
-            color={colorOf(force)}
-            label={labelOf(force, t)}
-          />
-        );
-      })}
+      {labels.map((label, index) => (
+        <Vector key={index} to_m={[label.tip_m[0], label.tip_m[1]]} color={label.color} />
+      ))}
+      <ArrowLabels labels={labels} />
     </>
   );
 }
@@ -160,22 +170,14 @@ function Diagram({
   showResultant: boolean;
   t: Translate;
 }): JSX.Element {
-  const resultantWorld: Vec2 = rotate2(readout.resultant_N, slope_rad);
   return (
     <Scene2D
       worldWidth_m={VIEW_WIDTH_M}
-      aspect={1.4}
+      aspect={VIEW_ASPECT}
       description={t('widgets.FreeBodyWidget.scene')}
     >
       <Surface slope_rad={slope_rad} />
-      <ForceArrows forces={readout.forces} slope_rad={slope_rad} t={t} />
-      {showResultant ? (
-        <Vector
-          to_m={[resultantWorld[0] * M_PER_N, resultantWorld[1] * M_PER_N]}
-          color="color-data-4"
-          label={t('widgets.FreeBodyWidget.resultantLabel')}
-        />
-      ) : null}
+      <Arrows readout={readout} slope_rad={slope_rad} showResultant={showResultant} t={t} />
     </Scene2D>
   );
 }
