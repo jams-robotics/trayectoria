@@ -28,5 +28,11 @@
     "e2": "Tu robot va a v₀ = {{v0_mps}} m/s y frena con a = {{a_mps2}} m/s² hasta detenerse. ¿Qué distancia recorre mientras frena, en m?",
     "e3": "Tu robot arranca desde el reposo con a = {{a_mps2}} m/s². ¿Cuánto tarda en recorrer Δx = {{dx_m}} m, en s?",
     "e4": "Tu robot recorre una pista recta de 4 m: arranca desde el reposo, acelera con a = 0.4 m/s² hasta v = 0.6 m/s y sigue a velocidad constante. ¿Cuánto tarda en total, en s?"
+  },
+  "ruta-1/m04-t02": {
+    "e1": "La rueda de tu robot gira a ω = {{omega_radps}} rad/s y mide r = {{wheelRadius_m}} m de radio. Sin deslizamiento, ¿a qué velocidad avanza tu robot, en m/s?",
+    "e2": "Quieres que tu robot avance a v = {{v_mps}} m/s con ruedas de r = {{wheelRadius_m}} m de radio. ¿Qué velocidad angular ω necesita cada rueda, en rad/s, y cuál es su velocidad de giro n_rueda, en rpm?",
+    "e3": "El motor de tu robot gira a n_motor = {{motorSpeed_rpm}} rpm, la reducción es i = {{gearRatio}} y la rueda mide r = {{wheelRadius_m}} m de radio. Sin deslizamiento, ¿a qué velocidad avanza tu robot, en m/s?",
+    "e4": "El motor de tu robot gira a n_motor = {{motorSpeed_rpm}} rpm, la reducción es i = {{gearRatio}} y la rueda mide r = {{wheelRadius_m}} m de radio. A esa velocidad constante, ¿cuánto tarda en recorrer una pista recta de 4 m, en s?"
   }
 }
