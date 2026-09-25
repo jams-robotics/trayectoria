@@ -49,6 +49,33 @@ describe('dibujo del tren (F2-08)', () => {
     expect(dy_m).toBeLessThan(0);
   });
 
+  it('con z2 = z3 los dos engranajes del eje compartido se distinguen (#348)', () => {
+    const train: Train = { ...TRAIN, z2: 60, z3: 60 };
+    const gears = drawnGears(2, train, 0.3, LABELS);
+    const z2 = gears[1];
+    const z3 = gears[2];
+    if (z2 === undefined || z3 === undefined) throw new Error('faltan z2 y z3');
+
+    // Mismo eje y misma velocidad, pero los dientes de z3 caen en los huecos de z2.
+    expect(z3.centre_m).toEqual(z2.centre_m);
+    expect(z3.angle_rad - z2.angle_rad).toBeCloseTo(Math.PI / 60, 9);
+    // z3 lleva un aro propio y su etiqueta al otro lado del ancla, para no tapar la de z2.
+    expect(z3.ring).toBe(true);
+    expect(z2.ring).toBe(false);
+    expect(z3.labelAlign).toBe('left');
+    expect(z2.labelAlign).toBe('right');
+  });
+
+  it('si z2 y z3 no se solapan, el dibujo no cambia (#348)', () => {
+    const gears = drawnGears(2, TRAIN, 0.3, LABELS);
+
+    expect(gears[2]?.angle_rad).toBe(gears[1]?.angle_rad);
+    gears.forEach((gear) => {
+      expect(gear.ring).toBe(false);
+      expect(gear.labelAlign).toBe('right');
+    });
+  });
+
   it('con una etapa solo hay dos engranajes', () => {
     expect(drawnGears(1, TRAIN, 0, LABELS)).toHaveLength(2);
   });
@@ -88,10 +115,7 @@ describe('dibujo del tren (F2-08)', () => {
 
     gears.forEach((gear) => {
       const at_m = labelAnchor(gear, centre_m);
-      const toGear_m = Math.hypot(
-        at_m[0] - gear.centre_m[0],
-        at_m[1] - gear.centre_m[1],
-      );
+      const toGear_m = Math.hypot(at_m[0] - gear.centre_m[0], at_m[1] - gear.centre_m[1]);
       expect(toGear_m).toBeGreaterThan(gear.radius_m);
       // Se aleja del centro de la vista, no se acerca.
       const before_m = Math.hypot(gear.centre_m[0] - centre_m[0], gear.centre_m[1] - centre_m[1]);

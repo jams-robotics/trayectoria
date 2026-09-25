@@ -198,6 +198,32 @@ describe('useSimulationDriver (F2-02b)', () => {
     expect(result.current.t_s).toBeCloseTo(0.2, 10);
   });
 
+  test('keeps the chosen speed when a parameter change rebuilds the simulation (#346)', () => {
+    const first = createDriven();
+    const { result, rerender } = renderHook(
+      ({ driven }) => useSimulationDriver(driven.sim, { clock: driven.clock }),
+      { initialProps: { driven: first } },
+    );
+
+    act(() => {
+      result.current.setSpeed(MIN_SPEED);
+    });
+    // A widget rebuilds its simulation with useMemo when a parameter changes.
+    const second = createDriven();
+    rerender({ driven: second });
+
+    act(() => {
+      result.current.play();
+    });
+    frame(0);
+    frame(200);
+
+    expect(result.current.speed).toBe(MIN_SPEED);
+    expect(second.sim.speed).toBe(MIN_SPEED);
+    // 200 ms of real time at 0.25x is 50 ms of simulated time (5 steps), not 200 ms.
+    expect(result.current.t_s).toBeCloseTo(0.05, 10);
+  });
+
   test('hiding the tab stops it and coming back does not resume it', () => {
     const driven = createDriven();
     const { result } = renderHook(() => useSimulationDriver(driven.sim, { clock: driven.clock }));
