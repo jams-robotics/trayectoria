@@ -11,6 +11,7 @@ describe('TOPIC_WIDGETS', () => {
       'GearWidget',
       'KinematicsWidget',
       'MyRobotWidget',
+      'PowerWidget',
       'ProjectileWidget',
       'RotationWidget',
       'VectorWidget',

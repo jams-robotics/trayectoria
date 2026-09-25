@@ -165,6 +165,19 @@ export type {
 } from './EnergyWidget';
 
 export {
+  PowerWidget,
+  // `heightAt` and the energies of EnergyWidget belong to the ramp; these belong to the lift of
+  // PowerWidget, so the barrel keeps the two apart.
+  heightAt as liftHeightAt,
+  liftSpeed,
+  potentialEnergyAt as liftPotentialEnergyAt,
+  riseTime,
+  topEnergy as liftTopEnergy,
+  workAt as liftWorkAt,
+} from './PowerWidget';
+export type { Lift, PowerWidgetProps } from './PowerWidget';
+
+export {
   GearWidget,
   MODULE_M as GEAR_MODULE_M,
   // `angleAt` of RotationWidget sweeps an angle with a possible ramp; this one is the angle of
