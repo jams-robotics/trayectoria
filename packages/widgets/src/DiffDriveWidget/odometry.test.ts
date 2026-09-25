@@ -9,6 +9,7 @@ import {
   DEFAULT_TICKS_PER_REV,
   baseDriftError_deg,
   calibrationOf,
+  estimatedVelocity,
   headingError_deg,
   odometryStep,
   positionError_m,
@@ -165,5 +166,65 @@ describe('DiffDriveWidget odometry (F2-09b)', () => {
     // Y con una deriva grande deja de ensancharse en el máximo de la escena.
     expect(odometryView(real, { ...real, x_m: real.x_m + 5 }).width_m).toBe(3);
     expect(view.width_m).toBeGreaterThanOrEqual(1.2);
+  });
+});
+
+describe('DiffDriveWidget velocidad estimada por encoders (#306, T-4.5)', () => {
+  it('45 ticks en 0.1 s con N_e = 360 y r = 0.032 dan 0.2513 m/s (T-4.5 e2)', () => {
+    const step = stepOf({ left: 45, right: 45 }, EXACT);
+    const velocity = estimatedVelocity(step, 0.1);
+    expect(velocity.left_mps).toBeCloseTo(0.2513, 3);
+    expect(velocity.right_mps).toBeCloseTo(0.2513, 3);
+    expect(velocity.robot_mps).toBeCloseTo(0.2513, 3);
+  });
+
+  it('con Δt = 0 la estimación es 0 en vez de dividir por cero', () => {
+    const step = stepOf({ left: 45, right: 45 }, EXACT);
+    expect(estimatedVelocity(step, 0)).toEqual({ left_mps: 0, right_mps: 0, robot_mps: 0 });
+  });
+
+  it('a ω = 1 rad/s con N_e = 20 la estimada solo toma valores múltiplos de 2π·r/(N_e·Δt)', () => {
+    const states = run({ omegaL_radps: 1, omegaR_radps: 1 }, 3);
+    const calibration: Calibration = { ...EXACT, ticksPerRev: 20 };
+    const period = 10; // 10 pasos de DT_S = 0.1 s entre muestras
+    const dt_s = period * DT_S;
+    const quantum_mps = (2 * Math.PI * EXACT.wheelRadius_m) / (20 * dt_s);
+    let previous = ticksAt(states[0] as DiffDriveState, 20);
+    let sawNonZero = false;
+    for (let i = period; i < states.length; i += period) {
+      const ticks = ticksAt(states[i] as DiffDriveState, 20);
+      const step = stepOf(
+        { left: ticks.left - previous.left, right: ticks.right - previous.right },
+        calibration,
+      );
+      const velocity = estimatedVelocity(step, dt_s);
+      const multiple = velocity.left_mps / quantum_mps;
+      expect(Math.abs(multiple - Math.round(multiple))).toBeLessThan(1e-9);
+      if (velocity.left_mps !== 0) sawNonZero = true;
+      previous = ticks;
+    }
+    // El escalonamiento es el efecto que enseña T-4.5: no todas las muestras dan 0.
+    expect(sawNonZero).toBe(true);
+  });
+
+  it('con N_e = 2000 la estimada queda a menos del 5 % de la real (T-4.5, experimento 3)', () => {
+    const states = run({ omegaL_radps: 1, omegaR_radps: 1 }, 3);
+    const calibration: Calibration = { ...EXACT, ticksPerRev: 2000 };
+    const period = 10;
+    const dt_s = period * DT_S;
+    const real_mps = 1 * EXACT.wheelRadius_m; // v = ω r a ω = 1 rad/s
+    // Arranca tras la rampa de aceleración del perfil (0.025 s a 40 rad/s²), que hace corto el
+    // primer paso de muestreo; a partir de ahí la velocidad real ya es constante.
+    let previous = ticksAt(states[period] as DiffDriveState, 2000);
+    for (let i = 2 * period; i < states.length; i += period) {
+      const ticks = ticksAt(states[i] as DiffDriveState, 2000);
+      const step = stepOf(
+        { left: ticks.left - previous.left, right: ticks.right - previous.right },
+        calibration,
+      );
+      const velocity = estimatedVelocity(step, dt_s);
+      expect(Math.abs(velocity.left_mps - real_mps) / real_mps).toBeLessThan(0.05);
+      previous = ticks;
+    }
   });
 });

@@ -10,7 +10,13 @@ import type { ForceInput } from './compute';
 function exploreForces(): ForceInput[] {
   return [
     { key: 'traction', label: 'Tracción', magnitude_N: 1.5, angle_rad: 0, editable: true },
-    { key: 'friction', label: 'Fricción de rodadura', magnitude_N: 0.4, angle_rad: 3.1416, editable: true },
+    {
+      key: 'friction',
+      label: 'Fricción de rodadura',
+      magnitude_N: 0.4,
+      angle_rad: 3.1416,
+      editable: true,
+    },
   ];
 }
 
@@ -121,5 +127,126 @@ describe('FreeBodyWidget (F2-03)', () => {
     expect(screen.getByRole('img')).toHaveAccessibleName(
       'Diagrama de cuerpo libre con el peso, la normal y las fuerzas aplicadas',
     );
+  });
+});
+
+/** The single traction of the «Explora» of T-2.2, 3 N along the surface. */
+function tractionOnly(): ForceInput[] {
+  return [{ key: 'traction', label: 'Tracción', magnitude_N: 3, angle_rad: 0, editable: true }];
+}
+
+/** Moves a slider with the keyboard: Shift+arrow is ten steps, a plain arrow one. */
+async function press(name: RegExp | string, keys: string): Promise<void> {
+  screen.getByRole('slider', { name }).focus();
+  await userEvent.setup().keyboard(keys);
+}
+
+const MU_S_SLIDER = /^Coeficiente de fricción estática/;
+
+describe('FreeBodyWidget · mass, slope and μs (#305)', () => {
+  test('without the new props there are no body sliders, friction rows or notice', () => {
+    render(<FreeBodyWidget mass_kg={0.9} forces={exploreForces()} showResultant />);
+
+    expect(screen.queryByRole('slider', { name: 'Masa en kg' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Fricción estática máxima')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('freebody-slip')).not.toBeInTheDocument();
+  });
+
+  test('editableParams opens mass, slope and μs before the force sliders', () => {
+    render(
+      <FreeBodyWidget
+        mass_kg={0.9}
+        forces={tractionOnly()}
+        mu_s={0.6}
+        editableParams={['mu_s', 'slope', 'mass']}
+      />,
+    );
+
+    const labels = screen.getAllByRole('slider').map((slider) => slider.getAttribute('aria-label'));
+    expect(labels.slice(0, 3)).toEqual([
+      'Masa en kg',
+      'Pendiente en °',
+      expect.stringMatching(MU_S_SLIDER),
+    ]);
+  });
+
+  test('raising the slope to 15° gives a weight component of 2.29 N (T-2.1, experiment 2)', async () => {
+    render(<FreeBodyWidget mass_kg={0.9} forces={exploreForces()} editableParams={['slope']} />);
+
+    await press('Pendiente en °', '{Shift>}{ArrowRight}{/Shift}{ArrowRight>5/}');
+
+    expect(valueOf('Peso a lo largo de la superficie')).toBe('2.29 N');
+  });
+
+  test('doubling the mass with the slider halves the acceleration (T-2.1, experiment 3)', async () => {
+    render(
+      <FreeBodyWidget
+        mass_kg={0.9}
+        forces={exploreForces()}
+        editableParams={['mass']}
+        showResultant
+      />,
+    );
+
+    expect(valueOf('Aceleración')).toBe('1.22 m/s²');
+    await press('Masa en kg', '{Shift>}{ArrowRight>9/}{/Shift}');
+
+    expect(valueOf('Masa')).toBe('1.80 kg');
+    expect(valueOf('Aceleración')).toBe('0.611 m/s²');
+  });
+
+  test('traction above f_max slips and is limited to f_max (T-2.2, experiment 1)', async () => {
+    render(
+      <FreeBodyWidget
+        mass_kg={0.9}
+        forces={tractionOnly()}
+        slope_rad={0.26}
+        mu_s={0.6}
+        showResultant
+      />,
+    );
+
+    expect(valueOf('Fricción estática máxima')).toBe('5.12 N');
+    expect(screen.queryByTestId('freebody-slip')).not.toBeInTheDocument();
+
+    await press('Tracción: magnitud en N', '{Shift>}{ArrowRight>3/}{/Shift}');
+
+    expect(screen.getByTestId('freebody-slip')).toHaveTextContent(/Desliza/);
+    // Applied traction f_max = 5.12 N minus the 2.27 N of the weight along the ramp.
+    expect(valueOf('Resultante')).toBe('2.85 N');
+  });
+
+  test('without traction the robot holds at 30° and slips at 31° (T-2.2, experiment 2)', async () => {
+    render(
+      <FreeBodyWidget
+        mass_kg={0.9}
+        forces={[]}
+        slope_rad={(30 * Math.PI) / 180}
+        mu_s={0.6}
+        editableParams={['slope']}
+      />,
+    );
+
+    expect(screen.queryByTestId('freebody-slip')).not.toBeInTheDocument();
+    await press('Pendiente en °', '{ArrowRight}');
+
+    expect(screen.getByTestId('freebody-slip')).toHaveTextContent(/Desliza/);
+  });
+
+  test('lowering μs from 0.6 to 0.3 halves a_max (T-2.2, experiment 3)', async () => {
+    render(
+      <FreeBodyWidget
+        mass_kg={0.9}
+        forces={tractionOnly()}
+        slope_rad={0.26}
+        mu_s={0.6}
+        editableParams={['mu_s']}
+      />,
+    );
+
+    expect(valueOf('Aceleración máxima sin deslizar')).toBe('5.69 m/s²');
+    await press(MU_S_SLIDER, '{Shift>}{ArrowLeft>3/}{/Shift}');
+
+    expect(valueOf('Aceleración máxima sin deslizar')).toBe('2.84 m/s²');
   });
 });

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { JSX } from 'react';
-import { degToRad, format, radToDeg, rotate2 } from '@trayectoria/sim-core';
+import { degToRad, radToDeg, rotate2 } from '@trayectoria/sim-core';
 import type { Vec2 } from '@trayectoria/sim-core';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
@@ -10,9 +10,11 @@ import type { ParamPanelParam } from '../ParamPanel/ParamPanel';
 import { Scene2D } from '../Scene2D/Scene2D';
 import { Rect } from '../Scene2D/primitives/Rect';
 import { Vector } from '../Scene2D/primitives/Vector';
-import { LiveStatus, ReadoutPanel } from '../shared/ReadoutPanel';
 import { NORMAL_KEY, WEIGHT_KEY, readFreeBody } from './compute';
 import type { ForceInput, FreeBodyReadout, ResolvedForce } from './compute';
+import { applyBodyChange, bodyParamsOf, isBodyParam } from './params';
+import type { Body, BodyParam } from './params';
+import { Values } from './panels';
 
 export interface FreeBodyWidgetProps {
   mass_kg: number;
@@ -21,6 +23,10 @@ export interface FreeBodyWidgetProps {
   slope_rad?: number;
   /** Draws the resultant and shows its magnitude and angle. Defaults to false. */
   showResultant?: boolean;
+  /** Static friction coefficient of the wheels; turns on the friction model (#305). */
+  mu_s?: number;
+  /** Body parameters opened to a slider: mass, slope and `μs` (#305). */
+  editableParams?: Array<BodyParam>;
 }
 
 /** Width of the view, in metres of the scene; the diagram is drawn at this scale. */
@@ -78,37 +84,6 @@ function ForceArrows({
       })}
     </>
   );
-}
-
-/** The lines of the panel: weight, normal and, with `showResultant`, `|R|`, its angle and `a`. */
-function panelRows(
-  readout: FreeBodyReadout,
-  mass_kg: number,
-  showResultant: boolean,
-  t: Translate,
-): ReadonlyArray<readonly [string, string]> {
-  const unit_N = t('widgets.FreeBodyWidget.unitN');
-  const rows: Array<readonly [string, string]> = [
-    [t('widgets.FreeBodyWidget.mass'), format(mass_kg, t('widgets.FreeBodyWidget.unitKg'))],
-    [t('widgets.FreeBodyWidget.weight'), format(readout.weight_N, unit_N)],
-    [t('widgets.FreeBodyWidget.weightAlong'), format(readout.weightAlong_N, unit_N)],
-    [t('widgets.FreeBodyWidget.normal'), format(readout.normal_N, unit_N)],
-  ];
-  if (!showResultant) return rows;
-  rows.push(
-    [t('widgets.FreeBodyWidget.resultant'), format(readout.resultantMagnitude_N, unit_N)],
-    [
-      t('widgets.FreeBodyWidget.resultantAngle'),
-      t('widgets.FreeBodyWidget.degrees', {
-        value: readout.resultantAngle_deg.toFixed(ANGLE_DECIMALS),
-      }),
-    ],
-    [
-      t('widgets.FreeBodyWidget.accel'),
-      format(readout.accel_mps2, t('widgets.FreeBodyWidget.unitMps2')),
-    ],
-  );
-  return rows;
 }
 
 /** Two sliders per editable force: its magnitude in newtons and its angle in degrees. */
@@ -173,15 +148,6 @@ function Surface({ slope_rad }: { slope_rad: number }): JSX.Element {
   );
 }
 
-/** One sentence with the resultant and the acceleration, for the `aria-live` region. */
-function statusOf(readout: FreeBodyReadout, t: Translate): string {
-  return t('widgets.FreeBodyWidget.status', {
-    magnitude: format(readout.resultantMagnitude_N, t('widgets.FreeBodyWidget.unitN')),
-    angle: readout.resultantAngle_deg.toFixed(ANGLE_DECIMALS),
-    accel: format(readout.accel_mps2, t('widgets.FreeBodyWidget.unitMps2')),
-  });
-}
-
 /** The whole scene: the ramp, the body, one arrow per force and, optionally, the resultant. */
 function Diagram({
   readout,
@@ -214,48 +180,62 @@ function Diagram({
   );
 }
 
+/** The forces and the body, each edited by its own sliders of the shared `ParamPanel`. */
+function useEditable(
+  initialForces: readonly ForceInput[],
+  initialBody: Body,
+): { forces: readonly ForceInput[]; body: Body; onChange: (key: string, value: number) => void } {
+  const [forces, setForces] = useState(initialForces);
+  const [body, setBody] = useState(initialBody);
+  const onChange = (key: string, value: number): void => {
+    if (isBodyParam(key)) setBody((current) => applyBodyChange(current, key, value));
+    else setForces((current) => applyChange(current, key, value));
+  };
+  return { forces, body, onChange };
+}
+
 /**
  * Free-body diagram of a body on a plane or a ramp (docs/WIDGETS.md, FreeBodyWidget;
  * docs/CURRICULUM.md T-2.1). Weight and normal come from `mass_kg` and `slope_rad` and are not
- * editable; the forces marked `editable` are adjusted with `ParamPanel` (#86, decision 5). Every
- * number comes from `compute.ts`, which delegates to `vec2` and `G_MPS2` of sim-core.
+ * editable; the forces marked `editable` are adjusted with `ParamPanel` (#86, decision 5). With
+ * `mu_s` the wheels have static friction and a «desliza» notice; `editableParams` opens mass,
+ * slope and `μs` to sliders (#305). Every number comes from `compute.ts`, which delegates to
+ * `vec2` and `G_MPS2` of sim-core.
  */
 export function FreeBodyWidget({
   mass_kg,
   forces: initialForces,
   slope_rad = 0,
   showResultant = false,
+  mu_s,
+  editableParams = [],
 }: FreeBodyWidgetProps): JSX.Element {
   const t = useT();
-  const [forces, setForces] = useState<readonly ForceInput[]>(initialForces);
+  const { forces, body, onChange } = useEditable(initialForces, {
+    mass_kg,
+    slope_rad,
+    mu_s: mu_s ?? null,
+  });
   const readout = useMemo(
-    () => readFreeBody(mass_kg, forces, slope_rad),
-    [mass_kg, forces, slope_rad],
+    () => readFreeBody(body.mass_kg, forces, body.slope_rad, body.mu_s ?? undefined),
+    [body, forces],
   );
-  const params = paramsOf(forces, t);
+  const params = [...bodyParamsOf(editableParams, body, t), ...paramsOf(forces, t)];
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-start">
         <div className="min-w-0 flex-1">
-          <Diagram readout={readout} slope_rad={slope_rad} showResultant={showResultant} t={t} />
-        </div>
-        <div className="md:w-panel">
-          <ReadoutPanel
-            title={t('widgets.FreeBodyWidget.panel')}
-            rows={panelRows(readout, mass_kg, showResultant, t)}
+          <Diagram
+            readout={readout}
+            slope_rad={body.slope_rad}
+            showResultant={showResultant}
+            t={t}
           />
-          <LiveStatus text={statusOf(readout, t)} />
         </div>
+        <Values readout={readout} mass_kg={body.mass_kg} showResultant={showResultant} t={t} />
       </div>
-      {params.length === 0 ? null : (
-        <ParamPanel
-          params={params}
-          onChange={(key, value) => {
-            setForces((current) => applyChange(current, key, value));
-          }}
-        />
-      )}
+      {params.length === 0 ? null : <ParamPanel params={params} onChange={onChange} />}
     </div>
   );
 }
