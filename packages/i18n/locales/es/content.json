@@ -59,5 +59,11 @@
     "e2": "La rueda de tu robot gira a n = {{speed_rpm}} rpm. ¿Cuánto dura una vuelta, es decir, su período T, en s?",
     "e3": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s. ¿Cuántas vueltas da?",
     "e4": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s, desde θ₀ = 0 rad. ¿Qué ángulo θ gira, en rad?"
+  },
+  "ruta-1/m04-t04": {
+    "e1": "El motor de tu robot gira a n_motor = {{motorSpeed_rpm}} rpm y la rueda, a n_rueda = {{wheelSpeed_rpm}} rpm. ¿Cuál es la relación de reducción i del motorreductor, sin unidad?",
+    "e2": "Un motor entrega τ₁ = {{motorTorque_Nm}} N·m a una reducción de i = {{gearRatio}} con eficiencia η = {{efficiency}}. ¿Qué torque τ₂ hay en el eje de salida, en N·m?",
+    "e3": "Un tren de dos etapas tiene una primera etapa z₁:z₂ = {{z1}}:{{z2}} y una segunda z₃:z₄ = {{z3}}:{{z4}}. ¿Cuál es la relación total i_total, sin unidad?",
+    "e4": "Tu robot tiene un motorreductor de i = 25, con el motor a 6000 rpm y ruedas de r = 0.032 m. ¿A qué velocidad v avanza, en m/s?"
   }
 }
