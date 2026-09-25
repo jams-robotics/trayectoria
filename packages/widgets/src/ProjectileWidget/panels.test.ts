@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { Translate } from '@trayectoria/i18n';
 
 import { applyChange, paramsOf, readoutValues } from './panels';
+import { flightTime } from './compute';
 import type { Launch } from './compute';
 
 /** The launch of the «Explora» of T-1.4, before any slider is touched. */
@@ -60,5 +61,13 @@ describe('valores del panel (F2-05)', () => {
       '0.637 widgets.ProjectileWidget.unitM',
       '0.622 widgets.ProjectileWidget.unitS',
     ]);
+  });
+});
+
+describe('formato al aterrizar (#350)', () => {
+  it('la altura al final del vuelo es 0.00 m, no ruido de coma flotante', () => {
+    const launch = { ...LAUNCH, vRobot_mps: 0 };
+    const values = readoutValues('launch', launch, flightTime('launch', launch), t);
+    expect(values[5]).toBe('0.00 widgets.ProjectileWidget.unitM');
   });
 });

@@ -47,6 +47,15 @@ describe('F1-10 format', () => {
     expect(format(1.5e7, 'W')).toBe('1.50e+7 W');
   });
 
+  test('shows floating-point noise around zero as zero, never exponential or "-0.00" (#350)', () => {
+    expect(format(1e-16, 'm')).toBe('0.00 m');
+    expect(format(-1e-16, 'm')).toBe('0.00 m');
+    expect(format(-2.220446049250313e-16, 'm')).toBe('0.00 m');
+    expect(format(-0, 'm')).toBe('0.00 m');
+    // A small but real value keeps its exponential form.
+    expect(format(1e-9, 'm')).toBe('1.00e-9 m');
+  });
+
   test('rejects non-finite numbers and invalid significant figures', () => {
     expect(() => format(Number.NaN, 'm')).toThrow(/finite/);
     expect(() => format(Number.POSITIVE_INFINITY, 'm')).toThrow(/finite/);

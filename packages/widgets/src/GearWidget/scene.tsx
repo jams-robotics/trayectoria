@@ -19,6 +19,8 @@ const HUB_FACTOR = 0.18;
 const MARGIN_FACTOR = 0.6;
 /** Width over height of the view: the train grows sideways, so a wide strip fits it. */
 const SCENE_ASPECT = 16 / 9;
+/** Radius of the ring that marks the front gear of a shared shaft, as a share of its pitch radius. */
+const RING_FACTOR = 1 - 2 * TOOTH_HEIGHT_FACTOR;
 
 /** A gear on the canvas: where its centre is, how big it is and how far it has turned. */
 export interface DrawnGear {
@@ -29,6 +31,10 @@ export interface DrawnGear {
   /** Palette token of the outline; `data-1` to `data-4`, never as the only channel. */
   color: string;
   label: string;
+  /** Draws an inner ring, so a gear on a shared shaft stays distinct from the other one (#348). */
+  ring: boolean;
+  /** Side of its anchor the label goes on; `left` keeps two labels of one shaft apart (#348). */
+  labelAlign: 'left' | 'right';
 }
 
 /**
@@ -91,7 +97,19 @@ function gearOf(
     angle_rad,
     color: GEAR_COLORS[index] ?? 'color-data-1',
     label: labels[index] ?? '',
+    ring: false,
+    labelAlign: 'right',
   };
+}
+
+/**
+ * Whether the rims of two gears on one shaft overlap on the canvas: their tooth bands, each
+ * `r ± TOOTH_HEIGHT_FACTOR r`, cross each other, and so do their labels (#348).
+ */
+function rimsOverlap(zA: number, zB: number): boolean {
+  const rA_m = pitchRadius_m(zA);
+  const rB_m = pitchRadius_m(zB);
+  return Math.abs(rA_m - rB_m) < TOOTH_HEIGHT_FACTOR * (rA_m + rB_m);
 }
 
 /** The gears of the train: their centres, radii and angles at `t_s` (#91, decisions 3 and 4). */
@@ -120,8 +138,16 @@ export function drawnGears(
     centre2_m[0] + spacing_m * Math.cos(SECOND_STAGE_RAD),
     centre2_m[1] + spacing_m * Math.sin(SECOND_STAGE_RAD),
   ];
+  // When the rims of `z2` and `z3` overlap, `z3` is drawn half a tooth ahead, so its teeth fall
+  // in the gaps of `z2`, with a ring of its own and its label on the other side (#348). A fixed
+  // offset on a rigid shaft changes nothing of the motion: both still turn at the same speed.
+  const coaxial = rimsOverlap(train.z2, train.z3);
+  const angle3_rad = coaxial
+    ? angle2_rad + Math.PI / Math.max(Math.round(train.z3), 1)
+    : angle2_rad;
+  const z3 = gearOf(2, train.z3, centre2_m, angle3_rad, labels);
   gears.push(
-    gearOf(2, train.z3, centre2_m, angle2_rad, labels),
+    coaxial ? { ...z3, ring: true, labelAlign: 'left' } : z3,
     gearOf(3, train.z4, centre4_m, angleAt(speeds.omega4_radps / scale, t_s), labels),
   );
   return gears;
@@ -199,7 +225,14 @@ function Gear({
         color={gear.color}
         filled
       />
-      <Label at_m={labelAnchor(gear, viewCentre_m)} text={gear.label} />
+      {gear.ring ? (
+        <Circle
+          center_m={gear.centre_m}
+          radius_m={gear.radius_m * RING_FACTOR}
+          color={gear.color}
+        />
+      ) : null}
+      <Label at_m={labelAnchor(gear, viewCentre_m)} text={gear.label} align={gear.labelAlign} />
     </>
   );
 }

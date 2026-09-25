@@ -69,16 +69,22 @@ export function sceneAspect(worldWidth_m: number, apex_m: number): number {
   return worldWidth_m / Math.max(worldWidth_m / SCENE_ASPECT, apex_m * (1 + HEADROOM));
 }
 
-/** The velocity arrows anchored to the projectile, as `showVectors` asks (docs/WIDGETS.md). */
+/**
+ * The velocity arrows anchored to the projectile, as `showVectors` asks (docs/WIDGETS.md).
+ * Without `labelled` the arrows go unlabelled: each kind keeps one token in both launches, so the
+ * labels of launch A already name the arrows of B, whose own labels landed on A's arrows (#350).
+ */
 function VelocityArrows({
   at_m,
   v_mps,
   showVectors,
+  labelled,
   t,
 }: {
   at_m: [number, number];
   v_mps: [number, number];
   showVectors: readonly VectorKind[];
+  labelled: boolean;
   t: Translate;
 }): JSX.Element {
   const [x_m, y_m] = at_m;
@@ -102,7 +108,7 @@ function VelocityArrows({
             from_m={at_m}
             to_m={to_m}
             color={color}
-            label={t(`widgets.ProjectileWidget.vector${kind}`)}
+            label={labelled ? t(`widgets.ProjectileWidget.vector${kind}`) : ''}
           />
         ))}
     </>
@@ -115,12 +121,14 @@ function LaunchMarks({
   drawn,
   t_s,
   showVectors,
+  labelled,
   t,
 }: {
   mode: ProjectileMode;
   drawn: DrawnLaunch;
   t_s: number;
   showVectors: readonly VectorKind[];
+  labelled: boolean;
   t: Translate;
 }): JSX.Element {
   const { launch, color } = drawn;
@@ -137,6 +145,7 @@ function LaunchMarks({
         at_m={at_m}
         v_mps={velocityAt(mode, launch, own_t_s)}
         showVectors={showVectors}
+        labelled={labelled}
         t={t}
       />
     </>
@@ -213,13 +222,14 @@ export function ProjectileScene({
       {mode === 'dropFromRobot' && first !== undefined ? (
         <RobotChassis launch={first.launch} t_s={t_s} />
       ) : null}
-      {launches.map((drawn) => (
+      {launches.map((drawn, index) => (
         <LaunchMarks
           key={drawn.color}
           mode={mode}
           drawn={drawn}
           t_s={t_s}
           showVectors={showVectors}
+          labelled={index === 0}
           t={t}
         />
       ))}

@@ -3,12 +3,18 @@ const DEFAULT_SIG_FIGS = 3;
 const MIN_PLAIN_MAGNITUDE = 1e-3;
 /** At or above this magnitude the plain form would need too many padding zeros to stay readable. */
 const MAX_PLAIN_MAGNITUDE = 1e6;
+/**
+ * Below this magnitude a value is floating-point noise around zero (a landing height of
+ * -2.22e-16 m, #350), so it is shown as zero instead of in exponential notation.
+ */
+const NOISE_MAGNITUDE = 1e-12;
 
 /**
  * Formats a number with a fixed count of significant figures and appends the unit.
  *
  * Trailing zeros are kept, so `format(0.67, 'm/s')` is `"0.670 m/s"`. Plain decimal notation is
  * used for `1e-3 <= |x| < 1e6` (and for zero); outside that range the result is exponential.
+ * Values with `|x| < 1e-12` are rounding noise and print as zero, never as `-0.00`.
  * The unit is separated by a single space, or omitted entirely when it is empty.
  */
 export function format(x: number, unit: string, sigFigs: number = DEFAULT_SIG_FIGS): string {
@@ -20,8 +26,10 @@ export function format(x: number, unit: string, sigFigs: number = DEFAULT_SIG_FI
   }
 
   const magnitude = Math.abs(x);
-  const usePlain = magnitude === 0 || (magnitude >= MIN_PLAIN_MAGNITUDE && magnitude < MAX_PLAIN_MAGNITUDE);
-  const number = usePlain ? toPlain(x, sigFigs) : toExponential(x, sigFigs);
+  // `0` also replaces `-0`, whose `toFixed` would otherwise depend on the sign of zero.
+  const value = magnitude < NOISE_MAGNITUDE ? 0 : x;
+  const usePlain = value === 0 || (magnitude >= MIN_PLAIN_MAGNITUDE && magnitude < MAX_PLAIN_MAGNITUDE);
+  const number = usePlain ? toPlain(value, sigFigs) : toExponential(value, sigFigs);
 
   return unit === '' ? number : `${number} ${unit}`;
 }
