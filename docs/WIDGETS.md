@@ -94,12 +94,14 @@ interface KinematicsWidgetProps { initial: { x0_m: number; v0_mps: number; a_mps
 
 ### ProjectileWidget
 Tiro parabólico, caída libre y objeto soltado desde un robot en movimiento. `mode` es el modo inicial; con más de un modo en `modes`, un selector segmentado cambia entre ellos (vuelve a `t = 0` en pausa y conserva `h_m`). `overlay` superpone dos trayectorias A y B en `launch` y también en `drop`, donde B empieza con 4 veces la altura de A (#304).
+Con `overlay`, un conmutador (chip de «Tabs / segmentado», `DESIGN.md` §5, con `aria-pressed`) muestra u oculta B; va justo encima del panel de parámetros de B. Etiqueta i18n `widgets.ProjectileWidget.toggleB` («Mostrar lanzamiento B») en `launch` y `widgets.ProjectileWidget.toggleDropB` («Mostrar caída B») en `drop`. `initialShowOverlay` fija el estado inicial; por defecto `true` (B visible). Con B oculto desaparecen su trayectoria, sus marcas, sus vectores, su columna en el panel de valores y su panel de parámetros; sus valores se conservan. Conmutar no reinicia el tiempo ni cambia la duración de la reproducción (sigue siendo la del vuelo más largo de A y B). Cambiar de modo conserva el estado del conmutador (#351).
 ```ts
-interface ProjectileWidgetProps { mode: 'launch' | 'drop' | 'dropFromRobot'; modes?: Array<'launch' | 'drop' | 'dropFromRobot'>; initial: { v0_mps?: number; launchAngle_rad?: number; h_m: number; vRobot_mps?: number }; overlay?: boolean; showVectors?: Array<'v' | 'vx' | 'vy'> }
+interface ProjectileWidgetProps { mode: 'launch' | 'drop' | 'dropFromRobot'; modes?: Array<'launch' | 'drop' | 'dropFromRobot'>; initial: { v0_mps?: number; launchAngle_rad?: number; h_m: number; vRobot_mps?: number }; overlay?: boolean; initialShowOverlay?: boolean; showVectors?: Array<'v' | 'vx' | 'vy'> }
 ```
 
 ### RotationWidget
 Disco o rueda con ω, punto en el borde, `v = ω·r`, período, vueltas; modos rodadura y aceleración angular.
+Escala (#351): la escena de cada modo tiene tamaño fijo en metros, calculado con el radio máximo del slider (`r_max = 0.1 m`, o `initial.r_m` si es mayor); el disco se dibuja con su radio real `r`, así que cambiar `r` cambia su tamaño en pantalla. Radio dibujado mínimo: 8 % de la altura de la escena; por debajo, el disco se dibuja con ese mínimo y los valores siguen usando el `r` real. Los vectores (velocidad del borde `v = ω·r`) usan una escala fija por modo, `k = L_max / (ω_max · r_max)` con los máximos de los sliders, donde `L_max` es la longitud con la que la punta cae dentro de la escena en el peor caso; si aun así la punta saldría (p. ej. ω creciente en `angularAccel`), la longitud se satura en `L_max`.
 ```ts
 interface RotationWidgetProps { mode: 'disc' | 'rolling' | 'angularAccel'; initial: { omega_radps: number; r_m: number; alpha_radps2?: number }; inputUnit?: 'rpm' | 'radps' }
 ```
@@ -109,6 +111,20 @@ Robot en pista con rampa; barras de energía; modo potencia y autonomía.
 ```ts
 interface EnergyWidgetProps { mode: 'ramp' | 'power'; initial: { mass_kg: number; v0_mps: number; slope_rad: number; mu_k?: number }; power?: { torque_Nm: number; omega_radps: number; voltage_V: number; current_A: number; battery_Wh: number } }
 ```
+
+### PowerWidget
+Un motor levanta una carga a velocidad constante: con más potencia sube más rápido y una barra de energía potencial se llena hasta la altura final. Widget grande (Scene2D) del Explora de T-3.2 (#351).
+- Modelo: régimen permanente, sin arranque, sin fricción ni pérdidas; `P` es la potencia mecánica entregada a la carga. `v = P / (m g)`, `h(t) = min(v t, H)`, `E_p(t) = m g h(t)` (= `P t` mientras sube), `t_subida = m g H / P`. `g = G_MPS2` de `sim-core`.
+- Escena: suelo, un motor con tambor arriba, cable y carga (`--sim-robot`) que sube de `h = 0` a `H`; vector velocidad `--color-vector-velocity` en la carga mientras sube; escala visible. A la izquierda de la escena, una barra vertical `E_p` en `data-2` (mismo color que `E_p` en `EnergyWidget`) con escala fija `m g H` y la cifra mono `E_p / m g H` en J.
+- Parámetros (`ParamPanel`): `P` ∈ [0.5, 20] W, paso 0.01; `m` ∈ [0.1, 3] kg, paso 0.01. `H` es prop fija, ∈ [0.2, 2] m, sin slider.
+- Valores: `P` (W), `m` (kg), `v` (m/s), `h` (m), `E_p` (J), `W = P t` (J), `t_subida` (s).
+- Reproducción: `SimControls`; el estado es solo el tiempo transcurrido y todo sale en forma cerrada en el `t` actual. Se pausa al llegar a `H`. Mover un slider recalcula en el `t` actual sin pausar; si ese `t` supera el nuevo `t_subida`, la carga queda arriba.
+- Determinismo: sin `Math.random` ni `Date.now`; mismos props y mismo `t` dan la misma escena y los mismos valores.
+- Valores dorados: `P = 4.32 W`, `m = 0.9 kg`, `H = 1 m` → `v = 0.4893 m/s`, `t_subida = 2.044 s`, `E_p` final `8.829 J`; en `t = 1 s`, `h = 0.4893 m` y `E_p = 4.32 J`. Con `P = 8.64 W`, `t_subida = 1.022 s`; con `m = 1.8 kg`, `t_subida = 4.088 s`.
+```ts
+interface PowerWidgetProps { initial: { power_W: number; mass_kg: number }; liftHeight_m?: number; initialTime_s?: number }
+```
+`liftHeight_m` por defecto 1.
 
 ### GearWidget
 Par de engranajes o tren de dos etapas; relación, sentidos, torque y velocidad.
@@ -226,7 +242,7 @@ type RobotCalc = (spec: RobotSpec) => { latex: string; substituted: string }; //
 | M0 | VectorWidget, KinematicsWidget, RotationWidget (unidades), MyRobotWidget |
 | M1 | KinematicsWidget, ProjectileWidget |
 | M2 | FreeBodyWidget, EnergyWidget (rampa), GearWidget (torque en rueda, modo 1 etapa) |
-| M3 | EnergyWidget |
+| M3 | EnergyWidget, PowerWidget |
 | M4 | RotationWidget, GearWidget, DiffDriveWidget, MyRobotWidget |
 | M5 | DiffDriveWidget |
 | M6 | LineSensorWidget, LineFollowerWidget, MyRobotWidget |
