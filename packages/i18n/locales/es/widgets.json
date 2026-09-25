@@ -131,6 +131,8 @@
     "legendB": "Lanzamiento B",
     "legendDropA": "Caída A",
     "legendDropB": "Caída B",
+    "toggleB": "Mostrar lanzamiento B",
+    "toggleDropB": "Mostrar caída B",
     "modeGroup": "Situación",
     "modelaunch": "Lanzar",
     "modedrop": "Soltar",
