@@ -1,0 +1,146 @@
+---
+id: ruta-1/m04-t04
+title: 'Transmisión y reducción'
+module: 4
+order: 4
+estimatedMinutes: 25
+prerequisites: [ruta-1/m04-t02, ruta-1/m02-t03]
+objectives:
+  - Calcular la relación de transmisión por dientes o por velocidades
+  - Obtener el torque y la velocidad de salida con la eficiencia
+  - Componer trenes de dos etapas
+widgets: [GearWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [young-freedman-10]
+status: review
+---
+
+<Gancho>
+  Tu motor gira a 6000 rpm, pero la rueda debe girar a 200 rpm. ¿Qué reducción necesitas y qué gana
+  el torque a cambio?
+</Gancho>
+
+<Concepto>
+Dos engranajes engranados no patinan entre sí. En el punto de contacto, los dientes de los dos
+avanzan a la misma velocidad lineal v. Es la misma idea que v = ω·r en
+[v = ω·r: la velocidad del robot](/ruta/ruta-1/m04/t02): con la misma v, el engranaje de mayor
+radio gira con menor ω.
+
+El radio de cada engranaje es proporcional a su número de dientes z, porque todos los dientes de
+un par tienen el mismo tamaño. Por eso el engranaje con más dientes gira más despacio. La **relación de
+transmisión** i compara la entrada 1 con la salida 2: i = z₂/z₁ = n₁/n₂ = ω₁/ω₂. Con i mayor que
+1, el par reduce la velocidad.
+
+Lo que se pierde en velocidad se gana en torque. En un par ideal la potencia se conserva, y como
+P = τ·ω, el torque de salida es τ₂ = τ₁·i. Un par real pierde parte de la potencia en fricción:
+P₂ = P₁·η, y el torque de salida queda en τ₂ = τ₁·i·η, con η la eficiencia.
+
+Cada par invierte el sentido de giro. Si el engranaje 1 gira en sentido antihorario, el 2 gira
+en sentido horario. Con dos pares en serie, la salida vuelve a girar como la entrada.
+
+Un tren de dos etapas encadena dos pares: la salida del primero mueve la entrada del segundo. La
+velocidad se divide dos veces, así que las relaciones se multiplican: i_total = i₁·i₂.
+
+El motorreductor de tu robot es exactamente esto: un motor rápido y débil seguido de un tren de
+engranajes dentro de la misma carcasa. Con los datos del gancho, i = 6000/200 = 30. Con η = 0.6,
+un torque de 0.012 N·m en el motor da τ₂ = 0.012·30·0.6 = 0.216 N·m en la rueda.
+
+</Concepto>
+
+<Formulas>
+<Formula latex="i = \frac{z_2}{z_1} = \frac{n_1}{n_2} = \frac{\omega_1}{\omega_2}" />
+
+- `i` · relación de reducción · adimensional
+- `z₁`, `z₂` · número de dientes de entrada y de salida · adimensional
+- `n₁`, `n₂` · velocidad de giro de entrada y de salida · rpm (dato de entrada, no SI)
+- `ω₁`, `ω₂` · velocidad angular de entrada y de salida · rad/s
+
+<Formula latex="\tau_2 = \tau_1\,i\,\eta" />
+
+- `τ₁`, `τ₂` · torque de entrada y de salida · N·m
+- `i` · relación de reducción · adimensional
+- `η` · eficiencia · adimensional
+
+<Formula latex="i_{total} = i_1 i_2" />
+
+- `i_total` · relación del tren · adimensional
+- `i₁`, `i₂` · relación de cada etapa de un tren · adimensional
+
+<Formula latex="P_2 = P_1\,\eta" />
+
+- `P₁`, `P₂` · potencia de entrada y de salida · W
+- `η` · eficiencia · adimensional
+  </Formulas>
+
+<Explora>
+El widget muestra un tren de dos etapas: 12:60 y 10:50, con el motor a 6000 rpm y 0.012 N·m en
+la entrada y η = 0.6. El panel muestra la relación de cada etapa, la relación total, la velocidad
+y el torque de salida y el sentido de giro de cada eje.
+
+<GearWidget
+  stages={2}
+  initial={{ z1: 12, z2: 60, z3: 10, z4: 50, nIn_rpm: 6000, torqueIn_Nm: 0.012, efficiency: 0.6 }}
+/>
+
+<Experimento
+  cambia="z₂ de 60 a 30 dientes"
+  observa="la relación total"
+  porque="¿Por qué baja de 25 a 12.5 si solo cambiaste la primera etapa?"
+>
+  La relación total es el producto de las dos etapas. i₁ pasa de 60/12 = 5 a 30/12 = 2.5, y i_total
+  = 2.5·5 = 12.5. Cambiar una sola etapa cambia el producto entero.
+</Experimento>
+
+<Experimento
+  cambia="z₁ y z₂ entre sí: 60 dientes en la entrada y 12 en la salida"
+  observa="la velocidad y el torque de salida"
+  porque="¿Por qué ahora la velocidad sube y el torque baja?"
+>
+  La primera etapa queda con i₁ = 12/60 = 0.2, menor que 1. El par multiplica la velocidad por 5 y
+  divide el torque entre 5. La potencia no puede crecer, así que lo que gana una lo pierde el otro.
+</Experimento>
+
+<Experimento
+  cambia="nada: deja el tren como está"
+  observa="el sentido de giro de cada eje"
+  porque="¿Por qué la salida gira en el mismo sentido que el motor?"
+>
+Cada par engranado invierte el sentido de giro. El eje intermedio gira al revés que el motor, y
+la segunda etapa lo invierte otra vez. Dos inversiones devuelven el sentido de la entrada.
+</Experimento>
+</Explora>
+
+<AlRobot>
+El motorreductor de tu robot tiene la relación de reducción i de «Mi robot». Con el torque de
+bloqueo τ_motor y la eficiencia η del motor de tu perfil, el torque máximo que llega a la rueda
+es:
+
+<RobotFormula calc="ruta-1/m04-t04/wheel-torque" />
+
+Si tu perfil no incluye los datos del motor, el cálculo usa el motor del robot de referencia. Si
+no es un robot móvil, usa el robot de referencia completo.
+
+Con el robot de referencia, i = 30 lleva 0.012 N·m del motor a 0.216 N·m en la rueda. Es el
+torque que empuja al robot contra la fricción y las rampas de
+[Leyes de Newton y diagrama de cuerpo libre](/ruta/ruta-1/m02/t01).
+
+La reducción también fija la velocidad. Si cambias el motorreductor por uno de i = 25, la rueda
+gira más rápido y el robot avanza más rápido. Con la velocidad del motor y el radio de rueda de
+tu perfil:
+
+<RobotFormula calc="ruta-1/m04-t04/speed-other-ratio" />
+
+Con el robot de referencia, 6000/25 = 240 rpm en la rueda y v = 0.804 m/s, frente a los
+200 rpm y 0.67 m/s con i = 30. El precio es el torque: con i = 25 la rueda recibe
+0.012·25·0.6 = 0.18 N·m. Elegir la reducción es repartir la potencia del motor entre velocidad
+y torque.
+
+</AlRobot>
+
+<Verifica
+  ejercicios={['ruta-1/m04-t04/e1', 'ruta-1/m04-t04/e2', 'ruta-1/m04-t04/e3', 'ruta-1/m04-t04/e4']}
+  topicId="ruta-1/m04-t04"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['young-freedman-10']} topicId="ruta-1/m04-t04" />

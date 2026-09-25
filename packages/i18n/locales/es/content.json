@@ -89,5 +89,11 @@
     "e2": "Tu robot toma una curva de radio R = {{turnRadius_m}} m a v = {{v_mps}} m/s. ¿Cuál es su aceleración centrípeta a_c, en m/s²?",
     "e3": "La rueda de tu robot, de radio r = {{wheelRadius_m}} m, acelera con α = {{alpha_radps2}} rad/s². ¿Cuál es la aceleración tangencial a_t de un punto del borde, en m/s²?",
     "e4": "Las ruedas de tu robot tienen un coeficiente de fricción estática μs = {{mu_s}} con el suelo. ¿Cuál es la rapidez máxima sin patinar v_max,curva en una curva de radio R = {{turnRadius_m}} m, en m/s? Usa g = 9.81 m/s²."
+  },
+  "ruta-1/m04-t04": {
+    "e1": "El motor de tu robot gira a n_motor = {{motorSpeed_rpm}} rpm y la rueda, a n_rueda = {{wheelSpeed_rpm}} rpm. ¿Cuál es la relación de reducción i del motorreductor, sin unidad?",
+    "e2": "Un motor entrega τ₁ = {{motorTorque_Nm}} N·m a una reducción de i = {{gearRatio}} con eficiencia η = {{efficiency}}. ¿Qué torque τ₂ hay en el eje de salida, en N·m?",
+    "e3": "Un tren de dos etapas tiene una primera etapa z₁:z₂ = {{z1}}:{{z2}} y una segunda z₃:z₄ = {{z3}}:{{z4}}. ¿Cuál es la relación total i_total, sin unidad?",
+    "e4": "Tu robot tiene un motorreductor de i = 25, con el motor a 6000 rpm y ruedas de r = 0.032 m. ¿A qué velocidad v avanza, en m/s?"
   }
 }
