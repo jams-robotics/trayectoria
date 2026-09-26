@@ -1,7 +1,7 @@
 import { Suspense, lazy, useCallback, useRef, useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
-import { Toast } from '@trayectoria/widgets';
+import { Toast } from '@trayectoria/widgets/Toast';
 import type { LineFollowerApi, LiveInstruments, SimConfig } from '@trayectoria/sims';
 
 import { useApiStore } from './apiStore';
@@ -178,8 +178,11 @@ interface SimulatorProps {
 /** El aviso mientras el chunk del simulador se resuelve. */
 function SimulatorFallback(): JSX.Element {
   const t = useT();
+  // F7-02b (#444): the notice reserves the space of the simulator, which is always taller
+  // (≥ 999 px), so the page does not grow past the viewport and shift sideways when the
+  // scrollbar appears on load. Only the loading state changes; the loaded page does not.
   return (
-    <p className="text-fg-muted text-sm" role="status" aria-live="polite">
+    <p className="text-fg-muted min-h-[720px] text-sm" role="status" aria-live="polite">
       {t('sims.mobilePage.loading')}
     </p>
   );

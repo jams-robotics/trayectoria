@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
-import { Toast } from '@trayectoria/widgets';
+import { Toast } from '@trayectoria/widgets/Toast';
 
 // #190 (decisión 3): separado de `MobileSimIsland.tsx` para mantener ese archivo bajo el límite de
 // docs/STANDARDS.md §4. El aviso de «el editor se dejó sin segmentos, sigue la pista anterior»: un
