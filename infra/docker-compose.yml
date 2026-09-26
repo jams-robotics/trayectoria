@@ -1,0 +1,32 @@
+# Self-hosted Trayectoria site (docs/ops/SELF-HOSTING.md).
+# Supabase is not part of this file: it runs from the official Supabase compose (supabase/supabase, folder docker).
+# Variables are read from infra/.env (see the table in docs/ops/SELF-HOSTING.md).
+name: trayectoria
+
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: infra/web.Dockerfile
+      args:
+        PUBLIC_SUPABASE_URL: ${PUBLIC_SUPABASE_URL:?define PUBLIC_SUPABASE_URL in infra/.env}
+        PUBLIC_SUPABASE_ANON_KEY: ${PUBLIC_SUPABASE_ANON_KEY:?define PUBLIC_SUPABASE_ANON_KEY in infra/.env}
+    image: trayectoria-web:local
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?define SITE_ADDRESS in infra/.env}
+      API_ADDRESS: ${API_ADDRESS:?define API_ADDRESS in infra/.env}
+      SUPABASE_UPSTREAM: ${SUPABASE_UPSTREAM:-host.docker.internal:8000}
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

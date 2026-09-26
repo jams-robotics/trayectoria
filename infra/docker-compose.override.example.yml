@@ -1,0 +1,10 @@
+# Local test on a workstation (docs/ops/SELF-HOSTING.md, "Prueba local"):
+#   docker compose -f infra/docker-compose.yml -f infra/docker-compose.override.example.yml up -d --build
+# Serves the site over plain HTTP on http://localhost:8080 instead of ports 80/443.
+services:
+  web:
+    environment:
+      SITE_ADDRESS: ':80'
+      API_ADDRESS: ':8000'
+    ports: !override
+      - '8080:80'
