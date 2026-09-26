@@ -101,18 +101,18 @@ function parseAll(values: readonly string[]): readonly number[] | null {
 }
 
 /**
- * Seed of the instance in play and the way to move to the next one (#94, decision 2): derived
- * from the session while there is one, drawn at random per mount when there is not, and fixed
- * when the caller passes `fixedSeed`.
+ * Seed of the instance in play and the way to move to the next one (#94, decision 2; #489): round
+ * 0, the first instance, is always the same deterministic anonymous seed — with or without a
+ * session — so the statement never redraws once the session settles. Only from round 1 on (after
+ * «Nuevos valores») does a signed-in learner move to their derived per-user seed; without a
+ * session every later round still draws a fresh random one, as before. `fixedSeed` overrides both
+ * for stories, tests and e2e.
  *
  * The server never knows the session (there is no request-scoped adapter, #482), so it always
- * renders the anonymous branch. A `client:visible` island can hydrate after the session has
- * already settled elsewhere on the page, and reading `adapter.sessionReady()`/`userId()` straight
- * away would then make the first client render pick the derived per-user seed while the server
- * markup was anonymous — a mismatch, same failure mode `useSession`'s `ssr: 'initial'` avoids for
- * `$session`/`$sessionReady` (`packages/auth`). So the first render always takes the anonymous
- * branch regardless of what the adapter already reports, and only an effect after mount — never
- * during render — is allowed to adopt the real session.
+ * renders round 0's anonymous seed. Because that seed no longer depends on `sessionReady`/
+ * `userId`, a `client:visible` island hydrating after the session has already settled elsewhere
+ * on the page still commits the same instance on its first render — no mount/mismatch dance is
+ * needed for round 0 any more.
  */
 function useSeed(
   adapter: ProgressAdapter,
@@ -121,28 +121,22 @@ function useSeed(
   fixedSeed: number | undefined,
 ): { seed: number; next: () => void } {
   const [round, setRound] = useState(0);
-  // `false` on the render that must match the server, `true` once an effect has confirmed this is
-  // the client (mirrors `ssr: 'initial'` of `useSession`, `packages/auth/src/useSession.ts`).
-  const [mounted, setMounted] = useState(false);
-  const userId = mounted ? adapter.userId() : null;
-  const sessionReady = mounted && adapter.sessionReady();
+  const userId = adapter.sessionReady() ? adapter.userId() : null;
+  const firstInstance = seedFor('', topicId, exerciseId, 0);
   // A random seed drawn while rendering would differ between the server pass and the client
-  // bundle and discard the hydrated tree (docs/audits F2-01a), so the anonymous instance starts
-  // from the deterministic seed of round 0 and is redrawn in an effect right after hydration,
+  // bundle and discard the hydrated tree (docs/audits F2-01a), so a later anonymous round starts
+  // from the same deterministic seed as round 0 and is redrawn in an effect right after mount,
   // and again on «Nuevos valores».
-  const anonymous = (!sessionReady || userId === null) && fixedSeed === undefined;
+  const anonymous = round > 0 && userId === null && fixedSeed === undefined;
   const [mountSeed, setMountSeed] = useState<number | null>(null);
   useEffect(() => {
-    setMounted(true);
-  }, []);
-  useEffect(() => {
     if (anonymous) setMountSeed(randomSeed());
-  }, [anonymous]);
+  }, [anonymous, round]);
 
-  const derived = seedFor(userId ?? '', topicId, exerciseId, round);
+  const derived =
+    round === 0 ? firstInstance : seedFor(userId ?? '', topicId, exerciseId, round);
   const seed = fixedSeed ?? (anonymous ? (mountSeed ?? derived) : derived);
   const next = (): void => {
-    if (anonymous) setMountSeed(randomSeed());
     setRound((current) => current + 1);
   };
   return { seed, next };
