@@ -13,19 +13,25 @@ import type { usePageState } from './useMobileSimState';
 // PR #169) y #190 (decisión 3).
 
 /**
- * La caja del visor: el visor de `LineFollowerWidget` (oculto con `hidden` mientras se edita, para
- * que la simulación siga viva) y, al editar, `TrackEditorBox` en su lugar (#158, enmienda tras
- * auditoría de PR #169). La página la pasa como `renderViewer`, así que decide ella el envoltorio
- * en lugar de que `TrackEditorBox` alcance el DOM interno del widget con un portal.
+ * #375 (docs/DESIGN.md, "Páginas de simulador"): from `lg` and with a window at least 640 px tall
+ * the left column (viewer and «Gráficas») is sticky while the right column scrolls, and scrolls
+ * inside if it is taller than the window. Literal classes so Tailwind sees them.
  */
-export function ViewerBox({
-  viewer,
-  page,
-  store,
-  panels,
-  onEmptyTrack,
-  onSaveTrack,
-}: {
+const LEFT_COLUMN =
+  'flex min-w-0 flex-1 flex-col gap-3 ' +
+  '[@media(min-width:1024px)_and_(min-height:640px)]:sticky ' +
+  '[@media(min-width:1024px)_and_(min-height:640px)]:top-0 ' +
+  '[@media(min-width:1024px)_and_(min-height:640px)]:max-h-screen ' +
+  '[@media(min-width:1024px)_and_(min-height:640px)]:overflow-y-auto';
+
+/** The viewer is capped at 50 vh (16/9, so 50vh·16/9 wide) and centred, same conditions. */
+const VIEWER_CAP =
+  '[@media(min-width:1024px)_and_(min-height:640px)]:mx-auto ' +
+  '[@media(min-width:1024px)_and_(min-height:640px)]:w-full ' +
+  '[@media(min-width:1024px)_and_(min-height:640px)]:max-w-[calc(50vh*16/9)]';
+
+/** What the viewer box receives from the island. */
+interface ViewerBoxProps {
   viewer: ReactNode;
   page: ReturnType<typeof usePageState>;
   store: ApiStore;
@@ -34,7 +40,18 @@ export function ViewerBox({
   onEmptyTrack: () => void;
   /** «Guardar» of the editor: the track goes to the account or to the browser (#191, decision 3). */
   onSaveTrack: (name: string, track: Exclude<TrackJson, string>) => Promise<void>;
-}): JSX.Element {
+  /** «Gráficas» under the viewer on desktop (#375); `null` on mobile and while editing. */
+  plots?: ReactNode;
+}
+
+/**
+ * La caja del visor: el visor de `LineFollowerWidget` (oculto con `hidden` mientras se edita, para
+ * que la simulación siga viva) y, al editar, `TrackEditorBox` en su lugar (#158, enmienda tras
+ * auditoría de PR #169). La página la pasa como `renderViewer`, así que decide ella el envoltorio
+ * en lugar de que `TrackEditorBox` alcance el DOM interno del widget con un portal.
+ */
+export function ViewerBox(props: ViewerBoxProps): JSX.Element {
+  const { viewer, page, store, panels, onEmptyTrack, onSaveTrack, plots = null } = props;
   const { closeEditor } = page;
   const editing = page.view === 'editor';
   const onBack = useCallback(
@@ -49,8 +66,10 @@ export function ViewerBox({
     [store, closeEditor, onEmptyTrack],
   );
   return (
-    <div className="flex min-w-0 flex-1 flex-col gap-3">
-      <div hidden={editing}>{viewer}</div>
+    <div className={LEFT_COLUMN} data-testid="sim-left-column">
+      <div hidden={editing} className={VIEWER_CAP}>
+        {viewer}
+      </div>
       <TrackEditorBox
         open={editing}
         track={page.editorTrack}
@@ -59,6 +78,7 @@ export function ViewerBox({
         renderPanel={(panel) => <EditorPanelPort store={panels} panel={panel} />}
         onSaveTrack={onSaveTrack}
       />
+      {plots}
     </div>
   );
 }

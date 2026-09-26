@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react';
-import type { JSX } from 'react';
+import { lazy, Suspense, useState } from 'react';
+import type { JSX, ReactNode } from 'react';
 import type { Translate } from '@trayectoria/i18n';
 import type { LineFollowerPlot } from '@trayectoria/sims';
 
@@ -104,3 +104,22 @@ export function PlotsPanel({
   );
 }
 
+
+/**
+ * #375 (docs/DESIGN.md, "Páginas de simulador"): on desktop «Gráficas» lives under the viewer, in
+ * the sticky left column. Whether it shows the PID plot is reported by the right column through
+ * `onPid`, because that column is the one that sees the widget's controller panel.
+ */
+export function useDesktopPlots(
+  store: InstrumentsStore,
+  shown: boolean,
+  t: Translate,
+  openId: OpenPanelId,
+  setOpenId: (id: OpenPanelId) => void,
+): { node: ReactNode; onPid: (pid: boolean) => void } {
+  const [pid, setPid] = useState(false);
+  const node = shown ? (
+    <PlotsPanel store={store} t={t} mobile={false} openId={openId} setOpenId={setOpenId} pid={pid} />
+  ) : null;
+  return { node, onPid: setPid };
+}

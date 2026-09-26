@@ -4,6 +4,7 @@ import { useT } from '@trayectoria/i18n';
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import type { URDFRobot } from 'urdf-loader';
 
+import { ArmColumns } from './armLayout';
 import { PanelColumn, armPanels } from './armPanels';
 import type { ArmViewerPanel } from './armPanels';
 import {
@@ -128,21 +129,22 @@ function ArmViewerReady({
     show: showWorkspace,
     onChange: onWorkspace,
   });
+  const scene = (
+    <SceneColumn
+      spec={spec}
+      sim={sim}
+      robot={robot}
+      framesVisible={framesVisible}
+      onFrames={setFramesVisible}
+      highlightLink={showMatrices ? (highlighted ?? undefined) : undefined}
+      workspace={showWorkspace ? workspace : HIDDEN_WORKSPACE}
+    />
+  );
+  // #375: the full viewer is the simulator page's layout (sticky left column).
+  if (!compact) return <ArmColumns scene={scene} panels={panels} renderPanel={renderPanel} />;
   return (
-    <div
-      className={compact ? 'flex flex-col gap-4' : 'flex flex-col gap-5 md:flex-row'}
-      data-testid="arm-viewer"
-      data-compact={String(compact)}
-    >
-      <SceneColumn
-        spec={spec}
-        sim={sim}
-        robot={robot}
-        framesVisible={framesVisible}
-        onFrames={setFramesVisible}
-        highlightLink={showMatrices ? (highlighted ?? undefined) : undefined}
-        workspace={showWorkspace ? workspace : HIDDEN_WORKSPACE}
-      />
+    <div className="flex flex-col gap-4" data-testid="arm-viewer" data-compact="true">
+      {scene}
       <PanelColumn panels={panels} renderPanel={renderPanel} />
     </div>
   );
