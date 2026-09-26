@@ -14,6 +14,9 @@ import Base from '../../layouts/Base.astro';
 //
 // La isla es `client:only="react"`: así no hay pasada de SSR que desajustar y `three` y
 // `urdf-loader` solo entran en el chunk de esta página (docs/ARCHITECTURE.md §3.1 y §8).
+//
+// F7-02b (#444): until the island hydrates, an empty fallback reserves its height (≥ 758 px
+// once loaded), so the page does not grow and shift sideways when it appears.
 
 const collection = await getCollection('arms');
 const arms = collection.map((arm) => ({ id: arm.id, name: arm.data.name }));
@@ -23,6 +26,8 @@ const arms = collection.map((arm) => ({ id: arm.id, name: arm.data.name }));
   <section class="mx-auto max-w-[1120px] px-5 pt-11 pb-9 md:px-8">
     <h1 class="text-xl leading-tight md:text-2xl font-semibold">{t('sims.armPage.title')}</h1>
     <p class="text-fg-muted mt-4 max-w-[72ch]">{t('sims.armPage.lead')}</p>
-    <ArmSimIsland arms={arms} client:only="react" />
+    <ArmSimIsland arms={arms} client:only="react">
+      <div slot="fallback" class="mt-6 min-h-[740px]" aria-hidden="true"></div>
+    </ArmSimIsland>
   </section>
 </Base>
