@@ -1,5 +1,6 @@
 ---
 import type { GetStaticPaths } from 'astro';
+import { getImage } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import { t } from '@trayectoria/i18n';
 
@@ -15,13 +16,20 @@ const { arm } = Astro.props;
 const ficha = arm.data;
 
 // See the note in brazos/index.astro: /catalog/** is only served from F5-01a onwards.
-const photos = import.meta.glob<{ default: { src: string } | string }>(
+const photos = import.meta.glob<{ default: ImageMetadata | string }>(
   '../../../../../catalog/arms/*/foto.{jpg,svg}',
   { eager: true },
 );
 const entry = photos[`../../../../../catalog/arms/${arm.id}/${ficha.photo}`];
 if (entry === undefined) throw new Error(`Falta la foto ${ficha.photo} del brazo ${arm.id}`);
-const photoSrc = typeof entry.default === 'string' ? entry.default : entry.default.src;
+// Raster photos are served as WebP (F7-02b, #457); SVG ones as they are.
+const photo = entry.default;
+const photoSrc =
+  typeof photo === 'string'
+    ? photo
+    : photo.format === 'svg'
+      ? photo.src
+      : (await getImage({ src: photo, format: 'webp' })).src;
 
 const payload = formatKilograms(ficha.payload_kg);
 
