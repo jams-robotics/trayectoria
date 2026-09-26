@@ -202,8 +202,8 @@ describe('e3 · aceleración media', () => {
   });
 });
 
-describe('e4 · velocidad de x(t) = a·t + b·t² en t = 3 s', () => {
-  it('a = 0.5 m/s, b = 0.1 m/s² → 1.1 m/s', () => {
+describe('e4 · velocidad de x(t) = c₁·t + c₂·t² en t = 3 s', () => {
+  it('c₁ = 0.5 m/s, c₂ = 0.1 m/s² → 1.1 m/s', () => {
     const { values, answer, unit } = exercise('e4').generate(scriptedRng([50, 10]));
 
     expect(values).toEqual({ coefA_mps: 0.5, coefB_mps2: 0.1 });
@@ -215,7 +215,7 @@ describe('e4 · velocidad de x(t) = a·t + b·t² en t = 3 s', () => {
     expect(E4_T_S).toBe(3);
   });
 
-  it('draws a ∈ [0, 0.5] m/s and b ∈ [0.05, 0.15] m/s² in hundredths, v ≤ 1.4 m/s', () => {
+  it('draws c₁ ∈ [0, 0.5] m/s and c₂ ∈ [0.05, 0.15] m/s² in hundredths, v ≤ 1.4 m/s', () => {
     expect(E4_COEF_A_MPS).toEqual({ min: 0, max: 0.5 });
     expect(E4_COEF_B_MPS2).toEqual({ min: 0.05, max: 0.15 });
     for (const seed of MANY_SEEDS) {
