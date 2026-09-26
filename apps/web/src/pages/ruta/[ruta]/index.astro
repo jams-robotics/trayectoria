@@ -4,7 +4,11 @@ import { getCollection } from 'astro:content';
 import { t } from '@trayectoria/i18n';
 
 import { ProgressSession } from '../../../components/progress/ProgressSession';
-import { RouteProgress, TopicStatus } from '../../../components/progress/RouteProgress';
+import {
+  RouteCompleted,
+  RouteProgress,
+  TopicStatus,
+} from '../../../components/progress/RouteProgress';
 import Base from '../../../layouts/Base.astro';
 
 export const getStaticPaths = (async () => {
@@ -19,8 +23,9 @@ const publishedIds = new Set(topics.map((topic) => topic.id));
 // The route schema validates data.id as ruta-N; route.id (from the directory) is only for URLs.
 const routeNumber = route.data.id.slice('ruta-'.length);
 const topicCount = route.data.modules.reduce((total, module) => total + module.topics.length, 0);
-// Ids of every topic of the route, in the order of ruta.json: what RouteProgress counts and
-// what each TopicStatus island reads from `$progress` (#120, decision 4).
+// Ids of every topic of the route, in the order of ruta.json: what RouteProgress counts, what
+// RouteCompleted checks (ARCHITECTURE §3.2) and what each TopicStatus island reads from
+// `$progress` (#120, decision 4).
 const topicIds = route.data.modules.flatMap((module) =>
   module.topics.map((topic) => `${route.id}/${topic.id}`),
 );
@@ -40,6 +45,7 @@ const topicHref = (moduleId: string, topicId: string): string =>
       <span class="font-mono">{topicCount}</span>
       {` ${t('route.topics')}`}
     </p>
+    <RouteCompleted client:load topicIds={topicIds} />
 
     <ProgressSession client:load />
     <RouteProgress client:load topicIds={topicIds} />
