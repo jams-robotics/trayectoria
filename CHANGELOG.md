@@ -48,7 +48,7 @@ Primera versión pública. Cubre el alcance congelado de la v1 descrito en [`doc
 ### Autoalojado y despliegue
 
 - Autoalojado con `docker compose`: sitio estático servido por Caddy junto al compose oficial de Supabase; guía paso a paso en [`docs/ops/SELF-HOSTING.md`](docs/ops/SELF-HOSTING.md).
-- Instancia pública en Cloudflare Workers con vistas previas por PR, Supabase en plan Pro, SMTP externo y correos de autenticación en español; pasos, rollback y checklist de lanzamiento en [`docs/ops/DEPLOY.md`](docs/ops/DEPLOY.md#checklist-de-lanzamiento).
+- Instancia pública en Cloudflare Workers con vistas previas por PR, Supabase (plan gratuito al empezar; Pro cuando haya tráfico), SMTP externo y correos de autenticación en español; pasos, rollback y checklist de lanzamiento en [`docs/ops/DEPLOY.md`](docs/ops/DEPLOY.md#checklist-de-lanzamiento).
 - CI en GitHub Actions: lint, typecheck, tests con cobertura, build, presupuesto de bundle, pruebas de políticas pgTAP, e2e con Playwright y auditoría de dependencias.
 
 [1.0.0]: https://github.com/jams-robotics/trayectoria/releases/tag/v1.0.0
