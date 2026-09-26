@@ -22,8 +22,9 @@ function Probe(): JSX.Element {
 }
 
 describe('progressAdapter (F2-10)', () => {
-  test('the null adapter has no user and records nothing', () => {
+  test('the null adapter has no user, is always ready and records nothing', () => {
     expect(nullProgressAdapter.userId()).toBeNull();
+    expect(nullProgressAdapter.sessionReady()).toBe(true);
     expect(nullProgressAdapter.recordAttempt(ATTEMPT)).toBeUndefined();
   });
 
@@ -34,7 +35,11 @@ describe('progressAdapter (F2-10)', () => {
   });
 
   test('the provider injects the adapter into everything below it', () => {
-    const adapter: ProgressAdapter = { userId: () => 'user-1', recordAttempt: vi.fn() };
+    const adapter: ProgressAdapter = {
+      userId: () => 'user-1',
+      sessionReady: () => true,
+      recordAttempt: vi.fn(),
+    };
 
     render(
       <ProgressAdapterProvider adapter={adapter}>
