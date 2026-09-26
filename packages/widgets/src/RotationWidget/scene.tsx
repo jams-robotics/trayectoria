@@ -7,7 +7,7 @@ import { Circle } from '../Scene2D/primitives/Circle';
 import { Rect } from '../Scene2D/primitives/Rect';
 import { Trace } from '../Scene2D/primitives/Trace';
 import { Vector } from '../Scene2D/primitives/Vector';
-import { angleAt, rimSpeed, rollingAdvance, rpmToRadps } from './compute';
+import { angleAt, rimSpeed, rollingAdvance } from './compute';
 import type { Rotation, RotationMode } from './compute';
 
 /** Height of the disc view in radii of the scene: the largest disc plus half a radius around it. */
@@ -32,8 +32,11 @@ const DISC_ASPECT = 16 / 9;
 const ROLLING_ASPECT = 16 / 5;
 /** Largest `r` of the slider, in metres (panels.tsx; docs/WIDGETS.md, RotationWidget). */
 const R_SLIDER_MAX_M = 0.1;
-/** Largest `ω` of the slider, in rad/s: 600 rpm in either unit (panels.tsx). */
-const OMEGA_SLIDER_MAX_RADPS = rpmToRadps(600);
+/**
+ * Reference speed of the arrow scale, in m/s: the largest `v` of the rolling slider, the same
+ * in the three modes (docs/WIDGETS.md, RotationWidget; #366).
+ */
+const V_REF_MPS = 2;
 /** Smallest drawn radius, as a share of the height of the scene (docs/WIDGETS.md). */
 const MIN_DRAWN_RADIUS_SHARE = 0.08;
 /** Share of the worst-case room the longest arrow takes, so its head does not touch the edge. */
@@ -105,12 +108,12 @@ export function maxVectorLength(mode: RotationMode, rMax_m: number): number {
 }
 
 /**
- * Signed length in metres of the arrow of `v`: the fixed scale `k = L_max / (ω_max r_max)`,
- * saturated at `L_max` when `ω` goes past the slider (docs/WIDGETS.md, RotationWidget).
+ * Signed length in metres of the arrow of `v`: the fixed scale `k = L_max / v_ref`, with
+ * `v_ref = 2 m/s`, saturated at `L_max` above it (docs/WIDGETS.md, RotationWidget; #366).
  */
 export function vectorLength(mode: RotationMode, v_mps: number, rMax_m: number): number {
   const lMax_m = maxVectorLength(mode, rMax_m);
-  const length_m = (v_mps * lMax_m) / (OMEGA_SLIDER_MAX_RADPS * rMax_m);
+  const length_m = (v_mps * lMax_m) / V_REF_MPS;
   return Math.max(-lMax_m, Math.min(lMax_m, length_m));
 }
 
