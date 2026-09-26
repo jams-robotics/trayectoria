@@ -22,18 +22,18 @@ del PID arregla cada cosa?
 </Gancho>
 
 <Concepto>
-Tu seguidor mide el error e cada Δt segundos. En cada paso k, el controlador **PID** calcula la
+Tu seguidor mide el error e cada Δt_c segundos. En cada paso k, el controlador **PID** calcula la
 acción de control u_k como la suma de tres términos, P, I y D, cada uno con su ganancia.
 
 El término P, K_p·e_k, mira el presente: corrige en proporción al error de ahora. Con solo P, tu
 robot sigue la línea, pero oscila en las rectas y en las curvas se queda desplazado hacia afuera.
 
-El término I, K_i·Σe_j·Δt, mira el pasado: acumula el error mientras dura. En una curva el error
+El término I, K_i·Σe_j·Δt_c, mira el pasado: acumula el error mientras dura. En una curva el error
 tiene un sesgo constante hacia afuera. Su suma crece y el término I empuja hacia adentro hasta
 reducirlo. Si el error dura mucho, la suma crece sin freno y luego tarda en descargarse. Por eso
-se limita, |Σe_j·Δt| ≤ I_max. Ese límite es el **anti-windup**.
+se limita, |Σe_j·Δt_c| ≤ I_max. Ese límite es el **anti-windup**.
 
-El término D, K_d·(e_k − e_\{k−1\})/Δt, mira la tendencia: se opone a que el error cambie rápido.
+El término D, K_d·(e_k − e_\{k−1\})/Δt_c, mira la tendencia: se opone a que el error cambie rápido.
 El motor no alcanza al instante la velocidad que le pides. Cuando por fin responde, el robot ya
 cruzó la línea, y así nace la oscilación. D frena el giro antes de que eso ocurra. Su contra es el
 ruido: una lectura que salta de un paso al siguiente da una diferencia grande, y D la amplifica.
@@ -77,7 +77,7 @@ cerrado como pide el controlador. La curva más cerrada de la pista fija el lím
 </Formulas>
 
 <Explora>
-Tu robot recorre la pista Curvas cerradas, con curvas de radio 0.15 m, con K_p = 20, K_i = 0, K_d = 0 y
+Con el robot de referencia, el robot recorre la pista Curvas cerradas, con curvas de radio 0.15 m, con K_p = 20, K_i = 0, K_d = 0 y
 ω_base = 13 rad/s. La gráfica de error muestra cuánto se aparta de la línea y la del PID muestra
 los tres términos por separado, en cada instante.
 
@@ -116,7 +116,7 @@ adentro hasta reducirlo. Medido en el simulador, el error medio pasa de −0.176
   porque="¿Por qué vuelve el sesgo?"
 >
 El término I queda plano en −1 rad/s y la curva de error vuelve a alejarse de cero en las curvas.
-El anti-windup mantiene |Σe_j·Δt| ≤ I_max, así que I no pasa de K_i·I_max = 10·0.1 = 1 rad/s, y
+El anti-windup mantiene |Σe_j·Δt_c| ≤ I_max, así que I no pasa de K_i·I_max = 10·0.1 = 1 rad/s, y
 eso no basta para compensar la curva. Medido en el simulador, el error medio vuelve de −0.036 a
 −0.138, y en ninguno de estos ajustes el robot pierde la línea.
 </Experimento>

@@ -287,6 +287,14 @@ describe('statementParams (F2-10)', () => {
     });
   });
 
+  test('shows negative numbers with the minus sign U+2212 (V-05)', () => {
+    expect(statementParams({ a_mps2: -7.608258, vx_mps: -0.3925, v0_mps: 0.3925 })).toEqual({
+      a_mps2: '−7.608',
+      vx_mps: '−0.3925',
+      v0_mps: '0.3925',
+    });
+  });
+
   test('ignores values that are not an object', () => {
     expect(statementParams(null)).toEqual({});
     expect(statementParams(3)).toEqual({});
