@@ -94,8 +94,9 @@ function wheelCommands({ kp, error, omegaBase_radps }: ProportionalCase): WheelC
 }
 
 /**
- * Kp, e and ω_base of e1, redrawn until the faster wheel stays within 20.94 rad/s (#396) and no
- * wheel command is nonzero below 0.01 rad/s (#451, #461).
+ * Kp, e and ω_base of e1, redrawn until the faster wheel stays within 20.94 rad/s (#396), no
+ * wheel command is negative (V-51, #474) and none is nonzero below 0.01 rad/s (#451, #461). e2
+ * draws its commands here too.
  */
 function drawProportionalCase(rng: SeededRng): ProportionalCase {
   for (;;) {
@@ -106,6 +107,8 @@ function drawProportionalCase(rng: SeededRng): ProportionalCase {
     const { omegaL_radps, omegaR_radps } = wheelCommands(values);
     if (
       omegaBase_radps + kp * Math.abs(error) <= E1_SATURATION_RADPS &&
+      omegaL_radps >= 0 &&
+      omegaR_radps >= 0 &&
       !isSmallNonzero(omegaL_radps, E1_MIN_NONZERO_OMEGA_RADPS) &&
       !isSmallNonzero(omegaR_radps, E1_MIN_NONZERO_OMEGA_RADPS)
     ) {

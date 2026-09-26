@@ -1,4 +1,5 @@
 import { defineExercise } from '@trayectoria/sim-core';
+import type { SeededRng } from '@trayectoria/sim-core';
 
 // Verifica of T-4.4 (docs/CURRICULUM.md § T-4.4). Each exercise returns only the key of its
 // statement; the text lives in packages/i18n/locales/es/content.json (ARCHITECTURE §3.3).
@@ -21,6 +22,8 @@ interface Range {
 /** e1 ranges (#301): integer i and n_rueda; n_motor = i · n_rueda. */
 export const GEAR_RATIO: Range = { min: 10, max: 100 };
 export const WHEEL_SPEED_RPM: Range = { min: 60, max: 600 };
+/** Ceiling for n_motor in e1: drawn again while `i · n_rueda > 12 000 rpm` (V-35). */
+export const MAX_MOTOR_SPEED_RPM = 12000;
 
 /** e2 ranges (#301): τ ∈ [0.005, 0.1] N·m drawn in mN·m, i ∈ [5, 100], η ∈ [0.5, 0.9] in %. */
 export const MOTOR_TORQUE_MNM: Range = { min: 5, max: 100 };
@@ -57,12 +60,16 @@ interface Train {
   readonly z4: number;
 }
 
-/** e1: `i = n_1 / n_2`; a ratio, so no unit. */
+/** e1: `i = n_1 / n_2`; a ratio, so no unit. n_motor ≤ 12 000 rpm (V-35). */
 const e1 = defineExercise<Speeds>({
   id: 'e1',
   generate: (rng) => {
-    const gearRatio = rng.nextInt(GEAR_RATIO.min, GEAR_RATIO.max);
-    const wheelSpeed_rpm = rng.nextInt(WHEEL_SPEED_RPM.min, WHEEL_SPEED_RPM.max);
+    let gearRatio: number;
+    let wheelSpeed_rpm: number;
+    do {
+      gearRatio = rng.nextInt(GEAR_RATIO.min, GEAR_RATIO.max);
+      wheelSpeed_rpm = rng.nextInt(WHEEL_SPEED_RPM.min, WHEEL_SPEED_RPM.max);
+    } while (gearRatio * wheelSpeed_rpm > MAX_MOTOR_SPEED_RPM);
     return {
       values: { motorSpeed_rpm: gearRatio * wheelSpeed_rpm, wheelSpeed_rpm },
       answer: gearRatio,
@@ -91,14 +98,26 @@ const e2 = defineExercise<TorqueIn>({
   tolerance: RELATIVE_2_PERCENT,
 });
 
-/** e3: two stages, `i_total = i_1 · i_2 = (z_2/z_1) · (z_4/z_3)`; no unit. */
+/**
+ * The teeth of one stage, ordered so it reduces: the driving gear has fewer teeth than the driven
+ * one. Equal teeth would not reduce, so they are drawn again (V-35).
+ */
+function drawStage(rng: SeededRng): readonly [number, number] {
+  let first: number;
+  let second: number;
+  do {
+    first = rng.nextInt(TEETH.min, TEETH.max);
+    second = rng.nextInt(TEETH.min, TEETH.max);
+  } while (first === second);
+  return first < second ? [first, second] : [second, first];
+}
+
+/** e3: two stages, `i_total = i_1 · i_2 = (z_2/z_1) · (z_4/z_3)`, with z₂ > z₁ and z₄ > z₃; no unit. */
 const e3 = defineExercise<Train>({
   id: 'e3',
   generate: (rng) => {
-    const z1 = rng.nextInt(TEETH.min, TEETH.max);
-    const z2 = rng.nextInt(TEETH.min, TEETH.max);
-    const z3 = rng.nextInt(TEETH.min, TEETH.max);
-    const z4 = rng.nextInt(TEETH.min, TEETH.max);
+    const [z1, z2] = drawStage(rng);
+    const [z3, z4] = drawStage(rng);
     return { values: { z1, z2, z3, z4 }, answer: (z2 / z1) * (z4 / z3), unit: '' };
   },
   statement: () => statementKey('e3'),

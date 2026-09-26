@@ -3,8 +3,9 @@ import type { Exercise } from '@trayectoria/sim-core';
 import { describe, expect, it } from 'vitest';
 
 import {
+  E1_ADMISSIBLE_COMPONENT_MPS,
   E1_THETA_DEG,
-  E1_V_MPS,
+  E1_THETA_STEP_DEG,
   E2_MIN_ABS_CONSTRAINT_MPS,
   E2_THETA_DEG,
   E2_VELOCITY_MPS,
@@ -104,13 +105,30 @@ describe('T-5.5 exercises', () => {
   });
 });
 
-describe('e1 · la restricción con la velocidad del propio rumbo', () => {
-  it('θ = 45°, v = 0.4243 m/s (velocidad (0.3, 0.3)) → 0 m/s', () => {
-    const { values, answer, unit } = exercise('e1').generate(scriptedRng([45, 4243]));
+describe('e1 · ¿es admisible una velocidad dada? (V-43, #473)', () => {
+  it('θ = 45°, (ẋ, ẏ) = (0.3, 0.3) m/s → 0 m/s (admisible)', () => {
+    // θ index 1 (45°), admissible, component 0.3 m/s along the heading.
+    const { values, answer, unit } = exercise('e1').generate(scriptedRng([1, 1, 30]));
 
-    expect(values).toEqual({ theta_deg: 45, v_mps: 0.4243 });
+    expect(values).toEqual({ theta_deg: 45, vx_mps: 0.3, vy_mps: 0.3 });
     expect(Math.abs(answer as number)).toBeLessThan(EPSILON);
     expect(unit).toBe('m/s');
+  });
+
+  it('θ = 90°, (ẋ, ẏ) = (0.2, 0.1) m/s → 0.2 m/s (no admisible)', () => {
+    const { values, answer, unit } = exercise('e1').generate(scriptedRng([2, 0, 20, 10]));
+
+    expect(values).toEqual({ theta_deg: 90, vx_mps: 0.2, vy_mps: 0.1 });
+    expect(answer).toBeCloseTo(0.2, 10);
+    expect(unit).toBe('m/s');
+  });
+
+  it('draws the not admissible velocity again while |ẋ sinθ − ẏ cosθ| < 0.05 m/s', () => {
+    // θ = 0°, not admissible: (0.2, 0.01) → −0.01 m/s, too close to 0; then (0, 0.2) → −0.2 m/s.
+    const { values, answer } = exercise('e1').generate(scriptedRng([0, 0, 20, 1, 0, 20]));
+
+    expect(values).toEqual({ theta_deg: 0, vx_mps: 0, vy_mps: 0.2 });
+    expect(answer).toBeCloseTo(-0.2, 10);
   });
 
   it('accepts a response 0.009 m/s off and rejects one 0.011 m/s off', () => {
@@ -119,21 +137,37 @@ describe('e1 · la restricción con la velocidad del propio rumbo', () => {
       expect(check(exercise('e1'), seed, answer + 0.009).correct).toBe(true);
       expect(check(exercise('e1'), seed, answer - 0.009).correct).toBe(true);
       expect(check(exercise('e1'), seed, answer + 0.011).correct).toBe(false);
-      expect(check(exercise('e1'), seed, 0).correct).toBe(true);
+      expect(check(exercise('e1'), seed, 0).correct).toBe(Math.abs(answer) < EPSILON);
     }
   });
 
-  it('draws θ ∈ [0°, 360°) in whole degrees and v ∈ [0.1, 0.6] m/s in ten-thousandths', () => {
-    expect(E1_THETA_DEG).toEqual({ min: 0, max: 359 });
-    expect(E1_V_MPS).toEqual({ min: 0.1, max: 0.6 });
+  it('draws θ in steps of 45° and (ẋ, ẏ) in hundredths, admissible or not, over 2000 seeds', () => {
+    expect(E1_THETA_DEG).toEqual({ min: 0, max: 315 });
+    expect(E1_THETA_STEP_DEG).toBe(45);
+    expect(E1_ADMISSIBLE_COMPONENT_MPS).toEqual({ min: 0.1, max: 0.5 });
+    let admissible = 0;
     for (const seed of MANY_SEEDS) {
-      const { theta_deg, v_mps } = valuesOf('e1', seed);
+      const { theta_deg, vx_mps, vy_mps } = valuesOf('e1', seed);
       expectWithin(theta_deg!, E1_THETA_DEG);
-      expectWithin(v_mps!, E1_V_MPS);
-      expectOnGrid(theta_deg!, 1);
-      expectOnGrid(v_mps!, 10000);
-      expect(Math.abs(answerOf('e1', seed))).toBeLessThan(EPSILON);
+      expectOnGrid(theta_deg! / 45, 1);
+      expectWithin(vx_mps!, E2_VELOCITY_MPS);
+      expectWithin(vy_mps!, E2_VELOCITY_MPS);
+      expectOnGrid(vx_mps!, 100);
+      expectOnGrid(vy_mps!, 100);
+      const answer = answerOf('e1', seed);
+      expect(answer).toBeCloseTo(constraint_mps(theta_deg!, vx_mps!, vy_mps!), 12);
+      if (Math.abs(answer) < EPSILON) {
+        admissible++;
+        // An admissible velocity points forward along the heading.
+        const theta_rad = (theta_deg! * Math.PI) / 180;
+        expect(vx_mps! * Math.cos(theta_rad) + vy_mps! * Math.sin(theta_rad)).toBeGreaterThan(0);
+      } else {
+        expect(Math.abs(answer), `seed ${seed}`).toBeGreaterThanOrEqual(E2_MIN_ABS_CONSTRAINT_MPS);
+      }
     }
+    // Sometimes admissible and sometimes not: about half of each.
+    expect(admissible).toBeGreaterThan(800);
+    expect(admissible).toBeLessThan(1200);
   });
 });
 

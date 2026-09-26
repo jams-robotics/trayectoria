@@ -1,10 +1,11 @@
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import { describe, expect, it } from 'vitest';
 
-import { maxCurveSpeed, robotCalcs, tangentialAccel } from './alrobot';
+import { maxCurveSpeed, robotCalcs, tangentialAccel, vMaxVsCurve } from './alrobot';
 
 // Golden values of docs/CURRICULUM.md § T-4.3 (Al robot), with the reference robot:
-// a_t = 40 · 0.032 = 1.28 m/s², v_max,curva = √(0.6 · 9.81 · 0.15) = 0.94 m/s.
+// a_t = 40 · 0.032 = 1.28 m/s², v_max,curva = √(0.6 · 9.81 · 0.15) = 0.94 m/s; and the v_max of
+// the profile next to that limit (V-37): 20.94 · 0.032 = 0.67 m/s < 0.94 m/s.
 // `content` takes robot-spec for its types only (#246), so the reference robot of
 // docs/ROBOT-SPEC.md §3 is written out here.
 const REFERENCE: RobotSpec = {
@@ -57,8 +58,12 @@ function withoutWheels(): RobotSpec {
 }
 
 describe('T-4.3 «Al robot» calcs', () => {
-  it('are tangential-accel and max-curve-speed', () => {
-    expect(robotCalcs.map((calc) => calc.id)).toEqual(['tangential-accel', 'max-curve-speed']);
+  it('are tangential-accel, max-curve-speed and v-max-vs-curve', () => {
+    expect(robotCalcs.map((calc) => calc.id)).toEqual([
+      'tangential-accel',
+      'max-curve-speed',
+      'v-max-vs-curve',
+    ]);
   });
 
   it('tangential-accel: 40 · 0.032 → 1.28 m/s² with the reference robot', () => {
@@ -74,6 +79,24 @@ describe('T-4.3 «Al robot» calcs', () => {
     expect(latex).toBe(String.raw`v_{\max,\text{curva}} = \sqrt{\mu_s \, g \, R}`);
     expect(substituted).toBe(
       String.raw`v_{\max,\text{curva}} = \sqrt{0.6 \cdot 9.81\ \text{m/s}^2 \cdot 0.15\ \text{m}} = 0.94\ \text{m/s}`,
+    );
+  });
+
+  it('v-max-vs-curve: 20.94 · 0.032 → 0.67 m/s, below 0.94 m/s with the reference robot (V-37)', () => {
+    const { latex, substituted } = vMaxVsCurve.compute(REFERENCE);
+    expect(latex).toBe(String.raw`v_{\max} = \omega_{\max} \cdot r`);
+    expect(substituted).toBe(
+      String.raw`v_{\max} = 20.94\ \text{rad/s} \cdot 0.032\ \text{m} = 0.67\ \text{m/s}` +
+        String.raw` < v_{\max,\text{curva}} = 0.94\ \text{m/s}`,
+    );
+  });
+
+  it('v-max-vs-curve: a profile faster than the curve limit reads above it', () => {
+    // 6000 rpm, i = 10, r = 0.032 m: ω_max = 62.83 rad/s, v_max = 2.01 m/s > 0.94 m/s.
+    const robot: RobotSpec = { ...REFERENCE, mobile: { ...mobileOf(REFERENCE), gearRatio: 10 } };
+    expect(vMaxVsCurve.compute(robot).substituted).toBe(
+      String.raw`v_{\max} = 62.83\ \text{rad/s} \cdot 0.032\ \text{m} = 2.01\ \text{m/s}` +
+        String.raw` > v_{\max,\text{curva}} = 0.94\ \text{m/s}`,
     );
   });
 

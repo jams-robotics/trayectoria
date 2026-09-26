@@ -4,7 +4,7 @@ import type { RobotCalc } from '../../../index';
 
 /**
  * «Al robot» calcs of T-1.2 (docs/CURRICULUM.md § T-1.2): the ramp of «Mi robot» from rest to
- * `v_max`, with `a = α · r`, `t = v_max / a` and `x = v_max² / (2a)`. The MDX renders them with
+ * `v_max`, with `a = α · r`, `t = v_max / a` and `Δx = v_max² / (2a)`. The MDX renders them with
  * `<RobotFormula calc="ruta-1/m01-t02/acceleration" />`, `…/ramp-time` and `…/ramp-distance`.
  */
 
@@ -102,15 +102,15 @@ export const rampTime: RobotCalc = {
   },
 };
 
-/** `x = v_max² / (2a)`: distance of the ramp from rest to `v_max`. */
+/** `Δx = v_max² / (2a)`: distance of the ramp from rest to `v_max`. */
 export const rampDistance: RobotCalc = {
   id: 'ramp-distance',
   compute(robot) {
     const { a_mps2, vMax_mps } = ramp(robot);
     return {
-      latex: String.raw`x = \dfrac{v_{\max}^2}{2a}`,
+      latex: String.raw`\Delta x = \dfrac{v_{\max}^2}{2a}`,
       substituted:
-        String.raw`x = \dfrac{(${format(vMax_mps)}\ \text{m/s})^2}{2 \cdot ${format(a_mps2)}\ \text{m/s}^2}` +
+        String.raw`\Delta x = \dfrac{(${format(vMax_mps)}\ \text{m/s})^2}{2 \cdot ${format(a_mps2)}\ \text{m/s}^2}` +
         String.raw` = ${format(vMax_mps ** 2 / (2 * a_mps2))}\ \text{m}`,
     };
   },

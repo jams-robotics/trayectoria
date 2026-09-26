@@ -9,10 +9,13 @@ import type { RobotCalc } from '../../../index';
  * The MDX renders them with `<RobotFormula calc="ruta-1/m02-t01/net-force" />` and `…/normal`.
  */
 
-/** Three significant figures for `a` and `N`, as the spec writes 1.28 m/s² and 8.83 N. */
+/** Three significant figures for `N`, as the spec writes 8.83 N. */
 const SIGNIFICANT_FIGURES = 3;
 
-/** Four significant figures for `F`, as the spec writes 1.152 N (0.9 · 1.28, exact). */
+/**
+ * Four significant figures for `F`, as the spec writes 1.152 N (0.9 · 1.28, exact), and for the
+ * substituted `a`, so that `m · a` checks out with any profile (validation decision V-30, #470).
+ */
 const FORCE_SIGNIFICANT_FIGURES = 4;
 
 /**
@@ -52,7 +55,7 @@ export const netForce: RobotCalc = {
     return {
       latex: String.raw`F = m\,a`,
       substituted:
-        String.raw`F = ${mass_kg}\ \text{kg} \cdot ${a_mps2.toPrecision(SIGNIFICANT_FIGURES)}\ \text{m/s}^2` +
+        String.raw`F = ${mass_kg}\ \text{kg} \cdot ${a_mps2.toPrecision(FORCE_SIGNIFICANT_FIGURES)}\ \text{m/s}^2` +
         String.raw` = ${force_N.toPrecision(FORCE_SIGNIFICANT_FIGURES)}\ \text{N}`,
     };
   },

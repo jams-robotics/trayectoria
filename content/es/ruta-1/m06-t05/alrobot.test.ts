@@ -93,6 +93,28 @@ describe('T-6.5 «Al robot» calcs', () => {
     }
   });
 
+  it('fall back to the reference robot when ω_max does not reach ω_base = 15 rad/s (#474)', () => {
+    // 500 rpm, i = 30: ω_max = 1.745 rad/s < 15 rad/s → the reference robot, r = 0.032 m.
+    const slow: RobotSpec = {
+      ...REFERENCE,
+      mobile: { ...mobileOf(REFERENCE), wheelRadius_m: 0.05, maxMotorSpeed_rpm: 500, gearRatio: 30 },
+    };
+    for (const calc of robotCalcs) {
+      expect(calc.compute(slow)).toEqual(calc.compute(REFERENCE));
+    }
+  });
+
+  it('keep the profile when ω_max reaches ω_base = 15 rad/s', () => {
+    // 4500 rpm, i = 30: ω_max = 15.71 rad/s ≥ 15 rad/s → the profile's r = 0.05 m.
+    const robot: RobotSpec = {
+      ...REFERENCE,
+      mobile: { ...mobileOf(REFERENCE), wheelRadius_m: 0.05, maxMotorSpeed_rpm: 4500, gearRatio: 30 },
+    };
+    expect(predictedSpeed.compute(robot).substituted).toBe(
+      String.raw`v_{pred} = 15\ \text{rad/s} \cdot 0.05\ \text{m} = 0.750\ \text{m/s}`,
+    );
+  });
+
   it('fall back to the reference robot for a profile with no wheels', () => {
     const arm = withoutWheels();
     for (const calc of robotCalcs) {

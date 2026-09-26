@@ -66,7 +66,7 @@ describe('T-2.1 «Al robot» calcs', () => {
     const { latex, substituted } = netForce.compute(REFERENCE);
     expect(latex).toBe(String.raw`F = m\,a`);
     expect(substituted).toBe(
-      String.raw`F = 0.9\ \text{kg} \cdot 1.28\ \text{m/s}^2 = 1.152\ \text{N}`,
+      String.raw`F = 0.9\ \text{kg} \cdot 1.280\ \text{m/s}^2 = 1.152\ \text{N}`,
     );
   });
 
@@ -82,10 +82,18 @@ describe('T-2.1 «Al robot» calcs', () => {
     // m = 1.5 kg, α = 20 rad/s², r = 0.05 m: a = 1 m/s², F = 1.5 N, N = 14.7 N.
     const robot = withBody(1.5, 0.05, 20);
     expect(netForce.compute(robot).substituted).toBe(
-      String.raw`F = 1.5\ \text{kg} \cdot 1.00\ \text{m/s}^2 = 1.500\ \text{N}`,
+      String.raw`F = 1.5\ \text{kg} \cdot 1.000\ \text{m/s}^2 = 1.500\ \text{N}`,
     );
     expect(normal.compute(robot).substituted).toBe(
       String.raw`N = 1.5\ \text{kg} \cdot 9.81\ \text{m/s}^2 = 14.7\ \text{N}`,
+    );
+  });
+
+  it('show a with four significant figures, like F, so the product checks out', () => {
+    // m = 0.9 kg, α = 37 rad/s², r = 0.031 m: a = 1.147 m/s², F = 0.9·1.147 = 1.0323 N.
+    const robot = withBody(0.9, 0.031, 37);
+    expect(netForce.compute(robot).substituted).toBe(
+      String.raw`F = 0.9\ \text{kg} \cdot 1.147\ \text{m/s}^2 = 1.032\ \text{N}`,
     );
   });
 
@@ -99,7 +107,7 @@ describe('T-2.1 «Al robot» calcs', () => {
     // m = 1.5 kg, r = 0.05 m, reference α = 40 rad/s²: a = 2 m/s², F = 3 N.
     const robot = withoutMaxAccel(withBody(1.5, 0.05, 20));
     expect(netForce.compute(robot).substituted).toBe(
-      String.raw`F = 1.5\ \text{kg} \cdot 2.00\ \text{m/s}^2 = 3.000\ \text{N}`,
+      String.raw`F = 1.5\ \text{kg} \cdot 2.000\ \text{m/s}^2 = 3.000\ \text{N}`,
     );
   });
 
