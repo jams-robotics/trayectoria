@@ -30,34 +30,34 @@ describe('VectorWidget (F2-03)', () => {
   test('shows the components, magnitude and angle of T-0.2 for the initial vectors', () => {
     renderCurriculum();
 
-    expect(valueOf('Componentes de a⃗')).toBe('(0.433 m/s, 0.250 m/s)');
-    expect(valueOf('Magnitud de a⃗')).toBe('0.500 m/s');
-    expect(valueOf('Ángulo de a⃗')).toBe('30.00°');
+    expect(valueOf('Componentes de a')).toBe('(0.433 m/s, 0.250 m/s)');
+    expect(valueOf('Magnitud de a')).toBe('0.500 m/s');
+    expect(valueOf('Ángulo de a')).toBe('30.00°');
   });
 
   test('shows the sum, the dot product and the angle between the two vectors', () => {
     renderCurriculum();
 
-    expect(valueOf('Componentes de a⃗ + b⃗')).toBe('(0.633 m/s, 0.150 m/s)');
-    expect(valueOf('Magnitud de a⃗ + b⃗')).toBe('0.651 m/s');
-    expect(valueOf('Producto escalar a⃗ · b⃗')).toBe('0.0616 (m/s)²');
-    expect(valueOf('Ángulo entre a⃗ y b⃗')).toBe('56.57°');
+    expect(valueOf('Componentes de a + b')).toBe('(0.633 m/s, 0.150 m/s)');
+    expect(valueOf('Magnitud de a + b')).toBe('0.651 m/s');
+    expect(valueOf('Producto escalar a · b')).toBe('0.0616 (m/s)²');
+    expect(valueOf('Ángulo entre a y b')).toBe('56.57°');
   });
 
   test('a keyboard arrow moves a tip by 0.1 and updates magnitude and angle', async () => {
     const user = userEvent.setup();
     render(<VectorWidget initialA={[0.3, 0.4]} show={['components', 'angle']} unit="m" />);
 
-    expect(valueOf('Magnitud de a⃗')).toBe('0.500 m');
-    expect(valueOf('Ángulo de a⃗')).toBe('53.13°');
+    expect(valueOf('Magnitud de a')).toBe('0.500 m');
+    expect(valueOf('Ángulo de a')).toBe('53.13°');
 
     await user.tab();
     expect(screen.getByRole('button', { name: 'Punta del vector a' })).toHaveFocus();
     await user.keyboard('{ArrowRight}');
 
-    expect(valueOf('Componentes de a⃗')).toBe('(0.400 m, 0.400 m)');
-    expect(valueOf('Magnitud de a⃗')).toBe('0.566 m');
-    expect(valueOf('Ángulo de a⃗')).toBe('45.00°');
+    expect(valueOf('Componentes de a')).toBe('(0.400 m, 0.400 m)');
+    expect(valueOf('Magnitud de a')).toBe('0.566 m');
+    expect(valueOf('Ángulo de a')).toBe('45.00°');
   });
 
   test('Shift and an arrow move a tip by 1.0 instead of 0.1', async () => {
@@ -67,7 +67,7 @@ describe('VectorWidget (F2-03)', () => {
     screen.getByRole('button', { name: 'Punta del vector a' }).focus();
     await user.keyboard('{Shift>}{ArrowUp}{/Shift}');
 
-    expect(valueOf('Componentes de a⃗')).toBe('(0.300 m, 1.40 m)');
+    expect(valueOf('Componentes de a')).toBe('(0.300 m, 1.40 m)');
   });
 
   test('the four arrows move the tip in the four directions of the world', async () => {
@@ -78,7 +78,7 @@ describe('VectorWidget (F2-03)', () => {
     tip.focus();
     await user.keyboard('{ArrowLeft}{ArrowDown}');
 
-    expect(valueOf('Componentes de a⃗')).toBe('(0.400 m, 0.400 m)');
+    expect(valueOf('Componentes de a')).toBe('(0.400 m, 0.400 m)');
   });
 
   test('both tips are focusable controls with a translated name', () => {
@@ -94,10 +94,10 @@ describe('VectorWidget (F2-03)', () => {
   test('`show` selects what the panel lists: without `dot` and `angle` neither appears', () => {
     render(<VectorWidget initialA={[0.3, 0.4]} show={['components']} unit="m" />);
 
-    expect(screen.queryByText('Producto escalar a⃗ · b⃗')).not.toBeInTheDocument();
-    expect(screen.queryByText('Ángulo entre a⃗ y b⃗')).not.toBeInTheDocument();
-    expect(screen.queryByText('Magnitud de a⃗ + b⃗')).not.toBeInTheDocument();
-    expect(screen.getByText('Magnitud de a⃗')).toBeInTheDocument();
+    expect(screen.queryByText('Producto escalar a · b')).not.toBeInTheDocument();
+    expect(screen.queryByText('Ángulo entre a y b')).not.toBeInTheDocument();
+    expect(screen.queryByText('Magnitud de a + b')).not.toBeInTheDocument();
+    expect(screen.getByText('Magnitud de a')).toBeInTheDocument();
   });
 
   test('describes its state in an `aria-live` region and names the scene', () => {
@@ -112,10 +112,10 @@ describe('VectorWidget (F2-03)', () => {
   test('b defaults to the zero vector when the topic gives only a', () => {
     render(<VectorWidget initialA={[0.3, 0.4]} show={['sum', 'angle']} unit="m" />);
 
-    expect(valueOf('Magnitud de b⃗')).toBe('0.00 m');
-    expect(valueOf('Magnitud de a⃗ + b⃗')).toBe('0.500 m');
+    expect(valueOf('Magnitud de b')).toBe('0.00 m');
+    expect(valueOf('Magnitud de a + b')).toBe('0.500 m');
     // The zero vector has no direction, so the angle against it is reported as zero, not NaN.
-    expect(valueOf('Ángulo entre a⃗ y b⃗')).toBe('0.00°');
+    expect(valueOf('Ángulo entre a y b')).toBe('0.00°');
   });
 });
 
@@ -205,7 +205,7 @@ describe('VectorWidget · view fit (#285)', () => {
         fireEvent.pointerUp(tip, { clientX: axis_px, clientY: 1, pointerId: 1 });
       });
 
-      const a = componentsIn('Componentes de a⃗');
+      const a = componentsIn('Componentes de a');
       const [drawnX_px, drawnY_px] = drawnTip(a, [0.2, -0.1]);
       const [handleX_px, handleY_px] = centreOf(tip);
       // The tip is drawn with room for its whole handle, and the handle sits on it.
