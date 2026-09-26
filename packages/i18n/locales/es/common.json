@@ -100,7 +100,8 @@
     "modules": "módulos",
     "topics": "temas",
     "moduleNumber": "M{{number}}",
-    "pending": "Pendiente"
+    "pending": "Pendiente",
+    "completed": "Ruta completada"
   },
   "topic": {
     "number": "Tema {{module}}.{{order}}",
