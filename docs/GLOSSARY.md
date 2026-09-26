@@ -76,6 +76,7 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | Símbolo | Nombre | Unidad | Código |
 |---|---|---|---|
 | d/dt | derivada respecto al tiempo (`v = dx/dt`, `a = dv/dt`) | la de la magnitud derivada entre s | — (solo notación) |
+| ẋ, ẏ, θ̇ | derivada respecto al tiempo en notación de punto (`ẋ = dx/dt`) | la de la magnitud derivada entre s | — (solo notación) |
 | c (en derivadas) | coeficiente constante de c·tⁿ | la que da a c·tⁿ la unidad de la magnitud; en x = c·t², m/s² | `coefC_mps2` |
 | n (en derivadas) | exponente de t en c·tⁿ | — | `exponent` |
 | a, b (en polinomios de posición) | coeficientes de x(t) = a·t + b·t² | m/s, m/s² | `coefA_mps`, `coefB_mps2` |
@@ -115,6 +116,14 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | Símbolo | Nombre | Unidad | Código |
 |---|---|---|---|
 | (x, y, θ) | pose del robot en {G} | m, m, rad | `pose: { x_m, y_m, theta_rad }` |
+| R(θ) (en marcos) | matriz de rotación 2D | — | `rotationMatrix` |
+| p⃗_G, p⃗_R (en marcos) | un punto expresado en {G} y en {R}; el subíndice nombra el marco, no la rueda | m | `point_m` |
+| p⃗_{R,0} | origen de {R} en {G}: el (x, y) de la pose | m | `[x_m, y_m]` |
+| θ_objetivo | rumbo hacia un objetivo | rad | `targetHeading_rad` |
+| (x_o, y_o) | punto objetivo | m | `target_m` |
+| Δs_L, Δs_R | arco recorrido por cada rueda en un paso de odometría | m | `deltaSL_m`, `deltaSR_m` |
+| Δs | avance del robot en un paso de odometría | m | `deltaS_m` |
+| Δθ | giro del robot en un paso de odometría | rad | `deltaTheta_rad` |
 | L | distancia entre ruedas (wheelbase lateral) | m | `wheelBase_m` |
 | ω_L, ω_R | velocidad angular de rueda izquierda y derecha | rad/s | `omegaL_radps`, `omegaR_radps` |
 | v_L, v_R | velocidad lineal de rueda | m/s | `vL_mps`, `vR_mps` |
