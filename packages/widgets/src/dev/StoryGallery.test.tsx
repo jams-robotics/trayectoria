@@ -132,6 +132,14 @@ describe('stories catalogue', () => {
         ],
       },
       {
+        title: 'LineSensorWidget',
+        stories: [
+          ['Explora61', expect.any(Function)],
+          ['Left6mm', expect.any(Function)],
+          ['Lost', expect.any(Function)],
+        ],
+      },
+      {
         title: 'ExerciseWidget',
         stories: [
           ['Scalar', expect.any(Function)],
