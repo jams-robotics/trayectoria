@@ -6,6 +6,7 @@ import type { SeededRng } from '@trayectoria/sim-core';
 //
 // Values are drawn on a grid the statement shows exactly: sensor spacing and line width to the
 // millimetre, speeds, distances, angles and radii to the hundredth, as in T-0.3 (#273).
+// e2 asks for Δs_ciclo in m with a relative tolerance, so it is drawn again below 1 cm (#461).
 
 const TOPIC_ID = 'ruta-1/m06-t04';
 const RELATIVE_2_PERCENT = { type: 'relative', value: 0.02 } as const;
@@ -26,6 +27,8 @@ export const E1_SPACING_M: Range = { min: 0.008, max: 0.02 };
 export const E1_LINE_WIDTH_M: Range = { min: 0.01, max: 0.03 };
 export const E2_V_MPS: Range = { min: 0.2, max: 1.5 };
 export const E2_CONTROL_PERIODS_S: readonly number[] = [0.005, 0.01, 0.02, 0.05];
+/** e2 draws v and Δt_c again while Δs_ciclo is below 1 cm (#451, #461). */
+export const E2_MIN_STEP_M = 0.01;
 /** e3 fixes the array (N = 5, e_s = 12 mm) and draws d₁, d₂ and Δθ. */
 export const E3_COUNT = 5;
 export const E3_SPACING_M = 0.012;
@@ -77,13 +80,19 @@ interface StepDistance {
   readonly controlPeriod_s: number;
 }
 
-/** e2: `Δs_ciclo = v · Δt_c`. */
+/** e2: `Δs_ciclo = v · Δt_c`, with v and Δt_c drawn again while it is below 1 cm (#461). */
 const e2 = defineExercise<StepDistance>({
   id: 'e2',
   generate: (rng) => {
-    const v_mps = drawOnGrid(rng, E2_V_MPS, HUNDREDTHS);
-    const controlPeriod_s = E2_CONTROL_PERIODS_S[rng.nextInt(0, E2_CONTROL_PERIODS_S.length - 1)]!;
-    return { values: { v_mps, controlPeriod_s }, answer: v_mps * controlPeriod_s, unit: 'm' };
+    for (;;) {
+      const v_mps = drawOnGrid(rng, E2_V_MPS, HUNDREDTHS);
+      const controlPeriod_s =
+        E2_CONTROL_PERIODS_S[rng.nextInt(0, E2_CONTROL_PERIODS_S.length - 1)]!;
+      const step_m = v_mps * controlPeriod_s;
+      if (step_m >= E2_MIN_STEP_M) {
+        return { values: { v_mps, controlPeriod_s }, answer: step_m, unit: 'm' };
+      }
+    }
   },
   statement: () => statementKey('e2'),
   tolerance: RELATIVE_2_PERCENT,

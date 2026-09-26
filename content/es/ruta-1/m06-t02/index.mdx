@@ -106,8 +106,8 @@ gráficas muestran el error e y la velocidad angular ω del robot en el tiempo.
   porque="¿Por qué el robot se sale?"
 >
 En la curva el robot necesita una ω que, con u = K_p·e, solo aparece con un error grande. Con
-K_p = 2 el error crece hasta que la línea sale del arreglo, a t = 1.59 s. Con K_p = 8 el mismo giro
-pide un error cuatro veces menor, y el robot da 2 vueltas en 15 s (6.04 s y 5.85 s) sin perderla.
+K_p = 2 el error crece hasta que la línea sale del arreglo, a t ≈ 1.59 s. Con K_p = 8 el mismo giro
+pide un error cuatro veces menor, y el robot da 2 vueltas en 15 s (≈ 6.04 s y ≈ 5.85 s) sin perderla.
 </Experimento>
 
 <Experimento
@@ -117,7 +117,7 @@ pide un error cuatro veces menor, y el robot da 2 vueltas en 15 s (6.04 s y 5.85
 >
 El motor tarda en cambiar de velocidad, así que la corrección llega tarde y el robot cruza la
 línea antes de que termine. En los primeros 5 s el error cambia de signo 10 veces, frente a 4 con
-K_p = 8. En la 2.ª vuelta la oscilación saca al robot de la línea, a t = 7.9 s.
+K_p = 8. En la 2.ª vuelta la oscilación saca al robot de la línea, a t ≈ 7.9 s.
 </Experimento>
 
 <Experimento
@@ -126,7 +126,7 @@ K_p = 8. En la 2.ª vuelta la oscilación saca al robot de la línea, a t = 7.9 
   porque="¿Por qué hay zigzag permanente aunque la recta sea perfecta?"
 >
 On/off siempre manda ±u_0 y nunca u = 0, así que el robot cruza la línea una y otra vez: 25
-cruces de ±0.2 en 15 s (RMS del error 0.32) y una vuelta de 8.86 s sin perder la línea. Con
+cruces de ±0.2 en 15 s (RMS del error 0.32) y una vuelta de ≈ 8.86 s sin perder la línea. Con
 u_0 = 4 rad/s la conmutación es tan rápida que el motor la suaviza y el error apenas se ve (RMS
 0.003). Con u_0 ≥ 8.5 rad/s el zigzag crece hasta perder la línea.
 </Experimento>

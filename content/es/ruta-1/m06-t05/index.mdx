@@ -120,7 +120,7 @@ sintonía.
   observa="el contador de vueltas, la «Última vuelta» y la «Mejor vuelta»"
   porque="¿Por qué la 1.ª vuelta dura más que las otras dos?"
 >
-El robot de referencia completa las 3 vueltas sin perder la línea, en 5.98, 5.74 y 5.74 s. La 1.ª
+El robot de referencia completa las 3 vueltas sin perder la línea, en ≈ 5.98, 5.74 y 5.74 s. La 1.ª
 incluye el arranque desde el reposo; las siguientes empiezan ya a velocidad de crucero. Con ruido
 de lectura (σ = 0.03) esa K_d amplificaría el ruido y perdería la línea, como viste en
 [Control PID](/ruta/ruta-1/m06/t03).
@@ -150,7 +150,7 @@ Con esa velocidad, una vuelta a la pista oval, de 2.771 m, dura:
 Si elegiste otra ω_base en el paso 2, v_pred cambia en la misma proporción y t_pred en la
 inversa.
 
-Ahora la medida. Con los parámetros de Explora, el robot de referencia tarda 5.74 s en la 2.ª
+Ahora la medida. Con los parámetros de Explora, el robot de referencia tarda ≈ 5.74 s en la 2.ª
 vuelta:
 
 <Formula latex="v_{med} = \frac{2.771\ \text{m}}{5.74\ \text{s}} = 0.483\ \text{m/s}" />
@@ -158,7 +158,7 @@ vuelta:
 <Formula latex="\Delta\% = 100\,\frac{0.48 - 0.483}{0.48} \approx -0.6\ \%" />
 
 La 2.ª vuelta queda a menos de un 1 % de la predicción: el robot va algo más rápido de lo
-previsto porque corta las curvas y recorre menos de 2.771 m. La 1.ª, de 5.98 s, incluye el
+previsto porque corta las curvas y recorre menos de 2.771 m. La 1.ª, de ≈ 5.98 s, incluye el
 arranque desde el reposo: si la usas, v_med sale menor y Δ% positiva.
 
 Haz lo mismo con tu robot: toma la «Última vuelta» de una vuelta completa sin arranque, calcula

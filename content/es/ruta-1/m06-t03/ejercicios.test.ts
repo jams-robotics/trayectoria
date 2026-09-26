@@ -1,4 +1,4 @@
-import { check, createRng } from '@trayectoria/sim-core';
+import { check, createRng, format } from '@trayectoria/sim-core';
 import type { Exercise } from '@trayectoria/sim-core';
 import { describe, expect, it } from 'vitest';
 
@@ -112,6 +112,22 @@ describe('T-6.3 exercises', () => {
 });
 
 describe('e1 · acción de control u_k del PID discreto', () => {
+  it('draws everything again while 0 < |u_k| < 0.01 rad/s (#461)', () => {
+    // First draw: Kp = 1, Ki = 0.1, Kd = 0, e_k = e_{k−1} = 0.01, Σe·Δt = −0.05 → u_k = 0.005.
+    const { values } = exercise('e1').generate(
+      scriptedRng([10, 1, 0, 0, 1, 1, -5, 80, 20, 5, 1, 30, 50, 2]),
+    );
+    expect(values).toEqual({
+      kp_radps: 8,
+      ki_radps2: 2,
+      kd_rad: 0.05,
+      dt_s: 0.01,
+      error: 0.3,
+      previousError: 0.5,
+      errorSum_s: 0.02,
+    });
+  });
+
   it('Kp = 8, Ki = 2, Kd = 0.05, Δt = 0.01, e_k = 0.3, e_{k−1} = 0.5, Σe·Δt = 0.02 → 1.44 rad/s', () => {
     // Draws: Kp, Ki (tenths), Kd (hundredths), Δt index, e_k, e_{k−1}, Σe·Δt (hundredths).
     const { values, answer, unit } = exercise('e1').generate(
@@ -192,6 +208,12 @@ describe('e2 · término I con error constante', () => {
 });
 
 describe('e3 · término D', () => {
+  it('draws everything again while |D| < 0.01 rad/s (#461)', () => {
+    // First draw: Kd = 0.01, Δt = 0.02 s, e from 0 to 0.01 → D = 0.005 rad/s, redrawn.
+    const { values } = exercise('e3').generate(scriptedRng([1, 2, 0, 1, 5, 1, 30, 35]));
+    expect(values).toEqual({ kd_rad: 0.05, dt_s: 0.01, previousError: 0.3, error: 0.35 });
+  });
+
   it('Kd = 0.05, e de 0.3 a 0.35 en Δt = 0.01 s → 0.25 rad/s', () => {
     // Draws: Kd (hundredths), Δt index, e_{k−1} and e_k in hundredths (0.35 = 35).
     const { values, answer, unit } = exercise('e3').generate(scriptedRng([5, 1, 30, 35]));
@@ -248,5 +270,64 @@ describe('e4 · ω_base máxima para una curva de radio R', () => {
         10,
       );
     }
+  });
+});
+
+describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94; #451; #461)', () => {
+  const SWEEP_SEEDS = Array.from({ length: 5000 }, (_, seed) => seed + 1);
+  const STATEMENT_SIG_FIGS = 4;
+  /** #451: an answer graded with a relative tolerance is exactly 0 or at least 0.01 in its unit. */
+  const MIN_NONZERO_ANSWER = 0.01;
+  const shown = (value: number): number => Number(format(value, '', STATEMENT_SIG_FIGS));
+  const isShownExactly = (value: number): boolean =>
+    Math.abs(shown(value) - value) <= EPSILON * Math.max(1, Math.abs(value));
+
+  it('shows every value exactly, so the answer computed from the statement is the expected one', () => {
+    const failures: string[] = [];
+    for (const { id, generate } of exercises as readonly Exercise<unknown>[]) {
+      for (const seed of SWEEP_SEEDS) {
+        const values = generate(createRng(seed)).values as Record<string, unknown>;
+        for (const [key, value] of Object.entries(values)) {
+          if (typeof value === 'number' && !isShownExactly(value)) {
+            failures.push(`${id} seed ${seed}: ${key} = ${value} is shown as ${shown(value)}`);
+          }
+        }
+      }
+    }
+    expect(failures.slice(0, 5)).toEqual([]);
+  });
+
+  it('keeps every answer graded with a relative tolerance at 0 or at least 0.01', () => {
+    const failures: string[] = [];
+    for (const { id, generate, tolerance } of exercises as readonly Exercise<unknown>[]) {
+      for (const seed of SWEEP_SEEDS) {
+        const { answer } = generate(createRng(seed));
+        const components = Array.isArray(answer) ? (answer as number[]) : [answer as number];
+        const tolerances = [tolerance].flat();
+        components.forEach((value, index) => {
+          const isRelative = (tolerances[index] ?? tolerances[0])?.type === 'relative';
+          if (isRelative && value !== 0 && Math.abs(value) < MIN_NONZERO_ANSWER) {
+            failures.push(`${id} seed ${seed}: component ${index} = ${value}`);
+          }
+        });
+      }
+    }
+    expect(failures.slice(0, 5)).toEqual([]);
+  });
+
+  it('accepts the expected answer rounded to the precision the statement shows', () => {
+    const failures: string[] = [];
+    for (const candidate of exercises as readonly Exercise<unknown>[]) {
+      for (const seed of SWEEP_SEEDS) {
+        const { answer } = candidate.generate(createRng(seed));
+        const rounded = Array.isArray(answer)
+          ? (answer as number[]).map(shown)
+          : shown(answer as number);
+        if (!check(candidate, seed, rounded).correct) {
+          failures.push(`${candidate.id} seed ${seed}: ${String(rounded)} rejected`);
+        }
+      }
+    }
+    expect(failures.slice(0, 5)).toEqual([]);
   });
 });
