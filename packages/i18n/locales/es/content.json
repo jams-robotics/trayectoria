@@ -101,5 +101,11 @@
     "e2": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. En Δt = {{dt_s}} s cuentas Δticks = {{deltaTicks}}. ¿Cuál es la velocidad angular ω de la rueda, en rad/s, y la velocidad lineal v del robot, en m/s?",
     "e3": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. ¿Cuántos ticks cuentas mientras el robot recorre D = {{distance_m}} m en línea recta?",
     "e4": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. Cuentas ticks = {{ticks}}. ¿Qué distancia s recorre la rueda, en m?"
+  },
+  "ruta-1/m05-t02": {
+    "e1": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda izquierda gira a ω_L = {{omegaL_radps}} rad/s y la derecha a ω_R = {{omegaR_radps}} rad/s. ¿Cuál es la velocidad lineal v del robot, en m/s, y su velocidad angular ω, en rad/s?",
+    "e2": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda izquierda gira a ω_L = {{omegaL_radps}} rad/s y la derecha a ω_R = {{omegaR_radps}} rad/s. ¿Cuál es su radio de giro R, en m, con signo: positivo si el CIR queda a la izquierda del robot y negativo si queda a la derecha?",
+    "e3": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda derecha gira a ω_R = {{omegaR_radps}} rad/s y la izquierda a ω_L = {{omegaL_radps}} rad/s, así que gira en el lugar. ¿Cuál es su velocidad angular ω, en rad/s?",
+    "e4": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda derecha gira a ω_R = {{omegaR_radps}} rad/s y la izquierda a ω_L = {{omegaL_radps}} rad/s durante t = {{t_s}} s, así que gira en el lugar. ¿Qué ángulo gira el robot en ese tiempo, en rad?"
   }
 }
