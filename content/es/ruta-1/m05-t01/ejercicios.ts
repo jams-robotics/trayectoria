@@ -20,6 +20,13 @@ const WHOLE_DEGREES = 1;
  */
 const ZERO_NOISE_M = 1e-12;
 
+/**
+ * e1 and e2 draw again while a coordinate is nonzero and closer to 0 than this: with relative 2 %,
+ * a correct response rounded to the millimetre would be rejected (#451). An exact 0 stays: `check`
+ * grades it with the absolute error.
+ */
+export const MIN_NONZERO_COORDINATE_M = 0.01;
+
 interface Range {
   readonly min: number;
   readonly max: number;
@@ -59,6 +66,15 @@ function drawOnGrid(rng: SeededRng, range: Range, perUnit: number): number {
 
 function statementKey(exerciseId: string): string {
   return `content.${TOPIC_ID}.${exerciseId}`;
+}
+
+/** True for a nonzero value closer to 0 than `min`, which relative 2 % grades too tightly (#451). */
+function isSmallNonzero(value: number, min: number): boolean {
+  return value !== 0 && Math.abs(value) < min;
+}
+
+function hasSmallCoordinate(point_m: readonly [number, number]): boolean {
+  return point_m.some((value_m) => isSmallNonzero(value_m, MIN_NONZERO_COORDINATE_M));
 }
 
 function snapZero(value_m: number): number {
@@ -108,13 +124,15 @@ interface PoseAndOffset extends PoseDeg {
 const e1 = defineExercise<PoseAndOffset>({
   id: 'e1',
   generate: (rng) => {
-    const pose = drawPose(rng, E1_XY_M, E1_THETA_DEG);
-    const forwardOffset_m = drawOnGrid(rng, E1_FORWARD_OFFSET_M, HUNDREDTHS);
-    return {
-      values: { ...pose, forwardOffset_m },
-      answer: toGlobal_m(pose, [forwardOffset_m, 0]),
-      unit: 'm',
-    };
+    let pose: PoseDeg;
+    let forwardOffset_m: number;
+    let answer: [number, number];
+    do {
+      pose = drawPose(rng, E1_XY_M, E1_THETA_DEG);
+      forwardOffset_m = drawOnGrid(rng, E1_FORWARD_OFFSET_M, HUNDREDTHS);
+      answer = toGlobal_m(pose, [forwardOffset_m, 0]);
+    } while (hasSmallCoordinate(answer));
+    return { values: { ...pose, forwardOffset_m }, answer, unit: 'm' };
   },
   statement: () => statementKey('e1'),
   tolerance: RELATIVE_2_PERCENT,
@@ -124,8 +142,13 @@ const e1 = defineExercise<PoseAndOffset>({
 const e2 = defineExercise<PoseDeg>({
   id: 'e2',
   generate: (rng) => {
-    const pose = drawPose(rng, E2_XY_M, E2_THETA_DEG);
-    return { values: pose, answer: toGlobal_m(pose, E2_POINT_M), unit: 'm' };
+    let pose: PoseDeg;
+    let answer: [number, number];
+    do {
+      pose = drawPose(rng, E2_XY_M, E2_THETA_DEG);
+      answer = toGlobal_m(pose, E2_POINT_M);
+    } while (hasSmallCoordinate(answer));
+    return { values: pose, answer, unit: 'm' };
   },
   statement: () => statementKey('e2'),
   tolerance: RELATIVE_2_PERCENT,
