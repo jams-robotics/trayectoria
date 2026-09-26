@@ -23,6 +23,13 @@ const LazyInstruments = lazy(async () => {
  */
 const PAGE_PLOTS: readonly LineFollowerPlot[] = ['error', 'v', 'omega', 'pid'];
 
+/**
+ * #392: the plots' own column (`line-follower-plots`) turned into two equal columns. `mobile` of
+ * `Instruments` only picks the compact plot height, which is the one wanted here too.
+ */
+const DESKTOP_GRID =
+  '[&_[data-testid=line-follower-plots]]:grid [&_[data-testid=line-follower-plots]]:grid-cols-2';
+
 /** Decimales de los tiempos del resumen de «Gráficas», en segundos. */
 const LAP_DECIMALS = 2;
 
@@ -58,10 +65,14 @@ function Charts({
   if (instruments === null) {
     return <p className="text-fg-muted text-sm">{t('sims.mobilePage.readoutsEmpty')}</p>;
   }
+  // #392: on desktop the plots go in a 2×2 grid under the viewer, at the compact height, so the
+  // sticky left column (viewer and «Gráficas») nearly fits the window. On mobile they stack.
   return (
-    <Suspense fallback={<p className="text-fg-muted text-sm">{t('sims.mobilePage.loading')}</p>}>
-      <LazyInstruments buffers={instruments.buffers} show={PAGE_PLOTS} mobile={mobile} pid={pid} />
-    </Suspense>
+    <div className={mobile ? undefined : DESKTOP_GRID}>
+      <Suspense fallback={<p className="text-fg-muted text-sm">{t('sims.mobilePage.loading')}</p>}>
+        <LazyInstruments buffers={instruments.buffers} show={PAGE_PLOTS} mobile pid={pid} />
+      </Suspense>
+    </div>
   );
 }
 
@@ -104,7 +115,6 @@ export function PlotsPanel({
   );
 }
 
-
 /**
  * #375 (docs/DESIGN.md, "Páginas de simulador"): on desktop «Gráficas» lives under the viewer, in
  * the sticky left column. Whether it shows the PID plot is reported by the right column through
@@ -119,7 +129,14 @@ export function useDesktopPlots(
 ): { node: ReactNode; onPid: (pid: boolean) => void } {
   const [pid, setPid] = useState(false);
   const node = shown ? (
-    <PlotsPanel store={store} t={t} mobile={false} openId={openId} setOpenId={setOpenId} pid={pid} />
+    <PlotsPanel
+      store={store}
+      t={t}
+      mobile={false}
+      openId={openId}
+      setOpenId={setOpenId}
+      pid={pid}
+    />
   ) : null;
   return { node, onPid: setPid };
 }

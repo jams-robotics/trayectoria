@@ -69,6 +69,24 @@ test.describe('desktop', () => {
     expect(fit?.blank_px).toBeLessThanOrEqual(1);
   });
 
+  test('mobile sim: the four plots sit in a 2×2 grid under the viewer (#392)', async ({ page }) => {
+    await openMobileSim(page);
+    const boxes = await Promise.all(
+      ['error', 'v', 'omega', 'pid'].map(async (id) =>
+        page.getByTestId(`plot-${id}`).boundingBox(),
+      ),
+    );
+    const [error, v, omega, pid] = boxes;
+    if (!error || !v || !omega || !pid) throw new Error('a plot has no box');
+    // Two per row, each about half the card wide.
+    expect(Math.abs(error.y - v.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(omega.y - pid.y)).toBeLessThanOrEqual(1);
+    expect(omega.y).toBeGreaterThan(error.y + error.height - 1);
+    expect(v.x).toBeGreaterThan(error.x + error.width - 1);
+    const plotsWidth_px = (await page.getByTestId('panel-plots').boundingBox())?.width ?? 0;
+    expect(error.width).toBeLessThan(plotsWidth_px / 2);
+  });
+
   test('arm sim: «Efector» and «Espacio de trabajo» sit in their own cards (#383)', async ({
     page,
   }) => {
