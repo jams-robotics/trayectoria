@@ -148,5 +148,10 @@
     "e2": "Tu robot avanza a v = {{v_mps}} m/s y su lazo de control se ejecuta cada Δt_c = {{controlPeriod_s}} s. ¿Cuánto avanza entre dos ciclos de control, Δs_ciclo en m?",
     "e3": "Tu robot tiene N = 5 sensores separados e_s = 0.012 m y un error de rumbo Δθ = {{headingError_rad}} rad. ¿Qué posición de la línea p mide el arreglo si está a d₁ = {{forwardOffset1_m}} m del eje de ruedas, y qué p mide si está a d₂ = {{forwardOffset2_m}} m? Da p₁ y p₂, sin unidad.",
     "e4": "Tu robot, con distancia entre ruedas L = {{wheelBase_m}} m, toma una curva de radio de giro R = {{turnRadius_m}} m. ¿Cuánto vale la relación v_int/v_ext entre la velocidad de la rueda interior y la exterior, sin unidad?"
+  },
+  "ruta-1/m06-t02": {
+    "e1": "Tu robot sigue la línea con control proporcional: K_p = {{kp}} rad/s, error e = {{error}} y velocidad base ω_base = {{omegaBase_radps}} rad/s. ¿Cuánto valen la acción de control u y las velocidades de rueda ω_L y ω_R, en rad/s?",
+    "e2": "Tu controlador manda ω_L = {{omegaL_radps}} rad/s a la rueda izquierda y ω_R = {{omegaR_radps}} rad/s a la derecha. Con r = 0.032 m y L = 0.15 m, ¿cuál es la velocidad angular ω del robot, en rad/s?",
+    "e3": "Tu robot tiene ω_max = 20.94 rad/s y sigue la línea con ω_base = {{omegaBase_radps}} rad/s. Con |e|_max = 1, ¿cuál es la K_p máxima, en rad/s, para que ninguna rueda sature?"
   }
 }
