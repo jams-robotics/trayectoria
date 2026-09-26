@@ -42,6 +42,11 @@ export const E2_POINT_M: readonly [number, number] = [0.09, 0.024];
 export const E3_TARGET_M: Range = { min: -2, max: 2 };
 /** e3 draws the target again while it is closer than this to the origin. */
 export const E3_MIN_DISTANCE_M = 0.1;
+/**
+ * e3 also draws again while |θ_objetivo| exceeds this: near ±180° the same direction has two
+ * answers (180° and −180°) and `check` compares angles linearly (QA of #413).
+ */
+export const E3_MAX_HEADING_DEG = 170;
 /** e4 is fixed: the global point (1.5, 0.9) m seen from the pose of the hook. */
 export const E4_POINT_M: readonly [number, number] = [1.5, 0.9];
 export const E4_POSE: PoseDeg = { x_m: 1.2, y_m: 0.5, theta_deg: 30 };
@@ -133,21 +138,22 @@ interface Target {
 
 const ORIGIN: PoseDeg = { x_m: 0, y_m: 0, theta_deg: 0 };
 
-/** e3: heading from the origin to a target at least 0.1 m away, drawn again while closer. */
+/** e3: heading from the origin to a target at least 0.1 m away, with |θ_objetivo| ≤ 170°. */
 const e3 = defineExercise<Target>({
   id: 'e3',
   generate: (rng) => {
     let xo_m: number;
     let yo_m: number;
+    let heading_deg: number;
     do {
       xo_m = drawOnGrid(rng, E3_TARGET_M, HUNDREDTHS);
       yo_m = drawOnGrid(rng, E3_TARGET_M, HUNDREDTHS);
-    } while (Math.hypot(xo_m, yo_m) < E3_MIN_DISTANCE_M);
-    return {
-      values: { xo_m, yo_m },
-      answer: targetHeading_deg(ORIGIN, [xo_m, yo_m]),
-      unit: '°',
-    };
+      heading_deg = targetHeading_deg(ORIGIN, [xo_m, yo_m]);
+    } while (
+      Math.hypot(xo_m, yo_m) < E3_MIN_DISTANCE_M ||
+      Math.abs(heading_deg) > E3_MAX_HEADING_DEG
+    );
+    return { values: { xo_m, yo_m }, answer: heading_deg, unit: '°' };
   },
   statement: () => statementKey('e3'),
   tolerance: ABSOLUTE_HALF_DEGREE,

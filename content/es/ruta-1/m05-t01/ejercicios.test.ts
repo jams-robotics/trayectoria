@@ -9,6 +9,7 @@ import {
   E2_POINT_M,
   E2_THETA_DEG,
   E2_XY_M,
+  E3_MAX_HEADING_DEG,
   E3_MIN_DISTANCE_M,
   E3_TARGET_M,
   E4_POINT_M,
@@ -209,9 +210,25 @@ describe('e3 · rumbo desde el origen hacia el objetivo', () => {
     expect(answer).toBeCloseTo(45, 10);
   });
 
-  it('answers in (−180°, 180°]: straight behind is 180°', () => {
-    expect(exercise('e3').generate(scriptedRng([-100, 0])).answer).toBe(180);
-    expect(exercise('e3').generate(scriptedRng([0, -150])).answer).toBeCloseTo(-90, 10);
+  it('redraws a target straight behind, whose heading ±180° has two answers', () => {
+    const { values, answer } = exercise('e3').generate(scriptedRng([-100, 0, 0, -150]));
+    expect(values).toEqual({ xo_m: 0, yo_m: -1.5 });
+    expect(answer).toBeCloseTo(-90, 10);
+  });
+
+  it('redraws a heading just past 170° and keeps one at exactly 170° or less', () => {
+    // (−2, 0.36): atan2 = 169.80°, kept. (−2, 0.34): 170.35°, drawn again.
+    expect(exercise('e3').generate(scriptedRng([-200, 36])).answer).toBeCloseTo(169.8, 1);
+    const { values } = exercise('e3').generate(scriptedRng([-200, 34, 100, 100]));
+    expect(values).toEqual({ xo_m: 1, yo_m: 1 });
+  });
+
+  it('never answers with |θ_objetivo| > 170°, whatever the seed', () => {
+    expect(E3_MAX_HEADING_DEG).toBe(170);
+    for (const seed of Array.from({ length: 10000 }, (_, index) => index + 1)) {
+      const answer = exercise('e3').generate(createRng(seed)).answer as number;
+      expect(Math.abs(answer)).toBeLessThanOrEqual(E3_MAX_HEADING_DEG);
+    }
   });
 
   it('accepts 0.5° off and rejects 0.6° off', () => {
@@ -233,10 +250,7 @@ describe('e3 · rumbo desde el origen hacia el objetivo', () => {
       expectOnGrid(yo_m!, 100);
       expect(Math.hypot(xo_m!, yo_m!)).toBeGreaterThanOrEqual(E3_MIN_DISTANCE_M);
       const answer = exercise('e3').generate(createRng(seed)).answer as number;
-      expect(answer).toBeGreaterThan(-180);
-      expect(answer).toBeLessThanOrEqual(180);
-      const expected_deg = Math.atan2(yo_m!, xo_m!) / DEG_TO_RAD;
-      expect(answer).toBeCloseTo(expected_deg === -180 ? 180 : expected_deg, 9);
+      expect(answer).toBeCloseTo(Math.atan2(yo_m!, xo_m!) / DEG_TO_RAD, 9);
     }
   });
 });
