@@ -82,7 +82,7 @@ qué esperar y, cuando falle, por qué.
 
 <Explora>
 Arriba, el formulario de «Mi robot»; abajo, tu robot en la pista oval con un PID de partida:
-K_p = 8, K_i = 1, K_d = 0.05 y ω_base = 15 rad/s. Las gráficas muestran el error, la velocidad v
+K_p = 8, K_i = 1, K_d = 0.3 y ω_base = 15 rad/s. Las gráficas muestran el error, la velocidad v
 y los términos P, I y D en vivo. El simulador no muestra la longitud de la pista: es 2.771 m.
 
 <MyRobotWidget mode="form" />
@@ -90,7 +90,7 @@ y los términos P, I y D en vivo. El simulador no muestra la longitud de la pist
 <LineFollowerWidget
   track="oval"
   controller="pid"
-  initialParams={{ kp: 8, ki: 1, kd: 0.05, omegaBase_radps: 15 }}
+  initialParams={{ kp: 8, ki: 1, kd: 0.3, omegaBase_radps: 15 }}
   showPlots={['error', 'v', 'pid']}
 />
 
@@ -105,33 +105,35 @@ El PID suma a una rueda lo que resta a la otra, así que la velocidad de avance 
 </Experimento>
 
 <Experimento
-  cambia="nada: deja correr el PID de partida (K_p = 8, K_i = 1, K_d = 0.05) durante 3 vueltas"
-  observa="el contador de vueltas, la «Última vuelta» y los picos de la gráfica de error"
-  porque="¿Por qué completa la pista, pero con algún pico grande en el error?"
+  cambia="K_d de 0.3 a 0.05 y reinicia"
+  observa="la gráfica de error y el contador de vueltas hasta que el simulador se detiene"
+  porque="¿Por qué con menos K_d el robot pierde la línea?"
 >
-Esas ganancias son el resultado de los pasos P → D → I: el robot de referencia hace 3 vueltas en
-unos 18 s (6.07, 5.77 y 5.84 s) y recorre 2.75–2.76 m por vuelta. K_d = 0.05 amortigua poco:
-en la 3.ª vuelta el error llega al extremo y pierde la línea un instante.
+Con K_d = 0.05 el término D apenas frena el giro, así que la oscilación que deja K_p crece en las
+curvas. En la 3.ª vuelta el error llega al extremo, el robot pierde la línea y el simulador se
+detiene. Por eso el orden del paso 3 es P → D → I: la K_d se ajusta antes de dar por buena la
+sintonía.
 </Experimento>
 
 <Experimento
-  cambia="K_d de 0.05 a 0.3 y reinicia"
-  observa="el contador de vueltas, la «Última vuelta» y la gráfica de error"
-  porque="¿Por qué ahora completa las 3 vueltas sin perder la línea?"
+  cambia="K_d de vuelta a 0.3, reinicia y deja correr 3 vueltas"
+  observa="el contador de vueltas, la «Última vuelta» y la «Mejor vuelta»"
+  porque="¿Por qué la 1.ª vuelta dura más que las otras dos?"
 >
-El término D frena el giro antes de que el error crezca, así que la oscilación en las curvas se
-amortigua: 3 vueltas limpias en 5.98, 5.74 y 5.74 s. Con ruido de lectura (σ = 0.03) esa K_d
-amplificaría el ruido y perdería la línea, como viste en [Control PID](/ruta/ruta-1/m06/t03).
+El robot de referencia completa las 3 vueltas sin perder la línea, en 5.98, 5.74 y 5.74 s. La 1.ª
+incluye el arranque desde el reposo; las siguientes empiezan ya a velocidad de crucero. Con ruido
+de lectura (σ = 0.03) esa K_d amplificaría el ruido y perdería la línea, como viste en
+[Control PID](/ruta/ruta-1/m06/t03).
 </Experimento>
 
 <Experimento
-  cambia="nada: tras las 3 vueltas, compara la 1.ª vuelta con las siguientes"
+  cambia="nada: tras las 3 vueltas, compara las lecturas con tu predicción"
   observa="la «Distancia recorrida» frente a 2.771 m y la «Velocidad media» frente a v_pred"
   porque="¿Por qué la medida no coincide del todo con la predicción?"
 >
 El robot recorre algo menos que la longitud de la pista: sus sensores van delante del eje y corta
-las curvas. La 1.ª vuelta incluye el arranque desde el reposo y dura más. Con tus números,
-calcula v_med = D/t_vuelta y Δ%: la sección siguiente lo hace con el robot de referencia.
+las curvas. Si una rueda satura, la velocidad baja de ω_base·r. Con tus números, calcula
+v_med = D/t_vuelta y Δ%: la sección siguiente lo hace con el robot de referencia.
 </Experimento>
 </Explora>
 
@@ -148,15 +150,16 @@ Con esa velocidad, una vuelta a la pista oval, de 2.771 m, dura:
 Si elegiste otra ω_base en el paso 2, v_pred cambia en la misma proporción y t_pred en la
 inversa.
 
-Ahora la medida. Con los parámetros de Explora, el robot de referencia tarda 5.77 s en la 2.ª
+Ahora la medida. Con los parámetros de Explora, el robot de referencia tarda 5.74 s en la 2.ª
 vuelta:
 
-<Formula latex="v_{med} = \frac{2.771\ \text{m}}{5.77\ \text{s}} = 0.480\ \text{m/s}" />
+<Formula latex="v_{med} = \frac{2.771\ \text{m}}{5.74\ \text{s}} = 0.483\ \text{m/s}" />
 
-<Formula latex="\Delta\% = 100\,\frac{0.48 - 0.480}{0.48} \approx 0\ \%" />
+<Formula latex="\Delta\% = 100\,\frac{0.48 - 0.483}{0.48} \approx -0.6\ \%" />
 
-La 2.ª vuelta coincide con la predicción. La 1.ª, de 6.07 s, incluye el arranque desde el
-reposo: si la usas, v_med sale menor y Δ% positiva.
+La 2.ª vuelta queda a menos de un 1 % de la predicción: el robot va algo más rápido de lo
+previsto porque corta las curvas y recorre menos de 2.771 m. La 1.ª, de 5.98 s, incluye el
+arranque desde el reposo: si la usas, v_med sale menor y Δ% positiva.
 
 Haz lo mismo con tu robot: toma la «Última vuelta» de una vuelta completa sin arranque, calcula
 v_med y Δ%, y explica la diferencia con las tres razones del paso 5. No hay nota: el resultado
