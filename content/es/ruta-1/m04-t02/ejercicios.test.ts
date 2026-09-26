@@ -117,7 +117,15 @@ describe('e1 · ω y r: velocidad', () => {
     expect(unit).toBe('m/s');
   });
 
-  it('draws ω ∈ [5, 60] rad/s in hundredths and r ∈ [0.015, 0.05] m in thousandths', () => {
+  it('draws again when v > 1.5 m/s, as e3 (V-34)', () => {
+    // ω = 60 rad/s, r = 0.05 m is 3 m/s: redrawn. The golden values are kept.
+    const { values, answer } = exercise('e1').generate(scriptedRng([6000, 50, 2094, 32]));
+
+    expect(values).toEqual({ omega_radps: 20.94, wheelRadius_m: 0.032 });
+    expect(answer).toBeCloseTo(0.6702, 3);
+  });
+
+  it('draws ω ∈ [5, 60] rad/s in hundredths and r ∈ [0.015, 0.05] m in thousandths, v ≤ 1.5 m/s', () => {
     expect(E1_OMEGA_RADPS).toEqual({ min: 5, max: 60 });
     expect(E1_WHEEL_RADIUS_M).toEqual({ min: 0.015, max: 0.05 });
     for (const seed of MANY_SEEDS) {
@@ -126,10 +134,9 @@ describe('e1 · ω y r: velocidad', () => {
       expectWithin(wheelRadius_m!, E1_WHEEL_RADIUS_M);
       expectOnGrid(omega_radps!, 100);
       expectOnGrid(wheelRadius_m!, 1000);
-      expect(exercise('e1').generate(createRng(seed)).answer).toBeCloseTo(
-        omega_radps! * wheelRadius_m!,
-        12,
-      );
+      const answer_mps = exercise('e1').generate(createRng(seed)).answer as number;
+      expect(answer_mps).toBeCloseTo(omega_radps! * wheelRadius_m!, 12);
+      expect(answer_mps).toBeLessThanOrEqual(MAX_SPEED_MPS);
     }
   });
 });

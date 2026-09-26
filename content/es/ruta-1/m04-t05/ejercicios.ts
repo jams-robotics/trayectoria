@@ -119,7 +119,7 @@ const e3 = defineExercise<Distance>({
     return {
       values: { distance_m },
       answer: distance_m / resolution_m(FIXED_WHEEL_RADIUS_M, FIXED_TICKS_PER_REV),
-      unit: 'ticks',
+      unit: '',
     };
   },
   statement: () => statementKey('e3'),
