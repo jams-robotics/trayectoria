@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { ArmSpec } from '@trayectoria/robot-spec';
 
+import { PanelCard } from '../PanelCard';
 import { CANCELLED_REASON, WORKSPACE_SEED, sampleWorkspaceInBatches } from './sampler';
 import type { BatchSchedule } from './sampler';
 
@@ -206,16 +207,6 @@ function VisibilityButton({
   );
 }
 
-/** El título del panel, con el mismo estilo que los demás del visor (docs/DESIGN.md §6). */
-function PanelTitle(): JSX.Element {
-  const t = useT();
-  return (
-    <h3 className="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
-      {t('sims.workspace.title')}
-    </h3>
-  );
-}
-
 /** La línea viva del panel y, mientras calcula, la barra de progreso. */
 function PanelStatus({
   running,
@@ -281,19 +272,15 @@ export function WorkspacePanel({ arm, onChange, schedule }: WorkspacePanelProps)
   };
 
   return (
-    <section
-      aria-label={t('sims.workspace.title')}
-      data-testid="workspace-panel"
-      className="flex flex-col gap-3"
-    >
-      <PanelTitle />
-
-      <CountField value={count} disabled={running} onChange={setCount} />
-      <div className="flex flex-wrap items-center gap-2">
-        <ComputeButton running={running} onClick={onCompute} />
-        <VisibilityButton visible={visible} hasPoints={points !== null} onClick={onVisible} />
-      </div>
-      <PanelStatus running={running} progress={progress} points={points} />
+    <section aria-label={t('sims.workspace.title')} data-testid="workspace-panel">
+      <PanelCard title={t('sims.workspace.title')} testId="workspace-card" gapClass="gap-3">
+        <CountField value={count} disabled={running} onChange={setCount} />
+        <div className="flex flex-wrap items-center gap-2">
+          <ComputeButton running={running} onClick={onCompute} />
+          <VisibilityButton visible={visible} hasPoints={points !== null} onClick={onVisible} />
+        </div>
+        <PanelStatus running={running} progress={progress} points={points} />
+      </PanelCard>
     </section>
   );
 }

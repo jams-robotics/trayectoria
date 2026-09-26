@@ -51,6 +51,33 @@ test.describe('desktop', () => {
     await expect(left.getByTestId('panel-robot')).toHaveCount(0);
   });
 
+  test('mobile sim: «Gráficas» is not squeezed and leaves no blank space (#383)', async ({
+    page,
+  }) => {
+    await openMobileSim(page);
+    const fit = await page.getByTestId('sim-left-column').evaluate((column) => {
+      const plots = column.querySelector<HTMLElement>('[data-testid="panel-plots"]');
+      if (plots === null) return null;
+      return {
+        clipped_px: plots.scrollHeight - plots.clientHeight,
+        blank_px: column.scrollHeight - (plots.offsetTop + plots.offsetHeight),
+      };
+    });
+    // The card shows its whole content, and nothing but empty space follows it in the column.
+    expect(fit).not.toBeNull();
+    expect(fit?.clipped_px).toBeLessThanOrEqual(1);
+    expect(fit?.blank_px).toBeLessThanOrEqual(1);
+  });
+
+  test('arm sim: «Efector» and «Espacio de trabajo» sit in their own cards (#383)', async ({
+    page,
+  }) => {
+    await page.goto('/simuladores/brazo?robot=planar2dof');
+    await expect(page.getByTestId('effector-card')).toBeVisible({ timeout: ISLAND_TIMEOUT_MS });
+    await page.getByTestId('workspace-toggle').click();
+    await expect(page.getByTestId('workspace-card')).toBeVisible({ timeout: ISLAND_TIMEOUT_MS });
+  });
+
   test('arm sim: the matrices panel sits under the scene in a sticky left column', async ({
     page,
   }) => {

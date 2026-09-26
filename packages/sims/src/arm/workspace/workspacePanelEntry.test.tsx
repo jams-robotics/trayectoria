@@ -42,4 +42,12 @@ describe('workspacePanel (F5-03)', () => {
     expect(screen.getByTestId('workspace-panel')).toBeInTheDocument();
     expect(screen.getByTestId('workspace-compute')).toHaveTextContent(t('sims.workspace.compute'));
   });
+
+  test('los mandos van en su propia tarjeta, como las articulaciones (#383)', () => {
+    render(<>{workspacePanel(ARM, t, vi.fn()).content}</>);
+    const card = screen.getByTestId('workspace-card');
+    expect(card.className).toContain('rounded-lg');
+    expect(card.className).toContain('bg-bg-raised');
+    expect(card).toContainElement(screen.getByTestId('workspace-compute'));
+  });
 });

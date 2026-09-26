@@ -15,10 +15,12 @@ import type { usePageState } from './useMobileSimState';
 /**
  * #375 (docs/DESIGN.md, "Páginas de simulador"): from `lg` and with a window at least 640 px tall
  * the left column (viewer and «Gráficas») is sticky while the right column scrolls, and scrolls
- * inside if it is taller than the window. Literal classes so Tailwind sees them.
+ * inside if it is taller than the window. Literal classes so Tailwind sees them. #383: the
+ * children never shrink, or the capped height squeezes «Gráficas» (its `overflow-hidden` lets
+ * it) down to its title and leaves the column's scroll area blank.
  */
 const LEFT_COLUMN =
-  'flex min-w-0 flex-1 flex-col gap-3 ' +
+  'flex min-w-0 flex-1 flex-col gap-3 [&>*]:shrink-0 ' +
   '[@media(min-width:1024px)_and_(min-height:640px)]:sticky ' +
   '[@media(min-width:1024px)_and_(min-height:640px)]:top-0 ' +
   '[@media(min-width:1024px)_and_(min-height:640px)]:max-h-screen ' +
@@ -88,13 +90,7 @@ export function ViewerBox(props: ViewerBoxProps): JSX.Element {
  * (#189, decisión 2). No pinta nada donde el editor lo dejó: allí ya no hay sitio, y la columna es
  * quien lo muestra.
  */
-function EditorPanelPort({
-  store,
-  panel,
-}: {
-  store: EditorPanelStore;
-  panel: ReactNode;
-}): null {
+function EditorPanelPort({ store, panel }: { store: EditorPanelStore; panel: ReactNode }): null {
   usePublishedPanel(store, panel);
   return null;
 }
