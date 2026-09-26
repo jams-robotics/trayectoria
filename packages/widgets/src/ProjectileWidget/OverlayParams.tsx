@@ -81,18 +81,22 @@ export interface ParamsProps {
 
 /**
  * One `ParamPanel` per launch, under the viewer. With an overlay each panel carries its `A` or
- * `B` legend (#88, decision 7), the two sit side by side when they fit (§6) and the toggle of
- * B sits right above the panel of B, which it hides (#361).
+ * `B` legend (#88, decision 7) and the two sit side by side when they fit (§6). The toggle of B
+ * sits in the header row of B, on the line of its legend, so both panels start at the same
+ * height (#361; #381). With B hidden the row keeps the toggle alone, the same button, so the
+ * keyboard focus stays on it.
  */
 export function Params({ mode, launches, onChange, toggle, t }: ParamsProps): JSX.Element {
   const overlaid = launches.length > 1;
   const legends = legendsOf(mode, t);
-  const panelOf = (launch: Launch, index: number): JSX.Element => (
+  const panelOf = (launch: Launch, index: number, action?: JSX.Element): JSX.Element => (
     <LaunchParams
       key={legends[index]}
       mode={mode}
       launch={launch}
       legend={overlaid ? legends[index] : undefined}
+      action={action}
+      collapsed={index === 1 && !toggle.shown}
       onChange={(key, value) => {
         onChange[index === 0 ? 0 : 1]((current) => applyChange(current, key, value));
       }}
@@ -100,15 +104,13 @@ export function Params({ mode, launches, onChange, toggle, t }: ParamsProps): JS
     />
   );
   const [primary, secondary] = launches;
+  const toggleOfB = (
+    <OverlayToggle mode={mode} pressed={toggle.shown} onToggle={toggle.toggle} t={t} />
+  );
   return (
     <ParamGrid>
       {primary === undefined ? null : panelOf(primary, 0)}
-      {secondary === undefined ? null : (
-        <div className="flex flex-col gap-3">
-          <OverlayToggle mode={mode} pressed={toggle.shown} onToggle={toggle.toggle} t={t} />
-          {toggle.shown ? panelOf(secondary, 1) : null}
-        </div>
-      )}
+      {secondary === undefined ? null : panelOf(secondary, 1, toggleOfB)}
     </ParamGrid>
   );
 }
