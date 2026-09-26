@@ -81,6 +81,25 @@ function topLevelTags(body) {
 }
 
 /**
+ * 1-based body lines where a section's closing tag is indented. MDX reads an indented
+ * `</Formulas>` right after a list as part of the last list item, so the section is not
+ * closed and does not render (#349, #448).
+ * @param {string} body
+ * @returns {{ line: number; tag: string }[]}
+ */
+function indentedSectionClosers(body) {
+  /** @type {{ line: number; tag: string }[]} */
+  const found = [];
+  body.split('\n').forEach((text, index) => {
+    const match = /^[ \t]+<\/([A-Z][A-Za-z0-9]*)\s*>/.exec(text);
+    if (match !== null && SECTIONS.includes(match[1])) {
+      found.push({ line: index + 1, tag: match[1] });
+    }
+  });
+  return found;
+}
+
+/**
  * Cuenta las apariciones de una etiqueta JSX en el cuerpo, abierta o autocerrada.
  * @param {string} body
  * @param {string} tag
@@ -113,8 +132,15 @@ function checkTopic(file, findings) {
   /** @param {string} reason */
   const report = (reason) => findings.push({ file: display, reason });
 
-  const { body, status } = splitFrontmatter(readFileSync(file, 'utf8'));
+  const content = readFileSync(file, 'utf8');
+  const { body, status } = splitFrontmatter(content);
   const tags = topLevelTags(body).filter((tag) => SECTIONS.includes(tag));
+
+  // Report file line numbers: offset the body lines by the frontmatter length.
+  const bodyOffset = content.split('\n').length - body.split('\n').length;
+  for (const { line, tag } of indentedSectionClosers(body)) {
+    report(`línea ${line + bodyOffset}: </${tag}> tiene sangría; debe ir en la primera columna`);
+  }
 
   const missing = SECTIONS.filter((section) => !tags.includes(section));
   for (const section of missing) report(`falta la sección <${section}>`);
