@@ -18,6 +18,7 @@ import {
 import type { Pose, Twist, WheelCommand } from './compute';
 import { headingError_deg, positionError_m } from './odometry';
 import type { EstimatedVelocity, Step, Ticks } from './odometry';
+import type { ManeuverPhase } from './maneuver';
 
 /** Everything the panels read: the pose, the twist it comes from and the wheel commands. */
 export interface Readout {
@@ -120,6 +121,36 @@ export function statusOf(readout: Readout, t: Translate): string {
     omega: format(readout.twist.omega_radps, t('widgets.DiffDriveWidget.unitRadps')),
     radius: radiusText(readout.twist, t),
   });
+}
+
+/** The text of a phase of the maneuver: `1 · Girar`, `2 · Avanzar`, `3 · Girar`, `Terminada`. */
+export function phaseText(phase: ManeuverPhase, t: Translate): string {
+  return t(`widgets.DiffDriveWidget.maneuverPhase${phase === 'done' ? 'Done' : String(phase)}`);
+}
+
+/** The «Fase» and «Duración de la maniobra» lines the pose panel adds with the maneuver (#394). */
+export function maneuverRows(
+  maneuver: { phase: ManeuverPhase; duration_s: number } | null,
+  t: Translate,
+): readonly ReadoutRow[] {
+  if (maneuver === null) return [];
+  return [
+    [t('widgets.DiffDriveWidget.maneuverPhase'), phaseText(maneuver.phase, t)],
+    [
+      t('widgets.DiffDriveWidget.maneuverDuration'),
+      format(maneuver.duration_s, t('widgets.DiffDriveWidget.unitS')),
+    ],
+  ];
+}
+
+/** The sentence of the `aria-live` region with the phase of the maneuver after it (#394). */
+export function maneuverStatusOf(
+  status: string,
+  phase: ManeuverPhase | null,
+  t: Translate,
+): string {
+  if (phase === null) return status;
+  return t('widgets.DiffDriveWidget.statusManeuver', { status, phase: phaseText(phase, t) });
 }
 
 /** What the odometry panel of `mode: 'odometry'` reads (#93, decision 3). */
