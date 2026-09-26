@@ -106,7 +106,7 @@ describe('useLineFollower (F4-02a)', () => {
 
     rerender(options({ params: { ...REFERENCE_PID_PARAMS, kp: 5 } }));
 
-    // El tiempo y la traza sobreviven al cambio: es la misma carrera con otras ganancias.
+    // The time and the trace survive the change: it is the same run with other gains.
     expect(result.current.state.robot.t_s).toBe(t_s);
     expect(result.current.trace_m.length).toBeGreaterThan(0);
   });
@@ -134,17 +134,17 @@ describe('useLineFollower (F4-02a)', () => {
 });
 
 /**
- * El bucle real del widget, que ningún test del modelo ejercita: `useSimulationDriver` avanza la
- * simulación una vez por `requestAnimationFrame` y le fija el reloj con la marca de tiempo del
- * fotograma. Falsear `requestAnimationFrame` es la única forma de ver aquí lo que QA vio en el
- * navegador — si el hook no le pasa al driver el `FrameClock` con el que construyó la simulación,
- * ese reloj se queda en `t = 0` y «Reproducir» no integra tiempo alguno (F4-02a, QA de #152).
+ * The real loop of the widget, which no model test exercises: `useSimulationDriver` advances the
+ * simulation once per `requestAnimationFrame` and sets its clock with the frame's
+ * timestamp. Faking `requestAnimationFrame` is the only way to see here what QA saw in the
+ * browser — if the hook does not pass the driver the `FrameClock` it built the simulation with,
+ * that clock stays at `t = 0` and «Reproducir» integrates no time at all (F4-02a, QA of #152).
  */
 describe('useLineFollower · bucle de reproducción (F4-02a)', () => {
   let frames: Map<number, FrameRequestCallback>;
   let nextHandle: number;
 
-  /** Ejecuta los fotogramas pendientes con la marca `now_ms`, como haría el navegador. */
+  /** Runs the pending frames with the timestamp `now_ms`, as the browser would. */
   function frame(now_ms: number): void {
     const pending = [...frames.values()];
     frames.clear();
@@ -178,7 +178,7 @@ describe('useLineFollower · bucle de reproducción (F4-02a)', () => {
     act(() => {
       result.current.driver.play();
     });
-    // El primer fotograma solo fija el origen del tiempo; el segundo integra 100 ms.
+    // The first frame only fixes the time origin; the second integrates 100 ms.
     frame(1000);
     frame(1100);
 
@@ -203,12 +203,12 @@ describe('useLineFollower · bucle de reproducción (F4-02a)', () => {
 
     rerender(options({ params: { ...REFERENCE_PID_PARAMS, kp: 5 } }));
 
-    // Ni el tiempo ni el estado de reproducción se mueven al soltar el slider.
+    // Neither the time nor the playback state move when the slider is released.
     expect(result.current.driver.running).toBe(true);
     expect(result.current.driver.t_s).toBeCloseTo(0.1, 9);
     expect(result.current.state.robot.t_s).toBeCloseTo(0.1, 9);
 
-    // Y el bucle sigue integrando fotogramas después del cambio.
+    // And the loop keeps integrating frames after the change.
     frame(1200);
     expect(result.current.driver.running).toBe(true);
     expect(result.current.driver.t_s).toBeCloseTo(0.2, 9);
@@ -261,7 +261,7 @@ describe('useLineFollower · bucle de reproducción (F4-02a)', () => {
     expect(result.current.driver.speed).toBe(2);
     expect(result.current.driver.t_s).toBeCloseTo(t_s, 9);
 
-    // Al doble de velocidad, 100 ms de fotograma integran 0.2 s simulados.
+    // At double speed, 100 ms of frame integrate 0.2 simulated s.
     frame(1200);
     expect(result.current.driver.running).toBe(true);
     expect(result.current.driver.t_s).toBeCloseTo(t_s + 0.2, 9);
@@ -278,9 +278,9 @@ describe('useLineFollower · bucle de reproducción (F4-02a)', () => {
     expect(result.current.driver.t_s).toBeCloseTo(DEFAULT_DT_S, 12);
     expect(result.current.state.robot.t_s).toBeCloseTo(DEFAULT_DT_S, 12);
   });
-  // F4-05 (#131, decisión 3): la semilla es una opción, y viaja en el enlace compartido. Con ruido
-  // el generador la usa, así que dos semillas producen lecturas distintas y la misma semilla
-  // reproduce la carrera paso a paso.
+  // F4-05 (#131, decision 3): the seed is an option, and it travels in the shared link. With noise
+  // the generator uses it, so two seeds produce different readings and the same seed
+  // reproduces the run step by step.
   it('la semilla por defecto y una semilla explícita distinta dan lecturas distintas (F4-05)', () => {
     const noisy = { noiseSigma: 0.05 };
     const run = (seed?: number): number[] => {

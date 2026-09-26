@@ -19,26 +19,26 @@ import type { ControllerChoice, PageState } from './useMobileSimState';
 import type { SavedTracksApi } from './useSavedTracks';
 import type { SimConfigsApi } from './useSimConfigs';
 
-// F4-02b (#128): los paneles de `/simuladores/movil` (Robot, Pista, Lecturas y la columna
-// derecha que los agrupa), separados de `MobileSimIsland.tsx` para mantener cada archivo bajo
-// el límite de docs/STANDARDS.md §4. La tarjeta/acordeón que envuelve a cada uno vive en
-// `SimPanel.tsx` y la columna del editor de pista en `EditorColumn.tsx` (#189).
+// F4-02b (#128): the panels of `/simuladores/movil` (Robot, Pista, Lecturas and the right
+// column that groups them), split from `MobileSimIsland.tsx` to keep each file under
+// the limit of docs/STANDARDS.md §4. The card/accordion that wraps each one lives in
+// `SimPanel.tsx` and the track editor column in `EditorColumn.tsx` (#189).
 
 export type { OpenPanelId } from './SimPanel';
 
-/** Decimales del reloj en el resumen de un acordeón (docs/DESIGN.md §5). */
+/** Decimals of the clock in an accordion summary (docs/DESIGN.md §5). */
 const CLOCK_DECIMALS = 2;
 
-// F4-05 (#131, decisión 6): «Guardar y compartir» es un panel más de la columna. Se carga con
-// `import()` como el resto de `@trayectoria/sims`, así que no entra en el JS inicial.
+// F4-05 (#131, decision 6): «Guardar y compartir» is one more panel of the column. It is loaded
+// with `import()` like the rest of `@trayectoria/sims`, so it does not enter the initial JS.
 const LazySaveConfigPanel = lazy(async () => {
   const module = await import('@trayectoria/sims');
   return { default: module.SaveConfigPanel };
 });
 
 /**
- * El resumen en línea de «Lecturas», legible con el acordeón cerrado (docs/DESIGN.md §9.8).
- * Sale del estado que el widget publica por `onApi`, no de una copia de la simulación.
+ * The inline summary of «Lecturas», readable with the accordion closed (docs/DESIGN.md §9.8).
+ * It comes from the state the widget publishes through `onApi`, not from a copy of the simulation.
  */
 export function lapSummary(api: LineFollowerApi | null, t: Translate): string | undefined {
   if (api === null) return undefined;
@@ -49,9 +49,9 @@ export function lapSummary(api: LineFollowerApi | null, t: Translate): string | 
 }
 
 /**
- * El panel «Lecturas» de la maqueta 04: las vueltas, el reloj y la velocidad en vivo. Las
- * lecturas completas del arreglo y la pose las sigue mostrando el propio visor del widget; aquí
- * va el resumen que la maqueta pone a la derecha.
+ * The «Lecturas» panel of mockup 04: the laps, the clock and the live speed. The full
+ * array readings and the pose are still shown by the widget's own viewer; here goes the
+ * summary the mockup places on the right.
  */
 function Readouts({ api, t }: { api: LineFollowerApi | null; t: Translate }): JSX.Element {
   if (api === null) {
@@ -95,8 +95,8 @@ function TrackPanel({ page, tracks }: { page: PageState; tracks: SavedTracksApi 
 }
 
 /**
- * «Lecturas»: el único panel que mira la simulación en vivo, y por eso el único que se vuelve a
- * renderizar en cada tick. Se suscribe al store en lugar de recibir la api por props.
+ * «Lecturas»: the only panel that watches the simulation live, and therefore the only one that
+ * re-renders on every tick. It subscribes to the store instead of receiving the api by props.
  */
 function ReadoutsPanel({
   store,
@@ -128,8 +128,8 @@ function ReadoutsPanel({
 }
 
 /**
- * «Guardar y compartir» (F4-05): el nombre, la lista de guardadas y el enlace. La página decide
- * qué lista se muestra y dónde se guarda; aquí solo se monta el panel de `@trayectoria/sims`.
+ * «Guardar y compartir» (F4-05): the name, the list of saved ones and the link. The page decides
+ * which list is shown and where it is saved; here only the `@trayectoria/sims` panel is mounted.
  */
 function SharePanel({
   configs,
@@ -157,14 +157,14 @@ function SharePanel({
 }
 
 /**
- * El controlador y las ganancias que el panel del widget está mostrando ahora mismo. El widget
- * entrega ese panel por `renderPanel`, así que sus props son el estado en vivo de
- * `useControllerChoice`: leerlas de ahí evita duplicar el selector en la página y evita añadirle
- * api pública nueva al widget (F4-05, #131, decisión 6). Lo que no venga del panel se queda con lo
- * que la página tenía elegido.
+ * The controller and the gains the widget's panel is showing right now. The widget
+ * hands that panel over through `renderPanel`, so its props are the live state of
+ * `useControllerChoice`: reading them from there avoids duplicating the selector in the page and
+ * avoids adding new public api to the widget (F4-05, #131, decision 6). Whatever does not come
+ * from the panel keeps what the page had picked.
  *
- * «Manual» no es un valor con el que la página pueda arrancar el widget (ver `PageController` en
- * `useMobileSimState.ts`), así que guardar en ese modo guarda el controlador con el que abrió.
+ * «Manual» is not a value the page can start the widget with (see `PageController` in
+ * `useMobileSimState.ts`), so saving in that mode saves the controller it opened with.
  */
 function liveChoice(panel: ReactNode): Omit<ControllerChoice, 'seed'> | null {
   if (!isValidElement<Partial<ControllerPanelProps>>(panel)) return null;
@@ -174,8 +174,8 @@ function liveChoice(panel: ReactNode): Omit<ControllerChoice, 'seed'> | null {
 }
 
 /**
- * Publica hacia la página el controlador y las ganancias que el panel del widget muestra ahora
- * mismo, para que «Guardar y compartir» guarde lo que de verdad está corriendo (F4-05).
+ * Publishes to the page the controller and the gains the widget's panel shows right
+ * now, so that «Guardar y compartir» saves what is really running (F4-05).
  */
 function useReportedChoice(
   choice: Omit<ControllerChoice, 'seed'> | null,
@@ -191,10 +191,10 @@ function useReportedChoice(
 }
 
 /**
- * La columna derecha de la maqueta 04: el panel del controlador que entrega el widget y, debajo,
- * Robot, Pista y Lecturas. Va dentro del `renderPanel` del widget porque es ahí donde su propia
- * fila coloca la columna derecha, junto al visor; así el visor se queda con los 2/3 de ancho de
- * la maqueta en lugar de repartirse la celda con el panel.
+ * The right column of mockup 04: the controller panel the widget hands over and, below,
+ * Robot, Pista and Lecturas. It goes inside the widget's `renderPanel` because that is where its
+ * own row places the right column, next to the viewer; that way the viewer keeps 2/3 of the
+ * mockup's width instead of sharing the cell with the panel.
  */
 export interface SidePanelsProps {
   readonly page: PageState;
@@ -204,15 +204,15 @@ export interface SidePanelsProps {
   readonly t: Translate;
   readonly controller: ReactNode;
   readonly store: ApiStore;
-  /** Las configuraciones guardadas y las acciones del panel «Guardar y compartir» (F4-05). */
+  /** The saved configurations and the actions of the «Guardar y compartir» panel (F4-05). */
   readonly configs: SimConfigsApi;
-  /** La configuración en curso que ese panel guarda y comparte (F4-05). */
+  /** The running configuration that panel saves and shares (F4-05). */
   readonly current: Omit<SimConfig, 'id' | 'name'>;
-  /** Publica hacia la isla el controlador y las ganancias que el panel muestra (F4-05). */
+  /** Publishes to the island the controller and the gains the panel shows (F4-05). */
   readonly onChoice: (choice: ControllerChoice) => void;
-  /** Las gráficas en vivo que el widget publica por `onInstruments` (F4-03). */
+  /** The live plots the widget publishes through `onInstruments` (F4-03). */
   readonly instruments: InstrumentsStore;
-  /** El panel numérico que el editor de pista publica mientras se edita (#189, decisión 2). */
+  /** The numeric panel the track editor publishes while editing (#189, decision 2). */
   readonly panels: EditorPanelStore;
   /** The saved tracks of the «Mis pistas» group of the Pista panel (#191, decision 4). */
   readonly tracks: SavedTracksApi;
@@ -220,7 +220,7 @@ export interface SidePanelsProps {
   readonly onPlotsPid: (pid: boolean) => void;
 }
 
-/** La columna de la simulación: el controlador del widget y las cinco tarjetas de la maqueta 04. */
+/** The simulation column: the widget's controller and the five cards of mockup 04. */
 function SimColumn(props: SidePanelsProps): JSX.Element {
   const { page, mobile, openId, setOpenId, t, controller, store, configs, current } = props;
   const shared = { mobile, openId, setOpenId };
@@ -267,7 +267,7 @@ export function SidePanels(props: SidePanelsProps): JSX.Element {
   useEffect(() => {
     onPlotsPid(pid);
   }, [pid, onPlotsPid]);
-  // #189 (decisión 2): mientras se edita la pista, la columna es solo el panel del segmento.
+  // #189 (decision 2): while the track is being edited, the column is only the segment panel.
   if (page.view === 'editor') {
     return (
       <EditorColumn
@@ -282,7 +282,7 @@ export function SidePanels(props: SidePanelsProps): JSX.Element {
   return <SimColumn {...props} />;
 }
 
-/** La barra inferior de móvil, conectada al driver en curso; se renderiza sola en cada tick. */
+/** The mobile bottom bar, wired to the running driver; it re-renders on its own on every tick. */
 export function LiveBottomBar({ store }: { store: ApiStore }): JSX.Element | null {
   const api = useApi(store);
   return api === null ? null : <BottomBar driver={api.driver} />;

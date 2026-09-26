@@ -1,15 +1,15 @@
 /**
- * Las configuraciones del simulador guardadas en un robot del estudiante (F4-05, #131, decisión
- * 5): la lista `simConfigs` del `spec` de una fila de `public.robots`. Vive en `apps/web` porque
- * solo la app puede importar `@trayectoria/db` (regla de dependencias de `eslint.config.js`).
+ * The simulator configurations saved in a learner's robot (F4-05, #131, decision
+ * 5): the `simConfigs` list of the `spec` of a `public.robots` row. It lives in `apps/web` because
+ * only the app may import `@trayectoria/db` (dependency rule of `eslint.config.js`).
  *
- * RLS es el único control de acceso: cada sentencia corre con la sesión del propio estudiante y
- * las políticas de `supabase/migrations/0002_rls.sql` la acotan a `owner_id = auth.uid()`. El
- * `owner_id` va además en el `eq` del `update`, así que una fila de otro no se toca ni por error.
- * No hay migración, ni política nueva, ni `service_role`.
+ * RLS is the only access control: every statement runs with the learner's own session and
+ * the policies of `supabase/migrations/0002_rls.sql` limit it to `owner_id = auth.uid()`. The
+ * `owner_id` also goes in the `eq` of the `update`, so another user's row is never touched, not even by mistake.
+ * There is no migration, no new policy and no `service_role`.
  *
- * El `update` manda el `spec` entero con la lista sustituida y no toca `spec_version`: la versión
- * del formato la decide `robot-spec`, no esta pantalla.
+ * The `update` sends the whole `spec` with the list replaced and does not touch `spec_version`: the
+ * format version is decided by `robot-spec`, not by this screen.
  */
 import { getDbClient } from '@trayectoria/db';
 import type { DbClient, Json } from '@trayectoria/db';
@@ -21,13 +21,13 @@ import { isCheckViolation } from '../checkViolation';
 /** The size check of `robots.spec` (migration 0007, #210). */
 const SIZE_CHECK = 'robots_spec_size_check';
 
-/** La fila que hace falta para leer y reescribir la lista. */
+/** The row needed to read and rewrite the list. */
 interface RobotRow {
   readonly id: string;
   readonly spec: Record<string, unknown>;
 }
 
-/** El `spec` de la fila `robotId` del dueño `ownerId`, o `null` si no la hay o falla la consulta. */
+/** The `spec` of row `robotId` of owner `ownerId`, or `null` if there is none or the query fails. */
 async function readRow(
   robotId: string,
   ownerId: string,
@@ -45,7 +45,7 @@ async function readRow(
   return { id: data.id, spec: { ...spec } };
 }
 
-/** Las configuraciones válidas de un `spec`; las que no cumplen el esquema se descartan. */
+/** The valid configurations of a `spec`; those that do not match the schema are discarded. */
 function configsOf(spec: Record<string, unknown>): readonly SimConfig[] {
   const stored: unknown = spec['simConfigs'];
   if (!Array.isArray(stored)) return [];
@@ -53,9 +53,9 @@ function configsOf(spec: Record<string, unknown>): readonly SimConfig[] {
 }
 
 /**
- * El valor como JSON plano, que es lo que la columna `jsonb` guarda. El ida y vuelta por
- * `JSON.stringify` es lo que convierte el objeto en datos, sin aserciones de tipo: lo que entra
- * son `SimConfig` validadas y el `spec` que la propia fila devolvió, así que siempre es
+ * The value as plain JSON, which is what the `jsonb` column stores. The round trip through
+ * `JSON.stringify` is what turns the object into data, without type assertions: what goes in
+ * are validated `SimConfig`s and the `spec` the row itself returned, so it is always
  * serializable.
  */
 function jsonOf(value: Record<string, unknown>): Json {
@@ -64,13 +64,13 @@ function jsonOf(value: Record<string, unknown>): Json {
   return isJson(parsed) ? parsed : {};
 }
 
-/** Si un valor ya leído de `JSON.parse` encaja en `Json`; lo es todo salvo `undefined`. */
+/** Whether a value already read from `JSON.parse` fits `Json`; everything does except `undefined`. */
 function isJson(value: unknown): value is Json {
   return value !== undefined;
 }
 
 /**
- * Escribe la lista en el `spec` de la fila, conservando el resto del robot y `spec_version`.
+ * Writes the list into the row's `spec`, keeping the rest of the robot and `spec_version`.
  *
  * #210: the list lives inside `robots.spec`, which is bound to 64 KiB (docs/ARCHITECTURE.md
  * §5.1). A spec over the bound is refused with a `RangeError` before the `update`, and a rejection
@@ -95,7 +95,7 @@ async function write(
     : new Error(error.message);
 }
 
-/** Las configuraciones guardadas en el robot; lista vacía si la fila no existe o falla la lectura. */
+/** The configurations saved in the robot; empty list if the row does not exist or the read fails. */
 export async function listRobotSimConfigs(
   robotId: string,
   ownerId: string,
@@ -106,8 +106,8 @@ export async function listRobotSimConfigs(
 }
 
 /**
- * Guarda `config` en el robot, sustituyendo en su sitio la que tuviera el mismo `id`. Devuelve la
- * lista resultante, que es la que la página muestra sin volver a consultar.
+ * Saves `config` in the robot, replacing in place the one with the same `id`. Returns the
+ * resulting list, which is the one the page shows without querying again.
  */
 export async function saveRobotSimConfig(
   robotId: string,
@@ -125,7 +125,7 @@ export async function saveRobotSimConfig(
   return write(row, ownerId, next, db);
 }
 
-/** Borra la configuración `configId` del robot y devuelve la lista resultante. */
+/** Deletes the configuration `configId` from the robot and returns the resulting list. */
 export async function deleteRobotSimConfig(
   robotId: string,
   ownerId: string,

@@ -4,11 +4,11 @@ import { t } from '@trayectoria/i18n';
 import { MobileSimIsland } from '../../components/sim/MobileSimIsland';
 import Base from '../../layouts/Base.astro';
 
-// F4-02b (#128): la página del simulador móvil 2D (docs/ARCHITECTURE.md §3.2).
+// F4-02b (#128): the 2D mobile simulator page (docs/ARCHITECTURE.md §3.2).
 //
-// La isla es `client:visible` (#128, decisión 1): el simulador 2D no necesita `three`, así que
-// nada de esta página entra en el chunk de las escenas 3D y el presupuesto de JS de
-// docs/ARCHITECTURE.md §8 se cumple con el visor, el editor de pista y el widget.
+// The island is `client:visible` (#128, decision 1): the 2D simulator does not need `three`, so
+// nothing of this page enters the 3D scenes chunk and the JS budget of
+// docs/ARCHITECTURE.md §8 is met with the viewer, the track editor and the widget.
 ---
 
 <Base title={t('sims.mobilePage.title')} description={t('sims.mobilePage.lead')}>

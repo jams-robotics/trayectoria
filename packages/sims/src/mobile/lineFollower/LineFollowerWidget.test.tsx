@@ -38,8 +38,8 @@ describe('LineFollowerWidget (F4-02a)', () => {
 
   it('encuadra la pista con margen y respeta el ancho mínimo en compacto', () => {
     const wide = viewOf(presets.oval, false);
-    // El óvalo abarca x ∈ [-0.25, 0.85] e y ∈ [0, 0.5]: con margen, 1.3 m de ancho frente a
-    // 0.7 · 16/9 = 1.244 m que pide su alto, así que manda el ancho y el valor dorado no cambia.
+    // The oval spans x ∈ [-0.25, 0.85] and y ∈ [0, 0.5]: with margin, 1.3 m wide versus the
+    // 0.7 · 16/9 = 1.244 m its height asks for, so the width wins and the golden value does not change.
     expect(wide.worldWidth_m).toBeCloseTo(1.3, 3);
     expect(wide.center_m[0]).toBeCloseTo(0.3, 3);
     const tiny = viewOf({ segments: [{ type: 'line', from: [0, 0], to: [0.1, 0] }], lineWidth_m: 0.02 }, true);
@@ -49,13 +49,13 @@ describe('LineFollowerWidget (F4-02a)', () => {
   });
 
   it('ensancha la vista cuando la pista es más alta que ancha (#157)', () => {
-    // El cruce abarca x ∈ [-0.2, 0.6] e y ∈ [-0.4, 0.4]: 1 m de ancho con margen, pero su alto
-    // de 1 m pide 1 · 16/9 = 1.778 m para que la pista quepa entera en el visor.
+    // The crossing spans x ∈ [-0.2, 0.6] and y ∈ [-0.4, 0.4]: 1 m wide with margin, but its height
+    // of 1 m asks for 1 · 16/9 = 1.778 m so that the whole track fits in the viewer.
     expect(viewOf(presets.crossing, false).worldWidth_m).toBeCloseTo(1.7778, 3);
-    // La ese abarca x ∈ [-0.2, 1.2] e y ∈ [-0.4, 0.4]: 1.6 m de ancho, 1.778 m por el alto.
+    // The S spans x ∈ [-0.2, 1.2] and y ∈ [-0.4, 0.4]: 1.6 m wide, 1.778 m because of the height.
     expect(viewOf(presets.sCurve, false).worldWidth_m).toBeCloseTo(1.7778, 3);
-    // Las curvas cerradas abarcan x ∈ [-0.15, 0.35] e y ∈ [0, 0.5]: 0.7 m de ancho, 1.244 m
-    // por el alto; en compacto el mínimo de 1 m ya no manda.
+    // The tight curves span x ∈ [-0.15, 0.35] and y ∈ [0, 0.5]: 0.7 m wide, 1.244 m
+    // because of the height; in compact mode the 1 m minimum no longer wins.
     expect(viewOf(presets.tightCurves, false).worldWidth_m).toBeCloseTo(1.2444, 3);
     expect(viewOf(presets.tightCurves, true).worldWidth_m).toBeCloseTo(1.2444, 3);
   });
@@ -155,8 +155,8 @@ describe('LineFollowerWidget (F4-02a)', () => {
   });
 
   it('avisa cuando el arreglo pierde la línea', () => {
-    // El robot arranca al inicio de la pista, pero su arreglo va 0.09 m por delante
-    // (docs/ROBOT-SPEC.md §3): sobre una pista de 2 cm los sensores quedan fuera de ella.
+    // The robot starts at the beginning of the track, but its array is 0.09 m ahead
+    // (docs/ROBOT-SPEC.md §3): on a 2 cm track the sensors end up outside it.
     render(
       <LineFollowerWidget
         track={{ segments: [{ type: 'line', from: [0, 0], to: [0.02, 0] }], lineWidth_m: 0.02 }}

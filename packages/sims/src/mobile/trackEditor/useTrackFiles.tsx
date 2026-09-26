@@ -36,16 +36,16 @@ export interface TrackFiles {
   dismiss: () => void;
 }
 
-/** Lo que `useReplace` devuelve: la pregunta en curso y las cuatro acciones que la mueven. */
+/** What `useReplace` returns: the current question and the four actions that move it. */
 type Replace = Pick<
   TrackFiles,
   'pending' | 'askPreset' | 'askNew' | 'confirmPending' | 'cancelPending'
 >;
 
 /**
- * Lo que sustituye la pista entera y su confirmación: un preset (spec de #126) o el lienzo vacío
- * de «Nueva» (#190, decisiones 1 y 2). El preset pregunta cuando hay trabajo sin guardar; «Nueva»
- * lo hace cuando hay segmentos, guardados o no: vaciar el lienzo es perderlos de vista igual.
+ * What replaces the whole track and its confirmation: a preset (spec of #126) or the empty canvas
+ * of «Nueva» (#190, decisions 1 and 2). The preset asks when there is unsaved work; «Nueva»
+ * does so when there are segments, saved or not: emptying the canvas loses sight of them all the same.
  */
 function useReplace(latest: RefObject<TrackEditorApi>): Replace {
   const [pending, setPending] = useState<PendingReplace | null>(null);
@@ -116,11 +116,11 @@ export interface ConfirmReplaceProps {
 }
 
 /**
- * La confirmación en línea de lo que reemplaza la pista entera: un preset sobre trabajo sin
- * guardar (spec de #126) o el lienzo vacío de «Nueva» (#190, decisiones 1 y 2). Es el patrón
- * `ConfirmInline` de F3-02a —pregunta, un «sí» secundario y un «no» fantasma—, que vive en
- * `apps/web` y no puede importarse desde aquí (docs/ARCHITECTURE.md §2), así que se reproduce su
- * forma con los tokens de docs/DESIGN.md §5.
+ * The inline confirmation of whatever replaces the whole track: a preset over unsaved
+ * work (spec of #126) or the empty canvas of «Nueva» (#190, decisions 1 and 2). It is the
+ * `ConfirmInline` pattern of F3-02a —question, a secondary «sí» and a ghost «no»—, which lives in
+ * `apps/web` and cannot be imported from here (docs/ARCHITECTURE.md §2), so its
+ * shape is reproduced with the tokens of docs/DESIGN.md §5.
  */
 export function ConfirmReplace({
   pending,

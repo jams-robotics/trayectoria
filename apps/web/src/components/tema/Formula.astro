@@ -1,22 +1,22 @@
 ---
 import { TopicWidget } from './TopicWidget';
 
-// Un bloque de fórmula dentro de `Formulas` (docs/DESIGN.md §5, Bloque de fórmula). Va en el
-// mapa de componentes MDX en vez de importarse desde el tema: `content/` vive fuera de
-// `apps/web` (ADR-0005) y no resuelve los paquetes del workspace.
+// A formula block inside `Formulas` (docs/DESIGN.md §5, Bloque de fórmula). It goes in the
+// MDX component map instead of being imported from the topic: `content/` lives outside
+// `apps/web` (ADR-0005) and does not resolve the workspace packages.
 //
-// El widget se resuelve por nombre con el `import()` dinámico de su entrada propia
-// (`@trayectoria/widgets/Formula`, ADR-0009 y #188) en vez de importarse estático del barrel:
-// así la página de tema no descarga KaTeX hasta que la isla se monta.
+// The widget is resolved by name with the dynamic `import()` of its own entry
+// (`@trayectoria/widgets/Formula`, ADR-0009 and #188) instead of a static import from the barrel:
+// that way the topic page does not download KaTeX until the island mounts.
 //
-// La isla es `client:only` porque el widget llega por `import()`: con `client:visible` el
-// servidor pintaría el `fallback` vacío del `Suspense` y el cliente el widget ya resuelto, y esa
-// diferencia rompe la hidratación de React.
+// The island is `client:only` because the widget arrives through `import()`: with `client:visible`
+// the server would paint the empty `fallback` of the `Suspense` and the client the already resolved
+// widget, and that difference breaks React hydration.
 interface Props {
   latex: string;
-  /** Variable a resaltar en la fórmula. */
+  /** Variable to highlight in the formula. */
   highlight?: string;
-  /** La misma fórmula con los números ya sustituidos, bajo un divisor. */
+  /** The same formula with the numbers already substituted, under a divider. */
   substituted?: string;
 }
 

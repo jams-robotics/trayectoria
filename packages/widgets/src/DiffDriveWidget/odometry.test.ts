@@ -87,8 +87,8 @@ describe('DiffDriveWidget odometry (F2-09b)', () => {
   it('el ángulo medio no es el inicial: con θ inicial x sería Δs y y sería 0 (T-5.4)', () => {
     const step = stepOf({ left: 400, right: 440 }, EXACT);
     const mid = odometryStep(ORIGIN, step);
-    // Con el ángulo inicial (θ = 0) el paso sería recto: x = Δs = 0.2346 e y = 0. El dorado de
-    // e2 es (0.2339, 0.01745), así que la actualización usa el ángulo medio y no el inicial.
+    // With the initial angle (θ = 0) the step would be straight: x = Δs = 0.2346 and y = 0. The golden value of
+    // e2 is (0.2339, 0.01745), so the update uses the mean angle and not the initial one.
     expect(Math.abs(mid.x_m - step.deltaS_m)).toBeGreaterThan(TOL / 2);
     expect(mid.y_m).toBeGreaterThan(0.01);
   });
@@ -161,9 +161,9 @@ describe('DiffDriveWidget odometry (F2-09b)', () => {
     const estimated: Pose = { x_m: 1.65, y_m: 2.9, theta_rad: 2.1 };
     const view = odometryView(real, estimated);
     expect(view.centre_m).toEqual([(1.7 + 1.65) / 2, (2.8 + 2.9) / 2]);
-    // Con las dos poses encima la vista no se cierra sobre el chasis: se queda en su mínimo.
+    // With both poses on top of it the view does not close in on the chassis: it stays at its minimum.
     expect(odometryView(real, real).width_m).toBe(1.2);
-    // Y con una deriva grande deja de ensancharse en el máximo de la escena.
+    // And with a large drift it stops widening at the maximum of the scene.
     expect(odometryView(real, { ...real, x_m: real.x_m + 5 }).width_m).toBe(3);
     expect(view.width_m).toBeGreaterThanOrEqual(1.2);
   });
@@ -186,7 +186,7 @@ describe('DiffDriveWidget velocidad estimada por encoders (#306, T-4.5)', () => 
   it('a ω = 1 rad/s con N_e = 20 la estimada solo toma valores múltiplos de 2π·r/(N_e·Δt)', () => {
     const states = run({ omegaL_radps: 1, omegaR_radps: 1 }, 3);
     const calibration: Calibration = { ...EXACT, ticksPerRev: 20 };
-    const period = 10; // 10 pasos de DT_S = 0.1 s entre muestras
+    const period = 10; // 10 steps of DT_S = 0.1 s between samples
     const dt_s = period * DT_S;
     const quantum_mps = (2 * Math.PI * EXACT.wheelRadius_m) / (20 * dt_s);
     let previous = ticksAt(states[0] as DiffDriveState, 20);
@@ -203,7 +203,7 @@ describe('DiffDriveWidget velocidad estimada por encoders (#306, T-4.5)', () => 
       if (velocity.left_mps !== 0) sawNonZero = true;
       previous = ticks;
     }
-    // El escalonamiento es el efecto que enseña T-4.5: no todas las muestras dan 0.
+    // The staircase is the effect T-4.5 teaches: not every sample gives 0.
     expect(sawNonZero).toBe(true);
   });
 
@@ -212,9 +212,9 @@ describe('DiffDriveWidget velocidad estimada por encoders (#306, T-4.5)', () => 
     const calibration: Calibration = { ...EXACT, ticksPerRev: 2000 };
     const period = 10;
     const dt_s = period * DT_S;
-    const real_mps = 1 * EXACT.wheelRadius_m; // v = ω r a ω = 1 rad/s
-    // Arranca tras la rampa de aceleración del perfil (0.025 s a 40 rad/s²), que hace corto el
-    // primer paso de muestreo; a partir de ahí la velocidad real ya es constante.
+    const real_mps = 1 * EXACT.wheelRadius_m; // v = ω r at ω = 1 rad/s
+    // It starts after the acceleration ramp of the profile (0.025 s at 40 rad/s²), which makes the
+    // first sampling step short; from there on the real speed is already constant.
     let previous = ticksAt(states[period] as DiffDriveState, 2000);
     for (let i = 2 * period; i < states.length; i += period) {
       const ticks = ticksAt(states[i] as DiffDriveState, 2000);

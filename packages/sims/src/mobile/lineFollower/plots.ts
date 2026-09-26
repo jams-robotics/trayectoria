@@ -1,6 +1,6 @@
-// F4-03 (#129, decisión 6): el catálogo de gráficas vive aparte del widget para que
-// `Instruments.tsx` lo use sin importar `LineFollowerWidget.tsx`, que a su vez importa las
-// gráficas — un ciclo que el empaquetado no tiene por qué resolver.
+// F4-03 (#129, decision 6): the plot catalog lives apart from the widget so that
+// `Instruments.tsx` uses it without importing `LineFollowerWidget.tsx`, which in turn imports the
+// plots — a cycle the bundler has no reason to resolve.
 
-/** Gráficas que `showPlots` puede pedir (docs/WIDGETS.md, LineFollowerWidget). */
+/** Plots that `showPlots` can ask for (docs/WIDGETS.md, LineFollowerWidget). */
 export type LineFollowerPlot = 'error' | 'v' | 'omega' | 'pid';

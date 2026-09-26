@@ -15,10 +15,10 @@ import {
   resolveCatalogPath,
 } from './catalog';
 
-/** Raíz ficticia: el resolutor es puro y no toca el disco. */
+/** Fake root: the resolver is pure and does not touch the disk. */
 const ROOT = resolve(sep, 'repo', 'catalog');
 
-/** El catálogo real del repositorio, para los enganches que sí leen archivos. */
+/** The repository's real catalogue, for the hooks that do read files. */
 const REAL_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../catalog');
 
 describe('integración de catálogo (F5-01a)', () => {

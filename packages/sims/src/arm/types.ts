@@ -1,5 +1,5 @@
-// Tipos compartidos por los módulos del visor de brazo, en un archivo propio para que los
-// componentes no dependan del módulo que los produce (docs/STANDARDS.md §4: un módulo por
-// concepto).
+// Types shared by the arm viewer modules, in a file of their own so that the
+// components do not depend on the module that produces them (docs/STANDARDS.md §4: one module per
+// concept).
 export type { ArmColors } from './armColors';
 export type { ActuatedJoint, ArmSim, EffectorReadout } from './useArmSim';

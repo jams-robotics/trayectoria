@@ -74,7 +74,7 @@ describe('model (F4-02a)', () => {
     const start = pointAt(presets.oval, 0);
     expect(state.robot.x_m).toBeCloseTo(start[0], 9);
     expect(state.robot.y_m).toBeCloseTo(start[1], 9);
-    // El primer segmento del óvalo va de (0,0) a (0.6,0): la tangente apunta a +x.
+    // The first segment of the oval goes from (0,0) to (0.6,0): the tangent points to +x.
     expect(state.robot.theta_rad).toBeCloseTo(0, 6);
     expect(state.laps).toBe(0);
     expect(state.distance_m).toBe(0);
@@ -130,8 +130,8 @@ describe('model (F4-02a)', () => {
       lineWidth_m: presets.oval.lineWidth_m,
     };
     const model = modelOf({ controller: 'manual', track: straight, offset_m: 0 });
-    // Con rampa y motor de primer orden (τ_m, #408) la velocidad tarda en llegar; 5 s son más de
-    // 25 constantes de tiempo y el robot sigue dentro de la recta de 2 m.
+    // With ramp and first-order motor (τ_m, #408) the speed takes a while to arrive; 5 s are more than
+    // 25 time constants and the robot is still within the 2 m straight.
     const states = run(model, Math.round(5 / DT_S));
     expect(states.at(-1)?.robot.v_mps).toBeCloseTo(10 * MOBILE.wheelRadius_m, 9);
     expect(states.at(-1)?.robot.v_mps).toBeCloseTo(0.32, 9);
@@ -161,7 +161,7 @@ describe('model (F4-02a)', () => {
       spec: SPEC,
       track,
       controller: CONTROLLERS.manual.create({ omegaBase_radps: 0 }),
-      // Muy lejos de la pista: el arreglo no ve nada y no hay vuelta que contar.
+      // Very far from the track: the array sees nothing and there is no lap to count.
       startPose: { x_m: 5, y_m: 5, theta_rad: 0 },
     });
     const state = model.step(model.init(1), {}, DT_S);

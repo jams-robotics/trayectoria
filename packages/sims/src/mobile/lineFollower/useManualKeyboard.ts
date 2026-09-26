@@ -2,20 +2,20 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import type { WheelCommand } from '@trayectoria/sim-core';
 
-// F4-04 (#130, decisión 2): el teclado del modo manual. Los oyentes van en el elemento del visor
-// y no en `window` ni en `document` (prohibición de CLAUDE.md fuera de `apps/web`), así que solo
-// conducen las teclas mientras el visor tiene el foco.
+// F4-04 (#130, decision 2): the keyboard of manual mode. The listeners go on the viewer element
+// and not on `window` or `document` (CLAUDE.md prohibition outside `apps/web`), so the keys
+// only drive while the viewer has focus.
 
-/** Paso de la velocidad base por pulsación de ↑ o ↓, en rad/s (#130, decisión 2). */
+/** Step of the base speed per press of ↑ or ↓, in rad/s (#130, decision 2). */
 export const MANUAL_STEP_RADPS = 0.5;
 
-/** Diferencia entre ruedas mientras ← o → está pulsada, en rad/s (#130, decisión 2). */
+/** Difference between wheels while ← or → is pressed, in rad/s (#130, decision 2). */
 export const MANUAL_DIFF_RADPS = 2;
 
-/** Las cuatro direcciones que conducen el robot, y con ellas los botones táctiles. */
+/** The four directions that drive the robot, and with them the touch buttons. */
 export type ManualKey = 'up' | 'down' | 'left' | 'right';
 
-/** Qué dirección mueve cada tecla del teclado; el resto de teclas no son del modo manual. */
+/** Which direction each keyboard key moves; the rest of the keys are not part of manual mode. */
 const KEY_BY_NAME: Readonly<Record<string, ManualKey>> = {
   ArrowUp: 'up',
   ArrowDown: 'down',
@@ -23,13 +23,13 @@ const KEY_BY_NAME: Readonly<Record<string, ManualKey>> = {
   ArrowRight: 'right',
 };
 
-/** Teclas que alternan reproducción y pausa (docs/DESIGN.md §5: Espacio play/pausa). */
+/** Keys that toggle playback and pause (docs/DESIGN.md §5: Space play/pause). */
 const PLAY_KEYS: readonly string[] = [' ', 'Spacebar'];
 
 /**
- * Comando de ruedas de una base y una diferencia. `diff_radps` negativa gira a la derecha: la
- * rueda izquierda corre más que la derecha (#130, decisión 2: → da `ωL = base + 2`,
- * `ωR = base − 2`, es decir `diff = −2`).
+ * Wheel command from a base and a difference. A negative `diff_radps` turns right: the
+ * left wheel runs faster than the right one (#130, decision 2: → gives `ωL = base + 2`,
+ * `ωR = base − 2`, that is, `diff = −2`).
  */
 export function commandOf(omegaBase_radps: number, diff_radps: number): WheelCommand {
   return {
@@ -38,41 +38,41 @@ export function commandOf(omegaBase_radps: number, diff_radps: number): WheelCom
   };
 }
 
-/** `value` dentro de `[0, max]`; la marcha atrás no es del modo manual de F4-04. */
+/** `value` within `[0, max]`; reversing is not part of the F4-04 manual mode. */
 function clamped(value: number, max_radps: number): number {
   return Math.min(Math.max(value, 0), max_radps);
 }
 
 export interface UseManualKeyboardOptions {
-  /** Velocidad de rueda máxima del robot, en rad/s; techo de la velocidad base. */
+  /** Maximum wheel speed of the robot, in rad/s; ceiling of the base speed. */
   readonly omegaMax_radps: number;
-  /** Si el hook escucha; con otro controlador seleccionado no conduce nadie. */
+  /** Whether the hook listens; with another controller selected nobody drives. */
   readonly enabled?: boolean;
-  /** Se llama al pulsar Espacio, para que el widget alterne reproducción y pausa. */
+  /** Called when Space is pressed, so the widget toggles playback and pause. */
   readonly onTogglePlay?: () => void;
 }
 
 export interface ManualDrive {
-  /** Velocidad base de las dos ruedas, en rad/s. */
+  /** Base speed of both wheels, in rad/s. */
   readonly omegaBase_radps: number;
-  /** Diferencia aplicada mientras ← o → está pulsada, en rad/s. */
+  /** Difference applied while ← or → is pressed, in rad/s. */
   readonly diff_radps: number;
-  /** El comando que el modelo recibe como `input.command`. */
+  /** The command the model receives as `input.command`. */
   readonly command: WheelCommand;
-  /** Aplica una dirección, como si se pulsara su tecla; lo usan los botones táctiles. */
+  /** Applies a direction, as if its key were pressed; used by the touch buttons. */
   readonly press: (key: ManualKey) => void;
-  /** Suelta una dirección; solo ← y → tienen efecto al soltarse. */
+  /** Releases a direction; only ← and → have an effect when released. */
   readonly release: (key: ManualKey) => void;
 }
 
 /**
- * Conduce el robot con el teclado mientras el visor tiene el foco (#130, decisión 2): ↑ y ↓
- * cambian la velocidad base en pasos de `MANUAL_STEP_RADPS` dentro de `[0, omegaMax_radps]`, ←
- * y → fijan la diferencia en `±MANUAL_DIFF_RADPS` mientras se mantienen pulsadas y la devuelven
- * a 0 al soltarlas, y Espacio alterna reproducción y pausa.
+ * Drives the robot with the keyboard while the viewer has focus (#130, decision 2): ↑ and ↓
+ * change the base speed in steps of `MANUAL_STEP_RADPS` within `[0, omegaMax_radps]`, ←
+ * and → set the difference to `±MANUAL_DIFF_RADPS` while they are held down and return it
+ * to 0 when released, and Space toggles playback and pause.
  *
- * `press` y `release` exponen la misma semántica sin teclado, que es lo que usan los botones
- * táctiles de `ManualControls` con `pointerdown` y `pointerup`.
+ * `press` and `release` expose the same semantics without a keyboard, which is what the
+ * `ManualControls` touch buttons use with `pointerdown` and `pointerup`.
  */
 export function useManualKeyboard(
   viewerRef: RefObject<HTMLElement | null>,
@@ -95,7 +95,7 @@ export function useManualKeyboard(
     if (key === 'left' || key === 'right') setDiff(0);
   }, []);
 
-  // Un robot más lento no puede seguir corriendo a la base del anterior: el techo baja con él.
+  // A slower robot cannot keep running at the previous one's base: the ceiling goes down with it.
   useEffect(() => {
     setBase((base) => clamped(base, omegaMax_radps));
   }, [omegaMax_radps]);
@@ -105,7 +105,7 @@ export function useManualKeyboard(
   return { omegaBase_radps, diff_radps, command: commandOf(omegaBase_radps, diff_radps), press, release };
 }
 
-/** Lo que los oyentes del visor hacen con cada tecla; un ref lo mantiene siempre al día. */
+/** What the viewer listeners do with each key; a ref keeps it always up to date. */
 interface KeyHandlers {
   enabled: boolean;
   press: (key: ManualKey) => void;
@@ -113,7 +113,7 @@ interface KeyHandlers {
   onTogglePlay: (() => void) | undefined;
 }
 
-/** El oyente de `keydown`: Espacio alterna la reproducción y las flechas conducen. */
+/** The `keydown` listener: Space toggles playback and the arrows drive. */
 function keyDownListener(latest: RefObject<KeyHandlers>): (event: KeyboardEvent) => void {
   return (event) => {
     const { press, onTogglePlay } = latest.current;
@@ -125,14 +125,14 @@ function keyDownListener(latest: RefObject<KeyHandlers>): (event: KeyboardEvent)
     const key = KEY_BY_NAME[event.key];
     if (key === undefined) return;
     event.preventDefault();
-    // El auto-repeat del navegador no debe acumular pasos de ↑/↓ (#130, auditoría F4-04).
-    // ←/→ ya están fijadas en ±MANUAL_DIFF_RADPS, así que repetir no cambia nada de todos modos.
+    // The browser's auto-repeat must not accumulate ↑/↓ steps (#130, F4-04 audit).
+    // ←/→ are already fixed at ±MANUAL_DIFF_RADPS, so repeating changes nothing anyway.
     if (event.repeat) return;
     press(key);
   };
 }
 
-/** El oyente de `keyup`: solo las flechas se sueltan, y con ellas la diferencia. */
+/** The `keyup` listener: only the arrows are released, and with them the difference. */
 function keyUpListener(latest: RefObject<KeyHandlers>): (event: KeyboardEvent) => void {
   return (event) => {
     const key = KEY_BY_NAME[event.key];
@@ -143,8 +143,8 @@ function keyUpListener(latest: RefObject<KeyHandlers>): (event: KeyboardEvent) =
 }
 
 /**
- * El oyente de `blur`: perder el foco suelta ← y → como si el usuario las hubiera soltado, para
- * que `diff_radps` no quede atascado si el `keyup` nunca llega al elemento (#130, auditoría F4-04).
+ * The `blur` listener: losing focus releases ← and → as if the user had released them, so
+ * that `diff_radps` does not get stuck if the `keyup` never reaches the element (#130, F4-04 audit).
  */
 function blurListener(latest: RefObject<KeyHandlers>): () => void {
   return () => {
@@ -155,8 +155,8 @@ function blurListener(latest: RefObject<KeyHandlers>): () => void {
 }
 
 /**
- * Los oyentes de teclado del visor. Van en el elemento, así que solo se disparan con el foco
- * dentro de él; se quitan al desmontar o al deshabilitar el modo manual.
+ * The keyboard listeners of the viewer. They go on the element, so they only fire with focus
+ * inside it; they are removed on unmount or when manual mode is disabled.
  */
 function useKeyListeners(viewerRef: RefObject<HTMLElement | null>, handlers: KeyHandlers): void {
   const latest = useRef(handlers);

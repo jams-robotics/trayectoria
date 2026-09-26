@@ -4,28 +4,28 @@ import { t } from '@trayectoria/i18n';
 import TopicOutline from '../components/tema/Outline.astro';
 import Base from './Base.astro';
 
-// Layout de una página de tema (#97, decisión 5): cabecera con título, tiempo y prerrequisitos,
-// barra de progreso de la ruta, índice lateral sticky y anterior/siguiente.
-// Referencia visual: docs/design/03-tema-claro.png y 07-tema-movil-claro.png.
+// Layout of a topic page (#97, decision 5): header with title, time and prerequisites,
+// route progress bar, sticky side outline and previous/next.
+// Visual reference: docs/design/03-tema-claro.png and 07-tema-movil-claro.png.
 
-/** Un tema vecino o un prerrequisito; sin `href` cuando todavía no está publicado. */
+/** A neighbouring topic or a prerequisite; without `href` while it is not published yet. */
 export interface TopicLink {
   title: string;
-  /** `undefined` cuando el tema todavía no está publicado: se muestra sin enlace. */
+  /** `undefined` when the topic is not published yet: it is shown without a link. */
   href: string | undefined;
 }
 
 interface Props {
   title: string;
-  /** Ruta a la que pertenece el tema, para la miga y la barra de progreso. */
+  /** Route the topic belongs to, for the breadcrumb and the progress bar. */
   route: TopicLink & { title: string };
-  /** Línea mono sobre el título: «Ruta … · Tema 4.2». */
+  /** Mono line above the title: «Ruta … · Tema 4.2». */
   eyebrow: string;
   estimatedMinutes: number;
   prerequisites: TopicLink[];
-  /** Temas completados de la ruta; 0 hasta F3-01. */
+  /** Completed topics of the route; 0 until F3-01. */
   done: number;
-  /** Temas de la ruta. */
+  /** Topics of the route. */
   total: number;
   previous: TopicLink | undefined;
   next: TopicLink | undefined;

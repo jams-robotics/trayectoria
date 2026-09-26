@@ -12,36 +12,36 @@ import { MY_ROBOT_ID } from './RobotSource';
 import { useSimView } from './useSimView';
 import type { SimView } from './useSimView';
 
-// F4-02b (#128): estado de `/simuladores/movil`, separado de la presentación de
-// `MobileSimIsland.tsx` para mantener cada archivo bajo el límite de docs/STANDARDS.md §4.
+// F4-02b (#128): state of `/simuladores/movil`, split from the presentation of
+// `MobileSimIsland.tsx` to keep each file under the limit of docs/STANDARDS.md §4.
 
-/** Preset con el que abre la página (criterio del ticket: óvalo). */
+/** Preset the page opens with (ticket criterion: oval). */
 export const DEFAULT_PRESET: TrackPreset = 'oval';
 
-// F4-05 (#131, decisiones 6 y 7): el controlador, sus parámetros y la semilla pasan a ser estado
-// de la página, no solo del widget: son lo que «Guardar y compartir» escribe en una `SimConfig` y
-// lo que un enlace `?c=` vuelve a aplicar. El widget los recibe como `controller`, `initialParams`
-// y `seed`; `useControllerChoice` los lee al montar, así que cargar una configuración cambia
-// también `configKey`, y con ella el `key` del widget, para que adopte los nuevos.
+// F4-05 (#131, decisions 6 and 7): the controller, its parameters and the seed become page state,
+// not only widget state: they are what «Guardar y compartir» writes into a `SimConfig` and
+// what a `?c=` link applies again. The widget receives them as `controller`, `initialParams`
+// and `seed`; `useControllerChoice` reads them on mount, so loading a configuration also changes
+// `configKey`, and with it the widget's `key`, so that it adopts the new ones.
 
 /**
- * Controlador con el que abre el widget. `LineFollowerWidget` solo admite los tres con ley de
- * control en su prop `controller`; «Manual» sigue siendo una pestaña del selector, pero no un
- * valor con el que la página pueda arrancarlo, así que una configuración con `manual` abre con el
- * PID y el estudiante vuelve a la pestaña manual con un clic.
+ * Controller the widget opens with. `LineFollowerWidget` only accepts the three with a control
+ * law in its `controller` prop; «Manual» is still a selector tab, but not a
+ * value the page can start it with, so a configuration with `manual` opens with the
+ * PID and the learner goes back to the manual tab with one click.
  */
 export type PageController = 'onoff' | 'p' | 'pid';
 
-/** Controlador con el que abre la página (criterio de F4-02b: PID). */
+/** Controller the page opens with (F4-02b criterion: PID). */
 export const DEFAULT_CONTROLLER: PageController = 'pid';
 
-/** Semilla con la que abre la página; es la del widget, y viaja en el enlace compartido. */
+/** Seed the page opens with; it is the widget's, and it travels in the shared link. */
 export const DEFAULT_SEED = 7;
 
-/** Si el primer render ya ocurrió en el navegador. `useMediaQuery` consulta `matchMedia`, que en
- * el servidor no existe: esta isla es `client:visible` (#128, decisión 1), así que Astro la
- * renderiza también en build y el primer render del cliente debe coincidir con aquel. Hasta que
- * monta, la página se dibuja con la maqueta de escritorio, que es la que el servidor produjo. */
+/** Whether the first render already happened in the browser. `useMediaQuery` queries `matchMedia`,
+ * which does not exist on the server: this island is `client:visible` (#128, decision 1), so Astro
+ * also renders it at build time and the first client render must match that one. Until it
+ * mounts, the page is drawn with the desktop mockup, which is the one the server produced. */
 export function useMounted(): boolean {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -50,16 +50,16 @@ export function useMounted(): boolean {
   return mounted;
 }
 
-/** La pista efectiva y el preset del selector; el editor y «Cargar JSON» solo cambian la pista. */
+/** The effective track and the selector preset; the editor and «Cargar JSON» only change the track. */
 export interface TrackChoice {
   readonly preset: TrackPreset;
   readonly track: TrackJson;
 }
 
 /**
- * La pose inicial de una pista: el arranque del recorrido mientras nadie arrastre el asa. Se
- * resuelve con el módulo ya cargado, así que devuelve `null` hasta que `@trayectoria/sims` esté
- * en memoria; mientras tanto el widget arranca el robot donde empieza la pista, que es lo mismo.
+ * The initial pose of a track: the start of the course while nobody drags the handle. It is
+ * resolved with the module already loaded, so it returns `null` until `@trayectoria/sims` is
+ * in memory; meanwhile the widget starts the robot where the track begins, which is the same.
  */
 export async function initialPose(track: TrackJson): Promise<StartPose> {
   const { poseOnTrack, resolveTrack } = await import('@trayectoria/sims');
@@ -68,14 +68,14 @@ export async function initialPose(track: TrackJson): Promise<StartPose> {
 
 export type { SimView };
 
-/** El controlador, sus parámetros y la semilla de la carrera; lo que el enlace reproduce. */
+/** The controller, its parameters and the seed of the run; what the link reproduces. */
 export interface ControllerChoice {
   readonly controller: PageController;
   readonly params: ControllerParams;
   readonly seed: number;
 }
 
-/** Lo que la isla elige y publica; un solo objeto para no repartir seis `useState` por la vista. */
+/** What the island picks and publishes; a single object so as not to spread six `useState` over the view. */
 export interface PageState {
   readonly robotId: string;
   readonly setRobotId: (id: string) => void;
@@ -88,20 +88,20 @@ export interface PageState {
   readonly onPreset: (preset: TrackPreset) => void;
   readonly view: SimView;
   readonly openEditor: () => void;
-  /** «Nueva pista»: abre el editor con el lienzo en blanco (#190, decisión 3). */
+  /** «Nueva pista»: opens the editor with a blank canvas (#190, decision 3). */
   readonly openNewEditor: () => void;
   readonly closeEditor: () => void;
-  /** La pista con la que abre el editor: la de la página, o ninguna tras «Nueva pista». */
+  /** The track the editor opens with: the page's, or none after «Nueva pista». */
   readonly editorTrack: TrackJson | null;
-  /** El controlador, los parámetros y la semilla con los que el widget arranca (F4-05). */
+  /** The controller, parameters and seed the widget starts with (F4-05). */
   readonly run: ControllerChoice;
-  /** Cambia con cada configuración aplicada; es el `key` que remonta el widget (F4-05). */
+  /** Changes with every applied configuration; it is the `key` that remounts the widget (F4-05). */
   readonly configKey: number;
-  /** Aplica una configuración guardada o la de un enlace: pista, controlador, params y semilla. */
+  /** Applies a saved configuration or a link's one: track, controller, params and seed. */
   readonly applyConfig: (config: SimConfig) => void;
 }
 
-/** Aplica la pose de apertura en cuanto el módulo del simulador está cargado. */
+/** Applies the opening pose as soon as the simulator module is loaded. */
 export function useOpeningPose(setStartPose: (pose: StartPose) => void): void {
   useEffect(() => {
     let live = true;
@@ -115,8 +115,8 @@ export function useOpeningPose(setStartPose: (pose: StartPose) => void): void {
 }
 
 /**
- * La pista de una `SimConfig`: el preset con su nombre o el JSON del editor. Un `track` que no es
- * ninguna de las dos formas deja la pista como está, que es lo que la página ya mostraba.
+ * The track of a `SimConfig`: the preset with its name or the editor's JSON. A `track` that is
+ * neither of the two forms leaves the track as it is, which is what the page already showed.
  */
 export function trackOf(config: SimConfig): TrackFromConfig | null {
   const { track } = config;
@@ -127,16 +127,16 @@ export function trackOf(config: SimConfig): TrackFromConfig | null {
   return named === undefined ? null : { preset: named, track: named };
 }
 
-/** La pista que sale de una configuración: el JSON, o el preset y su nombre. */
+/** The track that comes out of a configuration: the JSON, or the preset and its name. */
 export interface TrackFromConfig {
   readonly preset?: TrackPreset;
   readonly track: TrackJson;
 }
 
-/** Los cuatro presets que `LineFollowerWidget` resuelve por su nombre. */
+/** The four presets `LineFollowerWidget` resolves by name. */
 const PRESETS: readonly TrackPreset[] = ['oval', 's', 'tight', 'cross'];
 
-/** La pista elegida y los dos callbacks que la cambian (preset o JSON del editor). */
+/** The chosen track and the two callbacks that change it (preset or editor JSON). */
 function useTrackChoice(setStartPose: (pose: StartPose) => void): {
   choice: TrackChoice;
   setChoice: (update: (current: TrackChoice) => TrackChoice) => void;
@@ -148,8 +148,8 @@ function useTrackChoice(setStartPose: (pose: StartPose) => void): {
     track: DEFAULT_PRESET,
   });
 
-  // Cambiar la pista reinicia la simulación (el widget la reconstruye) y devuelve la pose inicial
-  // al arranque del nuevo recorrido: la de la pista anterior no tiene sentido sobre esta.
+  // Changing the track restarts the simulation (the widget rebuilds it) and returns the initial pose
+  // to the start of the new course: the previous track's one makes no sense on this one.
   const onTrack = useCallback(
     (track: TrackJson): void => {
       setChoice((current) => ({ ...current, track }));
@@ -166,9 +166,9 @@ function useTrackChoice(setStartPose: (pose: StartPose) => void): {
 }
 
 /**
- * El controlador, los parámetros y la semilla de la carrera, y cómo los cambia una configuración
- * cargada (F4-05). `configKey` sube con cada una: es el `key` con el que la isla remonta el
- * widget, porque `useControllerChoice` lee el controlador y las ganancias solo al montar.
+ * The controller, the parameters and the seed of the run, and how a loaded configuration changes
+ * them (F4-05). `configKey` goes up with each one: it is the `key` with which the island remounts the
+ * widget, because `useControllerChoice` reads the controller and the gains only on mount.
  */
 function useRunChoice(applyTrack: (config: SimConfig) => void): {
   run: ControllerChoice;
@@ -198,7 +198,7 @@ function useRunChoice(applyTrack: (config: SimConfig) => void): {
   return { run, configKey, applyConfig };
 }
 
-/** El estado de la página: el robot, la pista, la pose inicial y la simulación en curso. */
+/** The page state: the robot, the track, the initial pose and the running simulation. */
 export function usePageState(): PageState {
   const [robotId, setRobotId] = useState(MY_ROBOT_ID);
   const [robot, setRobot] = useState<RobotSpec | null>(null);
@@ -207,8 +207,8 @@ export function usePageState(): PageState {
   const { choice, setChoice, onTrack, onPreset } = useTrackChoice(setStartPose);
   useOpeningPose(setStartPose);
 
-  // Cargar una configuración cambia la pista de una vez, sin pasar por `onTrack`: el preset del
-  // selector y la pista efectiva salen ambos de la configuración.
+  // Loading a configuration changes the track at once, without going through `onTrack`: the selector
+  // preset and the effective track both come from the configuration.
   const applyTrack = useCallback(
     (config: SimConfig): void => {
       const resolved = trackOf(config);
@@ -237,8 +237,8 @@ export function usePageState(): PageState {
     openEditor,
     openNewEditor,
     closeEditor,
-    // #190 (decisión 3): «Nueva pista» abre el editor en blanco; «Editar esta pista», con la que
-    // la página está simulando.
+    // #190 (decision 3): «Nueva pista» opens the editor blank; «Editar esta pista», with the one
+    // the page is simulating.
     editorTrack: fromEmpty ? null : choice.track,
     run,
     configKey,
@@ -247,9 +247,9 @@ export function usePageState(): PageState {
 }
 
 /**
- * El mismo objeto mientras nada cambie. `renderPanel` de la isla depende de él, y uno nuevo en
- * cada render hacía un bucle (nuevo `renderPanel` → el widget se vuelve a renderizar → `onApi` →
- * otro objeto). Los `set*` de `useState` y los `useCallback` de arriba ya son estables.
+ * The same object while nothing changes. The island's `renderPanel` depends on it, and a new one on
+ * every render caused a loop (new `renderPanel` → the widget re-renders → `onApi` →
+ * another object). The `set*` of `useState` and the `useCallback`s above are already stable.
  */
 function usePageStateObject(state: PageState): PageState {
   const { robotId, robot, choice, startPose, onTrack, onPreset } = state;

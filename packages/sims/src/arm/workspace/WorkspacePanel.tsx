@@ -7,43 +7,43 @@ import { PanelCard } from '../PanelCard';
 import { CANCELLED_REASON, WORKSPACE_SEED, sampleWorkspaceInBatches } from './sampler';
 import type { BatchSchedule } from './sampler';
 
-// F5-03 (#136, decisión 4): panel «Espacio de trabajo». Campo numérico con `n`, botón que pasa
-// de Calcular a Cancelar mientras el muestreo corre, barra de progreso de 4 px con la cifra
-// (docs/DESIGN.md §5) y toggle `aria-pressed` de visibilidad. Ningún literal en español vive
-// aquí: todo sale de las claves `sims.workspace.*`.
+// F5-03 (#136, decision 4): «Espacio de trabajo» panel. Numeric field with `n`, a button that switches
+// from «Calcular» to «Cancelar» while sampling runs, a 4 px progress bar with the figure
+// (docs/DESIGN.md §5) and an `aria-pressed` visibility toggle. No Spanish literal lives
+// here: everything comes from the `sims.workspace.*` keys.
 
-/** Límites del campo numérico `n` (espec. del ticket). */
+/** Limits of the numeric field `n` (ticket spec). */
 export const N_DEFAULT = 20_000;
 export const N_MIN = 100;
 export const N_MAX = 200_000;
 export const N_STEP = 1_000;
 
-/** Botón de 40 px de alto del panel (docs/DESIGN.md §5, Botón). */
+/** 40 px tall button of the panel (docs/DESIGN.md §5, Botón). */
 const BUTTON_BASE = 'h-10 rounded-sm border px-3 text-sm';
 
-/** Porcentaje entero de una fracción `[0, 1]`, para la cifra que acompaña a la barra. */
+/** Integer percentage of a `[0, 1]` fraction, for the figure next to the bar. */
 function percent(progress: number): number {
   return Math.round(progress * 100);
 }
 
-/** Estado del muestreo que el panel expone hacia fuera. */
+/** Sampling state the panel exposes outward. */
 export interface WorkspaceState {
-  /** La nube ya calculada, o `null` si aún no se ha calculado ninguna. */
+  /** The already computed cloud, or `null` if none has been computed yet. */
   readonly points: Float32Array | null;
-  /** Si la nube se dibuja. */
+  /** Whether the cloud is drawn. */
   readonly visible: boolean;
 }
 
 export interface WorkspacePanelProps {
-  /** El brazo a muestrear; sus límites articulares definen el espacio alcanzable. */
+  /** The arm to sample; its joint limits define the reachable space. */
   arm: ArmSpec;
-  /** Avisa de la nube y de su visibilidad cada vez que cambian. */
+  /** Reports the cloud and its visibility every time they change. */
   onChange: (state: WorkspaceState) => void;
-  /** Planificador de lotes; los tests inyectan uno síncrono (decisión 2). */
+  /** Batch scheduler; the tests inject a synchronous one (decision 2). */
   schedule?: BatchSchedule;
 }
 
-/** Lo que el panel necesita saber del muestreo en marcha. */
+/** What the panel needs to know about the running sampling. */
 interface Sampling {
   readonly running: boolean;
   readonly progress: number;
@@ -51,7 +51,7 @@ interface Sampling {
   cancel: () => void;
 }
 
-/** El muestreo por lotes atado al ciclo de vida del panel: progreso, cancelación y limpieza. */
+/** Batch sampling tied to the panel's life cycle: progress, cancellation and cleanup. */
 function useSampling(
   arm: ArmSpec,
   schedule: BatchSchedule | undefined,
@@ -67,7 +67,7 @@ function useSampling(
     setRunning(false);
   }, []);
 
-  // Al desmontar, un muestreo a medias se queda sin quien lo consuma: se aborta.
+  // On unmount, a half-finished sampling is left with no one to consume it: it is aborted.
   useEffect(() => () => cancelRef.current?.(), []);
 
   const start = useCallback(
@@ -87,7 +87,7 @@ function useSampling(
           onPoints(points);
         })
         .catch((error: unknown) => {
-          // Cancelar es una salida normal del muestreo, no un fallo que reportar.
+          // Cancelling is a normal exit from sampling, not a failure to report.
           if (error instanceof Error && error.message === CANCELLED_REASON) return;
           cancelRef.current = null;
           setRunning(false);
@@ -99,7 +99,7 @@ function useSampling(
   return { running, progress, start, cancel };
 }
 
-/** La barra de 4 px con su cifra en mono (docs/DESIGN.md §5, Barra de progreso). */
+/** The 4 px bar with its figure in mono (docs/DESIGN.md §5, Barra de progreso). */
 function ProgressBar({ progress, label }: { progress: number; label: string }): JSX.Element {
   const value = percent(progress);
   return (
@@ -119,7 +119,7 @@ function ProgressBar({ progress, label }: { progress: number; label: string }): 
   );
 }
 
-/** El campo numérico de `n` (docs/DESIGN.md §5, Campo numérico). */
+/** The numeric field for `n` (docs/DESIGN.md §5, Campo numérico). */
 function CountField({
   value,
   disabled,
@@ -151,13 +151,13 @@ function CountField({
   );
 }
 
-/** `n` recortado a los límites del campo; un valor no numérico vuelve al de por defecto. */
+/** `n` clamped to the field limits; a non-numeric value falls back to the default one. */
 export function clampCount(value: number): number {
   if (!Number.isFinite(value)) return N_DEFAULT;
   return Math.min(Math.max(Math.round(value), N_MIN), N_MAX);
 }
 
-/** El botón que lanza el cálculo y, mientras corre, lo cancela (docs/DESIGN.md §5). */
+/** The button that starts the computation and, while it runs, cancels it (docs/DESIGN.md §5). */
 function ComputeButton({
   running,
   onClick,
@@ -178,7 +178,7 @@ function ComputeButton({
   );
 }
 
-/** El toggle de visibilidad de la nube; deshabilitado mientras no haya ninguna. */
+/** The visibility toggle of the cloud; disabled while there is none. */
 function VisibilityButton({
   visible,
   hasPoints,
@@ -207,7 +207,7 @@ function VisibilityButton({
   );
 }
 
-/** La línea viva del panel y, mientras calcula, la barra de progreso. */
+/** The live line of the panel and, while computing, the progress bar. */
 function PanelStatus({
   running,
   progress,
@@ -228,7 +228,7 @@ function PanelStatus({
   );
 }
 
-/** La línea viva del panel: sin calcular, calculando con su cifra, o la nube ya lista. */
+/** The live line of the panel: not computed, computing with its figure, or the cloud ready. */
 function statusText(
   running: boolean,
   progress: number,
@@ -241,8 +241,8 @@ function statusText(
 }
 
 /**
- * Panel «Espacio de trabajo» del visor del brazo: cuántas configuraciones muestrear, el botón
- * que lanza o cancela el cálculo, el progreso y el toggle de visibilidad de la nube.
+ * «Espacio de trabajo» panel of the arm viewer: how many configurations to sample, the button
+ * that starts or cancels the computation, the progress and the visibility toggle of the cloud.
  */
 export function WorkspacePanel({ arm, onChange, schedule }: WorkspacePanelProps): JSX.Element {
   const t = useT();

@@ -5,19 +5,19 @@ import type { ImportedArm } from './importedArms';
 import { saveErrorKey } from '../../lib/robots/storage';
 import { IMPORTED_VALUE, savedIdOf } from './ArmSource';
 
-// F5-04 (#137, decisiones 3, 4 y 5): el estado del brazo importado de `/simuladores/brazo`, fuera
-// de `ArmSimIsland.tsx` para que ninguno de los dos pase de 300 líneas (docs/STANDARDS.md §4).
-// `importedArms.ts` se carga con `import()`, así que `@supabase/supabase-js` no entra en el JS
-// inicial de la página.
+// F5-04 (#137, decisions 3, 4 and 5): the state of the imported arm of `/simuladores/brazo`, out
+// of `ArmSimIsland.tsx` so that neither of the two goes over 300 lines (docs/STANDARDS.md §4).
+// `importedArms.ts` is loaded with `import()`, so `@supabase/supabase-js` does not enter the
+// page's initial JS.
 
-/** Un brazo que el visor dibuja desde un zip en memoria. */
+/** An arm the viewer draws from an in-memory zip. */
 export interface MemoryArm {
   readonly name: string;
   readonly bytes: Uint8Array;
   readonly urdfPath: string;
 }
 
-/** El estado del selector y del diálogo que `ArmSimIsland` consume. */
+/** The state of the selector and the dialog that `ArmSimIsland` consumes. */
 export interface ImportState {
   readonly savedArms: readonly ImportedArm[];
   readonly signedIn: boolean;
@@ -27,17 +27,17 @@ export interface ImportState {
   readonly openDialog: () => void;
   readonly closeDialog: () => void;
   readonly accept: (upload: AcceptedUpload) => Promise<void>;
-  /** Carga un brazo guardado; `true` cuando lo consiguió. */
+  /** Loads a saved arm; `true` when it succeeded. */
   readonly selectSaved: (value: string) => Promise<boolean>;
   readonly clearMemoryArm: () => void;
 }
 
-/** La entrada `.urdf` de un zip ya comprobado; `validateUpload` garantiza que hay exactamente una. */
+/** The `.urdf` entry of an already checked zip; `validateUpload` guarantees there is exactly one. */
 function urdfPathOf(paths: readonly string[]): string {
   return paths.find((path) => path.toLowerCase().endsWith('.urdf')) ?? '';
 }
 
-/** La sesión del estudiante y sus brazos guardados; sin sesión, la lista vacía. */
+/** The learner's session and their saved arms; without a session, the empty list. */
 async function readSession(): Promise<{
   ownerId: string | null;
   arms: readonly ImportedArm[];
@@ -48,7 +48,7 @@ async function readSession(): Promise<{
   return { ownerId, arms: ownerId === null ? empty : await module.loadImportedArms() };
 }
 
-/** La sesión y los brazos guardados, cargados una vez al montar. */
+/** The session and the saved arms, loaded once on mount. */
 function useSavedArms(): {
   savedArms: readonly ImportedArm[];
   ownerId: string | null;
@@ -99,7 +99,7 @@ async function saveOrNotice(
   }
 }
 
-/** Acepta un zip ya comprobado: lo guarda si hay sesión y en todo caso lo carga en el visor. */
+/** Accepts an already checked zip: saves it if there is a session and always loads it in the viewer. */
 function useAccept(options: {
   ownerId: string | null;
   add: (arm: ImportedArm) => void;
@@ -116,8 +116,8 @@ function useAccept(options: {
         urdfPath: urdfPathOf(upload.paths),
       };
       setDialogOpen(false);
-      // La sesión se vuelve a leer aquí: al montar la isla puede no estar resuelta todavía, y el
-      // estudiante decide importar mucho después (`packages/auth`, `$sessionReady`).
+      // The session is read again here: when the island mounts it may not be resolved yet, and the
+      // learner decides to import much later (`packages/auth`, `$sessionReady`).
       const module = await import('./importedArms');
       const owner = ownerId ?? (await module.currentOwnerId());
       if (owner === null) {
@@ -128,14 +128,14 @@ function useAccept(options: {
       const saved = await saveOrNotice(owner, upload);
       if (typeof saved !== 'string') add(saved);
       show(arm);
-      // El zip ya está comprobado: si Supabase lo rechaza, el brazo se carga igual en memoria.
+      // The zip is already checked: if Supabase rejects it, the arm is loaded in memory anyway.
       setNotice(typeof saved === 'string' ? saved : 'sims.import.saved');
     },
     [ownerId, add, show, setNotice, setDialogOpen],
   );
 }
 
-/** Descarga el zip de un brazo guardado y lo deja listo para el visor (#137, decisión 5). */
+/** Downloads the zip of a saved arm and gets it ready for the viewer (#137, decision 5). */
 function useSelectSaved(
   savedArms: readonly ImportedArm[],
   setMemoryArm: (arm: MemoryArm) => void,
@@ -165,8 +165,8 @@ function useSelectSaved(
 }
 
 /**
- * El flujo de importación completo: abrir el diálogo, aceptar un zip comprobado —guardándolo si
- * hay sesión— y cargar un brazo ya guardado desde el propio bucket.
+ * The complete import flow: opening the dialog, accepting a checked zip (saving it if
+ * there is a session) and loading an already saved arm from its own bucket.
  */
 export function useImportedArm(onSelect: (value: string) => void): ImportState {
   const { savedArms, ownerId, add } = useSavedArms();

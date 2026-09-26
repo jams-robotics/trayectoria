@@ -5,35 +5,35 @@ import type { ToastTone } from '@trayectoria/widgets/Toast';
 
 import { CATALOG_PREFIX, MY_ROBOT_ID } from './RobotSource';
 
-// F4-05 (#131, decisiones 4, 5 y 7): dónde viven las configuraciones guardadas y cómo llega la
-// del enlace. La página no escribe en `localStorage` ni consulta Supabase por su cuenta: lo
-// primero es el store de `@trayectoria/sims` (el único archivo con `localStorage`) y lo segundo el
-// adaptador de `apps/web/src/lib/sim/simConfigPersistence.ts`, que se carga con `import()` para no
-// meter `@supabase/supabase-js` en el JS inicial de una página que simula igual sin sesión.
+// F4-05 (#131, decisions 4, 5 and 7): where the saved configurations live and how the link's one
+// arrives. The page neither writes to `localStorage` nor queries Supabase on its own: the
+// first is the `@trayectoria/sims` store (the only file with `localStorage`) and the second the
+// adapter of `apps/web/src/lib/sim/simConfigPersistence.ts`, which is loaded with `import()` so as
+// not to put `@supabase/supabase-js` in the initial JS of a page that simulates just as well without a session.
 
-/** Un aviso de la página: el mensaje ya traducido y su tono (docs/DESIGN.md §5, Toast). */
+/** A page notice: the already translated message and its tone (docs/DESIGN.md §5, Toast). */
 export interface Notice {
   readonly message: string;
   readonly tone: ToastTone;
 }
 
 /**
- * El robot en el que se guarda con sesión: una fila de `robots`, no «Mi robot» ni uno de
- * referencia (decisión 5). Para esos dos la lista es la local.
+ * The robot saved into with a session: a `robots` row, not «Mi robot» nor a reference
+ * one (decision 5). For those two the list is the local one.
  */
 export function savedRobotIdOf(robotId: string): string | null {
   if (robotId === MY_ROBOT_ID || robotId.startsWith(CATALOG_PREFIX)) return null;
   return robotId;
 }
 
-/** El id del estudiante con sesión, o `null` sin ella; espera a que la sesión esté leída. */
+/** The signed-in learner's id, or `null` without a session; waits until the session is read. */
 async function currentOwnerId(): Promise<string | null> {
   const { ensureSessionReady } = await import('@trayectoria/auth');
   const session = await ensureSessionReady();
   return session?.user.id ?? null;
 }
 
-/** La lista guardada del robot con sesión, o la local cuando no la hay. */
+/** The saved list of the robot with a session, or the local one when there is none. */
 async function loadList(robotId: string): Promise<readonly SimConfig[]> {
   const { listSimConfigs } = await import('@trayectoria/sims');
   const saved = savedRobotIdOf(robotId);
@@ -52,7 +52,7 @@ export function saveErrorKey(error: unknown): string {
   return error instanceof RangeError ? 'sims.simConfig.tooLarge' : 'sims.simConfig.saveError';
 }
 
-/** Guarda `config` donde corresponda y devuelve la lista resultante. */
+/** Saves `config` where it belongs and returns the resulting list. */
 async function storeConfig(
   robotId: string,
   config: SimConfig,
@@ -68,7 +68,7 @@ async function storeConfig(
   return saveRobotSimConfig(saved, ownerId, config);
 }
 
-/** Borra `id` donde corresponda y devuelve la lista resultante. */
+/** Deletes `id` where it belongs and returns the resulting list. */
 async function removeConfig(robotId: string, id: string): Promise<readonly SimConfig[]> {
   const sims = await import('@trayectoria/sims');
   const saved = savedRobotIdOf(robotId);
@@ -81,7 +81,7 @@ async function removeConfig(robotId: string, id: string): Promise<readonly SimCo
   return deleteRobotSimConfig(saved, ownerId, id);
 }
 
-/** La configuración del enlace `?c=`, o `'invalid'` si lo hay pero no vale; `null` si no lo hay. */
+/** The configuration of the `?c=` link, or `'invalid'` if there is one but it is not valid; `null` if there is none. */
 export async function configFromSearch(search: string): Promise<SimConfig | 'invalid' | null> {
   const { SHARE_PARAM, decode } = await import('@trayectoria/sims');
   const text = new URLSearchParams(search).get(SHARE_PARAM);
@@ -91,25 +91,25 @@ export async function configFromSearch(search: string): Promise<SimConfig | 'inv
 }
 
 export interface SimConfigsApi {
-  /** Las configuraciones que la página muestra: las del robot con sesión, o las locales. */
+  /** The configurations the page shows: those of the robot with a session, or the local ones. */
   readonly saved: readonly SimConfig[];
   readonly onSave: (name: string, current: Omit<SimConfig, 'id' | 'name'>) => void;
   readonly onDelete: (id: string) => void;
-  /** `false` con `'tooLong'` significa que no hubo enlace que copiar: la configuración no cabe. */
+  /** `false` with `'tooLong'` means there was no link to copy: the configuration does not fit. */
   readonly onCopied: (copied: boolean, reason?: 'tooLong') => void;
-  /** El aviso en curso y cómo cerrarlo. */
+  /** The current notice and how to dismiss it. */
   readonly notice: Notice | null;
   readonly dismiss: () => void;
 }
 
-/** Las configuraciones que la página muestra: las del robot con sesión, o las locales. */
+/** The configurations the page shows: those of the robot with a session, or the local ones. */
 function useSavedList(robotId: string): {
   saved: readonly SimConfig[];
   setSaved: (list: readonly SimConfig[]) => void;
 } {
   const [saved, setSaved] = useState<readonly SimConfig[]>([]);
-  // La lista se relee cada vez que cambia el robot: con «Mi robot» o uno de referencia es la
-  // local, y con un robot guardado la de su fila (decisión 5).
+  // The list is re-read every time the robot changes: with «Mi robot» or a reference one it is the
+  // local one, and with a saved robot that of its row (decision 5).
   useEffect(() => {
     let live = true;
     void loadList(robotId)
@@ -127,9 +127,9 @@ function useSavedList(robotId: string): {
 }
 
 /**
- * Aplica el enlace `?c=` al montar, una sola vez: la URL no se reescribe al guardar (decisión 7),
- * así que nada vuelve a disparar esto, y volver a aplicarlo borraría lo que el estudiante haya
- * cambiado desde entonces. Un enlace que no vale deja los valores por defecto y avisa.
+ * Applies the `?c=` link on mount, only once: the URL is not rewritten on save (decision 7),
+ * so nothing triggers this again, and applying it again would erase whatever the learner has
+ * changed since then. An invalid link leaves the default values and warns.
  */
 function useLinkedConfig(
   applyConfig: (config: SimConfig) => void,
@@ -150,7 +150,7 @@ function useLinkedConfig(
   }, []);
 }
 
-/** «Guardar» y «Borrar»: escriben donde toque y publican la lista que devuelve la escritura. */
+/** «Guardar» and «Borrar»: they write where appropriate and publish the list the write returns. */
 function useWriteActions(
   robotId: string,
   setSaved: (list: readonly SimConfig[]) => void,
@@ -190,9 +190,9 @@ function useWriteActions(
 }
 
 /**
- * Las configuraciones guardadas del robot seleccionado y las acciones del panel, con el enlace
- * `?c=` aplicado al montar. `applyConfig` es el de la página: es ella quien cambia pista,
- * controlador, parámetros y semilla, y quien reinicia la simulación pausada en `t = 0`.
+ * The saved configurations of the selected robot and the panel actions, with the
+ * `?c=` link applied on mount. `applyConfig` is the page's: it is the page that changes track,
+ * controller, parameters and seed, and that restarts the simulation paused at `t = 0`.
  */
 export function useSimConfigs(
   robotId: string,
@@ -210,8 +210,8 @@ export function useSimConfigs(
     setNotice({ message: t(saveErrorKey(error)), tone: 'error' });
   });
 
-  // #182 (decisión 2): «Copiar enlace» con una configuración que no cabe no copia nada y lo dice
-  // con su propio aviso; el del portapapeles no valdría, porque no hay enlace a la vista.
+  // #182 (decision 2): «Copiar enlace» with a configuration that does not fit copies nothing and says so
+  // with its own notice; the clipboard one would not do, because there is no link in sight.
   const onCopied = useCallback(
     (copied: boolean, reason?: 'tooLong'): void => {
       if (reason === 'tooLong') {

@@ -3,9 +3,9 @@ import { describe, expect, test } from 'vitest';
 
 import { useTrackEditor } from './useTrackEditor';
 
-// F4-01b: el panel numérico, los presets y la serialización del hook. Va aparte de
-// useTrackEditor.test.ts, que cubre el dibujo con el puntero, para no pasar de 300 líneas por
-// archivo (docs/STANDARDS.md §4).
+// F4-01b: the numeric panel, the presets and the serialisation of the hook. It is separate from
+// useTrackEditor.test.ts, which covers drawing with the pointer, so as not to exceed 300 lines per
+// file (docs/STANDARDS.md §4).
 describe('useTrackEditor: panel, presets y archivos (F4-01b)', () => {
   test('setRadius of the panel changes the radius of the selected arc', () => {
     const { result } = renderHook(() => useTrackEditor());

@@ -1,22 +1,22 @@
 import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import type { ReactNode } from 'react';
 
-// #189 (decisiones 1 y 2): el canal por el que el panel numérico del editor de pista llega desde
-// la caja del visor —donde `TrackEditor` lo entrega por `renderPanel`— hasta la columna derecha de
-// la página, que es donde la decisión 2 lo coloca.
+// #189 (decisions 1 and 2): the channel through which the numeric panel of the track editor
+// travels from the viewer box (where `TrackEditor` hands it over via `renderPanel`) to the right
+// column of the page, which is where decision 2 places it.
 //
-// Es el mismo patrón que `apiStore` y `instrumentsStore`: la caja y la columna son hermanas dentro
-// del árbol del widget (una llega por `renderViewer` y la otra por `renderPanel`), así que no hay
-// padre común que pueda pasarles el nodo por props sin volver a renderizar la página entera en
-// cada cambio del editor. El nodo se publica en un efecto y solo la columna se entera.
+// It is the same pattern as `apiStore` and `instrumentsStore`: the box and the column are siblings
+// inside the widget tree (one arrives via `renderViewer` and the other via `renderPanel`), so
+// there is no common parent that could pass them the node through props without re-rendering the
+// whole page on every editor change. The node is published in an effect and only the column hears.
 
-/** El panel del editor de pista, publicado a la columna que lo muestra. */
+/** The track editor panel, published to the column that shows it. */
 export interface EditorPanelStore {
-  /** El último panel publicado, o null mientras el editor no esté abierto. */
+  /** The last published panel, or null while the editor is not open. */
   readonly read: () => ReactNode;
-  /** Lo entrega la caja del editor en cada render suyo. */
+  /** The editor box hands it over on each of its renders. */
   readonly publish: (panel: ReactNode) => void;
-  /** Avisa a la columna; devuelve la baja. */
+  /** Notifies the column; returns the unsubscribe function. */
   readonly subscribe: (listener: () => void) => () => void;
 }
 
@@ -40,15 +40,15 @@ export function useEditorPanelStore(): EditorPanelStore {
   );
 }
 
-/** El panel publicado, re-renderizando solo a la columna que lo lee. */
+/** The published panel, re-rendering only the column that reads it. */
 export function useEditorPanel(store: EditorPanelStore): ReactNode {
   return useSyncExternalStore(store.subscribe, store.read, () => null);
 }
 
 /**
- * Publica el panel que el editor entrega, sin pintar nada donde el editor lo dejó. Lo hace en un
- * efecto y no durante el render: quien lo consume está en otra rama del árbol y actualizarla en
- * mitad del render del editor sería un cambio de estado sobre un componente ya renderizado.
+ * Publishes the panel the editor hands over, without drawing anything where the editor left it.
+ * It does so in an effect and not during render: its consumer is in another branch of the tree
+ * and updating it mid-render of the editor would be a state change on an already rendered component.
  */
 export function usePublishedPanel(store: EditorPanelStore, panel: ReactNode): void {
   useEffect(() => {

@@ -277,7 +277,7 @@ export type {
 export { TOAST_TIMEOUT_MS, Toast } from './shared/Toast';
 export type { ToastProps, ToastTone } from './shared/Toast';
 
-// `StoryGallery` y sus tipos NO se reexportan aquí: son API de desarrollo del playground, no API
-// pública del paquete (docs/STANDARDS.md §4). Viven en la entrada `@trayectoria/widgets/dev`.
-// Estando en el barrel, su `import()` de las stories dejaba la tabla `__vite__mapDeps` con el
-// chunk de `three` en el grafo de toda página que importa `@trayectoria/widgets` (#154).
+// `StoryGallery` and its types are NOT re-exported here: they are development API of the playground, not
+// public API of the package (docs/STANDARDS.md §4). They live in the `@trayectoria/widgets/dev` entry.
+// While in the barrel, its `import()` of the stories left the `__vite__mapDeps` table with the
+// `three` chunk in the graph of every page that imports `@trayectoria/widgets` (#154).

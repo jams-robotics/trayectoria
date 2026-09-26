@@ -89,7 +89,7 @@ describe('torque y potencia de salida (F2-08)', () => {
   it('P_out = P_in · η, y P = τ ω en cada eje (T-4.4)', () => {
     closeTo(inputPower_W(TRAIN), 0.012 * rpmToRadps(6000));
     closeTo(outputPower_W(TRAIN), inputPower_W(TRAIN) * 0.6);
-    // El eje de salida cierra el balance: τ_out · ω_out = P_in · η.
+    // The output shaft closes the balance: τ_out · ω_out = P_in · η.
     closeTo(shaftPower_W(outputTorque_Nm(2, TRAIN), outputSpeed_rpm(2, TRAIN)), outputPower_W(TRAIN));
   });
 
@@ -117,7 +117,7 @@ describe('sentidos de giro (F2-08)', () => {
     expect(speeds.omega1_radps).toBeGreaterThan(0);
     expect(speeds.omega2_radps).toBeLessThan(0);
     expect(speeds.omega4_radps).toBeGreaterThan(0);
-    // z3 va en el eje de z2, así que la segunda etapa parte de ω2 (#91, decisión 3).
+    // z3 sits on the shaft of z2, so the second stage starts from ω2 (#91, decision 3).
     closeTo(Math.abs(speeds.omega2_radps), rpmToRadps(1200));
     closeTo(speeds.omega4_radps, rpmToRadps(240));
   });
@@ -133,7 +133,7 @@ describe('geometría y ángulos (F2-08)', () => {
   it('el radio primitivo es r = m z / 2 (#91, decisión 3)', () => {
     closeTo(pitchRadius_m(12), (MODULE_M * 12) / 2);
     closeTo(pitchRadius_m(60), 0.06);
-    // Los radios son proporcionales a los dientes: 60 dientes son cinco veces 12.
+    // The radii are proportional to the teeth: 60 teeth are five times 12.
     closeTo(pitchRadius_m(60) / pitchRadius_m(12), 5);
   });
 

@@ -1,44 +1,44 @@
 import type { ArmSpec } from '@trayectoria/robot-spec';
 import { createRng, sampleWorkspace } from '@trayectoria/sim-core';
 
-// F5-03 (#136, decisión 2): muestreo del espacio de trabajo troceado en lotes para no bloquear
-// la interfaz. Los puntos los calcula `sampleWorkspace` de sim-core; aquí solo se reparte el
-// trabajo. Un único `SeededRng` recorre todos los lotes, así que la nube es exactamente la de
-// una llamada única con la misma semilla (docs/DEFINITION-OF-DONE.md, tipo sim: determinismo).
+// F5-03 (#136, decision 2): workspace sampling split into batches so as not to block
+// the interface. The points are computed by sim-core `sampleWorkspace`; here the work is only
+// distributed. A single `SeededRng` runs through all the batches, so the cloud is exactly that of
+// a single call with the same seed (docs/DEFINITION-OF-DONE.md, sim type: determinism).
 
-/** Semilla fija del espacio de trabajo; el ticket la fija en 1 para que la nube sea reproducible. */
+/** Fixed seed of the workspace; the ticket sets it to 1 so that the cloud is reproducible. */
 export const WORKSPACE_SEED = 1;
 
-/** Puntos por lote cuando el consumidor no pide otro tamaño. */
+/** Points per batch when the consumer does not ask for another size. */
 export const defaultBatchSize = 1_000;
 
-/** Planifica un lote y devuelve la función que lo cancela si aún no corrió. */
+/** Schedules a batch and returns the function that cancels it if it has not run yet. */
 export type BatchSchedule = (run: () => void) => () => void;
 
-/** Ajustes del muestreo por lotes; todos opcionales salvo el brazo, `n` y la semilla. */
+/** Settings of the batch sampling; all optional except the arm, `n` and the seed. */
 export interface BatchOptions {
-  /** Puntos por lote; por defecto `defaultBatchSize`. */
+  /** Points per batch; `defaultBatchSize` by default. */
   readonly batchSize?: number;
-  /** Cómo se planifica cada lote; por defecto, tiempo ocioso o `setTimeout(fn, 0)`. */
+  /** How each batch is scheduled; by default, idle time or `setTimeout(fn, 0)`. */
   readonly schedule?: BatchSchedule;
-  /** Fracción completada tras cada lote, en `(0, 1]`. */
+  /** Fraction completed after each batch, in `(0, 1]`. */
   readonly onProgress?: (progress: number) => void;
 }
 
-/** Un muestreo en marcha: la nube cuando termine y la forma de abortarlo. */
+/** A running sampling: the cloud when it finishes and the way to abort it. */
 export interface BatchedSampling {
-  /** La nube aplanada `[x0, y0, z0, …]`, o un rechazo si se canceló. */
+  /** The flattened cloud `[x0, y0, z0, …]`, or a rejection if it was cancelled. */
   readonly promise: Promise<Float32Array>;
-  /** Detiene el muestreo; los lotes pendientes no llegan a correr. */
+  /** Stops the sampling; the pending batches never get to run. */
   cancel: () => void;
 }
 
-/** Motivo del rechazo cuando se cancela; la interfaz lo distingue de un error real. */
+/** Reason for the rejection on cancellation; the interface tells it apart from a real error. */
 export const CANCELLED_REASON = 'workspace-sampling-cancelled';
 
 /**
- * Planificador por defecto: cede el hilo entre lotes con `requestIdleCallback` si el navegador
- * lo trae y, si no, con `setTimeout(fn, 0)` (decisión 2 del ticket).
+ * Default scheduler: yields the thread between batches with `requestIdleCallback` if the browser
+ * has it and, otherwise, with `setTimeout(fn, 0)` (decision 2 of the ticket).
  */
 export function defaultSchedule(run: () => void): () => void {
   const host: {
@@ -57,7 +57,7 @@ export function defaultSchedule(run: () => void): () => void {
   };
 }
 
-/** Lo que un muestreo en marcha lleva consigo entre lotes. */
+/** What a running sampling carries with it between batches. */
 interface SamplingState {
   readonly rng: ReturnType<typeof createRng>;
   readonly points: Float32Array;
@@ -66,20 +66,20 @@ interface SamplingState {
   cancelled: boolean;
 }
 
-/** Muestrea `size` configuraciones más y las escribe a continuación de las ya calculadas. */
+/** Samples `size` more configurations and writes them after the ones already computed. */
 function runBatch(state: SamplingState, arm: ArmSpec, size: number): void {
   state.points.set(sampleWorkspace(arm, size, state.rng), 3 * state.done);
   state.done += size;
 }
 
-/** Comprueba `batchSize` antes de arrancar; un lote vacío no avanzaría nunca. */
+/** Checks `batchSize` before starting; an empty batch would never advance. */
 function checkBatchSize(batchSize: number): void {
   if (!Number.isInteger(batchSize) || batchSize < 1) {
     throw new RangeError(`batchSize debe ser un entero positivo, recibido ${String(batchSize)}`);
   }
 }
 
-/** La cancelación del muestreo: corta el lote pendiente y rechaza, salvo si ya terminó. */
+/** The cancellation of the sampling: cuts the pending batch and rejects, unless it already finished. */
 function abortWith(
   state: SamplingState,
   n: number,
@@ -118,7 +118,7 @@ export function sampleWorkspaceInBatches(
     cancelScheduled: null,
     cancelled: false,
   };
-  // El ejecutor corre de forma síncrona, así que `abort` ya está puesto cuando se devuelve.
+  // The executor runs synchronously, so `abort` is already set when it returns.
   let abort: () => void = () => undefined;
 
   const promise = new Promise<Float32Array>((resolve, reject) => {

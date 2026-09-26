@@ -44,8 +44,8 @@ function EditorBody({
 }
 
 /**
- * Lo que va bajo la barra de herramientas: la maquetación del playground, o el lienzo a todo el
- * ancho con el panel donde la página lo coloque (#189, decisión 1).
+ * What goes under the toolbar: the playground layout, or the full-width canvas
+ * with the panel wherever the page places it (#189, decision 1).
  */
 function EditorMain({
   editor,
@@ -71,7 +71,7 @@ function EditorMain({
   );
 }
 
-/** La barra de herramientas, cableada al editor y a sus acciones de archivo. */
+/** The toolbar, wired to the editor and to its file actions. */
 function EditorToolbar({
   editor,
   files,
@@ -102,7 +102,7 @@ function EditorToolbar({
   );
 }
 
-/** Los avisos que el editor puede abrir: continuidad, error de carga, confirmación, toast. */
+/** The notices the editor can open: continuity, load error, confirmation, toast. */
 function EditorNotices({
   editor,
   files,
@@ -165,8 +165,8 @@ export interface TrackEditorProps {
   onChange?: (track: Track) => void;
   /**
    * Wraps the numeric panel, so a page can put it somewhere of its own — e.g. the column of
-   * cards beside the viewer box (#189, decisión 1; mismo patrón que `renderPanel` de
-   * `LineFollowerWidget` y `ArmViewer`). Without it the panel stays in its 280 px column beside
+   * cards beside the viewer box (#189, decision 1; same pattern as `renderPanel` of
+   * `LineFollowerWidget` and `ArmViewer`). Without it the panel stays in its 280 px column beside
    * the canvas, which is the layout of the playground.
    *
    * With it the canvas takes the whole width of the editor and the toolbar goes in a single row
@@ -174,9 +174,9 @@ export interface TrackEditorProps {
    */
   renderPanel?: (panel: ReactNode) => ReactNode;
   /**
-   * Alto exacto del lienzo en píxeles CSS (#189, decisión 3): la página le da el del visor al que
-   * el editor sustituye, para que la caja no tenga que recortar con scroll. Solo se aplica junto a
-   * `renderPanel`; sin él, el lienzo conserva la relación 16/9 de `Scene2D`.
+   * Exact height of the canvas in CSS pixels (#189, decision 3): the page gives it the height of the viewer
+   * the editor replaces, so that the box does not have to crop with scroll. It only applies together with
+   * `renderPanel`; without it, the canvas keeps the 16/9 ratio of `Scene2D`.
    */
   canvasHeight_px?: number;
   /**
@@ -227,8 +227,8 @@ export function TrackEditor({
     // `tabIndex` so a click on the canvas leaves the focus inside the editor and the shortcuts of
     // #159 reach it; the outline is the browser's own only when it is focused by keyboard.
     <div ref={rootRef} tabIndex={-1} className={rootClass(renderPanel)} data-testid="track-editor">
-      {/* #189, decisión 1: en una sola fila cuando la página coloca el panel fuera; en el
-          playground la barra sigue repartiéndose en varias líneas si no cabe. */}
+      {/* #189, decision 1: in a single row when the page places the panel outside; in the
+          playground the bar still spreads over several lines if it does not fit. */}
       <EditorToolbar
         editor={editor}
         files={files}

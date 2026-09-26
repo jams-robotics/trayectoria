@@ -35,8 +35,8 @@ describe('lap (F4-02a)', () => {
     expect(buildTrackIndex(presets.sCurve, 0.05)).not.toBe(first);
   });
 
-  // Solo en el óvalo: una pista que se cruza consigo misma (`tightCurves`) hace ambigua la
-  // proyección por punto más cercano, que es el método que fija la spec de #127.
+  // Only on the oval: a track that crosses itself (`tightCurves`) makes the nearest-point
+  // projection ambiguous, and that is the method fixed by the spec of #127.
   it('proyecta varios puntos del óvalo con la tolerancia dorada', () => {
     const index = buildTrackIndex(presets.oval);
     for (const s_m of [0, 0.4, 1.1, 2.2]) {

@@ -8,30 +8,30 @@ import type { LineFollowerPlot } from './plots';
 import { PLOT_WINDOW_S } from './useInstruments';
 import type { InstrumentBuffers } from './useInstruments';
 
-// F4-03 (#129, decisión 4): las gráficas en vivo de la instrumentación. `Plot` en modo `live`
-// sobre los anillos que `useInstruments` alimenta; aquí solo se eligen series, colores y altura.
+// F4-03 (#129, decision 4): the live instrumentation plots. `Plot` in `live` mode
+// over the rings that `useInstruments` feeds; here only series, colours and height are chosen.
 
-/** Alto del área de dibujo en móvil, en píxeles (docs/DESIGN.md §9 punto 8). */
+/** Height of the drawing area on mobile, in pixels (docs/DESIGN.md §9 item 8). */
 export const MOBILE_PLOT_HEIGHT_PX = 120;
 
-/** Alto del área de dibujo en escritorio, en píxeles (docs/DESIGN.md §5, Gráfica). */
+/** Height of the drawing area on desktop, in pixels (docs/DESIGN.md §5, Gráfica). */
 export const PLOT_HEIGHT_PX = 200;
 
-/** Definición de una gráfica: de qué anillo sale y qué series pinta. */
+/** Definition of a plot: which ring it comes from and which series it draws. */
 interface PlotDef {
   readonly id: LineFollowerPlot;
   readonly buffer: (buffers: InstrumentBuffers) => RingBuffer;
   readonly series: (t: Translate) => readonly PlotSeries[];
 }
 
-/** Una serie con su token de la paleta de datos (docs/DESIGN.md §2.2). */
+/** A series with its data palette token (docs/DESIGN.md §2.2). */
 function seriesOf(key: string, label: string, unit: string, color: string): PlotSeries {
   return { key, label, unit, color };
 }
 
 /**
- * Las cuatro gráficas del ticket, en el orden en que se apilan: el error del arreglo, la
- * velocidad lineal, la velocidad angular y los tres términos del PID en una sola.
+ * The four plots of the ticket, in stacking order: the array error, the
+ * linear speed, the angular speed and the three PID terms in a single one.
  */
 const PLOTS: readonly PlotDef[] = [
   {
@@ -61,34 +61,34 @@ const PLOTS: readonly PlotDef[] = [
 ];
 
 export interface InstrumentsProps {
-  /** Los anillos que alimenta `useInstruments`, uno por gráfica. */
+  /** The rings that `useInstruments` feeds, one per plot. */
   readonly buffers: InstrumentBuffers;
-  /** Qué gráficas se pintan y en qué orden manda `PLOTS` (decisión 6). */
+  /** Which plots are drawn; the order is set by `PLOTS` (decision 6). */
   readonly show: readonly LineFollowerPlot[];
-  /** Apila a `MOBILE_PLOT_HEIGHT_PX` en lugar de a la altura de escritorio. */
+  /** Stacks at `MOBILE_PLOT_HEIGHT_PX` instead of the desktop height. */
   readonly mobile?: boolean;
   /**
-   * Cierto mientras el controlador en curso es un PID. La gráfica `pid` solo tiene sentido
-   * entonces, así que sin ello se omite aunque `show` la pida.
+   * True while the current controller is a PID. The `pid` plot only makes sense
+   * then, so without it it is omitted even if `show` asks for it.
    */
   readonly pid?: boolean;
 }
 
 /**
- * Las gráficas en vivo del simulador (docs/DESIGN.md §5, Gráfica): ventana deslizante de 10 s
- * sobre los anillos del modelo, una muestra por fotograma. En móvil se apilan a 120 px cada una
- * (docs/DESIGN.md §9 punto 8).
+ * The live plots of the simulator (docs/DESIGN.md §5, Gráfica): 10 s sliding window
+ * over the model rings, one sample per frame. On mobile they stack at 120 px each
+ * (docs/DESIGN.md §9 item 8).
  */
 export function Instruments({ buffers, show, mobile = false, pid = false }: InstrumentsProps): JSX.Element {
   const t = useT();
   const height = mobile ? MOBILE_PLOT_HEIGHT_PX : PLOT_HEIGHT_PX;
   const drawn = PLOTS.filter(({ id }) => show.includes(id) && (id !== 'pid' || pid));
   return (
-    // uPlot mide su contenedor y le fija al lienzo un ancho en píxeles que después no vuelve a
-    // encoger. Puesto en una columna elástica eso se realimenta —la gráfica empuja, la columna
-    // crece, la gráfica vuelve a medir— y la maqueta no se asienta nunca, lo que además hace que
-    // una captura visual jamás llegue a dos fotogramas iguales. El `width: 0` del contenedor rompe
-    // el bucle: la gráfica nunca aporta ancho mínimo, así que mide el que la columna ya tenía.
+    // uPlot measures its container and sets a pixel width on the canvas that it then never
+    // shrinks again. Placed in a flexible column that feeds back on itself —the plot pushes, the column
+    // grows, the plot measures again— and the layout never settles, which also means that
+    // a visual capture never reaches two identical frames. The container's `width: 0` breaks
+    // the loop: the plot never contributes a minimum width, so it measures the one the column already had.
     <div className="flex w-full min-w-0 flex-col gap-3" data-testid="line-follower-plots">
       {drawn.map(({ id, buffer, series }) => (
         <div

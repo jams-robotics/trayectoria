@@ -4,11 +4,11 @@ import { describe, expect, test, vi } from 'vitest';
 
 import { WORKSPACE_SEED, defaultBatchSize, sampleWorkspaceInBatches } from './sampler';
 
-// F5-03 (#136, decisiones 2 y 6): el muestreo por lotes con planificador inyectado. Los puntos
-// salen de `sampleWorkspace` de sim-core; aquí solo se trocea el trabajo para no bloquear la
-// interfaz, de modo que el resultado por lotes ha de ser idéntico al de una llamada única.
+// F5-03 (#136, decisions 2 and 6): batch sampling with an injected scheduler. The points
+// come from sim-core `sampleWorkspace`; here the work is only split up so as not to block the
+// interface, so the batched result must be identical to that of a single call.
 
-/** Brazo plano de 2 GDL del catálogo (docs/ROBOT-SPEC.md §4); l1 = 0.20 m, l2 = 0.15 m. */
+/** 2-DOF planar arm from the catalog (docs/ROBOT-SPEC.md §4); l1 = 0.20 m, l2 = 0.15 m. */
 const PLANAR_2DOF: ArmSpec = {
   baseLink: 'base_link',
   endEffectorLink: 'tool0',
@@ -43,20 +43,20 @@ const PLANAR_2DOF: ArmSpec = {
   ],
 };
 
-/** Valores dorados del anillo de planar2dof: |l1 − l2| y l1 + l2, en metros. */
+/** Golden values of the planar2dof annulus: |l1 − l2| and l1 + l2, in metres. */
 const RADIUS_MIN_M = 0.05;
 const RADIUS_MAX_M = 0.35;
 const TOLERANCE_M = 1e-6;
 
-/** Planificador síncrono: ejecuta el lote en el acto, sin ceder el hilo (decisión 2). */
+/** Synchronous scheduler: runs the batch immediately, without yielding the thread (decision 2). */
 function immediateSchedule(run: () => void): () => void {
   run();
   return () => {
-    /* nada que cancelar: el lote ya corrió */
+    /* nothing to cancel: the batch already ran */
   };
 }
 
-/** Los radios `√(x² + y²)` de una nube aplanada `[x0, y0, z0, x1, …]`. */
+/** The radii `√(x² + y²)` of a flattened cloud `[x0, y0, z0, x1, …]`. */
 function radii_m(points: Float32Array): number[] {
   const values: number[] = [];
   for (let i = 0; i < points.length; i += 3) {
@@ -78,7 +78,7 @@ describe('sampleWorkspaceInBatches (F5-03)', () => {
       expect(radius_m).toBeGreaterThanOrEqual(RADIUS_MIN_M - TOLERANCE_M);
       expect(radius_m).toBeLessThanOrEqual(RADIUS_MAX_M + TOLERANCE_M);
     }
-    // El anillo se llena: hay puntos pegados al borde interior y al exterior.
+    // The annulus fills up: there are points close to the inner and the outer edge.
     expect(Math.min(...radii)).toBeLessThan(0.06);
     expect(Math.max(...radii)).toBeGreaterThan(0.34);
     for (let i = 2; i < points.length; i += 3) {
@@ -121,7 +121,7 @@ describe('sampleWorkspaceInBatches (F5-03)', () => {
   test('cancelar a mitad detiene el cálculo y deja el progreso por debajo de 1', async () => {
     const progress: number[] = [];
     let pending: (() => void) | null = null;
-    // Planificador manual: los lotes solo avanzan cuando el test los suelta.
+    // Manual scheduler: the batches only advance when the test releases them.
     const manual = (run: () => void): (() => void) => {
       pending = run;
       return () => {
@@ -154,7 +154,7 @@ describe('sampleWorkspaceInBatches (F5-03)', () => {
     const { promise, cancel } = sampleWorkspaceInBatches(PLANAR_2DOF, 4_000, WORKSPACE_SEED, {
       batchSize: 1_000,
       schedule: () => () => {
-        /* el lote nunca corre */
+        /* the batch never runs */
       },
       onProgress: (value) => progress.push(value),
     });

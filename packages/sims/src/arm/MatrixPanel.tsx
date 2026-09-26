@@ -8,45 +8,45 @@ import { MatrixBlock } from './MatrixBlock';
 import { matrixRows } from './matrices';
 import type { LinkTransform } from './matrices';
 
-// F5-02 (#135, decisiones 1, 3 y 7): la cadena `⁰T_n = ⁰T_1 · … · ⁿ⁻¹T_n` con `Formula` y la
-// matriz elegida con `MatrixBlock`. Los chips son botones `aria-pressed` dentro de un
-// `radiogroup` (docs/DESIGN.md §5, versión chip). Ningún número sale de three: todos vienen de
-// `matrices.ts`, que los construye con sim-core (docs/ARCHITECTURE.md §4.5).
+// F5-02 (#135, decisions 1, 3 and 7): the chain `⁰T_n = ⁰T_1 · … · ⁿ⁻¹T_n` with `Formula` and the
+// chosen matrix with `MatrixBlock`. The chips are `aria-pressed` buttons inside a
+// `radiogroup` (docs/DESIGN.md §5, chip version). No number comes from three: they all come from
+// `matrices.ts`, which builds them with sim-core (docs/ARCHITECTURE.md §4.5).
 
-/** Cuál de las tres matrices de un eslabón se muestra. */
+/** Which of the three matrices of a link is shown. */
 export type MatrixKind = 'origin' | 'joint' | 'cumulative';
 
-/** Las tres matrices, en el orden de los chips. */
+/** The three matrices, in chip order. */
 const KINDS: readonly MatrixKind[] = ['origin', 'joint', 'cumulative'];
 
 /**
- * Clave corta de las dos matrices de nombre fijo; la acumulada no está aquí porque su nombre
- * lleva el índice del eslabón (`⁰T₂`) y lo construye `matrixLabel`.
+ * Short key of the two matrices with a fixed name; the cumulative one is not here because its name
+ * carries the link index (`⁰T₂`) and is built by `matrixLabel`.
  */
 const SHORT_KEY: Readonly<Record<'origin' | 'joint', string>> = {
   origin: 'sims.matrices.originShort',
   joint: 'sims.matrices.jointShort',
 };
 
-/** Clave larga de cada matriz, la que va en el `aria-label` del chip y en la región viva. */
+/** Long key of each matrix, the one used in the chip's `aria-label` and in the live region. */
 const LONG_KEY: Readonly<Record<MatrixKind, string>> = {
   origin: 'sims.matrices.origin',
   joint: 'sims.matrices.joint',
   cumulative: 'sims.matrices.cumulative',
 };
 
-/** Dígitos en superíndice y en subíndice, para etiquetar `⁰T₂` sin depender de KaTeX. */
+/** Superscript and subscript digits, to label `⁰T₂` without depending on KaTeX. */
 const SUPERSCRIPT = '⁰¹²³⁴⁵⁶⁷⁸⁹';
 const SUBSCRIPT = '₀₁₂₃₄₅₆₇₈₉';
 
-/** Pasa un entero a superíndice o subíndice Unicode. */
+/** Converts an integer to Unicode superscript or subscript. */
 function toIndexText(value: number, digits: string): string {
   return [...String(value)].map((digit) => digits[Number(digit)] ?? digit).join('');
 }
 
 /**
- * La cadena explícita `⁰T_n = ⁰T_1 · ¹T_2 · … · ⁿ⁻¹T_n` en LaTeX, o `null` si la cadena no
- * tiene ningún eslabón más allá de la base.
+ * The explicit chain `⁰T_n = ⁰T_1 · ¹T_2 · … · ⁿ⁻¹T_n` in LaTeX, or `null` if the chain has
+ * no link beyond the base.
  */
 export function chainLatex(linkCount: number): string | null {
   if (linkCount < 1) return null;
@@ -57,13 +57,13 @@ export function chainLatex(linkCount: number): string | null {
   return `{}^{0}T_{${String(linkCount)}} = ${factors.join(' \\cdot ')}`;
 }
 
-/** Nombre visible de la matriz: la acumulada se numera con el eslabón (`⁰T₂`). */
+/** Visible name of the matrix: the cumulative one is numbered with the link (`⁰T₂`). */
 export function matrixLabel(kind: MatrixKind, index: number, t: Translate): string {
   if (kind !== 'cumulative') return t(SHORT_KEY[kind]);
   return `${toIndexText(0, SUPERSCRIPT)}T${toIndexText(index, SUBSCRIPT)}`;
 }
 
-/** Un grupo de chips excluyentes: botones `aria-pressed` con rol de radio (docs/DESIGN.md §5). */
+/** A group of mutually exclusive chips: `aria-pressed` buttons with the radio role (docs/DESIGN.md §5). */
 function ChipGroup<T extends string>({
   label,
   options,
@@ -104,7 +104,7 @@ function ChipGroup<T extends string>({
   );
 }
 
-/** Las dos filas de chips del panel: el eslabón y la matriz (docs/DESIGN.md §6). */
+/** The two rows of chips of the panel: the link and the matrix (docs/DESIGN.md §6). */
 function Chips({
   rows,
   index,
@@ -135,7 +135,7 @@ function Chips({
         onSelect={onKind}
         options={KINDS.map((value) => ({
           value,
-          // La acumulada se numera con el eslabón elegido, como la matriz que muestra (`⁰T₂`).
+          // The cumulative one is numbered with the chosen link, like the matrix it shows (`⁰T₂`).
           text: matrixLabel(value, index, t),
           title: t(LONG_KEY[value]),
         }))}
@@ -145,19 +145,19 @@ function Chips({
 }
 
 export interface MatrixPanelProps {
-  /** Las matrices de cada eslabón de la cadena, de `linkTransforms`. */
+  /** The matrices of each link of the chain, from `linkTransforms`. */
   rows: readonly LinkTransform[];
-  /** Avisa de qué eslabón está elegido, para resaltarlo en 3D. */
+  /** Reports which link is chosen, to highlight it in 3D. */
   onHighlightLink?: ((link: string | null) => void) | undefined;
 }
 
-/** La matriz elegida dentro de la fila del eslabón. */
+/** The chosen matrix within the link's row. */
 function transformOf(row: LinkTransform, kind: MatrixKind): readonly number[] {
   if (kind === 'origin') return row.T_origin;
   return kind === 'joint' ? row.T_joint : row.T_cumulative;
 }
 
-/** Lo que el panel tiene elegido: el eslabón, la matriz y el índice del eslabón en la cadena. */
+/** What the panel has chosen: the link, the matrix and the index of the link in the chain. */
 interface Selection {
   readonly selectedLink: string | null;
   readonly setLink: (link: string) => void;
@@ -167,8 +167,8 @@ interface Selection {
 }
 
 /**
- * El eslabón y la matriz elegidos. Si cambia el brazo, el eslabón elegido puede dejar de existir:
- * se vuelve al último de la cadena. Avisa fuera de cuál es, para resaltarlo en 3D.
+ * The chosen link and matrix. If the arm changes, the chosen link may cease to exist:
+ * it falls back to the last one in the chain. Reports outward which one it is, to highlight it in 3D.
  */
 function useSelection(
   rows: readonly LinkTransform[],
@@ -193,9 +193,9 @@ function useSelection(
 }
 
 /**
- * Panel de matrices del brazo (docs/DESIGN.md §6): la cadena de transformaciones, los chips para
- * elegir eslabón y matriz, y la matriz 4×4 correspondiente. Se actualiza con `q` porque `rows`
- * se recalcula fuera.
+ * Matrix panel of the arm (docs/DESIGN.md §6): the chain of transforms, the chips to
+ * choose link and matrix, and the corresponding 4×4 matrix. It updates with `q` because `rows`
+ * is recomputed outside.
  */
 export function MatrixPanel({ rows, onHighlightLink }: MatrixPanelProps): JSX.Element | null {
   const t = useT();

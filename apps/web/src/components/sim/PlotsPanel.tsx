@@ -8,18 +8,18 @@ import type { InstrumentsStore } from './instrumentsStore';
 import { Panel } from './SimPanel';
 import type { OpenPanelId } from './SimPanel';
 
-// F4-03 (#129, decisión 6): las gráficas son un panel más de la columna, y en móvil un acordeón
-// como el resto. Llegan con el mismo `import()` que el simulador, así que no entran en el JS
-// inicial de la página.
+// F4-03 (#129, decision 6): the plots are one more panel of the column, and on mobile an
+// accordion like the rest. They arrive with the same `import()` as the simulator, so they do not
+// enter the page's initial JS.
 const LazyInstruments = lazy(async () => {
   const module = await import('@trayectoria/sims');
   return { default: module.Instruments };
 });
 
 /**
- * Las cuatro gráficas que muestra la página (decisión 6). Se escriben aquí en lugar de importar
- * `ALL_PLOTS` de `@trayectoria/sims`: un import estático de ese paquete traería su barril al JS
- * inicial y desharía la carga perezosa del simulador (docs/ARCHITECTURE.md §8).
+ * The four plots the page shows (decision 6). They are written here instead of importing
+ * `ALL_PLOTS` from `@trayectoria/sims`: a static import of that package would bring its barrel
+ * into the initial JS and undo the simulator's lazy loading (docs/ARCHITECTURE.md §8).
  */
 const PAGE_PLOTS: readonly LineFollowerPlot[] = ['error', 'v', 'omega', 'pid'];
 
@@ -30,12 +30,12 @@ const PAGE_PLOTS: readonly LineFollowerPlot[] = ['error', 'v', 'omega', 'pid'];
 const DESKTOP_GRID =
   '[&_[data-testid=line-follower-plots]]:grid [&_[data-testid=line-follower-plots]]:grid-cols-2';
 
-/** Decimales de los tiempos del resumen de «Gráficas», en segundos. */
+/** Decimals of the times in the «Gráficas» summary, in seconds. */
 const LAP_DECIMALS = 2;
 
 /**
- * El resumen en línea de «Gráficas» (docs/DESIGN.md §9 punto 8): el último tiempo de vuelta y el
- * mejor, legibles con el acordeón cerrado. Sin vueltas cerradas no hay nada que resumir.
+ * The inline summary of «Gráficas» (docs/DESIGN.md §9 point 8): the last lap time and the
+ * best one, readable with the accordion closed. Without closed laps there is nothing to summarize.
  */
 export function plotsSummary(
   instruments: ReturnType<InstrumentsStore['read']>,
@@ -50,7 +50,7 @@ export function plotsSummary(
   });
 }
 
-/** Las gráficas en sí, o el aviso de que todavía no hay carrera de la que sacarlas. */
+/** The plots themselves, or the notice that there is no run to draw them from yet. */
 function Charts({
   instruments,
   t,
@@ -77,12 +77,12 @@ function Charts({
 }
 
 /**
- * «Gráficas» (F4-03, #129, decisión 6): las cuatro gráficas en vivo del simulador sobre los
- * anillos que el widget publica por `onInstruments`. Como «Lecturas», se suscribe al store en
- * lugar de recibirlas por props, así que solo este panel se vuelve a renderizar por vuelta.
+ * «Gráficas» (F4-03, #129, decision 6): the simulator's four live plots over the
+ * rings the widget publishes through `onInstruments`. Like «Lecturas», it subscribes to the store
+ * instead of receiving them by props, so only this panel re-renders per lap.
  *
- * En móvil las gráficas se apilan a 120 px cada una, que es lo que el propio componente decide
- * con `mobile`.
+ * On mobile the plots stack at 120 px each, which is what the component itself decides
+ * with `mobile`.
  */
 export function PlotsPanel({
   store,

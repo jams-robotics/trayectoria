@@ -5,13 +5,13 @@ import { resolveReferences } from '../../lib/references';
 
 import Section from './Section.astro';
 
-// Sección 7 (docs/CONTENT-STANDARDS.md §2 y §6): de 1 a 3 referencias. El tema solo declara las
-// claves; el texto sale de `docs/REFERENCES.md` en tiempo de build (#97, decisión 2). Los hijos,
-// opcionales, son el enlace a un tema posterior que usa este.
+// Section 7 (docs/CONTENT-STANDARDS.md §2 and §6): 1 to 3 references. The topic only declares the
+// keys; the text comes from `docs/REFERENCES.md` at build time (#97, decision 2). The children,
+// optional, are the link to a later topic that uses this one.
 interface Props {
-  /** Claves de `docs/REFERENCES.md`, las mismas del frontmatter. */
+  /** Keys of `docs/REFERENCES.md`, the same as in the frontmatter. */
   referencias: readonly string[];
-  /** Id del tema, para nombrarlo si una clave no existe. */
+  /** Topic id, to name it if a key does not exist. */
   topicId: string;
 }
 
@@ -19,9 +19,9 @@ const { referencias, topicId } = Astro.props;
 const references = resolveReferences(referencias, topicId);
 
 /**
- * Parte el texto de una referencia en los tramos que el Markdown de la tabla marca en itálica
- * (`*título*`). Se recorre por tramos en vez de inyectar HTML: `set:html` está prohibido en la
- * plataforma (docs/ops/I18N.md §1).
+ * Splits the text of a reference into the spans the table's Markdown marks in italics
+ * (`*título*`). It walks the spans instead of injecting HTML: `set:html` is forbidden on the
+ * platform (docs/ops/I18N.md §1).
  */
 const emphasised = (text: string): { text: string; italic: boolean }[] =>
   text.split(/\*([^*]+)\*/g).map((part, index) => ({ text: part, italic: index % 2 === 1 }));

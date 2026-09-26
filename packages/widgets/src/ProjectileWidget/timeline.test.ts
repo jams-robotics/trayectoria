@@ -51,7 +51,7 @@ describe('useTimeline (F2-05)', () => {
     act(() => {
       result.current.controls.play();
     });
-    // El primer frame sólo fija el origen; el segundo integra 100 ms.
+    // The first frame only sets the origin; the second integrates 100 ms.
     frame(1000);
     frame(1100);
 
@@ -84,13 +84,13 @@ describe('useTimeline (F2-05)', () => {
       result.current.controls.play();
     });
     frame(1000);
-    // 400 ms de tiempo real superan el vuelo: el modelo satura en el instante del aterrizaje.
+    // 400 ms of real time exceed the flight: the model saturates at the landing instant.
     frame(1400);
 
     expect(result.current.t_s).toBe(flightTime_s);
     expect(result.current.driver.running).toBe(false);
 
-    // Un frame adicional no reanuda ni sobrepasa el aterrizaje.
+    // An extra frame neither resumes nor overshoots the landing.
     frame(1500);
     expect(result.current.t_s).toBe(flightTime_s);
     expect(result.current.driver.running).toBe(false);
@@ -105,7 +105,7 @@ describe('useTimeline (F2-05)', () => {
       result.current.controls.step();
     });
 
-    // Al pulsar un control el tiempo vuelve a manos del driver, que arrancó en cero.
+    // Pressing a control hands the time back to the driver, which started at zero.
     expect(result.current.t_s).toBeCloseTo(0.01, 10);
   });
 

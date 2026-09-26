@@ -10,7 +10,7 @@ import { TrackEditor } from './TrackEditor';
 // jsdom has no layout, so `Scene2D` never measures its container and its `Transform` stays at the
 // fallback width: the pointer tests below live in the e2e (apps/web/e2e/track-editor.spec.ts).
 // What is checked here is the behaviour of the numeric panel, the toolbar and save/load —
-// criterio de #126: «Test de comportamiento (Testing Library) del panel numérico: editar
+// criterion of #126: «Test de comportamiento (Testing Library) del panel numérico: editar
 // `radius_m` cambia el arco».
 
 const ARC_TRACK: Track = {
@@ -52,7 +52,7 @@ describe('TrackEditor (F4-01b)', () => {
     const changes: Track[] = [];
     render(<TrackEditor initialTrack={ARC_TRACK} onChange={(track) => changes.push(track)} />);
     await selectFirstSegment(user, 'Arc');
-    // #159: el radio también está en la barra flotante, así que este criterio se mide en el panel.
+    // #159: the radius is also in the floating bar, so this criterion is measured in the panel.
     const field = within(screen.getByTestId('track-editor-panel')).getByLabelText(
       t('sims.trackEditor.field.radius'),
     );
@@ -67,7 +67,7 @@ describe('TrackEditor (F4-01b)', () => {
     expect(last.radius_m).toBeCloseTo(0.3, 9);
   });
 
-  // #159, decisión 4: la casilla «Sentido antihorario» pasa a control segmentado.
+  // #159, decision 4: the «Sentido antihorario» checkbox becomes a segmented control.
   test('the direction control of the panel flips the sweep of the selected arc', async () => {
     const user = userEvent.setup();
     const changes: Track[] = [];

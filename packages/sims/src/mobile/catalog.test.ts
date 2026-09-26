@@ -15,29 +15,29 @@ import {
 } from './catalog';
 import type { CatalogMobileId } from './catalog';
 
-// F4-04 (#130, decisión 4 y 6): los tres `RobotSpec` de `catalog/mobile/` se leen del repositorio
-// con `node:fs` y se validan con `parseRobotSpec`; los derivados son los valores dorados del
-// ticket. La carga por HTTP se prueba con un `fetch` de prueba, sin red.
+// F4-04 (#130, decisions 4 and 6): the three `RobotSpec`s of `catalog/mobile/` are read from the repository
+// with `node:fs` and validated with `parseRobotSpec`; the derived values are the ticket's golden
+// values. Loading over HTTP is tested with a test `fetch`, without network.
 
-/** Raíz del catálogo en el repositorio, desde este archivo. */
+/** Root of the catalog in the repository, from this file. */
 const CATALOG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../catalog/mobile');
 
-/** Tolerancia de los derivados dorados (#130, decisión 6). */
+/** Tolerance of the golden derived values (#130, decision 6). */
 const TOLERANCE = 1e-3;
 
-/** Derivados dorados del ticket: `[omegaMax_radps, vMax_mps]` por robot. */
+/** Golden derived values from the ticket: `[omegaMax_radps, vMax_mps]` per robot. */
 const GOLDEN: Readonly<Record<CatalogMobileId, readonly [number, number]>> = {
   'pequeno-competitivo': [125.664, 2.011],
   'educativo-estandar': [20.944, 0.67],
   'grande-lento': [6.283, 0.314],
 };
 
-/** El JSON del repositorio, tal cual está en disco. */
+/** The repository JSON, exactly as it is on disk. */
 function fileOf(id: CatalogMobileId): unknown {
   return JSON.parse(readFileSync(resolve(CATALOG_ROOT, `${id}.json`), 'utf8'));
 }
 
-/** Respuesta mínima de `fetch` con el cuerpo dado. */
+/** Minimal `fetch` response with the given body. */
 function okResponse(body: unknown): Response {
   return new Response(JSON.stringify(body), { status: 200 });
 }

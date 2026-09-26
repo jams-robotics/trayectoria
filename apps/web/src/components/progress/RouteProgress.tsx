@@ -6,7 +6,7 @@ import type { TopicProgress } from '@trayectoria/progress';
 
 import { isRouteCompleted } from '../../lib/progress/routeCompleted';
 
-/** Estado que muestra el índice de la ruta para un tema (#120, decisión 4). */
+/** State the route index shows for a topic (#120, decision 4). */
 export type TopicState = 'pending' | 'in_progress' | 'completed';
 
 function stateOf(progress: TopicProgress | undefined): TopicState {
@@ -14,15 +14,15 @@ function stateOf(progress: TopicProgress | undefined): TopicState {
   return progress.status === 'completed' ? 'completed' : 'in_progress';
 }
 
-/** Texto del estado; el estado nunca se codifica solo por color (DESIGN.md §9 punto 11). */
+/** Text of the state; the state is never encoded by colour alone (DESIGN.md §9 point 11). */
 function labelOf(state: TopicState, t: Translate): string {
   if (state === 'completed') return t('progress.status.completed');
   if (state === 'in_progress') return t('progress.status.inProgress');
   return t('progress.status.pending');
 }
 
-// Celda de estado de DESIGN.md §5 Tabla: cuadrado de 26 px, radio `sm`, letra además de color,
-// tinta `bg-raised` sobre el color y `title` con el texto. Pendiente lleva solo borde.
+// Status cell of DESIGN.md §5 Tabla: 26 px square, `sm` radius, a letter besides the colour,
+// `bg-raised` ink over the colour and a `title` with the text. Pending carries only a border.
 const CELL = 'inline-flex size-[26px] shrink-0 items-center justify-center rounded-sm font-mono text-xs';
 const CELL_BY_STATE: Record<TopicState, string> = {
   completed: `${CELL} bg-success text-bg-raised`,
@@ -32,13 +32,13 @@ const CELL_BY_STATE: Record<TopicState, string> = {
 const LETTER: Record<TopicState, string> = { completed: 'C', in_progress: 'E', pending: '' };
 
 export interface TopicStatusProps {
-  /** Id del tema (`ruta-1/m00-t01`). */
+  /** Topic id (`ruta-1/m00-t01`). */
   readonly topicId: string;
 }
 
 /**
- * Estado de un tema en el índice de la ruta: el cuadrado de DESIGN.md §5 Tabla más el texto.
- * El servidor lo pinta pendiente; la isla hidrata desde `$progress`.
+ * State of a topic in the route index: the square of DESIGN.md §5 Tabla plus the text.
+ * The server renders it pending; the island hydrates from `$progress`.
  */
 export function TopicStatus({ topicId }: TopicStatusProps): JSX.Element {
   const t = useT();
@@ -60,13 +60,13 @@ export function TopicStatus({ topicId }: TopicStatusProps): JSX.Element {
 }
 
 export interface RouteProgressProps {
-  /** Ids de los temas de la ruta (`ruta-1/m00-t01`), en el orden de `ruta.json`. */
+  /** Ids of the route's topics (`ruta-1/m00-t01`), in the order of `ruta.json`. */
   readonly topicIds: readonly string[];
 }
 
 /**
- * Barra de progreso de la ruta (#120, decisión 4): 4 px con la cifra mono `completados/total`
- * (DESIGN.md §5 Barra de progreso). El servidor pinta `0/N`; la isla hidrata desde `$progress`.
+ * Route progress bar (#120, decision 4): 4 px with the mono figure `completed/total`
+ * (DESIGN.md §5 Barra de progreso). The server renders `0/N`; the island hydrates from `$progress`.
  */
 export function RouteProgress({ topicIds }: RouteProgressProps): JSX.Element {
   const t = useT();

@@ -18,47 +18,47 @@ import { loadArm } from './loadUrdf';
 import type { ArmSource } from './loadUrdf';
 import { useArmSim } from './useArmSim';
 
-// F5-01a (#133): visor URDF con las props de `ArmViewerWidget` (docs/WIDGETS.md). `show` acepta
-// las tres opciones del catálogo; `'frames'` es de F5-01a y `'matrices'` de F5-02 (#135,
-// decisiones 4 y 5). El espacio de trabajo sigue siendo F5-03. La escena 3D y sus hooks de
-// estado viven en `ArmScene.tsx`, y la columna de paneles en `armPanels.tsx`, separados desde
-// F5-03 (#136) para que ningún archivo pase de 300 líneas (docs/STANDARDS.md §4).
+// F5-01a (#133): URDF viewer with the props of `ArmViewerWidget` (docs/WIDGETS.md). `show` accepts
+// the three catalog options; `'frames'` is from F5-01a and `'matrices'` from F5-02 (#135,
+// decisions 4 and 5). The workspace is still F5-03. The 3D scene and its state
+// hooks live in `ArmScene.tsx`, and the panel column in `armPanels.tsx`, split since
+// F5-03 (#136) so that no file exceeds 300 lines (docs/STANDARDS.md §4).
 
 export { matricesSummary } from './armPanels';
 export type { ArmViewerPanel } from './armPanels';
 export { translationOf } from './ArmScene';
 
-/** UUID que recibe el `RobotSpec` de un brazo del catálogo; el visor no persiste robots. */
+/** UUID given to the `RobotSpec` of a catalog arm; the viewer does not persist robots. */
 const VIEWER_ROBOT_ID = '00000000-0000-4000-8000-000000000133';
 
 export interface ArmViewerProps {
-  /** Brazo del catálogo a cargar (`catalog/arms/{catalogId}`). */
+  /** Catalog arm to load (`catalog/arms/{catalogId}`). */
   catalogId?: string;
   /**
-   * Fuente del brazo cuando no es el catálogo (F5-04, #137, decisión 2): un zip ya en memoria. Si
-   * viene, manda sobre `catalogId`.
+   * Source of the arm when it is not the catalog (F5-04, #137, decision 2): a zip already in memory.
+   * When given, it takes precedence over `catalogId`.
    */
   source?: ArmSource;
-  /** Brazo ya resuelto; tiene prioridad sobre `catalogId` para el spec. */
+  /** Already resolved arm; takes priority over `catalogId` for the spec. */
   robot?: RobotSpec;
-  /** Configuración inicial, en radianes. */
+  /** Initial configuration, in radians. */
   initialQ?: number[];
-  /** Qué capas se muestran; las tres son operativas (F5-01a, F5-02 y F5-03). */
+  /** Which layers are shown; all three are operational (F5-01a, F5-02 and F5-03). */
   show: Array<'frames' | 'matrices' | 'workspace'>;
   compact?: boolean;
   /**
-   * Envoltorio opcional de los paneles «Articulaciones» y «Efector» (F5-01b, #134). El visor
-   * llama a esta función una vez por panel, en ese orden, y pinta lo que devuelve en lugar del
-   * panel suelto. Sirve para que la página los pliegue en acordeones en móvil (docs/DESIGN.md
-   * §9.4) sin duplicar su contenido. Sin ella el marcado es exactamente el de F5-01a.
+   * Optional wrapper for the «Articulaciones» and «Efector» panels (F5-01b, #134). The viewer
+   * calls this function once per panel, in that order, and renders what it returns instead of the
+   * bare panel. It lets the page collapse them into accordions on mobile (docs/DESIGN.md
+   * §9.4) without duplicating their content. Without it the markup is exactly that of F5-01a.
    */
   renderPanel?: (panel: ArmViewerPanel) => ReactNode;
 }
 
 /**
- * El brazo cargado de su fuente, o `null` mientras se carga o si falla. Las URL de objeto de un
- * brazo importado se revocan al cambiar de fuente y al desmontar (#137, decisión 2), así que nunca
- * queda ninguna viva cuando el visor deja de dibujar ese zip.
+ * The arm loaded from its source, or `null` while loading or if it fails. The object URLs of an
+ * imported arm are revoked when the source changes and on unmount (#137, decision 2), so none
+ * is ever left alive once the viewer stops drawing that zip.
  */
 function useLoadedArm(source: ArmSource | undefined): {
   robot: URDFRobot | null;
@@ -96,7 +96,7 @@ function useLoadedArm(source: ArmSource | undefined): {
   return state;
 }
 
-/** Lo que `ArmViewerReady` necesita, ya resuelto por `ArmViewer`. */
+/** What `ArmViewerReady` needs, already resolved by `ArmViewer`. */
 interface ArmViewerReadyProps {
   spec: RobotSpec;
   robot: URDFRobot | null;
@@ -108,7 +108,7 @@ interface ArmViewerReadyProps {
   renderPanel: ((panel: ArmViewerPanel) => ReactNode) | undefined;
 }
 
-/** El visor con un brazo ya resuelto: escena, sliders y panel del efector. */
+/** The viewer with an already resolved arm: scene, sliders and effector panel. */
 function ArmViewerReady({
   spec,
   robot,
@@ -151,8 +151,8 @@ function ArmViewerReady({
 }
 
 /**
- * Visor URDF de un brazo serial (docs/WIDGETS.md, ArmViewerWidget). La escena viene de
- * `urdf-loader`; los marcos, los límites y el panel del efector, de sim-core.
+ * URDF viewer of a serial arm (docs/WIDGETS.md, ArmViewerWidget). The scene comes from
+ * `urdf-loader`; the frames, the limits and the effector panel, from sim-core.
  */
 export function ArmViewer({
   catalogId,
@@ -164,8 +164,8 @@ export function ArmViewer({
   renderPanel,
 }: ArmViewerProps): JSX.Element {
   const t = useT();
-  // La fuente siempre se carga si viene: es de donde salen la jerarquía y las mallas. `robot`,
-  // si se pasa, manda sobre el spec (docs/WIDGETS.md, ArmViewerWidget).
+  // The source is always loaded when given: it is where the hierarchy and the meshes come from.
+  // `robot`, if passed, takes precedence for the spec (docs/WIDGETS.md, ArmViewerWidget).
   const armSource = useMemo(
     (): ArmSource | undefined =>
       source ?? (catalogId === undefined ? undefined : { kind: 'catalog', catalogId }),

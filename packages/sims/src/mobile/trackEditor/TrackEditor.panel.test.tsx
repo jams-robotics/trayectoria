@@ -7,10 +7,10 @@ import { describe, expect, test } from 'vitest';
 
 import { TrackEditor } from './TrackEditor';
 
-// #189 (decisiones 1 y 4): la prop `renderPanel` del editor —el mismo patrón que ya tienen
-// `LineFollowerWidget` y `ArmViewer`— y la barra compacta del segmento. jsdom no hace maquetación,
-// así que lo que se comprueba aquí es dónde cae cada nodo y cómo está etiquetado; los anchos y el
-// scroll van al e2e de `apps/web/e2e/sim-movil.spec.ts`.
+// #189 (decisions 1 and 4): the editor's `renderPanel` prop —the same pattern that
+// `LineFollowerWidget` and `ArmViewer` already have— and the compact segment bar. jsdom does no layout,
+// so what is checked here is where each node lands and how it is labelled; the widths and the
+// scroll go to the e2e of `apps/web/e2e/sim-movil.spec.ts`.
 
 const ARC_TRACK: Track = {
   segments: [
@@ -48,7 +48,7 @@ describe('TrackEditor · renderPanel (#189, decisión 1)', () => {
     );
     const wrapper = screen.getByTestId('panel-wrapper');
     expect(wrapper.querySelector('[data-testid="track-editor-panel"]')).not.toBeNull();
-    // Y sigue siendo el panel del editor: edita el mismo segmento, no una copia.
+    // And it is still the editor's panel: it edits the same segment, not a copy.
     expect(
       within(wrapper).getByRole('button', { name: t('sims.trackEditor.segmentLine', { index: 1 }) }),
     ).toBeInTheDocument();
@@ -88,14 +88,14 @@ describe('TrackEditor · renderPanel (#189, decisión 1)', () => {
     expect(
       within(editor).getByRole('img', { name: t('sims.trackEditor.scene') }),
     ).toBeInTheDocument();
-    // Y el panel está donde lo puso la página, no en la columna de 280 px de siempre.
+    // And the panel is where the page put it, not in the usual 280 px column.
     const panel = screen.getByTestId('track-editor-panel');
     expect(screen.getByTestId('panel-wrapper')).toContainElement(panel);
   });
 });
 
 describe('SegmentBar compacta (#189, decisión 4)', () => {
-  /** Selecciona el primer segmento por la lista del panel, que es la ruta de teclado. */
+  /** Selects the first segment through the panel list, which is the keyboard route. */
   async function selectFirst(
     user: ReturnType<typeof userEvent.setup>,
     kind: 'Line' | 'Arc',
@@ -114,7 +114,7 @@ describe('SegmentBar compacta (#189, decisión 4)', () => {
       const label = t(`sims.trackEditor.${key}`);
       const button = within(bar).getByRole('button', { name: label });
       expect(button).toHaveAttribute('title', label);
-      // El rótulo largo ya no se pinta: lo que se ve es el glifo, y el glifo no nombra nada.
+      // The long label is no longer painted: what is seen is the glyph, and the glyph names nothing.
       expect(button).not.toHaveTextContent(label);
       expect(within(button).getByText(/\S/)).toHaveAttribute('aria-hidden', 'true');
     }
@@ -127,7 +127,7 @@ describe('SegmentBar compacta (#189, decisión 4)', () => {
     const bar = screen.getByTestId('track-editor-segment-bar');
     const field = within(bar).getByLabelText(t('sims.trackEditor.field.radius'));
     expect(field).toHaveAttribute('title', t('sims.trackEditor.field.radius'));
-    // Cuatro cifras: el radio del arco dorado, «0.125».
+    // Four digits: the radius of the golden arc, «0.125».
     expect(field).toHaveValue('0.125');
   });
 

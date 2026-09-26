@@ -13,19 +13,19 @@ import {
   loadUrdf,
 } from './loadUrdf';
 
-/** Raíz del catálogo del repositorio, para leer los URDF de prueba sin red. */
+/** Root of the repository catalog, to read the test URDFs without network. */
 const CATALOG = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../catalog/arms');
 
 function urdfOf(catalogId: string): string {
   return readFileSync(resolve(CATALOG, catalogId, `${catalogId}.urdf`), 'utf8');
 }
 
-/** Respuesta mínima de `fetch` con el cuerpo dado. */
+/** Minimal `fetch` response with the given body. */
 function okResponse(body: string): Response {
   return { ok: true, status: 200, text: () => Promise.resolve(body) } as unknown as Response;
 }
 
-/** `fetch` de prueba que siempre devuelve la misma respuesta. */
+/** Test `fetch` that always returns the same response. */
 function stubFetch(response: Response): typeof fetch {
   return () => Promise.resolve(response);
 }
@@ -65,7 +65,7 @@ describe('loadUrdf (F5-01a)', () => {
 
   test('un fallo de carga de malla se informa en vez de propagarse', () => {
     const onComplete = vi.fn();
-    // `FileLoader` rechaza una URL relativa sin documento base, como aquí en jsdom.
+    // `FileLoader` rejects a relative URL without a base document, as here in jsdom.
     loadMesh('/catalog/arms/so101/meshes/base_so101_v2.stl', {} as never, {} as never, onComplete);
     const [mesh, error] = onComplete.mock.calls[0] as [Object3D, Error];
     expect(mesh).toBeInstanceOf(Object3D);

@@ -1,31 +1,31 @@
 import { armToken } from '../armColors';
 
-// F5-03 (#136, decisión 3): la nube se colorea por distancia a la base interpolando en RGB entre
-// `--color-data-1` y `--color-data-3` (docs/DESIGN.md §2.2). Los tokens se leen en tiempo de
-// ejecución, igual que en `armColors.ts`, porque three parsea un color y nunca un `var(--…)`.
-// El criterio del ticket exige que distancias y colores se calculen aquí, no en un shader.
+// F5-03 (#136, decision 3): the cloud is coloured by distance to the base, interpolating in RGB between
+// `--color-data-1` and `--color-data-3` (docs/DESIGN.md §2.2). The tokens are read at
+// runtime, as in `armColors.ts`, because three parses a colour and never a `var(--…)`.
+// The ticket criterion requires distances and colours to be computed here, not in a shader.
 
-/** Tokens de los extremos de la rampa: cerca de la base y lejos de ella. */
+/** Tokens of the ends of the ramp: near the base and far from it. */
 export const WORKSPACE_TOKENS = {
   near: '--color-data-1',
   far: '--color-data-3',
 } as const;
 
-/** Los dos colores de la rampa, ya resueltos a algo que se pueda parsear. */
+/** The two colours of the ramp, already resolved to something that can be parsed. */
 export interface WorkspacePalette {
-  /** Color de la distancia 0. */
+  /** Colour at distance 0. */
   readonly near: string;
-  /** Color de la distancia máxima. */
+  /** Colour at the maximum distance. */
   readonly far: string;
 }
 
-/** Un color en componentes `[0, 1]`, tal como lo espera el atributo `color` de la geometría. */
+/** A colour in `[0, 1]` components, as the geometry's `color` attribute expects it. */
 export type Rgb = readonly [number, number, number];
 
-/** Componentes de un canal de 8 bits. */
+/** Components of an 8-bit channel. */
 const CHANNEL_MAX = 255;
 
-/** Parsea `#rgb`, `#rrggbb` o `rgb(r, g, b)` a componentes en `[0, 1]`; negro si no se reconoce. */
+/** Parses `#rgb`, `#rrggbb` or `rgb(r, g, b)` into components in `[0, 1]`; black if not recognised. */
 function parseColor(value: string): Rgb {
   const text = value.trim();
   const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(text);
@@ -46,12 +46,12 @@ function parseColor(value: string): Rgb {
 }
 
 /**
- * Valores claros de los dos tokens (docs/DESIGN.md §2.2); reserva para jsdom y para cualquier
- * punto sin hoja de estilos que consultar, igual que el `FALLBACK` de `armColors.ts`.
+ * Light values of the two tokens (docs/DESIGN.md §2.2); fallback for jsdom and for any
+ * point with no stylesheet to query, like the `FALLBACK` of `armColors.ts`.
  */
 const FALLBACK: WorkspacePalette = { near: '#0072b2', far: '#009e73' };
 
-/** La rampa leída de los tokens del documento; los valores claros si no hay hoja de estilos. */
+/** The ramp read from the document tokens; the light values if there is no stylesheet. */
 export function readWorkspacePalette(element: Element | null): WorkspacePalette {
   const near = armToken(element, WORKSPACE_TOKENS.near);
   const far = armToken(element, WORKSPACE_TOKENS.far);

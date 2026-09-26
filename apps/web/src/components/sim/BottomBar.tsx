@@ -3,12 +3,12 @@ import { useT } from '@trayectoria/i18n';
 import { SPEEDS } from '@trayectoria/widgets/SimControls';
 import type { SimulationDriver } from '@trayectoria/widgets';
 
-// F4-02b (#128, decisión 4): la barra inferior fija de móvil (docs/DESIGN.md §9.7): 56 px de
-// alto, Reproducir (primario y flexible), Pausa, Reiniciar y velocidad, todos de 44 px. «Paso»
-// no aparece en móvil, por eso esta barra no reutiliza `SimControls`: el componente de F2-02b
-// fija el orden Reproducir · Pausa · Paso · Reiniciar y no admite quitar un botón.
+// F4-02b (#128, decision 4): the fixed mobile bottom bar (docs/DESIGN.md §9.7): 56 px
+// tall, Reproducir (primary and flexible), Pausa, Reiniciar and speed, all 44 px. «Paso»
+// does not appear on mobile, which is why this bar does not reuse `SimControls`: the F2-02b
+// component fixes the order Reproducir · Pausa · Paso · Reiniciar and cannot drop a button.
 
-/** Alto de la barra, en píxeles (docs/DESIGN.md §9.7). También es el padding inferior del contenido. */
+/** Height of the bar, in pixels (docs/DESIGN.md §9.7). Also the bottom padding of the content. */
 export const BOTTOM_BAR_HEIGHT_PX = 56;
 
 const BUTTON =
@@ -25,7 +25,7 @@ export interface BottomBarProps {
   readonly driver: SimulationDriver<unknown>;
 }
 
-/** Controles de reproducción fijos al borde inferior en móvil. */
+/** Playback controls fixed to the bottom edge on mobile. */
 export function BottomBar({ driver }: BottomBarProps): JSX.Element {
   const t = useT();
   return (

@@ -8,19 +8,19 @@ import type { RobotSpec } from '@trayectoria/robot-spec';
 import { PLOT_WINDOW_S, useInstruments } from './useInstruments';
 import { useLineFollower } from './useLineFollower';
 
-// F4-03 (#129, decisiones 3, 4 y 5): el muestreo de la instrumentación sobre una carrera real.
-// Se avanza con `driver.step()`, que da un paso exacto del modelo sin bucle de fotogramas, así
-// que la prueba no depende de ningún reloj de plataforma.
+// F4-03 (#129, decisions 3, 4 and 5): instrumentation sampling over a real run.
+// It advances with `driver.step()`, which takes one exact model step without a frame loop, so
+// the test does not depend on any platform clock.
 
 const SPEC = referenceMobile as RobotSpec;
 
-/** El óvalo sin su último segmento: la línea se acaba y el arreglo la pierde. */
+/** The oval without its last segment: the line ends and the array loses it. */
 const OPEN_TRACK: Track = { ...presets.oval, segments: presets.oval.segments.slice(0, -1) };
 
-/** Pasos máximos de una corrida; el óvalo se completa en muchos menos. */
+/** Maximum steps of a run; the oval is completed in far fewer. */
 const MAX_STEPS = 20_000;
 
-/** La carrera y su instrumentación, sobre `track` y con el PID de referencia. */
+/** The run and its instrumentation, on `track` and with the reference PID. */
 function run(track: Track): ReturnType<typeof renderHook<ReturnType<typeof useInstruments> & {
   api: ReturnType<typeof useLineFollower>;
 }, unknown>> {
@@ -36,7 +36,7 @@ function run(track: Track): ReturnType<typeof renderHook<ReturnType<typeof useIn
   });
 }
 
-/** Avanza la carrera hasta que `done` se cumple, o hasta agotar `MAX_STEPS`. */
+/** Advances the run until `done` holds, or until `MAX_STEPS` is exhausted. */
 function advanceUntil(
   result: { current: { api: ReturnType<typeof useLineFollower> } },
   done: () => boolean,
@@ -58,8 +58,8 @@ describe('useInstruments (F4-03)', () => {
     expect(result.current.timer.laps).toEqual([]);
     expect(result.current.timer.best_s).toBeNull();
     expect(result.current.lostAt).toBeUndefined();
-    // El estado inicial también se muestrea: la gráfica arranca con el punto de partida, no
-    // vacía, y su tiempo es el `t = 0` del modelo.
+    // The initial state is also sampled: the plot starts with the starting point, not
+    // empty, and its time is the model's `t = 0`.
     const { error, v, omega, pid } = result.current.buffers;
     expect([error.length, v.length, omega.length, pid.length]).toEqual([1, 1, 1, 1]);
     expect(error.lastTime_s).toBe(0);
@@ -77,7 +77,7 @@ describe('useInstruments (F4-03)', () => {
     expect(omega.length).toBe(error.length);
     expect(pid.length).toBe(error.length);
     expect(pid.seriesCount).toBe(3);
-    // El tiempo de la muestra es el simulado del modelo, no un reloj de plataforma.
+    // The time of the sample is the model's simulated time, not a platform clock.
     expect(error.lastTime_s).toBe(result.current.api.state.robot.t_s);
   });
 
@@ -91,7 +91,7 @@ describe('useInstruments (F4-03)', () => {
     const length_m = trackLength_m(presets.oval);
     // Identidad exacta con tolerancia 1e-9 (#170, enmienda).
     expect(Math.abs(lap.avgSpeed_mps * lap.lapTime_s - length_m)).toBeLessThanOrEqual(1e-9);
-    // Y la distancia recorrida queda por debajo: el seguidor corta los arcos.
+    // And the distance travelled stays below: the follower cuts the arcs.
     expect(lap.distance_m).toBeLessThan(length_m);
     expect(result.current.timer.best_s).toBe(lap.lapTime_s);
   });
@@ -104,9 +104,9 @@ describe('useInstruments (F4-03)', () => {
     advanceUntil(result, () => result.current.lostAt !== undefined);
 
     expect(result.current.lostAt).toBeDefined();
-    // El marcador es la pose que el modelo guardó en el paso del flanco, no una posterior.
+    // The marker is the pose the model stored at the edge step, not a later one.
     expect(result.current.lostAt).toEqual(result.current.api.state.lostAt);
-    // Y la carrera queda detenida: el evento la pausa (decisión 5).
+    // And the run stays stopped: the event pauses it (decision 5).
     expect(result.current.api.driver.running).toBe(false);
   });
 
@@ -122,7 +122,7 @@ describe('useInstruments (F4-03)', () => {
     expect(result.current.lostAt).toBeUndefined();
     expect(result.current.timer.laps).toEqual([]);
     expect(result.current.timer.best_s).toBeNull();
-    // Los anillos vuelven a la muestra de `t = 0` de la carrera reiniciada.
+    // The rings go back to the `t = 0` sample of the restarted run.
     expect(result.current.buffers.error.length).toBe(1);
     expect(result.current.buffers.error.lastTime_s).toBe(0);
     expect(result.current.buffers.pid.length).toBe(1);
