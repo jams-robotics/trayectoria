@@ -42,6 +42,7 @@ const LOADERS: Readonly<Record<string, WidgetLoader>> = {
   FreeBodyWidget: () => import('@trayectoria/widgets/FreeBodyWidget'),
   GearWidget: () => import('@trayectoria/widgets/GearWidget'),
   KinematicsWidget: () => import('@trayectoria/widgets/KinematicsWidget'),
+  LineSensorWidget: () => import('@trayectoria/widgets/LineSensorWidget'),
   MyRobotWidget: () => import('@trayectoria/widgets/MyRobotWidget'),
   ParamPanel: () => import('@trayectoria/widgets/ParamPanel'),
   Plot: () => import('@trayectoria/widgets/Plot'),
@@ -60,7 +61,7 @@ export function widgetNames(): readonly string[] {
  * Topic widgets a topic MDX writes by name, with the props of docs/WIDGETS.md (#243, decision 1;
  * #246). Only the ones whose props are all serializable to an island: `Formula` has its own
  * block component, `ExerciseWidget` is mounted by `Verifica`, `ParamPanel` and `Plot` are pieces
- * of other widgets, and the Module 6 widgets come with their own ticket.
+ * of other widgets. `LineSensorWidget` comes with T-6.1 and reads the robot from `useMyRobot()`.
  */
 export const TOPIC_WIDGETS = [
   'DiffDriveWidget',
@@ -68,6 +69,7 @@ export const TOPIC_WIDGETS = [
   'FreeBodyWidget',
   'GearWidget',
   'KinematicsWidget',
+  'LineSensorWidget',
   'MyRobotWidget',
   'PowerWidget',
   'ProjectileWidget',
