@@ -153,7 +153,9 @@ de tu perfil. Con ω_base = 15 rad/s y |e|_max = 1:
 
 <RobotFormula calc="ruta-1/m06-t02/kp-max" />
 
-Si tu perfil no es un robot móvil, los dos cálculos usan el robot de referencia.
+Si tu perfil no es un robot móvil, los dos cálculos usan el robot de referencia. Si su ω_max no
+supera ω_base = 15 rad/s, ninguna K_p positiva evita saturar y el cálculo de K_p máxima también
+usa el robot de referencia.
 
 Con el robot de referencia, K_p ≤ 5.94. El K_p = 8 de Explora la supera: con la línea en el borde
 del arreglo, la rueda rápida pediría 15 + 8 = 23 rad/s, más de los 20.94 rad/s que da. La rueda solo satura

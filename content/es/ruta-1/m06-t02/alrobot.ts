@@ -85,12 +85,23 @@ export const robotOmega: RobotCalc = {
   },
 };
 
-/** `Kp ≤ (ω_max − ω_base) / |e|_max`, with `ω_max = n · 2π/60 / i` and `ω_base = 15 rad/s`. */
+function omegaMaxOf({ speed_rpm, gearRatio }: Drive): number {
+  return (speed_rpm * RPM_TO_RADPS) / gearRatio;
+}
+
+/**
+ * `Kp ≤ (ω_max − ω_base) / |e|_max`, with `ω_max = n · 2π/60 / i` and `ω_base = 15 rad/s`. A
+ * profile whose ω_max does not exceed ω_base has no positive Kp and takes the reference robot, like
+ * a profile with no wheels (decision on #447); the MDX says so next to the formula.
+ */
 export const kpMax: RobotCalc = {
   id: 'kp-max',
   compute(robot) {
-    const { speed_rpm, gearRatio } = drive(robot);
-    const omegaMax_radps = (speed_rpm * RPM_TO_RADPS) / gearRatio;
+    const profileOmegaMax_radps = omegaMaxOf(drive(robot));
+    const omegaMax_radps =
+      profileOmegaMax_radps > HOOK_OMEGA_BASE_RADPS
+        ? profileOmegaMax_radps
+        : omegaMaxOf(REFERENCE_DRIVE);
     const kp = (omegaMax_radps - HOOK_OMEGA_BASE_RADPS) / MAX_ERROR;
     return {
       latex: String.raw`K_p \le \dfrac{\omega_{max} - \omega_{base}}{|e|_{max}}`,

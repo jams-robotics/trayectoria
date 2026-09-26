@@ -85,6 +85,29 @@ describe('T-6.2 «Al robot» calcs', () => {
     );
   });
 
+  it('kp-max falls back to the reference robot when ω_max does not exceed ω_base = 15 rad/s', () => {
+    // 500 rpm, i = 30: ω_max = 1.745 rad/s, which would give Kp ≤ −13.25.
+    const slow: RobotSpec = {
+      ...REFERENCE,
+      mobile: { ...mobileOf(REFERENCE), maxMotorSpeed_rpm: 500, gearRatio: 30 },
+    };
+    expect(kpMax.compute(slow)).toEqual(kpMax.compute(REFERENCE));
+    expect(kpMax.compute(slow).substituted).toBe(
+      String.raw`K_p \le \dfrac{20.94\ \text{rad/s} - 15\ \text{rad/s}}{1} = 5.94\ \text{rad/s}`,
+    );
+    // robot-omega does not use ω_max: it keeps the profile.
+    expect(robotOmega.compute(slow)).toEqual(robotOmega.compute(REFERENCE));
+  });
+
+  it('kp-max keeps a profile whose ω_max just exceeds ω_base', () => {
+    // 4500 rpm, i = 30: ω_max = 15.71 rad/s → Kp ≤ 0.708.
+    const robot: RobotSpec = {
+      ...REFERENCE,
+      mobile: { ...mobileOf(REFERENCE), maxMotorSpeed_rpm: 4500, gearRatio: 30 },
+    };
+    expect(kpMax.compute(robot).substituted).toContain(String.raw`= 0.708\ \text{rad/s}`);
+  });
+
   it('fall back to the reference robot for a profile with no wheels', () => {
     const arm = withoutWheels();
     for (const calc of robotCalcs) {
