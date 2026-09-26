@@ -29,6 +29,8 @@ export const E3_VB_MPS: Range = { min: 0.1, max: 0.8 };
 export const E3_DISTANCE_M: Range = { min: 1, max: 5 };
 /** e3 draws v_A and v_B again while v_A − v_B is below this (#287). */
 export const E3_MIN_DV_MPS = 0.1;
+/** e3 draws everything again while the meeting is beyond this position (V-22). */
+export const E3_MAX_MEETING_M = 10;
 /** e4 is a fixed x–t line through these two points. */
 export const E4_POINT_1 = { t_s: 1, x_m: 0.4 } as const;
 export const E4_POINT_2 = { t_s: 3, x_m: 1.2 } as const;
@@ -90,22 +92,28 @@ interface Meeting {
 /**
  * e3: A starts at 0 with v_A, B starts D ahead with v_B. Equal positions, v_A·t = D + v_B·t, give
  * t = D / (v_A − v_B) and x = v_A·t. A small v_A − v_B makes the meeting too far, and v_A ≤ v_B
- * never meets, so both are drawn again while v_A − v_B < 0.1 m/s (#287).
+ * never meets, so both are drawn again while v_A − v_B < 0.1 m/s (#287). A meeting beyond 10 m
+ * draws v_A, v_B and D again (V-22).
  */
 const e3 = defineExercise<Meeting>({
   id: 'e3',
   generate: (rng) => {
-    // Compared on the integer indices, so exactly 0.1 m/s is kept.
+    // Compared on the integer indices, so exactly 0.1 m/s and exactly 10 m are kept:
+    // x = v_A·D / (v_A − v_B) = vA_cmps·distance_dm / (10·dv_cmps).
     const minDv_cmps = Math.round(E3_MIN_DV_MPS * HUNDREDTHS);
     let vA_cmps = 0;
     let vB_cmps = 0;
+    let distance_dm = 0;
     do {
-      vA_cmps = drawIndex(rng, E3_VA_MPS, HUNDREDTHS);
-      vB_cmps = drawIndex(rng, E3_VB_MPS, HUNDREDTHS);
-    } while (vA_cmps - vB_cmps < minDv_cmps);
+      do {
+        vA_cmps = drawIndex(rng, E3_VA_MPS, HUNDREDTHS);
+        vB_cmps = drawIndex(rng, E3_VB_MPS, HUNDREDTHS);
+      } while (vA_cmps - vB_cmps < minDv_cmps);
+      distance_dm = drawIndex(rng, E3_DISTANCE_M, TENTHS);
+    } while (vA_cmps * distance_dm > E3_MAX_MEETING_M * TENTHS * (vA_cmps - vB_cmps));
     const vA_mps = vA_cmps / HUNDREDTHS;
     const vB_mps = vB_cmps / HUNDREDTHS;
-    const distance_m = drawOnGrid(rng, E3_DISTANCE_M, TENTHS);
+    const distance_m = distance_dm / TENTHS;
     const t_s = distance_m / (vA_mps - vB_mps);
     return {
       values: { vA_mps, vB_mps, distance_m },

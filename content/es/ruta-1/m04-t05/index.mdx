@@ -42,8 +42,8 @@ alta velocidad hay muchos ticks por muestra y el salto de un tick casi no se not
 velocidad caen pocos ticks por muestra: la lectura cambia en escalones y oscila alrededor del
 valor real. Ese error por contar en unidades enteras es la **cuantización**.
 
-Esto es lo que hace el simulador con `encoderTicksPerRev` de tu perfil: cuenta ticks enteros en
-cada rueda y estima la velocidad con la misma fórmula.
+Esto es lo que hace el simulador con los pulsos de encoder por vuelta de tu perfil: cuenta ticks
+enteros en cada rueda y estima la velocidad con la misma fórmula.
 </Concepto>
 
 <Formulas>
@@ -124,8 +124,8 @@ ruedas. Depende del radio r de la rueda y de los ticks N_e que da tu encoder por
 
 <RobotFormula calc="ruta-1/m04-t05/encoder-resolution" />
 
-Si tu perfil de «Mi robot» no define `encoderTicksPerRev`, el cálculo usa el del robot de
-referencia: N_e = 360. Si tu perfil no es un robot móvil, usa el robot de referencia completo.
+Si «Mi robot» no define los pulsos de encoder por vuelta de tu perfil, el cálculo usa los del
+robot de referencia: N_e = 360. Si tu perfil no es un robot móvil, usa el robot de referencia completo.
 
 Invirtiendo s = 2πr·ticks/N_e sale cuántos ticks cuenta tu encoder por cada metro que avanza el
 robot, con s = 1 m:

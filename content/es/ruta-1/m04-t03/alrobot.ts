@@ -7,7 +7,8 @@ import type { RobotCalc } from '../../../index';
  * «Al robot» calcs of T-4.3 (docs/CURRICULUM.md § T-4.3): the tangential acceleration of the
  * wheel rim of «Mi robot», `a_t = α · r` with `α = maxAccel_radps2`, and the top speed on the
  * tight curve of the preset track, `v_max,curva = √(μs · g · R)`. The MDX renders them with
- * `<RobotFormula calc="ruta-1/m04-t03/tangential-accel" />` and `…/max-curve-speed`.
+ * `<RobotFormula calc="ruta-1/m04-t03/tangential-accel" />` and `…/max-curve-speed`; `…/v-max-vs-curve`
+ * sets the `v_max` of «Mi robot» next to that limit (V-37).
  */
 
 /** Three significant figures: 1.28 m/s² and 0.94 m/s. */
@@ -76,5 +77,41 @@ export const maxCurveSpeed: RobotCalc = {
   },
 };
 
+/** Four significant figures for ω_max (20.94 rad/s), as in T-4.2. */
+const ROTATION_SIGNIFICANT_FIGURES = 4;
+
+const RPM_TO_RADPS = (2 * Math.PI) / 60;
+
+/** Motor and reduction of the reference robot (docs/CURRICULUM.md, header: 6000 rpm, i = 30). */
+const REFERENCE_MAX_MOTOR_SPEED_RPM = 6000;
+const REFERENCE_GEAR_RATIO = 30;
+
+/**
+ * `v_max = ω_max · r` of the profile, with `ω_max = n_motor / i · 2π/60` as in T-4.2, next to
+ * the limit of the tight curve, so the comparison reads on the same page (V-37). An arm profile
+ * takes the reference robot.
+ */
+export const vMaxVsCurve: RobotCalc = {
+  id: 'v-max-vs-curve',
+  compute(robot) {
+    const { maxMotorSpeed_rpm, gearRatio, wheelRadius_m } = robot.mobile ?? {
+      maxMotorSpeed_rpm: REFERENCE_MAX_MOTOR_SPEED_RPM,
+      gearRatio: REFERENCE_GEAR_RATIO,
+      wheelRadius_m: REFERENCE_WHEEL_RADIUS_M,
+    };
+    const omegaMax_radps = (maxMotorSpeed_rpm / gearRatio) * RPM_TO_RADPS;
+    const vMax = format(omegaMax_radps * wheelRadius_m);
+    const maxCurve = format(Math.sqrt(TRACK_MU_S * G_MPS2 * TIGHT_CURVE_RADIUS_M));
+    const relation =
+      Number(vMax) < Number(maxCurve) ? '<' : Number(vMax) > Number(maxCurve) ? '>' : '=';
+    return {
+      latex: String.raw`v_{\max} = \omega_{\max} \cdot r`,
+      substituted:
+        String.raw`v_{\max} = ${format(omegaMax_radps, ROTATION_SIGNIFICANT_FIGURES)}\ \text{rad/s} \cdot ${wheelRadius_m}\ \text{m}` +
+        String.raw` = ${vMax}\ \text{m/s} ${relation} v_{\max,\text{curva}} = ${maxCurve}\ \text{m/s}`,
+    };
+  },
+};
+
 /** The calcs of the topic; `content/index.ts` registers them. */
-export const robotCalcs: readonly RobotCalc[] = [tangentialAccel, maxCurveSpeed];
+export const robotCalcs: readonly RobotCalc[] = [tangentialAccel, maxCurveSpeed, vMaxVsCurve];

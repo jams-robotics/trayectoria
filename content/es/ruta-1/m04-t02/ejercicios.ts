@@ -51,13 +51,18 @@ interface Wheel {
   readonly wheelRadius_m: number;
 }
 
-/** e1: `v = ω r`. */
+/** e1: `v = ω r`, drawn again while `v > 1.5 m/s`, as e3 (V-34). */
 const e1 = defineExercise<Wheel>({
   id: 'e1',
   generate: (rng) => {
-    const omega_radps = drawOnGrid(rng, E1_OMEGA_RADPS, HUNDREDTHS);
-    const wheelRadius_m = drawOnGrid(rng, E1_WHEEL_RADIUS_M, THOUSANDTHS);
-    return { values: { omega_radps, wheelRadius_m }, answer: omega_radps * wheelRadius_m, unit: 'm/s' };
+    let wheel: Wheel;
+    do {
+      wheel = {
+        omega_radps: drawOnGrid(rng, E1_OMEGA_RADPS, HUNDREDTHS),
+        wheelRadius_m: drawOnGrid(rng, E1_WHEEL_RADIUS_M, THOUSANDTHS),
+      };
+    } while (wheel.omega_radps * wheel.wheelRadius_m > MAX_SPEED_MPS);
+    return { values: wheel, answer: wheel.omega_radps * wheel.wheelRadius_m, unit: 'm/s' };
   },
   statement: () => statementKey('e1'),
   tolerance: RELATIVE_2_PERCENT,
