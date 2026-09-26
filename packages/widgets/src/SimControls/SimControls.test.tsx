@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, test, vi } from 'vitest';
 
@@ -7,7 +7,9 @@ import type { SimulationDriver } from '../Scene2D/useSimulationDriver';
 import { SPEEDS, SimControls, formatTime } from './SimControls';
 
 /** A driver whose actions are spies, so the test sees exactly which one a control fired. */
-function createDriver(overrides: Partial<SimulationDriver<unknown>> = {}): SimulationDriver<unknown> {
+function createDriver(
+  overrides: Partial<SimulationDriver<unknown>> = {},
+): SimulationDriver<unknown> {
   return {
     state: null,
     t_s: 0,
@@ -153,6 +155,26 @@ describe('SimControls (F2-02b)', () => {
 
     render(<SimControls {...createDriver({ t_s: 0 })} />);
     expect(screen.getByRole('status')).toHaveTextContent('En pausa, t 00.00 s');
+  });
+
+  test('while running, the status is refreshed at most every two seconds (F7-01)', () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'performance'] });
+    try {
+      const { rerender } = render(<SimControls {...createDriver({ running: true, t_s: 0 })} />);
+      for (let frame = 1; frame <= 60; frame += 1) {
+        rerender(<SimControls {...createDriver({ running: true, t_s: frame / 60 })} />);
+        act(() => {
+          vi.advanceTimersByTime(16);
+        });
+      }
+      expect(screen.getByRole('status')).toHaveTextContent('En marcha, t 00.00 s');
+      act(() => {
+        vi.advanceTimersByTime(2000);
+      });
+      expect(screen.getByRole('status')).toHaveTextContent('En marcha, t 01.00 s');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   test('formatTime pads to two integer digits and guards a non-finite time', () => {
