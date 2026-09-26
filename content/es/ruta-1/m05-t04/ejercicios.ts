@@ -25,6 +25,14 @@ export const WHEEL_BASE_M = 0.15;
 /** Generation ranges of the spec, in the units the statements announce. */
 export const E1_DELTA_TICKS: Range = { min: 50, max: 1000 };
 /**
+ * e1 and e2 draw again while the ticks of the two wheels differ by more than this, so that the
+ * turn of the step stays within 90°: |Δθ| = 2πr·|Δticks_R − Δticks_L| / (N_e·L) ≤ π/2 gives
+ * |Δticks_R − Δticks_L| ≤ N_e·L / (4r) = 421.9 (V-41, #473).
+ */
+export const E1_MAX_TICKS_DIFFERENCE = Math.floor(
+  (ENCODER_TICKS_PER_REV * WHEEL_BASE_M) / (4 * WHEEL_RADIUS_M),
+);
+/**
  * e1 draws again while Δθ is nonzero and closer to 0 than this, and e2 while a coordinate is:
  * with relative 2 %, a correct response rounded to the thousandth would be rejected (#451). An
  * exact 0 stays: `check` grades it with the absolute error.
@@ -58,11 +66,15 @@ interface Step {
   readonly deltaTheta_rad: number;
 }
 
-/** Whole ticks of each wheel in one step, in E1_DELTA_TICKS. */
+/** Whole ticks of each wheel in one step, in E1_DELTA_TICKS, differing by at most E1_MAX_TICKS_DIFFERENCE. */
 function drawTicks(rng: SeededRng): EncoderStep {
-  const deltaTicksL = rng.nextInt(E1_DELTA_TICKS.min, E1_DELTA_TICKS.max);
-  const deltaTicksR = rng.nextInt(E1_DELTA_TICKS.min, E1_DELTA_TICKS.max);
-  return { deltaTicksL, deltaTicksR };
+  for (;;) {
+    const deltaTicksL = rng.nextInt(E1_DELTA_TICKS.min, E1_DELTA_TICKS.max);
+    const deltaTicksR = rng.nextInt(E1_DELTA_TICKS.min, E1_DELTA_TICKS.max);
+    if (Math.abs(deltaTicksR - deltaTicksL) <= E1_MAX_TICKS_DIFFERENCE) {
+      return { deltaTicksL, deltaTicksR };
+    }
+  }
 }
 
 /** `Δs_{L,R} = 2πr·Δticks / N_e`, then `Δs = (Δs_R + Δs_L)/2` and `Δθ = (Δs_R − Δs_L)/L`. */

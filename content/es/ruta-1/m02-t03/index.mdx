@@ -35,13 +35,13 @@ el torque por i y divide la velocidad entre i; el detalle está en el tema Trans
 Parte de la potencia se pierde por fricción entre los engranajes. La **eficiencia** η, entre 0 y
 1, es la fracción que llega a la salida. Así, τ_rueda = τ_motor·i·η.
 
-En una rampa de ángulo φ, la componente del peso a lo largo de ella es mg·sinφ. Para subir a
-velocidad constante, la fuerza neta es cero: la tracción total iguala mg·sinφ. Con dos ruedas
-motrices, cada una aporta la mitad, y su torque es τ_rueda = (mg·sinφ/2)·r.
+En una rampa de ángulo φ, la componente del peso a lo largo de ella es m·g·sinφ. Para subir a
+velocidad constante, la fuerza neta es cero: la tracción total iguala m·g·sinφ. Con dos ruedas
+motrices, cada una aporta la mitad, y su torque es τ_rueda = (m·g·sinφ/2)·r.
 
 Un brazo robótico usa la misma idea. Si un brazo horizontal sostiene una masa m en la punta, el
-peso mg actúa con un brazo de palanca ℓ respecto a la articulación. Para que no caiga, la
-articulación debe hacer τ = mg·ℓ.
+peso m·g actúa con un brazo de palanca ℓ respecto a la articulación. Para que no caiga, la
+articulación debe hacer τ = m·g·ℓ.
 
 Con los datos del gancho, η = 0.6 y ruedas de r = 0.032 m, llegan a cada rueda
 τ_rueda = 0.012·30·0.6 = 0.216 N·m, y cada una empuja F_rueda = 0.216/0.032 = 6.75 N.
@@ -53,7 +53,7 @@ Con los datos del gancho, η = 0.6 y ruedas de r = 0.032 m, llegan a cada rueda
 
 - `τ` · torque · N·m
 - `F` · fuerza · N
-- `r` · radio de rueda · m
+- `r` · brazo de la fuerza; en la rueda, su radio · m
 
 <Formula latex="F_{rueda} = \frac{\tau_{rueda}}{r}" />
 

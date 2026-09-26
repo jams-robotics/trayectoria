@@ -6,6 +6,7 @@ import {
   EFFICIENCY_PERCENT,
   exercises,
   GEAR_RATIO,
+  MAX_MOTOR_SPEED_RPM,
   MOTOR_TORQUE_MNM,
   STAGE_RATIO,
   TEETH,
@@ -106,6 +107,7 @@ describe('T-4.4 exercises', () => {
     expect(STAGE_RATIO).toEqual({ min: 5, max: 100 });
     expect(EFFICIENCY_PERCENT).toEqual({ min: 50, max: 90 });
     expect(TEETH).toEqual({ min: 8, max: 80 });
+    expect(MAX_MOTOR_SPEED_RPM).toBe(12000);
   });
 });
 
@@ -118,13 +120,22 @@ describe('e1 · n_motor y n_rueda: i', () => {
     expect(unit).toBe('');
   });
 
-  it('draws an integer i ∈ [10, 100] and n_rueda ∈ [60, 600], with n_motor = i · n_rueda', () => {
+  it('draws again when n_motor > 12 000 rpm (V-35)', () => {
+    // i = 100, n_rueda = 600 rpm is 60 000 rpm at the motor: redrawn. The golden values are kept.
+    const { values, answer } = exercise('e1').generate(scriptedRng([100, 600, 30, 200]));
+
+    expect(values).toEqual({ motorSpeed_rpm: 6000, wheelSpeed_rpm: 200 });
+    expect(answer).toBe(30);
+  });
+
+  it('draws an integer i ∈ [10, 100] and n_rueda ∈ [60, 600], with n_motor = i · n_rueda ≤ 12 000 rpm', () => {
     for (const seed of MANY_SEEDS) {
       const { motorSpeed_rpm, wheelSpeed_rpm } = valuesOf('e1', seed);
       const gearRatio = answerOf('e1', seed);
       expectIntegerWithin(gearRatio, GEAR_RATIO);
       expectIntegerWithin(wheelSpeed_rpm!, WHEEL_SPEED_RPM);
       expect(motorSpeed_rpm).toBe(gearRatio * wheelSpeed_rpm!);
+      expect(motorSpeed_rpm).toBeLessThanOrEqual(MAX_MOTOR_SPEED_RPM);
     }
   });
 });
@@ -158,11 +169,30 @@ describe('e3 · Tren 12:60 y 10:50: i total', () => {
     expect(unit).toBe('');
   });
 
-  it('draws z ∈ [8, 80] as integers and computes i_total = (z2/z1) · (z4/z3)', () => {
+  it('orders the teeth of each stage so it reduces (V-35)', () => {
+    // 60:12 and 50:10 are sorted to 12:60 and 10:50; a stage with equal teeth is drawn again.
+    expect(exercise('e3').generate(scriptedRng([60, 12, 50, 10])).values).toEqual({
+      z1: 12,
+      z2: 60,
+      z3: 10,
+      z4: 50,
+    });
+    expect(exercise('e3').generate(scriptedRng([12, 60, 30, 30, 50, 10])).values).toEqual({
+      z1: 12,
+      z2: 60,
+      z3: 10,
+      z4: 50,
+    });
+  });
+
+  it('draws z ∈ [8, 80] as integers with z2 > z1, z4 > z3 and computes i_total = (z2/z1) · (z4/z3) ≥ 1', () => {
     for (const seed of MANY_SEEDS) {
       const { z1, z2, z3, z4 } = valuesOf('e3', seed);
       for (const teeth of [z1, z2, z3, z4]) expectIntegerWithin(teeth!, TEETH);
+      expect(z2).toBeGreaterThan(z1!);
+      expect(z4).toBeGreaterThan(z3!);
       expect(answerOf('e3', seed)).toBeCloseTo((z2! / z1!) * (z4! / z3!), 12);
+      expect(answerOf('e3', seed)).toBeGreaterThanOrEqual(1);
     }
   });
 });

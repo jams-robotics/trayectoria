@@ -183,7 +183,7 @@ describe('e3 · ticks para recorrer D m', () => {
 
     expect(values).toEqual({ distance_m: 1 });
     expectRelativelyClose(answer as number, 1790, 0.02);
-    expect(unit).toBe('ticks');
+    expect(unit).toBe('');
   });
 
   it('draws D ∈ [0.5, 5] m in hundredths', () => {

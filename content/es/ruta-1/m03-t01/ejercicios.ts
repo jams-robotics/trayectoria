@@ -24,6 +24,8 @@ export const E1_V_MPS: Range = { min: 0.1, max: 1.5 };
 export const E2_V_MPS: Range = { min: 0.1, max: 1.5 };
 export const E3_MASS_KG: Range = { min: 0.2, max: 3 };
 export const E3_V_MPS: Range = { min: 0.1, max: 1.5 };
+/** Smallest net work e3 asks for, in joules. */
+export const E3_MIN_WORK_J = 0.01;
 export const E4_FRICTION_N: Range = { min: 0.1, max: 1 };
 export const E4_DISTANCE_M: Range = { min: 1, max: 10 };
 
@@ -79,12 +81,39 @@ const e2 = defineExercise<Speed>({
   tolerance: RELATIVE_2_PERCENT,
 });
 
-/** e3: net work to take m from rest to v, `W_neto = ΔE_k = ½·m·v²`. */
-const e3 = defineExercise<MassAndSpeed>({
+interface MassAndTwoSpeeds {
+  readonly mass_kg: number;
+  readonly v1_mps: number;
+  readonly v2_mps: number;
+}
+
+/** `W_neto = ΔE_k = ½·m·(v₂² − v₁²)`, in joules. */
+function netWork_J({ mass_kg, v1_mps, v2_mps }: MassAndTwoSpeeds): number {
+  return kineticEnergy_J(mass_kg, v2_mps) - kineticEnergy_J(mass_kg, v1_mps);
+}
+
+/**
+ * m on the hundredths grid, then v₁ < v₂ on the hundredths grid of `E3_V_MPS`; the speeds are
+ * redrawn until the net work reaches `E3_MIN_WORK_J`.
+ */
+function drawMassAndTwoSpeeds(rng: SeededRng): MassAndTwoSpeeds {
+  const mass_kg = drawOnGrid(rng, E3_MASS_KG, HUNDREDTHS);
+  const minIndex = Math.round(E3_V_MPS.min * HUNDREDTHS);
+  const maxIndex = Math.round(E3_V_MPS.max * HUNDREDTHS);
+  for (;;) {
+    const v1Index = rng.nextInt(minIndex, maxIndex - 1);
+    const v2Index = rng.nextInt(v1Index + 1, maxIndex);
+    const values = { mass_kg, v1_mps: v1Index / HUNDREDTHS, v2_mps: v2Index / HUNDREDTHS };
+    if (netWork_J(values) >= E3_MIN_WORK_J) return values;
+  }
+}
+
+/** e3: net work to take m from v₁ to v₂, `W_neto = ΔE_k = ½·m·(v₂² − v₁²)`. */
+const e3 = defineExercise<MassAndTwoSpeeds>({
   id: 'e3',
   generate: (rng) => {
-    const values = drawMassAndSpeed(rng, E3_MASS_KG, E3_V_MPS);
-    return { values, answer: kineticEnergy_J(values.mass_kg, values.v_mps), unit: 'J' };
+    const values = drawMassAndTwoSpeeds(rng);
+    return { values, answer: netWork_J(values), unit: 'J' };
   },
   statement: () => statementKey('e3'),
   tolerance: RELATIVE_2_PERCENT,
