@@ -6,6 +6,7 @@ import type { ParamPanelParam } from '../ParamPanel/ParamPanel';
 import { ReadoutPanel } from '../shared/ReadoutPanel';
 import { omegaFor, radpsToRpm, rimSpeed, rpmToRadps } from './compute';
 import type { Curve, Rotation, RotationInputUnit, RotationMode } from './compute';
+import { CurveScene, slips } from './curveScene';
 import { curveRows, panelRows } from './rows';
 
 export { TARGET_RPM, curveRows, panelRows, statusOf } from './rows';
@@ -164,23 +165,44 @@ export function ResultsPanel({
   );
 }
 
-/** The curve panel of `angularAccel`: its own sliders and its two values (#89, decision 7). */
+/**
+ * The curve panel of `angularAccel` (docs/WIDGETS.md, RotationWidget; DESIGN §6, point 3): from
+ * the breakpoint of the widget, a row with the animated view on the left (at most 50 vh high,
+ * like the main viewer) and its two values on the right (`w-panel`), then its three sliders in
+ * one column of a 2 column grid. On mobile, one column: legend, view, values and sliders.
+ */
 export function CurvePanel({
   curve,
+  t_s,
   onChange,
   t,
 }: {
   curve: Curve;
+  t_s: number;
   onChange: (key: string, value: number) => void;
   t: Translate;
 }): JSX.Element {
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
-        {t('widgets.RotationWidget.curveLegend')}
-      </p>
-      <ReadoutPanel title={t('widgets.RotationWidget.curvePanel')} rows={curveRows(curve, t)} />
-      <ParamPanel params={curveParamsOf(curve, t)} onChange={onChange} />
+    <div className="flex flex-col gap-4" data-curve-panel="">
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="flex min-w-0 flex-col gap-2 lg:mx-auto lg:w-full lg:max-w-[calc(50vh*16/9)]">
+          <div className="flex flex-col gap-1 font-mono text-xs tracking-[0.06em]">
+            <p className="text-fg-muted uppercase">{t('widgets.RotationWidget.curveLegend')}</p>
+            {slips(curve) ? (
+              <p className="text-error" role="status">
+                {t('widgets.RotationWidget.slipWarning')}
+              </p>
+            ) : null}
+          </div>
+          <CurveScene curve={curve} t_s={t_s} t={t} />
+        </div>
+        <div className="lg:w-panel">
+          <ReadoutPanel title={t('widgets.RotationWidget.curvePanel')} rows={curveRows(curve, t)} />
+        </div>
+      </div>
+      <div className="lg:grid lg:grid-cols-2 lg:gap-4">
+        <ParamPanel params={curveParamsOf(curve, t)} onChange={onChange} />
+      </div>
     </div>
   );
 }

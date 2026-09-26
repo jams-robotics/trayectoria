@@ -1,4 +1,4 @@
-import type { JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
 import { degToRad, format, radToDeg } from '@trayectoria/sim-core';
 import type { Translate } from '@trayectoria/i18n';
 
@@ -152,21 +152,52 @@ export function LaunchParams({
   mode,
   launch,
   legend,
+  action,
+  collapsed = false,
   onChange,
   t,
 }: {
   mode: ProjectileMode;
   launch: Launch;
   legend: string | undefined;
+  /** Sits at the end of the legend row, as the toggle of B does (#381). */
+  action?: ReactNode;
+  /** Keeps only the row of `action`, without the legend and the sliders (B hidden, #361). */
+  collapsed?: boolean;
   onChange: (key: string, value: number) => void;
   t: Translate;
 }): JSX.Element {
   return (
     <div className="flex flex-col gap-2">
       {legend === undefined ? null : (
+        <ParamsHeader legend={collapsed ? undefined : legend} action={action} />
+      )}
+      {collapsed ? null : <ParamPanel params={paramsOf(mode, launch, t)} onChange={onChange} />}
+    </div>
+  );
+}
+
+/**
+ * The legend row over a panel of A or B (#381). It is as tall as the toggle of B whether or not
+ * it holds it, so the panels of A and B start at the same line.
+ */
+function ParamsHeader({
+  legend,
+  action,
+}: {
+  legend?: string | undefined;
+  action?: ReactNode;
+}): JSX.Element {
+  return (
+    // As tall as the toggle: its `h-10` button plus the 1 px border above and below.
+    <div
+      className="flex min-h-[calc(var(--spacing-10)+2px)] items-center justify-between gap-3"
+      data-params-header=""
+    >
+      {legend === undefined ? null : (
         <p className="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">{legend}</p>
       )}
-      <ParamPanel params={paramsOf(mode, launch, t)} onChange={onChange} />
+      {action === undefined ? null : <div className="ml-auto">{action}</div>}
     </div>
   );
 }
