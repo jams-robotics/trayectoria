@@ -8,6 +8,7 @@ import {
   E2_T_S,
   E2_V_MPS,
   E3_DISTANCE_M,
+  E3_MAX_MEETING_M,
   E3_MIN_DV_MPS,
   E3_VA_MPS,
   E3_VB_MPS,
@@ -167,10 +168,25 @@ describe('e3 · encuentro de dos robots', () => {
 
   it('draws v_A and v_B again while v_A − v_B < 0.1 m/s (#287)', () => {
     // 0.30 against 0.50 never meets and 0.50 − 0.45 = 0.05 m/s: both redrawn.
-    // 0.50 − 0.40 = 0.1 m/s exactly: kept.
-    const { values } = exercise('e3').generate(scriptedRng([30, 50, 50, 45, 50, 40, 30]));
+    // 0.50 − 0.40 = 0.1 m/s exactly: kept. D = 2 m meets at 0.5·2/0.1 = 10 m, the limit: kept.
+    const { values } = exercise('e3').generate(scriptedRng([30, 50, 50, 45, 50, 40, 20]));
 
-    expect(values).toEqual({ vA_mps: 0.5, vB_mps: 0.4, distance_m: 3 });
+    expect(values).toEqual({ vA_mps: 0.5, vB_mps: 0.4, distance_m: 2 });
+  });
+
+  it('draws everything again while the meeting is beyond 10 m (V-22)', () => {
+    // 0.50, 0.40 and D = 3 m meet at 0.5·3/0.1 = 15 m: redrawn. 0.50, 0.30, 3 m meet at 7.5 m.
+    const { values } = exercise('e3').generate(scriptedRng([50, 40, 30, 50, 30, 30]));
+
+    expect(values).toEqual({ vA_mps: 0.5, vB_mps: 0.3, distance_m: 3 });
+  });
+
+  it('meets at 10 m or less, over 2000 seeds (V-22)', () => {
+    expect(E3_MAX_MEETING_M).toBe(10);
+    for (const seed of MANY_SEEDS) {
+      const [, x_m] = exercise('e3').generate(createRng(seed)).answer as number[];
+      expect(x_m!).toBeLessThanOrEqual(E3_MAX_MEETING_M + EPSILON);
+    }
   });
 
   it('draws v_A ∈ [0.3, 1], v_B ∈ [0.1, 0.8] m/s in hundredths and D ∈ [1, 5] m in tenths', () => {

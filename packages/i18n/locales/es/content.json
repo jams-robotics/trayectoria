@@ -15,7 +15,7 @@
     "e1": "Entre dos lecturas, tu robot avanza Δx = {{dx_m}} m en Δt = {{dt_s}} s. ¿Cuál es su velocidad media, en m/s?",
     "e2": "La posición de tu robot sigue x(t) = c·t² con c = {{coefC_mps2}} m/s². ¿Cuál es su velocidad en t = {{t_s}} s, en m/s?",
     "e3": "La velocidad de tu robot pasa de v₁ = {{v1_mps}} m/s a v₂ = {{v2_mps}} m/s en Δt = {{dt_s}} s. ¿Cuál es su aceleración media, en m/s²?",
-    "e4": "La posición de tu robot sigue x(t) = a·t + b·t² con a = {{coefA_mps}} m/s y b = {{coefB_mps2}} m/s². ¿Cuál es su velocidad en t = 3 s, en m/s?"
+    "e4": "La posición de tu robot sigue x(t) = c₁·t + c₂·t² con c₁ = {{coefA_mps}} m/s y c₂ = {{coefB_mps2}} m/s². ¿Cuál es su velocidad en t = 3 s, en m/s?"
   },
   "ruta-1/m01-t01": {
     "e1": "Tu robot avanza a v = {{v_mps}} m/s constante por una pista recta de D = {{distance_m}} m. ¿Cuánto tarda en recorrerla, en s?",
@@ -63,7 +63,7 @@
   "ruta-1/m03-t01": {
     "e1": "Tu robot de m = {{mass_kg}} kg avanza a v = {{v_mps}} m/s. ¿Cuál es su energía cinética, en J?",
     "e2": "Tu robot llega a v = {{v_mps}} m/s al pie de una rampa y se le corta el motor. Sin fricción, ¿hasta qué altura sube por inercia, en m?",
-    "e3": "Tu robot de m = {{mass_kg}} kg arranca desde el reposo y llega a v = {{v_mps}} m/s. ¿Qué trabajo neto hacen sobre él todas las fuerzas, en J?",
+    "e3": "Tu robot de m = {{mass_kg}} kg acelera de v₁ = {{v1_mps}} m/s a v₂ = {{v2_mps}} m/s. ¿Qué trabajo neto hacen sobre él todas las fuerzas, en J?",
     "e4": "Una fricción de rodadura f = {{friction_N}} N actúa sobre tu robot a lo largo de D = {{distance_m}} m. ¿Cuánta energía disipa, en J?"
   },
   "ruta-1/m03-t02": {

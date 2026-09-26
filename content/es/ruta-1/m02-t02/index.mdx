@@ -44,7 +44,7 @@ la normal baja a N = m·g·cosφ. El robot se sostiene mientras m·g·sinφ ≤ 
 tanφ ≤ μₛ. La pendiente máxima cumple tanφ_max = μₛ: con μₛ = 0.6, φ_max = 30.96°.
 
 Al frenar con las ruedas bloqueadas, el robot desliza y la fricción cinética lo detiene con una
-aceleración de módulo μₖ·g. De v² = v₀² + 2·a·Δx con velocidad final cero, la distancia de
+aceleración de magnitud μₖ·g. De v² = v₀² + 2·a·Δx con velocidad final cero, la distancia de
 frenado es d_frenado = v²/(2·μₖ·g).
 </Concepto>
 
@@ -135,8 +135,8 @@ de la rueda y r su radio:
 
 <RobotFormula calc="ruta-1/m02-t02/acceleration" />
 
-Si tu perfil de «Mi robot» no define α, o no es un robot móvil, el cálculo usa la del robot de
-referencia: α = 40 rad/s².
+Si tu perfil de «Mi robot» no define α, el cálculo usa la del robot de referencia: α = 40 rad/s².
+Si no es un robot móvil, usa el robot de referencia completo.
 
 El robot de referencia se apoya en dos ruedas motrices y una rueda loca. Con μₛ = 0.6 y la
 fracción β = 0.6 del peso sobre las ruedas motrices, su límite de tracción es:
