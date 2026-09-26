@@ -8,6 +8,7 @@ import { ParamPanel } from '../ParamPanel/ParamPanel';
 import { SimControls } from '../SimControls/SimControls';
 import { LiveStatus, ReadoutPanel } from '../shared/ReadoutPanel';
 import { SimLayout } from '../shared/SimLayout';
+import type { SimExtra } from '../shared/SimLayout';
 import { EnergyBars } from './bars';
 import type { Electrical, EnergyMode, Mechanical, MotorCount, Ramp } from './compute';
 import { energiesOf } from './model';
@@ -75,6 +76,15 @@ function RampValues({
   );
 }
 
+/** The live bars, an extra under the sliders; right after the viewer on mobile (§6, point 3). */
+function barsExtra(energies: Energies, scale_J: number, t: Translate): SimExtra {
+  return {
+    key: 'bars',
+    mobile: 'afterViewer',
+    node: <EnergyBars energies={energies} scale_J={scale_J} t={t} />,
+  };
+}
+
 /** The `ramp` mode: the body on its track, the live bars and the sliders (#90, decisions 3-5). */
 function RampMode({
   initial,
@@ -101,9 +111,9 @@ function RampMode({
         <>
           <EnergyScene ramp={ramp} state={timeline.state} t={t} />
           <SimControls {...timeline.driver} {...timeline.controls} t_s={timeline.t_s} />
-          <EnergyBars energies={energies} scale_J={scale_J} t={t} />
         </>
       }
+      extras={[barsExtra(energies, scale_J, t)]}
       values={<RampValues ramp={ramp} energies={energies} v_mps={timeline.state.v_mps} t={t} />}
       params={
         <ParamPanel

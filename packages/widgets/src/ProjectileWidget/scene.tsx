@@ -2,6 +2,7 @@ import type { JSX } from 'react';
 import type { Translate } from '@trayectoria/i18n';
 
 import { Scene2D } from '../Scene2D/Scene2D';
+import { SceneBox } from '../shared/SimLayout';
 import { Circle } from '../Scene2D/primitives/Circle';
 import { Rect } from '../Scene2D/primitives/Rect';
 import { Trace } from '../Scene2D/primitives/Trace';
@@ -136,7 +137,10 @@ function LaunchMarks({
   const at_m = positionAt(mode, launch, own_t_s);
   return (
     <>
-      <Trace points_m={samplePath(mode, launch, flightTime(mode, launch), PATH_PERIOD_S)} color={color} />
+      <Trace
+        points_m={samplePath(mode, launch, flightTime(mode, launch), PATH_PERIOD_S)}
+        color={color}
+      />
       {traceDots(mode, launch, own_t_s).map(([x_m, y_m], index) => (
         <Circle key={index} center_m={[x_m, y_m]} radius_m={DOT_RADIUS_M} color={color} filled />
       ))}
@@ -211,28 +215,31 @@ export function ProjectileScene({
   const reach_m = Math.max(...launches.map(({ launch }) => range(mode, launch)));
   const centre_m = sceneCentre(worldWidth_m, apex_m, reach_m);
   const first = launches[0];
+  const aspect = sceneAspect(worldWidth_m, apex_m);
   return (
-    <Scene2D
-      worldWidth_m={worldWidth_m}
-      center_m={centre_m}
-      aspect={sceneAspect(worldWidth_m, apex_m)}
-      description={t(`widgets.ProjectileWidget.scene${mode}`)}
-    >
-      <Ground worldWidth_m={worldWidth_m} centreX_m={centre_m[0]} />
-      {mode === 'dropFromRobot' && first !== undefined ? (
-        <RobotChassis launch={first.launch} t_s={t_s} />
-      ) : null}
-      {launches.map((drawn, index) => (
-        <LaunchMarks
-          key={drawn.color}
-          mode={mode}
-          drawn={drawn}
-          t_s={t_s}
-          showVectors={showVectors}
-          labelled={index === 0}
-          t={t}
-        />
-      ))}
-    </Scene2D>
+    <SceneBox aspect={aspect}>
+      <Scene2D
+        worldWidth_m={worldWidth_m}
+        center_m={centre_m}
+        aspect={aspect}
+        description={t(`widgets.ProjectileWidget.scene${mode}`)}
+      >
+        <Ground worldWidth_m={worldWidth_m} centreX_m={centre_m[0]} />
+        {mode === 'dropFromRobot' && first !== undefined ? (
+          <RobotChassis launch={first.launch} t_s={t_s} />
+        ) : null}
+        {launches.map((drawn, index) => (
+          <LaunchMarks
+            key={drawn.color}
+            mode={mode}
+            drawn={drawn}
+            t_s={t_s}
+            showVectors={showVectors}
+            labelled={index === 0}
+            t={t}
+          />
+        ))}
+      </Scene2D>
+    </SceneBox>
   );
 }

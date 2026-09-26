@@ -2,97 +2,132 @@ import '@testing-library/jest-dom/vitest';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, test } from 'vitest';
 
-import { ParamGrid, SimLayout } from './SimLayout';
+import { ParamGrid, SceneBox, SimLayout } from './SimLayout';
 
-/** The three regions of the layout, in DOM order, as their test ids. */
+/** The regions of the layout, in DOM order. */
 function regionOrder(container: HTMLElement): string[] {
   return Array.from(container.querySelectorAll('[data-sim-region]')).map(
     (node) => node.getAttribute('data-sim-region') ?? '',
   );
 }
 
+function regionOf(container: HTMLElement, name: string): HTMLElement {
+  return container.querySelector(`[data-sim-region="${name}"]`) as HTMLElement;
+}
+
+const STICKY = '[@media(min-height:640px)]:sticky';
+
 describe('SimLayout (docs/DESIGN.md §6)', () => {
   test('keeps the mobile order: viewer, values, then the parameters', () => {
     const { container } = render(
-      <SimLayout
-        viewer={<i data-testid="viewer" />}
-        values={<i data-testid="values" />}
-        params={<i data-testid="params" />}
-      />,
+      <SimLayout viewer={<i />} values={<i />} params={<i data-testid="params" />} />,
     );
     expect(regionOrder(container)).toEqual(['viewer', 'values', 'params']);
+    expect(regionOf(container, 'values')).toHaveClass('max-lg:order-4');
+    expect(regionOf(container, 'params')).toHaveClass('max-lg:order-5');
   });
 
-  test('on desktop puts viewer and parameters in the left column, values on the right', () => {
-    const { container } = render(
-      <SimLayout
-        viewer={<i data-testid="viewer" />}
-        values={<i data-testid="values" />}
-        params={<i data-testid="params" />}
-      />,
+  test('puts viewer and values in a top row that is sticky from the breakpoint', () => {
+    const { container } = render(<SimLayout viewer={<i />} values={<i />} params={<i />} />);
+    const top = container.querySelector('[data-sim-row="top"]') as HTMLElement;
+    expect(top).toContainElement(regionOf(container, 'viewer'));
+    expect(top).toContainElement(regionOf(container, 'values'));
+    expect(top).not.toContainElement(regionOf(container, 'params'));
+    expect(top).toHaveClass(
+      'max-lg:contents',
+      'lg:grid',
+      `lg:${STICKY}`,
+      'lg:[@media(min-height:640px)]:top-0',
+      'lg:[@media(min-height:640px)]:bg-bg',
+      'lg:[@media(min-height:640px)]:pb-3',
     );
-    const region = (name: string): HTMLElement =>
-      container.querySelector(`[data-sim-region="${name}"]`) as HTMLElement;
-    expect(region('viewer')).toHaveClass('lg:col-start-1', 'lg:row-start-1');
-    expect(region('params')).toHaveClass('lg:col-start-1', 'lg:row-start-2');
-    expect(region('values')).toHaveClass('lg:col-start-2', 'lg:row-span-2', 'lg:w-panel');
+  });
+
+  test('caps the viewer at 50vh · 16/9 wide, centred in its column', () => {
+    const { container } = render(<SimLayout viewer={<i />} values={<i />} />);
+    expect(regionOf(container, 'viewer')).toHaveClass('lg:mx-auto', 'lg:max-w-[calc(50vh*16/9)]');
+  });
+
+  test('scrolls the values inside a box as tall as the viewer column', () => {
+    const { container } = render(<SimLayout viewer={<i />} values={<i data-testid="v" />} />);
+    expect(regionOf(container, 'values')).toHaveClass('lg:relative', 'lg:w-panel');
+    expect(screen.getByTestId('v').parentElement).toHaveClass(
+      'lg:absolute',
+      'lg:inset-0',
+      'lg:overflow-y-auto',
+    );
+  });
+
+  test('lays the parameters out full width in 2 columns, with a scroll margin', () => {
+    const { container } = render(<SimLayout viewer={<i />} values={<i />} params={<i />} />);
+    const params = regionOf(container, 'params');
+    expect(params.parentElement).toBe(container.firstChild);
+    expect(params).toHaveClass(
+      'lg:grid',
+      'lg:grid-cols-2',
+      'lg:[&>[data-param-grid]]:contents',
+      'lg:[&>[data-layout=stack]:only-child:has(>div>:nth-child(4))]:col-span-2',
+      'lg:[&>:only-child:not([data-param-grid]):has([data-layout=stack]>div>:nth-child(4))]:col-span-2',
+      'lg:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid-cols-2',
+      'lg:[@media(min-height:640px)]:[&_:is(input,select,button)]:scroll-mt-[calc(50vh+64px)]',
+    );
   });
 
   test('without parameters renders only viewer and values', () => {
-    const { container } = render(
-      <SimLayout viewer={<i data-testid="viewer" />} values={<i data-testid="values" />} />,
-    );
+    const { container } = render(<SimLayout viewer={<i />} values={<i />} />);
     expect(regionOrder(container)).toEqual(['viewer', 'values']);
-    expect(screen.queryByTestId('params')).toBeNull();
   });
 
   test('can switch to two columns from the md breakpoint', () => {
     const { container } = render(
-      <SimLayout
-        from="md"
-        viewer={<i data-testid="viewer" />}
-        values={<i data-testid="values" />}
-        params={<i data-testid="p" />}
-      />,
+      <SimLayout from="md" viewer={<i />} values={<i />} params={<i />} />,
     );
-    const values = container.querySelector('[data-sim-region="values"]');
-    expect(values).toHaveClass('md:col-start-2', 'md:w-panel');
+    expect(regionOf(container, 'values')).toHaveClass('md:w-panel');
+    expect(container.querySelector('[data-sim-row="top"]')).toHaveClass(`md:${STICKY}`);
+    expect(regionOf(container, 'params')).toHaveClass('md:grid-cols-2');
   });
 });
 
-describe('SimLayout with content after the parameters (QA #365)', () => {
-  test('on desktop orders the left column viewer, parameters, then the extra content', () => {
+describe('SimLayout with extras (docs/DESIGN.md §6, point 3)', () => {
+  const extras = [
+    { key: 'chart', node: <i data-testid="chart" />, mobile: 'afterViewer' as const },
+    { key: 'panel', node: <i data-testid="panel" />, mobile: 'end' as const },
+  ];
+
+  test('renders the extras below the parameters, full width, in their order', () => {
     const { container } = render(
-      <SimLayout
-        viewer={<i data-testid="viewer" />}
-        values={<i data-testid="values" />}
-        params={<i data-testid="params" />}
-        after={<i data-testid="after" />}
-      />,
+      <SimLayout viewer={<i />} values={<i />} params={<i />} extras={extras} />,
     );
-    const region = (name: string): HTMLElement =>
-      container.querySelector(`[data-sim-region="${name}"]`) as HTMLElement;
-    expect(regionOrder(container)).toEqual(['viewer', 'values', 'params', 'after']);
-    expect(region('params')).toHaveClass('lg:row-start-2');
-    expect(region('after')).toHaveClass('lg:col-start-1', 'lg:row-start-3');
-    expect(region('values')).toHaveClass('lg:row-span-3');
+    expect(regionOrder(container)).toEqual(['viewer', 'values', 'params', 'extras']);
+    const region = regionOf(container, 'extras');
+    expect(region.parentElement).toBe(container.firstChild);
+    expect(region).toHaveClass('max-lg:contents');
+    expect(screen.getByTestId('chart').parentElement?.nextElementSibling).toContainElement(
+      screen.getByTestId('panel'),
+    );
   });
 
-  test('on mobile keeps the extra content right after the first child of the viewer', () => {
-    const { container } = render(
+  test('on mobile puts each extra at its anchor', () => {
+    render(<SimLayout viewer={<i />} values={<i />} params={<i />} extras={extras} />);
+    expect(screen.getByTestId('chart').parentElement).toHaveClass('max-lg:order-3', 'max-lg:-mt-1');
+    expect(screen.getByTestId('panel').parentElement).toHaveClass('max-lg:order-6');
+  });
+
+  test('splits the viewer only for an extra anchored after its first child', () => {
+    const first = render(<SimLayout viewer={<i />} values={<i />} extras={extras} />);
+    expect(regionOf(first.container, 'viewer')).not.toHaveClass('max-lg:contents');
+    const split = render(
       <SimLayout
-        viewer={<i data-testid="viewer" />}
-        values={<i data-testid="values" />}
-        params={<i data-testid="params" />}
-        after={<i data-testid="after" />}
+        viewer={<i />}
+        values={<i />}
+        extras={[{ key: 'c', node: <i data-testid="c" />, mobile: 'afterViewerFirst' }]}
       />,
     );
-    const region = (name: string): HTMLElement =>
-      container.querySelector(`[data-sim-region="${name}"]`) as HTMLElement;
-    expect(region('viewer')).toHaveClass('max-lg:contents');
-    expect(region('after')).toHaveClass('max-lg:order-1');
-    expect(region('values')).toHaveClass('max-lg:order-3');
-    expect(region('params')).toHaveClass('max-lg:order-3');
+    expect(regionOf(split.container, 'viewer')).toHaveClass(
+      'max-lg:contents',
+      'max-lg:[&>*:not(:first-child)]:order-2',
+    );
+    expect(screen.getByTestId('c').parentElement).toHaveClass('max-lg:order-1');
   });
 });
 
@@ -106,5 +141,26 @@ describe('ParamGrid (docs/DESIGN.md §6, A/B)', () => {
     );
     const grid = screen.getByTestId('A').parentElement;
     expect(grid).toHaveClass('grid', 'grid-cols-[repeat(auto-fit,minmax(280px,1fr))]');
+    expect(grid).toHaveAttribute('data-param-grid');
+  });
+});
+
+describe('SceneBox (docs/DESIGN.md §6, QA #378)', () => {
+  test('fixes the height from lg to a 16/9 viewer capped at 50vh, whatever the aspect', () => {
+    const { container } = render(
+      <SceneBox aspect={1.2}>
+        <i data-testid="scene" />
+      </SceneBox>,
+    );
+    expect(container.firstChild).toHaveClass('lg:@container');
+    expect(container.querySelector('[data-scene-box]')).toHaveClass(
+      'lg:h-[min(calc(100cqw*9/16),50vh)]',
+    );
+    const fit = screen.getByTestId('scene').parentElement as HTMLElement;
+    expect(fit).toHaveClass(
+      'lg:mx-auto',
+      'lg:w-[min(100%,calc(min(100cqw*9/16,50vh)*var(--scene-aspect)))]',
+    );
+    expect(fit.style.getPropertyValue('--scene-aspect')).toBe('1.2');
   });
 });
