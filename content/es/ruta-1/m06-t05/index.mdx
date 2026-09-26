@@ -81,7 +81,7 @@ qué esperar y, cuando falle, por qué.
 </Formulas>
 
 <Explora>
-Arriba, el formulario de «Mi robot»; abajo, tu robot en la pista oval con un PID de partida:
+Arriba, el formulario de «Mi robot»; abajo, tu robot en la pista Óvalo con un PID de partida:
 K_p = 8, K_i = 1, K_d = 0.3 y ω_base = 15 rad/s. Las gráficas muestran el error, la velocidad v
 y los términos P, I y D en vivo. El simulador no muestra la longitud de la pista: es 2.771 m.
 
@@ -122,7 +122,7 @@ sintonía.
 >
 El robot de referencia completa las 3 vueltas sin perder la línea, en ≈ 5.98, 5.74 y 5.74 s. La 1.ª
 incluye el arranque desde el reposo; las siguientes empiezan ya a velocidad de crucero. Con ruido
-de lectura (σ = 0.03) esa K_d amplificaría el ruido y perdería la línea, como viste en
+de lectura (σ = 0.03) esa K_d amplificaría el ruido y perdería la línea, como explica
 [Control PID](/ruta/ruta-1/m06/t03).
 </Experimento>
 
@@ -139,11 +139,13 @@ v_med = D/t_vuelta y Δ%: la sección siguiente lo hace con el robot de referenc
 
 <AlRobot>
 La predicción sale de tu perfil de «Mi robot»: el radio de rueda r y la ω_base de Explora,
-15 rad/s. Si tu perfil no es un robot móvil, el cálculo usa el robot de referencia.
+15 rad/s. Si tu perfil no es un robot móvil, el cálculo usa el robot de referencia. Si su ω_max
+no llega a ω_base = 15 rad/s, sus ruedas no pueden dar esa velocidad y la predicción también usa
+el robot de referencia.
 
 <RobotFormula calc="ruta-1/m06-t05/predicted-speed" />
 
-Con esa velocidad, una vuelta a la pista oval, de 2.771 m, dura:
+Con esa velocidad, una vuelta a la pista Óvalo, de 2.771 m, dura:
 
 <RobotFormula calc="ruta-1/m06-t05/predicted-lap-time" />
 
