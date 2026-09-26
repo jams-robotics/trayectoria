@@ -1,0 +1,20 @@
+# Caddy configuration for self-hosting (docs/ops/SELF-HOSTING.md).
+# SITE_ADDRESS: public domain of the site (automatic HTTPS), or ":80" for plain HTTP in local tests.
+# API_ADDRESS: public domain of the Supabase API (automatic HTTPS), or ":8000" in local tests.
+# SUPABASE_UPSTREAM: where the official Supabase compose exposes Kong (default host port 8000).
+
+{$SITE_ADDRESS} {
+	root * /srv
+	encode zstd gzip
+	try_files {path} {path}/ {path}.html
+	file_server
+
+	handle_errors 404 {
+		rewrite * /404.html
+		file_server
+	}
+}
+
+{$API_ADDRESS} {
+	reverse_proxy {$SUPABASE_UPSTREAM:host.docker.internal:8000}
+}
