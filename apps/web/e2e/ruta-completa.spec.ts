@@ -143,10 +143,17 @@ async function waitForStableStatement(exercise: Locator): Promise<void> {
     .not.toBeNull();
 }
 
-/** Recognises the known hydration-mismatch defect (see `waitForStableStatement`) so it is
- * reported once, separately, instead of once per topic. */
+/**
+ * Recognises the known hydration-mismatch defect (see `waitForStableStatement`) so it is reported
+ * once, separately, instead of once per topic. Locally (`astro dev`) React reports it verbosely;
+ * in CI, which builds and serves production output (`playwright.config.ts`, `IS_CI`), the same
+ * defect surfaces as the minified error #418 (https://react.dev/errors/418).
+ */
 function isKnownHydrationMismatch(message: string): boolean {
-  return message.includes('Hydration failed because the server rendered text');
+  return (
+    message.includes('Hydration failed because the server rendered text') ||
+    message.includes('Minified React error #418')
+  );
 }
 
 /**
@@ -221,19 +228,26 @@ async function probe(
   return { correct: false, error: await readRelativeError(exercise) };
 }
 
-/** Refinement rounds of `solveVisibleExercise` before giving up (see its comment): each round at
- * most doubles the probes tried (both candidates of the previous best), so this bounds the search
- * to `2^MAX_REFINE_STEPS` probes in the worst case while converging in 2–3 for a single number. */
-const MAX_REFINE_STEPS = 6;
+/** Refinement rounds of `solveVisibleExercise` before giving up (see its comment): each round
+ * probes the (at most) 4 candidates of the current search frontier, so this bounds the search to
+ * a few dozen probes in the worst case while converging in 2–3 rounds for a single number. */
+const MAX_REFINE_STEPS = 8;
+/** Rounds to keep expanding a frontier whose best error has stopped improving, before it is
+ * dropped (see `solveVisibleExercise`): near `expected = 0` the two `candidatesFor` branches sit
+ * close together and successive errors can plateau or wobble slightly for a round or two before
+ * either converging or genuinely going nowhere. */
+const STALL_ROUNDS = 2;
 
 /**
- * Solves one scalar exercise by probing and refining (see the header comment): a probe of
- * `value` gives a relative error, which implies exactly two candidate values for `expected`
- * (`candidatesFor`, from `error = |value − expected| / |expected|`). Whichever candidate is
- * actually right either grades correct outright or, probed in turn, reports a much smaller error
- * (its own candidates converge tightly around it); the wrong one reports something far off (often
- * negative or huge). So each round probes both of the current best candidate's implied values and
- * keeps whichever has the smaller error, starting from a first probe of 1.
+ * Solves one scalar exercise by probing and refining (see the header comment): a probe of `value`
+ * gives a relative error, which implies (up to) four candidate values for `expected`
+ * (`candidatesFor`, from `error = |value − expected| / |expected|` and its absolute-error
+ * counterpart near `expected = 0`). Whichever candidate is actually right either grades correct
+ * outright or, probed in turn, reports a much smaller error (its own candidates converge tightly
+ * around it); a wrong one reports something far off. So this keeps a small frontier of the
+ * best candidates seen, expands each round from all of them, and keeps the overall best result
+ * ever probed — not just whichever a single round's comparison favoured, which a near-zero
+ * `expected` can make wobble for a round without truly failing to converge.
  *
  * This replaces an earlier version that fixed two probes (1 and 3.7) and solved the resulting pair
  * of equations algebraically: `errorPercent` is shown rounded to 1 decimal
@@ -243,34 +257,46 @@ const MAX_REFINE_STEPS = 6;
  */
 async function solveVisibleExercise(exercise: Locator, topicId: string): Promise<string | null> {
   const field = exercise.getByRole('textbox').first();
+  interface Result {
+    readonly value: number;
+    readonly error: number;
+  }
 
-  let best: { readonly value: number; readonly error: number } = { value: 1, error: Infinity };
-  for (let step = 0; step < MAX_REFINE_STEPS; step += 1) {
-    const outcome = await probe(exercise, field, best.value, topicId);
-    if (typeof outcome === 'string') return outcome;
-    if (outcome.correct) return null;
-    best = { value: best.value, error: outcome.error };
+  const tried = new Set<number>();
+  let frontier: readonly number[] = [1, 0];
+  let overallBest: Result = { value: 1, error: Infinity };
+  let stalled = 0;
 
-    const results: Array<{ readonly value: number; readonly error: number }> = [];
-    for (const candidate of candidatesFor(best.value, best.error)) {
+  for (let step = 0; step < MAX_REFINE_STEPS && frontier.length > 0; step += 1) {
+    const results: Result[] = [];
+    for (const value of frontier) {
+      if (tried.has(value)) continue;
+      tried.add(value);
       // Each candidate must be probed against the live exercise in turn; there is no batch
       // endpoint to probe them concurrently.
-      const candidateOutcome = await probe(exercise, field, candidate, topicId);
-      if (typeof candidateOutcome === 'string') return candidateOutcome;
-      if (candidateOutcome.correct) return null;
-      results.push({ value: candidate, error: candidateOutcome.error });
+      const outcome = await probe(exercise, field, value, topicId);
+      if (typeof outcome === 'string') return outcome;
+      if (outcome.correct) return null;
+      results.push({ value, error: outcome.error });
     }
-    const closer = results.reduce((a, b) => (a.error <= b.error ? a : b));
-    if (closer.error >= best.error) {
-      // Neither candidate improved on the current best: as close as this method converges.
-      break;
+    if (results.length === 0) break; // every candidate of this frontier was already tried.
+
+    const roundBest = results.reduce((a, b) => (a.error <= b.error ? a : b));
+    if (roundBest.error < overallBest.error) {
+      overallBest = roundBest;
+      stalled = 0;
+    } else {
+      stalled += 1;
     }
-    best = closer;
+    if (stalled > STALL_ROUNDS) break;
+
+    frontier = results.flatMap((result) => candidatesFor(result.value, result.error));
   }
-  const final = await probe(exercise, field, best.value, topicId);
+
+  const final = await probe(exercise, field, overallBest.value, topicId);
   if (typeof final === 'string') return final;
   if (final.correct) return null;
-  return `${topicId}: did not converge to a correct answer in ${MAX_REFINE_STEPS} rounds (closest ${best.value}, error ${(best.error * 100).toFixed(1)} %)`;
+  return `${topicId}: did not converge to a correct answer in ${MAX_REFINE_STEPS} rounds (closest ${overallBest.value}, error ${(overallBest.error * 100).toFixed(1)} %)`;
 }
 
 test.describe('F7-04 · ruta completa', () => {
