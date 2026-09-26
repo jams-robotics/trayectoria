@@ -172,14 +172,14 @@ Respuesta del motor (DOCS-M6, #396): la rueda no alcanza al instante la velocida
 ```
 
 - `ω` de cada rueda sale del giro del estado (cinemática inversa de `v`, `ω`), como ya hace la rampa: el estado no cambia. Sin azar ni reloj: el mismo estado, comando y `dt` dan el mismo paso.
-- `MOTOR_TIME_CONSTANT_S = 0.15` es una constante exportada de `sim-core`, no un campo de `RobotSpec`. El modelo del seguidor de línea (`packages/sims`: `LineFollowerWidget` y `/simuladores/movil`) la usa siempre, también en modo manual.
+- `MOTOR_TIME_CONSTANT_S = 0.185` es una constante exportada de `sim-core`, no un campo de `RobotSpec`. El modelo del seguidor de línea (`packages/sims`: `LineFollowerWidget` y `/simuladores/movil`) la usa siempre, también en modo manual.
 - Por qué: la rampa sola (`maxAccel_radps2 = 40` del robot de referencia, ya aplicada) no basta. Con ella, P no oscila en todo el rango del slider (`kp ≤ 20`), porque los sensores van delante del eje y anticipan la corrección.
 - Efecto esperado, que es el criterio de aceptación del ticket de código. Se mide con el robot de referencia, `dt = 1 ms`, sin ruido y la pose inicial por defecto:
-  1. `oval`, P, `ω_base = 15`, 15 s: `kp = 2` pierde la línea en la primera curva; `kp = 8` completa 2 vueltas; con `kp = 20`, el RMS del error es al menos 1.3 veces el del punto 2.
+  1. `oval`, P, `ω_base = 15`, 15 s: `kp = 2` pierde la línea en la primera curva; `kp = 8` completa 2 vueltas. Oscilación, en los primeros 5 s, sin que `kp = 8` ni `kp = 20` pierdan la línea: se cuentan los cambios de signo del error con histéresis de ±0.1 (cuenta un cambio cada vez que el error pasa de más de 0.1 a menos de −0.1, o al revés); con `kp = 20` son al menos 1.5 veces los de `kp = 8`. La métrica no depende de que el robot pierda la línea (#423).
   2. `oval`, PID `kp 20, ki 0, kd 0.5`, `ω_base = 15`, 15 s: completa 2 vueltas.
   3. `oval`, `REFERENCE_PID_PARAMS`: completa una vuelta (criterio de F4-02). PID `kp 8, ki 1, kd 0.05`, `ω_base = 15`, 18 s: completa 3 vueltas con y sin `σ = 0.03`.
   4. `tight`, PID `kp = 20`, `ω_base = 13`, 12 s: con `ki = 0`, subir `kd` de 0 a 0.8 baja el RMS del error; con `kd = 0.8`, subir `ki` de 0 a 2 y a 10 acerca a 0 el error medio.
-- Si 0.15 s no cumple los cuatro, el ticket de código busca τ_m en `[0.1, 0.2] s` y documenta el valor. Si ninguno cumple, abre un spec gap. Los resultados de los experimentos de T-6.2 a T-6.5 que dependen de τ_m llevan en `CURRICULUM.md` la marca «a verificar en el simulador tras el ticket de código».
+- Calibración (#408, #423): τ_m se busca en `[0.1, 0.2] s`. Con 0.15 s, `kp = 20` queda bien amortiguado; 0.185 s cumple los cuatro criterios. Con 0.185 s, el criterio 1 da 10 cambios de signo con `kp = 20` frente a 4 con `kp = 8`, y la razón se mantiene en al menos 1.5 en todo `[0.15, 0.2] s`. Si un cambio posterior rompe un criterio, se vuelve a buscar τ_m en ese rango y se documenta el valor; si ninguno cumple, spec gap. Las cifras de los experimentos de T-6.2 a T-6.5 en `CURRICULUM.md` están medidas con 0.185 s.
 
 Cinemática inversa: `vR = v + ω·L/2`, `vL = v − ω·L/2`, `ω_rueda = v_rueda / r`.
 
