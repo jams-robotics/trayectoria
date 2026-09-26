@@ -22,12 +22,19 @@ export interface ExerciseAttempt {
 export interface ProgressAdapter {
   /** Id of the signed-in learner, or `null` when there is no session. */
   userId: () => string | null;
+  /**
+   * `false` until the session has been read once (#482): `userId()` alone cannot tell a session
+   * still resolving from one already resolved to anonymous, and the exercise seed must not
+   * change once it has rendered.
+   */
+  sessionReady: () => boolean;
   recordAttempt: (attempt: ExerciseAttempt) => void | Promise<void>;
 }
 
 /** No session and no persistence: what an anonymous learner gets (and the default). */
 export const nullProgressAdapter: ProgressAdapter = {
   userId: () => null,
+  sessionReady: () => true,
   recordAttempt: () => undefined,
 };
 

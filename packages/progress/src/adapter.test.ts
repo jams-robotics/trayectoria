@@ -36,6 +36,15 @@ describe('progress adapter (F3-01)', () => {
     expect(adapter.userId()).toBe(USER);
   });
 
+  test('sessionReady is false until configureProgressSession has settled once (#482)', async () => {
+    const adapter = progressAdapterFor(['e1']);
+    expect(adapter.sessionReady()).toBe(false);
+
+    await configureProgressSession(null);
+
+    expect(adapter.sessionReady()).toBe(true);
+  });
+
   test('recordAttempt applies the required set of the topic', async () => {
     const adapter = progressAdapterFor(['e1', 'e2']);
 

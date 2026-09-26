@@ -101,7 +101,7 @@ describe('ExerciseWidget (F2-10)', () => {
   test('an empty or non numeric response is a validation error and is not an attempt', async () => {
     const user = userEvent.setup();
     const recordAttempt = vi.fn();
-    renderScalar({ userId: () => null, recordAttempt });
+    renderScalar({ userId: () => null, sessionReady: () => true, recordAttempt });
 
     await user.click(verifyButton());
     expect(screen.getByText('Escribe un número.')).toBeInTheDocument();
@@ -134,7 +134,11 @@ describe('ExerciseWidget (F2-10)', () => {
 
   test('with a session the statement is stable per round and changes with «Nuevos valores»', async () => {
     const user = userEvent.setup();
-    const adapter: ProgressAdapter = { userId: () => 'user-1', recordAttempt: vi.fn() };
+    const adapter: ProgressAdapter = {
+      userId: () => 'user-1',
+      sessionReady: () => true,
+      recordAttempt: vi.fn(),
+    };
     const view = (
       <ProgressAdapterProvider adapter={adapter}>
         <ExerciseWidget exercise={trackTimeExercise} topicId={TOPIC_ID} />
@@ -156,6 +160,7 @@ describe('ExerciseWidget (F2-10)', () => {
     const attempts: ExerciseAttempt[] = [];
     renderScalar({
       userId: () => null,
+      sessionReady: () => true,
       recordAttempt: (attempt) => {
         attempts.push(attempt);
       },
@@ -190,7 +195,7 @@ describe('ExerciseWidget (F2-10)', () => {
       new Promise<void>((resolve) => {
         settle = resolve;
       });
-    renderScalar({ userId: () => null, recordAttempt });
+    renderScalar({ userId: () => null, sessionReady: () => true, recordAttempt });
 
     await user.type(scalarField(), String(SCALAR_ANSWER_S));
     await user.click(verifyButton());

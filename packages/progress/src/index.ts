@@ -9,6 +9,7 @@ export {
   currentUserId,
   getProgress,
   hydrateProgress,
+  isSessionReady,
   markCompleted,
   recordAttempt,
 } from './stores/progress';
