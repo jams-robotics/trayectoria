@@ -102,8 +102,8 @@ function Viewer({
   return (
     <Suspense
       fallback={
-        // F7-02b (#444): reserves the viewer's height (≥ 549 px) while `three` loads.
-        <p className="text-fg-muted min-h-[540px] text-sm" role="status" aria-live="polite">
+        // F7-02b (#444): the marker lets the island keep its loaded height while `three` loads.
+        <p className="text-fg-muted text-sm" role="status" aria-live="polite" data-arm-loading>
           {t('sims.armPage.loading')}
         </p>
       }
@@ -266,9 +266,10 @@ export function ArmSimIsland({ arms }: ArmSimIslandProps): JSX.Element {
   const [matrices, setMatrices] = useState(false);
   const [workspace, setWorkspace] = useState(false);
 
-  // F7-02b (#444): keeps the loaded height (≥ 758 px) while `ArmViewer` shows its loading line.
+  // F7-02b (#444): keeps the loaded height (≥ 758 px) while `three` or the arm loads.
+  const loading = 'has-[[data-arm-loading],[data-testid=arm-viewer-status]]:min-h-[740px]';
   return (
-    <div className="mt-6 flex flex-col gap-5 has-[[data-testid=arm-viewer-status]]:min-h-[740px]">
+    <div className={`mt-6 flex flex-col gap-5 ${loading}`}>
       <SourceRow
         arms={arms}
         selected={selected}

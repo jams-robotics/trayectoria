@@ -21,7 +21,7 @@
     "./RotationWidget": "./src/RotationWidget/index.ts",
     "./Scene2D": "./src/Scene2D/index.ts",
     "./SimControls": "./src/SimControls/index.ts",
-    "./Toast": "./src/shared/Toast.tsx",
+    "./Toast": "./src/Toast/index.ts",
     "./VectorWidget": "./src/VectorWidget/index.ts",
     "./scene3d": "./src/Scene3D/index.ts",
     "./dev": "./src/dev/index.ts"

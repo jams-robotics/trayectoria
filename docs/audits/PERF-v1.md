@@ -141,12 +141,12 @@ Los scripts de medición con Playwright y el servidor gzip fueron temporales y n
 
 ## 8. F7-02b (#444): arreglos técnicos de §6
 
-2026-09-26 · rama `perf/444-fixes` sobre `main` (a64f850). Mismo método que §2: build de producción servido con gzip en `127.0.0.1:4386`, Lighthouse 13.5.0 con el preset `desktop` (Chromium 1243 de Playwright). Para aislar el ruido de la máquina, «antes» (`main`, servido en `:4387`) y «después» se midieron intercalados en la misma sesión: 3 pasadas en el simulador móvil y 5 en el de brazo, de las que se da la mediana.
+2026-09-26 · rama `perf/444-fixes` sobre `main` (a64f850). Mismo método que §2: build de producción servido con gzip en `127.0.0.1:4386`, Lighthouse 13.5.0 con el preset `desktop` (Chromium 1243 de Playwright). Para aislar el ruido de la máquina, «antes» (`main`, servido en `:4387`) y «después» se midieron intercalados en la misma sesión: 3 pasadas en el simulador móvil y 5 en el de brazo, de las que se da la mediana. Lighthouse vacía la caché en cada pasada. El brazo se volvió a medir tras la auditoría del PR #459.
 
 ### 8.1 Cambios
 
-- **`Toast` por entrada directa (§6.5).** `@trayectoria/widgets` expone `./Toast` (entrada nueva y aditiva en su `package.json`; el barrel sigue exportando lo mismo). El aula, «Unirse», la cuenta, «Mis robots» y los simuladores importan `Toast` de ahí, y `MyRobotWidget`, `useMyRobot`, `parseStoredRobot`, `robotSpecToJson` y `SPEEDS` de sus entradas ya existentes (`./MyRobotWidget`, `./SimControls`). En `apps/web` ya no queda ningún import de valor del barrel.
-- **CLS de los simuladores (§6.6).** La causa era la barra de desplazamiento: la página cabía en la ventana mientras la isla cargaba y, al aparecer el simulador, crecía, salía la barra vertical y todo el contenido centrado se desplazaba 7 px a la izquierda. Ahora los estados de carga reservan una altura menor que la del simulador ya cargado, así que la página ya es más alta que la ventana desde el primer fotograma y la versión cargada no cambia: el aviso de carga del móvil (720 px; el simulador mide ≥ 999 px), un `fallback` vacío de la isla `client:only` del brazo (740 px; ≥ 758 px cargado), el aviso mientras carga `three` (540 px; visor ≥ 549 px) y la isla mientras `ArmViewer` muestra su línea de carga (740 px).
+- **`Toast` por entrada directa (§6.5).** `@trayectoria/widgets` expone `./Toast` (entrada nueva y aditiva, `src/Toast/index.ts` como las demás de ADR-0009; el barrel sigue exportando lo mismo). El aula, «Unirse», la cuenta, «Mis robots» y los simuladores importan `Toast` de ahí, y `MyRobotWidget`, `useMyRobot`, `parseStoredRobot`, `robotSpecToJson` y `SPEEDS` de sus entradas ya existentes (`./MyRobotWidget`, `./SimControls`). En `apps/web` ya no queda ningún import de valor del barrel.
+- **CLS de los simuladores (§6.6).** La causa era la barra de desplazamiento: la página cabía en la ventana mientras la isla cargaba y, al aparecer el simulador, crecía, salía la barra vertical y todo el contenido centrado se desplazaba 7 px a la izquierda. Ahora los estados de carga reservan una altura menor que la del simulador ya cargado, así que la página ya es más alta que la ventana desde el primer fotograma y la versión cargada no cambia: el aviso de carga del móvil (720 px; el simulador mide ≥ 999 px), un `fallback` vacío de la isla `client:only` del brazo (740 px; ≥ 758 px cargado) y la propia isla del brazo (740 px) mientras carga el chunk de `three` o `ArmViewer` muestra su línea de carga. Comprobado con caché vacía y el chunk de `three` retenido 1,5 s: sobre `main`, la isla medía 231 px y la página cabía en la ventana (940 px); con el cambio, la isla mide 740 px y la página 1125 px durante toda la carga.
 - Guardia nueva en `bundleBudget.test.ts`: el grafo estático de `/aula/`, `/unirse/`, `/cuenta/` y `/cuenta/robots/` no puede contener `Formula`, `DiffDriveWidget` ni `Plot`. Falla sobre `main` y pasa con el cambio.
 
 ### 8.2 Resultados
@@ -154,7 +154,7 @@ Los scripts de medición con Playwright y el servidor gzip fueron temporales y n
 | Página | Antes | Después | CLS antes → después | TBT antes → después |
 | --- | ---: | ---: | --- | --- |
 | `/simuladores/movil/` (75, 74, 74 → 97, 97, 97) | 74 | **97** | 0,63 → 0,001 | 0–20 ms → 0 ms |
-| `/simuladores/brazo/` (86, 85, 86, 86, 87 → 84, 89, 91, 90, 92) | 86 | **90** | 0,13 → 0 | 150–190 ms → 140–270 ms |
+| `/simuladores/brazo/` (84, 83, 85, 85, 87 → 88, 91, 89, 89, 91) | 85 | **89** | 0,13 → 0 (en las 5) | 150–210 ms → 150–200 ms |
 
 JS comprimido del grafo estático (imports estáticos desde el HTML, kB gzip):
 
