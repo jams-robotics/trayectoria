@@ -107,5 +107,11 @@
     "e2": "Tu robot tiene las ruedas separadas L = 0.15 m. Quieres que recorra un círculo de radio R = {{turnRadius_m}} m a v = {{v_mps}} m/s, girando a la izquierda. ¿Qué velocidad lineal necesita cada rueda, v_L y v_R, en m/s?",
     "e3": "Tu robot tiene las ruedas separadas L = 0.15 m. Detienes la rueda izquierda (v_L = 0) y la derecha va a v_R = {{vR_mps}} m/s: el robot pivota sobre la rueda izquierda. ¿Cuál es su velocidad angular ω, en rad/s, y su radio de giro R, en m?",
     "e4": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m, con ω_max = 20.94 rad/s. ¿Es realizable el comando v = 0.6 m/s, ω = 2 rad/s? Para decidirlo, da la velocidad lineal v_R que necesita la rueda derecha, en m/s."
+  },
+  "ruta-1/m05-t02": {
+    "e1": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda izquierda gira a ω_L = {{omegaL_radps}} rad/s y la derecha a ω_R = {{omegaR_radps}} rad/s. ¿Cuál es la velocidad lineal v del robot, en m/s, y su velocidad angular ω, en rad/s?",
+    "e2": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda izquierda gira a ω_L = {{omegaL_radps}} rad/s y la derecha a ω_R = {{omegaR_radps}} rad/s. ¿Cuál es su radio de giro R, en m, con signo: positivo si el CIR queda a la izquierda del robot y negativo si queda a la derecha?",
+    "e3": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda derecha gira a ω_R = {{omegaR_radps}} rad/s y la izquierda a ω_L = {{omegaL_radps}} rad/s, así que gira en el lugar. ¿Cuál es su velocidad angular ω, en rad/s?",
+    "e4": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda derecha gira a ω_R = {{omegaR_radps}} rad/s y la izquierda a ω_L = {{omegaL_radps}} rad/s durante t = {{t_s}} s, así que gira en el lugar. ¿Qué ángulo gira el robot en ese tiempo, en rad?"
   }
 }
