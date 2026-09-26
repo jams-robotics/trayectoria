@@ -100,4 +100,19 @@ describe('PowerWidget (#360)', () => {
     render(<PowerWidget initial={GOLDEN} initialTime_s={0.7} />);
     expect(screen.getByTestId('readout-panel').innerHTML).toBe(html);
   });
+
+  test('#382: el ancho de la cifra de la barra no cambia con E_p, así la escena no se redimensiona', () => {
+    const widthAt = (initialTime_s: number): string => {
+      const { unmount } = render(<PowerWidget initial={GOLDEN} initialTime_s={initialTime_s} />);
+      const figure = screen.getByTestId('power-bar-value');
+      const width = figure.style.width;
+      expect(figure.textContent.length).toBeLessThanOrEqual(Number.parseFloat(width));
+      unmount();
+      return width;
+    };
+    // 0.00 J, 0.0432 J (first step of 10 ms), 0.475 J and the top 8.83 J: four text lengths.
+    const widths = [0, 0.01, 0.11, 3].map(widthAt);
+    expect(widths[0]).toMatch(/ch$/);
+    for (const width of widths) expect(width).toBe(widths[0]);
+  });
 });
