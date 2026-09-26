@@ -72,6 +72,9 @@ const SIZE_CHECK = 'robots_spec_size_check';
 /** The limit of 20 robots per owner (migration 0008, #215). */
 const ROW_LIMIT = 'robots_owner_row_limit';
 
+/** The limit of 20 objects per owner in the `urdf` bucket (migration 0009, #502). */
+const URDF_OBJECT_LIMIT = 'urdf_owner_object_limit';
+
 /**
  * A rejection by the size check as a `RangeError`, the error of the precheck; one by the row limit
  * per owner as an `OwnerRowLimitError`; anything else as is.
@@ -82,6 +85,19 @@ function failInsert(error: Result<unknown>['error']): never {
   }
   if (error !== null && isCheckViolation(error, SIZE_CHECK)) throw new RangeError(error.message);
   fail(error, 'robot not saved');
+}
+
+/**
+ * A rejection of the zip upload by the owner object limit of the `urdf` bucket (migration 0009,
+ * #502), reported as is, as the same `OwnerRowLimitError` the row limit of `robots` uses so the
+ * client shows the one notice (`auth.robots.limitReached`) whichever of the two hit first;
+ * anything else as is.
+ */
+function failUpload(error: Result<unknown>['error']): never {
+  if (error !== null && isCheckViolation(error, URDF_OBJECT_LIMIT)) {
+    throw new OwnerRowLimitError(error.message);
+  }
+  fail(error, 'urdf not uploaded');
 }
 
 /** Refuses a spec over the 64 KiB of `robots.spec` (docs/ARCHITECTURE.md §5.1) with a `RangeError`. */
@@ -240,7 +256,7 @@ export async function saveUploadedRobot(
     });
   if (uploaded.error !== null) {
     await db.from('robots').delete().eq('id', robotId).eq('owner_id', ownerId);
-    fail(uploaded.error, 'urdf not uploaded');
+    failUpload(uploaded.error);
   }
   return toRobot(data);
 }

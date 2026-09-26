@@ -164,6 +164,16 @@ describe('saveUploadedRobot (F3-04, decision 6)', () => {
     expect(calls[2]?.filters).toMatchObject({ id: ROBOT, owner_id: OWNER });
   });
 
+  it('maps the urdf owner object limit (#502) to the same limitReached notice as #215', async () => {
+    const { db } = mockDb({
+      failing: ['storage.urdf.upload'],
+      row: INSERTED,
+      error: { message: 'violates check constraint "urdf_owner_object_limit"', code: '23514' },
+    });
+    const upload = { ownerId: OWNER, robotId: ROBOT, name: 'Brazo', spec: SPEC, specVersion: 1, zipBytes: ZIP };
+    await expect(saveUploadedRobot(db, upload)).rejects.toBeInstanceOf(OwnerRowLimitError);
+  });
+
   it('never uploads anything when the insert fails', async () => {
     const { db, calls } = mockDb({ failing: ['robots.insert'] });
     await expect(
