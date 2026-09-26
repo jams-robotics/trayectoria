@@ -87,6 +87,27 @@ function downloadedChunks(page: string, graph: Map<string, string[]>): Set<strin
   return reached;
 }
 
+/**
+ * Cierre de un chunk incluyendo imports **dinámicos** (cualquier nombre de chunk que aparezca en
+ * su código, también en `__vite__mapDeps`): todo lo que la página puede llegar a descargar.
+ */
+function reachableChunks(page: string, assets: readonly string[]): Set<string> {
+  const html = readFileSync(join(DIST_DIR, ...page.split('/')), 'utf8');
+  const reached = new Set([...html.matchAll(/_astro\/([\w.-]+\.js)/g)].map((m) => m[1] as string));
+  const pending = [...reached];
+  while (pending.length > 0) {
+    const source = readFileSync(join(ASSETS_DIR, pending.pop() as string), 'utf8');
+    for (const match of source.matchAll(/["'](?:\.\/|\/?_astro\/)?([\w.-]+\.js)["']/g)) {
+      const next = match[1] as string;
+      if (assets.includes(next) && !reached.has(next)) {
+        reached.add(next);
+        pending.push(next);
+      }
+    }
+  }
+  return reached;
+}
+
 function gzipBytes(chunks: Iterable<string>): number {
   let total = 0;
   for (const chunk of chunks) total += gzipSync(readFileSync(join(ASSETS_DIR, chunk))).length;
@@ -145,5 +166,16 @@ describe('presupuesto de bundle (ARCHITECTURE §8)', () => {
     const graph = staticImportGraph(assetNames());
     const bytes = gzipBytes(downloadedChunks(TEMA_PAGE, graph));
     expect(bytes).toBeLessThanOrEqual(THEME_BUDGET_GZIP_BYTES);
+  });
+
+  // F7-02: `RobotSession` (en el layout base, todas las páginas) carga `robotPersistence` con
+  // `import()`; si ese módulo importa el barrel de `@trayectoria/widgets`, cualquier página
+  // descarga el catálogo entero (KaTeX incluido) tras hidratar. La página 404 solo tiene el layout.
+  test('el layout base no descarga el catálogo de widgets ni por import dinámico (F7-02)', () => {
+    const assets = assetNames();
+    const catalog = [...reachableChunks('404.html', assets)].filter((chunk) =>
+      /^(Formula|DiffDriveWidget|Plot)\./.test(chunk),
+    );
+    expect(catalog).toEqual([]);
   });
 });
