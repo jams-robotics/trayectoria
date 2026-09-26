@@ -19,6 +19,7 @@ import {
   samplePath,
   traceDots,
   velocityAt,
+  worldWidthOf,
 } from './compute';
 import type { Launch, ProjectileMode } from './compute';
 
@@ -68,6 +69,36 @@ export function sceneCentre(
 /** Aspect of the scene: the default strip, made taller when the apex would not fit (decision 4). */
 export function sceneAspect(worldWidth_m: number, apex_m: number): number {
   return worldWidth_m / Math.max(worldWidth_m / SCENE_ASPECT, apex_m * (1 + HEADROOM));
+}
+
+/** What the scene shows: its width in metres, its centre and its width over height. */
+export interface SceneFrame {
+  worldWidth_m: number;
+  centre_m: [number, number];
+  aspect: number;
+}
+
+/**
+ * Framing of a drop (#381): a vertical fall with no range, so the view keeps the 16/9 of the
+ * viewer box and its height is the apex widened by `VIEW_MARGIN`, never below the minimum world
+ * of a launch. The drop at `x = 0` sits in the middle and the ground just below the bottom edge.
+ */
+export function dropFrame(apex_m: number): SceneFrame {
+  const height_m = Math.max(apex_m * (1 + VIEW_MARGIN), worldWidthOf([]) / SCENE_ASPECT);
+  return {
+    worldWidth_m: height_m * SCENE_ASPECT,
+    centre_m: [0, height_m / 2 - GROUND_HEIGHT_M],
+    aspect: SCENE_ASPECT,
+  };
+}
+
+/** Framing of `launch` and `dropFromRobot`, from the widest range and the apex (#88; #337). */
+function launchFrame(worldWidth_m: number, apex_m: number, reach_m: number): SceneFrame {
+  return {
+    worldWidth_m,
+    centre_m: sceneCentre(worldWidth_m, apex_m, reach_m),
+    aspect: sceneAspect(worldWidth_m, apex_m),
+  };
 }
 
 /**
@@ -213,18 +244,18 @@ export function ProjectileScene({
 }: ProjectileSceneProps): JSX.Element {
   const apex_m = Math.max(...launches.map(({ launch }) => maxHeight(mode, launch)));
   const reach_m = Math.max(...launches.map(({ launch }) => range(mode, launch)));
-  const centre_m = sceneCentre(worldWidth_m, apex_m, reach_m);
+  const frame =
+    mode === 'drop' ? dropFrame(apex_m) : launchFrame(worldWidth_m, apex_m, reach_m);
   const first = launches[0];
-  const aspect = sceneAspect(worldWidth_m, apex_m);
   return (
-    <SceneBox aspect={aspect}>
+    <SceneBox aspect={frame.aspect}>
       <Scene2D
-        worldWidth_m={worldWidth_m}
-        center_m={centre_m}
-        aspect={aspect}
+        worldWidth_m={frame.worldWidth_m}
+        center_m={frame.centre_m}
+        aspect={frame.aspect}
         description={t(`widgets.ProjectileWidget.scene${mode}`)}
       >
-        <Ground worldWidth_m={worldWidth_m} centreX_m={centre_m[0]} />
+        <Ground worldWidth_m={frame.worldWidth_m} centreX_m={frame.centre_m[0]} />
         {mode === 'dropFromRobot' && first !== undefined ? (
           <RobotChassis launch={first.launch} t_s={t_s} />
         ) : null}
