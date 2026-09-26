@@ -5,14 +5,14 @@ import type { Translate } from '@trayectoria/i18n';
 import type { MobileSpec, RobotSpec } from '@trayectoria/robot-spec';
 
 import { useMyRobot } from '../MyRobotWidget/useMyRobot';
-import { ParamPanel } from '../ParamPanel/ParamPanel';
 import { SimControls } from '../SimControls/SimControls';
 import { LiveStatus } from '../shared/ReadoutPanel';
 import { SimLayout } from '../shared/SimLayout';
 import { forwardKinematics, inverseKinematics, mobileOf, saturate } from './compute';
 import type { DiffDriveMode, DiffDriveShow, Pose, WheelCommand } from './compute';
+import { ModeSliders } from './controls';
+import type { Maneuver } from './maneuver';
 import {
-  Notice,
   OdometryPanel,
   PosePanel,
   applyCalibration,
@@ -28,10 +28,12 @@ import {
 import type { Readout, TwistInput } from './panels';
 import { calibrationOf } from './odometry';
 import type { Calibration } from './odometry';
-import { odometryStatusOf } from './rows';
+import { maneuverRows, maneuverStatusOf, odometryStatusOf } from './rows';
 import { DiffDriveScene } from './scene';
 import { useTimeline } from './timeline';
 import type { Timeline } from './timeline';
+import { commandNow, useManeuver } from './useManeuver';
+import type { ManeuverReadout } from './useManeuver';
 import { useOdometry } from './useOdometry';
 import type { Odometry } from './useOdometry';
 
@@ -54,6 +56,11 @@ export interface DiffDriveWidgetProps {
   duration_s?: number;
   /** Time the widget opens at, in seconds. Defaults to the start of the run. */
   initialTime_s?: number;
+  /**
+   * Three-move maneuver of T-5.5, only in `mode: 'inverse'`; ignored in the other modes. Without
+   * it the widget does not change (#394).
+   */
+  maneuver?: Maneuver;
 }
 
 /** The wheel commands the widget starts from, in either mode (docs/WIDGETS.md, `initial`). */
@@ -67,26 +74,6 @@ function initialCommand(initial: DiffDriveWidgetProps['initial']): WheelCommand 
 /** The twist the widget starts from in `inverse` (docs/WIDGETS.md, `initial`). */
 function initialTwist(initial: DiffDriveWidgetProps['initial']): TwistInput {
   return { v_mps: initial.v_mps ?? 0, omega_radps: initial.omega_radps ?? 0 };
-}
-
-/** The sliders of the mode, with the saturation notice above them (#92, decision 4). */
-function Sliders({
-  params,
-  onChange,
-  feasible,
-  t,
-}: {
-  params: ReturnType<typeof wheelParams>;
-  onChange: (key: string, value: number) => void;
-  feasible: boolean;
-  t: Translate;
-}): JSX.Element {
-  return (
-    <div className="flex flex-col gap-3">
-      {feasible ? null : <Notice text={t('widgets.DiffDriveWidget.saturated')} tone="error" />}
-      <ParamPanel params={params} onChange={onChange} />
-    </div>
-  );
 }
 
 /** What the scene draws of the estimation: the estimated pose and its trace (#93, decision 3). */
@@ -141,6 +128,7 @@ function Values({
   show,
   timeline,
   odometry,
+  maneuver,
   t,
 }: {
   mode: DiffDriveMode;
@@ -149,6 +137,7 @@ function Values({
   show: readonly DiffDriveShow[];
   timeline: Timeline;
   odometry: Odometry | null;
+  maneuver: ManeuverReadout | null;
   t: Translate;
 }): JSX.Element {
   return (
@@ -161,10 +150,11 @@ function Values({
         theta0_rad={timeline.theta0_rad}
         running={timeline.driver.running}
         onTheta={thetaHandler(timeline)}
+        extraRows={maneuverRows(maneuver, t)}
         t={t}
       />
       <OdometryReadouts odometry={odometry} real={readout.pose} t={t} />
-      <LiveStatus text={statusOf(readout, t)} />
+      <LiveStatus text={maneuverStatusOf(statusOf(readout, t), maneuver?.phase ?? null, t)} />
     </>
   );
 }
@@ -205,6 +195,39 @@ function useCommand(
 }
 
 /**
+ * Everything the widget draws: the slider command or the phase of the maneuver, the timeline
+ * that integrates it and the readouts of the current instant.
+ */
+function useDiffDrive(
+  {
+    mode,
+    robot,
+    initial,
+    duration_s = DEFAULT_DURATION_S,
+    initialTime_s = 0,
+    maneuver,
+  }: DiffDriveWidgetProps,
+  t: Translate,
+) {
+  // «Mi robot» is the default, so a saved change reaches the simulator with no reload
+  // (#95, decision 6); an explicit `robot` still wins, which is what the stories use.
+  const myRobot = useMyRobot();
+  const applicable = robot ?? myRobot;
+  const spec = useMemo(() => mobileOf(applicable), [applicable]);
+  const sliders = useCommand(mode, initial, spec, t);
+  const sequence = useManeuver(maneuver, mode, t);
+  const applied = saturate(sliders.command, spec);
+  const timeline = useTimeline(spec, applied, duration_s, initialTime_s, sequence.plan);
+  const now = commandNow(sequence.plan, timeline.state.t_s, sliders.command, spec);
+  const current = saturate(now.command, spec);
+  const twist = forwardKinematics(current.omegaL_radps, current.omegaR_radps, spec);
+  const readout = readDiffDrive(timeline.pose, now.command, twist, spec);
+  const estimator = useOdometry(timeline.state, timeline.preroll, sliders.calibration);
+  const odometry = mode === 'odometry' ? estimator : null;
+  return { applicable, spec, sliders, sequence, timeline, now, twist, readout, odometry };
+}
+
+/**
  * Mini simulator of the differential-drive robot (docs/WIDGETS.md, DiffDriveWidget;
  * docs/CURRICULUM.md T-5.1 to T-5.4): two wheel speeds or a `v, ω` pair drive the model of
  * sim-core, and the scene shows the ICR, the turning radius, the two reference frames, the
@@ -213,34 +236,21 @@ function useCommand(
  * `mode: 'odometry'` adds the estimated pose: the encoders of sim-core are read at every step
  * and integrated with the calibration the learner believes, so both poses and both traces are
  * on screen with their errors beside them (T-5.4; #93, decision 3).
+ *
+ * `maneuver` adds, in `inverse`, the three-move sequence of T-5.5 behind a switch (#394).
  */
-export function DiffDriveWidget({
-  mode,
-  robot,
-  show,
-  initial,
-  duration_s = DEFAULT_DURATION_S,
-  initialTime_s = 0,
-}: DiffDriveWidgetProps): JSX.Element {
+export function DiffDriveWidget(props: DiffDriveWidgetProps): JSX.Element {
   const t = useT();
-  // «Mi robot» is the default, so a saved change reaches the simulator with no reload
-  // (#95, decision 6); an explicit `robot` still wins, which is what the stories use.
-  const myRobot = useMyRobot();
-  const applicable = robot ?? myRobot;
-  const spec = useMemo(() => mobileOf(applicable), [applicable]);
-  const { command, params, onSlider, calibration } = useCommand(mode, initial, spec, t);
-  const applied = saturate(command, spec);
-  const timeline = useTimeline(spec, applied, duration_s, initialTime_s);
-  const twist = forwardKinematics(applied.omegaL_radps, applied.omegaR_radps, spec);
-  const readout = readDiffDrive(timeline.pose, command, twist, spec);
-  const estimator = useOdometry(timeline.state, timeline.preroll, calibration);
-  const odometry = mode === 'odometry' ? estimator : null;
+  const { mode, show } = props;
+  const { applicable, spec, sliders, sequence, timeline, now, twist, readout, odometry } =
+    useDiffDrive(props, t);
   return (
     <SimLayout
       viewer={
         <>
           <DiffDriveScene
-            {...{ spec, twist, command, show, t, robot: applicable }}
+            {...{ spec, twist, show, t, robot: applicable }}
+            command={now.command}
             pose={timeline.pose}
             feasible={readout.feasible}
             trace_m={timeline.trace_m}
@@ -250,8 +260,10 @@ export function DiffDriveWidget({
           <SimControls {...timeline.driver} {...timeline.controls} t_s={timeline.t_s} />
         </>
       }
-      values={<Values {...{ mode, readout, spec, show, timeline, odometry, t }} />}
-      params={<Sliders params={params} onChange={onSlider} feasible={readout.feasible} t={t} />}
+      values={
+        <Values {...{ mode, readout, spec, show, timeline, odometry, t }} maneuver={now.maneuver} />
+      }
+      params={<ModeSliders {...{ sliders, sequence, timeline, t }} feasible={readout.feasible} />}
     />
   );
 }
