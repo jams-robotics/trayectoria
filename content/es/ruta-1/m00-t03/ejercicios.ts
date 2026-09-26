@@ -128,7 +128,7 @@ interface PolynomialPosition {
   readonly coefB_mps2: number;
 }
 
-/** e4 (optional): x = a·t + b·t², so v = a + 2·b·t at t = 3 s (at most 1.4 m/s). */
+/** e4 (optional): x = c₁·t + c₂·t², so v = c₁ + 2·c₂·t at t = 3 s (at most 1.4 m/s). */
 const e4 = defineExercise<PolynomialPosition>({
   id: 'e4',
   generate: (rng) => {
