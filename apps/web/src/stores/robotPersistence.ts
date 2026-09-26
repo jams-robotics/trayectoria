@@ -11,8 +11,12 @@ import { subscribeSettledSession } from '@trayectoria/auth';
 import type { Session } from '@trayectoria/auth';
 import { getDbClient } from '@trayectoria/db';
 import type { DbClient, Json } from '@trayectoria/db';
-import { configureMyRobotPersistence, parseStoredRobot, robotSpecToJson } from '@trayectoria/widgets';
-import type { RobotPersistence, RobotSpec } from '@trayectoria/widgets';
+import {
+  configureMyRobotPersistence,
+  parseStoredRobot,
+  robotSpecToJson,
+} from '@trayectoria/widgets/MyRobotWidget';
+import type { RobotPersistence, RobotSpec } from '@trayectoria/widgets/MyRobotWidget';
 
 /** The one robot «Mi robot» reads and writes (#95, decision 3). */
 const KIND = 'mobile-diff';
