@@ -14,6 +14,9 @@ import { expect, test } from '@playwright/test';
 /** Pulsaciones de «Paso» de cada comprobación; a `dt_s = 0.005 s`, 0.5 s simulados. */
 const STEPS = 100;
 
+/** Tramos de `STEPS` pasos que el motor necesita para igualar las ruedas al soltar (#408). */
+const SETTLE_ADVANCES = 15;
+
 /** Lecturas de la pose que la página muestra. */
 interface Pose {
   readonly x: string;
@@ -111,11 +114,11 @@ test.describe('modo manual del simulador móvil (F4-04)', () => {
     const turned = await poseOf(page);
     expect(turned.theta).not.toBe(forward.theta);
 
-    // Al soltar, la diferencia vuelve a 0 y el robot deja de girar. La rampa de aceleración del
-    // robot tarda unos pasos en igualar las dos ruedas, así que el rumbo se compara una vez
-    // asentado: dos tramos seguidos de `STEPS` pasos ya dejan el mismo θ.
+    // Al soltar, la diferencia vuelve a 0 y el robot deja de girar. El motor de primer orden
+    // (τ_m = 0.185 s, #408) iguala las dos ruedas de forma exponencial, así que el rumbo se compara
+    // una vez asentado: tras `SETTLE_ADVANCES` tramos, dos tramos seguidos dejan el mismo θ.
     await page.getByTestId('manual-right').dispatchEvent('pointerup');
-    await advance(page);
+    for (let k = 0; k < SETTLE_ADVANCES; k += 1) await advance(page);
     const settled = await poseOf(page);
     await advance(page);
     expect((await poseOf(page)).theta).toBe(settled.theta);
