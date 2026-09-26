@@ -1,0 +1,151 @@
+---
+id: ruta-1/m06-t01
+title: 'El sensor de línea'
+module: 6
+order: 1
+estimatedMinutes: 30
+prerequisites: [ruta-1/m05-t01]
+objectives:
+  - Leer un arreglo de sensores de reflectancia
+  - Calcular la posición de la línea por promedio ponderado
+  - Elegir un umbral para la lectura binaria
+  - Entender cuándo se pierde la línea
+widgets: [LineSensorWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [siegwart-4]
+status: review
+---
+
+<Gancho>
+  Tus 5 sensores leen 0, 0.2, 0.9, 0.3 y 0. ¿Dónde está la línea respecto al centro de tu robot?
+</Gancho>
+
+<Concepto>
+Un **sensor de reflectancia** tiene un emisor de luz infrarroja y un receptor que mide cuánta luz
+vuelve del suelo. El fondo claro refleja mucho; la línea oscura refleja poco.
+
+Cada lectura se normaliza a [0, 1] con 1 = «veo línea»: v_k = 1 sobre la línea, v_k = 0 sobre el
+fondo y valores intermedios cuando la huella del sensor pisa el borde.
+
+Tu robot lleva N sensores en un arreglo lineal, perpendicular al avance, separados e_s. El índice
+k va de 0, el sensor de la izquierda, a N − 1, el de la derecha.
+
+Una lectura sola dice poco; las N juntas dicen dónde está la línea. El **índice ponderado** k̄ es
+el promedio de los índices pesado por las lecturas. Si le restas el centro, (N − 1)/2, y divides
+por él, obtienes la posición p en [−1, 1]: −1 bajo el sensor de la izquierda, 0 en el centro y 1
+bajo el de la derecha. Con las lecturas del gancho, k̄ = 2.9/1.4 = 2.071 y p = 0.0357: la línea
+está casi centrada, un poco a la derecha.
+
+Para una lectura binaria eliges un **umbral** u: b_k = 1 si v_k ≥ u, y 0 si no. Es más simple,
+pero pierde la información del borde.
+
+Si la suma de las lecturas es pequeña, ningún sensor ve la línea: está **perdida**. El promedio ya
+no significa nada, así que se guarda el último signo de p. La línea salió por ese lado, y el robot
+debe girar hacia él para recuperarla.
+
+La distancia física de la línea al centro del arreglo es y_línea = p·(N − 1)/2·e_s. Cuida el
+signo: p e y_línea son positivos a la derecha, al revés que el eje Y de \{R\}, que apunta a la
+izquierda.
+
+Las lecturas reales llevan ruido: cambian un poco de una muestra a otra aunque la línea no se
+mueva.
+
+</Concepto>
+
+<Formulas>
+<Formula latex="\bar k = \frac{\sum_k k\,v_k}{\sum_k v_k}" />
+
+- `k̄` · índice ponderado de la línea · —
+- `k` · índice del sensor, 0 el de la izquierda · —
+- `v_k` · lectura normalizada del sensor k, en [0, 1] · —
+
+<Formula latex="p = \frac{\bar k - \frac{N-1}{2}}{\frac{N-1}{2}} \in [-1, 1]" />
+
+- `p` · posición de la línea bajo el arreglo, en [−1, 1] · —
+- `k̄` · índice ponderado de la línea · —
+- `N` · número de sensores de línea · —
+
+<Formula latex="y_{línea} = p\,\frac{N-1}{2}\,e_s" />
+
+- `y_línea` · desplazamiento lateral de la línea, positivo a la derecha · m
+- `p` · posición de la línea bajo el arreglo, en [−1, 1] · —
+- `N` · número de sensores de línea · —
+- `e_s` · separación entre sensores · m
+
+<Formula latex="b_k = 1 \iff v_k \ge u" />
+
+- `b_k` · lectura binaria del sensor k · —
+- `v_k` · lectura normalizada del sensor k, en [0, 1] · —
+- `u` · umbral de la lectura binaria · —
+  </Formulas>
+
+<Explora>
+El arreglo de 5 sensores de tu robot, visto desde arriba, sobre un tramo recto de línea de 20 mm
+centrado bajo él. Cada barra muestra la lectura v_k de un sensor con su cifra y su lectura binaria
+b_k con el umbral u = 0.5; el panel da k̄, p e y_línea. Las lecturas llevan un ruido σ = 0.03, que
+cambia cada 0.1 s mientras la simulación corre.
+
+<LineSensorWidget initialOffset_m={0} showBinary noiseSigma={0.03} />
+
+<Experimento
+  cambia="el desplazamiento de la línea hacia la izquierda, de 0 a 0.012 m"
+  observa="p y las barras de los sensores"
+  porque="¿Por qué p se vuelve negativo?"
+>
+  La línea queda bajo los sensores de índice bajo, así que sus lecturas crecen y las barras se
+  mueven con ella. El índice ponderado k̄ baja de 2, el centro, y p = (k̄ − 2)/2 se vuelve negativo:
+  la línea está a la izquierda.
+</Experimento>
+
+<Experimento
+  cambia="el desplazamiento de la línea hasta que ningún sensor la vea"
+  observa="el aviso «línea perdida» y el valor de p"
+  porque="¿Por qué p conserva el signo y la línea se pierde a 0.036 m?"
+>
+  La suma de las lecturas baja de 0.5 y el promedio ya no significa nada, así que p guarda el último
+  signo, −1. El widget pierde la línea a 0.036 m y no a 0.034 m por la huella de 4 mm de cada
+  sensor: el sensor 0 aún lee 0.5 cuando su centro está 2 mm fuera del borde, y la suma solo baja de
+  0.5 después.
+</Experimento>
+
+<Experimento
+  cambia="el ruido σ de 0.03 a 0.1, con la línea centrada, y pulsa «Reproducir»"
+  observa="la lectura binaria de los sensores 1 y 3 con el umbral u = 0.5"
+  porque="¿Por qué algunos sensores parpadean?"
+>
+Con la línea centrada, los sensores 1 y 3 leen 0.5, justo el umbral. Cualquier ruido los hace cruzar
+u hacia arriba o hacia abajo en cada muestra. El umbral necesita margen respecto a las lecturas
+habituales.
+</Experimento>
+</Explora>
+
+<AlRobot>
+El arreglo de tu perfil de «Mi robot» fija el mayor desplazamiento que el promedio ponderado puede
+informar. Con la línea bajo el sensor de un extremo, p = 1, y y_línea vale el semiancho del
+arreglo, (N − 1)/2·e_s:
+
+<RobotFormula calc="ruta-1/m06-t01/half-width" />
+
+Más allá, la línea todavía toca el sensor del extremo mientras su borde no haya pasado. Las pistas
+del simulador tienen una línea de w = 20 mm, que es una constante de las pistas y no de tu perfil.
+El sensor del extremo deja de ver la línea cuando su centro sale del borde, a medio ancho de línea
+del semiancho:
+
+<RobotFormula calc="ruta-1/m06-t01/loss-offset" />
+
+Si tu perfil no es un robot móvil, el cálculo usa el robot de referencia: 5 sensores a 12 mm.
+
+Con el robot de referencia, el semiancho es 2·0.012 = 0.024 m y la línea se pierde a partir de
+0.024 + 0.010 = 0.034 m. En el widget se pierde un poco después, a 0.036 m, porque cada sensor mira
+una huella de 4 mm y no un punto. Si tu robot necesita tolerar desvíos mayores, necesita más
+sensores o más separación entre ellos.
+
+</AlRobot>
+
+<Verifica
+  ejercicios={['ruta-1/m06-t01/e1', 'ruta-1/m06-t01/e2', 'ruta-1/m06-t01/e3', 'ruta-1/m06-t01/e4']}
+  topicId="ruta-1/m06-t01"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['siegwart-4']} topicId="ruta-1/m06-t01" />

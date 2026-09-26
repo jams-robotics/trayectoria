@@ -129,9 +129,11 @@ export function ManualViewer({
     <div
       ref={viewerRef}
       tabIndex={0}
-      {...(manual
-        ? { 'aria-keyshortcuts': MANUAL_KEYSHORTCUTS, 'aria-label': t('sims.manual.pad') }
-        : {})}
+      // A tab stop needs a name, and a named `div` needs a role: ARIA prohibits `aria-label` on a
+      // generic element (F7-01). Outside manual mode the box is named after the scene it holds.
+      role="group"
+      aria-label={manual ? t('sims.manual.pad') : t('sims.lineFollower.scene')}
+      {...(manual ? { 'aria-keyshortcuts': MANUAL_KEYSHORTCUTS } : {})}
       className="focus-visible:outline-color-focus rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2"
       data-testid="line-follower-viewport"
     >
