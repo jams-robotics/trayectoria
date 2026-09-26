@@ -1,0 +1,156 @@
+---
+id: ruta-1/m05-t01
+title: 'Pose y marcos de referencia'
+module: 5
+order: 1
+estimatedMinutes: 35
+prerequisites: [ruta-1/m00-t02]
+objectives:
+  - Describir la pose (x, y, θ) del robot
+  - Transformar puntos del marco del robot al global con la matriz de rotación 2D, y viceversa
+  - Calcular el rumbo hacia un punto
+widgets: [DiffDriveWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [siegwart-3, craig-2]
+status: review
+---
+
+<Gancho>
+Tu robot está en (1.2, 0.5) m apuntando a 30°, y su sensor central está 0.09 m delante del eje.
+¿Dónde está el sensor sobre la mesa?
+</Gancho>
+
+<Concepto>
+Para ubicar algo sobre la mesa necesitas un **marco de referencia**: un origen y dos ejes. El
+**marco global** \{G\} está fijo a la mesa, con X a la derecha e Y hacia arriba. El **marco del
+robot** \{R\} viaja con el robot: su origen está en el punto medio del eje de las ruedas, X apunta
+hacia adelante e Y hacia la izquierda. Los ángulos son antihorarios positivos.
+
+La **pose** del robot es (x, y, θ): la posición del origen de \{R\} en \{G\} más su orientación θ, el
+ángulo del eje X de \{R\} medido desde el eje X de \{G\}. Con tres números sabes dónde está el robot
+sobre el plano y hacia dónde mira.
+
+Un punto fijo al robot, como un sensor, tiene coordenadas constantes en \{R\}: el sensor central
+del gancho está en p⃗_R = (0.09, 0) m. Para pasarlo a \{G\}, primero lo rotas θ con la **matriz de
+rotación** R(θ) y después lo trasladas sumando el origen de \{R\}, p⃗_\{R,0\} = (x, y). Las columnas
+de R(θ) son los ejes de \{R\} vistos desde \{G\}.
+
+Con los datos del gancho, cos 30° = 0.866 y sin 30° = 0.5. Rotar (0.09, 0) m da
+(0.0779, 0.045) m, y sumar (1.2, 0.5) m deja el sensor en (1.278, 0.545) m.
+
+La transformación inversa deshace los pasos en orden contrario: primero trasladas, restando
+p⃗_\{R,0\}, y después rotas con −θ. Así sabes dónde queda un punto de la mesa visto desde el robot.
+
+Para ir hacia un objetivo (x_o, y_o), el robot necesita el **rumbo** θ_objetivo: el ángulo de la
+recta que va de su posición al objetivo. Se calcula con atan2, que conserva el cuadrante que la
+arcotangente simple pierde.
+
+La ruta 2 usa este mismo mecanismo en 3D: la posición de la pinza de un brazo se obtiene
+encadenando rotaciones y traslaciones de un marco al siguiente.
+</Concepto>
+
+<Formulas>
+<Formula latex="R(\theta) = \begin{pmatrix}\cos\theta & -\sin\theta\\ \sin\theta & \cos\theta\end{pmatrix}" />
+
+- `R(θ)` · matriz de rotación 2D · —
+- `θ` · orientación del robot · rad
+
+<Formula latex="\vec p_G = \vec p_{R,0} + R(\theta)\,\vec p_R" />
+
+- `p⃗_G, p⃗_R` · un punto expresado en \{G\} y en \{R\} · m
+- `p⃗_{R,0}` · origen de \{R\} en \{G\}: el (x, y) de la pose · m
+- `R(θ)` · matriz de rotación 2D · —
+
+<Formula latex="\vec p_R = R(-\theta)\,(\vec p_G - \vec p_{R,0})" />
+
+- `p⃗_R, p⃗_G` · un punto expresado en \{R\} y en \{G\} · m
+- `p⃗_{R,0}` · origen de \{R\} en \{G\}: el (x, y) de la pose · m
+- `R(−θ)` · matriz de rotación 2D con el ángulo −θ · —
+
+<Formula latex="\theta_{objetivo} = \operatorname{atan2}(y_o - y, x_o - x)" />
+
+- `θ_objetivo` · rumbo hacia un objetivo · rad
+- `(x_o, y_o)` · punto objetivo · m
+- `x, y` · posición del robot en \{G\} · m
+</Formulas>
+
+<Explora>
+El robot de tu perfil avanza en curva durante 6 s, con ω_L = 6 rad/s y ω_R = 8 rad/s. El
+simulador dibuja los ejes de \{G\} y de \{R\}, la trayectoria recorrida y un panel de marcos con la
+matriz R(θ) y las coordenadas de los sensores en ambos marcos.
+
+<DiffDriveWidget
+  mode="forward"
+  show={['frames', 'trace']}
+  initial={{ omegaL_radps: 6, omegaR_radps: 8 }}
+  duration_s={6}
+/>
+
+<Experimento
+  cambia="la posición del robot: pausa y arrástralo; después, reproduce"
+  observa="los ejes de {R} y los de {G}"
+  porque="¿Por qué los ejes de {R} se mueven y los de {G} no?"
+>
+\{R\} está pegado al robot: su origen es el punto medio del eje de las ruedas. Al arrastrarlo, sus
+ejes se trasladan con él, y al reproducir además giran, porque θ cambia. \{G\} está fijo a la mesa
+y no depende de la pose.
+</Experimento>
+
+<Experimento
+  cambia="la posición del robot: arrástralo a otro punto"
+  observa="la fila «Sensor 1» del panel de marcos, el sensor izquierdo extremo"
+  porque="¿Por qué cambian sus coordenadas en {G} y no las de {R}?"
+>
+El sensor está fijo al robot, así que en \{R\} sus coordenadas son siempre las del perfil:
+(0.09, 0.024) m con el robot de referencia. En \{G\} dependen de la pose, porque
+p⃗_G = p⃗_\{R,0\} + R(θ)·p⃗_R.
+</Experimento>
+
+<Experimento
+  cambia="la orientación inicial θ₀ a 90°"
+  observa="la matriz R(θ) del panel de marcos"
+  porque="¿Por qué la x del robot pasa a ser la y del mundo?"
+>
+Con θ = 90°, cos θ = 0 y sin θ = 1, así que la primera columna de R(θ) es (0, 1). Esa columna es
+el eje X de \{R\} visto desde \{G\}: el robot mira en la dirección de Y de \{G\}, y avanzar en x de \{R\}
+es avanzar en y de \{G\}.
+</Experimento>
+</Explora>
+
+<AlRobot>
+Los sensores de línea de tu robot están fijos en \{R\}. Tu perfil de «Mi robot» da su número N, su
+separación e_s y la distancia d del arreglo al eje de las ruedas. El centro del arreglo está en
+(d, 0), y el sensor izquierdo extremo en (d, (N − 1)·e_s/2), porque Y de \{R\} apunta a la
+izquierda. Con N impar, el centro del arreglo es el sensor central.
+
+Con la pose del gancho, (1.2 m, 0.5 m, 30°), el centro del arreglo de tu robot queda en:
+
+<RobotFormula calc="ruta-1/m05-t01/center-sensor" />
+
+Y su sensor izquierdo extremo, en:
+
+<RobotFormula calc="ruta-1/m05-t01/left-sensor" />
+
+Si tu perfil no es un robot móvil, el cálculo usa el robot de referencia: N = 5 sensores
+separados e_s = 0.012 m, con d = 0.09 m.
+
+Con el robot de referencia, el sensor central queda en (1.278, 0.545) m y el izquierdo extremo en
+(1.266, 0.5658) m. En \{R\} los separan 0.024 m, y en \{G\} también: la rotación y la traslación no
+cambian distancias.
+
+La pista está dibujada sobre la mesa, no sobre el robot. Para saber si un sensor ve la línea hay
+que conocer su posición en \{G\}, y esa posición cambia con cada pose del robot.
+</AlRobot>
+
+<Verifica
+  ejercicios={[
+    'ruta-1/m05-t01/e1',
+    'ruta-1/m05-t01/e2',
+    'ruta-1/m05-t01/e3',
+    'ruta-1/m05-t01/e4',
+  ]}
+  topicId="ruta-1/m05-t01"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['siegwart-3', 'craig-2']} topicId="ruta-1/m05-t01" />
