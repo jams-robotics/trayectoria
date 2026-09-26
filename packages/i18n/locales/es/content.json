@@ -102,6 +102,12 @@
     "e3": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. ¿Cuántos ticks cuentas mientras el robot recorre D = {{distance_m}} m en línea recta?",
     "e4": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. Cuentas ticks = {{ticks}}. ¿Qué distancia s recorre la rueda, en m?"
   },
+  "ruta-1/m05-t01": {
+    "e1": "Tu robot está en la pose (x, y, θ) = ({{x_m}} m, {{y_m}} m, {{theta_deg}}°). Un punto está en (d, 0) de {R}, con d = {{forwardOffset_m}} m. ¿Cuáles son sus coordenadas (x, y) en {G}, en m?",
+    "e2": "Tu robot está en la pose (x, y, θ) = ({{x_m}} m, {{y_m}} m, {{theta_deg}}°). Su sensor izquierdo extremo está en (0.09, 0.024) m de {R}. ¿Cuáles son sus coordenadas (x, y) en {G}, en m?",
+    "e3": "Tu robot está en (0, 0) m y el objetivo en (x_o, y_o) = ({{xo_m}} m, {{yo_m}} m). ¿Cuál es el rumbo θ_objetivo hacia el objetivo, en ° y en (−180°, 180°]?",
+    "e4": "Tu robot está en la pose (x, y, θ) = (1.2 m, 0.5 m, 30°). ¿Cuáles son las coordenadas en {R} del punto global (1.5, 0.9) m, en m?"
+  },
   "ruta-1/m05-t03": {
     "e1": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. Quieres que avance a v = {{v_mps}} m/s girando a ω = {{omega_radps}} rad/s. ¿Qué velocidad angular necesita cada rueda, ω_L y ω_R, en rad/s?",
     "e2": "Tu robot tiene las ruedas separadas L = 0.15 m. Quieres que recorra un círculo de radio R = {{turnRadius_m}} m a v = {{v_mps}} m/s, girando a la izquierda. ¿Qué velocidad lineal necesita cada rueda, v_L y v_R, en m/s?",
@@ -113,5 +119,11 @@
     "e2": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda izquierda gira a ω_L = {{omegaL_radps}} rad/s y la derecha a ω_R = {{omegaR_radps}} rad/s. ¿Cuál es su radio de giro R, en m, con signo: positivo si el CIR queda a la izquierda del robot y negativo si queda a la derecha?",
     "e3": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda derecha gira a ω_R = {{omegaR_radps}} rad/s y la izquierda a ω_L = {{omegaL_radps}} rad/s, así que gira en el lugar. ¿Cuál es su velocidad angular ω, en rad/s?",
     "e4": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda derecha gira a ω_R = {{omegaR_radps}} rad/s y la izquierda a ω_L = {{omegaL_radps}} rad/s durante t = {{t_s}} s, así que gira en el lugar. ¿Qué ángulo gira el robot en ese tiempo, en rad?"
+  },
+  "ruta-1/m05-t04": {
+    "e1": "En un paso de odometría, el encoder izquierdo de tu robot cuenta Δticks_L = {{deltaTicksL}} y el derecho Δticks_R = {{deltaTicksR}}. Con r = 0.032 m, N_e = 360 y L = 0.15 m, ¿cuánto avanza el robot, Δs en m, y cuánto gira, Δθ en rad?",
+    "e2": "En un paso de odometría, el encoder izquierdo de tu robot cuenta Δticks_L = {{deltaTicksL}} y el derecho Δticks_R = {{deltaTicksR}}, con r = 0.032 m, N_e = 360 y L = 0.15 m. Si parte de la pose (0, 0, 0), ¿cuál es su nueva posición (x, y), en m? Usa el ángulo medio del paso.",
+    "e3": "La odometría de tu robot usa un radio de rueda de 0.032 m, pero la rueda real mide r = {{wheelRadius_m}} m. Tras D = 10 m según la odometría, ¿cuánto vale la distancia real menos la estimada, en m?",
+    "e4": "La distancia entre ruedas real de tu robot es L = 0.150 m, pero su odometría usa 0.155 m. El robot gira 360° reales en el lugar. ¿Cuál es el error de rumbo, estimado menos real, en °?"
   }
 }

@@ -9,7 +9,7 @@ import { LineFollowerWidget } from './LineFollowerWidget';
 // of module export iteration order (docs/audits F2-01a: hydration mismatch).
 export default {
   title: 'LineFollowerWidget',
-  order: ['Oval', 'Compact'],
+  order: ['Oval', 'Compact', 'Topic'],
 };
 
 /** The reference robot, so the story never depends on «Mi robot» of the browser. */
@@ -39,6 +39,23 @@ export function Compact(): JSX.Element {
       initialParams={{ ...REFERENCE_PID_PARAMS }}
       robot={ROBOT}
       compact
+    />
+  );
+}
+
+/**
+ * The widget as a topic MDX writes it (#409, docs/WIDGETS.md): only serializable props, gains
+ * under the keys of the code and no `robot`, so it runs «Mi robot» of the browser. Paused at
+ * `t = 0`, it is the case captured in `LineFollowerWidget-topic.png`.
+ */
+export function Topic(): JSX.Element {
+  return (
+    <LineFollowerWidget
+      track="s"
+      controller="p"
+      initialParams={{ kp: 12 }}
+      noiseSigma={0.02}
+      seed={7}
     />
   );
 }

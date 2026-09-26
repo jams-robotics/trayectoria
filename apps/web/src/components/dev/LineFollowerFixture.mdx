@@ -1,0 +1,14 @@
+{/* #409 fixture, outside content/es/: LineFollowerWidget written with the names and the
+serializable props a topic uses (docs/WIDGETS.md) and rendered with the same MDX map. It lives
+apart from TemaFixture.mdx so the Tema-* captures never change with it. */}
+
+<LineFollowerWidget
+  track="s"
+  controller="p"
+  initialParams={{ kp: 12, Kp: 99 }}
+  showPlots={['error']}
+  noiseSigma={0.02}
+  seed={7}
+/>
+
+<LineFollowerWidget track="oval" controller="pid" initialParams={{}} compact />
