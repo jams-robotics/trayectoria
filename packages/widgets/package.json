@@ -12,6 +12,7 @@
     "./FreeBodyWidget": "./src/FreeBodyWidget/index.ts",
     "./GearWidget": "./src/GearWidget/index.ts",
     "./KinematicsWidget": "./src/KinematicsWidget/index.ts",
+    "./LineSensorWidget": "./src/LineSensorWidget/index.ts",
     "./MyRobotWidget": "./src/MyRobotWidget/index.ts",
     "./ParamPanel": "./src/ParamPanel/index.ts",
     "./Plot": "./src/Plot/index.ts",
