@@ -63,7 +63,7 @@
   "ruta-1/m03-t01": {
     "e1": "Tu robot de m = {{mass_kg}} kg avanza a v = {{v_mps}} m/s. ¿Cuál es su energía cinética, en J?",
     "e2": "Tu robot llega a v = {{v_mps}} m/s al pie de una rampa y se le corta el motor. Sin fricción, ¿hasta qué altura sube por inercia, en m?",
-    "e3": "Tu robot de m = {{mass_kg}} kg arranca desde el reposo y llega a v = {{v_mps}} m/s. ¿Qué trabajo neto hacen sobre él todas las fuerzas, en J?",
+    "e3": "Tu robot de m = {{mass_kg}} kg acelera de v₁ = {{v1_mps}} m/s a v₂ = {{v2_mps}} m/s. ¿Qué trabajo neto hacen sobre él todas las fuerzas, en J?",
     "e4": "Una fricción de rodadura f = {{friction_N}} N actúa sobre tu robot a lo largo de D = {{distance_m}} m. ¿Cuánta energía disipa, en J?"
   },
   "ruta-1/m03-t02": {
