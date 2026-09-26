@@ -81,15 +81,15 @@ describe('T-1.2 «Al robot» calcs', () => {
 
   it('ramp-distance: 0.670²/(2·1.28) → 0.175 m with the reference robot', () => {
     const { latex, substituted } = rampDistance.compute(REFERENCE);
-    expect(latex).toBe(String.raw`x = \dfrac{v_{\max}^2}{2a}`);
+    expect(latex).toBe(String.raw`\Delta x = \dfrac{v_{\max}^2}{2a}`);
     expect(substituted).toBe(
-      String.raw`x = \dfrac{(0.670\ \text{m/s})^2}{2 \cdot 1.28\ \text{m/s}^2} = 0.175\ \text{m}`,
+      String.raw`\Delta x = \dfrac{(0.670\ \text{m/s})^2}{2 \cdot 1.28\ \text{m/s}^2} = 0.175\ \text{m}`,
     );
   });
 
   it('follow the numbers of «Mi robot»', () => {
     // α = 20 rad/s², r = 0.05 m: a = 1 m/s²; v_max = 20.94·0.05 = 1.05 m/s; t = 1.05 s;
-    // x = 1.047²/2 = 0.548 m.
+    // Δx = 1.047²/2 = 0.548 m.
     const robot = withWheel(0.05, 20);
     expect(acceleration.compute(robot).substituted).toContain('= 1.00\\ \\text{m/s}^2');
     expect(rampTime.compute(robot).substituted).toContain('= 1.05\\ \\text{s}');
