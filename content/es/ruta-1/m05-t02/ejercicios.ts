@@ -23,6 +23,13 @@ export const WHEEL_BASE_M = 0.15;
 
 /** Generation ranges of the spec, in the units the statements announce. */
 export const E1_OMEGA_RADPS: Range = { min: 0, max: 20 };
+/**
+ * e1 draws again while v or ω is nonzero and closer to 0 than this: with relative 2 %, a correct
+ * response rounded to the thousandth would be rejected (#451). An exact 0 stays: `check` grades
+ * it with the absolute error.
+ */
+export const E1_MIN_NONZERO_V_MPS = 0.01;
+export const E1_MIN_NONZERO_OMEGA_RADPS = 0.01;
 /** e2 draws again while the wheels are closer than this: the CIR would be too far away. */
 export const E2_MIN_WHEEL_DIFFERENCE_RADPS = 1;
 /** e3 and e4 draw ω_R; the left wheel spins at ω_L = −ω_R. */
@@ -37,6 +44,11 @@ function drawTenths(rng: SeededRng, range: Range): number {
 
 function statementKey(exerciseId: string): string {
   return `content.${TOPIC_ID}.${exerciseId}`;
+}
+
+/** True for a nonzero value closer to 0 than `min`, which relative 2 % grades too tightly (#451). */
+function isSmallNonzero(value: number, min: number): boolean {
+  return value !== 0 && Math.abs(value) < min;
 }
 
 interface Wheels {
@@ -71,7 +83,13 @@ function drawSpin(rng: SeededRng, range: Range): Wheels {
 const e1 = defineExercise<Wheels>({
   id: 'e1',
   generate: (rng) => {
-    const wheels = drawWheels(rng);
+    let wheels = drawWheels(rng);
+    while (
+      isSmallNonzero(robotVelocity_mps(wheels), E1_MIN_NONZERO_V_MPS) ||
+      isSmallNonzero(robotOmega_radps(wheels), E1_MIN_NONZERO_OMEGA_RADPS)
+    ) {
+      wheels = drawWheels(rng);
+    }
     return {
       values: wheels,
       answer: [robotVelocity_mps(wheels), robotOmega_radps(wheels)],
