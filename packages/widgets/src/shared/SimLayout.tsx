@@ -1,4 +1,4 @@
-import type { JSX, ReactNode } from 'react';
+import type { CSSProperties, JSX, ReactNode } from 'react';
 
 /** Breakpoint from which the layout splits into two columns. */
 export type SimLayoutBreakpoint = 'md' | 'lg';
@@ -154,6 +154,36 @@ export function ParamGrid({ children }: { children: ReactNode }): JSX.Element {
       data-param-grid=""
     >
       {children}
+    </div>
+  );
+}
+
+/**
+ * Fixed box for a scene whose aspect changes with its content (docs/DESIGN.md §6, point 4):
+ * from `lg` the box is as tall as a 16/9 viewer of the column, capped at 50vh, and the scene
+ * narrows and centres itself to fit it, so moving a slider never changes the height of the
+ * sticky row nor shifts the page. Below `lg` the scene keeps its own height.
+ */
+export function SceneBox({
+  aspect,
+  children,
+}: {
+  aspect: number;
+  children: ReactNode;
+}): JSX.Element {
+  const style: CSSProperties & Record<'--scene-aspect', string> = {
+    '--scene-aspect': String(aspect),
+  };
+  return (
+    <div className="lg:@container">
+      <div className="lg:h-[min(calc(100cqw*9/16),50vh)]" data-scene-box="">
+        <div
+          className="lg:mx-auto lg:w-[min(100%,calc(min(100cqw*9/16,50vh)*var(--scene-aspect)))]"
+          style={style}
+        >
+          {children}
+        </div>
+      </div>
     </div>
   );
 }

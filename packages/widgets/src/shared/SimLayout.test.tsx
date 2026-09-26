@@ -2,7 +2,7 @@ import '@testing-library/jest-dom/vitest';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, test } from 'vitest';
 
-import { ParamGrid, SimLayout } from './SimLayout';
+import { ParamGrid, SceneBox, SimLayout } from './SimLayout';
 
 /** The regions of the layout, in DOM order. */
 function regionOrder(container: HTMLElement): string[] {
@@ -45,10 +45,7 @@ describe('SimLayout (docs/DESIGN.md §6)', () => {
 
   test('caps the viewer at 50vh · 16/9 wide, centred in its column', () => {
     const { container } = render(<SimLayout viewer={<i />} values={<i />} />);
-    expect(regionOf(container, 'viewer')).toHaveClass(
-      'lg:mx-auto',
-      'lg:max-w-[calc(50vh*16/9)]',
-    );
+    expect(regionOf(container, 'viewer')).toHaveClass('lg:mx-auto', 'lg:max-w-[calc(50vh*16/9)]');
   });
 
   test('scrolls the values inside a box as tall as the viewer column', () => {
@@ -145,5 +142,25 @@ describe('ParamGrid (docs/DESIGN.md §6, A/B)', () => {
     const grid = screen.getByTestId('A').parentElement;
     expect(grid).toHaveClass('grid', 'grid-cols-[repeat(auto-fit,minmax(280px,1fr))]');
     expect(grid).toHaveAttribute('data-param-grid');
+  });
+});
+
+describe('SceneBox (docs/DESIGN.md §6, QA #378)', () => {
+  test('fixes the height from lg to a 16/9 viewer capped at 50vh, whatever the aspect', () => {
+    const { container } = render(
+      <SceneBox aspect={1.2}>
+        <i data-testid="scene" />
+      </SceneBox>,
+    );
+    expect(container.firstChild).toHaveClass('lg:@container');
+    expect(container.querySelector('[data-scene-box]')).toHaveClass(
+      'lg:h-[min(calc(100cqw*9/16),50vh)]',
+    );
+    const fit = screen.getByTestId('scene').parentElement as HTMLElement;
+    expect(fit).toHaveClass(
+      'lg:mx-auto',
+      'lg:w-[min(100%,calc(min(100cqw*9/16,50vh)*var(--scene-aspect)))]',
+    );
+    expect(fit.style.getPropertyValue('--scene-aspect')).toBe('1.2');
   });
 });
