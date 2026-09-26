@@ -101,5 +101,11 @@
     "e2": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. En Δt = {{dt_s}} s cuentas Δticks = {{deltaTicks}}. ¿Cuál es la velocidad angular ω de la rueda, en rad/s, y la velocidad lineal v del robot, en m/s?",
     "e3": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. ¿Cuántos ticks cuentas mientras el robot recorre D = {{distance_m}} m en línea recta?",
     "e4": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. Cuentas ticks = {{ticks}}. ¿Qué distancia s recorre la rueda, en m?"
+  },
+  "ruta-1/m05-t01": {
+    "e1": "Tu robot está en la pose (x, y, θ) = ({{x_m}} m, {{y_m}} m, {{theta_deg}}°). Un punto está en (d, 0) de {R}, con d = {{forwardOffset_m}} m. ¿Cuáles son sus coordenadas (x, y) en {G}, en m?",
+    "e2": "Tu robot está en la pose (x, y, θ) = ({{x_m}} m, {{y_m}} m, {{theta_deg}}°). Su sensor izquierdo extremo está en (0.09, 0.024) m de {R}. ¿Cuáles son sus coordenadas (x, y) en {G}, en m?",
+    "e3": "Tu robot está en (0, 0) m y el objetivo en (x_o, y_o) = ({{xo_m}} m, {{yo_m}} m). ¿Cuál es el rumbo θ_objetivo hacia el objetivo, en ° y en (−180°, 180°]?",
+    "e4": "Tu robot está en la pose (x, y, θ) = (1.2 m, 0.5 m, 30°). ¿Cuáles son las coordenadas en {R} del punto global (1.5, 0.9) m, en m?"
   }
 }
