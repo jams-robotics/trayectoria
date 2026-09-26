@@ -9,7 +9,7 @@
  */
 import type { DbClient, Json } from '@trayectoria/db';
 
-import { isCheckViolation } from '../checkViolation';
+import { OwnerRowLimitError, isCheckViolation } from '../checkViolation';
 
 /** Private bucket of migration 0003; its objects live at `{uid}/{robotId}.zip`. */
 export const URDF_BUCKET = 'urdf';
@@ -69,8 +69,17 @@ function fail(error: Result<unknown>['error'], fallback: string): never {
 /** The size check of `robots.spec` (migration 0007, #210). */
 const SIZE_CHECK = 'robots_spec_size_check';
 
-/** A rejection by the size check as a `RangeError`, the error of the precheck; anything else as is. */
+/** The limit of 20 robots per owner (migration 0008, #215). */
+const ROW_LIMIT = 'robots_owner_row_limit';
+
+/**
+ * A rejection by the size check as a `RangeError`, the error of the precheck; one by the row limit
+ * per owner as an `OwnerRowLimitError`; anything else as is.
+ */
 function failInsert(error: Result<unknown>['error']): never {
+  if (error !== null && isCheckViolation(error, ROW_LIMIT)) {
+    throw new OwnerRowLimitError(error.message);
+  }
   if (error !== null && isCheckViolation(error, SIZE_CHECK)) throw new RangeError(error.message);
   fail(error, 'robot not saved');
 }
@@ -84,9 +93,11 @@ async function checkSize(spec: Json): Promise<void> {
 
 /**
  * The notice of a failed save: `auth.robots.tooLarge` when the spec is over the size bound
- * (#210), whether the precheck or the database said so, and `fallbackKey` otherwise.
+ * (#210), whether the precheck or the database said so; `auth.robots.limitReached` when the
+ * learner is at the limit of robots (#215); and `fallbackKey` otherwise.
  */
 export function saveErrorKey(error: unknown, fallbackKey: string): string {
+  if (error instanceof OwnerRowLimitError) return 'auth.robots.limitReached';
   return error instanceof RangeError ? 'auth.robots.tooLarge' : fallbackKey;
 }
 

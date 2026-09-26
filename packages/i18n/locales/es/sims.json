@@ -18,6 +18,7 @@
       "empty": "Escribe un nombre para la pista.",
       "error": "No se pudo guardar la pista.",
       "tooLarge": "La pista es demasiado grande para guardarla (máximo 64 KiB); simplifícala quitando segmentos.",
+      "limitReached": "Has llegado al máximo de 50 pistas guardadas; borra una antigua para guardar esta.",
       "saved": "Pista guardada"
     },
     "exportJson": "Exportar JSON",
