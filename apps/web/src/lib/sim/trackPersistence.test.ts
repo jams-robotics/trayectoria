@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { DbClient } from '@trayectoria/db';
 
+import { OwnerRowLimitError } from '../checkViolation';
 import { deleteTrack, listTracks, saveTrack } from './trackPersistence';
 
 // F4-06 (#191, decision 6): the adapter of `public.tracks` with a mocked client. What is checked
@@ -119,6 +120,14 @@ describe('track persistence (F4-06)', () => {
     await expect(saving).rejects.toBeInstanceOf(RangeError);
   });
 
+  it('turns the 23514 of the owner row limit into an OwnerRowLimitError (#215)', async () => {
+    const message =
+      'new row for relation "tracks" violates check constraint "tracks_owner_row_limit"';
+    const { db } = fakeDb([], { message, code: '23514' });
+    const saving = saveTrack(OWNER_ID, 'Óvalo', { segments: [], lineWidth_m: 0.02 }, db);
+    await expect(saving).rejects.toBeInstanceOf(OwnerRowLimitError);
+  });
+
   it('keeps any other error of a save, the name check included, a plain Error', async () => {
     const name = 'new row for relation "tracks" violates check constraint "tracks_name_check"';
     for (const error of [
@@ -132,6 +141,7 @@ describe('track persistence (F4-06)', () => {
         fakeDb([], error).db,
       );
       await expect(saving).rejects.not.toBeInstanceOf(RangeError);
+      await expect(saving).rejects.not.toBeInstanceOf(OwnerRowLimitError);
     }
   });
 
