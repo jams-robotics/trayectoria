@@ -165,10 +165,13 @@ describe('saveUploadedRobot (F3-04, decision 6)', () => {
   });
 
   it('maps the urdf owner object limit (#502) to the same limitReached notice as #215', async () => {
+    // The exact shape a local Supabase Storage (storage-js 2.116.0) hands back for the 21st
+    // upload rejected by migration 0009's trigger: no constraint name, just a generic
+    // `StorageApiError` with `code: "DatabaseError"` and the SQLSTATE inside the message.
     const { db } = mockDb({
       failing: ['storage.urdf.upload'],
       row: INSERTED,
-      error: { message: 'violates check constraint "urdf_owner_object_limit"', code: '23514' },
+      error: { message: 'database error, code: 23514', code: 'DatabaseError' },
     });
     const upload = { ownerId: OWNER, robotId: ROBOT, name: 'Brazo', spec: SPEC, specVersion: 1, zipBytes: ZIP };
     await expect(saveUploadedRobot(db, upload)).rejects.toBeInstanceOf(OwnerRowLimitError);

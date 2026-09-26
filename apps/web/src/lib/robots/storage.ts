@@ -72,9 +72,6 @@ const SIZE_CHECK = 'robots_spec_size_check';
 /** The limit of 20 robots per owner (migration 0008, #215). */
 const ROW_LIMIT = 'robots_owner_row_limit';
 
-/** The limit of 20 objects per owner in the `urdf` bucket (migration 0009, #502). */
-const URDF_OBJECT_LIMIT = 'urdf_owner_object_limit';
-
 /**
  * A rejection by the size check as a `RangeError`, the error of the precheck; one by the row limit
  * per owner as an `OwnerRowLimitError`; anything else as is.
@@ -88,15 +85,28 @@ function failInsert(error: Result<unknown>['error']): never {
 }
 
 /**
+ * A PostgREST error carries the constraint name in its message (`isCheckViolation`), but the
+ * Storage API does not: verified against local Supabase Storage (storage-js 2.116.0) that the
+ * owner object limit of the `urdf` bucket (migration 0009, #502) reaches the client as a
+ * `StorageApiError` whose own `code` is the string `"DatabaseError"`, not a SQLSTATE, and whose
+ * `message` is the generic `"database error, code: 23514"` — the constraint name
+ * `urdf_owner_object_limit` never leaves the server. `storage.objects` in the `urdf` bucket has no
+ * other `before insert` trigger, so any `23514` reaching an upload is this limit; a `23514` from a
+ * different cause here would need a second trigger this bucket does not have.
+ */
+function isUrdfOwnerObjectLimit(
+  error: Result<unknown>['error'],
+): error is { readonly message: string; readonly code?: string } {
+  return error !== null && error.code === 'DatabaseError' && error.message.includes('23514');
+}
+
+/**
  * A rejection of the zip upload by the owner object limit of the `urdf` bucket (migration 0009,
- * #502), reported as is, as the same `OwnerRowLimitError` the row limit of `robots` uses so the
- * client shows the one notice (`auth.robots.limitReached`) whichever of the two hit first;
- * anything else as is.
+ * #502) as the same `OwnerRowLimitError` the row limit of `robots` uses so the client shows the
+ * one notice (`auth.robots.limitReached`) whichever of the two hit first; anything else as is.
  */
 function failUpload(error: Result<unknown>['error']): never {
-  if (error !== null && isCheckViolation(error, URDF_OBJECT_LIMIT)) {
-    throw new OwnerRowLimitError(error.message);
-  }
+  if (isUrdfOwnerObjectLimit(error)) throw new OwnerRowLimitError(error.message);
   fail(error, 'urdf not uploaded');
 }
 
