@@ -48,7 +48,7 @@ cerrado como pide el controlador. La curva más cerrada de la pista fija el lím
 </Concepto>
 
 <Formulas>
-<Formula latex="u_k = K_p e_k + K_i \sum_{j\le k} e_j\,\Delta t + K_d\frac{e_k - e_{k-1}}{\Delta t}" />
+<Formula latex="u_k = K_p e_k + K_i \sum_{j\le k} e_j\,\Delta t_c + K_d\frac{e_k - e_{k-1}}{\Delta t_c}" />
 
 - `u_k` · acción de control en el paso k · rad/s
 - `K_p` · ganancia proporcional · rad/s
@@ -57,12 +57,12 @@ cerrado como pide el controlador. La curva más cerrada de la pista fija el lím
 - `e_k` · error del controlador en el paso k · —
 - `e_{k−1}` · error del controlador en el paso anterior · —
 - `e_j` · error del controlador en el paso j · —
-- `Δt` · período del lazo, el paso · s
+- `Δt_c` · período del lazo de control · s
 
-<Formula latex="\left|\sum_{j\le k} e_j\,\Delta t\right| \le I_{max}" />
+<Formula latex="\left|\sum_{j\le k} e_j\,\Delta t_c\right| \le I_{max}" />
 
 - `e_j` · error del controlador en el paso j · —
-- `Δt` · período del lazo, el paso · s
+- `Δt_c` · período del lazo de control · s
 - `I_max` · límite de la integral del error (anti-windup) · s
 
 <Formula latex="v_{ext} = v\left(1 + \frac{L}{2R}\right) \le v_{max} \;\Rightarrow\; \omega_{base} \le \frac{v_{max}}{r\,(1 + L/2R)}" />
@@ -77,7 +77,7 @@ cerrado como pide el controlador. La curva más cerrada de la pista fija el lím
 </Formulas>
 
 <Explora>
-Tu robot recorre la pista `tight`, con curvas de radio 0.15 m, con K_p = 20, K_i = 0, K_d = 0 y
+Tu robot recorre la pista Curvas cerradas, con curvas de radio 0.15 m, con K_p = 20, K_i = 0, K_d = 0 y
 ω_base = 13 rad/s. La gráfica de error muestra cuánto se aparta de la línea y la del PID muestra
 los tres términos por separado, en cada instante.
 
@@ -123,7 +123,7 @@ eso no basta para compensar la curva. Medido en el simulador, el error medio vue
 </Explora>
 
 <AlRobot>
-La curva más cerrada de la pista `tight` tiene R = 0.15 m. En ella, la rueda exterior de tu robot
+La curva más cerrada de la pista Curvas cerradas tiene R = 0.15 m. En ella, la rueda exterior de tu robot
 va más rápido que su centro, y no puede pasar de v_max. Con la v_max y la distancia entre ruedas L
 de tu perfil, la velocidad máxima del robot en esa curva es:
 
