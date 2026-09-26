@@ -211,6 +211,34 @@ describe('RotationWidget (F2-06)', () => {
     expect(valueOf('Velocidad angular en rpm')).toBe('201 rpm');
   });
 
+  test('la vista del panel de curva avisa «patinaría» solo por encima de v_max (#387)', async () => {
+    const user = userEvent.setup();
+    render(
+      <RotationWidget
+        mode="angularAccel"
+        initial={{ omega_radps: 0, r_m: 0.032, alpha_radps2: 41.89 }}
+      />,
+    );
+    const view = (): HTMLElement => screen.getByRole('img', { name: /Vista cenital de una curva/ });
+    const set = async (name: RegExp, value: string): Promise<void> => {
+      const box = screen.getByRole('textbox', { name });
+      await user.clear(box);
+      await user.type(box, `${value}{Enter}`);
+    };
+
+    // Valores iniciales: R = 0.5 m, v = 0.6 m/s, a_c = 0.72 m/s²; v_max = 1.72 m/s, sin aviso.
+    expect(view().getAttribute('aria-label')).toContain('0.720 m/s²');
+    expect(screen.queryByText('Patinaría: v > v_max')).toBeNull();
+
+    // R = 0.25 m: v_max = √(0.6·9.81·0.25) ≈ 1.213 m/s.
+    await set(/Radio de la curva/, '0.25');
+    await set(/Velocidad en la curva/, '1.21');
+    expect(screen.queryByText('Patinaría: v > v_max')).toBeNull();
+    await set(/Velocidad en la curva/, '1.22');
+    expect(screen.getByText('Patinaría: v > v_max')).toBeInTheDocument();
+    expect(view().getAttribute('aria-label')).toContain('Patinaría');
+    }, 15000);
+
   test('los controles de simulación avanzan el tiempo del widget', async () => {
     const user = userEvent.setup();
     render(<RotationWidget mode="rolling" inputUnit="rpm" initial={WHEEL} />);
