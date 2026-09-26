@@ -178,4 +178,21 @@ describe('presupuesto de bundle (ARCHITECTURE §8)', () => {
     );
     expect(catalog).toEqual([]);
   });
+
+  // F7-02b (#444): el aula y la cuenta importaban `Toast` del barrel y descargaban el catálogo
+  // entero al cargar; ahora usan la entrada `@trayectoria/widgets/Toast`. Solo cuenta el grafo
+  // estático: la cuenta aún puede alcanzarlo con el `import()` de `@trayectoria/sims` al guardar
+  // un robot (`lib/robots/storage.ts`), que no se descarga al abrir la página.
+  test.each([
+    'aula/index.html',
+    'unirse/index.html',
+    'cuenta/index.html',
+    'cuenta/robots/index.html',
+  ])('%s no descarga el catálogo de widgets al cargar (F7-02b)', (page) => {
+    const graph = staticImportGraph(assetNames());
+    const catalog = [...downloadedChunks(page, graph)].filter((chunk) =>
+      /^(Formula|DiffDriveWidget|Plot)\./.test(chunk),
+    );
+    expect(catalog).toEqual([]);
+  });
 });

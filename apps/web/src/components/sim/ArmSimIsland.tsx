@@ -43,7 +43,6 @@ function showLayers(matrices: boolean, workspace: boolean): ShowLayer[] {
   return layers;
 }
 
-
 /** El panel que `ArmViewer` entrega a `renderPanel` (`ArmViewerPanel` de `@trayectoria/sims`). */
 interface ArmViewerPanel {
   readonly id: 'joints' | 'effector' | 'matrices' | 'workspace';
@@ -103,7 +102,8 @@ function Viewer({
   return (
     <Suspense
       fallback={
-        <p className="text-fg-muted text-sm" role="status" aria-live="polite">
+        // F7-02b (#444): the marker lets the island keep its loaded height while `three` loads.
+        <p className="text-fg-muted text-sm" role="status" aria-live="polite" data-arm-loading>
           {t('sims.armPage.loading')}
         </p>
       }
@@ -266,8 +266,10 @@ export function ArmSimIsland({ arms }: ArmSimIslandProps): JSX.Element {
   const [matrices, setMatrices] = useState(false);
   const [workspace, setWorkspace] = useState(false);
 
+  // F7-02b (#444): keeps the loaded height (≥ 758 px) while `three` or the arm loads.
+  const loading = 'has-[[data-arm-loading],[data-testid=arm-viewer-status]]:min-h-[740px]';
   return (
-    <div className="mt-6 flex flex-col gap-5">
+    <div className={`mt-6 flex flex-col gap-5 ${loading}`}>
       <SourceRow
         arms={arms}
         selected={selected}

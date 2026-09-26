@@ -10,8 +10,8 @@
  */
 import { ensureSessionReady } from '@trayectoria/auth';
 import { getDbClient } from '@trayectoria/db';
-import { robotSpecToJson } from '@trayectoria/widgets';
-import type { RobotSpec } from '@trayectoria/widgets';
+import { robotSpecToJson } from '@trayectoria/widgets/MyRobotWidget';
+import type { RobotSpec } from '@trayectoria/widgets/MyRobotWidget';
 
 import { downloadRobotZip, listImportedArms, type ImportedArm } from '../../lib/robots/download';
 import { saveUploadedRobot } from '../../lib/robots/storage';

@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
-import { useMyRobot } from '@trayectoria/widgets';
-import type { RobotSpec } from '@trayectoria/widgets';
+import { useMyRobot } from '@trayectoria/widgets/MyRobotWidget';
+import type { RobotSpec } from '@trayectoria/widgets/MyRobotWidget';
 
 import type { SavedRobot } from './savedRobots';
 

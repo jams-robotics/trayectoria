@@ -1,7 +1,8 @@
 import { AuthGate, useSession, type AuthGateCta } from '@trayectoria/auth';
 import { getDbClient } from '@trayectoria/db';
 import { useT } from '@trayectoria/i18n';
-import { Toast, robotSpecToJson, type ToastTone } from '@trayectoria/widgets';
+import { robotSpecToJson } from '@trayectoria/widgets/MyRobotWidget';
+import { Toast, type ToastTone } from '@trayectoria/widgets/Toast';
 import { useCallback, useEffect, useState, type JSX } from 'react';
 
 import {

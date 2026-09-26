@@ -1,5 +1,5 @@
 import { useT } from '@trayectoria/i18n';
-import { Toast } from '@trayectoria/widgets';
+import { Toast } from '@trayectoria/widgets/Toast';
 import { useState, type JSX } from 'react';
 
 import { fileName, toCsv, type CsvRecord } from '../../lib/aula/csv';
