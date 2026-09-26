@@ -153,5 +153,10 @@
     "e1": "Tu robot sigue la línea con control proporcional: K_p = {{kp}} rad/s, error e = {{error}} y velocidad base ω_base = {{omegaBase_radps}} rad/s. ¿Cuánto valen la acción de control u y las velocidades de rueda ω_L y ω_R, en rad/s?",
     "e2": "Tu controlador manda ω_L = {{omegaL_radps}} rad/s a la rueda izquierda y ω_R = {{omegaR_radps}} rad/s a la derecha. Con r = 0.032 m y L = 0.15 m, ¿cuál es la velocidad angular ω del robot, en rad/s?",
     "e3": "Tu robot tiene ω_max = 20.94 rad/s y sigue la línea con ω_base = {{omegaBase_radps}} rad/s. Con |e|_max = 1, ¿cuál es la K_p máxima, en rad/s, para que ninguna rueda sature?"
+  },
+  "ruta-1/m06-t05": {
+    "e1": "Tu robot sigue la línea con una velocidad base ω_base = {{omegaBase_radps}} rad/s y sus ruedas tienen radio r = {{wheelRadius_m}} m. ¿Cuál es su velocidad predicha v_pred, en m/s?",
+    "e2": "Una pista mide D = {{distance_m}} m y predices que tu robot la recorre a v_pred = {{predictedSpeed_mps}} m/s. ¿Cuál es el tiempo de vuelta predicho t_pred, en s?",
+    "e3": "En la pista oval, de D = 2.771 m, predijiste v_pred = 0.48 m/s y mides un tiempo de vuelta t_vuelta = {{lapTime_s}} s. ¿Cuánto valen la velocidad media medida v_med, en m/s, y la diferencia Δ% = 100·(v_pred − v_med)/v_pred, en %?"
   }
 }
