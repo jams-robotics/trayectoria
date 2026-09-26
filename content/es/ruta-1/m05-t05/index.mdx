@@ -1,0 +1,143 @@
+---
+id: ruta-1/m05-t05
+title: 'Restricción no holonómica'
+module: 5
+order: 5
+estimatedMinutes: 25
+prerequisites: [ruta-1/m05-t02, ruta-1/m05-t03]
+objectives:
+  - Enunciar la restricción de rodadura sin deslizamiento lateral
+  - Comprobar si una velocidad es admisible
+  - Planificar maniobras en tres movimientos
+widgets: [DiffDriveWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [siegwart-3, corke-4]
+status: review
+---
+
+<Gancho>
+¿Por qué tu robot no puede estacionarse de lado como un cangrejo, si sus dos ruedas pueden girar
+en cualquier sentido?
+</Gancho>
+
+<Concepto>
+Las ruedas de tu robot solo ruedan hacia delante o hacia atrás. Empujarlas de lado exige
+arrastrarlas sobre el suelo, y sin deslizamiento eso no ocurre. Por eso la velocidad del centro
+del eje siempre apunta a lo largo del rumbo θ: ẋ = v·cosθ y ẏ = v·sinθ, con θ̇ = ω.
+
+La componente de la velocidad perpendicular al rumbo es ẋ·sinθ − ẏ·cosθ, y vale cero en todo
+instante. Esa ecuación es una restricción sobre las velocidades, no sobre la posición. Cualquier
+velocidad que la cumpla es **admisible**: el robot la puede seguir. Si la ecuación da un valor
+distinto de cero, pides un movimiento lateral que las ruedas no pueden dar.
+
+La restricción no se puede integrar a una ecuación entre x, y y θ. Ninguna pose queda prohibida:
+el robot puede llegar a cualquier (x, y, θ) del plano. Lo que limita es el camino. Esa es una
+**restricción no holonómica**: puede llegar a cualquier pose, pero no por cualquier camino.
+
+Con dos ruedas manejas dos velocidades, v y ω, mientras la pose tiene tres coordenadas. No existe
+un comando que desplace el robot de lado. Para moverlo 0.2 m a su izquierda y dejarlo con el
+mismo rumbo, necesitas tres movimientos: gira 90° en el lugar, avanza 0.2 m y gira −90°.
+
+Cada tramo cumple la restricción. En los giros, v = 0 y el centro no se mueve. En el avance, la
+velocidad va a lo largo del rumbo. Al final, el robot quedó 0.2 m a su izquierda sin haberse
+movido nunca de lado.
+
+Un robot con ruedas omnidireccionales, que llevan rodillos pasivos en su borde, sí puede moverse
+de lado. Ese tipo de robot queda fuera de esta ruta.
+</Concepto>
+
+<Formulas>
+<Formula latex="\dot x\sin\theta - \dot y\cos\theta = 0" />
+
+- `ẋ`, `ẏ` · derivada de x e y respecto al tiempo: componentes de la velocidad en \{G\} · m/s
+- `θ` · orientación (rumbo) del robot · rad
+
+<Formula latex="\dot x = v\cos\theta,\quad \dot y = v\sin\theta,\quad \dot\theta = \omega" />
+
+- `ẋ`, `ẏ` · derivada de x e y respecto al tiempo · m/s
+- `θ̇` · derivada de θ respecto al tiempo · rad/s
+- `v` · velocidad lineal del robot · m/s
+- `ω` · velocidad angular del robot · rad/s
+- `θ` · orientación (rumbo) del robot · rad
+</Formulas>
+
+<Explora>
+El robot parte del origen con rumbo θ₀ = 0 y el comando v = 0.3 m/s, ω = 0 durante 6 s. El
+simulador dibuja los marcos \{G\} y \{R\} y la traza del centro del eje. La maniobra en tres
+movimientos gira 90°, avanza 0.2 m y deshace el giro, a 1 rad/s y 0.2 m/s: dura 4.142 s.
+
+<DiffDriveWidget
+  mode="inverse"
+  show={['frames', 'trace']}
+  initial={{ v_mps: 0.3, omega_radps: 0 }}
+  maneuver={{ turn_deg: 90, distance_m: 0.2 }}
+  duration_s={6}
+/>
+
+<Experimento
+  cambia="busca en el panel un control que mueva el robot de lado"
+  observa="los controles del panel"
+  porque="¿Por qué no hay ninguno?"
+>
+Solo hay v y ω: no existe un comando lateral. Con dos ruedas manejas dos velocidades, y ninguna
+combinación de ellas da una velocidad perpendicular al rumbo.
+</Experimento>
+
+<Experimento
+  cambia="activa «Maniobra en tres movimientos», con giro de 90° y avance de 0.2 m, y reproduce"
+  observa="la traza y la pose al terminar"
+  porque="¿Por qué acaba en (0, 0.2 m, 0°)?"
+>
+El robot quedó 0.2 m a su izquierda sin moverse nunca de lado. El primer giro lo orienta hacia
++y, el avance lo lleva 0.2 m en esa dirección y el segundo giro le devuelve el rumbo 0°. Hicieron
+falta tres movimientos.
+</Experimento>
+
+<Experimento
+  cambia="desactiva la maniobra, pon θ₀ = 45°, v = 0.42 m/s y ω = 0, y reproduce"
+  observa="la dirección de la traza"
+  porque="¿Por qué cumple la restricción?"
+>
+El robot sale a 45° con ẋ = ẏ = 0.42·cos45° ≈ 0.3 m/s. Entonces ẋ·sinθ − ẏ·cosθ = 0.3·0.707 −
+0.3·0.707 = 0: la velocidad va a lo largo del rumbo y cumple la ecuación.
+</Experimento>
+</Explora>
+
+<AlRobot>
+Tu robot tiene que estacionarse 0.2 m a su izquierda con la maniobra en tres movimientos: gira en
+el lugar a ω = 4 rad/s, avanza a v = 0.5 m/s y vuelve a girar. El tiempo no depende de tu perfil:
+dos giros de π/2 y un avance de D = 0.2 m.
+
+<Formula
+  latex="t = \dfrac{2 \cdot \frac{\pi}{2}}{\omega} + \dfrac{D}{v}"
+  substituted="t = \dfrac{\pi}{4\ \text{rad/s}} + \dfrac{0.2\ \text{m}}{0.5\ \text{m/s}} = 1.185\ \text{s}"
+/>
+
+Los comandos de rueda sí dependen de tu robot. En el giro en el lugar, v = 0 y las ruedas van a
+velocidades opuestas, con el radio r y la distancia entre ruedas L de tu perfil de «Mi robot»:
+
+<RobotFormula calc="ruta-1/m05-t05/turn-command" />
+
+En el avance, ω = 0 y las dos ruedas giran igual:
+
+<RobotFormula calc="ruta-1/m05-t05/forward-command" />
+
+La maniobra es realizable si los dos comandos quedan por debajo de la velocidad angular máxima de
+tus ruedas, ω_max, que sale de las rpm del motor y de la reducción:
+
+<RobotFormula calc="ruta-1/m05-t05/feasibility" />
+
+Si tu perfil no es un robot móvil, los cálculos usan el robot de referencia.
+
+Con el robot de referencia, el giro pide ±9.375 rad/s y el avance 15.63 rad/s, los dos por debajo
+de ω_max = 20.94 rad/s: la maniobra es realizable y dura 1.185 s. El avance es el comando más
+exigente: con ruedas más pequeñas, v/r crece y puede pasar de ω_max.
+</AlRobot>
+
+<Verifica
+  ejercicios={['ruta-1/m05-t05/e1', 'ruta-1/m05-t05/e2', 'ruta-1/m05-t05/e3']}
+  topicId="ruta-1/m05-t05"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['siegwart-3', 'corke-4']} topicId="ruta-1/m05-t05" />
