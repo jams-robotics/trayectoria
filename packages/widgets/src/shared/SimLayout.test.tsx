@@ -48,13 +48,24 @@ describe('SimLayout (docs/DESIGN.md §6)', () => {
     expect(regionOf(container, 'viewer')).toHaveClass('lg:mx-auto', 'lg:max-w-[calc(50vh*16/9)]');
   });
 
-  test('scrolls the values inside a box as tall as the viewer column', () => {
+  test('lets the values grow the row up to 50vh and scroll only beyond it (#386)', () => {
     const { container } = render(<SimLayout viewer={<i />} values={<i data-testid="v" />} />);
-    expect(regionOf(container, 'values')).toHaveClass('lg:relative', 'lg:w-panel');
+    const values = regionOf(container, 'values');
+    expect(values).toHaveClass('lg:w-panel');
+    expect(values).not.toHaveClass('lg:relative');
+    const box = screen.getByTestId('v').parentElement;
+    expect(box).toHaveClass('lg:max-h-[50vh]', 'lg:overflow-y-auto');
+    expect(box).not.toHaveClass('lg:absolute', 'lg:inset-0');
+  });
+
+  test('applies the same values cap from md when the layout splits at md', () => {
+    const { container } = render(
+      <SimLayout from="md" viewer={<i />} values={<i data-testid="v" />} />,
+    );
+    expect(regionOf(container, 'values')).toHaveClass('md:w-panel');
     expect(screen.getByTestId('v').parentElement).toHaveClass(
-      'lg:absolute',
-      'lg:inset-0',
-      'lg:overflow-y-auto',
+      'md:max-h-[50vh]',
+      'md:overflow-y-auto',
     );
   });
 

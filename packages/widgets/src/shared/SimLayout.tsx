@@ -32,8 +32,9 @@ interface LayoutClasses {
  * Literal class names per breakpoint, so Tailwind finds them when it scans the sources.
  *
  * From the breakpoint the top row (viewer, playback and values) is sticky while the window is
- * at least 640 px high; the values scroll inside a box as tall as the viewer column, so they
- * never set the height of the row. The parameters form a 2 column grid: an A/B `ParamGrid`
+ * at least 640 px high; the row is as tall as the higher of the viewer column and the values,
+ * with the values capped at 50vh (the viewer's max height) and scrolling inside only beyond that
+ * cap (#386). The parameters form a 2 column grid: an A/B `ParamGrid`
  * dissolves into it, and a lone panel with 4 or more sliders spans both columns and lays its
  * sliders out in 2 columns. Focusable controls below the row keep a scroll margin so the
  * keyboard focus is not hidden under it (§8).
@@ -47,8 +48,8 @@ const CLASSES: Readonly<Record<SimLayoutBreakpoint, LayoutClasses>> = {
     top: 'max-md:contents md:grid md:grid-cols-[minmax(0,1fr)_auto] md:gap-4 md:[@media(min-height:640px)]:sticky md:[@media(min-height:640px)]:top-0 md:[@media(min-height:640px)]:z-10 md:[@media(min-height:640px)]:bg-bg md:[@media(min-height:640px)]:pb-3',
     viewer: 'flex min-w-0 flex-col gap-3 md:mx-auto md:w-full md:max-w-[calc(50vh*16/9)]',
     viewerSplit: 'max-md:contents max-md:[&>*:not(:first-child)]:order-2',
-    values: 'max-md:order-4 md:relative md:w-panel',
-    valuesScroll: 'flex flex-col gap-4 md:absolute md:inset-0 md:overflow-y-auto',
+    values: 'max-md:order-4 md:w-panel',
+    valuesScroll: 'flex flex-col gap-4 md:max-h-[50vh] md:overflow-y-auto',
     params:
       'flex min-w-0 flex-col gap-4 max-md:order-5 md:grid md:grid-cols-2 md:items-start md:[&>[data-param-grid]]:contents md:[&>[data-layout=stack]:only-child:has(>div>:nth-child(4))]:col-span-2 md:[&>:only-child:not([data-param-grid]):has([data-layout=stack]>div>:nth-child(4))]:col-span-2 md:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid md:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid-cols-2 md:[@media(min-height:640px)]:[&_:is(input,select,button)]:scroll-mt-[calc(50vh+64px)]',
     extras:
@@ -63,8 +64,8 @@ const CLASSES: Readonly<Record<SimLayoutBreakpoint, LayoutClasses>> = {
     top: 'max-lg:contents lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-4 lg:[@media(min-height:640px)]:sticky lg:[@media(min-height:640px)]:top-0 lg:[@media(min-height:640px)]:z-10 lg:[@media(min-height:640px)]:bg-bg lg:[@media(min-height:640px)]:pb-3',
     viewer: 'flex min-w-0 flex-col gap-3 lg:mx-auto lg:w-full lg:max-w-[calc(50vh*16/9)]',
     viewerSplit: 'max-lg:contents max-lg:[&>*:not(:first-child)]:order-2',
-    values: 'max-lg:order-4 lg:relative lg:w-panel',
-    valuesScroll: 'flex flex-col gap-4 lg:absolute lg:inset-0 lg:overflow-y-auto',
+    values: 'max-lg:order-4 lg:w-panel',
+    valuesScroll: 'flex flex-col gap-4 lg:max-h-[50vh] lg:overflow-y-auto',
     params:
       'flex min-w-0 flex-col gap-4 max-lg:order-5 lg:grid lg:grid-cols-2 lg:items-start lg:[&>[data-param-grid]]:contents lg:[&>[data-layout=stack]:only-child:has(>div>:nth-child(4))]:col-span-2 lg:[&>:only-child:not([data-param-grid]):has([data-layout=stack]>div>:nth-child(4))]:col-span-2 lg:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid lg:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid-cols-2 lg:[@media(min-height:640px)]:[&_:is(input,select,button)]:scroll-mt-[calc(50vh+64px)]',
     extras:
