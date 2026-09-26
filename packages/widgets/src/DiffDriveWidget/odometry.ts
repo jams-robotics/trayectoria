@@ -135,12 +135,13 @@ export function radiusDriftError_m(
 /**
  * Heading the odometry is off after `turn_deg` of real rotation when the believed track width is
  * not the real one: `Δθ` scales by `L_real / L_believed` (T-5.4, e4: −11.61° over 360° with
- * 0.150 believed and 0.155 real).
+ * 0.155 believed and 0.150 real).
  */
 export function baseDriftError_deg(
   turn_deg: number,
   believedBase_m: number,
   realBase_m: number,
 ): number {
-  return turn_deg * (believedBase_m / realBase_m - 1);
+  // Estimated minus real heading: Δθ_est = Δθ_real · L_real / L_believed (#395).
+  return turn_deg * (realBase_m / believedBase_m - 1);
 }
