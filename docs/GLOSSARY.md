@@ -128,9 +128,40 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | e_s | separación entre sensores | m | `lineSensors.spacing_m` |
 | p | posición de la línea bajo el arreglo, en [−1, 1] | — | `linePosition` |
 | e | error del controlador | — | `error` |
-| K_p, K_i, K_d | ganancias PID | — | `Kp`, `Ki`, `Kd` |
+| K_p, K_i, K_d | ganancias PID (con `u` en rad/s y `e` adimensional) | rad/s, rad/s², rad | `kp`, `ki`, `kd` |
 | u | acción de control | rad/s | `u_radps` |
 | ω_base | velocidad base de las ruedas | rad/s | `omegaBase_radps` |
+
+## Seguidor de línea
+
+Símbolos del Módulo 6 (#396). Los que chocan con otro símbolo llevan calificador, como `α (en tiro)`.
+
+| Símbolo | Nombre | Unidad | Código |
+|---|---|---|---|
+| k (en sensores) | índice del sensor, 0 el de la izquierda | — | `k` |
+| v_k (en sensores) | lectura normalizada del sensor k, en [0, 1] | — | `values[k]` |
+| k̄ | índice ponderado de la línea | — | `weightedIndex` |
+| b_k | lectura binaria del sensor k | — | `binary[k]` |
+| u (en umbral) | umbral de la lectura binaria | — | `threshold` |
+| y_línea | desplazamiento lateral de la línea, positivo a la derecha (mismo signo que p) | m | `lineOffset_m` |
+| σ (en sensores) | desviación estándar del ruido de lectura | — | `noiseSigma` |
+| u_0 | amplitud del control on/off | rad/s | `delta_radps` |
+| \|e\|_max | error máximo considerado | — | `maxError` |
+| k (en PID) | paso de muestreo; e_k, e_{k−1} y u_k son e y u en el paso k y en el anterior | — | `k` |
+| P, I, D (en PID) | términos proporcional, integral y derivativo de u | rad/s | `pidTerms` |
+| I_max | límite de la integral del error, \|Σ e_j·Δt\| ≤ I_max (anti-windup) | s | `iMax` |
+| v_ext, v_int | velocidad de la rueda exterior e interior en curva | m/s | `vOuter_mps`, `vInner_mps` |
+| Δθ | error de rumbo | rad | `headingError_rad` |
+| y_sensor | desplazamiento lateral de la línea en el arreglo | m | `sensorOffset_m` |
+| y_perdida | desplazamiento al que se pierde la línea | m | `lossOffset_m` |
+| w | ancho de la línea (el de la pista) | m | `lineWidth_m` |
+| Δs_ciclo | avance por ciclo de control | m | `stepDistance_m` |
+| Δt_c | período del lazo de control | s | `controlPeriod_s` |
+| v_pred | velocidad predicha, ω_base·r | m/s | `predictedSpeed_mps` |
+| t_pred | tiempo de vuelta predicho | s | `predictedLapTime_s` |
+| v_med | velocidad media medida (la «Velocidad media» del widget) | m/s | `measuredSpeed_mps` |
+| t_vuelta | tiempo de vuelta medido | s | `lapTime_s` |
+| Δ% | diferencia relativa entre v_pred y v_med | % | `speedDiff_pct` |
 
 ## Brazo serial
 
