@@ -1,7 +1,7 @@
 import { Suspense, lazy, useCallback, useRef, useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
-import { Toast } from '@trayectoria/widgets';
+import { Toast } from '@trayectoria/widgets/Toast';
 import type { LineFollowerApi, LiveInstruments, SimConfig } from '@trayectoria/sims';
 
 import { useApiStore } from './apiStore';

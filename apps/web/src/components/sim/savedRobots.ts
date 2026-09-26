@@ -13,8 +13,8 @@
 import { ensureSessionReady } from '@trayectoria/auth';
 import { getDbClient } from '@trayectoria/db';
 import type { DbClient } from '@trayectoria/db';
-import { parseStoredRobot } from '@trayectoria/widgets';
-import type { RobotSpec } from '@trayectoria/widgets';
+import { parseStoredRobot } from '@trayectoria/widgets/MyRobotWidget';
+import type { RobotSpec } from '@trayectoria/widgets/MyRobotWidget';
 
 /** El único `kind` que esta página simula. */
 export const MOBILE_KIND = 'mobile-diff';

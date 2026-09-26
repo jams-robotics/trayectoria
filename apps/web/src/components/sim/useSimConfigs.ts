@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { SimConfig } from '@trayectoria/sims';
-import type { ToastTone } from '@trayectoria/widgets';
+import type { ToastTone } from '@trayectoria/widgets/Toast';
 
 import { CATALOG_PREFIX, MY_ROBOT_ID } from './RobotSource';
 

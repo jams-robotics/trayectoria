@@ -1,6 +1,6 @@
 import type { JSX } from 'react';
 import { useSession } from '@trayectoria/auth';
-import { MyRobotWidget } from '@trayectoria/widgets';
+import { MyRobotWidget } from '@trayectoria/widgets/MyRobotWidget';
 
 /**
  * «Mi robot» inside the authenticated area of `/cuenta`. `RobotSession` (mounted once in the

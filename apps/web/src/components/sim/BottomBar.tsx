@@ -1,6 +1,6 @@
 import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
-import { SPEEDS } from '@trayectoria/widgets';
+import { SPEEDS } from '@trayectoria/widgets/SimControls';
 import type { SimulationDriver } from '@trayectoria/widgets';
 
 // F4-02b (#128, decisión 4): la barra inferior fija de móvil (docs/DESIGN.md §9.7): 56 px de
