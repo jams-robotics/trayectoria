@@ -102,7 +102,7 @@ gráficas muestran el error e y la velocidad angular ω del robot en el tiempo.
 
 <Experimento
   cambia="K_p de 8 a 2"
-  observa="la primera curva"
+  observa="la primera curva en la escena"
   porque="¿Por qué el robot se sale?"
 >
 En la curva el robot necesita una ω que, con u = K_p·e, solo aparece con un error grande. Con
@@ -112,7 +112,7 @@ pide un error cuatro veces menor, y el robot da 2 vueltas en 15 s (6.04 s y 5.85
 
 <Experimento
   cambia="K_p a 20"
-  observa="el error en las rectas"
+  observa="la gráfica del error en las rectas"
   porque="¿Por qué oscila de lado a lado?"
 >
 El motor tarda en cambiar de velocidad, así que la corrección llega tarde y el robot cruza la
@@ -122,7 +122,7 @@ K_p = 8. En la 2.ª vuelta la oscilación saca al robot de la línea, a t = 7.9 
 
 <Experimento
   cambia="el controlador a On/off y «Corrección» u_0 de 4 a 8 rad/s"
-  observa="la traza y el error"
+  observa="la traza en la escena y la gráfica del error"
   porque="¿Por qué hay zigzag permanente aunque la recta sea perfecta?"
 >
 On/off siempre manda ±u_0 y nunca u = 0, así que el robot cruza la línea una y otra vez: 25
