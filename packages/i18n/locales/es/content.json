@@ -119,5 +119,11 @@
     "e2": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda izquierda gira a ω_L = {{omegaL_radps}} rad/s y la derecha a ω_R = {{omegaR_radps}} rad/s. ¿Cuál es su radio de giro R, en m, con signo: positivo si el CIR queda a la izquierda del robot y negativo si queda a la derecha?",
     "e3": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda derecha gira a ω_R = {{omegaR_radps}} rad/s y la izquierda a ω_L = {{omegaL_radps}} rad/s, así que gira en el lugar. ¿Cuál es su velocidad angular ω, en rad/s?",
     "e4": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda derecha gira a ω_R = {{omegaR_radps}} rad/s y la izquierda a ω_L = {{omegaL_radps}} rad/s durante t = {{t_s}} s, así que gira en el lugar. ¿Qué ángulo gira el robot en ese tiempo, en rad?"
+  },
+  "ruta-1/m06-t01": {
+    "e1": "Los 5 sensores de tu robot, con el índice 0 a la izquierda, leen v_0 = {{v0}}, v_1 = {{v1}}, v_2 = {{v2}}, v_3 = {{v3}} y v_4 = {{v4}}. ¿Cuál es la posición p de la línea, adimensional y en [−1, 1]?",
+    "e2": "La línea está a la izquierda de tu arreglo de 5 sensores, que leen v_0 = {{v0}}, v_1 = {{v1}}, v_2 = {{v2}}, v_3 = {{v3}} y v_4 = {{v4}}, con el índice 0 a la izquierda. ¿Cuál es la posición p de la línea, adimensional y en [−1, 1]?",
+    "e3": "El arreglo de tu robot tiene N = 5 sensores separados e_s = 12 mm y la posición de la línea es p = {{p}}. ¿Cuál es su desplazamiento físico y_línea respecto al centro del arreglo, en m y positivo a la derecha?",
+    "e4": "Los 5 sensores de tu robot, con el índice 0 a la izquierda, leen v_0 = {{v0}}, v_1 = {{v1}}, v_2 = {{v2}}, v_3 = {{v3}} y v_4 = {{v4}}. Con el umbral u = {{u}}, ¿cuántos sensores dan b_k = 1? Responde con un número entero de sensores."
   }
 }
