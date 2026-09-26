@@ -61,9 +61,9 @@ describe('ProjectileWidget (F2-05)', () => {
     expect(valueOf('Tiempo')).toBe('0.300 s');
     expect(valueOf('Posición x')).toBe('0.919 m');
     expect(valueOf('Altura y')).toBe('0.630 m');
-    expect(valueOf('Velocidad vx')).toBe('3.06 m/s');
+    expect(valueOf('Velocidad vₓ')).toBe('3.06 m/s');
     // vy = 4·sen40° − 9.81·0.3 = −0.372 m/s.
-    expect(valueOf('Velocidad vy')).toBe('-0.372 m/s');
+    expect(valueOf('Velocidad v_y')).toBe('-0.372 m/s');
   });
 
   test('cada modo edita sólo sus parámetros, con su unidad', () => {
@@ -186,7 +186,7 @@ describe('ProjectileWidget · dos caídas y selector de modo (#304)', () => {
     expect(valueOf('Tiempo')).toBe('0.452 s  ·  0.452 s');
     // Velocidad de impacto: vy en el aterrizaje de cada caída, −√(2gh).
     expect(valueOf('Altura y')).toBe('0.00 m  ·  0.00 m');
-    expect(valueOf('Velocidad vy')).toBe('-2.21 m/s  ·  -4.43 m/s');
+    expect(valueOf('Velocidad v_y')).toBe('-2.21 m/s  ·  -4.43 m/s');
 
     const [a, b] = [0.25, 1].map((h_m) => ({ v0_mps: 0, launchAngle_rad: 0, h_m, vRobot_mps: 0 }));
     if (a === undefined || b === undefined) throw new Error('missing drops');

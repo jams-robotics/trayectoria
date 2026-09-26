@@ -30,10 +30,10 @@
     "e4": "Tu robot recorre una pista recta de 4 m: arranca desde el reposo, acelera con a = 0.4 m/s² hasta v = 0.6 m/s y sigue a velocidad constante. ¿Cuánto tarda en total, en s?"
   },
   "ruta-1/m01-t03": {
-    "e1": "La pinza de tu robot suelta una pieza desde el reposo a h = {{h_m}} m sobre la banda. Sin resistencia del aire, ¿cuánto tarda en caer, en s?",
-    "e2": "La pinza de tu robot suelta una pieza desde el reposo a h = {{h_m}} m sobre la banda. Sin resistencia del aire, ¿con qué rapidez llega a la banda, en m/s?",
-    "e3": "Una pieza soltada desde el reposo tarda t = {{t_s}} s en caer hasta la banda. Sin resistencia del aire, ¿desde qué altura cayó, en m?",
-    "e4": "Tu robot avanza a v = {{v_mps}} m/s y su pinza suelta una pieza a 0.25 m sobre el suelo. Sin resistencia del aire, ¿a qué distancia horizontal de donde la soltó cae la pieza, en m?"
+    "e1": "La pinza de tu robot suelta una pieza desde el reposo a h = {{h_m}} m sobre la banda. Sin resistencia del aire, ¿cuánto tarda en caer, en s? Usa g = 9.81 m/s².",
+    "e2": "La pinza de tu robot suelta una pieza desde el reposo a h = {{h_m}} m sobre la banda. Sin resistencia del aire, ¿con qué rapidez llega a la banda, en m/s? Usa g = 9.81 m/s².",
+    "e3": "Una pieza soltada desde el reposo tarda t = {{t_s}} s en caer hasta la banda. Sin resistencia del aire, ¿desde qué altura cayó, en m? Usa g = 9.81 m/s².",
+    "e4": "Tu robot avanza a v = {{v_mps}} m/s y su pinza suelta una pieza a 0.25 m sobre el suelo. Sin resistencia del aire, ¿a qué distancia horizontal de donde la soltó cae la pieza, en m? Usa g = 9.81 m/s²."
   },
   "ruta-1/m01-t04": {
     "e1": "Lanzas una pelota desde el suelo (h = 0) a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal. ¿Cuál es su alcance R, en m?",
@@ -49,20 +49,20 @@
     "e4": "Las ruedas de tu robot de m = 0.9 kg dan una tracción de 1.5 N hacia adelante y la fricción de rodadura vale 0.4 N hacia atrás. ¿Cuál es su aceleración, en m/s²?"
   },
   "ruta-1/m02-t02": {
-    "e1": "Las ruedas motrices de tu robot tienen μₛ = {{mu_s}} con el suelo y cargan todo su peso. ¿Cuál es la aceleración máxima que puede lograr en plano sin patinar, en m/s²?",
+    "e1": "Las ruedas motrices de tu robot tienen μₛ = {{mu_s}} con el suelo y cargan todo su peso. ¿Cuál es la aceleración máxima que puede lograr en plano sin patinar, en m/s²? Usa g = 9.81 m/s².",
     "e2": "Las ruedas de tu robot tienen μₛ = {{mu_s}} con el suelo. ¿Cuál es la pendiente máxima de una rampa en la que se sostiene sin deslizar, en °?",
-    "e3": "Las ruedas motrices de tu robot tienen μₛ = {{mu_s}} con el suelo y cargan la fracción β = {{drivenWeightFraction}} de su peso; el resto lo carga una rueda loca. ¿Cuál es la aceleración máxima que puede lograr en plano sin patinar, en m/s²?",
-    "e4": "Tu robot va a v = {{v_mps}} m/s y frena con las ruedas bloqueadas, deslizando sobre un suelo con μₖ = {{mu_k}}. ¿Qué distancia recorre hasta detenerse, en m?"
+    "e3": "Las ruedas motrices de tu robot tienen μₛ = {{mu_s}} con el suelo y cargan la fracción β = {{drivenWeightFraction}} de su peso; el resto lo carga una rueda loca. ¿Cuál es la aceleración máxima que puede lograr en plano sin patinar, en m/s²? Usa g = 9.81 m/s².",
+    "e4": "Tu robot va a v = {{v_mps}} m/s y frena con las ruedas bloqueadas, deslizando sobre un suelo con μₖ = {{mu_k}}. ¿Qué distancia recorre hasta detenerse, en m? Usa g = 9.81 m/s²."
   },
   "ruta-1/m02-t03": {
     "e1": "El motor de tu robot entrega τ_motor = {{motorTorque_Nm}} N·m, la reducción es i = {{gearRatio}} y la eficiencia de la caja es η = {{efficiency}}. ¿Qué torque llega a la rueda, en N·m?",
     "e2": "Una rueda de radio r = {{wheelRadius_m}} m recibe un torque τ_rueda = {{wheelTorque_Nm}} N·m. ¿Qué fuerza de tracción empuja contra el suelo, en N?",
-    "e3": "Tu robot de m = {{mass_kg}} kg sube a velocidad constante una rampa de φ = {{slope_deg}}° con dos ruedas motrices de radio r = {{wheelRadius_m}} m. ¿Qué torque necesita cada rueda, en N·m?",
-    "e4": "Un brazo horizontal de ℓ = {{leverArm_m}} m sostiene una masa de m = {{mass_kg}} kg en la punta. Sin contar la masa del brazo, ¿qué torque hace la articulación, en N·m?"
+    "e3": "Tu robot de m = {{mass_kg}} kg sube a velocidad constante una rampa de φ = {{slope_deg}}° con dos ruedas motrices de radio r = {{wheelRadius_m}} m. ¿Qué torque necesita cada rueda, en N·m? Usa g = 9.81 m/s².",
+    "e4": "Un brazo horizontal de ℓ = {{leverArm_m}} m sostiene una masa de m = {{mass_kg}} kg en la punta. Sin contar la masa del brazo, ¿qué torque hace la articulación, en N·m? Usa g = 9.81 m/s²."
   },
   "ruta-1/m03-t01": {
     "e1": "Tu robot de m = {{mass_kg}} kg avanza a v = {{v_mps}} m/s. ¿Cuál es su energía cinética, en J?",
-    "e2": "Tu robot llega a v = {{v_mps}} m/s al pie de una rampa y se le corta el motor. Sin fricción, ¿hasta qué altura sube por inercia, en m?",
+    "e2": "Tu robot llega a v = {{v_mps}} m/s al pie de una rampa y se le corta el motor. Sin fricción, ¿hasta qué altura sube por inercia, en m? Usa g = 9.81 m/s².",
     "e3": "Tu robot de m = {{mass_kg}} kg acelera de v₁ = {{v1_mps}} m/s a v₂ = {{v2_mps}} m/s. ¿Qué trabajo neto hacen sobre él todas las fuerzas, en J?",
     "e4": "Una fricción de rodadura f = {{friction_N}} N actúa sobre tu robot a lo largo de D = {{distance_m}} m. ¿Cuánta energía disipa, en J?"
   },
@@ -138,9 +138,9 @@
     "e4": "Los 5 sensores de tu robot, con el índice 0 a la izquierda, leen v_0 = {{v0}}, v_1 = {{v1}}, v_2 = {{v2}}, v_3 = {{v3}} y v_4 = {{v4}}. Con el umbral u = {{u}}, ¿cuántos sensores dan b_k = 1? Responde con un número entero de sensores."
   },
   "ruta-1/m06-t03": {
-    "e1": "Un controlador PID tiene K_p = {{kp_radps}} rad/s, K_i = {{ki_radps2}} rad/s², K_d = {{kd_rad}} rad y período Δt = {{dt_s}} s. En el paso k el error es e_k = {{error}}, en el paso anterior e_{k−1} = {{previousError}}, y la suma Σe_j·Δt vale {{errorSum_s}} s. ¿Cuál es la acción de control u_k, en rad/s?",
+    "e1": "Un controlador PID tiene K_p = {{kp_radps}} rad/s, K_i = {{ki_radps2}} rad/s², K_d = {{kd_rad}} rad y período Δt_c = {{dt_s}} s. En el paso k el error es e_k = {{error}}, en el paso anterior e_{k−1} = {{previousError}}, y la suma Σe_j·Δt_c vale {{errorSum_s}} s. ¿Cuál es la acción de control u_k, en rad/s?",
     "e2": "Tu seguidor tiene K_i = {{ki_radps2}} rad/s² y mantiene un error constante e = {{error}} durante t = {{t_s}} s. La suma del error parte de 0 y no llega a I_max = 1 s. ¿Cuánto vale el término I, en rad/s?",
-    "e3": "Tu seguidor tiene K_d = {{kd_rad}} rad. El error pasa de e_{k−1} = {{previousError}} a e_k = {{error}} en un paso Δt = {{dt_s}} s. ¿Cuánto vale el término D, en rad/s?",
+    "e3": "Tu seguidor tiene K_d = {{kd_rad}} rad. El error pasa de e_{k−1} = {{previousError}} a e_k = {{error}} en un paso Δt_c = {{dt_s}} s. ¿Cuánto vale el término D, en rad/s?",
     "e4": "Tu robot tiene v_max = 0.670 m/s, r = 0.032 m y L = 0.15 m. Entra en una curva de radio R = {{turnRadius_m}} m. ¿Cuál es la ω_base máxima con la que la rueda exterior no supera v_max, en rad/s?"
   },
   "ruta-1/m06-t04": {
@@ -157,6 +157,6 @@
   "ruta-1/m06-t05": {
     "e1": "Tu robot sigue la línea con una velocidad base ω_base = {{omegaBase_radps}} rad/s y sus ruedas tienen radio r = {{wheelRadius_m}} m. ¿Cuál es su velocidad predicha v_pred, en m/s?",
     "e2": "Una pista mide D = {{distance_m}} m y predices que tu robot la recorre a v_pred = {{predictedSpeed_mps}} m/s. ¿Cuál es el tiempo de vuelta predicho t_pred, en s?",
-    "e3": "En la pista oval, de D = 2.771 m, predijiste v_pred = 0.48 m/s y mides un tiempo de vuelta t_vuelta = {{lapTime_s}} s. ¿Cuánto valen la velocidad media medida v_med, en m/s, y la diferencia Δ% = 100·(v_pred − v_med)/v_pred, en %?"
+    "e3": "En la pista Óvalo, de D = 2.771 m, predijiste v_pred = 0.48 m/s y mides un tiempo de vuelta t_vuelta = {{lapTime_s}} s. ¿Cuánto valen la velocidad media medida v_med, en m/s, y la diferencia Δ% = 100·(v_pred − v_med)/v_pred, en %?"
   }
 }

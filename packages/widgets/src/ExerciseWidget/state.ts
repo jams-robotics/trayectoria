@@ -12,14 +12,24 @@ import { randomSeed, seedFor } from './seed';
 /** Significant figures of the statement values before interpolation (#94, decision 4). */
 const STATEMENT_SIG_FIGS = 4;
 const PERCENT_DECIMALS = 1;
+/** Typographic minus sign of the statements (V-05, #475). */
+const MINUS_SIGN = '−';
 
-/** Statement values rounded to 4 significant figures, ready to interpolate (#94, decision 4). */
+/** A statement number rounded to 4 significant figures, negative ones with «−» (V-05). */
+function statementNumber(value: number): string {
+  return format(value, '', STATEMENT_SIG_FIGS).replace(/^-/, MINUS_SIGN);
+}
+
+/**
+ * Statement values rounded to 4 significant figures, ready to interpolate (#94, decision 4);
+ * negative numbers carry the minus sign U+2212 (V-05, #475).
+ */
 export function statementParams(values: unknown): TParams {
   if (typeof values !== 'object' || values === null) return {};
   return Object.fromEntries(
     Object.entries(values).map(([key, value]) => [
       key,
-      typeof value === 'number' ? format(value, '', STATEMENT_SIG_FIGS) : String(value),
+      typeof value === 'number' ? statementNumber(value) : String(value),
     ]),
   );
 }
