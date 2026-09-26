@@ -130,5 +130,10 @@
     "e1": "Tu robot tiene rumbo θ = {{theta_deg}}° y avanza a v = {{v_mps}} m/s, así que su velocidad es (ẋ, ẏ) = v·(cosθ, sinθ). ¿Cuánto vale ẋ·sinθ − ẏ·cosθ, en m/s?",
     "e2": "Tu robot tiene rumbo θ = {{theta_deg}}° y le pides la velocidad (ẋ, ẏ) = ({{vx_mps}}, {{vy_mps}}) m/s. ¿Cuánto vale la restricción ẋ·sinθ − ẏ·cosθ, en m/s? Si no es 0, esa velocidad no es admisible.",
     "e3": "Tu robot se desplaza D = {{distance_m}} m hacia su izquierda con una maniobra en tres movimientos: gira 90° en el lugar a ω = {{omega_radps}} rad/s, avanza D a v = {{v_mps}} m/s y gira −90° en el lugar a ω. ¿Cuánto dura la maniobra completa, en s?"
+  },
+  "ruta-1/m06-t02": {
+    "e1": "Tu robot sigue la línea con control proporcional: K_p = {{kp}} rad/s, error e = {{error}} y velocidad base ω_base = {{omegaBase_radps}} rad/s. ¿Cuánto valen la acción de control u y las velocidades de rueda ω_L y ω_R, en rad/s?",
+    "e2": "Tu controlador manda ω_L = {{omegaL_radps}} rad/s a la rueda izquierda y ω_R = {{omegaR_radps}} rad/s a la derecha. Con r = 0.032 m y L = 0.15 m, ¿cuál es la velocidad angular ω del robot, en rad/s?",
+    "e3": "Tu robot tiene ω_max = 20.94 rad/s y sigue la línea con ω_base = {{omegaBase_radps}} rad/s. Con |e|_max = 1, ¿cuál es la K_p máxima, en rad/s, para que ninguna rueda sature?"
   }
 }

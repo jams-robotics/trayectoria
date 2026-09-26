@@ -1,0 +1,169 @@
+---
+id: ruta-1/m06-t02
+title: 'Control on/off y proporcional'
+module: 6
+order: 2
+estimatedMinutes: 35
+prerequisites: [ruta-1/m06-t01, ruta-1/m05-t03]
+objectives:
+  - Cerrar el lazo, de la posición de la línea a los comandos de rueda
+  - Entender por qué el control on/off oscila
+  - Sintonizar una ganancia proporcional y reconocer la saturación
+widgets: [LineFollowerWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [astrom-murray-11]
+status: review
+---
+
+<Gancho>
+Tu robot ve la línea a la derecha (p = +0.4). ¿Cuánto más rápido debe ir la rueda izquierda que
+la derecha para volver a centrarla?
+</Gancho>
+
+<Concepto>
+El arreglo de sensores te da la posición de la línea p. Si la quieres centrada, el **error** del
+controlador es directamente e = p: positivo con la línea a la derecha, negativo a la izquierda.
+
+El controlador convierte el error en una **acción de control** u, en rad/s, y la reparte entre
+las ruedas: ω_L = ω_base + u y ω_R = ω_base − u. Las ruedas mueven al robot, el robot mueve el
+arreglo y el arreglo mide un nuevo error. Ese circuito es un **lazo cerrado**.
+
+El controlador más simple es el **on/off**: gira siempre con la misma corrección u_0, hacia el
+lado que marca el signo del error. Nunca manda u = 0, así que incluso con la línea centrada el
+robot gira hacia un lado, la cruza y gira hacia el otro. La oscilación es permanente.
+
+El **control proporcional** corrige en proporción al error: u = K_p·e. Error pequeño, corrección
+pequeña. Con los datos del gancho y K_p = 8 rad/s, u = 8·0.4 = 3.2 rad/s: la rueda izquierda va
+2u = 6.4 rad/s más rápido que la derecha.
+
+La ganancia K_p decide el comportamiento. Con K_p bajo, el robot corrige despacio y en una curva
+el error crece hasta que la línea sale del arreglo. Con K_p alto, oscila: el motor no cambia de
+velocidad al instante, la corrección llega tarde y el robot cruza la línea antes de que termine.
+
+K_p tampoco puede crecer sin límite. La rueda rápida pide ω_base + K_p·|e|, y ninguna rueda gira
+más rápido que ω_max. Para no saturar con el error más grande, ω_base + K_p·|e|_max ≤ ω_max.
+
+Lo que corrige al robot es su velocidad angular. Según la
+[cinemática directa](/ruta/ruta-1/m05/t02), ω = (ω_R − ω_L)·r/L = −2·u·r/L. Con u positiva, ω
+es negativa: el robot gira a la derecha, hacia la línea.
+</Concepto>
+
+<Formulas>
+<Formula latex="e = p" />
+
+- `e` · error del controlador · —
+- `p` · posición de la línea bajo el arreglo, en [−1, 1] · —
+
+<Formula latex="u = u_0\,\operatorname{sgn}(e)" />
+
+- `u` · acción de control · rad/s
+- `u_0` · amplitud del control on/off · rad/s
+- `e` · error del controlador · —
+
+<Formula latex="u = K_p\,e" />
+
+- `u` · acción de control · rad/s
+- `K_p` · ganancia proporcional · rad/s
+- `e` · error del controlador · —
+
+<Formula latex="\omega_L = \omega_{base} + u,\quad \omega_R = \omega_{base} - u" />
+
+- `ω_L`, `ω_R` · velocidad angular de rueda izquierda y derecha · rad/s
+- `ω_base` · velocidad base de las ruedas · rad/s
+- `u` · acción de control · rad/s
+
+<Formula latex="\omega = \frac{(\omega_R - \omega_L)\,r}{L} = -\frac{2ur}{L}" />
+
+- `ω` · velocidad angular del robot · rad/s
+- `ω_L`, `ω_R` · velocidad angular de rueda izquierda y derecha · rad/s
+- `r` · radio de rueda · m
+- `L` · distancia entre ruedas · m
+- `u` · acción de control · rad/s
+
+<Formula latex="K_p \le \frac{\omega_{max} - \omega_{base}}{|e|_{max}}" />
+
+- `K_p` · ganancia proporcional · rad/s
+- `ω_max` · velocidad angular máxima de la rueda · rad/s
+- `ω_base` · velocidad base de las ruedas · rad/s
+- `|e|_max` · error máximo considerado · —
+</Formulas>
+
+<Explora>
+El robot de referencia sigue la pista ovalada con control proporcional, K_p = 8 y velocidad base
+ω_base = 15 rad/s. La escena muestra la pista, el robot con sus sensores y la traza que deja; las
+gráficas muestran el error e y la velocidad angular ω del robot en el tiempo.
+
+<LineFollowerWidget
+  track="oval"
+  controller="p"
+  initialParams={{ kp: 8, omegaBase_radps: 15 }}
+  showPlots={['error', 'omega']}
+/>
+
+<Experimento
+  cambia="K_p de 8 a 2"
+  observa="la primera curva"
+  porque="¿Por qué el robot se sale?"
+>
+En la curva el robot necesita una ω que, con u = K_p·e, solo aparece con un error grande. Con
+K_p = 2 el error crece hasta que la línea sale del arreglo, a t = 1.59 s. Con K_p = 8 el mismo giro
+pide un error cuatro veces menor, y el robot da 2 vueltas en 15 s (6.04 s y 5.85 s) sin perderla.
+</Experimento>
+
+<Experimento
+  cambia="K_p a 20"
+  observa="el error en las rectas"
+  porque="¿Por qué oscila de lado a lado?"
+>
+El motor tarda en cambiar de velocidad, así que la corrección llega tarde y el robot cruza la
+línea antes de que termine. En los primeros 5 s el error cambia de signo 10 veces, frente a 4 con
+K_p = 8. En la 2.ª vuelta la oscilación saca al robot de la línea, a t = 7.9 s.
+</Experimento>
+
+<Experimento
+  cambia="el controlador a On/off y «Corrección» u_0 de 4 a 8 rad/s"
+  observa="la traza y el error"
+  porque="¿Por qué hay zigzag permanente aunque la recta sea perfecta?"
+>
+On/off siempre manda ±u_0 y nunca u = 0, así que el robot cruza la línea una y otra vez: 25
+cruces de ±0.2 en 15 s (RMS del error 0.32) y una vuelta de 8.86 s sin perder la línea. Con
+u_0 = 4 rad/s la conmutación es tan rápida que el motor la suaviza y el error apenas se ve (RMS
+0.003). Con u_0 ≥ 8.5 rad/s el zigzag crece hasta perder la línea.
+</Experimento>
+
+Al cambiar de controlador, el widget vuelve a los valores por defecto del nuevo (ω_base = 10 rad/s,
+u_0 = 4 rad/s). Por eso on/off va al final.
+</Explora>
+
+<AlRobot>
+Vuelve al gancho con tu robot. Con K_p = 8 y e = 0.4, la acción de control es u = 3.2 rad/s, y con
+ω_base = 15 rad/s los comandos de rueda son:
+
+<Formula latex="\omega_L = 15 + 3.2 = 18.2\ \text{rad/s},\quad \omega_R = 15 - 3.2 = 11.8\ \text{rad/s}" />
+
+Estos comandos no dependen de tu robot. La velocidad angular que producen sí, porque depende del
+radio de rueda r y de la distancia entre ruedas L de tu perfil de «Mi robot»:
+
+<RobotFormula calc="ruta-1/m06-t02/robot-omega" />
+
+Con el robot de referencia, ω = −1.365 rad/s: gira a la derecha, hacia la línea.
+
+La ganancia máxima sin saturar depende de ω_max, que sale de las rpm del motor y de la reducción
+de tu perfil. Con ω_base = 15 rad/s y |e|_max = 1:
+
+<RobotFormula calc="ruta-1/m06-t02/kp-max" />
+
+Si tu perfil no es un robot móvil, los dos cálculos usan el robot de referencia.
+
+Con el robot de referencia, K_p ≤ 5.94. El K_p = 8 de Explora la supera: con la línea en el borde
+del arreglo, la rueda rápida pediría 15 + 8 = 23 rad/s, más de los 20.94 rad/s que da. La rueda solo satura
+cuando |e| supera (20.94 − 15)/8 = 0.74.
+</AlRobot>
+
+<Verifica
+  ejercicios={['ruta-1/m06-t02/e1', 'ruta-1/m06-t02/e2', 'ruta-1/m06-t02/e3']}
+  topicId="ruta-1/m06-t02"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['astrom-murray-11']} topicId="ruta-1/m06-t02" />
