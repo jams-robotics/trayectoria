@@ -159,6 +159,7 @@ function extrasOf({
       node: (
         <CurvePanel
           curve={curve}
+          t_s={t_s}
           onChange={(key, value) => {
             setCurve((current) => applyCurveChange(current, key, value));
           }}
