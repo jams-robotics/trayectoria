@@ -185,11 +185,15 @@ function ParamsHeader({
   legend,
   action,
 }: {
-  legend?: string;
+  legend?: string | undefined;
   action?: ReactNode;
 }): JSX.Element {
   return (
-    <div className="flex min-h-10 items-center justify-between gap-3" data-params-header="">
+    // As tall as the toggle: its `h-10` button plus the 1 px border above and below.
+    <div
+      className="flex min-h-[calc(var(--spacing-10)+2px)] items-center justify-between gap-3"
+      data-params-header=""
+    >
       {legend === undefined ? null : (
         <p className="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">{legend}</p>
       )}
