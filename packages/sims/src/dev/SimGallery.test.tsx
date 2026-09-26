@@ -37,6 +37,7 @@ describe('sims catalogue (F4-01b)', () => {
         stories: [
           ['Oval', expect.any(Function)],
           ['Compact', expect.any(Function)],
+          ['Topic', expect.any(Function)],
         ],
       },
     ]);

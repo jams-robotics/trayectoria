@@ -10,6 +10,7 @@ describe('TOPIC_WIDGETS', () => {
       'FreeBodyWidget',
       'GearWidget',
       'KinematicsWidget',
+      'LineFollowerWidget',
       'LineSensorWidget',
       'MyRobotWidget',
       'PowerWidget',
@@ -37,6 +38,12 @@ describe('TOPIC_WIDGETS', () => {
 
     expect(rotation.name).toBe('RotationWidget');
     expect(myRobot.name).toBe('MyRobotWidget');
+  });
+
+  it('loads LineFollowerWidget from its own entry of @trayectoria/sims (#409)', async () => {
+    const lineFollower = await loadWidget('LineFollowerWidget');
+
+    expect(lineFollower.name).toBe('LineFollowerWidget');
   });
 
   it('loads LineSensorWidget from its own entry of @trayectoria/widgets (T-6.1)', async () => {

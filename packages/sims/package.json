@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./LineFollowerWidget": "./src/LineFollowerWidget.ts",
     "./arm": "./src/arm/index.ts",
     "./urdf": "./src/urdf/index.ts"
   },

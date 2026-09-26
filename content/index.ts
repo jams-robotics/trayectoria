@@ -40,6 +40,8 @@ import { robotCalcs as m05t03RobotCalcs } from './es/ruta-1/m05-t03/alrobot';
 import { exercises as m05t03Exercises } from './es/ruta-1/m05-t03/ejercicios';
 import { robotCalcs as m05t02RobotCalcs } from './es/ruta-1/m05-t02/alrobot';
 import { exercises as m05t02Exercises } from './es/ruta-1/m05-t02/ejercicios';
+import { robotCalcs as m05t04RobotCalcs } from './es/ruta-1/m05-t04/alrobot';
+import { exercises as m05t04Exercises } from './es/ruta-1/m05-t04/ejercicios';
 import { robotCalcs as m06t01RobotCalcs } from './es/ruta-1/m06-t01/alrobot';
 import { exercises as m06t01Exercises } from './es/ruta-1/m06-t01/ejercicios';
 
@@ -142,6 +144,7 @@ export const EXERCISES: ReadonlyMap<string, TopicExercise> = registerTopics({
   'ruta-1/m05-t01': m05t01Exercises,
   'ruta-1/m05-t03': m05t03Exercises,
   'ruta-1/m05-t02': m05t02Exercises,
+  'ruta-1/m05-t04': m05t04Exercises,
   'ruta-1/m06-t01': m06t01Exercises,
 });
 
@@ -169,5 +172,6 @@ export const ROBOT_CALCS: ReadonlyMap<string, RobotCalc> = registerRobotCalcs({
   'ruta-1/m05-t01': m05t01RobotCalcs,
   'ruta-1/m05-t03': m05t03RobotCalcs,
   'ruta-1/m05-t02': m05t02RobotCalcs,
+  'ruta-1/m05-t04': m05t04RobotCalcs,
   'ruta-1/m06-t01': m06t01RobotCalcs,
 });

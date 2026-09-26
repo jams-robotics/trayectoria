@@ -42,6 +42,8 @@ const LOADERS: Readonly<Record<string, WidgetLoader>> = {
   FreeBodyWidget: () => import('@trayectoria/widgets/FreeBodyWidget'),
   GearWidget: () => import('@trayectoria/widgets/GearWidget'),
   KinematicsWidget: () => import('@trayectoria/widgets/KinematicsWidget'),
+  // The one topic widget that lives in `packages/sims`, with an entry of its own there (#409).
+  LineFollowerWidget: () => import('@trayectoria/sims/LineFollowerWidget'),
   LineSensorWidget: () => import('@trayectoria/widgets/LineSensorWidget'),
   MyRobotWidget: () => import('@trayectoria/widgets/MyRobotWidget'),
   ParamPanel: () => import('@trayectoria/widgets/ParamPanel'),
@@ -60,8 +62,9 @@ export function widgetNames(): readonly string[] {
 /**
  * Topic widgets a topic MDX writes by name, with the props of docs/WIDGETS.md (#243, decision 1;
  * #246). Only the ones whose props are all serializable to an island: `Formula` has its own
- * block component, `ExerciseWidget` is mounted by `Verifica`, `ParamPanel` and `Plot` are pieces
- * of other widgets. `LineSensorWidget` comes with T-6.1 and reads the robot from `useMyRobot()`.
+ * block component, `ExerciseWidget` is mounted by `Verifica` and `ParamPanel` and `Plot` are pieces
+ * of other widgets. `LineFollowerWidget` (#409) and `LineSensorWidget` (T-6.1) take only their
+ * serializable props and read the robot from `useMyRobot()`.
  */
 export const TOPIC_WIDGETS = [
   'DiffDriveWidget',
@@ -69,6 +72,7 @@ export const TOPIC_WIDGETS = [
   'FreeBodyWidget',
   'GearWidget',
   'KinematicsWidget',
+  'LineFollowerWidget',
   'LineSensorWidget',
   'MyRobotWidget',
   'PowerWidget',
@@ -97,7 +101,7 @@ export async function loadWidget(name: string): Promise<TopicWidgetComponent> {
   }
   const component = (await loader())[name];
   if (!isTopicWidget(component)) {
-    throw new Error(`@trayectoria/widgets/${name} does not export a component named "${name}"`);
+    throw new Error(`the entry of ${name} does not export a component named "${name}"`);
   }
   return component;
 }

@@ -7,6 +7,18 @@ import { rpmToRadps } from '../math/units';
 /** Below this magnitude the arc integration degenerates and the straight-line form is used. */
 const STRAIGHT_OMEGA_RADPS = 1e-9;
 
+/**
+ * Motor time constant of the line follower (`docs/ARCHITECTURE.md` §4.1, DOCS-M6): a constant of
+ * sim-core, not a field of `RobotSpec`.
+ */
+export const MOTOR_TIME_CONSTANT_S = 0.185;
+
+/** Options of `createDiffDriveModel`; without them the step is the kinematic one. */
+export interface DiffDriveOptions {
+  /** First-order motor time constant `τ_m`; each wheel lags its saturated command. */
+  readonly motorTimeConstant_s?: number;
+}
+
 /** Commanded wheel speeds, before saturation and ramp. */
 export interface WheelCommand {
   readonly omegaL_radps: number;
@@ -75,9 +87,18 @@ function approach(current: number, target: number, maxDelta: number): number {
 }
 
 /**
- * Saturates `input` to `±omegaMax_radps` and, when the spec limits acceleration, moves the wheel
- * speeds implied by `state` towards it by at most `maxAccel_radps2 · dt_s`. Deriving the current
- * speeds from the pose twist keeps the ramp out of the state.
+ * One first-order motor step: `Δω = (target − current)·(1 − e^(−dt/τ))`, capped to
+ * `±maxDelta_radps` by the ramp of the profile when it has one.
+ */
+function lag(current: number, target: number, gain: number, maxDelta_radps: number): number {
+  return current + clamp((target - current) * gain, maxDelta_radps);
+}
+
+/**
+ * Saturates `input` to `±omegaMax_radps` and moves the wheel speeds implied by `state` towards
+ * it: through the first-order motor when `motorTimeConstant_s` is given, and by at most
+ * `maxAccel_radps2 · dt_s` when the spec limits acceleration. Deriving the current speeds from
+ * the pose twist keeps the ramp and the motor out of the state.
  */
 function resolveCommand(
   state: DiffDriveState,
@@ -85,18 +106,29 @@ function resolveCommand(
   dt_s: number,
   spec: MobileSpec,
   omegaMax_radps: number,
+  motorTimeConstant_s: number | undefined,
 ): WheelCommand {
   const omegaL_radps = clamp(input.omegaL_radps, omegaMax_radps);
   const omegaR_radps = clamp(input.omegaR_radps, omegaMax_radps);
 
   const maxAccel_radps2 = spec.maxAccel_radps2;
-  if (maxAccel_radps2 === undefined) return { omegaL_radps, omegaR_radps };
+  if (maxAccel_radps2 === undefined && motorTimeConstant_s === undefined) {
+    return { omegaL_radps, omegaR_radps };
+  }
 
   const current = inverseKinematics(state.v_mps, state.omega_radps, spec);
-  const maxDelta_radps = maxAccel_radps2 * dt_s;
+  const maxDelta_radps =
+    maxAccel_radps2 === undefined ? Number.POSITIVE_INFINITY : maxAccel_radps2 * dt_s;
+  if (motorTimeConstant_s === undefined) {
+    return {
+      omegaL_radps: approach(current.omegaL_radps, omegaL_radps, maxDelta_radps),
+      omegaR_radps: approach(current.omegaR_radps, omegaR_radps, maxDelta_radps),
+    };
+  }
+  const gain = 1 - Math.exp(-dt_s / motorTimeConstant_s);
   return {
-    omegaL_radps: approach(current.omegaL_radps, omegaL_radps, maxDelta_radps),
-    omegaR_radps: approach(current.omegaR_radps, omegaR_radps, maxDelta_radps),
+    omegaL_radps: lag(current.omegaL_radps, omegaL_radps, gain, maxDelta_radps),
+    omegaR_radps: lag(current.omegaR_radps, omegaR_radps, gain, maxDelta_radps),
   };
 }
 
@@ -138,10 +170,16 @@ const INITIAL_STATE: DiffDriveState = {
  * Builds the kinematic differential-drive model of `docs/ARCHITECTURE.md` §4.1. Commands are
  * saturated to `±maxWheelSpeed_radps(spec)` and, when `spec.maxAccel_radps2` is defined, ramped
  * from the wheel speeds implied by the current state. The pose is integrated with the exact arc
- * form, so a full circle closes on itself within floating-point error.
+ * form, so a full circle closes on itself within floating-point error. With
+ * `options.motorTimeConstant_s` each wheel follows its saturated command as a first-order system,
+ * the ramp capping the change per step (DOCS-M6).
  */
-export function createDiffDriveModel(spec: MobileSpec): Model<DiffDriveState, WheelCommand> {
+export function createDiffDriveModel(
+  spec: MobileSpec,
+  options: DiffDriveOptions = {},
+): Model<DiffDriveState, WheelCommand> {
   const omegaMax_radps = maxWheelSpeed_radps(spec);
+  const { motorTimeConstant_s } = options;
 
   return {
     init(): DiffDriveState {
@@ -149,7 +187,7 @@ export function createDiffDriveModel(spec: MobileSpec): Model<DiffDriveState, Wh
     },
 
     step(state: DiffDriveState, input: WheelCommand, dt_s: number): DiffDriveState {
-      const command = resolveCommand(state, input, dt_s, spec, omegaMax_radps);
+      const command = resolveCommand(state, input, dt_s, spec, omegaMax_radps, motorTimeConstant_s);
       const twist = forwardKinematics(command.omegaL_radps, command.omegaR_radps, spec);
 
       return {

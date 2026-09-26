@@ -1,0 +1,17 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import { temaComponents } from '../../components/tema';
+import LineFollowerFixture from '../../components/dev/LineFollowerFixture.mdx';
+import Base from '../../layouts/Base.astro';
+
+// #409 test page: an MDX outside content/es/ that mounts LineFollowerWidget through the topic MDX
+// map, so e2e can check that the widget mounts from MDX with the props of docs/WIDGETS.md without
+// touching the /dev/tema fixture and its captures. Not linked from Nav.astro, like /dev/tema.
+---
+
+<Base title={t('widgets.playground.topicFixtureTitle')}>
+  <section class="mx-auto flex max-w-[1120px] flex-col gap-8 px-5 pt-11 pb-9 md:px-8">
+    <LineFollowerFixture components={temaComponents} />
+  </section>
+</Base>

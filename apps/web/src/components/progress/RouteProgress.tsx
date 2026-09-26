@@ -4,6 +4,8 @@ import type { Translate } from '@trayectoria/i18n';
 import { useProgress } from '@trayectoria/progress';
 import type { TopicProgress } from '@trayectoria/progress';
 
+import { isRouteCompleted } from '../../lib/progress/routeCompleted';
+
 /** Estado que muestra el índice de la ruta para un tema (#120, decisión 4). */
 export type TopicState = 'pending' | 'in_progress' | 'completed';
 
@@ -89,5 +91,26 @@ export function RouteProgress({ topicIds }: RouteProgressProps): JSX.Element {
         {t('progress.route.count', { done, total })}
       </span>
     </div>
+  );
+}
+
+/**
+ * «Ruta completada» notice under the route header (ARCHITECTURE §3.2): shown only once every
+ * topic of the route is completed, from the same `$progress` as the per-topic states. Success
+ * colour, no animation: feedback is never celebratory (DESIGN-BRIEF §5). The server renders
+ * nothing; the island hydrates from `$progress`.
+ */
+export function RouteCompleted({ topicIds }: RouteProgressProps): JSX.Element | null {
+  const t = useT();
+  const progress = useProgress();
+  if (!isRouteCompleted(topicIds, progress)) return null;
+  return (
+    <p
+      className="text-success mt-3 text-sm font-semibold"
+      role="status"
+      data-testid="route-completed"
+    >
+      {t('route.completed')}
+    </p>
   );
 }
