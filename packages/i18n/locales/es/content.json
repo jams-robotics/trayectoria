@@ -137,6 +137,18 @@
     "e3": "El arreglo de tu robot tiene N = 5 sensores separados e_s = 12 mm y la posición de la línea es p = {{p}}. ¿Cuál es su desplazamiento físico y_línea respecto al centro del arreglo, en m y positivo a la derecha?",
     "e4": "Los 5 sensores de tu robot, con el índice 0 a la izquierda, leen v_0 = {{v0}}, v_1 = {{v1}}, v_2 = {{v2}}, v_3 = {{v3}} y v_4 = {{v4}}. Con el umbral u = {{u}}, ¿cuántos sensores dan b_k = 1? Responde con un número entero de sensores."
   },
+  "ruta-1/m06-t03": {
+    "e1": "Un controlador PID tiene K_p = {{kp_radps}} rad/s, K_i = {{ki_radps2}} rad/s², K_d = {{kd_rad}} rad y período Δt = {{dt_s}} s. En el paso k el error es e_k = {{error}}, en el paso anterior e_{k−1} = {{previousError}}, y la suma Σe_j·Δt vale {{errorSum_s}} s. ¿Cuál es la acción de control u_k, en rad/s?",
+    "e2": "Tu seguidor tiene K_i = {{ki_radps2}} rad/s² y mantiene un error constante e = {{error}} durante t = {{t_s}} s. La suma del error parte de 0 y no llega a I_max = 1 s. ¿Cuánto vale el término I, en rad/s?",
+    "e3": "Tu seguidor tiene K_d = {{kd_rad}} rad. El error pasa de e_{k−1} = {{previousError}} a e_k = {{error}} en un paso Δt = {{dt_s}} s. ¿Cuánto vale el término D, en rad/s?",
+    "e4": "Tu robot tiene v_max = 0.670 m/s, r = 0.032 m y L = 0.15 m. Entra en una curva de radio R = {{turnRadius_m}} m. ¿Cuál es la ω_base máxima con la que la rueda exterior no supera v_max, en rad/s?"
+  },
+  "ruta-1/m06-t04": {
+    "e1": "El arreglo de sensores de tu robot tiene N = {{count}} sensores separados e_s = {{spacing_m}} m, y la línea mide w = {{lineWidth_m}} m de ancho. ¿A qué desplazamiento lateral y_perdida de la línea, medido desde el centro del arreglo, pierde el robot la línea, en m?",
+    "e2": "Tu robot avanza a v = {{v_mps}} m/s y su lazo de control se ejecuta cada Δt_c = {{controlPeriod_s}} s. ¿Cuánto avanza entre dos ciclos de control, Δs_ciclo en m?",
+    "e3": "Tu robot tiene N = 5 sensores separados e_s = 0.012 m y un error de rumbo Δθ = {{headingError_rad}} rad. ¿Qué posición de la línea p mide el arreglo si está a d₁ = {{forwardOffset1_m}} m del eje de ruedas, y qué p mide si está a d₂ = {{forwardOffset2_m}} m? Da p₁ y p₂, sin unidad.",
+    "e4": "Tu robot, con distancia entre ruedas L = {{wheelBase_m}} m, toma una curva de radio de giro R = {{turnRadius_m}} m. ¿Cuánto vale la relación v_int/v_ext entre la velocidad de la rueda interior y la exterior, sin unidad?"
+  },
   "ruta-1/m06-t02": {
     "e1": "Tu robot sigue la línea con control proporcional: K_p = {{kp}} rad/s, error e = {{error}} y velocidad base ω_base = {{omegaBase_radps}} rad/s. ¿Cuánto valen la acción de control u y las velocidades de rueda ω_L y ω_R, en rad/s?",
     "e2": "Tu controlador manda ω_L = {{omegaL_radps}} rad/s a la rueda izquierda y ω_R = {{omegaR_radps}} rad/s a la derecha. Con r = 0.032 m y L = 0.15 m, ¿cuál es la velocidad angular ω del robot, en rad/s?",
