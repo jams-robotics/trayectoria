@@ -130,8 +130,9 @@ describe('model (F4-02a)', () => {
       lineWidth_m: presets.oval.lineWidth_m,
     };
     const model = modelOf({ controller: 'manual', track: straight, offset_m: 0 });
-    // Con rampa de aceleración la velocidad tarda en llegar; un segundo basta y sobra.
-    const states = run(model, Math.round(1 / DT_S));
+    // Con rampa y motor de primer orden (τ_m, #408) la velocidad tarda en llegar; 5 s son más de
+    // 25 constantes de tiempo y el robot sigue dentro de la recta de 2 m.
+    const states = run(model, Math.round(5 / DT_S));
     expect(states.at(-1)?.robot.v_mps).toBeCloseTo(10 * MOBILE.wheelRadius_m, 9);
     expect(states.at(-1)?.robot.v_mps).toBeCloseTo(0.32, 9);
     expect(states.at(-1)?.command.omegaL_radps).toBe(states.at(-1)?.command.omegaR_radps);
