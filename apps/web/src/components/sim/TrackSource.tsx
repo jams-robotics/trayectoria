@@ -140,6 +140,9 @@ function LoadButton({
         type="file"
         accept="application/json,.json"
         className="sr-only"
+        // The button above is the keyboard route; a tab stop here would put the focus on an
+        // invisible element (F7-01).
+        tabIndex={-1}
         aria-label={t('sims.mobilePage.loadInput')}
         onChange={(event) => {
           const file = event.target.files?.[0];

@@ -131,6 +131,12 @@
     "e2": "Tu robot tiene rumbo θ = {{theta_deg}}° y le pides la velocidad (ẋ, ẏ) = ({{vx_mps}}, {{vy_mps}}) m/s. ¿Cuánto vale la restricción ẋ·sinθ − ẏ·cosθ, en m/s? Si no es 0, esa velocidad no es admisible.",
     "e3": "Tu robot se desplaza D = {{distance_m}} m hacia su izquierda con una maniobra en tres movimientos: gira 90° en el lugar a ω = {{omega_radps}} rad/s, avanza D a v = {{v_mps}} m/s y gira −90° en el lugar a ω. ¿Cuánto dura la maniobra completa, en s?"
   },
+  "ruta-1/m06-t01": {
+    "e1": "Los 5 sensores de tu robot, con el índice 0 a la izquierda, leen v_0 = {{v0}}, v_1 = {{v1}}, v_2 = {{v2}}, v_3 = {{v3}} y v_4 = {{v4}}. ¿Cuál es la posición p de la línea, adimensional y en [−1, 1]?",
+    "e2": "La línea está a la izquierda de tu arreglo de 5 sensores, que leen v_0 = {{v0}}, v_1 = {{v1}}, v_2 = {{v2}}, v_3 = {{v3}} y v_4 = {{v4}}, con el índice 0 a la izquierda. ¿Cuál es la posición p de la línea, adimensional y en [−1, 1]?",
+    "e3": "El arreglo de tu robot tiene N = 5 sensores separados e_s = 12 mm y la posición de la línea es p = {{p}}. ¿Cuál es su desplazamiento físico y_línea respecto al centro del arreglo, en m y positivo a la derecha?",
+    "e4": "Los 5 sensores de tu robot, con el índice 0 a la izquierda, leen v_0 = {{v0}}, v_1 = {{v1}}, v_2 = {{v2}}, v_3 = {{v3}} y v_4 = {{v4}}. Con el umbral u = {{u}}, ¿cuántos sensores dan b_k = 1? Responde con un número entero de sensores."
+  },
   "ruta-1/m06-t03": {
     "e1": "Un controlador PID tiene K_p = {{kp_radps}} rad/s, K_i = {{ki_radps2}} rad/s², K_d = {{kd_rad}} rad y período Δt = {{dt_s}} s. En el paso k el error es e_k = {{error}}, en el paso anterior e_{k−1} = {{previousError}}, y la suma Σe_j·Δt vale {{errorSum_s}} s. ¿Cuál es la acción de control u_k, en rad/s?",
     "e2": "Tu seguidor tiene K_i = {{ki_radps2}} rad/s² y mantiene un error constante e = {{error}} durante t = {{t_s}} s. La suma del error parte de 0 y no llega a I_max = 1 s. ¿Cuánto vale el término I, en rad/s?",

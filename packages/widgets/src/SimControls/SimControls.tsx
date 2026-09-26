@@ -3,6 +3,7 @@ import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 
 import type { SimulationDriver } from '../Scene2D/useSimulationDriver';
+import { LiveStatus } from '../shared/ReadoutPanel';
 
 /** Speeds of the selector, in simulated seconds per real second (docs/DESIGN.md §5). */
 export const SPEEDS: readonly number[] = [0.25, 0.5, 1, 2, 4];
@@ -140,12 +141,12 @@ export function SimControls({ compact = false, ...driver }: SimControlsProps): J
     >
       <Buttons driver={driver} t={t} />
       <SpeedAndClock driver={driver} compact={compact} t={t} />
-      <p className="sr-only" role="status" aria-live="polite">
-        {t(
+      <LiveStatus
+        text={t(
           driver.running ? 'widgets.SimControls.statusRunning' : 'widgets.SimControls.statusPaused',
           { time: formatTime(driver.t_s) },
         )}
-      </p>
+      />
     </div>
   );
 }

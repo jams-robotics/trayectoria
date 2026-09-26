@@ -231,6 +231,9 @@ export type {
   Readout,
 } from './DiffDriveWidget';
 
+export { LineSensorWidget, readSensorArray } from './LineSensorWidget';
+export type { LineSensorWidgetProps, SensorArrayReading } from './LineSensorWidget';
+
 export {
   ExerciseWidget,
   ProgressAdapterProvider,
