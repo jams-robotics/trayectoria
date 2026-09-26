@@ -358,7 +358,7 @@
     "paramOmegaR": "Velocidad angular de la rueda derecha",
     "paramV": "Velocidad lineal del robot",
     "paramOmega": "Velocidad angular del robot",
-    "paramTheta": "Orientación del robot",
+    "paramTheta": "Orientación inicial",
     "paramTicksPerRev": "Ticks por vuelta de rueda",
     "paramBelievedRadius": "Radio de rueda creído",
     "paramBelievedBase": "Distancia entre ruedas creída",

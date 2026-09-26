@@ -94,7 +94,9 @@ describe('DiffDriveWidget (F2-09a)', () => {
   });
 
   test('v = 0.6 y ω = 2 no son realizables y el panel avisa de la saturación (T-5.3)', () => {
-    render(<DiffDriveWidget mode="inverse" show={ALL_SHOW} initial={{ v_mps: 0.6, omega_radps: 2 }} />);
+    render(
+      <DiffDriveWidget mode="inverse" show={ALL_SHOW} initial={{ v_mps: 0.6, omega_radps: 2 }} />,
+    );
 
     expect(valueOf('Velocidad de la rueda derecha')).toBe('0.750 m/s');
     expect(screen.getByTestId('diffdrive-notice')).toHaveTextContent('supera la velocidad máxima');
@@ -127,7 +129,7 @@ describe('DiffDriveWidget (F2-09a)', () => {
     expect(valueOf('Sensor 3 en el marco global')).toBe('(0.0900, 0.00 m)');
 
     // Con θ = 90° la matriz tiene cos = 0 y sin = 1 (experimento 3 de T-5.1).
-    await typeValue(user, 'Orientación del robot', '90');
+    await typeValue(user, 'Orientación inicial', '90');
     expect(valueOf('R(θ) fila 1 columna 1')).toBe('0.00');
     expect(valueOf('R(θ) fila 2 columna 1')).toBe('1.00');
     expect(valueOf('Orientación')).toBe('90.0 °');
@@ -158,7 +160,9 @@ describe('DiffDriveWidget (F2-09a)', () => {
     expect(status).toHaveAttribute('aria-live', 'polite');
     expect(status).toHaveTextContent('El robot está en (0.00, 0.00 m)');
     expect(status).toHaveTextContent('su radio de giro es 0.525 m');
-    expect(screen.getByRole('img', { name: /Robot diferencial sobre el suelo/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('img', { name: /Robot diferencial sobre el suelo/ }),
+    ).toBeInTheDocument();
   });
 
   test('«Paso» avanza la simulación un dt y el reloj lo refleja (#92, decisión 3)', async () => {
@@ -183,9 +187,7 @@ describe('DiffDriveWidget (F2-09a)', () => {
   });
 
   test('initialTime_s abre el widget con el robot ya avanzado (#92, decisión 7)', () => {
-    render(
-      <DiffDriveWidget mode="forward" show={['trace']} initial={T52} initialTime_s={3} />,
-    );
+    render(<DiffDriveWidget mode="forward" show={['trace']} initial={T52} initialTime_s={3} />);
 
     // El modelo de sim-core rampa los comandos a maxAccel_radps2 = 40 rad/s², así que en 3 s el
     // robot ha girado algo menos que los 3.2 rad del régimen permanente, pero ya ha recorrido
@@ -301,5 +303,60 @@ describe('DiffDriveWidget odometría (F2-09b)', () => {
     expect(status).toBeDefined();
     expect(status).toHaveAttribute('aria-live', 'polite');
     expect(status).toHaveTextContent('el error de posición es 0.00 m');
+  });
+});
+
+describe('DiffDriveWidget orientación inicial θ₀ (#370)', () => {
+  test('el slider se etiqueta «Orientación inicial» y abre en 0°', () => {
+    render(<DiffDriveWidget mode="forward" show={['trace']} initial={T52} />);
+
+    expect(sliderFor('Orientación inicial')).toHaveValue('0');
+  });
+
+  test('al avanzar el robot parte de θ₀ = 90° y no vuelve a 0°', async () => {
+    const user = userEvent.setup();
+    render(<DiffDriveWidget mode="forward" show={['trace']} initial={T52} />);
+
+    await typeValue(user, 'Orientación inicial', '90');
+    stepSimulation(30);
+    // Heading 90°, the robot advances along +y; before #370 the first step dropped θ₀ and it
+    // advanced along +x from 0°.
+    expect(valueOf('Posición x')).toBe('0.00 m');
+    expect(valueOf('Posición y')).toBe('0.0595 m');
+    expect(valueOf('Orientación')).toBe('90.0 °');
+    expect(sliderFor('Orientación inicial')).toHaveValue('90');
+  });
+
+  test('«Reiniciar» devuelve el robot a θ₀', async () => {
+    const user = userEvent.setup();
+    render(<DiffDriveWidget mode="forward" show={['trace']} initial={T52} />);
+
+    await typeValue(user, 'Orientación inicial', '90');
+    stepSimulation(20);
+    await user.click(screen.getByRole('button', { name: 'Reiniciar' }));
+    expect(valueOf('Orientación')).toBe('90.0 °');
+    expect(valueOf('Posición x')).toBe('0.00 m');
+  });
+
+  test('mientras corre el slider queda deshabilitado y sigue mostrando θ₀', async () => {
+    const user = userEvent.setup();
+    render(<DiffDriveWidget mode="forward" show={['trace']} initial={T52} />);
+
+    await typeValue(user, 'Orientación inicial', '45');
+    await user.click(screen.getByRole('button', { name: 'Reproducir' }));
+    expect(sliderFor('Orientación inicial')).toBeDisabled();
+    expect(sliderFor('Orientación inicial')).toHaveValue('45');
+  });
+
+  test('en odometría la estimación parte de θ₀ y el error de rumbo es nulo', async () => {
+    const user = userEvent.setup();
+    render(<DiffDriveWidget mode="odometry" show={['trace']} initial={T54} duration_s={20} />);
+
+    await typeValue(user, 'Orientación inicial', '90');
+    expect(valueOf('Orientación estimada')).toBe('90.0 °');
+    expect(valueOf('Error de rumbo')).toBe('0.00 °');
+    stepSimulation(10);
+    expect(Number.parseFloat(valueOf('Orientación estimada'))).toBeGreaterThan(89);
+    expect(Number.parseFloat(valueOf('Error de rumbo'))).toBeLessThan(1);
   });
 });
