@@ -2,6 +2,7 @@ import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 
+import { PanelCard } from './PanelCard';
 import type { EffectorReadout } from './types';
 
 // F5-01a (#133, decisión 7): posición en metros con 3 decimales y orientación en grados con 1,
@@ -49,25 +50,24 @@ export function EffectorPanel({ readout }: EffectorPanelProps): JSX.Element {
   const t = useT();
   return (
     <section aria-label={t('sims.arm.effector')} data-testid="effector-panel">
-      <h3 className="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
-        {t('sims.arm.effector')}
-      </h3>
-      <dl className="mt-3 flex flex-col gap-1">
-        {effectorRows(readout).map((row) => (
-          <div key={row.labelKey} className="flex items-baseline justify-between gap-3">
-            <dt className="text-fg-muted font-mono text-sm">{t(row.labelKey)}</dt>
-            <dd className="flex items-baseline gap-1">
-              <span
-                className="text-fg text-right font-mono text-sm tabular-nums"
-                data-testid={row.labelKey}
-              >
-                {row.value}
-              </span>
-              <span className="text-fg-muted w-4 font-mono text-xs">{t(row.unitKey)}</span>
-            </dd>
-          </div>
-        ))}
-      </dl>
+      <PanelCard title={t('sims.arm.effector')} testId="effector-card" gapClass="gap-1">
+        <dl className="flex flex-col gap-1">
+          {effectorRows(readout).map((row) => (
+            <div key={row.labelKey} className="flex items-baseline justify-between gap-3">
+              <dt className="text-fg-muted font-mono text-sm">{t(row.labelKey)}</dt>
+              <dd className="flex items-baseline gap-1">
+                <span
+                  className="text-fg text-right font-mono text-sm tabular-nums"
+                  data-testid={row.labelKey}
+                >
+                  {row.value}
+                </span>
+                <span className="text-fg-muted w-4 font-mono text-xs">{t(row.unitKey)}</span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </PanelCard>
       <p className="sr-only" aria-live="polite">
         {effectorSummary(readout, t)}
       </p>

@@ -50,6 +50,14 @@ describe('EffectorPanel (F5-01a)', () => {
       t('sims.arm.effector'),
     );
   });
+
+  test('las lecturas van en su propia tarjeta, como las articulaciones (#383)', () => {
+    render(<EffectorPanel readout={GOLDEN_READOUT} />);
+    const card = screen.getByTestId('effector-card');
+    expect(card.className).toContain('rounded-lg');
+    expect(card.className).toContain('bg-bg-raised');
+    expect(card).toHaveTextContent('0.350');
+  });
 });
 
 describe('FramesToggle (F5-01a)', () => {
