@@ -7,6 +7,7 @@ import type { SeededRng } from '@trayectoria/sim-core';
 // Values are drawn on a grid the statement shows exactly (Kp and Ki and times to the tenth, Kd,
 // errors, error sums and radii to the hundredth), as in T-0.3 (#273). Gains carry the units of
 // the glossary: u in rad/s and e dimensionless, so Kp in rad/s, Ki in rad/s², Kd in rad.
+// Answers graded relative to 2 % are at least 0.01 rad/s, or exactly 0 (#451, #461).
 
 const TOPIC_ID = 'ruta-1/m06-t03';
 const RELATIVE_2_PERCENT = { type: 'relative', value: 0.02 } as const;
@@ -35,6 +36,8 @@ export const E2_ERROR: Range = { min: 0.05, max: 0.3 };
 export const E2_T_S: Range = { min: 0.5, max: 3 };
 export const E3_KD_RAD: Range = { min: 0.01, max: 1 };
 export const E3_ERROR: Range = { min: -1, max: 1 };
+/** e1 and e3 draw again when their nonzero answer is below this value (#451, #461). */
+export const MIN_NONZERO_ANSWER_RADPS = 0.01;
 export const E4_R_M: Range = { min: 0.15, max: 1 };
 /** e4 is the reference robot, with v_max rounded as the statement shows it. */
 export const E4_V_MAX_MPS = 0.67;
@@ -51,6 +54,10 @@ function drawDt(rng: SeededRng): number {
   return DT_CHOICES_S[rng.nextInt(0, DT_CHOICES_S.length - 1)]!;
 }
 
+function isSmallNonzero(value: number, min: number): boolean {
+  return value !== 0 && Math.abs(value) < min;
+}
+
 function statementKey(exerciseId: string): string {
   return `content.${TOPIC_ID}.${exerciseId}`;
 }
@@ -65,31 +72,37 @@ interface PidStep {
   readonly errorSum_s: number;
 }
 
-/** e1: u_k = Kp·e_k + Ki·Σe·Δt + Kd·(e_k − e_{k−1})/Δt. */
+/** Draws the PID step of e1 and its u_k once. */
+function drawPidStep(rng: SeededRng): { values: PidStep; u_radps: number } {
+  const kp_radps = drawOnGrid(rng, E1_KP_RADPS, TENTHS);
+  const ki_radps2 = drawOnGrid(rng, E1_KI_RADPS2, TENTHS);
+  const kd_rad = drawOnGrid(rng, E1_KD_RAD, HUNDREDTHS);
+  const dt_s = drawDt(rng);
+  const error = drawOnGrid(rng, E1_ERROR, HUNDREDTHS);
+  const previousError = drawOnGrid(
+    rng,
+    {
+      min: Math.max(E1_ERROR.min, error - E1_ERROR_STEP_MAX),
+      max: Math.min(E1_ERROR.max, error + E1_ERROR_STEP_MAX),
+    },
+    HUNDREDTHS,
+  );
+  const errorSum_s = drawOnGrid(rng, E1_ERROR_SUM_S, HUNDREDTHS);
+  const u_radps =
+    kp_radps * error + ki_radps2 * errorSum_s + (kd_rad * (error - previousError)) / dt_s;
+  return {
+    values: { kp_radps, ki_radps2, kd_rad, dt_s, error, previousError, errorSum_s },
+    u_radps,
+  };
+}
+
+/** e1: u_k = Kp·e_k + Ki·Σe·Δt + Kd·(e_k − e_{k−1})/Δt, drawn again while 0 < |u_k| < 0.01. */
 const e1 = defineExercise<PidStep>({
   id: 'e1',
   generate: (rng) => {
-    const kp_radps = drawOnGrid(rng, E1_KP_RADPS, TENTHS);
-    const ki_radps2 = drawOnGrid(rng, E1_KI_RADPS2, TENTHS);
-    const kd_rad = drawOnGrid(rng, E1_KD_RAD, HUNDREDTHS);
-    const dt_s = drawDt(rng);
-    const error = drawOnGrid(rng, E1_ERROR, HUNDREDTHS);
-    const previousError = drawOnGrid(
-      rng,
-      {
-        min: Math.max(E1_ERROR.min, error - E1_ERROR_STEP_MAX),
-        max: Math.min(E1_ERROR.max, error + E1_ERROR_STEP_MAX),
-      },
-      HUNDREDTHS,
-    );
-    const errorSum_s = drawOnGrid(rng, E1_ERROR_SUM_S, HUNDREDTHS);
-    const u_radps =
-      kp_radps * error + ki_radps2 * errorSum_s + (kd_rad * (error - previousError)) / dt_s;
-    return {
-      values: { kp_radps, ki_radps2, kd_rad, dt_s, error, previousError, errorSum_s },
-      answer: u_radps,
-      unit: 'rad/s',
-    };
+    let step = drawPidStep(rng);
+    while (isSmallNonzero(step.u_radps, MIN_NONZERO_ANSWER_RADPS)) step = drawPidStep(rng);
+    return { values: step.values, answer: step.u_radps, unit: 'rad/s' };
   },
   statement: () => statementKey('e1'),
   tolerance: RELATIVE_2_PERCENT,
@@ -121,23 +134,32 @@ interface ErrorStep {
   readonly error: number;
 }
 
-/** e3: D = Kd·(e_k − e_{k−1})/Δt; the errors are drawn again while |Δe| < 0.01 (#396). */
+/** Kd, Δt and the errors of e3; the errors are drawn again while |Δe| < 0.01 (#396). */
+function drawErrorStep(rng: SeededRng): ErrorStep {
+  const kd_rad = drawOnGrid(rng, E3_KD_RAD, HUNDREDTHS);
+  const dt_s = drawDt(rng);
+  let previousError: number;
+  let error: number;
+  do {
+    previousError = drawOnGrid(rng, E3_ERROR, HUNDREDTHS);
+    error = drawOnGrid(rng, E3_ERROR, HUNDREDTHS);
+  } while (Math.round(Math.abs(error - previousError) * HUNDREDTHS) < 1);
+  return { kd_rad, dt_s, previousError, error };
+}
+
+function derivativeTerm_radps({ kd_rad, dt_s, previousError, error }: ErrorStep): number {
+  return (kd_rad * (error - previousError)) / dt_s;
+}
+
+/** e3: D = Kd·(e_k − e_{k−1})/Δt, drawn again while |D| < 0.01 rad/s (#451, #461). */
 const e3 = defineExercise<ErrorStep>({
   id: 'e3',
   generate: (rng) => {
-    const kd_rad = drawOnGrid(rng, E3_KD_RAD, HUNDREDTHS);
-    const dt_s = drawDt(rng);
-    let previousError: number;
-    let error: number;
-    do {
-      previousError = drawOnGrid(rng, E3_ERROR, HUNDREDTHS);
-      error = drawOnGrid(rng, E3_ERROR, HUNDREDTHS);
-    } while (Math.round(Math.abs(error - previousError) * HUNDREDTHS) < 1);
-    return {
-      values: { kd_rad, dt_s, previousError, error },
-      answer: (kd_rad * (error - previousError)) / dt_s,
-      unit: 'rad/s',
-    };
+    let values = drawErrorStep(rng);
+    while (Math.abs(derivativeTerm_radps(values)) < MIN_NONZERO_ANSWER_RADPS) {
+      values = drawErrorStep(rng);
+    }
+    return { values, answer: derivativeTerm_radps(values), unit: 'rad/s' };
   },
   statement: () => statementKey('e3'),
   tolerance: RELATIVE_2_PERCENT,

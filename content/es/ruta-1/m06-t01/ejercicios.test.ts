@@ -1,4 +1,4 @@
-import { check, createRng } from '@trayectoria/sim-core';
+import { check, createRng, format } from '@trayectoria/sim-core';
 import type { Exercise } from '@trayectoria/sim-core';
 import { describe, expect, it } from 'vitest';
 
@@ -199,5 +199,64 @@ describe('e4 · umbral u: sensores en 1', () => {
       expect(unit).toBe('');
     }
     expect([...seen].sort()).toEqual([0.3, 0.5, 0.7]);
+  });
+});
+
+describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94; #451; #461)', () => {
+  const SWEEP_SEEDS = Array.from({ length: 5000 }, (_, seed) => seed + 1);
+  const STATEMENT_SIG_FIGS = 4;
+  /** #451: an answer graded with a relative tolerance is exactly 0 or at least 0.01 in its unit. */
+  const MIN_NONZERO_ANSWER = 0.01;
+  const shown = (value: number): number => Number(format(value, '', STATEMENT_SIG_FIGS));
+  const isShownExactly = (value: number): boolean =>
+    Math.abs(shown(value) - value) <= EPSILON * Math.max(1, Math.abs(value));
+
+  it('shows every value exactly, so the answer computed from the statement is the expected one', () => {
+    const failures: string[] = [];
+    for (const { id, generate } of exercises as readonly Exercise<unknown>[]) {
+      for (const seed of SWEEP_SEEDS) {
+        const values = generate(createRng(seed)).values as Record<string, unknown>;
+        for (const [key, value] of Object.entries(values)) {
+          if (typeof value === 'number' && !isShownExactly(value)) {
+            failures.push(`${id} seed ${seed}: ${key} = ${value} is shown as ${shown(value)}`);
+          }
+        }
+      }
+    }
+    expect(failures.slice(0, 5)).toEqual([]);
+  });
+
+  it('keeps every answer graded with a relative tolerance at 0 or at least 0.01', () => {
+    const failures: string[] = [];
+    for (const { id, generate, tolerance } of exercises as readonly Exercise<unknown>[]) {
+      for (const seed of SWEEP_SEEDS) {
+        const { answer } = generate(createRng(seed));
+        const components = Array.isArray(answer) ? (answer as number[]) : [answer as number];
+        const tolerances = [tolerance].flat();
+        components.forEach((value, index) => {
+          const isRelative = (tolerances[index] ?? tolerances[0])?.type === 'relative';
+          if (isRelative && value !== 0 && Math.abs(value) < MIN_NONZERO_ANSWER) {
+            failures.push(`${id} seed ${seed}: component ${index} = ${value}`);
+          }
+        });
+      }
+    }
+    expect(failures.slice(0, 5)).toEqual([]);
+  });
+
+  it('accepts the expected answer rounded to the precision the statement shows', () => {
+    const failures: string[] = [];
+    for (const candidate of exercises as readonly Exercise<unknown>[]) {
+      for (const seed of SWEEP_SEEDS) {
+        const { answer } = candidate.generate(createRng(seed));
+        const rounded = Array.isArray(answer)
+          ? (answer as number[]).map(shown)
+          : shown(answer as number);
+        if (!check(candidate, seed, rounded).correct) {
+          failures.push(`${candidate.id} seed ${seed}: ${String(rounded)} rejected`);
+        }
+      }
+    }
+    expect(failures.slice(0, 5)).toEqual([]);
   });
 });
