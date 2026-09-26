@@ -98,8 +98,8 @@ describe('DiffDriveWidget odometry (F2-09b)', () => {
     expect(radiusDriftError_m(10, 0.032, 0.032)).toBe(0);
   });
 
-  it('con L real 0.155 y creída 0.150 el error de rumbo tras 360° reales es −11.61° (e4)', () => {
-    expect(baseDriftError_deg(360, 0.15, 0.155)).toBeCloseTo(-11.61, 1);
+  it('con L creída 0.155 y real 0.150 el error de rumbo tras 360° reales es −11.61° (e4, #395)', () => {
+    expect(baseDriftError_deg(360, 0.155, 0.15)).toBeCloseTo(-11.61, 1);
     expect(baseDriftError_deg(360, 0.155, 0.155)).toBe(0);
   });
 
