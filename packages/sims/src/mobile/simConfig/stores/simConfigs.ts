@@ -2,19 +2,19 @@ import type { SimConfig } from '@trayectoria/robot-spec';
 
 import { parseSimConfig } from '../codec';
 
-// F4-05 (#131, decisión 4): las configuraciones guardadas del navegador. Es el único archivo del
-// entregable que toca `localStorage` (docs/STANDARDS.md §10), así que el panel y el adaptador de
-// Supabase no lo mencionan siquiera.
+// F4-05 (#131, decision 4): the configurations saved in the browser. It is the only file of the
+// deliverable that touches `localStorage` (docs/STANDARDS.md §10), so the panel and the Supabase
+// adapter do not even mention it.
 //
-// Lo guardado es una lista de `SimConfig` validada al leer con el esquema de robot-spec: una
-// entrada que no lo cumple —de una versión anterior, de otra pestaña o escrita a mano— se
-// descarta en lugar de romper la página. Nada de lo que hay aquí lanza: sin sesión y sin
-// almacenamiento el simulador sigue funcionando, solo que sin lista.
+// What is saved is a list of `SimConfig` validated on read with the robot-spec schema: an
+// entry that does not meet it —from an older version, from another tab or hand-written— is
+// dropped instead of breaking the page. Nothing here throws: with no session and no
+// storage the simulator keeps working, only without a list.
 
-/** Clave de `localStorage` donde vive la lista (spec del ticket). */
+/** `localStorage` key where the list lives (ticket spec). */
 export const SIM_CONFIGS_KEY = 'trayectoria.simConfigs';
 
-/** El almacenamiento del navegador, o `null` donde no lo haya (SSR, pruebas, modo restringido). */
+/** The browser storage, or `null` where there is none (SSR, tests, restricted mode). */
 function storage(): Storage | null {
   try {
     return typeof localStorage === 'undefined' ? null : localStorage;
@@ -23,7 +23,7 @@ function storage(): Storage | null {
   }
 }
 
-/** Las configuraciones guardadas, en el orden en que se guardaron; las inválidas se descartan. */
+/** The saved configurations, in the order they were saved; invalid ones are dropped. */
 export function listSimConfigs(): readonly SimConfig[] {
   const store = storage();
   if (store === null) return [];
@@ -41,18 +41,18 @@ export function listSimConfigs(): readonly SimConfig[] {
     .filter((config) => config !== null);
 }
 
-/** Escribe la lista completa; un almacenamiento lleno o bloqueado no rompe a quien llama. */
+/** Writes the whole list; a full or blocked storage does not break the caller. */
 function write(configs: readonly SimConfig[]): void {
   const store = storage();
   if (store === null) return;
   try {
     store.setItem(SIM_CONFIGS_KEY, JSON.stringify(configs));
   } catch {
-    // Sin sitio o sin permiso: la configuración no se guarda, la simulación sigue igual.
+    // No room or no permission: the configuration is not saved, the simulation carries on the same.
   }
 }
 
-/** Guarda `config`, sustituyendo en su sitio la que ya tuviera el mismo `id`. */
+/** Saves `config`, replacing in place the one that already had the same `id`. */
 export function saveSimConfig(config: SimConfig): void {
   const current = listSimConfigs();
   const at = current.findIndex((entry) => entry.id === config.id);
@@ -62,7 +62,7 @@ export function saveSimConfig(config: SimConfig): void {
   write(next);
 }
 
-/** Borra la configuración `id`; una que no exista deja la lista como está. */
+/** Deletes the configuration `id`; one that does not exist leaves the list as it is. */
 export function deleteSimConfig(id: string): void {
   write(listSimConfigs().filter((config) => config.id !== id));
 }

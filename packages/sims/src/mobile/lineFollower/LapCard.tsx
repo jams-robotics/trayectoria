@@ -4,26 +4,26 @@ import type { Translate } from '@trayectoria/i18n';
 
 import type { LapTimer } from './metrics';
 
-// F4-03 (#129, decisión 5): la tarjeta de vuelta del visor. No calcula nada: recibe el cronómetro
-// que `useInstruments` fue cerrando con el tiempo simulado del modelo y lo formatea.
+// F4-03 (#129, decision 5): the lap card of the viewer. It computes nothing: it receives the stopwatch
+// that `useInstruments` kept closing with the model's simulated time and formats it.
 
-/** Decimales de los tiempos de vuelta, en segundos (docs/DESIGN.md §5: reloj con dos). */
+/** Decimals of the lap times, in seconds (docs/DESIGN.md §5: clock with two). */
 const TIME_DECIMALS = 2;
 
-/** Decimales de las velocidades y las distancias, en m/s y m. */
+/** Decimals of the speeds and the distances, in m/s and m. */
 const SPEED_DECIMALS = 2;
 
-/** Lo que se muestra mientras no hay ninguna vuelta cerrada (decisión 5). */
+/** What is shown while no lap has been closed (decision 5). */
 const EMPTY = '—';
 
-/** Una fila de la tarjeta: la etiqueta ya traducida y el número con su unidad. */
+/** One row of the card: the already translated label and the number with its unit. */
 interface Row {
   readonly key: string;
   readonly label: string;
   readonly value: string;
 }
 
-/** Las cuatro filas de la tarjeta, con `—` en todas mientras no se haya cerrado una vuelta. */
+/** The four rows of the card, with `—` in all of them while no lap has been closed. */
 function rowsOf(timer: LapTimer, t: Translate): readonly Row[] {
   const last = timer.laps.at(-1);
   const seconds = (value: number | null | undefined): string =>
@@ -39,11 +39,11 @@ function rowsOf(timer: LapTimer, t: Translate): readonly Row[] {
 }
 
 export interface LapCardProps {
-  /** El cronómetro en curso; sus vueltas ya vienen cerradas con tiempo simulado exacto. */
+  /** The current stopwatch; its laps already come closed with exact simulated time. */
   readonly timer: LapTimer;
 }
 
-/** Las cifras sin formatear que la tarjeta publica para que un e2e compruebe la identidad. */
+/** The unformatted figures the card publishes so that an e2e can check the identity. */
 function dataOf(timer: LapTimer): Record<string, string> {
   const last = timer.laps.at(-1);
   if (last === undefined) return { 'data-laps': '0' };
@@ -57,13 +57,13 @@ function dataOf(timer: LapTimer): Record<string, string> {
 }
 
 /**
- * La tarjeta de métrica del visor (docs/DESIGN.md §6: abajo-derecha, `bg-raised` y `shadow-sm`):
- * el tiempo de la última vuelta, el mejor tiempo, la velocidad media y la distancia que el
- * odómetro acumuló en esa vuelta.
+ * The metric card of the viewer (docs/DESIGN.md §6: bottom-right, `bg-raised` and `shadow-sm`):
+ * the time of the last lap, the best time, the average speed and the distance the
+ * odometer accumulated in that lap.
  *
- * La velocidad media es la longitud de la pista dividida por el tiempo de vuelta (#170), y la
- * distancia recorrida se muestra al lado porque el seguidor corta los arcos y recorre algo menos
- * que la línea: verlas juntas es lo que hace visible esa diferencia.
+ * The average speed is the track length divided by the lap time (#170), and the
+ * distance travelled is shown next to it because the follower cuts the arcs and travels somewhat less
+ * than the line: seeing them together is what makes that difference visible.
  */
 export function LapCard({ timer }: LapCardProps): JSX.Element {
   const t = useT();
@@ -71,8 +71,8 @@ export function LapCard({ timer }: LapCardProps): JSX.Element {
     <div
       className="border-border bg-bg-raised pointer-events-none absolute right-3 bottom-3 rounded-lg border p-3 shadow-sm"
       data-testid="lap-card"
-      // Las cifras sin redondear, para que el e2e compruebe `lapTime · avgSpeed = trackLength`
-      // con la tolerancia de 1e-9 del criterio en lugar de con los dos decimales que se ven.
+      // The unrounded figures, so that the e2e checks `lapTime · avgSpeed = trackLength`
+      // with the criterion's 1e-9 tolerance instead of with the two decimals that are shown.
       {...dataOf(timer)}
     >
       <dl className="text-fg grid grid-cols-[auto_auto] gap-x-3 gap-y-1 text-xs">

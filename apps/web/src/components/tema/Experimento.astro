@@ -1,14 +1,14 @@
 ---
 import { t } from '@trayectoria/i18n';
 
-// Un experimento guiado de la sección «Explora», con la forma exacta del estándar:
-// «cambia X → observa Y → ¿por qué?» y la respuesta desplegable (docs/CONTENT-STANDARDS.md §4).
+// A guided experiment of the «Explora» section, with the exact shape of the standard:
+// «cambia X → observa Y → ¿por qué?» and the collapsible answer (docs/CONTENT-STANDARDS.md §4).
 interface Props {
-  /** Qué mueve el estudiante. */
+  /** What the learner moves. */
   cambia: string;
-  /** Qué mira mientras lo mueve. */
+  /** What they watch while moving it. */
   observa: string;
-  /** La pregunta que cierra el experimento; la respuesta va en los hijos, máximo 3 frases. */
+  /** The question that closes the experiment; the answer goes in the children, 3 sentences at most. */
   porque: string;
 }
 

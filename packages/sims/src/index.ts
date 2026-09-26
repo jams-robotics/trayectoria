@@ -161,7 +161,7 @@ export type {
   UseLineFollowerOptions,
 } from './mobile/lineFollower';
 
-// F4-05 (#131): guardar y compartir la configuración del simulador móvil.
+// F4-05 (#131): save and share the mobile simulator configuration.
 export {
   SHARE_PARAM,
   SIM_CONFIGS_KEY,

@@ -33,7 +33,7 @@ export interface ControllerDef {
 export const CONTROLLER_IDS: readonly ControllerId[] = ['manual', 'onoff', 'p', 'pid'];
 
 /**
- * Slider range of every parameter, as `[min, max, step]` (#127, decisión 5). `omegaBase_radps`
+ * Slider range of every parameter, as `[min, max, step]` (#127, decision 5). `omegaBase_radps`
  * and `delta_radps` are capped by the robot rather than by a constant, so their maximum is
  * `maxWheelSpeed_radps(spec)` and lives in `controllerParams`, not here.
  */

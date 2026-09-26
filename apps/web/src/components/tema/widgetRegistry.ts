@@ -1,34 +1,34 @@
 import type { JSX } from 'react';
 
 /**
- * Registro nombre → entrada propia de `@trayectoria/widgets` para la página de tema (ADR-0009,
- * #188). Cada valor es un `import()` dinámico de `@trayectoria/widgets/<Widget>`, no del barrel:
- * así el tema solo descarga los widgets que su MDX declara, y no el catálogo entero.
+ * Registry name → own entry of `@trayectoria/widgets` for the topic page (ADR-0009,
+ * #188). Each value is a dynamic `import()` of `@trayectoria/widgets/<Widget>`, not of the barrel:
+ * that way the topic only downloads the widgets its MDX declares, and not the whole catalogue.
  *
- * Los especificadores son literales, uno por widget, porque un `import()` con plantilla
- * (`import(\`@trayectoria/widgets/${name}\`)`) no lo puede analizar el empaquetador y acabaría
- * emitiendo un chunk por cada widget en la tabla de dependencias de toda página de tema, que es
- * justo lo que #188 arregla.
+ * The specifiers are literals, one per widget, because an `import()` with a template
+ * (`import(\`@trayectoria/widgets/${name}\`)`) cannot be analysed by the bundler and would end up
+ * emitting a chunk per widget in the dependency table of every topic page, which is
+ * exactly what #188 fixes.
  *
- * `ParamPanel`, `Formula` y `Plot` son componentes de interfaz comunes a casi todos los widgets
- * (ADR-0009): comparten chunk y no se separan porque separarlos no ahorra nada.
+ * `ParamPanel`, `Formula` and `Plot` are interface components common to almost every widget
+ * (ADR-0009): they share a chunk and are not split because splitting them saves nothing.
  */
 export type WidgetModule = Readonly<Record<string, unknown>>;
 
-/** Carga perezosa de un widget: devuelve el módulo de su entrada propia. */
+/** Lazy loading of a widget: returns the module of its own entry. */
 export type WidgetLoader = () => Promise<WidgetModule>;
 
 /**
- * Un widget montado por la página de tema. Las props llegan ya serializadas por Astro (solo
- * valores JSON), así que el componente se tipa por esa forma y no por la de cada widget: la
- * forma concreta la valida `astro check` en el `.astro` que pasa las props.
+ * A widget mounted by the topic page. The props arrive already serialized by Astro (only
+ * JSON values), so the component is typed by that shape and not by each widget's: the
+ * concrete shape is validated by `astro check` in the `.astro` that passes the props.
  */
 export type TopicWidgetComponent = (props: Readonly<Record<string, unknown>>) => JSX.Element;
 
 /**
- * Un módulo de widget expone su componente bajo su propio nombre (docs/STANDARDS.md §4). El
- * guard estrecha el `unknown` del módulo sin aserción: React llama al componente con las props
- * que Astro ya serializó, y su firma concreta la valida `astro check` en el `.astro` que lo usa.
+ * A widget module exposes its component under its own name (docs/STANDARDS.md §4). The
+ * guard narrows the module's `unknown` without an assertion: React calls the component with the props
+ * Astro already serialized, and its concrete signature is validated by `astro check` in the `.astro` that uses it.
  */
 function isTopicWidget(exported: unknown): exported is TopicWidgetComponent {
   return typeof exported === 'function';
@@ -54,7 +54,7 @@ const LOADERS: Readonly<Record<string, WidgetLoader>> = {
   VectorWidget: () => import('@trayectoria/widgets/VectorWidget'),
 };
 
-/** Nombres que un `widgets:` del frontmatter puede declarar, para el error de build del tema. */
+/** Names a frontmatter `widgets:` may declare, for the topic's build error. */
 export function widgetNames(): readonly string[] {
   return Object.keys(LOADERS);
 }
@@ -81,15 +81,15 @@ export const TOPIC_WIDGETS = [
   'VectorWidget',
 ] as const;
 
-/** El cargador de un widget, o `undefined` si el nombre no está en el registro. */
+/** The loader of a widget, or `undefined` if the name is not in the registry. */
 export function findWidgetLoader(name: string): WidgetLoader | undefined {
   return LOADERS[name];
 }
 
 /**
- * Resuelve el componente de un widget desde su entrada propia. El módulo exporta el componente
- * bajo su propio nombre (`Formula` en `@trayectoria/widgets/Formula`), que es la convención de
- * `docs/STANDARDS.md` §4 para el `index.ts` de un widget.
+ * Resolves a widget's component from its own entry. The module exports the component
+ * under its own name (`Formula` in `@trayectoria/widgets/Formula`), which is the convention of
+ * `docs/STANDARDS.md` §4 for a widget's `index.ts`.
  */
 export async function loadWidget(name: string): Promise<TopicWidgetComponent> {
   const loader = findWidgetLoader(name);

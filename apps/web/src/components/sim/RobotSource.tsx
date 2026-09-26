@@ -7,25 +7,25 @@ import type { RobotSpec } from '@trayectoria/widgets/MyRobotWidget';
 
 import type { SavedRobot } from './savedRobots';
 
-// F4-02b (#128, decisión 2): «Mi robot» por defecto y, con sesión, los robots guardados
-// `kind = 'mobile-diff'` de la tabla `robots`. La lectura reutiliza el cliente y las políticas
-// existentes; no hay migración ni política nueva.
+// F4-02b (#128, decision 2): «Mi robot» by default and, with a session, the saved robots
+// `kind = 'mobile-diff'` of the `robots` table. The read reuses the existing client and
+// policies; there is no new migration or policy.
 //
-// `savedRobots.ts` se carga con `import()` y no al montar: arrastra `@trayectoria/auth` y con él
-// `@supabase/supabase-js` (≈ 55 kB comprimidos), que no tienen por qué entrar en el JS inicial de
-// una página que simula igual de bien sin sesión (docs/ARCHITECTURE.md §8).
+// `savedRobots.ts` is loaded with `import()` and not on mount: it drags in `@trayectoria/auth` and
+// with it `@supabase/supabase-js` (≈ 55 kB compressed), which have no reason to enter the initial
+// JS of a page that simulates just as well without a session (docs/ARCHITECTURE.md §8).
 
-// F4-04 (#130, decisión 5): además, el grupo «Referencia» con los tres robots de
-// `catalog/mobile/`. Se descargan con `loadCatalogMobileAll` de `@trayectoria/sims`, que los
-// valida con `parseRobotSpec`; ningún valor de los robots se copia aquí.
+// F4-04 (#130, decision 5): also, the «Referencia» group with the three robots of
+// `catalog/mobile/`. They are downloaded with `loadCatalogMobileAll` of `@trayectoria/sims`, which
+// validates them with `parseRobotSpec`; no robot value is copied here.
 
-/** Valor del selector que significa «Mi robot», el del store local. */
+/** Selector value that means «Mi robot», the one from the local store. */
 export const MY_ROBOT_ID = 'my-robot';
 
-/** Prefijo de los valores del grupo «Referencia», para no chocar con el id de un robot guardado. */
+/** Prefix of the «Referencia» group values, so they do not clash with a saved robot id. */
 export const CATALOG_PREFIX = 'catalog:';
 
-/** Un robot de referencia ya descargado y validado, tal y como lo muestra el selector. */
+/** An already downloaded and validated reference robot, as the selector shows it. */
 export interface CatalogRobot {
   readonly id: string;
   readonly name: string;
@@ -37,7 +37,7 @@ const SELECT =
   'border-border bg-bg-raised text-fg h-11 rounded-md border px-3 text-sm ' +
   'focus-visible:outline-color-focus focus-visible:outline-2 focus-visible:outline-offset-2';
 
-/** Los robots guardados del estudiante con sesión; lista vacía mientras no la haya. */
+/** The saved robots of the signed-in learner; empty list while there is no session. */
 function useSavedRobots(): { robots: readonly SavedRobot[]; failed: boolean } {
   const [robots, setRobots] = useState<readonly SavedRobot[]>([]);
   const [failed, setFailed] = useState(false);
@@ -61,9 +61,9 @@ function useSavedRobots(): { robots: readonly SavedRobot[]; failed: boolean } {
 }
 
 /**
- * Los tres robots de referencia de `catalog/mobile/` (#130, decisión 5). Se cargan con `import()`
- * igual que el resto del simulador, así que no entran en el JS inicial de la página; si la
- * descarga falla, el selector se queda con «Mi robot» y los guardados.
+ * The three reference robots of `catalog/mobile/` (#130, decision 5). They are loaded with
+ * `import()` like the rest of the simulator, so they do not enter the page's initial JS; if the
+ * download fails, the selector keeps «Mi robot» and the saved ones.
  */
 function useCatalogRobots(): { robots: readonly CatalogRobot[]; failed: boolean } {
   const [robots, setRobots] = useState<readonly CatalogRobot[]>([]);
@@ -96,8 +96,8 @@ function useCatalogRobots(): { robots: readonly CatalogRobot[]; failed: boolean 
 }
 
 /**
- * Publica el robot efectivo cada vez que cambia la selección, «Mi robot», la lista guardada o la
- * de referencia. Una selección que todavía no está en ninguna lista cae en «Mi robot».
+ * Publishes the effective robot every time the selection, «Mi robot», the saved list or the
+ * reference list changes. A selection that is not yet in any list falls back to «Mi robot».
  */
 function useEffectiveRobot(options: {
   selected: string;
@@ -114,7 +114,7 @@ function useEffectiveRobot(options: {
   }, [selected, robots, catalog, myRobot, onRobot]);
 }
 
-/** El grupo «Referencia» del selector; vacío mientras el catálogo no haya respondido. */
+/** The «Referencia» group of the selector; empty while the catalogue has not responded. */
 function CatalogGroup({
   robots,
   t,
@@ -134,7 +134,7 @@ function CatalogGroup({
   );
 }
 
-/** Aviso de una lista que no se pudo cargar; nada mientras la carga vaya bien. */
+/** Notice for a list that could not be loaded; nothing while loading goes well. */
 function LoadError({
   shown,
   testId,
@@ -153,14 +153,14 @@ function LoadError({
 }
 
 export interface RobotSourceProps {
-  /** Id seleccionado: `MY_ROBOT_ID` o el de un robot guardado. */
+  /** Selected id: `MY_ROBOT_ID` or that of a saved robot. */
   readonly selected: string;
   readonly onSelect: (id: string) => void;
-  /** Se llama con el robot que la página debe simular cada vez que la selección cambia. */
+  /** Called with the robot the page must simulate every time the selection changes. */
   readonly onRobot: (spec: RobotSpec) => void;
 }
 
-/** Selector del robot: «Mi robot», los tres de referencia y, con sesión, los guardados. */
+/** Robot selector: «Mi robot», the three reference ones and, with a session, the saved ones. */
 export function RobotSource({ selected, onSelect, onRobot }: RobotSourceProps): JSX.Element {
   const t = useT();
   const myRobot = useMyRobot();

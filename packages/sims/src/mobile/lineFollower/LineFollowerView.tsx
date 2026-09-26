@@ -13,10 +13,10 @@ import type { StartPose } from './StartPoseHandle';
 import type { LineFollowerApi } from './useLineFollower';
 import type { LineFollowerState, Pose } from './model';
 
-/** Margin left around the track on every side, in metres (#127, decisión 6). */
+/** Margin left around the track on every side, in metres (#127, decision 6). */
 const VIEW_MARGIN_M = 0.1;
 
-/** Narrowest world width the compact viewer shows, in metres (#127, decisión 6). */
+/** Narrowest world width the compact viewer shows, in metres (#127, decision 6). */
 const COMPACT_MIN_WIDTH_M = 1;
 
 /** Samples of the centerline used to bound the view; one every centimetre is plenty. */
@@ -30,7 +30,7 @@ const BOUNDS_STEP_M = 0.01;
  */
 const VIEW_ASPECT = 16 / 9;
 
-/** Decimals of the sensor readings in the legend (#127, decisión 6). */
+/** Decimals of the sensor readings in the legend (#127, decision 6). */
 const READING_DECIMALS = 2;
 
 /** Decimals of the pose, speed and time readouts of the legend. */
@@ -38,7 +38,7 @@ const READOUT_DECIMALS = 3;
 
 /**
  * The visible world of a track: its extent plus `VIEW_MARGIN_M` on every side, widened so the
- * vertical extent also fits the aspect the scene draws with (#157, decisión 1).
+ * vertical extent also fits the aspect the scene draws with (#157, decision 1).
  */
 export function viewOf(
   track: Track,
@@ -119,7 +119,7 @@ function Readouts({ state, t }: { state: LineFollowerState; t: Translate }): JSX
   );
 }
 
-/** The warning shown while the array no longer sees the line (docs/DESIGN.md §8: no solo color). */
+/** The warning shown while the array no longer sees the line (docs/DESIGN.md §8: not colour alone). */
 function LostNotice({ lost, t }: { lost: boolean; t: Translate }): JSX.Element | null {
   if (!lost) return null;
   return (
@@ -129,11 +129,11 @@ function LostNotice({ lost, t }: { lost: boolean; t: Translate }): JSX.Element |
   );
 }
 
-/** Radius of the marker drawn where the line was lost, in metres (F4-03, #129, decisión 5). */
+/** Radius of the marker drawn where the line was lost, in metres (F4-03, #129, decision 5). */
 const LOST_MARKER_RADIUS_M = 0.03;
 
 /**
- * The marker left at the pose the array lost the line at (F4-03, decisión 5): a filled circle in
+ * The marker left at the pose the array lost the line at (F4-03, decision 5): a filled circle in
  * `--color-error`, which is the token docs/DESIGN.md §6 gives the error state. It stays until
  * «Reiniciar» starts the run over, so the learner can see where the robot went off.
  */
@@ -145,7 +145,7 @@ function LostMarker({ pose }: { pose: Pose | undefined }): JSX.Element | null {
 }
 
 /**
- * The assertive warning of the lost event (F4-03, decisión 5). It is a separate live region from
+ * The assertive warning of the lost event (F4-03, decision 5). It is a separate live region from
  * `LostNotice`: that one only describes the state of the array, while this one announces the run
  * stopping, which is what a screen reader has to hear the moment it happens.
  */
@@ -208,8 +208,8 @@ function Viewer({
   t: Translate;
 }): JSX.Element {
   const { robot } = api.state;
-  // F4-03 (#129, decisión 5): la tarjeta de vuelta va abajo-derecha del visor (docs/DESIGN.md §6),
-  // superpuesta a la escena; el envoltorio `relative` es lo que la ancla a esa esquina.
+  // F4-03 (#129, decision 5): the lap card goes at the bottom-right of the viewer (docs/DESIGN.md §6),
+  // overlaid on the scene; the `relative` wrapper is what anchors it to that corner.
   return (
     <div className="relative">
       <Scene2D

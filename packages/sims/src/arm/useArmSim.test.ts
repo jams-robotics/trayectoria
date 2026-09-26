@@ -21,7 +21,7 @@ import { parseUrdf } from '@trayectoria/sim-core';
 const CATALOG = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../catalog/arms');
 const ROBOT_ID = '00000000-0000-4000-8000-000000000001';
 
-/** El URDF del brazo plano, leído del catálogo del repositorio (sin red). */
+/** The URDF of the planar arm, read from the repository catalog (no network). */
 const PLANAR_URDF = readFileSync(resolve(CATALOG, 'planar2dof/planar2dof.urdf'), 'utf8');
 
 function planarSpec(): RobotSpec {
@@ -31,8 +31,8 @@ function planarSpec(): RobotSpec {
 }
 
 /**
- * Valores dorados de PLAN.md F1-08, repetidos en el ticket: configuración y posición del efector
- * `tool0` del brazo plano (l1 = 0.20 m, l2 = 0.15 m).
+ * Golden values from PLAN.md F1-08, repeated in the ticket: configuration and position of the
+ * `tool0` effector of the planar arm (l1 = 0.20 m, l2 = 0.15 m).
  */
 const GOLDEN: ReadonlyArray<{
   readonly q_rad: readonly [number, number];
@@ -145,7 +145,7 @@ describe('useArmSim (F5-01a)', () => {
       'tool0',
     ]);
     const tool0 = result.current.linkTransforms.get('tool0') ?? [];
-    // Columna-mayor: la traslación ocupa los índices 12, 13 y 14 (sim-core math/mat4.ts).
+    // Column-major: the translation occupies indices 12, 13 and 14 (sim-core math/mat4.ts).
     expect(tool0[12]).toBeCloseTo(0, 9);
     expect(tool0[13]).toBeCloseTo(0.35, 9);
   });

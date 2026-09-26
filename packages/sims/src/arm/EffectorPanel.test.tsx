@@ -8,7 +8,7 @@ import { FramesToggle } from './FramesToggle';
 import { ARM_TOKENS, armToken, readArmColors } from './armColors';
 import type { EffectorReadout } from './types';
 
-/** El panel con q = (90°, 0) del brazo plano: valores dorados del ticket. */
+/** The panel with q = (90°, 0) of the planar arm: golden values from the ticket. */
 const GOLDEN_READOUT: EffectorReadout = {
   x_m: '0.000',
   y_m: '0.350',
@@ -81,7 +81,7 @@ describe('armColors (F5-01a)', () => {
       base: '--color-fg-muted',
       link: '--color-physical',
       joint: '--color-fg',
-      // F5-02 (#135, decisión 4): el eslabón elegido en el panel de matrices se marca `primary`.
+      // F5-02 (#135, decision 4): the link chosen in the matrix panel is marked `primary`.
       highlight: '--color-primary',
     });
   });
@@ -100,7 +100,7 @@ describe('armColors (F5-01a)', () => {
       getPropertyValue: (name: string) => (name === '--color-physical' ? ' #f0a742 ' : ''),
     } as unknown as CSSStyleDeclaration);
     expect(armToken(document.documentElement, ARM_TOKENS.link)).toBe('#f0a742');
-    // Un token que la hoja no define sigue cayendo a su valor claro.
+    // A token the stylesheet does not define still falls back to its light value.
     expect(armToken(document.documentElement, ARM_TOKENS.base)).toBe('#526475');
     expect(armToken(document.documentElement, '--color-inventado')).toBe('');
     spy.mockRestore();

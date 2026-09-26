@@ -7,19 +7,19 @@ import { describe, expect, test } from 'vitest';
 
 import { TrackEditor } from './TrackEditor';
 
-// #190 (decisiones 1 y 2): «Nueva» en la barra y la opción «Vacía» del selector de preset dejan
-// el lienzo sin segmentos. Ambas preguntan antes si hay algo que perder, y el vaciado pasa por el
-// historial, así que «Deshacer» devuelve la pista que había.
+// #190 (decisions 1 and 2): «Nueva» in the bar and the «Vacía» option of the preset selector leave
+// the canvas without segments. Both ask first if there is anything to lose, and the emptying goes through the
+// history, so «Deshacer» brings back the track that was there.
 //
-// Como en `TrackEditor.test.tsx`, jsdom no maqueta y `Scene2D` nunca mide: lo que se comprueba
-// aquí es la barra y la lista de segmentos del panel, no el dibujo.
+// As in `TrackEditor.test.tsx`, jsdom does no layout and `Scene2D` never measures: what is checked
+// here is the bar and the segment list of the panel, not the drawing.
 
 const LINE_TRACK: Track = {
   segments: [{ type: 'line', from: [0, 0], to: [0.3, 0] }],
   lineWidth_m: 0.02,
 };
 
-/** Los segmentos que el panel lista; ninguno cuando la pista está vacía. */
+/** The segments the panel lists; none when the track is empty. */
 function segmentCount(): number {
   return screen.queryAllByRole('button', { name: /^Segmento \d+: / }).length;
 }
@@ -53,7 +53,7 @@ describe('«Nueva» y la pista vacía (#190)', () => {
     await waitFor(() => {
       expect(segmentCount()).toBe(0);
     });
-    // El ancho de línea es el que se estaba usando, no el del preset por defecto.
+    // The line width is the one that was in use, not that of the default preset.
     expect(changes.at(-1)).toEqual({ segments: [], lineWidth_m: LINE_TRACK.lineWidth_m });
   });
 
@@ -65,7 +65,7 @@ describe('«Nueva» y la pista vacía (#190)', () => {
     await waitFor(() => {
       expect(segmentCount()).toBe(0);
     });
-    // Vaciar es una edición más: pasa por el historial y «Deshacer» la revierte (decisión 1).
+    // Emptying is one more edit: it goes through the history and «Deshacer» reverts it (decision 1).
     const undoButton = screen.getByRole('button', { name: t('sims.trackEditor.undo') });
     expect(undoButton).toBeEnabled();
     await user.click(undoButton);

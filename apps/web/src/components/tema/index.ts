@@ -11,20 +11,20 @@ import Verifica from './Verifica.astro';
 import { catalogWidgetComponents } from './catalogWidgets';
 
 /**
- * Mapa de componentes que la página del tema pasa a `<Content components={temaComponents} />`
- * (#97, decisión 1): el MDX escribe `<Gancho>`, `<Concepto>`… y cada componente pinta su `h2`
- * con el título i18n y su ancla fija, sin que el contenido tenga que repetirlos.
+ * Component map the topic page passes to `<Content components={temaComponents} />`
+ * (#97, decision 1): the MDX writes `<Gancho>`, `<Concepto>`… and each component paints its `h2`
+ * with the i18n title and its fixed anchor, without the content having to repeat them.
  *
- * `Formula` también va aquí, y no se importa desde el MDX: `content/` vive fuera de `apps/web`
- * (ADR-0005) y no resuelve los paquetes del workspace.
+ * `Formula` also goes here, and is not imported from the MDX: `content/` lives outside `apps/web`
+ * (ADR-0005) and does not resolve the workspace packages.
  *
  * F6-01 (#243): the topic widgets of the catalog enter under their own names through the one-line
  * wrappers of `catalog/` over `CatalogWidget` (`catalogWidgets.ts`), and `RobotFormula` renders
  * an «Al robot» calc with «Mi robot».
  *
- * El mapa se tipa como `unknown`: el servicio de tipos de eslint no resuelve un `.astro`
- * importado desde un `.ts` (sí lo hace `astro check`, que corre en `pnpm typecheck`), y MDX solo
- * necesita el valor. La forma de cada componente la valida `astro check` en el `.astro` que lo usa.
+ * The map is typed as `unknown`: eslint's type service does not resolve a `.astro`
+ * imported from a `.ts` (`astro check` does, and it runs in `pnpm typecheck`), and MDX only
+ * needs the value. The shape of each component is validated by `astro check` in the `.astro` that uses it.
  */
 export const temaComponents: Readonly<Record<string, unknown>> = {
   Gancho,
@@ -40,7 +40,7 @@ export const temaComponents: Readonly<Record<string, unknown>> = {
   ...catalogWidgetComponents,
 };
 
-/** Nombre del componente de cada sección obligatoria, en el orden de CONTENT-STANDARDS §2. */
+/** Component name of each mandatory section, in the order of CONTENT-STANDARDS §2. */
 export const SECTION_COMPONENTS = [
   'Gancho',
   'Concepto',

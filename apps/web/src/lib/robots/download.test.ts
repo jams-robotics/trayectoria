@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { DOWNLOAD_FAILED_KEY, downloadRobotZip, objectKeyOf } from './download';
 
-// F5-04 (#137, decisión 5): la descarga corre con el cliente de sesión y las políticas de la
-// migración 0003. Un objeto de otro `uid` lo rechaza RLS, y aquí se comprueba que ese rechazo
-// llega a la UI como un error genérico, sin filtrar el mensaje de Supabase.
+// F5-04 (#137, decision 5): the download runs with the session client and the policies of
+// migration 0003. An object of another `uid` is rejected by RLS, and here it is checked that the rejection
+// reaches the UI as a generic error, without leaking the Supabase message.
 
 const OWNER = '11111111-1111-4111-8111-111111111111';
 const ROBOT = '22222222-2222-4222-8222-222222222222';
@@ -14,7 +14,7 @@ interface StorageCall {
   readonly path: string;
 }
 
-/** Cliente de Supabase mínimo: apunta la llamada y responde lo que le digan. */
+/** Minimal Supabase client: records the call and answers whatever it is told. */
 function mockDb(answer: { data: Blob | null; error: { message: string } | null }): {
   db: never;
   calls: StorageCall[];
@@ -33,7 +33,7 @@ function mockDb(answer: { data: Blob | null; error: { message: string } | null }
   return { db: db as never, calls };
 }
 
-/** Un zip de prueba como `Blob`, que es lo que Storage devuelve. */
+/** A test zip as a `Blob`, which is what Storage returns. */
 function blobOf(bytes: Uint8Array): Blob {
   return new Blob([bytes.buffer as ArrayBuffer], { type: 'application/zip' });
 }

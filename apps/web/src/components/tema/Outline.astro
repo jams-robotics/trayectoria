@@ -1,17 +1,17 @@
 ---
 import { t } from '@trayectoria/i18n';
 
-// Índice de las 7 secciones (#97, decisión 5). En escritorio es la lista lateral sticky de
-// 200 px de docs/DESIGN.md §5 (Navegación); en ≤ 390 px pasa al `<details>` plegado bajo la
-// cabecera de docs/design/07-tema-movil-claro.png.
+// Outline of the 7 sections (#97, decision 5). On desktop it is the sticky 200 px side list
+// of docs/DESIGN.md §5 (Navegación); at ≤ 390 px it becomes the collapsed `<details>` under the
+// header of docs/design/07-tema-movil-claro.png.
 interface Props {
-  /** `true` pinta la variante plegable de móvil; por defecto, la lateral de escritorio. */
+  /** `true` paints the collapsible mobile variant; by default, the desktop side one. */
   mobile?: boolean;
 }
 
 const { mobile = false } = Astro.props;
 
-// Las claves se escriben literales: el test estático de i18n solo ve literales (ops/I18N.md).
+// The keys are written as literals: the static i18n test only sees literals (ops/I18N.md).
 const sections = [
   { id: 'gancho', title: t('topic.sections.gancho') },
   { id: 'concepto', title: t('topic.sections.concepto') },
@@ -74,7 +74,7 @@ const sections = [
 )}
 
 <style>
-  /* Sección actual del índice: borde y texto en `primary` (docs/DESIGN.md §5, Navegación). */
+  /* Current section of the outline: border and text in `primary` (docs/DESIGN.md §5, Navegación). */
   a[data-outline-link][aria-current='true'] {
     border-left-color: var(--color-primary);
     color: var(--color-primary);
@@ -83,7 +83,7 @@ const sections = [
 </style>
 
 <script>
-  // Marca la sección visible en el índice. `window` está permitido en apps/web (CLAUDE.md).
+  // Marks the visible section in the outline. `window` is allowed in apps/web (CLAUDE.md).
   const sections = [...document.querySelectorAll<HTMLElement>('[data-section]')];
   const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-outline-link]')];
   if (sections.length > 0 && links.length > 0 && 'IntersectionObserver' in window) {

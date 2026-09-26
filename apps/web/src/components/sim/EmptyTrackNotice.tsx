@@ -3,12 +3,12 @@ import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 import { Toast } from '@trayectoria/widgets/Toast';
 
-// #190 (decisión 3): separado de `MobileSimIsland.tsx` para mantener ese archivo bajo el límite de
-// docs/STANDARDS.md §4. El aviso de «el editor se dejó sin segmentos, sigue la pista anterior»: un
-// lienzo sin segmentos no reemplaza a la pista que la página ya simulaba, se conserva aquella y se
-// dice, porque si no el editor parecería no haber hecho nada.
+// #190 (decision 3): split from `MobileSimIsland.tsx` to keep that file under the limit of
+// docs/STANDARDS.md §4. The notice «el editor se dejó sin segmentos, sigue la pista anterior»: a
+// canvas without segments does not replace the track the page was already simulating; that one
+// is kept and the page says so, because otherwise the editor would seem to have done nothing.
 
-/** El estado del aviso de «lienzo vacío» y cómo se muestra o se cierra. */
+/** The state of the «lienzo vacío» notice and how it is shown or dismissed. */
 export interface EmptyTrackNoticeApi {
   readonly shown: boolean;
   readonly show: () => void;
@@ -16,8 +16,8 @@ export interface EmptyTrackNoticeApi {
 }
 
 /**
- * El aviso de «el editor se dejó sin segmentos, sigue la pista anterior» (#190, decisión 3). Es el
- * toast de docs/DESIGN.md §5, que se cierra solo a los 5 s o con Esc.
+ * The notice «el editor se dejó sin segmentos, sigue la pista anterior» (#190, decision 3). It is
+ * the toast of docs/DESIGN.md §5, which dismisses itself after 5 s or with Esc.
  */
 export function useEmptyTrackNotice(): EmptyTrackNoticeApi {
   const [shown, setShown] = useState(false);
@@ -32,7 +32,7 @@ export function useEmptyTrackNotice(): EmptyTrackNoticeApi {
   };
 }
 
-/** El toast de «el editor se dejó sin segmentos», cuando lo hay (#190, decisión 3). */
+/** The «el editor se dejó sin segmentos» toast, when there is one (#190, decision 3). */
 export function EmptyTrackToast({ notice }: { notice: EmptyTrackNoticeApi }): JSX.Element | null {
   const t = useT();
   if (!notice.shown) return null;

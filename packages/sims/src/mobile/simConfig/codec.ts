@@ -3,65 +3,65 @@ import type { Result } from '@trayectoria/sim-core';
 
 export type { SimConfig } from '@trayectoria/robot-spec';
 
-// F4-05 (#131, decisiones 1 y 2): la configuración del simulador viaja en la URL, sin dependencias
-// nuevas y sin servidor. El texto es el JSON de `SimConfig` comprimido con `deflate-raw`
-// —`CompressionStream` es del navegador y de Node, no hay librería que añadir— y escrito en
-// base64url, que es lo que una URL admite sin escapar nada.
+// F4-05 (#131, decisions 1 and 2): the simulator configuration travels in the URL, with no new
+// dependencies and no server. The text is the `SimConfig` JSON compressed with `deflate-raw`
+// —`CompressionStream` belongs to the browser and to Node, there is no library to add— and written in
+// base64url, which is what a URL accepts without escaping anything.
 //
-// La descompresión nunca confía en el texto: cualquier paso que falle (base64 mal formado, flujo
-// que no descomprime, JSON roto, objeto que no cumple el esquema) devuelve el mismo `invalid`, y
-// quien llama muestra el aviso y abre con los valores por defecto.
+// Decompression never trusts the text: any step that fails (malformed base64, stream
+// that does not decompress, broken JSON, object that does not meet the schema) returns the same `invalid`, and
+// the caller shows the warning and opens with the default values.
 
 /**
- * Una `SimConfig` validada con el esquema de robot-spec, o `null` si el dato no lo cumple. Es la
- * puerta por la que pasa todo lo que viene de fuera: el enlace, el almacenamiento local y la fila
- * de `robots`. `apps/web` no depende de `@trayectoria/robot-spec` (docs/ARCHITECTURE.md §2), así
- * que la validación le llega por aquí, igual que `parseStoredRobot` le llega por widgets.
+ * A `SimConfig` validated with the robot-spec schema, or `null` if the data does not meet it. It is the
+ * gate through which everything coming from outside passes: the link, local storage and the
+ * `robots` row. `apps/web` does not depend on `@trayectoria/robot-spec` (docs/ARCHITECTURE.md §2), so
+ * the validation reaches it through here, just like `parseStoredRobot` reaches it through widgets.
  */
 export function parseSimConfig(value: unknown): SimConfig | null {
   const parsed = SimConfig.safeParse(value);
   return parsed.success ? parsed.data : null;
 }
 
-/** Formato de compresión del enlace; nativo en el navegador y en Node. */
+/** Compression format of the link; native in the browser and in Node. */
 const FORMAT = 'deflate-raw';
 
-/** Parámetro de la URL que lleva la configuración: `/simuladores/movil?c=<encode>`. */
+/** URL parameter that carries the configuration: `/simuladores/movil?c=<encode>`. */
 export const SHARE_PARAM = 'c';
 
-/** Ruta de la página que el enlace abre. */
+/** Path of the page the link opens. */
 const SHARE_PATH = '/simuladores/movil';
 
-/** Lo que `decode` devuelve cuando el texto no produce una `SimConfig`. */
+/** What `decode` returns when the text does not produce a `SimConfig`. */
 export type DecodeError = 'invalid';
 
-/** Lo que `encode` devuelve cuando la configuración no cabe en un enlace. */
+/** What `encode` returns when the configuration does not fit in a link. */
 export type EncodeError = 'tooLong';
 
-// F4-05 (seguridad): un enlace corto puede llevar un `deflate-raw` que expande a decenas de MB.
-// `MAX_LINK_CHARS` rechaza el texto antes de tocar `DecompressionStream`, y `MAX_DECODED_BYTES`
-// corta la descompresión en marcha si, aun así, el flujo sigue produciendo bytes.
+// F4-05 (security): a short link can carry a `deflate-raw` that expands to tens of MB.
+// `MAX_LINK_CHARS` rejects the text before touching `DecompressionStream`, and `MAX_DECODED_BYTES`
+// cuts the running decompression if, even so, the stream keeps producing bytes.
 //
-// #182: la cota sube de 2 000 a 8 000 caracteres. Con 2 000 una pista editada de más de unas
-// decenas de segmentos ya no cabía y el enlace salía roto sin decirlo; 8 000 entra en el límite
-// práctico de URL de los navegadores (docs/ARCHITECTURE.md §6) y deja sitio a pistas largas. La
-// cota de bytes descomprimidos no cambia: es la que protege de la bomba de descompresión.
+// #182: the bound goes up from 2 000 to 8 000 characters. With 2 000 an edited track of more than a few
+// dozen segments no longer fitted and the link came out broken without saying so; 8 000 is within the
+// practical URL limit of browsers (docs/ARCHITECTURE.md §6) and leaves room for long tracks. The
+// bound on decompressed bytes does not change: it is the one that protects against the decompression bomb.
 
-/** Máximo de caracteres del texto del enlace; por encima, `encode` falla y `decode` rechaza. */
+/** Maximum characters of the link text; above it, `encode` fails and `decode` rejects. */
 export const MAX_LINK_CHARS = 8_000;
 
 const MAX_DECODED_BYTES = 65_536;
 
-/** Se lanza dentro de `through` cuando el flujo descomprimido supera `MAX_DECODED_BYTES`. */
+/** Thrown inside `through` when the decompressed stream exceeds `MAX_DECODED_BYTES`. */
 class DecodedTooLargeError extends Error {}
 
 /**
- * Los bytes de `data` pasados por `stream`, leídos de una vez. La entrada se arma como
- * `ReadableStream` y no como `Blob`: `Blob.stream()` no existe en el jsdom de los tests, y los
- * dos flujos nativos aceptan igual de bien uno que otro.
+ * The bytes of `data` passed through `stream`, read in one go. The input is built as a
+ * `ReadableStream` and not as a `Blob`: `Blob.stream()` does not exist in the tests' jsdom, and the
+ * two native streams accept either one equally well.
  *
- * Si el total supera `MAX_DECODED_BYTES` se cancela el lector y se lanza `DecodedTooLargeError`:
- * un enlace comprimido no debe poder expandirse sin cota en la pestaña de quien lo abre.
+ * If the total exceeds `MAX_DECODED_BYTES` the reader is cancelled and `DecodedTooLargeError` is thrown:
+ * a compressed link must not be able to expand without bound in the tab of whoever opens it.
  */
 async function through(
   data: Uint8Array<ArrayBuffer>,
@@ -96,14 +96,14 @@ async function through(
   return out;
 }
 
-/** Base64url sin relleno: lo que una URL acepta sin escapar (`+/` → `-_`, sin `=`). */
+/** Unpadded base64url: what a URL accepts without escaping (`+/` → `-_`, no `=`). */
 function toBase64Url(bytes: Uint8Array<ArrayBuffer>): string {
   let binary = '';
   for (const byte of bytes) binary += String.fromCharCode(byte);
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-/** Los bytes de un texto base64url, o `null` si no lo es. */
+/** The bytes of a base64url text, or `null` if it is not one. */
 function fromBase64Url(text: string): Uint8Array<ArrayBuffer> | null {
   if (text === '' || !/^[A-Za-z0-9_-]+$/.test(text)) return null;
   const base64 = text.replace(/-/g, '+').replace(/_/g, '/');
@@ -116,11 +116,11 @@ function fromBase64Url(text: string): Uint8Array<ArrayBuffer> | null {
 }
 
 /**
- * La configuración como texto del enlace: JSON → `deflate-raw` → base64url.
+ * The configuration as link text: JSON → `deflate-raw` → base64url.
  *
- * #182 (decisión 2): una configuración cuyo texto pase de `MAX_LINK_CHARS` devuelve `tooLong` en
- * lugar de un enlace que `decode` rechazaría al otro lado. Quien llama avisa y no copia nada: más
- * vale no dar enlace que dar uno que no abre.
+ * #182 (decision 2): a configuration whose text exceeds `MAX_LINK_CHARS` returns `tooLong` instead
+ * of a link that `decode` would reject on the other side. The caller warns and copies nothing: better
+ * to give no link than to give one that does not open.
  */
 export async function encode(config: SimConfig): Promise<Result<string, EncodeError>> {
   const bytes = await through(new TextEncoder().encode(JSON.stringify(config)), new CompressionStream(FORMAT));
@@ -129,9 +129,9 @@ export async function encode(config: SimConfig): Promise<Result<string, EncodeEr
 }
 
 /**
- * La configuración que lleva `text`, validada con el esquema `SimConfig` de robot-spec. Un texto
- * que no es base64url, que no descomprime, que no es JSON o que no cumple el esquema devuelve
- * `invalid`: para quien abre el enlace son el mismo caso, un enlace que no sirve.
+ * The configuration carried by `text`, validated with the robot-spec `SimConfig` schema. A text
+ * that is not base64url, that does not decompress, that is not JSON or that does not meet the schema returns
+ * `invalid`: for whoever opens the link they are the same case, a link that does not work.
  */
 export async function decode(text: string): Promise<Result<SimConfig, DecodeError>> {
   if (text.length > MAX_LINK_CHARS) return { ok: false, error: 'invalid' };
@@ -154,7 +154,7 @@ export async function decode(text: string): Promise<Result<SimConfig, DecodeErro
   return config === null ? { ok: false, error: 'invalid' } : { ok: true, value: config };
 }
 
-/** El enlace que reproduce la configuración, sobre el origen que se le dé. */
+/** The link that reproduces the configuration, on the given origin. */
 export function shareLink(text: string, origin: string): string {
   return `${origin}${SHARE_PATH}?${SHARE_PARAM}=${text}`;
 }

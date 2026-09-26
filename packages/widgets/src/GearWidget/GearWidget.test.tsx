@@ -134,7 +134,7 @@ describe('GearWidget (F2-08)', () => {
   test('describe el estado del tren en una región aria-live', () => {
     render(<GearWidget stages={2} initial={TWO_STAGE} />);
 
-    // `SimControls` tiene su propia región de estado, así que se busca la del tren por su texto.
+    // `SimControls` has its own status region, so the train one is found by its text.
     const status = screen
       .getAllByRole('status')
       .find((region) => region.textContent?.includes('relación total') === true);
@@ -147,7 +147,7 @@ describe('GearWidget (F2-08)', () => {
   test('la leyenda muestra el factor con el que se dibuja la animación (decisión 4)', () => {
     render(<GearWidget stages={2} initial={TWO_STAGE} />);
 
-    // 6000 rpm son 100 vueltas/s: el dibujo va a ×1/100 para no pasar de una vuelta por segundo.
+    // 6000 rpm is 100 rev/s: the drawing runs at ×1/100 so it never exceeds one turn per second.
     expect(screen.getByText('Dibujo a ×1/100 de la velocidad real')).toBeInTheDocument();
   });
 
@@ -178,7 +178,7 @@ describe('GearWidget (F2-08)', () => {
 
     await user.click(screen.getByRole('button', { name: 'Reproducir' }));
 
-    // El reloj pasa a seguir al reproductor, que arranca desde cero.
+    // The clock switches to following the player, which starts from zero.
     expect(screen.getByRole('button', { name: 'Pausa' })).toBeEnabled();
     await user.click(screen.getByRole('button', { name: 'Pausa' }));
   });

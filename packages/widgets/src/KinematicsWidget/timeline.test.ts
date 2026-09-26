@@ -51,7 +51,7 @@ describe('useTimeline (#87)', () => {
     act(() => {
       result.current.controls.play();
     });
-    // El primer frame sólo fija el origen; el segundo integra 100 ms.
+    // The first frame only sets the origin; the second integrates 100 ms.
     frame(1000);
     frame(1100);
 
@@ -84,13 +84,13 @@ describe('useTimeline (#87)', () => {
       result.current.controls.play();
     });
     frame(1000);
-    // 200 ms de tiempo real superan duration_s = 0.05 s: el modelo satura en duration_s.
+    // 200 ms of real time exceed duration_s = 0.05 s: the model saturates at duration_s.
     frame(1200);
 
     expect(result.current.t_s).toBe(duration_s);
     expect(result.current.driver.running).toBe(false);
 
-    // Un frame adicional no debe reanudar ni sobrepasar duration_s.
+    // An extra frame must neither resume nor overshoot duration_s.
     frame(1300);
     expect(result.current.t_s).toBe(duration_s);
     expect(result.current.driver.running).toBe(false);

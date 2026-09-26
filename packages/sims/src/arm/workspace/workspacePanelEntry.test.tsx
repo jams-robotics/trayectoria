@@ -6,10 +6,10 @@ import { describe, expect, test, vi } from 'vitest';
 
 import { workspacePanel, workspaceSummary } from './workspacePanelEntry';
 
-// F5-03 (#136, decisión 4): la entrada que `ArmViewer` mete en su columna de paneles. Mismo
-// contrato que los paneles de F5-01b y F5-02, para que la página los pliegue igual en móvil.
+// F5-03 (#136, decision 4): the entry that `ArmViewer` puts into its panel column. Same
+// contract as the panels of F5-01b and F5-02, so that the page collapses them the same way on mobile.
 
-/** Brazo mínimo: la entrada solo lo pasa al panel, no lo muestrea aquí. */
+/** Minimal arm: the entry only passes it to the panel, it does not sample it here. */
 const ARM: ArmSpec = {
   baseLink: 'base_link',
   endEffectorLink: 'tool0',
