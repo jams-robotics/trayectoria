@@ -4,11 +4,32 @@ import type { Translate } from '@trayectoria/i18n';
 
 /** Height of the bar in CSS pixels, as the bars of `EnergyWidget` (docs/DESIGN.md §5). */
 const BAR_HEIGHT_PX = 200;
+/**
+ * Characters kept for the number of `E_p` in the figure: the longest forms `format` gives with
+ * 3 significant figures below `m g H`, `0.00123` and `5.00e-4`, have 7 (#382).
+ */
+const WIDEST_POTENTIAL_CH = 7;
 
 /** Share of the bar a value fills, in `[0, 1]`, against the fixed scale `m g H`. */
 export function barShare(value_J: number, scale_J: number): number {
   if (!(scale_J > 0)) return 0;
   return Math.min(Math.max(value_J / scale_J, 0), 1);
+}
+
+/**
+ * Width of the figure `E_p / m g H` in `ch` of its mono font, fixed for a given scale (#382).
+ * The figure sizes the column of the bar and the scene takes the rest of the row, so a figure
+ * that grew or shrank with `E_p` (`0.00 J`, `0.0432 J`, `0.475 J`) resized the canvas while
+ * playing. The width only follows the scale, which the sliders change.
+ */
+export function figureWidth_ch(scale_J: number, t: Translate): number {
+  const unitJ = t('widgets.PowerWidget.unitJ');
+  const scale = format(scale_J, unitJ);
+  const potential_ch = Math.max(WIDEST_POTENTIAL_CH, scale.length - unitJ.length - 1);
+  return t('widgets.PowerWidget.barValue', {
+    value: `${'0'.repeat(potential_ch)} ${unitJ}`,
+    scale,
+  }).length;
 }
 
 export interface PotentialBarProps {
@@ -46,7 +67,8 @@ export function PotentialBar({ potential_J, scale_J, t }: PotentialBarProps): JS
         />
       </div>
       <span
-        className="text-fg text-center font-mono text-xs tabular-nums"
+        className="text-fg text-center font-mono text-xs whitespace-nowrap tabular-nums"
+        style={{ width: `${figureWidth_ch(scale_J, t)}ch` }}
         data-testid="power-bar-value"
       >
         {figure}
