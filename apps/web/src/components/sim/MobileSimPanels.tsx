@@ -216,6 +216,8 @@ export interface SidePanelsProps {
   readonly panels: EditorPanelStore;
   /** The saved tracks of the «Mis pistas» group of the Pista panel (#191, decision 4). */
   readonly tracks: SavedTracksApi;
+  /** Reports whether «Gráficas» shows the PID plot, for the desktop charts (#375). */
+  readonly onPlotsPid: (pid: boolean) => void;
 }
 
 /** La columna de la simulación: el controlador del widget y las cinco tarjetas de la maqueta 04. */
@@ -240,12 +242,15 @@ function SimColumn(props: SidePanelsProps): JSX.Element {
         <TrackPanel page={page} tracks={props.tracks} />
       </Panel>
       <ReadoutsPanel store={store} t={t} {...shared} />
-      <PlotsPanel
-        store={props.instruments}
-        t={t}
-        pid={liveChoice(controller)?.controller === 'pid'}
-        {...shared}
-      />
+      {/* #375: on desktop «Gráficas» lives under the viewer, in the sticky left column. */}
+      {mobile ? (
+        <PlotsPanel
+          store={props.instruments}
+          t={t}
+          pid={liveChoice(controller)?.controller === 'pid'}
+          {...shared}
+        />
+      ) : null}
       <Panel id="share" title={t('sims.simConfig.title')} {...shared}>
         <SharePanel configs={configs} current={current} page={page} t={t} />
       </Panel>
@@ -257,6 +262,11 @@ export function SidePanels(props: SidePanelsProps): JSX.Element {
   const { page, mobile, openId, setOpenId, t, controller } = props;
   const editorPanel = useEditorPanel(props.panels);
   useReportedChoice(liveChoice(controller), page.run.seed, props.onChoice);
+  const pid = liveChoice(controller)?.controller === 'pid';
+  const { onPlotsPid } = props;
+  useEffect(() => {
+    onPlotsPid(pid);
+  }, [pid, onPlotsPid]);
   // #189 (decisión 2): mientras se edita la pista, la columna es solo el panel del segmento.
   if (page.view === 'editor') {
     return (

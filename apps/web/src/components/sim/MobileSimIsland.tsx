@@ -12,6 +12,7 @@ import { EmptyTrackToast, useEmptyTrackNotice } from './EmptyTrackNotice';
 import { useInstruments } from './instrumentsStore';
 import { BOTTOM_BAR_HEIGHT_PX } from './BottomBar';
 import { LiveBottomBar, SidePanels } from './MobileSimPanels';
+import { useDesktopPlots } from './PlotsPanel';
 import type { OpenPanelId, SidePanelsProps } from './MobileSimPanels';
 import { ViewerBox } from './ViewerBox';
 import { MOBILE_MEDIA_QUERY, useMediaQuery } from './useMediaQuery';
@@ -88,12 +89,16 @@ function useCurrentConfig(
  * identidad solo depende de lo que cambia la maqueta.
  */
 function useSidePanels(
-  props: Omit<SidePanelsProps, 'controller'>,
-): (panel: ReactNode) => ReactNode {
+  props: Omit<SidePanelsProps, 'controller' | 'onPlotsPid'>,
+): [(panel: ReactNode) => ReactNode, ReactNode] {
   const { mobile, openId, setOpenId, store, onChoice, instruments, panels } = props;
+  // #375: on desktop «Gráficas» goes under the viewer; the right column reports the PID flag.
+  const desktop = !mobile && props.page.view !== 'editor';
+  const plots = useDesktopPlots(instruments, desktop, props.t, openId, setOpenId);
+  const onPlotsPid = plots.onPid;
   const latest = useRef(props);
   latest.current = props;
-  return useCallback(
+  const renderPanel = useCallback(
     (panel: ReactNode): ReactNode => (
       <SidePanels
         page={latest.current.page}
@@ -109,10 +114,12 @@ function useSidePanels(
         instruments={instruments}
         panels={panels}
         tracks={latest.current.tracks}
+        onPlotsPid={onPlotsPid}
       />
     ),
-    [mobile, openId, setOpenId, store, onChoice, instruments, panels],
+    [mobile, openId, setOpenId, store, onChoice, instruments, panels, onPlotsPid],
   );
+  return [renderPanel, plots.node];
 }
 
 /**
@@ -164,6 +171,8 @@ interface SimulatorProps {
   readonly onEmptyTrack: () => void;
   /** «Guardar» of the editor: the track goes to the account or to the browser (#191, decision 3). */
   readonly onSaveTrack: SavedTracksApi['onSave'];
+  /** «Gráficas» under the viewer on desktop (#375), or `null`. */
+  readonly plots: ReactNode;
 }
 
 /** El aviso mientras el chunk del simulador se resuelve. */
@@ -187,6 +196,7 @@ function Simulator({
   panels,
   onEmptyTrack,
   onSaveTrack,
+  plots,
 }: SimulatorProps): JSX.Element {
   // #249: the widget only mounts in the browser. Server-rendered, React emitted it
   // in full inside a `<div hidden>` waiting to be revealed; hydration repainted it on the
@@ -213,6 +223,7 @@ function Simulator({
             panels={panels}
             onEmptyTrack={onEmptyTrack}
             onSaveTrack={onSaveTrack}
+            plots={plots}
           />
         )}
         hideControls={mobile}
@@ -245,10 +256,9 @@ export function MobileSimIsland(): JSX.Element {
   const tracks = useSavedTracks(page.onTrack);
   const emptyTrack = useEmptyTrackNotice();
   const [live, setLive] = useState<ControllerChoice>(page.run);
-  const current = useCurrentConfig(page, live);
-  const renderController = useSidePanels({
-    page, t, configs, current, store, mobile, openId, setOpenId, onChoice: setLive, instruments,
-    panels, tracks,
+  const [renderController, plots] = useSidePanels({
+    page, t, configs, current: useCurrentConfig(page, live), store, mobile, openId, setOpenId,
+    onChoice: setLive, instruments, panels, tracks,
   });
 
   // Maqueta 04: el visor a la izquierda y la columna de tarjetas a la derecha. El widget ocupa
@@ -272,6 +282,7 @@ export function MobileSimIsland(): JSX.Element {
         panels={panels}
         onEmptyTrack={emptyTrack.show}
         onSaveTrack={tracks.onSave}
+        plots={plots}
       />
       {mobile ? <LiveBottomBar store={store} /> : null}
       <Notices configs={configs} tracks={tracks} />
