@@ -1,4 +1,6 @@
 ---
+import type { ImageMetadata } from 'astro';
+import { getImage } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import { t } from '@trayectoria/i18n';
 
@@ -11,18 +13,29 @@ const arms = [...(await getCollection('arms'))].sort((a, b) =>
 
 // The catalog photos live outside apps/web, so they are imported as Astro assets: the
 // integration that serves /catalog/** only arrives in F5-01a (decision 5 of the assignment).
-const photos = import.meta.glob<{ default: { src: string } | string }>(
+const photos = import.meta.glob<{ default: ImageMetadata | string }>(
   '../../../../../catalog/arms/*/foto.{jpg,svg}',
   { eager: true },
 );
 
-/** The bundled URL of `foto.*` of an arm, keyed by the id of its directory. */
-function photoUrl(id: string, photo: string): string {
+/**
+ * The bundled URL of `foto.*` of an arm, keyed by the id of its directory. Raster photos are
+ * served as WebP (F7-02b, #457); SVG ones as they are.
+ */
+async function photoUrl(id: string, photo: string): Promise<string> {
   const entry = photos[`../../../../../catalog/arms/${id}/${photo}`];
   if (entry === undefined) throw new Error(`Falta la foto ${photo} del brazo ${id}`);
   const value = entry.default;
-  return typeof value === 'string' ? value : value.src;
+  if (typeof value === 'string') return value;
+  if (value.format === 'svg') return value.src;
+  return (await getImage({ src: value, format: 'webp' })).src;
 }
+
+const photoUrls = new Map(
+  await Promise.all(
+    arms.map(async (arm) => [arm.id, await photoUrl(arm.id, arm.data.photo)] as const),
+  ),
+);
 ---
 
 <Base title={t('catalog.title')}>
@@ -41,7 +54,7 @@ function photoUrl(id: string, photo: string): string {
         arms.map((arm) => (
           <li class="bg-bg-raised border-border rounded-lg border p-6">
             <img
-              src={photoUrl(arm.id, arm.data.photo)}
+              src={photoUrls.get(arm.id)}
               alt={arm.data.name}
               width="640"
               height="480"
