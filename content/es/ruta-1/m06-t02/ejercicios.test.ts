@@ -127,6 +127,20 @@ describe('e1 · Kp, e, ω_base: u, ω_L, ω_R', () => {
     expect(check(exercise('e1'), seed, [u!, left!, right! * 1.05]).correct).toBe(false);
   });
 
+  it('redraws when a wheel command is negative (V-51, #474)', () => {
+    // First draw: Kp = 10, e = −1, ω_base = 5 → ω_L = −5 rad/s, redrawn; then the golden draw.
+    const { values } = exercise('e1').generate(scriptedRng([100, -100, 10, 80, 40, 30]));
+    expect(values).toEqual({ kp: 8, error: 0.4, omegaBase_radps: 15 });
+  });
+
+  it('never gives a negative wheel command in 2000 seeds (V-51, #474)', () => {
+    for (const seed of MANY_SEEDS) {
+      const [, left, right] = exercise('e1').generate(createRng(seed)).answer as number[];
+      expect(left).toBeGreaterThanOrEqual(0);
+      expect(right).toBeGreaterThanOrEqual(0);
+    }
+  });
+
   it('redraws when ω_base + Kp·|e| > 20.94 rad/s', () => {
     // First draw: Kp = 20, e = 0.5, ω_base = 18 → 28 rad/s, redrawn; then the golden draw.
     const { values } = exercise('e1').generate(scriptedRng([200, 50, 36, 80, 40, 30]));
@@ -160,6 +174,20 @@ describe('e2 · ω del robot con esos comandos', () => {
     // First draw: Kp = 8.1, e = 0.41, ω_base = 15 → ω_L = 18.321 rad/s, shown as 18.32; redrawn.
     const { values } = exercise('e2').generate(scriptedRng([81, 41, 30, 80, 40, 30]));
     expect(values).toEqual({ omegaL_radps: 18.2, omegaR_radps: 11.8 });
+  });
+
+  it('redraws when a wheel command is negative (V-51, #474)', () => {
+    // First draw: Kp = 10, e = 1, ω_base = 5 → ω_R = −5 rad/s, redrawn; then the golden draw.
+    const { values } = exercise('e2').generate(scriptedRng([100, 100, 10, 80, 40, 30]));
+    expect(values).toEqual({ omegaL_radps: 18.2, omegaR_radps: 11.8 });
+  });
+
+  it('never gives a negative wheel command in 2000 seeds (V-51, #474)', () => {
+    for (const seed of MANY_SEEDS) {
+      const { omegaL_radps, omegaR_radps } = valuesOf('e2', seed);
+      expect(omegaL_radps).toBeGreaterThanOrEqual(0);
+      expect(omegaR_radps).toBeGreaterThanOrEqual(0);
+    }
   });
 
   it('seed 35: the answer computed with the commands the statement shows is accepted (#461)', () => {

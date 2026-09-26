@@ -89,7 +89,7 @@ es negativa: el robot gira a la derecha, hacia la línea.
 </Formulas>
 
 <Explora>
-El robot de referencia sigue la pista ovalada con control proporcional, K_p = 8 y velocidad base
+El robot de referencia sigue la pista Óvalo con control proporcional, K_p = 8 y velocidad base
 ω_base = 15 rad/s. La escena muestra la pista, el robot con sus sensores y la traza que deja; las
 gráficas muestran el error e y la velocidad angular ω del robot en el tiempo.
 
@@ -126,7 +126,8 @@ K_p = 8. En la 2.ª vuelta la oscilación saca al robot de la línea, a t ≈ 7.
   porque="¿Por qué hay zigzag permanente aunque la recta sea perfecta?"
 >
 On/off siempre manda ±u_0 y nunca u = 0, así que el robot cruza la línea una y otra vez: 25
-cruces de ±0.2 en 15 s (RMS del error 0.32) y una vuelta de ≈ 8.86 s sin perder la línea. Con
+cambios de signo en 15 s, un RMS del error de 0.32 (RMS: el error típico, la raíz de la media de
+los cuadrados) y una vuelta de ≈ 8.86 s sin perder la línea. Con
 u_0 = 4 rad/s la conmutación es tan rápida que el motor la suaviza y el error apenas se ve (RMS
 0.003). Con u_0 ≥ 8.5 rad/s el zigzag crece hasta perder la línea.
 </Experimento>

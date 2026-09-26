@@ -27,12 +27,19 @@ const SPEED_SIGNIFICANT_FIGURES = 3;
 /** Lap times to the millisecond, as in the spec: 5.773 s. */
 const TIME_DECIMALS = 3;
 
+const RPM_TO_RADPS = (2 * Math.PI) / 60;
+
 /**
  * Wheel radius of the profile. The calcs use no optional field of RobotSpec; an arm profile has no
- * wheels and takes the reference robot (docs/CONTENT-STANDARDS.md §2.5, decision of #288).
+ * wheels and takes the reference robot (docs/CONTENT-STANDARDS.md §2.5, decision of #288). A
+ * profile whose ω_max = n · 2π/60 / i does not reach ω_base = 15 rad/s takes it too, as in T-6.2
+ * (V-49, #474); the MDX says so next to the formula.
  */
 function wheelRadius_m(robot: RobotSpec): number {
-  return robot.mobile?.wheelRadius_m ?? REFERENCE_WHEEL_RADIUS_M;
+  if (robot.mobile === undefined) return REFERENCE_WHEEL_RADIUS_M;
+  const { wheelRadius_m: profileRadius_m, maxMotorSpeed_rpm, gearRatio } = robot.mobile;
+  const omegaMax_radps = (maxMotorSpeed_rpm * RPM_TO_RADPS) / gearRatio;
+  return omegaMax_radps < OMEGA_BASE_RADPS ? REFERENCE_WHEEL_RADIUS_M : profileRadius_m;
 }
 
 function predictedSpeed_mps(robot: RobotSpec): number {
