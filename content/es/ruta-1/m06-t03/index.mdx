@@ -90,32 +90,35 @@ los tres términos por separado, en cada instante.
 
 <Experimento
   cambia="K_d de 0 a 0.8"
-  observa="el error en las rectas, en la gráfica de error"
+  observa="la curva de error en las rectas: cuánto oscila y el tamaño de sus picos"
   porque="¿Por qué se amortigua la oscilación?"
 >
-El término D se opone a que el error cambie y frena el giro antes de que el robot cruce la línea,
-lo que compensa la respuesta lenta del motor. En 12 s, los cambios de signo del error bajan de 38
-a 22 y el RMS del error, de 0.334 a 0.283. Los cambios de signo que quedan son los de las esquinas.
+La curva de error oscila menos: los picos se achican y quedan solo los cambios de signo de las
+esquinas. El término D se opone a que el error cambie y frena el giro antes de que el robot cruce
+la línea, lo que compensa la respuesta lenta del motor. Medido en 12 s de simulación, los cambios
+de signo del error bajan de 38 a 22 y el RMS del error, de 0.334 a 0.283.
 </Experimento>
 
 <Experimento
   cambia="K_i de 0 a 2 y luego a 10, con K_d = 0.8"
-  observa="el término I en la gráfica del PID y el error en las curvas"
+  observa="la curva del término I en la gráfica del PID y cuánto se aleja de cero la curva de error en las curvas"
   porque="¿Por qué se reduce el sesgo hacia afuera?"
 >
-Con K_i = 0, el error en las curvas tiene un sesgo constante hacia afuera. El término I acumula
-ese sesgo y empuja hacia adentro hasta reducirlo. El error medio pasa de −0.176 a −0.111 y a
+El término I crece hasta un valor negativo estable en las curvas, y la curva de error se acerca
+más a cero según sube K_i. I acumula el sesgo constante hacia afuera que deja P y empuja hacia
+adentro hasta reducirlo. Medido en el simulador, el error medio pasa de −0.176 a −0.111 y a
 −0.036; en las curvas, de −0.286 a −0.199 y a −0.101.
 </Experimento>
 
 <Experimento
   cambia="«Límite integral» de 1 a 0.1, con K_i = 10"
-  observa="el término I en la gráfica del PID y el error en las curvas"
+  observa="la curva del término I en la gráfica del PID y la curva de error en las curvas"
   porque="¿Por qué vuelve el sesgo?"
 >
-El anti-windup mantiene |Σe_j·Δt| ≤ I_max, así que el término I no pasa de K_i·I_max =
-10·0.1 = 1 rad/s. Ese tope no basta para compensar la curva y el error medio vuelve de −0.036 a
-−0.138. En ninguno de estos ajustes el robot pierde la línea.
+El término I queda plano en −1 rad/s y la curva de error vuelve a alejarse de cero en las curvas.
+El anti-windup mantiene |Σe_j·Δt| ≤ I_max, así que I no pasa de K_i·I_max = 10·0.1 = 1 rad/s, y
+eso no basta para compensar la curva. Medido en el simulador, el error medio vuelve de −0.036 a
+−0.138, y en ninguno de estos ajustes el robot pierde la línea.
 </Experimento>
 </Explora>
 
