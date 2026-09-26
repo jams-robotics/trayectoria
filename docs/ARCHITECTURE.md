@@ -90,6 +90,8 @@ Cualquier otra importación es un error de arquitectura (regla de ESLint `import
 | `/dev/widgets` | Playground de widgets (solo en dev) |
 | `/dev/sims` | Playground de `packages/sims` (solo en dev) |
 
+«Ruta completada» (DOCS-M6, #396; ticket de `apps/web`): el índice `/ruta/[ruta]` muestra, bajo la cabecera de la ruta, el aviso «Ruta completada» (clave nueva `route.completed` en `common.json`) cuando todos los temas de su `ruta.json` (27 en la Ruta 1) están en `completed`. La fuente es la misma que la de los estados de cada tema en el índice (F3-01: `progress` con sesión, `localStorage` sin ella). Estilo de estado correcto (`--color-success`), sin animación: el feedback nunca es celebratorio (`DESIGN-BRIEF.md` §5). Con un tema sin completar no se muestra nada.
+
 ### 3.3 Contenido como código
 
 - Un tema = un directorio `content/es/ruta-1/mNN-tNN/` con `index.mdx`, `ejercicios.ts`, `assets/` y, si su «Al robot» calcula con el perfil, `alrobot.ts`.
@@ -159,6 +161,25 @@ si no:          R = v/ω ; θ' = θ + ω·dt
 ```
 
 Convenciones: marco global con X a la derecha, Y hacia arriba, θ medido desde +X en sentido antihorario. Marco del robot: X hacia adelante, Y hacia la izquierda. Rueda izquierda en `(0, +L/2)`, derecha en `(0, −L/2)`.
+
+Respuesta del motor (DOCS-M6, #396): la rueda no alcanza al instante la velocidad comandada. `createDiffDriveModel(spec, options?)` acepta `motorTimeConstant_s` (τ_m). Sin él, el paso es el de arriba, que usan `DiffDriveWidget` y los tests actuales. Con él, cada rueda sigue a su comando saturado como un sistema de primer orden, y la rampa del perfil acota el cambio por paso:
+
+```
+ωcmd = clamp(cmd, −omegaMax, omegaMax)
+Δω   = (ωcmd − ω)·(1 − e^(−dt/τ_m))
+Δω   = clamp(Δω, −maxAccel_radps2·dt, maxAccel_radps2·dt)   (solo si maxAccel_radps2 está definida)
+ω'   = ω + Δω
+```
+
+- `ω` de cada rueda sale del giro del estado (cinemática inversa de `v`, `ω`), como ya hace la rampa: el estado no cambia. Sin azar ni reloj: el mismo estado, comando y `dt` dan el mismo paso.
+- `MOTOR_TIME_CONSTANT_S = 0.15` es una constante exportada de `sim-core`, no un campo de `RobotSpec`. El modelo del seguidor de línea (`packages/sims`: `LineFollowerWidget` y `/simuladores/movil`) la usa siempre, también en modo manual.
+- Por qué: la rampa sola (`maxAccel_radps2 = 40` del robot de referencia, ya aplicada) no basta. Con ella, P no oscila en todo el rango del slider (`kp ≤ 20`), porque los sensores van delante del eje y anticipan la corrección.
+- Efecto esperado, que es el criterio de aceptación del ticket de código. Se mide con el robot de referencia, `dt = 1 ms`, sin ruido y la pose inicial por defecto:
+  1. `oval`, P, `ω_base = 15`, 15 s: `kp = 2` pierde la línea en la primera curva; `kp = 8` completa 2 vueltas; con `kp = 20`, el RMS del error es al menos 1.3 veces el del punto 2.
+  2. `oval`, PID `kp 20, ki 0, kd 0.5`, `ω_base = 15`, 15 s: completa 2 vueltas.
+  3. `oval`, `REFERENCE_PID_PARAMS`: completa una vuelta (criterio de F4-02). PID `kp 8, ki 1, kd 0.05`, `ω_base = 15`, 18 s: completa 3 vueltas con y sin `σ = 0.03`.
+  4. `tight`, PID `kp = 20`, `ω_base = 13`, 12 s: con `ki = 0`, subir `kd` de 0 a 0.8 baja el RMS del error; con `kd = 0.8`, subir `ki` de 0 a 2 y a 10 acerca a 0 el error medio.
+- Si 0.15 s no cumple los cuatro, el ticket de código busca τ_m en `[0.1, 0.2] s` y documenta el valor. Si ninguno cumple, abre un spec gap. Los resultados de los experimentos de T-6.2 a T-6.5 que dependen de τ_m llevan en `CURRICULUM.md` la marca «a verificar en el simulador tras el ticket de código».
 
 Cinemática inversa: `vR = v + ω·L/2`, `vL = v − ω·L/2`, `ω_rueda = v_rueda / r`.
 
