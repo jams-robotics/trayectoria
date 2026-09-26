@@ -1,4 +1,4 @@
-import AxeBuilder from '@axe-core/playwright';
+import { AxeBuilder } from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
 // F7-01 (#432, #434): axe on the five representative pages; the run fails on any `critical` or
