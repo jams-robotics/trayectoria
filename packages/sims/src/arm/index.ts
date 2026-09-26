@@ -1,5 +1,5 @@
-// Entrada separada `@trayectoria/sims/arm` (#133, decisión 2; docs/ARCHITECTURE.md §8: `three`
-// solo en páginas 3D). El barrel del paquete, `src/index.ts`, no reexporta nada de aquí.
+// Separate entry `@trayectoria/sims/arm` (#133, decision 2; docs/ARCHITECTURE.md §8: `three`
+// only on 3D pages). The package barrel, `src/index.ts`, re-exports nothing from here.
 export { ArmViewer, matricesSummary, translationOf } from './ArmViewer';
 export type { ArmViewerPanel, ArmViewerProps } from './ArmViewer';
 export { EffectorPanel, effectorRows, effectorSummary } from './EffectorPanel';

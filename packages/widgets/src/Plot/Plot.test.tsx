@@ -98,7 +98,7 @@ describe('Plot: mapeo de props a opciones de uPlot', () => {
     expect(series[0]?.label).toBeUndefined();
     expect(series[1]?.label).toBe('Error de línea');
     expect(series[2]?.label).toBe('Velocidad angular');
-    // docs/DESIGN.md §5: líneas 2 px.
+    // docs/DESIGN.md §5: 2 px lines.
     expect(series[1]?.width).toBe(2);
     expect(series[2]?.width).toBe(2);
   });
@@ -108,7 +108,7 @@ describe('Plot: mapeo de props a opciones de uPlot', () => {
 
     const series = (await lastOptions()).series as { stroke?: string; dash?: number[] }[];
     expect(series[1]?.stroke).not.toBe(series[2]?.stroke);
-    // Serie 1 sólida, serie 2 discontinua 8-4.
+    // Series 1 solid, series 2 dashed 8-4.
     expect(series[1]?.dash).toBeUndefined();
     expect(series[2]?.dash).toEqual([8, 4]);
   });

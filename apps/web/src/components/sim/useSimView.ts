@@ -1,26 +1,26 @@
 import { useCallback, useState } from 'react';
 
-// #190 (decisión 3): separado de `useMobileSimState.ts` para mantener ese archivo bajo el límite
-// de docs/STANDARDS.md §4. Sigue siendo el mismo hook: qué ocupa la caja del visor y cómo se
-// cambia (#158, decisiones 1 y 3).
+// #190 (decision 3): split from `useMobileSimState.ts` to keep that file under the limit
+// of docs/STANDARDS.md §4. It is still the same hook: what fills the viewer box and how it
+// changes (#158, decisions 1 and 3).
 
 /**
- * Qué ocupa la caja del visor: la simulación o el editor de pista (#158, decisión 1). El editor
- * sustituye al visor en la misma caja; no es un panel que se despliegue bajo la columna derecha.
+ * What fills the viewer box: the simulation or the track editor (#158, decision 1). The editor
+ * replaces the viewer in the same box; it is not a panel that unfolds under the right column.
  */
 export type SimView = 'sim' | 'editor';
 
 /**
- * Qué ocupa la caja del visor y cómo se cambia (#158, decisiones 1 y 3). «Volver a la simulación»
- * solo devuelve la caja al visor: la pista editada ya llegó por `onTrack` en cada cambio del
- * editor, y el reinicio a `t = 0` en pausa lo pide la isla, que es quien tiene la api del widget.
+ * What fills the viewer box and how it changes (#158, decisions 1 and 3). «Volver a la simulación»
+ * only returns the box to the viewer: the edited track already arrived through `onTrack` on every editor
+ * change, and the paused restart at `t = 0` is requested by the island, which holds the widget's api.
  */
 export function useSimView(): {
   view: SimView;
   openEditor: () => void;
   openNewEditor: () => void;
   closeEditor: () => void;
-  /** True mientras el editor abierto haya partido del lienzo vacío (#190, decisión 3). */
+  /** True while the open editor started from the empty canvas (#190, decision 3). */
   fromEmpty: boolean;
 } {
   const [view, setView] = useState<SimView>('sim');

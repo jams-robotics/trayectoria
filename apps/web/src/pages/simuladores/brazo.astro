@@ -5,15 +5,15 @@ import { t } from '@trayectoria/i18n';
 import { ArmSimIsland } from '../../components/sim/ArmSimIsland';
 import Base from '../../layouts/Base.astro';
 
-// F5-01b (#134): la página del simulador de brazo 3D (docs/ARCHITECTURE.md §3.2).
+// F5-01b (#134): the 3D arm simulator page (docs/ARCHITECTURE.md §3.2).
 //
-// Los brazos salen de la colección `arms` en build y se pasan a la isla como props
-// serializables, `{ id, name }[]` (#134, decisión 2): la isla no lee el catálogo ni importa
-// sim-core. `?robot=<id>` lo lee la isla en el cliente, porque la página es estática y
-// `Astro.url.searchParams` no ve una cadena de consulta añadida tras el build.
+// The arms come from the `arms` collection at build time and are passed to the island as
+// serializable props, `{ id, name }[]` (#134, decision 2): the island neither reads the catalogue nor
+// imports sim-core. `?robot=<id>` is read by the island on the client, because the page is static and
+// `Astro.url.searchParams` does not see a query string added after the build.
 //
-// La isla es `client:only="react"`: así no hay pasada de SSR que desajustar y `three` y
-// `urdf-loader` solo entran en el chunk de esta página (docs/ARCHITECTURE.md §3.1 y §8).
+// The island is `client:only="react"`: that way there is no SSR pass to mismatch and `three` and
+// `urdf-loader` only enter this page's chunk (docs/ARCHITECTURE.md §3.1 and §8).
 //
 // F7-02b (#444): until the island hydrates, an empty fallback reserves its height (≥ 758 px
 // once loaded), so the page does not grow and shift sideways when it appears.

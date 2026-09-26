@@ -5,10 +5,10 @@ import { describe, expect, test } from 'vitest';
 
 import { MatrixBlock } from './MatrixBlock';
 
-// F5-02 (#135, decisión 3): la matriz 4×4 en mono alineada a la derecha, 3 decimales, con la
-// columna de traslación en `data-1` y la fila inferior en `fg-muted` (docs/DESIGN.md §6).
+// F5-02 (#135, decision 3): the 4×4 matrix in mono, right-aligned, 3 decimals, with the
+// translation column in `data-1` and the bottom row in `fg-muted` (docs/DESIGN.md §6).
 
-/** `⁰T₂` del brazo plano con q = (π/2, −π/2), en columna-mayor como el `Mat4` de sim-core. */
+/** `⁰T₂` of the planar arm with q = (π/2, −π/2), column-major like the sim-core `Mat4`. */
 const GOLDEN_T = [0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0.15, 0.2, 0, 1];
 
 describe('MatrixBlock (F5-02)', () => {

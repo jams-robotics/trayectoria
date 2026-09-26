@@ -8,10 +8,10 @@ import { describe, expect, test, vi } from 'vitest';
 import { MatrixPanel, chainLatex, matrixLabel } from './MatrixPanel';
 import { linkTransforms } from './matrices';
 
-// F5-02 (#135, decisiones 1, 3, 6 y 7): chips de eslabón y de matriz, cadena en `Formula` y la
-// matriz elegida en `MatrixBlock`. Los números salen siempre de `matrices.ts`, nunca de three.
+// F5-02 (#135, decisions 1, 3, 6 and 7): link and matrix chips, chain in `Formula` and the
+// chosen matrix in `MatrixBlock`. The numbers always come from `matrices.ts`, never from three.
 
-/** Brazo plano de 2 GDL del catálogo (docs/ROBOT-SPEC.md §4). */
+/** 2-DOF planar arm from the catalog (docs/ROBOT-SPEC.md §4). */
 const PLANAR_2DOF: ArmSpec = {
   baseLink: 'base_link',
   endEffectorLink: 'tool0',
@@ -38,7 +38,7 @@ const PLANAR_2DOF: ArmSpec = {
   ],
 };
 
-/** El panel con la configuración dorada del ticket y un espía del eslabón resaltado. */
+/** The panel with the ticket's golden configuration and a spy on the highlighted link. */
 function renderPanel(q_rad: readonly number[] = [Math.PI / 2, 0]): {
   onHighlight: ReturnType<typeof vi.fn>;
 } {
@@ -47,7 +47,7 @@ function renderPanel(q_rad: readonly number[] = [Math.PI / 2, 0]): {
   return { onHighlight };
 }
 
-/** Los chips de un grupo, por su etiqueta accesible. */
+/** The chips of a group, by their accessible label. */
 function chipsOf(label: string): HTMLElement[] {
   return within(screen.getByRole('radiogroup', { name: label })).getAllByRole('radio');
 }
@@ -60,7 +60,7 @@ describe('MatrixPanel (F5-02)', () => {
       'link1',
       'link2',
     ]);
-    // La acumulada lleva el índice del eslabón elegido, que arranca en el último (`link2`).
+    // The cumulative one carries the index of the chosen link, which starts at the last one (`link2`).
     expect(chipsOf(t('sims.matrices.matrix')).map((chip) => chip.textContent)).toEqual([
       t('sims.matrices.originShort'),
       t('sims.matrices.jointShort'),
@@ -77,7 +77,7 @@ describe('MatrixPanel (F5-02)', () => {
   test('con q₁ = 90° y q₂ = 0 la acumulada del eslabón 2 traslada (0.000, 0.200, 0.000)', () => {
     renderPanel();
     const cells = screen.getAllByRole('cell');
-    // Columna de traslación de las tres primeras filas: índices 3, 7 y 11 de las dieciséis.
+    // Translation column of the first three rows: indices 3, 7 and 11 of the sixteen.
     expect(cells[3]).toHaveTextContent('0.000');
     expect(cells[7]).toHaveTextContent('0.200');
     expect(cells[11]).toHaveTextContent('0.000');
@@ -90,7 +90,7 @@ describe('MatrixPanel (F5-02)', () => {
     await user.click(chipsOf(t('sims.matrices.matrix'))[0] as HTMLElement);
 
     expect(chipsOf(t('sims.matrices.matrix'))[0]).toHaveAttribute('aria-pressed', 'true');
-    // `T_origin` de joint2 traslada (0.20, 0, 0): la primera fila de la columna de traslación.
+    // `T_origin` of joint2 translates (0.20, 0, 0): the first row of the translation column.
     expect(screen.getAllByRole('cell')[3]).toHaveTextContent('0.200');
   });
 
@@ -101,7 +101,7 @@ describe('MatrixPanel (F5-02)', () => {
     await user.click(chipsOf(t('sims.matrices.links'))[1] as HTMLElement);
 
     expect(onHighlight).toHaveBeenLastCalledWith('link1');
-    // `⁰T₁` con q₁ = 90° no traslada: el marco de link1 está en el origen.
+    // `⁰T₁` with q₁ = 90° does not translate: the frame of link1 is at the origin.
     const cells = screen.getAllByRole('cell');
     expect(cells[3]).toHaveTextContent('0.000');
     expect(cells[7]).toHaveTextContent('0.000');

@@ -2,34 +2,34 @@ import { useId, useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
 
-// F5-01b (#134, decisión 3): acordeón mínimo para los paneles del simulador en móvil
-// (docs/DESIGN.md §9 puntos 3, 4 y 8: cabecera de 48–52 px, resumen legible con el panel
-// cerrado y el control «ver ▾ / ocultar ▴» con texto además del glifo). F4-02b reutilizará este
-// componente para los paneles del simulador móvil; por eso vive en `components/sim/` y no junto
-// a la isla del brazo.
+// F5-01b (#134, decision 3): minimal accordion for the simulator panels on mobile
+// (docs/DESIGN.md §9 points 3, 4 and 8: 48–52 px header, summary readable with the panel
+// closed and the «ver ▾ / ocultar ▴» control with text besides the glyph). F4-02b will reuse this
+// component for the mobile simulator panels; that is why it lives in `components/sim/` and not
+// next to the arm island.
 
-/** Glifos del control de apertura; van acompañados siempre del texto de la acción. */
+/** Glyphs of the open control; they always come with the text of the action. */
 const CHEVRON_OPEN = '▴';
 const CHEVRON_CLOSED = '▾';
 
 export interface SimAccordionProps {
-  /** Título de la cabecera. */
+  /** Header title. */
   title: string;
-  /** Resumen en línea, legible con el acordeón cerrado. */
+  /** Inline summary, readable with the accordion closed. */
   summary?: string;
-  /** Si el acordeón arranca abierto. Se ignora si el acordeón viene controlado con `open`. */
+  /** Whether the accordion starts open. Ignored if the accordion is controlled with `open`. */
   defaultOpen?: boolean;
   /**
-   * Estado controlado desde fuera. Lo usa el grupo de la página del brazo para mantener un solo
-   * acordeón abierto a la vez (docs/DESIGN.md §9.4); sin él el acordeón se gobierna solo.
+   * State controlled from outside. The arm page group uses it to keep only one
+   * accordion open at a time (docs/DESIGN.md §9.4); without it the accordion governs itself.
    */
   open?: boolean;
-  /** Se llama con el estado al que pasa el acordeón al pulsar la cabecera. */
+  /** Called with the state the accordion moves to when the header is pressed. */
   onToggle?: (open: boolean) => void;
   children: ReactNode;
 }
 
-/** Panel plegable con cabecera de objetivo táctil y resumen legible cerrado. */
+/** Collapsible panel with a touch-target header and a summary readable when closed. */
 export function SimAccordion({
   title,
   summary,

@@ -10,16 +10,16 @@ import type { Endpoint } from './model';
 const MAX_DECIMALS = 6;
 
 // docs/DESIGN.md §5 (Campo numérico) and §8: mono, tabular numbers, 40 px tall, visible focus.
-// `w-12` y no `w-24`: la escala de espaciado solo expone los tokens D-01 (global.css vacía las
-// escalas por defecto), así que `w-24` nunca se generaba y el campo se estiraba hasta aplastar su
-// etiqueta en la columna de 280 px. Se veía solo desde que Tailwind escanea `sims` (#167).
+// `w-12` and not `w-24`: the spacing scale only exposes the D-01 tokens (global.css empties the
+// default scales), so `w-24` was never generated and the field stretched until it squashed its
+// label in the 280 px column. It was only visible since Tailwind scans `sims` (#167).
 const FIELD =
   'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus h-10 w-12 border px-2 text-right font-mono text-sm tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2';
 const ROW = 'text-fg-muted flex items-center justify-between gap-3 text-sm';
 const SEGMENT_BUTTON =
   'border-border text-fg-muted focus-visible:outline-focus min-h-11 w-full cursor-pointer rounded-sm border px-3 text-left font-mono text-xs focus-visible:outline-2 focus-visible:outline-offset-2';
 const SEGMENT_ON = 'border-primary text-fg';
-// docs/DESIGN.md §5 (Tabs/segmentado): el mismo patrón que el selector de herramienta.
+// docs/DESIGN.md §5 (Tabs/segmentado): the same pattern as the tool selector.
 const DIRECTION =
   'min-h-11 border-border text-fg-muted focus-visible:outline-focus flex-1 cursor-pointer border-r px-3 text-sm font-semibold last:border-r-0 focus-visible:outline-2 focus-visible:outline-offset-2';
 const DIRECTION_ON = 'bg-primary text-primary-fg';
@@ -132,7 +132,7 @@ function SegmentList({
           <button
             type="button"
             aria-pressed={selected === index}
-            // #160: marca del segmento seleccionado, la misma que resalta el lienzo.
+            // #160: mark of the selected segment, the same one the canvas highlights.
             {...(selected === index ? { 'data-selected': 'true' } : {})}
             aria-label={t(`sims.trackEditor.segment${segment.type === 'arc' ? 'Arc' : 'Line'}`, {
               index: index + 1,

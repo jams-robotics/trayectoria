@@ -4,17 +4,17 @@ import { useT } from '@trayectoria/i18n';
 import { SimAccordion } from './SimAccordion';
 import type { AccordionGroup } from './accordionGroup';
 
-// Los controles de vista de `/simuladores/brazo` (#135 y #136, decisión 4), separados de
-// `ArmSimIsland.tsx` al añadir el flujo de importación de F5-04 (#137) para que ninguno de los dos
-// archivos pase de 300 líneas (docs/STANDARDS.md §4). Sin API pública propia: `ArmSimIsland.tsx`
-// es el único que importa de aquí.
+// The view controls of `/simuladores/brazo` (#135 and #136, decision 4), split from
+// `ArmSimIsland.tsx` when the import flow of F5-04 (#137) was added so that neither of the two
+// files goes over 300 lines (docs/STANDARDS.md §4). No public API of its own: `ArmSimIsland.tsx`
+// is the only one that imports from here.
 
-/** El botón de vista operativo: activo en `primary`, inactivo secundario (docs/DESIGN.md §5). */
+/** The operative view button: active in `primary`, inactive secondary (docs/DESIGN.md §5). */
 const TOGGLE_BUTTON = 'h-9 rounded-sm border px-3 text-sm';
 const TOGGLE_ON = `${TOGGLE_BUTTON} bg-primary text-primary-fg border-primary`;
 const TOGGLE_OFF = `${TOGGLE_BUTTON} border-border bg-bg-raised text-fg-muted`;
 
-/** Un control de vista que enciende una capa del visor (#135 y #136, decisión 4). */
+/** A view control that turns on a viewer layer (#135 and #136, decision 4). */
 function LayerToggle({
   label,
   on,
@@ -41,7 +41,7 @@ function LayerToggle({
   );
 }
 
-/** La fila con los dos controles de vista operativos. */
+/** The row with the two operative view controls. */
 function ToggleRow({
   matrices,
   onMatrices,
@@ -73,9 +73,9 @@ function ToggleRow({
 }
 
 /**
- * Los controles de vista. «Marcos» no está aquí: lo aporta el propio `ArmViewer` (#134,
- * decisión 4). En móvil van dentro de un acordeón para no comerse el alto por encima del visor
- * (docs/DESIGN.md §9 puntos 3 y 8).
+ * The view controls. «Marcos» is not here: the `ArmViewer` itself provides it (#134,
+ * decision 4). On mobile they go inside an accordion so they do not eat the height above the
+ * viewer (docs/DESIGN.md §9 points 3 and 8).
  */
 export function ViewControls({
   mobile,
@@ -101,9 +101,9 @@ export function ViewControls({
       onWorkspace={onWorkspace}
     />
   );
-  // En escritorio los controles van arriba-izquierda del visor (maqueta 05). `Marcos` no está
-  // aquí: lo pinta el propio `ArmViewer` en la fila inmediatamente inferior, porque reutilizarlo
-  // tal cual es la decisión 4 del ticket y su `FramesToggle` es interno.
+  // On desktop the controls go at the top left of the viewer (mockup 05). `Marcos` is not
+  // here: the `ArmViewer` itself draws it in the row immediately below, because reusing it
+  // as is is decision 4 of the ticket and its `FramesToggle` is internal.
   if (!mobile) return controls;
   return (
     <SimAccordion

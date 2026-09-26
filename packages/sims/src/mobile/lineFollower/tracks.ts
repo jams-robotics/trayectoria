@@ -1,8 +1,8 @@
 import { parseTrack, presets } from '@trayectoria/sim-core';
 import type { Track } from '@trayectoria/sim-core';
 
-// F4-03 (#129): la resolución de la pista del widget, aparte de `LineFollowerWidget.tsx` para
-// mantener ese archivo bajo el límite de docs/STANDARDS.md §4.
+// F4-03 (#129): resolution of the widget's track, split from `LineFollowerWidget.tsx` to
+// keep that file under the limit of docs/STANDARDS.md §4.
 
 /** Preset names the widget accepts, as `docs/WIDGETS.md` spells them. */
 export type TrackPreset = 'oval' | 's' | 'tight' | 'cross';

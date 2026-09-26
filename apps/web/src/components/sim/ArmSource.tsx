@@ -2,44 +2,44 @@ import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 
-// F5-01b (#134, decisión 2): selector del brazo del catálogo. Los ids llegan como props
-// serializables desde `brazo.astro`, que los resuelve en build con `getCollection('arms')`; esta
-// isla no lee el catálogo ni importa sim-core.
+// F5-01b (#134, decision 2): catalogue arm selector. The ids arrive as serializable props
+// from `brazo.astro`, which resolves them at build time with `getCollection('arms')`; this
+// island neither reads the catalogue nor imports sim-core.
 //
-// F5-04 (#137, decisión 3): además, el grupo «Mis robots» con las filas `kind = 'arm-serial'` del
-// estudiante con sesión —sin sesión no se muestra— y la opción «Importar…», que abre el diálogo de
-// importación en lugar de cambiar de brazo.
+// F5-04 (#137, decision 3): also, the «Mis robots» group with the `kind = 'arm-serial'` rows of
+// the signed-in learner (not shown without a session) and the «Importar…» option, which opens
+// the import dialog instead of switching arms.
 
-/** Brazo del catálogo tal y como lo recibe la isla: solo lo que se muestra en el selector. */
+/** Catalogue arm as the island receives it: only what the selector shows. */
 export interface ArmOption {
   readonly id: string;
   readonly name: string;
 }
 
-/** Un brazo guardado del estudiante, tal y como lo muestra el grupo «Mis robots». */
+/** A saved arm of the learner, as the «Mis robots» group shows it. */
 export interface SavedArmOption {
   readonly id: string;
   readonly name: string;
 }
 
-/** Id del brazo por defecto cuando la URL no trae ninguno o trae uno desconocido. */
+/** Id of the default arm when the URL carries none or carries an unknown one. */
 export const DEFAULT_ARM_ID = 'planar2dof';
 
-/** Prefijo de los valores de «Mis robots», para no chocar con un id del catálogo. */
+/** Prefix of the «Mis robots» values, so they do not clash with a catalogue id. */
 export const SAVED_PREFIX = 'saved:';
 
-/** Valor de la opción que abre el diálogo de importación; no es un brazo. */
+/** Value of the option that opens the import dialog; it is not an arm. */
 export const IMPORT_VALUE = 'import';
 
-/** Valor del selector cuando se está mostrando un brazo importado solo en memoria. */
+/** Selector value while an arm imported only in memory is being shown. */
 export const IMPORTED_VALUE = 'imported';
 
-/** El id de un brazo guardado a partir del valor del selector, o `null` si no es uno. */
+/** The id of a saved arm from the selector value, or `null` if it is not one. */
 export function savedIdOf(value: string): string | null {
   return value.startsWith(SAVED_PREFIX) ? value.slice(SAVED_PREFIX.length) : null;
 }
 
-/** Resuelve el id pedido contra el catálogo; devuelve el de reserva si no existe. */
+/** Resolves the requested id against the catalogue; returns the fallback one if it is missing. */
 export function resolveArmId(requested: string | null, arms: readonly ArmOption[]): string {
   if (requested !== null && arms.some((arm) => arm.id === requested)) return requested;
   if (arms.some((arm) => arm.id === DEFAULT_ARM_ID)) return DEFAULT_ARM_ID;
@@ -50,7 +50,7 @@ const SELECT =
   'border-border bg-bg-raised text-fg h-11 rounded-md border px-3 text-sm ' +
   'focus-visible:outline-color-focus focus-visible:outline-2 focus-visible:outline-offset-2';
 
-/** El grupo «Mis robots»; nada sin sesión o sin brazos guardados (#137, decisión 3). */
+/** The «Mis robots» group; nothing without a session or without saved arms (#137, decision 3). */
 function SavedGroup({
   robots,
   t,
@@ -70,7 +70,7 @@ function SavedGroup({
   );
 }
 
-/** Las opciones del selector: el catálogo, los guardados, el importado en memoria e «Importar…». */
+/** The selector options: the catalogue, the saved ones, the in-memory imported one and «Importar…». */
 function ArmOptions({
   arms,
   savedArms,
@@ -104,20 +104,20 @@ function ArmOptions({
 
 export interface ArmSourceProps {
   arms: readonly ArmOption[];
-  /** Id actualmente seleccionado: uno del catálogo, `saved:{id}` o `imported`. */
+  /** Currently selected id: one from the catalogue, `saved:{id}` or `imported`. */
   selected: string;
-  /** Si el id de la URL no existía y se cayó al brazo por defecto. */
+  /** Whether the URL id did not exist and it fell back to the default arm. */
   fallback: boolean;
-  /** Los brazos guardados del estudiante; lista vacía sin sesión. */
+  /** The learner's saved arms; empty list without a session. */
   savedArms?: readonly SavedArmOption[];
-  /** Nombre del brazo importado en memoria, si lo hay; entonces aparece su propia opción. */
+  /** Name of the in-memory imported arm, if any; then its own option appears. */
   importedName?: string | null;
   onSelect: (id: string) => void;
-  /** Se llama cuando el estudiante elige «Importar…». */
+  /** Called when the learner picks «Importar…». */
   onImport?: () => void;
 }
 
-/** Selector del brazo: catálogo, los guardados con sesión y la opción de importar. */
+/** Arm selector: catalogue, the saved ones with a session and the import option. */
 export function ArmSource({
   arms,
   selected,

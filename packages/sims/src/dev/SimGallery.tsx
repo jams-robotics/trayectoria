@@ -64,11 +64,11 @@ function simSection({ title, stories: cases }: SimStories): JSX.Element {
 }
 
 /**
- * La sección `ArmViewer`, resuelta solo cuando el navegador la renderiza. Sus stories no se
- * importan de forma estática: eso arrastraría `three` y `urdf-loader` al chunk principal del
- * playground y, desde ahí, a toda página que hidrate una isla de este paquete
+ * The `ArmViewer` section, resolved only when the browser renders it. Its stories are not
+ * imported statically: that would drag `three` and `urdf-loader` into the main chunk of the
+ * playground and, from there, into every page that hydrates an island of this package
  * (docs/ARCHITECTURE.md §8: «three solo en páginas 3D, con `client:only` y `import()` dinámico»).
- * Tras este único `import()` dinámico la sección entera cae en su propio chunk (#133, decisión 2).
+ * After this single dynamic `import()` the whole section falls into its own chunk (#133, decision 2).
  */
 const ARM_VIEWER_TITLE = 'ArmViewer';
 
@@ -95,7 +95,7 @@ export function sectionsFor(section?: string | null): readonly SimStories[] {
   return stories.filter((entry) => entry.title === section);
 }
 
-/** Si la sección perezosa `ArmViewer` entra en la salida bajo un filtro `section`. */
+/** Whether the lazy `ArmViewer` section enters the output under a `section` filter. */
 export function includesArmViewer(section?: string | null): boolean {
   return (
     section === undefined || section === null || section === '' || section === ARM_VIEWER_TITLE

@@ -7,11 +7,11 @@ import { t } from '@trayectoria/i18n';
 import type { ReactNode } from 'react';
 import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
 
-// Sin WebGL en jsdom (mismo criterio que F2-12, #96, decisión 6). `Scene3D` resuelve
-// `@react-three/fiber` desde `packages/widgets`, otra instancia de módulo, así que lo que se
-// sustituye es la entrada `@trayectoria/widgets/scene3d` que este componente importa: el `Canvas`
-// pasa a ser un div y `Frame` un marcador. Lo que se comprueba es el árbol declarado y las
-// posiciones que sim-core calcula, no una imagen.
+// No WebGL in jsdom (same criterion as F2-12, #96, decision 6). `Scene3D` resolves
+// `@react-three/fiber` from `packages/widgets`, another module instance, so what gets
+// replaced is the `@trayectoria/widgets/scene3d` entry that this component imports: the `Canvas`
+// becomes a div and `Frame` a marker. What is checked is the declared tree and the
+// positions computed by sim-core, not an image.
 vi.mock('@trayectoria/widgets/scene3d', () => ({
   Scene3D: ({
     children,
@@ -46,7 +46,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-/** `fetch` que devuelve el URDF del brazo plano del catálogo. */
+/** `fetch` that returns the URDF of the catalog planar arm. */
 function stubCatalogFetch(body = PLANAR_URDF, ok = true): void {
   vi.stubGlobal(
     'fetch',
@@ -56,7 +56,7 @@ function stubCatalogFetch(body = PLANAR_URDF, ok = true): void {
 
 describe('ArmViewer (F5-01a)', () => {
   test('lee la traslación de la columna correcta del `Mat4` de sim-core', () => {
-    // Columna-mayor: índices 12, 13 y 14 (sim-core math/mat4.ts).
+    // Column-major: indices 12, 13 and 14 (sim-core math/mat4.ts).
     const transform = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0.35, -0.2, 0.1, 1];
     expect(translationOf(transform)).toEqual([0.35, -0.2, 0.1]);
     expect(translationOf([])).toEqual([0, 0, 0]);
@@ -74,7 +74,7 @@ describe('ArmViewer (F5-01a)', () => {
     expect(screen.getByTestId('canvas').getAttribute('aria-label')).toContain('Brazo plano 2 GDL');
     expect(screen.getAllByRole('slider')).toHaveLength(2);
     expect(screen.getByTestId('effector-panel')).toBeInTheDocument();
-    // El brazo de three cuelga del canvas como `<primitive>`; R3F no admite `data-*` ahí.
+    // The three arm hangs from the canvas as a `<primitive>`; R3F does not accept `data-*` there.
     expect(screen.getByTestId('canvas').querySelector('primitive')).not.toBeNull();
   });
 
@@ -141,7 +141,7 @@ describe('ArmViewer · renderPanel (F5-01b, #134)', () => {
     await waitFor(() => {
       expect(screen.getByTestId('arm-viewer')).toBeInTheDocument();
     });
-    // Los dos paneles quedan en flujo normal, sin envoltorio añadido.
+    // Both panels stay in normal flow, with no added wrapper.
     expect(screen.getByTestId('joint-sliders')).toBeInTheDocument();
     expect(screen.getByTestId('effector-panel')).toBeInTheDocument();
     expect(screen.queryByTestId('panel-wrapper')).toBeNull();
@@ -172,11 +172,11 @@ describe('ArmViewer · renderPanel (F5-01b, #134)', () => {
     expect(seen.map((panel) => panel.id)).toEqual(['joints', 'effector']);
     expect(seen[0]?.title).toBe(t('sims.arm.joints'));
     expect(seen[1]?.title).toBe(t('sims.arm.effector'));
-    // Resúmenes de una línea con los valores dorados de F5-01a (q₁ = 90°, q₂ = 0°).
+    // One-line summaries with the F5-01a golden values (q₁ = 90°, q₂ = 0°).
     expect(seen[0]?.summary).toBe('joint1 90.0° · joint2 0.0°');
     expect(seen[1]?.summary).toBe('x 0.000 y 0.350 z 0.000 m');
 
-    // El contenido es el mismo de siempre, ahora dentro del envoltorio del consumidor.
+    // The content is the same as always, now inside the consumer's wrapper.
     expect(screen.getAllByTestId('panel-wrapper')).toHaveLength(2);
     expect(screen.getByTestId('joint-sliders')).toBeInTheDocument();
     expect(screen.getByTestId('effector-panel')).toBeInTheDocument();
@@ -199,8 +199,8 @@ describe('ArmViewer con matrices (F5-02)', () => {
     await waitFor(() => {
       expect(screen.getByTestId('matrix-panel')).toBeInTheDocument();
     });
-    // `⁰T` del último eslabón de la cadena (`tool0`) con q = (90°, 0°): el valor dorado del
-    // efector de F5-01a, (0.000, 0.350, 0.000), en la columna de traslación.
+    // `⁰T` of the last link of the chain (`tool0`) with q = (90°, 0°): the F5-01a effector
+    // golden value, (0.000, 0.350, 0.000), in the translation column.
     const cells = screen.getAllByRole('cell');
     expect(cells[3]).toHaveTextContent('0.000');
     expect(cells[7]).toHaveTextContent('0.350');

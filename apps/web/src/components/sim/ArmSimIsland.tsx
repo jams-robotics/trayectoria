@@ -12,30 +12,30 @@ import { MOBILE_MEDIA_QUERY, useMediaQuery } from './useMediaQuery';
 import { useImportedArm } from './useImportedArm';
 import type { ImportState, MemoryArm } from './useImportedArm';
 
-// F5-01b (#134, decisiones 1, 2 y 4): la isla de `/simuladores/brazo`. Es `client:only="react"`
-// y carga `@trayectoria/sims/arm` con un `import()` dinámico, de modo que `three` y
-// `urdf-loader` solo entran en el chunk de esta página (docs/ARCHITECTURE.md §8). El visor es el
-// `ArmViewer` de F5-01a tal cual: los sliders y el panel del efector son suyos, aquí no se
-// duplican.
+// F5-01b (#134, decisions 1, 2 and 4): the island of `/simuladores/brazo`. It is
+// `client:only="react"` and loads `@trayectoria/sims/arm` with a dynamic `import()`, so that
+// `three` and `urdf-loader` only enter this page's chunk (docs/ARCHITECTURE.md §8). The viewer is
+// the `ArmViewer` of F5-01a as is: the sliders and the end-effector panel are its own, they are
+// not duplicated here.
 
 /**
- * El visor de F5-01a, resuelto solo cuando el navegador lo renderiza. Este `import()` es el
- * único punto por el que `three` y `urdf-loader` entran en la página (#134, decisión 1).
+ * The viewer of F5-01a, resolved only when the browser renders it. This `import()` is the
+ * single point through which `three` and `urdf-loader` enter the page (#134, decision 1).
  */
 const LazyArmViewer = lazy(async () => {
   const module = await import('@trayectoria/sims/arm');
   return { default: module.ArmViewer };
 });
 
-/** Capa de los marcos, siempre activa; las otras dos las encienden los controles de vista. */
+/** Frames layer, always active; the other two are turned on by the view controls. */
 type ShowLayer = 'frames' | 'matrices' | 'workspace';
 
-/** Lee `?robot=` de la URL. Solo se ejecuta en el cliente: la isla es `client:only`. */
+/** Reads `?robot=` from the URL. Runs only on the client: the island is `client:only`. */
 function requestedArmId(): string | null {
   return new URLSearchParams(window.location.search).get('robot');
 }
 
-/** Las capas del visor según qué controles de vista estén encendidos (#135 y #136). */
+/** The viewer's layers according to which view controls are on (#135 and #136). */
 function showLayers(matrices: boolean, workspace: boolean): ShowLayer[] {
   const layers: ShowLayer[] = ['frames'];
   if (matrices) layers.push('matrices');
@@ -43,7 +43,7 @@ function showLayers(matrices: boolean, workspace: boolean): ShowLayer[] {
   return layers;
 }
 
-/** El panel que `ArmViewer` entrega a `renderPanel` (`ArmViewerPanel` de `@trayectoria/sims`). */
+/** The panel `ArmViewer` hands to `renderPanel` (`ArmViewerPanel` of `@trayectoria/sims`). */
 interface ArmViewerPanel {
   readonly id: 'joints' | 'effector' | 'matrices' | 'workspace';
   readonly title: string;
@@ -52,9 +52,9 @@ interface ArmViewerPanel {
 }
 
 /**
- * Envoltorio de los paneles de `ArmViewer` (#134, decisión 3). En móvil cada panel va en un
- * `SimAccordion` del grupo, con uno solo abierto a la vez; en escritorio se devuelve el panel
- * tal cual, de modo que el marcado es el de F5-01a.
+ * Wrapper of the `ArmViewer` panels (#134, decision 3). On mobile each panel goes in a
+ * `SimAccordion` of the group, with only one open at a time; on desktop the panel is returned
+ * as is, so the markup is that of F5-01a.
  */
 function usePanelWrapper(
   mobile: boolean,
@@ -82,9 +82,9 @@ function usePanelWrapper(
 }
 
 /**
- * El visor perezoso. Cambiar de brazo lo remonta con `key`, así que `q` vuelve a `initialQ` o a
- * ceros (criterio del ticket) sin que esta isla toque el estado de `useArmSim`. Un brazo
- * importado llega como `source` con su zip en memoria (#137, decisión 2).
+ * The lazy viewer. Switching arms remounts it with `key`, so `q` goes back to `initialQ` or to
+ * zeros (ticket criterion) without this island touching the state of `useArmSim`. An imported
+ * arm arrives as `source` with its zip in memory (#137, decision 2).
  */
 function Viewer({
   armId,
@@ -123,8 +123,8 @@ function Viewer({
 }
 
 /**
- * El aviso de la última importación. Las claves van como literales para que el chequeo estático de
- * F0-06 las vea (docs/ops/I18N.md, mismo patrón que `ERROR_KEYS` de `UploadUrdfForm`).
+ * The notice of the last import. The keys go as literals so that the static check of
+ * F0-06 sees them (docs/ops/I18N.md, same pattern as `ERROR_KEYS` of `UploadUrdfForm`).
  */
 function ImportNotice({ notice }: { notice: string }): JSX.Element {
   const t = useT();
@@ -146,7 +146,7 @@ function ImportNotice({ notice }: { notice: string }): JSX.Element {
   );
 }
 
-/** El selector con su aviso y, cuando está abierto, el diálogo de importación (#137). */
+/** The selector with its notice and, when open, the import dialog (#137). */
 function SourceRow({
   arms,
   selected,
@@ -184,8 +184,8 @@ function SourceRow({
 }
 
 /**
- * Qué hace cada opción del selector (#137, decisión 3): un brazo del catálogo cambia la URL, uno
- * guardado se descarga del propio bucket y el importado en memoria solo se vuelve a mostrar.
+ * What each selector option does (#137, decision 3): a catalogue arm changes the URL, a saved
+ * one is downloaded from its own bucket and the in-memory imported one is just shown again.
  */
 function useArmSelection(options: {
   armId: string;
@@ -221,15 +221,15 @@ function useArmSelection(options: {
 }
 
 export interface ArmSimIslandProps {
-  /** Brazos de la colección `arms`, resueltos en build por `brazo.astro`. */
+  /** Arms of the `arms` collection, resolved at build time by `brazo.astro`. */
   arms: readonly ArmOption[];
 }
 
 /**
- * El brazo que la página muestra: el del catálogo pedido en `?robot=`, uno guardado o el
- * importado en memoria. `?robot=` se lee en el cliente (`window` está permitido en `apps/web`,
- * CLAUDE.md) porque la página es estática y `Astro.url.searchParams` no ve una cadena añadida
- * tras el build.
+ * The arm the page shows: the catalogue one requested in `?robot=`, a saved one or the
+ * in-memory imported one. `?robot=` is read on the client (`window` is allowed in `apps/web`,
+ * CLAUDE.md) because the page is static and `Astro.url.searchParams` does not see a query
+ * string added after the build.
  */
 function useArmPage(arms: readonly ArmOption[]): {
   armId: string;
@@ -240,29 +240,29 @@ function useArmPage(arms: readonly ArmOption[]): {
 } {
   const requested = requestedArmId();
   const [armId, setArmId] = useState(() => resolveArmId(requested, arms));
-  // El aviso solo aparece si la URL pedía un brazo concreto que no existe en el catálogo.
+  // The notice only appears if the URL asked for a specific arm that is not in the catalogue.
   const [fallback, setFallback] = useState(
     () => requested !== null && !arms.some((arm) => arm.id === requested),
   );
-  // «Importar…» y «Mis robots» son F5-04 (#137, decisiones 3, 4 y 5); el brazo importado se
-  // dibuja desde su zip en memoria y el selector se queda en su propia opción.
+  // «Importar…» and «Mis robots» are F5-04 (#137, decisions 3, 4 and 5); the imported arm is
+  // drawn from its in-memory zip and the selector stays on its own option.
   const [selected, setSelected] = useState(armId);
   const importing = useImportedArm(setSelected);
   const onSelect = useArmSelection({ armId, setArmId, setSelected, setFallback, importing });
   return { armId, selected, fallback, importing, onSelect };
 }
 
-/** Página del simulador de brazo: selector, controles de vista y el visor 3D. */
+/** Arm simulator page: selector, view controls and the 3D viewer. */
 export function ArmSimIsland({ arms }: ArmSimIslandProps): JSX.Element {
   const { armId, selected, fallback, importing, onSelect } = useArmPage(arms);
 
-  // En móvil los tres bloques de la página son acordeones con uno solo abierto a la vez
-  // (docs/DESIGN.md §9.4, #134 decisión 3); «Articulaciones» arranca abierto.
+  // On mobile the page's three blocks are accordions with only one open at a time
+  // (docs/DESIGN.md §9.4, #134 decision 3); «Articulaciones» starts open.
   const mobile = useMediaQuery(MOBILE_MEDIA_QUERY);
   const [openId, setOpenId] = useState<OpenPanelId>('joints');
   const group: AccordionGroup = { openId, setOpenId };
   const renderPanel = usePanelWrapper(mobile, group);
-  // Los controles encienden las capas del visor; su estado no va en la URL (#135 y #136).
+  // The controls turn on the viewer's layers; their state does not go in the URL (#135 and #136).
   const [matrices, setMatrices] = useState(false);
   const [workspace, setWorkspace] = useState(false);
 

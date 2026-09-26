@@ -10,45 +10,45 @@ import type { ArmSim } from './useArmSim';
 import type { WorkspaceState } from './workspace/WorkspacePanel';
 import { workspacePanel } from './workspace/workspacePanelEntry';
 
-// La columna de paneles del visor (F5-01b, #134, decisión 3). Vive aparte de `ArmViewer.tsx`
-// desde F5-03 (#136) para que ninguno de los dos archivos pase de 300 líneas
-// (docs/STANDARDS.md §4). El contrato con la página no cambia: `renderPanel` sigue recibiendo un
-// panel por llamada, en orden, y pinta lo que devuelva.
+// The panel column of the viewer (F5-01b, #134, decision 3). It lives apart from `ArmViewer.tsx`
+// since F5-03 (#136) so that neither file exceeds 300 lines
+// (docs/STANDARDS.md §4). The contract with the page does not change: `renderPanel` still receives one
+// panel per call, in order, and renders what it returns.
 
-/** Uno de los paneles laterales del visor, listo para envolverlo desde fuera. */
+/** One of the side panels of the viewer, ready to be wrapped from outside. */
 export interface ArmViewerPanel {
   /**
-   * Cuál de los paneles es; `'matrices'` solo aparece con `show: ['matrices']` (F5-02) y
-   * `'workspace'` con `show: ['workspace']` (F5-03).
+   * Which of the panels it is; `'matrices'` only appears with `show: ['matrices']` (F5-02) and
+   * `'workspace'` with `show: ['workspace']` (F5-03).
    */
   readonly id: 'joints' | 'effector' | 'matrices' | 'workspace';
-  /** Título del panel, ya traducido. */
+  /** Panel title, already translated. */
   readonly title: string;
-  /** Resumen de una línea, legible con el panel plegado (por ejemplo `x 0.000 y 0.350 z 0.000 m`). */
+  /** One-line summary, readable with the panel collapsed (for example `x 0.000 y 0.350 z 0.000 m`). */
   readonly summary: string;
-  /** El panel tal cual lo pinta el visor. */
+  /** The panel exactly as the viewer renders it. */
   readonly content: ReactNode;
 }
 
-/** Resumen de una línea del panel de matrices: qué eslabón se está mirando. */
+/** One-line summary of the matrix panel: which link is being looked at. */
 export function matricesSummary(link: string | null, t: Translate): string {
   return link ?? t('sims.matrices.baseLink');
 }
 
-/** Lo que el visor sabe del panel de matrices cuando construye la columna. */
+/** What the viewer knows about the matrix panel when it builds the column. */
 export interface MatricesPanelState {
   readonly show: boolean;
   readonly onHighlight: (link: string | null) => void;
   readonly highlighted: string | null;
 }
 
-/** Lo que el visor sabe del panel del espacio de trabajo cuando construye la columna. */
+/** What the viewer knows about the workspace panel when it builds the column. */
 export interface WorkspacePanelState {
   readonly show: boolean;
   readonly onChange: (state: WorkspaceState) => void;
 }
 
-/** Panel de matrices, solo con `show: ['matrices']` (#135, decisión 5). */
+/** Matrix panel, only with `show: ['matrices']` (#135, decision 5). */
 function matricesPanel(sim: ArmSim, t: Translate, matrices: MatricesPanelState): ArmViewerPanel {
   return {
     id: 'matrices',
@@ -66,7 +66,7 @@ function matricesPanel(sim: ArmSim, t: Translate, matrices: MatricesPanelState):
   };
 }
 
-/** Los paneles laterales del visor, en el orden en que se muestran. */
+/** The side panels of the viewer, in display order. */
 export function armPanels(
   sim: ArmSim,
   t: Translate,
@@ -88,16 +88,16 @@ export function armPanels(
       content: <EffectorPanel readout={sim.readout} />,
     },
   ];
-  // El panel de matrices solo existe con `show: ['matrices']` (#135, decisión 5); va como un
-  // panel más para que la página lo pliegue en móvil con el mismo `renderPanel`.
+  // The matrix panel only exists with `show: ['matrices']` (#135, decision 5); it goes in as one
+  // more panel so that the page collapses it on mobile with the same `renderPanel`.
   if (matrices.show) panels.push(matricesPanel(sim, t, matrices));
-  // El panel del espacio de trabajo, igual que el de matrices, solo con `show: ['workspace']`
-  // (#136, decisión 4) y como un panel más para que la página lo pliegue en móvil.
+  // The workspace panel, like the matrix one, only with `show: ['workspace']`
+  // (#136, decision 4) and as one more panel so that the page collapses it on mobile.
   if (workspace.show) panels.push(workspacePanel(sim.arm, t, workspace.onChange));
   return panels;
 }
 
-/** La columna de paneles, envuelta por el consumidor si pasó `renderPanel`. */
+/** The panel column, wrapped by the consumer if it passed `renderPanel`. */
 export function PanelColumn({
   panels,
   renderPanel,

@@ -8,11 +8,11 @@ import { describe, expect, test, vi } from 'vitest';
 import { N_DEFAULT, N_MAX, N_MIN, WorkspacePanel, clampCount } from './WorkspacePanel';
 import type { WorkspaceState } from './WorkspacePanel';
 
-// F5-03 (#136, decisiones 4 y 6): el panel con el planificador síncrono, de modo que el
-// muestreo termina dentro del propio `await` de la interacción. Ningún literal en español vive
-// en el componente: aquí se comprueba contra las claves `sims.workspace.*`.
+// F5-03 (#136, decisions 4 and 6): the panel with the synchronous scheduler, so that
+// sampling finishes within the interaction's own `await`. No Spanish literal lives
+// in the component: here it is checked against the `sims.workspace.*` keys.
 
-/** Brazo plano de 2 GDL del catálogo (docs/ROBOT-SPEC.md §4). */
+/** 2-DOF planar arm from the catalog (docs/ROBOT-SPEC.md §4). */
 const PLANAR_2DOF: ArmSpec = {
   baseLink: 'base_link',
   endEffectorLink: 'tool0',
@@ -38,13 +38,13 @@ const PLANAR_2DOF: ArmSpec = {
   ],
 };
 
-/** Planificador síncrono: el lote corre en el acto, sin ceder el hilo. */
+/** Synchronous scheduler: the batch runs immediately, without yielding the thread. */
 function immediateSchedule(run: () => void): () => void {
   run();
   return () => undefined;
 }
 
-/** El panel montado con el planificador síncrono y un espía de `onChange`. */
+/** The panel mounted with the synchronous scheduler and a spy on `onChange`. */
 function renderPanel(schedule = immediateSchedule): {
   onChange: ReturnType<typeof vi.fn>;
   user: ReturnType<typeof userEvent.setup>;
@@ -54,12 +54,12 @@ function renderPanel(schedule = immediateSchedule): {
   return { onChange, user: userEvent.setup() };
 }
 
-/** El campo numérico `n`. */
+/** The numeric field `n`. */
 function countField(): HTMLInputElement {
   return screen.getByLabelText(t('sims.workspace.count'));
 }
 
-/** El botón que lanza o cancela el cálculo. */
+/** The button that starts or cancels the computation. */
 function computeButton(): HTMLElement {
   return screen.getByTestId('workspace-compute');
 }
@@ -124,7 +124,7 @@ describe('WorkspacePanel (F5-03)', () => {
     await user.type(countField(), '4000');
     await user.click(computeButton());
 
-    // Un lote de 1 000 sobre 4 000 muestras: la barra marca el 25 %.
+    // A batch of 1 000 out of 4 000 samples: the bar shows 25 %.
     act(() => {
       const next = pending;
       pending = null;

@@ -1,10 +1,10 @@
-// El estado compartido de los acordeones de `/simuladores/brazo` (#134, decisión 3), en su propio
-// archivo para que `ArmSimIsland.tsx` y `ArmViewControls.tsx` lo compartan sin ciclo de imports.
+// The shared state of the accordions of `/simuladores/brazo` (#134, decision 3), in its own
+// file so that `ArmSimIsland.tsx` and `ArmViewControls.tsx` share it without an import cycle.
 
-/** Qué acordeón está abierto en móvil; solo uno a la vez (docs/DESIGN.md §9.4). */
+/** Which accordion is open on mobile; only one at a time (docs/DESIGN.md §9.4). */
 export type OpenPanelId = 'view' | 'joints' | 'effector' | 'matrices' | 'workspace' | null;
 
-/** El estado compartido por los tres acordeones de la página en móvil. */
+/** The state shared by the page's three accordions on mobile. */
 export interface AccordionGroup {
   readonly openId: OpenPanelId;
   readonly setOpenId: (id: OpenPanelId) => void;

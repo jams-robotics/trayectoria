@@ -5,18 +5,18 @@ import type { Translate } from '@trayectoria/i18n';
 import { PanelCard } from './PanelCard';
 import type { EffectorReadout } from './types';
 
-// F5-01a (#133, decisión 7): posición en metros con 3 decimales y orientación en grados con 1,
-// siempre de `endEffectorPose` de sim-core. Ningún número de este panel sale de three
-// (docs/ARCHITECTURE.md §4.5, docs/DEFINITION-OF-DONE.md tipo sim).
+// F5-01a (#133, decision 7): position in metres with 3 decimals and orientation in degrees with 1,
+// always from sim-core `endEffectorPose`. No number in this panel comes from three
+// (docs/ARCHITECTURE.md §4.5, docs/DEFINITION-OF-DONE.md sim type).
 
-/** Una fila del panel: clave de etiqueta, valor ya formateado y clave de unidad. */
+/** One row of the panel: label key, already formatted value and unit key. */
 interface Row {
   readonly labelKey: string;
   readonly value: string;
   readonly unitKey: string;
 }
 
-/** Las seis filas del panel, en el orden en que se muestran. */
+/** The six rows of the panel, in display order. */
 export function effectorRows(readout: EffectorReadout): readonly Row[] {
   return [
     { labelKey: 'sims.arm.x', value: readout.x_m, unitKey: 'sims.arm.unitM' },
@@ -28,7 +28,7 @@ export function effectorRows(readout: EffectorReadout): readonly Row[] {
   ];
 }
 
-/** Resumen de una línea del panel, para el `aria-live` (docs/DESIGN.md §8). */
+/** One-line summary of the panel, for the `aria-live` (docs/DESIGN.md §8). */
 export function effectorSummary(readout: EffectorReadout, t: Translate): string {
   return effectorRows(readout)
     .map((row) =>
@@ -45,7 +45,7 @@ export interface EffectorPanelProps {
   readout: EffectorReadout;
 }
 
-/** Panel del efector: posición y orientación calculadas por sim-core. */
+/** Effector panel: position and orientation computed by sim-core. */
 export function EffectorPanel({ readout }: EffectorPanelProps): JSX.Element {
   const t = useT();
   return (

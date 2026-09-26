@@ -12,7 +12,7 @@ import type { PlotAxis, PlotLive, PlotProps, PlotRefLine, PlotSegment, PlotSerie
 /** Plot area before uPlot has reported its first layout (docs/DESIGN.md §5 padding, #104). */
 const INITIAL_PLOT_AREA: PlotArea = { left_px: 0, width_px: 0 };
 
-/** Default plot area height in CSS pixels (docs/DESIGN.md §5: 200 en simulador). */
+/** Default plot area height in CSS pixels (docs/DESIGN.md §5: 200 in the simulator). */
 export const DEFAULT_HEIGHT_PX = 200;
 /** Shared empty lists, so an absent prop keeps the same identity across renders. */
 const NO_REF_LINES: readonly PlotRefLine[] = [];

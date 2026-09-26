@@ -48,7 +48,7 @@ describe('JointSliders (F5-01a)', () => {
   test('un valor fuera del límite del spec llega recortado al límite', () => {
     const onChange = vi.fn();
     render(<JointSliders joints={JOINTS} q_rad={[0, 0]} onChange={onChange} />);
-    // 200° excede el límite de 90° de `joint1`; `ParamPanel` lo recorta antes de emitirlo.
+    // 200° exceeds the 90° limit of `joint1`; `ParamPanel` clamps it before emitting it.
     fireEvent.change(screen.getAllByRole('slider')[0] as HTMLInputElement, {
       target: { value: '200' },
     });

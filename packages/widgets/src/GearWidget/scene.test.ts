@@ -25,7 +25,7 @@ describe('dibujo del tren (F2-08)', () => {
   it('cada engranaje es un polígono cerrado con z dientes (#91, decisión 3)', () => {
     const points = toothPolygon([0, 0], 0.012, 12, 0);
 
-    // Cuatro vértices por diente, más el punto de cierre.
+    // Four vertices per tooth, plus the closing point.
     expect(points).toHaveLength(12 * 4 + 1);
     expect(points[points.length - 1]).toEqual(points[0]);
   });
@@ -39,10 +39,10 @@ describe('dibujo del tren (F2-08)', () => {
 
     expect(gears).toHaveLength(4);
     expect(gears[1]?.centre_m[0]).toBeCloseTo(pitchRadius_m(12) + pitchRadius_m(60), 9);
-    // z3 comparte el eje de z2, así que comparte su centro y su ángulo.
+    // z3 shares the shaft of z2, so it shares its centre and its angle.
     expect(gears[2]?.centre_m).toEqual(gears[1]?.centre_m);
     expect(gears[2]?.angle_rad).toBe(gears[1]?.angle_rad);
-    // La segunda etapa engrana en diagonal, pero a la distancia exacta r3 + r4 (#91, decisión 3).
+    // The second stage meshes diagonally, but at the exact distance r3 + r4 (#91, decision 3).
     const dx_m = (gears[3]?.centre_m[0] ?? 0) - (gears[1]?.centre_m[0] ?? 0);
     const dy_m = (gears[3]?.centre_m[1] ?? 0) - (gears[1]?.centre_m[1] ?? 0);
     expect(Math.hypot(dx_m, dy_m)).toBeCloseTo(pitchRadius_m(10) + pitchRadius_m(50), 9);
@@ -56,10 +56,10 @@ describe('dibujo del tren (F2-08)', () => {
     const z3 = gears[2];
     if (z2 === undefined || z3 === undefined) throw new Error('faltan z2 y z3');
 
-    // Mismo eje y misma velocidad, pero los dientes de z3 caen en los huecos de z2.
+    // Same shaft and same speed, but the teeth of z3 fall into the gaps of z2.
     expect(z3.centre_m).toEqual(z2.centre_m);
     expect(z3.angle_rad - z2.angle_rad).toBeCloseTo(Math.PI / 60, 9);
-    // z3 lleva un aro propio y su etiqueta al otro lado del ancla, para no tapar la de z2.
+    // z3 carries its own ring and its label on the other side of the anchor, so it does not cover the z2 one.
     expect(z3.ring).toBe(true);
     expect(z2.ring).toBe(false);
     expect(z3.labelAlign).toBe('left');
@@ -86,7 +86,7 @@ describe('dibujo del tren (F2-08)', () => {
     expect(gears[0]?.angle_rad).toBeGreaterThan(0);
     expect(gears[1]?.angle_rad).toBeLessThan(0);
     expect(gears[3]?.angle_rad).toBeGreaterThan(0);
-    // 6000 rpm son 100 vueltas/s, así que el de entrada da una vuelta por segundo dibujada.
+    // 6000 rpm is 100 rev/s, so the input gear makes one drawn turn per second.
     expect(gears[0]?.angle_rad).toBeCloseTo(2 * Math.PI, 2);
   });
 
@@ -96,7 +96,7 @@ describe('dibujo del tren (F2-08)', () => {
 
     expect(worldWidthOf(gears)).toBeGreaterThan(span_m);
     expect(sceneCentre(gears)[0]).toBeGreaterThan(0);
-    // La segunda etapa baja, así que el centro de la vista también baja.
+    // The second stage goes down, so the centre of the view goes down too.
     expect(sceneCentre(gears)[1]).toBeLessThan(0);
   });
 
@@ -117,7 +117,7 @@ describe('dibujo del tren (F2-08)', () => {
       const at_m = labelAnchor(gear, centre_m);
       const toGear_m = Math.hypot(at_m[0] - gear.centre_m[0], at_m[1] - gear.centre_m[1]);
       expect(toGear_m).toBeGreaterThan(gear.radius_m);
-      // Se aleja del centro de la vista, no se acerca.
+      // It moves away from the centre of the view, not towards it.
       const before_m = Math.hypot(gear.centre_m[0] - centre_m[0], gear.centre_m[1] - centre_m[1]);
       expect(Math.hypot(at_m[0] - centre_m[0], at_m[1] - centre_m[1])).toBeGreaterThan(before_m);
     });
@@ -168,7 +168,7 @@ describe('panel y deslizadores (F2-08)', () => {
     expect(applyChange(TRAIN, 'nIn', 3000).nIn_rpm).toBe(3000);
     expect(applyChange(TRAIN, 'torqueIn', 0.02).torqueIn_Nm).toBe(0.02);
     expect(applyChange(TRAIN, 'efficiency', 0.8).efficiency).toBe(0.8);
-    // Una clave desconocida no toca el tren.
+    // An unknown key does not touch the train.
     expect(applyChange(TRAIN, 'otra', 1)).toBe(TRAIN);
   });
 

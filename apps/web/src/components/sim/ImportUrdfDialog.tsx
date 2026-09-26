@@ -3,22 +3,22 @@ import { useEffect, useRef, type JSX } from 'react';
 
 import { UploadUrdfForm, type AcceptedUpload } from '../robots/UploadUrdfForm';
 
-// F5-04 (#137, decisión 4): «Importar…» del selector de `/simuladores/brazo`. Reutiliza el
-// formulario de F3-04 tal cual: la comprobación del zip (`validateUpload` + `zipUrdf` +
-// `parseUrdf`) y sus mensajes `urdf.*` en `aria-live` son los suyos, aquí no se duplican.
+// F5-04 (#137, decision 4): «Importar…» of the `/simuladores/brazo` selector. It reuses the
+// F3-04 form as is: the zip check (`validateUpload` + `zipUrdf` +
+// `parseUrdf`) and its `urdf.*` messages in `aria-live` are its own, not duplicated here.
 //
-// Sin sesión el formulario va en `parseOnly`: el spec y el zip se quedan en memoria y no se guarda
-// nada. Con sesión guarda como en F3-04 y, además, carga el brazo en el visor.
+// Without a session the form runs in `parseOnly`: the spec and the zip stay in memory and nothing
+// is saved. With a session it saves as in F3-04 and, in addition, loads the arm in the viewer.
 
 export interface ImportUrdfDialogProps {
-  /** `true` cuando hay sesión: el zip se guarda además de cargarse. */
+  /** `true` when there is a session: the zip is saved besides being loaded. */
   readonly signedIn: boolean;
-  /** Recibe el zip ya comprobado; la isla decide si lo guarda y lo carga en el visor. */
+  /** Receives the already checked zip; the island decides whether to save it and load it. */
   readonly onAccept: (upload: AcceptedUpload) => Promise<void>;
   readonly onClose: () => void;
 }
 
-/** El contenido del diálogo: el formulario de F3-04, el aviso sin sesión y el botón de cerrar. */
+/** The dialog content: the F3-04 form, the no-session notice and the close button. */
 function DialogBody({ signedIn, onAccept, onClose }: ImportUrdfDialogProps): JSX.Element {
   const t = useT();
   return (
@@ -47,8 +47,8 @@ function DialogBody({ signedIn, onAccept, onClose }: ImportUrdfDialogProps): JSX
 }
 
 /**
- * El diálogo de importación, un `<dialog>` modal nativo: el navegador aporta el foco atrapado, el
- * cierre con Escape y el `aria-modal` (docs/DESIGN.md §5, mismo patrón que el resto de la app).
+ * The import dialog, a native modal `<dialog>`: the browser provides the focus trap, closing
+ * with Escape and `aria-modal` (docs/DESIGN.md §5, same pattern as the rest of the app).
  */
 export function ImportUrdfDialog({
   signedIn,
@@ -61,8 +61,8 @@ export function ImportUrdfDialog({
   useEffect(() => {
     const dialog = ref.current;
     if (dialog === null || dialog.open) return;
-    // `showModal` es lo que lo pone en la capa superior, por encima del lienzo 3D. En jsdom no
-    // existe: allí basta con abrirlo, que es lo que los tests de componente leen.
+    // `showModal` is what puts it on the top layer, above the 3D canvas. It does not exist in
+    // jsdom: there it is enough to open it, which is what the component tests read.
     if (typeof dialog.showModal === 'function') dialog.showModal();
     else dialog.open = true;
   }, []);

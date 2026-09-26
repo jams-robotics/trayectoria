@@ -3,28 +3,28 @@ import type { ArmSpec, RobotSpec } from '@trayectoria/robot-spec';
 import { endEffectorPose, armForwardKinematics, radToDeg } from '@trayectoria/sim-core';
 import type { EndEffectorPose, Mat4 } from '@trayectoria/sim-core';
 
-// F5-01a (#133, decisiones 6 y 7): el estado del visor es la configuración `q` en radianes; los
-// números que se muestran salen siempre de sim-core (docs/ARCHITECTURE.md §4.5).
+// F5-01a (#133, decisions 6 and 7): the viewer state is the configuration `q` in radians; the
+// numbers displayed always come from sim-core (docs/ARCHITECTURE.md §4.5).
 
-/** Límite de una articulación `continuous`, que en URDF no declara rango: [−180°, 180°]. */
+/** Limit of a `continuous` joint, which declares no range in URDF: [−180°, 180°]. */
 export const CONTINUOUS_LIMIT_RAD = Math.PI;
 
-/** Decimales de la posición del efector, en metros (docs/WIDGETS.md, ArmViewerWidget). */
+/** Decimals of the effector position, in metres (docs/WIDGETS.md, ArmViewerWidget). */
 const POSITION_DECIMALS = 3;
-/** Decimales de la orientación del efector, en grados. */
+/** Decimals of the effector orientation, in degrees. */
 const ORIENTATION_DECIMALS = 1;
 
-/** Una articulación actuada con sus límites ya resueltos, en radianes. */
+/** An actuated joint with its limits already resolved, in radians. */
 export interface ActuatedJoint {
   readonly name: string;
   readonly type: ArmSpec['joints'][number]['type'];
-  /** Índice dentro de `q`, en el orden de las articulaciones no fijas de `arm.joints`. */
+  /** Index within `q`, in the order of the non-fixed joints of `arm.joints`. */
   readonly index: number;
   readonly lower_rad: number;
   readonly upper_rad: number;
 }
 
-/** Posición y orientación del efector ya formateadas para el panel. */
+/** Effector position and orientation already formatted for the panel. */
 export interface EffectorReadout {
   readonly x_m: string;
   readonly y_m: string;
@@ -34,7 +34,7 @@ export interface EffectorReadout {
   readonly yaw_deg: string;
 }
 
-/** Las articulaciones actuadas del brazo con sus límites; `continuous` recibe [−π, π]. */
+/** The actuated joints of the arm with their limits; `continuous` gets [−π, π]. */
 export function actuatedJoints(arm: ArmSpec): readonly ActuatedJoint[] {
   return arm.joints
     .filter((joint) => joint.type !== 'fixed')
@@ -49,14 +49,14 @@ export function actuatedJoints(arm: ArmSpec): readonly ActuatedJoint[] {
     }));
 }
 
-/** Recorta un valor al rango de su articulación (criterio de aceptación: el slider no lo excede). */
+/** Clamps a value to the range of its joint (acceptance criterion: the slider does not exceed it). */
 export function clampToLimits(joints: readonly ActuatedJoint[], index: number, q_rad: number): number {
   const joint = joints[index];
   if (joint === undefined) return q_rad;
   return Math.min(Math.max(q_rad, joint.lower_rad), joint.upper_rad);
 }
 
-/** Configuración inicial: la dada, recortada a los límites, o todo ceros dentro del rango. */
+/** Initial configuration: the given one, clamped to the limits, or all zeros within range. */
 export function initialConfiguration(
   joints: readonly ActuatedJoint[],
   initialQ_rad?: readonly number[],
@@ -66,7 +66,7 @@ export function initialConfiguration(
   );
 }
 
-/** Formatea la pose del efector: metros con 3 decimales, grados con 1 (#133, decisión 7). */
+/** Formats the effector pose: metres with 3 decimals, degrees with 1 (#133, decision 7). */
 export function formatPose(pose: EndEffectorPose): EffectorReadout {
   const [x_m, y_m, z_m] = pose.position_m;
   const [roll_rad, pitch_rad, yaw_rad] = pose.rpy_rad;
@@ -82,20 +82,20 @@ export function formatPose(pose: EndEffectorPose): EffectorReadout {
   };
 }
 
-/** Lo que el visor necesita del brazo: configuración, límites, marcos y pose del efector. */
+/** What the viewer needs from the arm: configuration, limits, frames and effector pose. */
 export interface ArmSim {
   readonly arm: ArmSpec;
   readonly joints: readonly ActuatedJoint[];
   readonly q_rad: readonly number[];
-  /** Fija una articulación por índice, recortada a sus límites. */
+  /** Sets a joint by index, clamped to its limits. */
   readonly setJoint: (index: number, q_rad: number) => void;
-  /** Transformada de cada eslabón respecto de la base, de `forwardKinematics` de sim-core. */
+  /** Transform of each link with respect to the base, from sim-core `forwardKinematics`. */
   readonly linkTransforms: ReadonlyMap<string, Mat4>;
   readonly pose: EndEffectorPose;
   readonly readout: EffectorReadout;
 }
 
-/** El `ArmSpec` de un `RobotSpec` de brazo. @throws RangeError si el robot no es un brazo. */
+/** The `ArmSpec` of an arm `RobotSpec`. @throws RangeError if the robot is not an arm. */
 export function armOf(robot: RobotSpec): ArmSpec {
   if (robot.arm === undefined) {
     throw new RangeError(`El robot "${robot.name}" no tiene sección de brazo`);
@@ -104,8 +104,8 @@ export function armOf(robot: RobotSpec): ArmSpec {
 }
 
 /**
- * Estado del visor de brazo: `q` en radianes, con los límites del spec, y todo lo derivado
- * calculado por sim-core (`forwardKinematics`, `endEffectorPose`).
+ * State of the arm viewer: `q` in radians, with the spec limits, and everything derived
+ * computed by sim-core (`forwardKinematics`, `endEffectorPose`).
  */
 export function useArmSim(robot: RobotSpec, initialQ_rad?: readonly number[]): ArmSim {
   const arm = useMemo(() => armOf(robot), [robot]);

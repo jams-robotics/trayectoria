@@ -6,8 +6,8 @@ import type { ManualDrive } from './useManualKeyboard';
 import { Panel } from './ControllerPanel';
 import type { useControllerChoice } from './ControllerPanel';
 
-// F4-03 (#129): las dos columnas de `LineFollowerWidget`, aparte para mantener ese archivo bajo
-// el límite de docs/STANDARDS.md §4.
+// F4-03 (#129): the two columns of `LineFollowerWidget`, split out to keep that file under
+// the limit of docs/STANDARDS.md §4.
 
 /** The controller panel of the right column, with the gains the selector is showing. */
 export function ControllerColumn({
@@ -32,7 +32,7 @@ export function ControllerColumn({
 }
 
 /**
- * The viewer column: the focusable box the manual keyboard listens on (#130, decisión 2) and,
+ * The viewer column: the focusable box the manual keyboard listens on (#130, decision 2) and,
  * under it, the live plots of F4-03.
  *
  * The plots deliberately stay outside `ManualViewer`: that box is the one that takes keyboard

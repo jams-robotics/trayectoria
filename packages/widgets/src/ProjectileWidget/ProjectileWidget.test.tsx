@@ -94,7 +94,7 @@ describe('ProjectileWidget (F2-05)', () => {
     expect(valueOf('Alcance')).toBe('1.61 m');
     const slider = screen.getByRole('slider', { name: 'Velocidad inicial en m/s' });
     slider.focus();
-    // Diez pasos de 0.1 m/s llevan v0 de 4 a 5 m/s: R = 5²·sen80°/9.81 = 2.51 m.
+    // Ten steps of 0.1 m/s take v0 from 4 to 5 m/s: R = 5²·sen80°/9.81 = 2.51 m.
     for (let press = 0; press < 10; press++) await user.keyboard('{ArrowRight}');
 
     expect(valueOf('Alcance')).toBe('2.51 m');
@@ -112,11 +112,11 @@ describe('ProjectileWidget (F2-05)', () => {
 
     expect(screen.getByText('Lanzamiento A')).toBeInTheDocument();
     expect(screen.getByText('Lanzamiento B')).toBeInTheDocument();
-    // Ambas columnas arrancan iguales: el mismo lanzamiento dos veces.
+    // Both columns start equal: the same launch twice.
     expect(valueOf('Alcance')).toBe('1.61 m  ·  1.61 m');
 
-    // Experimento 2 de T-1.4: 30° y 60° con h = 0 dan el mismo alcance. Se mueve B a 60°
-    // (el segundo deslizador de ángulo) y A a 30°.
+    // Experiment 2 of T-1.4: 30° and 60° with h = 0 give the same range. B is moved to 60°
+    // (the second angle slider) and A to 30°.
     const angles = screen.getAllByRole('slider', { name: 'Ángulo de lanzamiento en °' });
     expect(angles).toHaveLength(2);
     const [angleA, angleB] = angles;
@@ -154,7 +154,7 @@ describe('ProjectileWidget (F2-05)', () => {
     expect(screen.getByRole('img')).toHaveAccessibleName(
       'Vista lateral del robot en movimiento que suelta una pieza, con la trayectoria y los vectores de velocidad',
     );
-    // El panel de parámetros tiene su propia región viva, así que se busca la del widget.
+    // The parameter panel has its own live region, so the widget one is looked up.
     const live = screen
       .getAllByRole('status')
       .find((region) => region.textContent?.startsWith('En t'));
@@ -176,7 +176,7 @@ describe('ProjectileWidget (F2-05)', () => {
 
 describe('ProjectileWidget · dos caídas y selector de modo (#304)', () => {
   test('en drop con overlay, B cae desde 4·h: 0.25 m y 1 m dan 0.2258 s y 0.4515 s', () => {
-    // Abierto más allá del final: el tiempo se queda en el aterrizaje de B y A sigue en el suelo.
+    // Opened past the end: the time stays at the landing of B and A remains on the ground.
     render(<ProjectileWidget mode="drop" initial={{ h_m: 0.25 }} overlay initialTime_s={1} />);
 
     expect(screen.getByText('Caída A')).toBeInTheDocument();
@@ -184,7 +184,7 @@ describe('ProjectileWidget · dos caídas y selector de modo (#304)', () => {
     expect(valueOf('Altura máxima')).toBe('0.250 m  ·  1.00 m');
     expect(valueOf('Tiempo de vuelo')).toBe('0.226 s  ·  0.452 s');
     expect(valueOf('Tiempo')).toBe('0.452 s  ·  0.452 s');
-    // Velocidad de impacto: vy en el aterrizaje de cada caída, −√(2gh).
+    // Impact velocity: vy at the landing of each drop, −√(2gh).
     expect(valueOf('Altura y')).toBe('0.00 m  ·  0.00 m');
     expect(valueOf('Velocidad v_y')).toBe('-2.21 m/s  ·  -4.43 m/s');
 
@@ -283,7 +283,7 @@ describe('ProjectileWidget · dos caídas y selector de modo (#304)', () => {
 
     const h = screen.getByRole('slider', { name: 'Altura inicial en m' });
     h.focus();
-    // Dos pasos de 0.05 m llevan h de 0.3 a 0.4 m.
+    // Two steps of 0.05 m take h from 0.3 to 0.4 m.
     await user.keyboard('{ArrowRight}{ArrowRight}');
     await user.click(screen.getByRole('button', { name: 'Soltar' }));
 
@@ -294,14 +294,14 @@ describe('ProjectileWidget · dos caídas y selector de modo (#304)', () => {
     await user.click(screen.getByRole('button', { name: 'Lanzar' }));
     expect(valueOf('Tiempo')).toBe('0.00 s');
     expect(sliderLabels()).toContain('Velocidad inicial en m/s');
-    // v0 y α también se conservan: H = 0.4 + (4·sen40°)²/(2·9.81) = 0.737 m.
+    // v0 and α are kept as well: H = 0.4 + (4·sen40°)²/(2·9.81) = 0.737 m.
     expect(valueOf('Altura máxima')).toBe('0.737 m');
   });
 
   test('con overlay, la caída que aterriza antes se queda en el suelo', () => {
     render(<ProjectileWidget mode="drop" initial={{ h_m: 0.25 }} overlay initialTime_s={0.3} />);
 
-    // En t = 0.3 s A ya aterrizó (0.226 s): su altura es 0, no negativa.
+    // At t = 0.3 s A has already landed (0.226 s): its height is 0, not negative.
     expect(valueOf('Altura y').split('  ·  ')[0]).toBe('0.00 m');
   });
 });

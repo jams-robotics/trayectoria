@@ -6,19 +6,19 @@ import type { SavedTrack, TrackJson, TrackPreset } from '@trayectoria/sims';
 
 import { MyTracks, MyTracksGroup, savedIdOf, savedOptionValue } from './MyTracks';
 
-// F4-02b (#128, decisión 2): el origen de la pista. La página no reimplementa nada: los presets
-// son los nombres que `LineFollowerWidget` ya resuelve y el editor es el `TrackEditor` de F4-01b
-// con `initialTrack` y `onChange`. `apps/web` no puede importar sim-core
-// (docs/ARCHITECTURE.md §2), así que la pista viaja como `TrackJson` de `@trayectoria/sims`.
+// F4-02b (#128, decision 2): the track source. The page reimplements nothing: the presets
+// are the names `LineFollowerWidget` already resolves and the editor is the `TrackEditor` of F4-01b
+// with `initialTrack` and `onChange`. `apps/web` cannot import sim-core
+// (docs/ARCHITECTURE.md §2), so the track travels as `TrackJson` of `@trayectoria/sims`.
 //
-// #158 (decisión 1): «Editar» ya no despliega el editor dentro de este panel —la columna de la
-// derecha es estrecha y el editor quedaba encogido y fuera de la vista—, sino que cambia la
-// vista de la página: el editor ocupa la caja del visor y este panel solo dispara el cambio.
+// #158 (decision 1): «Editar» no longer unfolds the editor inside this panel (the right
+// column is narrow and the editor ended up shrunk and out of view), but changes the
+// page view: the editor fills the viewer box and this panel only triggers the change.
 
-/** Los cuatro presets de la spec, en el orden del selector. */
+/** The four presets of the spec, in selector order. */
 export const PRESETS: readonly TrackPreset[] = ['oval', 's', 'tight', 'cross'];
 
-/** Clave de i18n del nombre de cada preset; reutiliza las del editor de pista. */
+/** i18n key of each preset's name; it reuses those of the track editor. */
 const PRESET_KEY: Readonly<Record<TrackPreset, string>> = {
   oval: 'sims.trackEditor.presetName.oval',
   s: 'sims.trackEditor.presetName.sCurve',
@@ -35,14 +35,14 @@ const BUTTON =
   'focus-visible:outline-2 focus-visible:outline-offset-2';
 
 export interface TrackSourceProps {
-  /** Preset seleccionado; la pista efectiva puede venir del editor o de un JSON cargado. */
+  /** Selected preset; the effective track may come from the editor or from a loaded JSON. */
   readonly preset: TrackPreset;
   readonly onPreset: (preset: TrackPreset) => void;
-  /** Se llama con la pista cargada de un JSON; la página reinicia la simulación con ella. */
+  /** Called with the track loaded from a JSON; the page restarts the simulation with it. */
   readonly onTrack: (track: TrackJson) => void;
-  /** «Editar esta pista»: la página lleva el editor a la caja del visor (#158, decisión 1). */
+  /** «Editar esta pista»: the page takes the editor to the viewer box (#158, decision 1). */
   readonly onEdit: () => void;
-  /** «Nueva pista»: abre esa misma caja con el editor en blanco (#190, decisión 3). */
+  /** «Nueva pista»: opens that same box with a blank editor (#190, decision 3). */
   readonly onNew: () => void;
   /** The saved tracks of the «Mis pistas» group, from the account or from the browser (#191). */
   readonly saved: readonly SavedTrack[];
@@ -54,7 +54,7 @@ export interface TrackSourceProps {
   readonly onDeleteSaved: (id: string) => void;
 }
 
-/** Uno de los cuatro presets, o null si la cadena no es ninguno. */
+/** One of the four presets, or null if the string is none of them. */
 function asPreset(value: string): TrackPreset | null {
   return PRESETS.find((preset) => preset === value) ?? null;
 }
@@ -116,7 +116,7 @@ function PresetSelect({
   );
 }
 
-/** El botón «Cargar JSON» y su campo de archivo oculto. */
+/** The «Cargar JSON» button and its hidden file input. */
 function LoadButton({
   onFile,
   t,
@@ -154,9 +154,9 @@ function LoadButton({
 }
 
 /**
- * Los dos botones que llevan el editor a la caja del visor (#158; #190, decisión 3): continuar
- * con la pista que se está viendo, o empezar una en blanco. Antes había uno solo, «Editar», y
- * desde él no había forma de llegar al lienzo vacío.
+ * The two buttons that take the editor to the viewer box (#158; #190, decision 3): continue
+ * with the track being viewed, or start a blank one. Before there was only one, «Editar», and
+ * from it there was no way to reach the empty canvas.
  */
 function EditButtons({
   onEdit,
@@ -180,8 +180,8 @@ function EditButtons({
 }
 
 /**
- * Lee el archivo y publica su contenido como pista. `LineFollowerWidget` lo valida con
- * `parseTrack` al resolverlo; aquí solo se comprueba que sea JSON para avisar antes de mandárselo.
+ * Reads the file and publishes its content as a track. `LineFollowerWidget` validates it with
+ * `parseTrack` when resolving it; here it is only checked to be JSON, to warn before sending it.
  */
 function useJsonLoad(
   onTrack: (track: TrackJson) => void,

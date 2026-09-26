@@ -4,24 +4,24 @@ import { dirname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { AstroIntegration } from 'astro';
 
-// F5-01a (#133, decisión 3): el visor de brazos carga las mallas y el URDF del catálogo del
-// repositorio (`catalog/arms/**`) por HTTP desde `/catalog/**`. El catálogo vive fuera de
-// `apps/web/public`, así que esta integración lo sirve en `astro dev` con un middleware de Vite
-// y lo copia a `dist/catalog/arms/**` en el build. Ninguna otra página se toca.
+// F5-01a (#133, decision 3): the arm viewer loads the meshes and the URDF of the repository
+// catalogue (`catalog/arms/**`) over HTTP from `/catalog/**`. The catalogue lives outside
+// `apps/web/public`, so this integration serves it in `astro dev` with a Vite middleware
+// and copies it to `dist/catalog/arms/**` in the build. No other page is touched.
 
-/** Prefijo de URL bajo el que se sirve el catálogo. */
+/** URL prefix under which the catalogue is served. */
 export const CATALOG_URL_PREFIX = '/catalog/';
 
-/** Raíz del catálogo en el repositorio, relativa a este archivo. */
+/** Root of the catalogue in the repository, relative to this file. */
 const CATALOG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../catalog');
 
 /**
- * Subárboles del catálogo que se copian al build: los brazos (F5-01a) y los robots móviles de
- * referencia (F4-04, #130, decisión 4), que la página carga por HTTP desde `/catalog/mobile/`.
+ * Catalogue subtrees copied to the build: the arms (F5-01a) and the reference mobile robots
+ * (F4-04, #130, decision 4), which the page loads over HTTP from `/catalog/mobile/`.
  */
 const BUILT_SUBDIRS: readonly string[] = ['arms', 'mobile'];
 
-/** Tipo MIME por extensión; lo que el catálogo contiene y nada más. */
+/** MIME type by extension; what the catalogue contains and nothing else. */
 const MIME_BY_EXTENSION: Readonly<Record<string, string>> = {
   '.urdf': 'application/xml',
   '.xml': 'application/xml',
@@ -35,7 +35,7 @@ const MIME_BY_EXTENSION: Readonly<Record<string, string>> = {
   '.md': 'text/markdown',
 };
 
-/** Tipo MIME de un archivo del catálogo; binario genérico si la extensión no está en la tabla. */
+/** MIME type of a catalogue file; generic binary if the extension is not in the table. */
 export function contentTypeFor(pathname: string): string {
   const dot = pathname.lastIndexOf('.');
   const extension = dot === -1 ? '' : pathname.slice(dot).toLowerCase();
@@ -43,9 +43,9 @@ export function contentTypeFor(pathname: string): string {
 }
 
 /**
- * Ruta en disco del archivo pedido, o `null` si la URL no pertenece al catálogo o intenta salir
- * de él. Rechaza `..` y rutas absolutas ya normalizadas (docs/ARCHITECTURE.md §6: «rechazo de
- * `..` y rutas absolutas»), así que el middleware nunca sirve nada fuera de `catalog/`.
+ * Disk path of the requested file, or `null` if the URL does not belong to the catalogue or tries
+ * to escape it. Rejects `..` and already normalized absolute paths (docs/ARCHITECTURE.md §6: «rechazo de
+ * `..` y rutas absolutas»), so the middleware never serves anything outside `catalog/`.
  */
 export function resolveCatalogPath(url: string, root: string = CATALOG_ROOT): string | null {
   const pathname = url.split('?')[0]?.split('#')[0] ?? '';
@@ -58,7 +58,7 @@ export function resolveCatalogPath(url: string, root: string = CATALOG_ROOT): st
   return resolved;
 }
 
-/** Si la ruta existe y es un archivo regular; un directorio no se sirve. */
+/** Whether the path exists and is a regular file; a directory is not served. */
 export function isReadableFile(file: string): boolean {
   try {
     return statSync(file).isFile();
@@ -68,8 +68,8 @@ export function isReadableFile(file: string): boolean {
 }
 
 /**
- * Sirve `/catalog/**` desde `catalog/` en `astro dev` y copia `catalog/arms/**` a
- * `dist/catalog/arms/**` en el build (#133, decisión 3).
+ * Serves `/catalog/**` from `catalog/` in `astro dev` and copies `catalog/arms/**` to
+ * `dist/catalog/arms/**` in the build (#133, decision 3).
  */
 export function catalogAssets(root: string = CATALOG_ROOT): AstroIntegration {
   return {

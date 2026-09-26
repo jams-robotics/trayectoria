@@ -15,23 +15,23 @@ import { WorkspacePoints } from './workspace/WorkspacePoints';
 import { readArmColors } from './armColors';
 import type { ActuatedJoint, ArmSim, EffectorReadout } from './useArmSim';
 
-/** Posición del eslabón, en metros, leída de la columna de traslación del `Mat4` de sim-core. */
+/** Position of the link, in metres, read from the translation column of the sim-core `Mat4`. */
 export function translationOf(transform: Mat4): readonly [number, number, number] {
-  // Columna-mayor (sim-core math/mat4.ts): la traslación ocupa los índices 12, 13 y 14.
+  // Column-major (sim-core math/mat4.ts): the translation occupies indices 12, 13 and 14.
   return [transform[12] ?? 0, transform[13] ?? 0, transform[14] ?? 0];
 }
 
-// La escena 3D del visor y sus hooks de estado (F5-03, #136), separados de `ArmViewer.tsx` para
-// que ninguno de los dos archivos pase de 300 líneas (docs/STANDARDS.md §4). Sin API pública
-// propia: `ArmViewer.tsx` es el único que importa de aquí.
+// The 3D scene of the viewer and its state hooks (F5-03, #136), split from `ArmViewer.tsx` so
+// that neither file exceeds 300 lines (docs/STANDARDS.md §4). No public API of its
+// own: `ArmViewer.tsx` is the only one that imports from here.
 
-/** Largo de los brazos de cada tríada de eslabón, en metros. */
+/** Length of the arms of each link triad, in metres. */
 const FRAME_LENGTH_M = 0.06;
 
-/** Decimales del resumen de las articulaciones, en grados (mismo formato que el panel del efector). */
+/** Decimals of the joint summary, in degrees (same format as the effector panel). */
 const JOINT_SUMMARY_DECIMALS = 1;
 
-/** Resumen de una línea de las articulaciones: `joint1 90.0° · joint2 0.0°`. */
+/** One-line summary of the joints: `joint1 90.0° · joint2 0.0°`. */
 export function jointsSummary(
   joints: readonly ActuatedJoint[],
   q_rad: readonly number[],
@@ -45,7 +45,7 @@ export function jointsSummary(
     .join(' · ');
 }
 
-/** Resumen de una línea del efector: `x 0.000 y 0.350 z 0.000 m`. */
+/** One-line summary of the effector: `x 0.000 y 0.350 z 0.000 m`. */
 export function effectorPanelSummary(readout: EffectorReadout, t: Translate): string {
   const axes = [
     [t('sims.arm.x'), readout.x_m],
@@ -57,7 +57,7 @@ export function effectorPanelSummary(readout: EffectorReadout, t: Translate): st
   return `${axes} ${t('sims.arm.unitM')}`;
 }
 
-/** Los resúmenes de una línea de los dos paneles fijos, para plegarlos en móvil. */
+/** The one-line summaries of the two fixed panels, to collapse them on mobile. */
 export function panelSummaries(sim: ArmSim, t: Translate): { joints: string; effector: string } {
   return {
     joints: jointsSummary(sim.joints, sim.q_rad, t('sims.arm.unitDeg')),
@@ -65,10 +65,10 @@ export function panelSummaries(sim: ArmSim, t: Translate): { joints: string; eff
   };
 }
 
-/** Sin `show: ['workspace']` no hay nube que dibujar. */
+/** Without `show: ['workspace']` there is no cloud to draw. */
 export const HIDDEN_WORKSPACE: WorkspaceState = { points: null, visible: false };
 
-/** Las tríadas de los eslabones, colocadas con `forwardKinematics` de sim-core (nunca con three). */
+/** The link triads, placed with sim-core `forwardKinematics` (never with three). */
 function LinkFrames({ transforms }: { transforms: ReadonlyMap<string, Mat4> }): JSX.Element {
   return (
     <>
@@ -79,7 +79,7 @@ function LinkFrames({ transforms }: { transforms: ReadonlyMap<string, Mat4> }): 
   );
 }
 
-/** La escena del visor: el brazo de three y, si están activos, los marcos de los eslabones. */
+/** The viewer scene: the three arm and, when enabled, the link frames. */
 function ArmScene({
   spec,
   sim,
@@ -120,7 +120,7 @@ function ArmScene({
   );
 }
 
-/** El eslabón elegido en el panel de matrices, que es el que se marca en 3D (#135, decisión 4). */
+/** The link chosen in the matrix panel, which is the one highlighted in 3D (#135, decision 4). */
 export function useHighlightedLink(): {
   highlighted: string | null;
   onHighlight: (link: string | null) => void;
@@ -132,7 +132,7 @@ export function useHighlightedLink(): {
   return { highlighted, onHighlight };
 }
 
-/** La nube del espacio de trabajo la calcula el panel; aquí solo se guarda para la escena. */
+/** The workspace cloud is computed by the panel; here it is only stored for the scene. */
 export function useWorkspaceCloud(): {
   workspace: WorkspaceState;
   onWorkspace: (state: WorkspaceState) => void;
@@ -144,7 +144,7 @@ export function useWorkspaceCloud(): {
   return { workspace, onWorkspace };
 }
 
-/** La columna del visor: el toggle de marcos sobre la escena 3D. */
+/** The viewer column: the frames toggle over the 3D scene. */
 export function SceneColumn({
   spec,
   sim,

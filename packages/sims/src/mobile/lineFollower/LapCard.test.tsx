@@ -5,8 +5,8 @@ import { render, screen } from '@testing-library/react';
 import { LapCard } from './LapCard';
 import { createLapTimer, recordLap } from './metrics';
 
-// F4-03 (#129, decisión 5): la tarjeta de vuelta. Solo formatea lo que el cronómetro le da, así
-// que se prueba con cronómetros construidos a mano y no con una corrida entera.
+// F4-03 (#129, decision 5): the lap card. It only formats what the stopwatch gives it, so
+// it is tested with hand-built stopwatches and not with an entire run.
 
 describe('LapCard (F4-03)', () => {
   it('muestra «—» en las cuatro cifras mientras no hay ninguna vuelta cerrada', () => {
@@ -17,14 +17,14 @@ describe('LapCard (F4-03)', () => {
   });
 
   it('muestra el último tiempo, el mejor, la velocidad media y la distancia recorrida', () => {
-    // Pista de 3 m: la primera vuelta tarda 12 s (0,25 m/s) y la segunda 10 s (0,30 m/s).
+    // 3 m track: the first lap takes 12 s (0,25 m/s) and the second 10 s (0,30 m/s).
     const timer = recordLap(recordLap(createLapTimer(3), 12, 2.9), 22, 5.8);
     render(<LapCard timer={timer} />);
 
     expect(screen.getByTestId('lap-card-last')).toHaveTextContent('10.00 s');
     expect(screen.getByTestId('lap-card-best')).toHaveTextContent('10.00 s');
     expect(screen.getByTestId('lap-card-speed')).toHaveTextContent('0.30 m/s');
-    // La distancia recorrida en esa vuelta, menor que los 3 m de la pista (#170).
+    // The distance travelled in that lap, less than the 3 m of the track (#170).
     expect(screen.getByTestId('lap-card-distance')).toHaveTextContent('2.90 m');
   });
 
