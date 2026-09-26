@@ -62,6 +62,21 @@
       "title": "Modo aula",
       "text": "Crea un grupo con un código de invitación, sigue el avance por tema y estudiante, y exporta los resultados en CSV. Sin puntos ni medallas: solo qué está hecho y qué falta.",
       "cta": "Ver el aula"
+    },
+    "thread": {
+      "eyebrow": "El hilo de la ruta",
+      "title": "Cada tema termina en tu robot",
+      "text": "Los 27 temas cierran con la sección «Al robot»: el mismo concepto, calculado con los datos de tu perfil «Mi robot». En el módulo 6 ese perfil es el robot que simulas y controlas.",
+      "moduleLabel": "M{{number}}",
+      "ideas": {
+        "tools": "Convertir rpm a rad/s, descomponer vectores y leer la velocidad como la pendiente de una gráfica x–t.",
+        "particleKinematics": "Posición, velocidad y aceleración en recta y en el plano: distancia de frenado, caída libre y tiro parabólico.",
+        "dynamics": "Las fuerzas sobre el robot: diagrama de cuerpo libre, la fricción que limita la tracción y el torque que llega a la rueda.",
+        "energy": "Trabajo, energía y potencia: cuánto pide el motor y cuánta autonomía da la batería.",
+        "rotation": "Del motor al suelo: v = ω·r, la reducción y los encoders que cuentan cuánto gira cada rueda.",
+        "differentialRobot": "De dos ruedas a la pose (x, y, θ): cinemática directa e inversa, odometría y por qué el robot no avanza de lado.",
+        "lineFollower": "El sensor de línea y el control on/off, P y PID, hasta que tu robot completa la pista."
+      }
     }
   },
   "notFound": {
@@ -132,5 +147,120 @@
       "answer": "Ver la respuesta"
     },
     "references": "Referencias"
+  },
+  "teachersPage": {
+    "title": "Trayectoria en clase",
+    "description": "Cómo usar Trayectoria en clase: temas, modo aula y catálogo de robots.",
+    "eyebrow": "Para docentes",
+    "lead": "27 temas con widgets y dos simuladores que corren en el navegador. Proyectas el tema, el grupo mueve los mismos parámetros y tú ves su avance por tema.",
+    "classroom": {
+      "title": "Cómo usarla en clase",
+      "steps": {
+        "topic": "Elige un tema. Duran entre 20 y 60 minutos, la mayoría 30, y siguen siempre el mismo orden: gancho, concepto, fórmulas, explora, al robot, verifica y profundiza.",
+        "explore": "Proyecta la sección Explora. Los widgets están pensados para un proyector: texto de 16 px como mínimo y contraste AA.",
+        "exercises": "Deja Verifica al grupo. Cada tema tiene de 3 a 5 ejercicios numéricos, con tolerancia del 2 % y sin límite de intentos.",
+        "robot": "Cierra en el simulador. Con su perfil «Mi robot», cada estudiante simula su propio robot."
+      },
+      "route": "Ver la ruta completa"
+    },
+    "aula": {
+      "title": "Modo aula",
+      "text": "Necesitas una cuenta de docente. Sin puntos ni medallas: solo qué está hecho y qué falta.",
+      "steps": {
+        "create": "Crea un grupo en el aula y comparte su código de invitación. Puedes regenerarlo cuando quieras.",
+        "join": "Tus estudiantes escriben ese código en la página para unirse.",
+        "follow": "La tabla de progreso muestra, por estudiante y por tema, qué está completado, en curso o pendiente.",
+        "export": "Exporta la tabla en CSV para tus registros."
+      },
+      "notLms": "El modo aula no es un LMS: no gestiona notas, calendarios ni entregas.",
+      "open": "Abrir el aula",
+      "join": "Página para unirse a un grupo"
+    },
+    "catalog": {
+      "title": "Catálogo de robots",
+      "arms": "El simulador de brazo 3D incluye dos brazos de referencia: el SO-101 de LeRobot y un brazo plano didáctico de 2 GDL. Cada ficha recoge las licencias de hardware y software, la lista de materiales y el coste. Si tu laboratorio tiene otro brazo, importas su URDF y queda guardado en tu cuenta.",
+      "mobile": "El simulador móvil parte de un robot de referencia: 0.9 kg, ruedas de 0.032 m de radio, 0.15 m entre ruedas y 5 sensores de línea. Cada estudiante lo ajusta con los datos del suyo.",
+      "cta": "Ver el catálogo de brazos"
+    }
+  },
+  "contributePage": {
+    "title": "Contribuir",
+    "description": "Cómo aportar contenido, robots y código a Trayectoria, y bajo qué licencias.",
+    "eyebrow": "Open source",
+    "lead": "El código vive en GitHub y todo cambio parte de un issue. La regla número uno: si no está en la documentación del repositorio, no existe.",
+    "content": {
+      "title": "Contenido",
+      "text": "Hasta la versión 1.0 las contribuciones de contenido están cerradas. Los 27 temas siguen una especificación fija y unos estándares de contenido publicados en el repositorio.",
+      "report": "Si encuentras un error en un tema, abre un issue con el tema y la sección."
+    },
+    "robots": {
+      "title": "Robots",
+      "text": "El catálogo de brazos acepta robots que cumplen cinco criterios:",
+      "criteria": {
+        "urdf": "URDF oficial o mantenido.",
+        "license": "Licencia abierta verificable en hardware y software.",
+        "assembly": "Documentación de armado.",
+        "bom": "Lista de materiales con enlaces.",
+        "cost": "Coste total publicado."
+      }
+    },
+    "code": {
+      "title": "Código",
+      "text": "Las contribuciones de código se aceptan con este flujo:",
+      "steps": {
+        "issue": "Parte de un issue con la plantilla de ticket. Si no existe, ábrelo antes de escribir código.",
+        "branch": "Crea una rama desde main actualizada.",
+        "tests": "Escribe primero los tests con los valores del ticket e implementa solo sus entregables.",
+        "checks": "Deja en verde lint, typecheck, tests y build.",
+        "pr": "Un ticket, un PR, con la plantilla completa. main exige CI en verde."
+      },
+      "dependencies": "Añadir, quitar o actualizar dependencias requiere un ADR aprobado.",
+      "guide": "Leer la guía de contribución completa",
+      "conduct": "Leer el código de conducta"
+    },
+    "licenses": {
+      "title": "Licencias",
+      "code": "Código: MIT.",
+      "content": "Contenido: CC BY-SA 4.0.",
+      "robots": "Robots del catálogo: licencia abierta verificable en hardware y software.",
+      "text": "Al contribuir aceptas que tu aporte se publique bajo estas licencias."
+    }
+  },
+  "aboutPage": {
+    "title": "Acerca de Trayectoria",
+    "description": "Qué es Trayectoria, para quién es y qué incluye la versión 1.",
+    "eyebrow": "Acerca",
+    "lead": "Una plataforma web open source, en español, para aprender matemática, física y mecánica manipulando cada concepto. Cada tema termina en un robot que puedes simular y, si quieres, construir.",
+    "audience": {
+      "title": "Para quién",
+      "students": "Estudiantes de ingeniería (mecatrónica, eléctrica, mecánica, sistemas) que llevan las materias base y no ven para qué sirven.",
+      "teachers": "Docentes que quieren dar clase con algo que se toque y que el robot del laboratorio tenga su gemelo en la plataforma."
+    },
+    "scope": {
+      "title": "Qué incluye la versión 1",
+      "route": "La ruta 1, De la física al robot móvil: 27 temas en 7 módulos.",
+      "mobile": "Un simulador móvil 2D: robot diferencial, pista editable con 4 pistas prediseñadas, sensores de línea y controladores on/off, P y PID.",
+      "arm": "Un simulador de brazo 3D: carga URDF, cinemática directa, marcos, matrices y espacio de trabajo.",
+      "accounts": "Cuentas, progreso, perfil «Mi robot» y robots guardados.",
+      "aula": "Un modo aula mínimo: grupos por código de invitación y progreso del grupo."
+    },
+    "notIs": {
+      "title": "Qué no es",
+      "lms": "No es un LMS: no gestiona cursos, notas, calendarios ni entregas.",
+      "simulators": "No compite con Gazebo, Isaac Sim ni CoppeliaSim: busca precisión pedagógica y corre en el navegador.",
+      "cad": "No es un CAD.",
+      "teacher": "No reemplaza al docente; lo equipa."
+    },
+    "method": {
+      "title": "Cómo está hecho",
+      "kinematic": "Los dos simuladores son cinemáticos: la versión 1 no tiene motor de física. La simulación usa un paso de tiempo fijo y es determinista: los mismos parámetros dan el mismo resultado.",
+      "references": "El contenido cita capítulos de libros de referencia, como Física universitaria de Young y Freedman o Introduction to Autonomous Mobile Robots de Siegwart, Nourbakhsh y Scaramuzza. Nunca blogs ni videos."
+    },
+    "license": {
+      "title": "Licencia",
+      "text": "Código bajo MIT y contenido bajo CC BY-SA 4.0. Lo mantienen jams-robotics y quienes contribuyen.",
+      "repository": "Ver el repositorio en GitHub",
+      "contribute": "Cómo contribuir"
+    }
   }
 }

@@ -1,0 +1,101 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import Base from '../layouts/Base.astro';
+
+// Public page on contributing (F7-05). The rules and licenses mirror CONTRIBUTING.md, LICENSE
+// and LICENSE-CONTENT; the catalog criteria mirror docs/PLAN.md §3.
+const REPO = 'https://github.com/jams-robotics/trayectoria';
+
+const criteria = [
+  t('contributePage.robots.criteria.urdf'),
+  t('contributePage.robots.criteria.license'),
+  t('contributePage.robots.criteria.assembly'),
+  t('contributePage.robots.criteria.bom'),
+  t('contributePage.robots.criteria.cost'),
+] as const;
+
+const codeSteps = [
+  t('contributePage.code.steps.issue'),
+  t('contributePage.code.steps.branch'),
+  t('contributePage.code.steps.tests'),
+  t('contributePage.code.steps.checks'),
+  t('contributePage.code.steps.pr'),
+] as const;
+
+const licenses = [
+  { text: t('contributePage.licenses.code'), href: `${REPO}/blob/main/LICENSE` },
+  { text: t('contributePage.licenses.content'), href: `${REPO}/blob/main/LICENSE-CONTENT` },
+  { text: t('contributePage.licenses.robots'), href: null },
+] as const;
+
+const secondaryLink =
+  'bg-bg-raised text-fg border-border hover:border-fg-muted rounded-md inline-flex min-h-[44px] items-center border px-5 font-semibold no-underline';
+---
+
+<Base title={t('contributePage.title')} description={t('contributePage.description')}>
+  <article class="mx-auto max-w-[1120px] px-5 pt-11 pb-12 md:px-8">
+    <header class="max-w-[72ch]">
+      <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
+        {t('contributePage.eyebrow')}
+      </p>
+      <h1 class="text-xl md:text-2xl leading-tight mt-4 font-semibold">
+        {t('contributePage.title')}
+      </h1>
+      <p class="text-fg-muted text-lg leading-body mt-6">{t('contributePage.lead')}</p>
+    </header>
+
+    <section class="mt-11 max-w-[72ch]" aria-labelledby="contenido-titulo">
+      <h2 id="contenido-titulo" class="text-lg leading-tight font-semibold">
+        {t('contributePage.content.title')}
+      </h2>
+      <p class="leading-body mt-4">{t('contributePage.content.text')}</p>
+      <p class="leading-body mt-4">{t('contributePage.content.report')}</p>
+    </section>
+
+    <section class="mt-11 max-w-[72ch]" aria-labelledby="robots-titulo">
+      <h2 id="robots-titulo" class="text-lg leading-tight font-semibold">
+        {t('contributePage.robots.title')}
+      </h2>
+      <p class="leading-body mt-4">{t('contributePage.robots.text')}</p>
+      <ul class="leading-body mt-4 list-disc space-y-2 pl-6">
+        {criteria.map((criterion) => (
+          <li>{criterion}</li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="mt-11 max-w-[72ch]" aria-labelledby="codigo-titulo">
+      <h2 id="codigo-titulo" class="text-lg leading-tight font-semibold">
+        {t('contributePage.code.title')}
+      </h2>
+      <p class="leading-body mt-4">{t('contributePage.code.text')}</p>
+      <ol class="leading-body mt-4 list-decimal space-y-3 pl-6">
+        {codeSteps.map((step) => (
+          <li>{step}</li>
+        ))}
+      </ol>
+      <p class="text-fg-muted leading-body mt-4">{t('contributePage.code.dependencies')}</p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a href={`${REPO}/blob/main/CONTRIBUTING.md`} class={secondaryLink}>
+          {t('contributePage.code.guide')}
+        </a>
+        <a href={`${REPO}/blob/main/CODE_OF_CONDUCT.md`} class={secondaryLink}>
+          {t('contributePage.code.conduct')}
+        </a>
+      </div>
+    </section>
+
+    <section class="mt-11 max-w-[72ch]" aria-labelledby="licencias-titulo">
+      <h2 id="licencias-titulo" class="text-lg leading-tight font-semibold">
+        {t('contributePage.licenses.title')}
+      </h2>
+      <ul class="leading-body mt-4 list-disc space-y-2 pl-6">
+        {licenses.map(({ text, href }) => (
+          <li>{href === null ? text : <a href={href}>{text}</a>}</li>
+        ))}
+      </ul>
+      <p class="leading-body mt-4">{t('contributePage.licenses.text')}</p>
+    </section>
+  </article>
+</Base>

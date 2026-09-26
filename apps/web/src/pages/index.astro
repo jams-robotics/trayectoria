@@ -6,14 +6,23 @@ import { AccountDeletedNotice } from '../components/auth/AccountDeletedNotice';
 import Base from '../layouts/Base.astro';
 
 // Route 1 as specified in docs/PLAN.md §2 (7 modules, 27 topics).
+// Each idea condenses the objectives of the module's topics in docs/CURRICULUM.md (F7-05).
 const modules = [
-  { name: t('home.modules.tools'), topics: 3 },
-  { name: t('home.modules.particleKinematics'), topics: 4 },
-  { name: t('home.modules.dynamics'), topics: 3 },
-  { name: t('home.modules.energy'), topics: 2 },
-  { name: t('home.modules.rotation'), topics: 5 },
-  { name: t('home.modules.differentialRobot'), topics: 5 },
-  { name: t('home.modules.lineFollower'), topics: 5 },
+  { name: t('home.modules.tools'), topics: 3, idea: t('home.thread.ideas.tools') },
+  {
+    name: t('home.modules.particleKinematics'),
+    topics: 4,
+    idea: t('home.thread.ideas.particleKinematics'),
+  },
+  { name: t('home.modules.dynamics'), topics: 3, idea: t('home.thread.ideas.dynamics') },
+  { name: t('home.modules.energy'), topics: 2, idea: t('home.thread.ideas.energy') },
+  { name: t('home.modules.rotation'), topics: 5, idea: t('home.thread.ideas.rotation') },
+  {
+    name: t('home.modules.differentialRobot'),
+    topics: 5,
+    idea: t('home.thread.ideas.differentialRobot'),
+  },
+  { name: t('home.modules.lineFollower'), topics: 5, idea: t('home.thread.ideas.lineFollower') },
 ] as const;
 
 const features = [
@@ -127,6 +136,32 @@ const features = [
         </li>
       ))}
     </ul>
+  </section>
+
+  <section class="mx-auto max-w-[1120px] px-5 pb-10 md:px-8" aria-labelledby="hilo-titulo">
+    <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
+      {t('home.thread.eyebrow')}
+    </p>
+    <h2 id="hilo-titulo" class="text-xl leading-tight mt-3 font-semibold">
+      {t('home.thread.title')}
+    </h2>
+    <p class="text-fg-muted leading-body mt-4 max-w-[72ch]">{t('home.thread.text')}</p>
+    <ol class="mt-7 grid list-none gap-5 p-0 md:grid-cols-2 lg:grid-cols-3">
+      {modules.map(({ name, topics, idea }, index) => (
+        <li class="bg-bg-raised border-border rounded-lg border p-6">
+          <h3 class="text-base leading-tight m-0 font-semibold">
+            <span class="text-fg-muted mr-2 font-mono text-xs font-normal">
+              {t('home.thread.moduleLabel', { number: index })}
+            </span>
+            {name}
+          </h3>
+          <p class="text-fg-muted mt-3 mb-0">{idea}</p>
+          <p class="text-fg-muted mt-3 mb-0 font-mono text-xs">
+            {t('home.route.topicCount', { topics })}
+          </p>
+        </li>
+      ))}
+    </ol>
   </section>
 
   <section class="bg-bg-raised border-border border-y">
