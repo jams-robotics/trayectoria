@@ -130,5 +130,11 @@
     "e1": "Tu robot tiene rumbo θ = {{theta_deg}}° y avanza a v = {{v_mps}} m/s, así que su velocidad es (ẋ, ẏ) = v·(cosθ, sinθ). ¿Cuánto vale ẋ·sinθ − ẏ·cosθ, en m/s?",
     "e2": "Tu robot tiene rumbo θ = {{theta_deg}}° y le pides la velocidad (ẋ, ẏ) = ({{vx_mps}}, {{vy_mps}}) m/s. ¿Cuánto vale la restricción ẋ·sinθ − ẏ·cosθ, en m/s? Si no es 0, esa velocidad no es admisible.",
     "e3": "Tu robot se desplaza D = {{distance_m}} m hacia su izquierda con una maniobra en tres movimientos: gira 90° en el lugar a ω = {{omega_radps}} rad/s, avanza D a v = {{v_mps}} m/s y gira −90° en el lugar a ω. ¿Cuánto dura la maniobra completa, en s?"
+  },
+  "ruta-1/m06-t04": {
+    "e1": "El arreglo de sensores de tu robot tiene N = {{count}} sensores separados e_s = {{spacing_m}} m, y la línea mide w = {{lineWidth_m}} m de ancho. ¿A qué desplazamiento lateral y_perdida de la línea, medido desde el centro del arreglo, pierde el robot la línea, en m?",
+    "e2": "Tu robot avanza a v = {{v_mps}} m/s y su lazo de control se ejecuta cada Δt_c = {{controlPeriod_s}} s. ¿Cuánto avanza entre dos ciclos de control, Δs_ciclo en m?",
+    "e3": "Tu robot tiene N = 5 sensores separados e_s = 0.012 m y un error de rumbo Δθ = {{headingError_rad}} rad. ¿Qué posición de la línea p mide el arreglo si está a d₁ = {{forwardOffset1_m}} m del eje de ruedas, y qué p mide si está a d₂ = {{forwardOffset2_m}} m? Da p₁ y p₂, sin unidad.",
+    "e4": "Tu robot, con distancia entre ruedas L = {{wheelBase_m}} m, toma una curva de radio de giro R = {{turnRadius_m}} m. ¿Cuánto vale la relación v_int/v_ext entre la velocidad de la rueda interior y la exterior, sin unidad?"
   }
 }
