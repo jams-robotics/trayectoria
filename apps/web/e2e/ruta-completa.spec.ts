@@ -71,14 +71,17 @@ async function fillSticky(field: Locator, value: string): Promise<void> {
  */
 async function checkOnce(exercise: Locator): Promise<string | null> {
   const verify = exercise.getByRole('button', { name: 'Comprobar' });
-  // `checking` is a real, non-terminal status while `recordAttempt`'s write settles
-  // (ExerciseWidget/state.ts `grade`): waiting for merely "not pending" stopped here instead of
-  // at `correct`/`incorrect`, so a slow write read back as an unexpected status.
+  // The button is `disabled` while `checking` (ExerciseWidget.tsx), so a `click()` issued in that
+  // window blocks on Playwright's own actionability wait for the button to re-enable instead of
+  // failing outright. Re-clicking on every poll iteration (as this used to) could therefore stack
+  // that actionability wait for a slow `recordAttempt` write (packages/db writes under load, e.g.
+  // the local Supabase stack across this spec's 27 topics) inside a single iteration and burn the
+  // whole 15 s budget in one `click()` call before ever reading back a settled status. One click
+  // starts the attempt; the poll below only reads `data-status` afterwards, waiting past
+  // `checking` (a real, non-terminal status while the write settles) to `correct`/`incorrect`.
+  await verify.click();
   await expect
-    .poll(async () => {
-      await verify.click();
-      return exercise.getAttribute('data-status');
-    }, { timeout: 15_000 })
+    .poll(async () => exercise.getAttribute('data-status'), { timeout: 15_000 })
     .toMatch(/^(correct|incorrect)$/);
   return exercise.getAttribute('data-status');
 }
