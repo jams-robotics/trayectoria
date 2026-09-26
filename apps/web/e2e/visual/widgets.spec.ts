@@ -53,6 +53,10 @@ const WIDGETS = [
   // rueda, y como la reproducción solo avanza con «Reproducir», la escena es comparable
   // fotograma a fotograma.
   { name: 'DiffDriveWidget', story: 'Forward52', shot: 'DiffDriveWidget' },
+  // La «Explora» de T-6.1 (línea centrada, lectura binaria y ruido σ = 0.03) en pausa en t = 0:
+  // la muestra de ruido es la primera de la semilla fija, así que la escena, las barras y las
+  // cifras son comparables fotograma a fotograma.
+  { name: 'LineSensorWidget', story: 'Explora61', shot: 'LineSensorWidget' },
   // Los dos casos aprobados de F2-11 (#95, decisión 8): el formulario con el robot de
   // referencia y la tarjeta que lo resume. Ninguno de los dos anima ni pinta sobre un canvas,
   // así que son comparables fotograma a fotograma. La story `Live` no se captura: lleva un
@@ -88,6 +92,7 @@ const SCENE_WIDGETS: readonly string[] = [
   'PowerWidget',
   'GearWidget',
   'DiffDriveWidget',
+  'LineSensorWidget',
 ];
 
 /** Default width of a `<canvas>` with no `width` attribute yet; a scene past it has been sized. */
