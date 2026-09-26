@@ -1,0 +1,158 @@
+---
+id: ruta-1/m05-t04
+title: 'Odometría'
+module: 5
+order: 4
+estimatedMinutes: 35
+prerequisites: [ruta-1/m04-t05, ruta-1/m05-t02]
+objectives:
+- Estimar la pose integrando encoders
+- Aplicar la actualización por paso con el ángulo medio
+- Cuantificar cómo un error de calibración crece con la distancia
+widgets: [DiffDriveWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [siegwart-3, siegwart-4]
+status: review
+---
+
+<Gancho>
+En un intervalo tu encoder izquierdo contó 400 ticks y el derecho 440. ¿Cuánto avanzó y giró tu
+robot, y dónde está ahora?
+</Gancho>
+
+<Concepto>
+Tu robot no ve dónde está: lo deduce contando ticks. Estimar la pose integrando las lecturas de
+los encoders es la **odometría**.
+
+Primero, de ticks a arcos. Cada tick es 1/N_e de vuelta, y una vuelta hace avanzar la rueda un
+perímetro 2πr. Si en un paso la rueda izquierda cuenta Δticks_L, su arco es
+Δs_L = 2πr·Δticks_L/N_e. La derecha, igual, con Δticks_R.
+
+Después, el avance y el giro del paso. El centro del eje avanza el promedio de los dos arcos, Δs.
+La diferencia de los arcos dividida por la distancia entre ruedas L es el giro Δθ. Es la
+cinemática directa, aplicada a distancias en lugar de velocidades.
+
+Tercero, la actualización de la pose. Durante el paso, el rumbo pasa de θ a θ + Δθ. Si proyectas
+Δs con el rumbo inicial θ, ignoras ese giro. La cuerda de un arco de curvatura constante apunta
+exactamente en θ + Δθ/2, así que el ángulo medio del paso da un resultado más exacto. Con él, x
+suma Δs·cos(θ + Δθ/2), y suma Δs·sin(θ + Δθ/2) y θ suma Δθ.
+
+Con los ticks del gancho y el robot de referencia, Δs_L = 0.2234 m y Δs_R = 0.2457 m. El paso da
+Δs = 0.2346 m y Δθ = 0.1489 rad. Desde (0, 0, 0), el robot queda en (0.2339 m, 0.01745 m) con
+θ = 0.1489 rad.
+
+Cuarto, la acumulación. Cada paso se suma al anterior y ningún error se corrige. Si el radio real
+no es el que usa la odometría, cada metro estimado es algo más o algo menos que un metro real, y
+la diferencia crece sin límite con la distancia. Un error en L desvía el rumbo, y un rumbo
+desviado tuerce toda la posición que viene después. Por eso la odometría sola no basta: tarde o
+temprano hace falta un sensor externo que corrija la pose.
+
+El simulador integra a la vez la pose real y la estimada con los ticks, y dibuja las dos.
+</Concepto>
+
+<Formulas>
+<Formula latex="\Delta s_L = \frac{2\pi r\,\Delta\text{ticks}_L}{N_e},\quad \Delta s_R = \frac{2\pi r\,\Delta\text{ticks}_R}{N_e}" />
+
+- `Δs_L, Δs_R` · arco recorrido por cada rueda en un paso de odometría · m
+- `r` · radio de rueda · m
+- `Δticks` · ticks contados en un intervalo, por rueda · —
+- `N_e` · ticks del encoder por revolución · —
+
+<Formula latex="\Delta s = \frac{\Delta s_R + \Delta s_L}{2},\quad \Delta\theta = \frac{\Delta s_R - \Delta s_L}{L}" />
+
+- `Δs` · avance del robot en un paso de odometría · m
+- `Δθ` · giro del robot en un paso de odometría · rad
+- `Δs_L, Δs_R` · arco recorrido por cada rueda en un paso de odometría · m
+- `L` · distancia entre ruedas · m
+
+<Formula latex="x \mathrel{+}= \Delta s\cos(\theta + \tfrac{\Delta\theta}{2}),\quad y \mathrel{+}= \Delta s\sin(\theta + \tfrac{\Delta\theta}{2}),\quad \theta \mathrel{+}= \Delta\theta" />
+
+- `(x, y, θ)` · pose del robot en el marco global `{G}` · m, m, rad
+- `Δs` · avance del robot en un paso de odometría · m
+- `Δθ` · giro del robot en un paso de odometría · rad
+</Formulas>
+
+<Explora>
+El robot avanza con ω_L = 12 rad/s y ω_R = 13 rad/s durante 30 s. Gira a ω = 0.2133 rad/s, así
+que una vuelta tarda 29.45 s y en 30 s da algo más de una. La vista muestra la traza real y la
+traza estimada por odometría, con los marcos de referencia; el panel de odometría muestra la pose
+estimada, el error de posición y el error de rumbo.
+
+<DiffDriveWidget
+  mode="odometry"
+  show={['trace', 'frames']}
+  initial={{ omegaL_radps: 12, omegaR_radps: 13 }}
+  duration_s={30}
+/>
+
+<Experimento
+  cambia="nada: reproduce los 30 s con la calibración exacta"
+  observa="la traza real y la traza estimada"
+  porque="¿Por qué coinciden, salvo pequeños escalones?"
+>
+Con el radio y la distancia entre ruedas creídos iguales a los reales, la odometría aplica las
+mismas fórmulas que el movimiento. La única diferencia es que cuenta ticks enteros: cada arco se
+redondea a múltiplos de 2πr/N_e. Esa cuantización es lo único que separa las dos trazas.
+</Experimento>
+
+<Experimento
+  cambia="el deslizador «Radio de rueda creído» 1 mm por encima, de 0.032 a 0.033 m"
+  observa="la traza estimada frente a la real y el error de posición"
+  porque="¿Por qué la estimada se adelanta y el error crece con la distancia?"
+>
+Con el radio creído mayor, cada tick vale 2π·0.033/360 m en lugar de 2π·0.032/360 m: la
+odometría cree que avanza un 3.1 % más de lo real. Ese 3.1 % se aplica a cada metro recorrido,
+así que el error crece linealmente con la distancia.
+</Experimento>
+
+<Experimento
+  cambia="el deslizador «Distancia entre ruedas creída» 5 mm por encima, de 0.15 a 0.155 m"
+  observa="la orientación estimada y el error de rumbo a los 30 s"
+  porque="¿Por qué el rumbo estimado se queda atrás unos 12°?"
+>
+Como Δθ = (Δs_R − Δs_L)/L, con la L creída mayor cada giro estimado es 0.150/0.155 del real, un
+3.2 % menos. A los 30 s el robot ha girado algo más de una vuelta, y el 3.2 % de 360° ya son
+11.6°: el error de rumbo es de unos −12°. Ese rumbo desviado tuerce toda la traza estimada.
+</Experimento>
+</Explora>
+
+<AlRobot>
+Con tu perfil de «Mi robot», el paso del gancho, 400 ticks a la izquierda y 440 a la derecha, da
+arcos que dependen de tu r y de tu N_e:
+
+<RobotFormula calc="ruta-1/m05-t04/wheel-arcs" />
+
+Del promedio y de la diferencia de los arcos salen el avance y el giro del paso, con tu L:
+
+<RobotFormula calc="ruta-1/m05-t04/step" />
+
+Desde la pose (0, 0, 0), con el ángulo medio del paso:
+
+<RobotFormula calc="ruta-1/m05-t04/pose" />
+
+Si tu perfil no define N_e, el cálculo usa el del robot de referencia, 360 ticks por vuelta; si no
+es un robot móvil, usa el robot de referencia completo. Con él, Δs_L = 0.2234 m, Δs_R = 0.2457 m,
+Δs = 0.2346 m y Δθ = 0.1489 rad, y el robot queda en (0.2339 m, 0.01745 m, 0.1489 rad).
+
+Ahora, el error de calibración. La odometría convierte ticks en distancia con el r de tu perfil.
+Si la rueda real mide 1 mm más, cuando la odometría cuenta D = 10 m la rueda ha recorrido en
+realidad s = D·(r + 0.001 m)/r:
+
+<RobotFormula calc="ruta-1/m05-t04/radius-error" />
+
+Con r = 0.032 m, son 0.3125 m de error en 10 m, un 3.1 %. El error es proporcional a la
+desviación del radio y a la distancia recorrida: en una pista de 20 m, el doble.
+</AlRobot>
+
+<Verifica
+  ejercicios={[
+    'ruta-1/m05-t04/e1',
+    'ruta-1/m05-t04/e2',
+    'ruta-1/m05-t04/e3',
+    'ruta-1/m05-t04/e4',
+  ]}
+  topicId="ruta-1/m05-t04"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['siegwart-3', 'siegwart-4']} topicId="ruta-1/m05-t04" />

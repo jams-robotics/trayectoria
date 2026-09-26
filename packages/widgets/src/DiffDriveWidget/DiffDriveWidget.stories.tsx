@@ -6,7 +6,7 @@ import { DiffDriveWidget } from './DiffDriveWidget';
 // independent of module export iteration order (docs/audits F2-01a: hydration mismatch).
 export default {
   title: 'DiffDriveWidget',
-  order: ['Forward51', 'Forward52', 'Inverse53', 'Odometry54'],
+  order: ['Forward51', 'Forward52', 'Inverse53', 'Odometry54', 'Maneuver55'],
 };
 
 /** Time the captured story opens at, in seconds (#92, decision 7). */
@@ -67,6 +67,22 @@ export function Odometry54(): JSX.Element {
       initial={{ omegaL_radps: 12, omegaR_radps: 13 }}
       duration_s={20}
       initialTime_s={ODOMETRY_CAPTURE_TIME_S}
+    />
+  );
+}
+
+/**
+ * The «Explora» of T-5.5: no lateral command, and the three-move maneuver behind its switch
+ * (#394). The switch opens off; `DiffDriveWidget-maneuver.png` is taken after turning it on.
+ */
+export function Maneuver55(): JSX.Element {
+  return (
+    <DiffDriveWidget
+      mode="inverse"
+      show={['frames', 'trace']}
+      initial={{ v_mps: 0.3, omega_radps: 0 }}
+      maneuver={{ turn_deg: 90, distance_m: 0.2 }}
+      duration_s={6}
     />
   );
 }
