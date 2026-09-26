@@ -16,6 +16,11 @@ const TENTHS = 10;
 /** Fixed robot of Verifica (#394): the reference wheel radius and wheel base. */
 export const WHEEL_RADIUS_M = 0.032;
 export const WHEEL_BASE_M = 0.15;
+/**
+ * e1 and e2 draw again while the outer wheel needs more than v_max = ω_max·r = 0.670 m/s (the
+ * reference ω_max of e4) or the inner one is negative (V-42, #473).
+ */
+export const WHEEL_MAX_SPEED_MPS = 0.67;
 
 interface Range {
   readonly min: number;
@@ -49,6 +54,11 @@ function wheelSpeeds_mps(v_mps: number, omega_radps: number): [number, number] {
   return [v_mps - halfSpread_mps, v_mps + halfSpread_mps];
 }
 
+/** True when both wheel speeds are in [0, v_max]. */
+function isReachable([vL_mps, vR_mps]: [number, number]): boolean {
+  return Math.min(vL_mps, vR_mps) >= 0 && Math.max(vL_mps, vR_mps) <= WHEEL_MAX_SPEED_MPS;
+}
+
 interface RobotCommand {
   readonly v_mps: number;
   readonly omega_radps: number;
@@ -58,14 +68,18 @@ interface RobotCommand {
 const e1 = defineExercise<RobotCommand>({
   id: 'e1',
   generate: (rng) => {
-    const v_mps = drawOnGrid(rng, E1_V_MPS, HUNDREDTHS);
-    const omega_radps = drawOnGrid(rng, E1_OMEGA_RADPS, TENTHS);
-    const [vL_mps, vR_mps] = wheelSpeeds_mps(v_mps, omega_radps);
-    return {
-      values: { v_mps, omega_radps },
-      answer: [vL_mps / WHEEL_RADIUS_M, vR_mps / WHEEL_RADIUS_M],
-      unit: ['rad/s', 'rad/s'],
-    };
+    for (;;) {
+      const v_mps = drawOnGrid(rng, E1_V_MPS, HUNDREDTHS);
+      const omega_radps = drawOnGrid(rng, E1_OMEGA_RADPS, TENTHS);
+      const wheels_mps = wheelSpeeds_mps(v_mps, omega_radps);
+      if (!isReachable(wheels_mps)) continue;
+      const [vL_mps, vR_mps] = wheels_mps;
+      return {
+        values: { v_mps, omega_radps },
+        answer: [vL_mps / WHEEL_RADIUS_M, vR_mps / WHEEL_RADIUS_M],
+        unit: ['rad/s', 'rad/s'],
+      };
+    }
   },
   statement: () => statementKey('e1'),
   tolerance: RELATIVE_2_PERCENT,
@@ -80,13 +94,13 @@ interface Circle {
 const e2 = defineExercise<Circle>({
   id: 'e2',
   generate: (rng) => {
-    const turnRadius_m = drawOnGrid(rng, E2_TURN_RADIUS_M, HUNDREDTHS);
-    const v_mps = drawOnGrid(rng, E2_V_MPS, HUNDREDTHS);
-    return {
-      values: { turnRadius_m, v_mps },
-      answer: wheelSpeeds_mps(v_mps, v_mps / turnRadius_m),
-      unit: ['m/s', 'm/s'],
-    };
+    for (;;) {
+      const turnRadius_m = drawOnGrid(rng, E2_TURN_RADIUS_M, HUNDREDTHS);
+      const v_mps = drawOnGrid(rng, E2_V_MPS, HUNDREDTHS);
+      const wheels_mps = wheelSpeeds_mps(v_mps, v_mps / turnRadius_m);
+      if (!isReachable(wheels_mps)) continue;
+      return { values: { turnRadius_m, v_mps }, answer: wheels_mps, unit: ['m/s', 'm/s'] };
+    }
   },
   statement: () => statementKey('e2'),
   tolerance: RELATIVE_2_PERCENT,

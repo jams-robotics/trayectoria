@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   E1_DELTA_TICKS,
+  E1_MAX_TICKS_DIFFERENCE,
   E3_BELIEVED_RADIUS_M,
   E3_DISTANCE_M,
   E3_WHEEL_RADIUS_M,
@@ -217,6 +218,37 @@ describe('e4 · L creída 0.155 m frente a la real 0.150 m', () => {
     expect(check(exercise('e4'), 1, -11.61 - 0.49).correct).toBe(true);
     expect(check(exercise('e4'), 1, -11.61 + 0.51).correct).toBe(false);
     expect(check(exercise('e4'), 1, -11.61 - 0.51).correct).toBe(false);
+  });
+});
+
+describe('turn of one step at most 90° (V-41, #473)', () => {
+  it('limits |Δticks_R − Δticks_L| to 421, the largest whole difference with |Δθ| ≤ π/2', () => {
+    expect(E1_MAX_TICKS_DIFFERENCE).toBe(421);
+    expect(Math.abs(step(0, 421).deltaTheta_rad)).toBeLessThanOrEqual(Math.PI / 2);
+    expect(Math.abs(step(0, 422).deltaTheta_rad)).toBeGreaterThan(Math.PI / 2);
+  });
+
+  it('draws again while the ticks differ by more than 421', () => {
+    // First draw: 50 and 1000 ticks → Δθ = 3.537 rad; second: the golden step.
+    for (const id of ['e1', 'e2']) {
+      const { values } = exercise(id).generate(scriptedRng([50, 1000, 400, 440]));
+      expect(values).toEqual({ deltaTicksL: 400, deltaTicksR: 440 });
+    }
+  });
+
+  it('keeps |Δθ| ≤ π/2 in e1 and e2 over 2000 seeds', () => {
+    for (const id of ['e1', 'e2']) {
+      for (const seed of MANY_SEEDS) {
+        const { deltaTicksL, deltaTicksR } = valuesOf(id, seed);
+        expect(Math.abs(deltaTicksR! - deltaTicksL!), `${id} seed ${seed}`).toBeLessThanOrEqual(
+          421,
+        );
+        expect(
+          Math.abs(step(deltaTicksL!, deltaTicksR!).deltaTheta_rad),
+          `${id} seed ${seed}`,
+        ).toBeLessThanOrEqual(Math.PI / 2);
+      }
+    }
   });
 });
 

@@ -12,6 +12,7 @@ import {
   E4_OMEGA_RADPS,
   E4_V_MPS,
   WHEEL_BASE_M,
+  WHEEL_MAX_SPEED_MPS,
   WHEEL_RADIUS_M,
   exercises,
 } from './ejercicios';
@@ -105,7 +106,9 @@ describe('T-5.3 exercises', () => {
         // A zero component is graded by absolute error (check.ts); skip those instances here.
         if (components.some((value) => Math.abs(value) < 1e-6)) continue;
         const scaled = (factor: number) =>
-          Array.isArray(answer) ? components.map((value) => value * factor) : components[0]! * factor;
+          Array.isArray(answer)
+            ? components.map((value) => value * factor)
+            : components[0]! * factor;
         expect(check(candidate, seed, scaled(1.019)).correct).toBe(true);
         expect(check(candidate, seed, scaled(1.021)).correct).toBe(false);
         if (++graded === 20) break;
@@ -138,6 +141,24 @@ describe('e1 · v, ω, r, L: ω_L y ω_R', () => {
     expect(check(exercise('e1'), seed, [omegaL_radps! * 1.05, omegaR_radps!]).correct).toBe(false);
   });
 
+  it('draws again while the outer wheel needs more than 0.670 m/s or the inner one is negative', () => {
+    // First draw: v = 0.1 m/s, ω = 3 rad/s → v_L = −0.0125 m/s; second: the golden command.
+    const { values } = exercise('e1').generate(scriptedRng([10, 30, 40, 15]));
+    expect(values).toEqual({ v_mps: 0.4, omega_radps: 1.5 });
+    // First draw: v = 0.6 m/s, ω = 1.5 rad/s → v_R = 0.7125 m/s; second: the golden command.
+    const { values: again } = exercise('e1').generate(scriptedRng([60, 15, 40, 15]));
+    expect(again).toEqual({ v_mps: 0.4, omega_radps: 1.5 });
+  });
+
+  it('keeps ω_R·r ≤ 0.670 m/s and ω_L·r ≥ 0 over 2000 seeds (V-42)', () => {
+    expect(WHEEL_MAX_SPEED_MPS).toBe(0.67);
+    for (const seed of MANY_SEEDS) {
+      const [omegaL_radps, omegaR_radps] = answerOf('e1', seed);
+      expect(omegaR_radps! * 0.032, `seed ${seed}`).toBeLessThanOrEqual(0.67 + EPSILON);
+      expect(omegaL_radps! * 0.032, `seed ${seed}`).toBeGreaterThanOrEqual(0);
+    }
+  });
+
   it('draws v ∈ [0.1, 0.6] m/s in hundredths and ω ∈ [0, 3] rad/s in tenths', () => {
     expect(E1_V_MPS).toEqual({ min: 0.1, max: 0.6 });
     expect(E1_OMEGA_RADPS).toEqual({ min: 0, max: 3 });
@@ -165,6 +186,20 @@ describe('e2 · círculo de radio R a v: v_L y v_R', () => {
     expect(Math.abs(vL_mps! - 0.2437) / 0.2437).toBeLessThan(0.02);
     expect(Math.abs(vR_mps! - 0.3562) / 0.3562).toBeLessThan(0.02);
     expect(unit).toEqual(['m/s', 'm/s']);
+  });
+
+  it('draws again while the outer wheel needs more than 0.670 m/s', () => {
+    // First draw: R = 0.2 m, v = 0.6 m/s → v_R = 0.825 m/s; second: the golden circle.
+    const { values } = exercise('e2').generate(scriptedRng([20, 60, 40, 30]));
+    expect(values).toEqual({ turnRadius_m: 0.4, v_mps: 0.3 });
+  });
+
+  it('keeps v_R ≤ 0.670 m/s and v_L ≥ 0 over 2000 seeds (V-42)', () => {
+    for (const seed of MANY_SEEDS) {
+      const [vL_mps, vR_mps] = answerOf('e2', seed);
+      expect(vR_mps, `seed ${seed}`).toBeLessThanOrEqual(0.67 + EPSILON);
+      expect(vL_mps, `seed ${seed}`).toBeGreaterThanOrEqual(0);
+    }
   });
 
   it('draws R ∈ [0.2, 1] m and v ∈ [0.1, 0.6] m/s in hundredths', () => {
@@ -223,7 +258,7 @@ describe('e4 · ¿es realizable v = 0.6 m/s, ω = 2 rad/s?', () => {
   });
 
   it('the required v_R exceeds v_max = ω_max · r = 0.670 m/s: not realizable', () => {
-    expect(E4_OMEGA_MAX_RADPS * WHEEL_RADIUS_M).toBeCloseTo(0.670, 3);
+    expect(E4_OMEGA_MAX_RADPS * WHEEL_RADIUS_M).toBeCloseTo(0.67, 3);
     expect(exercise('e4').generate(createRng(1)).answer as number).toBeGreaterThan(
       E4_OMEGA_MAX_RADPS * WHEEL_RADIUS_M,
     );
