@@ -1,0 +1,151 @@
+---
+id: ruta-1/m05-t03
+title: 'Cinemática inversa del robot diferencial'
+module: 5
+order: 3
+estimatedMinutes: 30
+prerequisites: [ruta-1/m05-t02]
+objectives:
+  - Obtener las velocidades de rueda para una v y ω deseadas
+  - Verificar el comando contra el límite del motor
+  - Diseñar giros en el lugar y pivotes
+widgets: [DiffDriveWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [siegwart-3]
+status: review
+---
+
+<Gancho>
+Quieres que tu robot avance a 0.4 m/s girando a 1.5 rad/s. ¿Qué velocidad angular mandas a cada
+rueda?
+</Gancho>
+
+<Concepto>
+En la cinemática directa partías de las ruedas: v = (v_R + v_L)/2 y ω = (v_R − v_L)/L. La
+**cinemática inversa** recorre el camino contrario: das la v y la ω que quieres para el robot y
+obtienes lo que debe hacer cada rueda.
+
+Son dos ecuaciones con dos incógnitas. Sumarlas y restarlas da v_R = v + ω·L/2 y
+v_L = v − ω·L/2. Cada rueda va a la velocidad del centro del eje más o menos una corrección
+ω·L/2, que crece con el giro y con la distancia entre ruedas. Sin deslizamiento, cada rueda gira a
+ω_R = v_R/r y ω_L = v_L/r.
+
+Con ω positiva, antihoraria, el robot gira a la izquierda y la rueda derecha queda por fuera de la
+curva. La rueda exterior siempre va más rápido que la interior: recorre un arco de radio mayor en
+el mismo tiempo. Si ω cambia de signo, las ruedas intercambian los papeles.
+
+Con los datos del gancho y el robot de referencia, ω·L/2 = 1.5·0.15/2 = 0.1125 m/s. Entonces
+v_R = 0.5125 m/s y v_L = 0.2875 m/s, y con r = 0.032 m, ω_R = 16.02 rad/s y ω_L = 8.98 rad/s.
+
+Una rueda no gira más rápido que su ω_max. Si alguna necesita más, el comando no es realizable:
+el motor satura y la rueda va más lenta de lo pedido. Hay que reducir v, ω o ambas hasta que
+max(|ω_L|, |ω_R|) ≤ ω_max.
+
+Si pides v = ω·L/2, la rueda interior se detiene: v_L = 0. El robot hace un **pivote** sobre esa
+rueda, y el centro del eje describe un círculo de radio R = L/2.
+
+Esto es lo que hace al final el controlador de un seguidor de línea: calcula una corrección de
+giro y la convierte en dos comandos de rueda con estas mismas ecuaciones.
+</Concepto>
+
+<Formulas>
+<Formula latex="v_R = v + \frac{\omega L}{2},\quad v_L = v - \frac{\omega L}{2}" />
+
+- `v_R`, `v_L` · velocidad lineal de rueda derecha e izquierda · m/s
+- `v` · velocidad lineal del robot · m/s
+- `ω` · velocidad angular del robot · rad/s
+- `L` · distancia entre ruedas · m
+
+<Formula latex="\omega_R = \frac{v_R}{r},\quad \omega_L = \frac{v_L}{r}" />
+
+- `ω_R`, `ω_L` · velocidad angular de rueda derecha e izquierda · rad/s
+- `v_R`, `v_L` · velocidad lineal de rueda derecha e izquierda · m/s
+- `r` · radio de rueda · m
+
+<Formula latex="\max(|\omega_L|,|\omega_R|) \le \omega_{max}" />
+
+- `ω_L`, `ω_R` · velocidad angular de rueda izquierda y derecha · rad/s
+- `ω_max` · velocidad angular máxima de la rueda · rad/s
+</Formulas>
+
+<Explora>
+El robot recibe el comando del gancho, v = 0.4 m/s y ω = 1.5 rad/s, durante 6 s. El simulador
+calcula la velocidad de cada rueda, las muestra junto al robot y dibuja el CIR y el radio de giro.
+
+<DiffDriveWidget
+  mode="inverse"
+  show={['icr', 'radius', 'wheelVelocities']}
+  initial={{ v_mps: 0.4, omega_radps: 1.5 }}
+  duration_s={6}
+/>
+
+<Experimento
+  cambia="ω de 1.5 a 3 rad/s, con v = 0.4 m/s fija"
+  observa="las velocidades de las dos ruedas"
+  porque="¿Por qué se separan lo mismo hacia arriba y hacia abajo?"
+>
+Cada rueda se aparta de v en ω·L/2, la derecha hacia arriba y la izquierda hacia abajo. Con
+ω = 3 rad/s la corrección es 3·0.15/2 = 0.225 m/s: v_R = 0.625 m/s y v_L = 0.175 m/s. Su media
+sigue siendo v = 0.4 m/s.
+</Experimento>
+
+<Experimento
+  cambia="v hacia arriba desde 0.4 m/s, con ω = 1.5 rad/s"
+  observa="la rueda derecha, hasta que su velocidad aparece marcada como error"
+  porque="¿Por qué ocurre con v por encima de unos 0.56 m/s?"
+>
+La rueda derecha necesita v_R = v + 0.1125 m/s, y con ω_max = 20.94 rad/s y r = 0.032 m no pasa
+de ω_max·r = 0.670 m/s. Con v por encima de 0.558 m/s el comando supera ω_max y deja de ser
+realizable. El simulador satura la rueda en ω_max.
+</Experimento>
+
+<Experimento
+  cambia="ω a 2 rad/s y v a 0.15 m/s"
+  observa="la velocidad de la rueda izquierda y la posición del CIR"
+  porque="¿Por qué se detiene la rueda interior?"
+>
+Con v = ω·L/2 = 2·0.15/2 = 0.15 m/s, la rueda izquierda queda en v_L = 0.15 − 0.15 = 0 y
+ω_L = 0. El robot pivota sobre ella: el CIR cae en esa rueda, a R = L/2 = 0.075 m del centro del
+eje.
+</Experimento>
+</Explora>
+
+<AlRobot>
+Para el comando del gancho, v = 0.4 m/s y ω = 1.5 rad/s, las ruedas de tu robot necesitan:
+
+<RobotFormula calc="ruta-1/m05-t03/wheel-right" />
+
+<RobotFormula calc="ruta-1/m05-t03/wheel-left" />
+
+Antes de mandar el comando, compáralo con la velocidad angular máxima de tus ruedas, ω_max, que
+sale de las rpm del motor y de la reducción de tu perfil:
+
+<RobotFormula calc="ruta-1/m05-t03/feasibility" />
+
+Si tu perfil de «Mi robot» no es un robot móvil, los cálculos usan el robot de referencia.
+
+Con el robot de referencia, ω_R = 16.02 rad/s y ω_L = 8.98 rad/s, las dos por debajo de
+ω_max = 20.94 rad/s: el comando es realizable.
+
+Pide ahora algo más rápido: v = 0.6 m/s y ω = 2 rad/s. La rueda exterior necesita
+v_R = 0.6 + 2·0.15/2 = 0.75 m/s, y ninguna rueda pasa de v_max = ω_max·r:
+
+<RobotFormula calc="ruta-1/m05-t03/fast-command" />
+
+Con el robot de referencia, 0.75 m/s supera v_max = 0.670 m/s: el comando no es realizable. Para
+girar a 2 rad/s, v tiene que bajar hasta que v_R ≤ 0.670 m/s, es decir, v ≤ 0.520 m/s. La otra
+salida es mantener v y reducir ω.
+</AlRobot>
+
+<Verifica
+  ejercicios={[
+    'ruta-1/m05-t03/e1',
+    'ruta-1/m05-t03/e2',
+    'ruta-1/m05-t03/e3',
+    'ruta-1/m05-t03/e4',
+  ]}
+  topicId="ruta-1/m05-t03"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['siegwart-3']} topicId="ruta-1/m05-t03" />

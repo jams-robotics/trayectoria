@@ -167,11 +167,29 @@ Maniobra en tres movimientos (#394, decisión C; T-5.5): girar, avanzar, deshace
 - **Valores dorados** (robot de referencia, `θ₀ = 0`, 1 rad/s y 0.2 m/s, tolerancia 1e−6 en m y rad): giro 90°, avance 0.2 m → `T = 4.142 s`; en `t = π/2 s`, pose `(0, 0, 90°)`; en `t = π/2 + 0.5 s`, `(0, 0.1, 90°)`; al terminar, `(0, 0.2, 0°)`. Con giro −90°, `(0, −0.2, 0°)`. Con `θ₀ = 30°`, `(−0.1, 0.1732, 30°)`. Con 4 rad/s y 0.5 m/s, `T = 1.185 s` (T-5.5, Al robot y e3).
 
 ### LineSensorWidget
-Arreglo de sensores sobre un tramo de línea desplazable; lecturas, posición ponderada, umbral.
+Arreglo de sensores sobre un tramo recto de línea desplazable; lecturas, posición ponderada, umbral (#396).
 ```ts
 interface LineSensorWidgetProps { robot?: RobotSpec; initialOffset_m: number; initialAngle_rad?: number; showBinary?: boolean; noiseSigma?: number }
 ```
-(Nota: este widget se construye en el ticket T-6.1 como excepción documentada, porque solo M6 lo usa; su spec vive aquí para que el catálogo esté completo.)
+- `robot` por defecto: `useMyRobot()`, como `DiffDriveWidget`. Usa `lineSensors` del perfil (`N`, `e_s`, `d`, huella).
+- Escena (`Scene2D`, vista cenital): el arreglo sobre un tramo recto de línea de 0.02 m (`PRESET_LINE_WIDTH_M`), con la huella de cada sensor.
+- Sliders (`ParamPanel`):
+  - desplazamiento de la línea: `[−0.05, 0.05] m`, paso 0.001, positivo a la izquierda (eje Y de {R}); inicial `initialOffset_m`.
+  - ángulo de la línea: `[−0.5, 0.5] rad`; inicial `initialAngle_rad` (por defecto 0).
+  - ruido σ: `[0, 0.2]`, paso 0.01; inicial `noiseSigma` (por defecto 0).
+  - umbral `u`: `[0.1, 0.9]`, paso 0.05, inicial 0.5.
+- Valores:
+  - `v_k` por sensor, como barra con cifra; `b_k` con `showBinary`.
+  - `k̄`, `p` e `y_línea` (positivo a la derecha, mismo signo que `p`).
+  - Aviso «línea perdida» cuando `Σ v_k < 0.5` (`DEFAULT_LOST_THRESHOLD`); entonces `p` conserva el último signo (`readLineArray`).
+- Ruido: `SeededRng` de semilla fija; una muestra nueva cada 0.1 s del tiempo del widget, con `SimControls`. Sin ruido, la escena es estática.
+- Determinismo: sin `Math.random` ni `Date.now`; mismos props, sliders y tiempo dan las mismas lecturas.
+- Valores dorados (robot de referencia, sin ruido, ángulo 0):
+  - desplazamiento 0 → `v = [0, 0.5, 1, 0.5, 0]`, `p = 0`.
+  - 0.006 m a la izquierda → `[0, 1, 1, 0, 0]`, `p = −0.25`, `y_línea = −0.006 m`.
+  - la línea se pierde por encima de 0.036 m, por la huella de 4 mm y el umbral de pérdida.
+
+Se construye en el ticket T-6.1 como excepción documentada, porque solo M6 lo usa. T-6.1 también lo expone en el mapa MDX (entrada en `widgetRegistry.ts` y envoltorio `catalog/LineSensorWidget.astro`).
 
 ### LineFollowerWidget
 El simulador móvil completo embebido (pista preset, controlador seleccionable, instrumentación reducida). Es el mismo componente que la página `/simuladores/movil` con `compact`.
@@ -193,6 +211,22 @@ interface LineFollowerWidgetProps {
   seed?: number;
 }
 ```
+Parámetros de `initialParams` (#396). Las claves son las del código, no los símbolos:
+
+| Controlador | Claves | Por defecto |
+|---|---|---|
+| `onoff` | `omegaBase_radps`, `delta_radps` | 10, 4 |
+| `p` | `omegaBase_radps`, `kp` | 10, 10 |
+| `pid` | `omegaBase_radps`, `kp`, `ki`, `kd`, `iMax` | 10, 20, 2, 0.8, 1 (`REFERENCE_PID_PARAMS`) |
+
+- Rangos de los sliders: `kp [0, 20]`, paso 0.1; `ki [0, 10]`, paso 0.1; `kd [0, 5]`, paso 0.05; `iMax [0, 10]`, paso 0.1. `omegaBase_radps` y `delta_radps` van en `[0, ω_max]` del robot, paso 0.5.
+- Una clave que falta toma el valor por defecto. Una clave desconocida, como `Kp`, se ignora.
+- Cambiar de controlador en el selector restablece los valores por defecto del nuevo, también `ω_base`.
+- `compact` oculta el selector de controlador, los sliders y las lecturas. Un tema cuyo Explora cambia el controlador o una ganancia no la usa.
+- Motor: el modelo del seguidor usa la respuesta de primer orden del motor (`ARCHITECTURE.md` §4.1, `MOTOR_TIME_CONSTANT_S`). Por eso P oscila con ganancia alta y D la amortigua.
+
+En el mapa MDX (#396), el tema escribe solo props serializables: `track` (nombre de preset o JSON de pista en texto), `controller`, `initialParams`, `compact`, `showPlots`, `noiseSigma` y `seed`. El robot sale de `useMyRobot()`. El componente vive en `packages/sims`, así que el ticket que lo añade al mapa crea una entrada propia del paquete para él, además de su entrada en `widgetRegistry.ts` y del envoltorio `catalog/LineFollowerWidget.astro`.
+
 `renderPanel` envuelve la columna del panel de controlador y `renderViewer` la del visor, para que una página decida qué las rodea sin tocar el DOM del widget: es lo que permite plegar el panel en un acordeón móvil (F4-02b) y alternar visor y editor de pista en la misma caja (#158). `hideControls` oculta los controles de reproducción cuando la página los pone en su barra inferior fija (F4-02b). `seed` fija la semilla del ruido del sensor y es la que viaja en el enlace compartido (#131); cambiarla reconstruye la simulación pausada en `t = 0`. `showPlots` es operativa desde F4-03 (#129): elige cuáles de las cuatro gráficas en vivo se pintan (`'error'`, `'v'`, `'omega'`, `'pid'`); sin la prop no se dibuja ninguna.
 
 ### TrackEditor
@@ -241,7 +275,7 @@ El formulario de subida de F3-04 se reutiliza para importar sin guardar: `Upload
 
 ## Componentes MDX
 
-El mapa MDX (`apps/web/src/components/tema/`, ARCHITECTURE §3.3) expone, con su nombre y sus props, solo los widgets de tema con props serializables (#246): `Formula`, `VectorWidget`, `KinematicsWidget`, `ProjectileWidget`, `FreeBodyWidget`, `RotationWidget`, `EnergyWidget`, `GearWidget`, `DiffDriveWidget` y `MyRobotWidget`. No se exponen `ParamPanel` ni `Plot`, que son piezas internas de otros widgets. `ExerciseWidget` se monta a través de `Verifica`. `LineSensorWidget` y `LineFollowerWidget` se resuelven en el Módulo 6.
+El mapa MDX (`apps/web/src/components/tema/`, ARCHITECTURE §3.3) expone, con su nombre y sus props, solo los widgets de tema con props serializables (#246): `Formula`, `VectorWidget`, `KinematicsWidget`, `ProjectileWidget`, `FreeBodyWidget`, `RotationWidget`, `EnergyWidget`, `GearWidget`, `DiffDriveWidget` y `MyRobotWidget`; en el Módulo 6 se añaden `LineSensorWidget` (T-6.1) y `LineFollowerWidget` (ticket de widget previo a T-6.2, #396). No se exponen `ParamPanel` ni `Plot`, que son piezas internas de otros widgets. `ExerciseWidget` se monta a través de `Verifica`.
 
 Cada widget de tema llega al mapa por un envoltorio `.astro` de una línea, `catalog/<Widget>.astro`, que monta el único mecanismo genérico, `CatalogWidget`, con el nombre del widget (PR #248). La lista vive en `TOPIC_WIDGETS` (`widgetRegistry.ts`); si la lista y los envoltorios no coinciden, falla el build (`catalogWidgets.ts`) y también `pnpm test` (`catalogWidgets.test.ts`). Añadir un widget al mapa es añadir su entrada y su envoltorio.
 
