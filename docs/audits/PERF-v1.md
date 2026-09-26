@@ -120,7 +120,7 @@ Efecto: −130 kB en las páginas sin widgets (404, inicio, auth, brazos: de ≈
 
 ## 6. Hallazgos no corregidos (requieren decisión o tocan otros paquetes)
 
-1. **Definición del presupuesto.** La guardia cuenta solo los imports estáticos, pero lo que el estudiante descarga al abrir un tema son ≈ 88 kB más (supabase, KaTeX y widgets vía `import()`). Hay que decidir cuál de las dos medidas manda y, si es la de ejecución, ampliar la guardia.
+1. **Definición del presupuesto.** La guardia cuenta solo los imports estáticos, pero lo que el estudiante descarga al abrir un tema son ≈ 88 kB más (supabase, KaTeX y widgets vía `import()`). Hay que decidir cuál de las dos medidas manda y, si es la de ejecución, ampliar la guardia. Decisión (2026-09-26, aprobada por el humano en el chat): manda la medida de imports estáticos (guardia `bundleBudget.test.ts`); la medida en ejecución queda como dato informativo. §6.2–6.5 se posponen a después del lanzamiento.
 2. **KaTeX en el cliente (75,6 kB en cada tema).** Si las fórmulas estáticas se renderizaran en el build y KaTeX se cargara solo para las interactivas, todos los temas quedarían por debajo de 250 kB. Toca `@trayectoria/widgets` (`Formula`).
 3. **`robot-spec` + `zod` en todas las páginas (33,5 kB).** Lo arrastra el store de «Mi robot» para validar el robot guardado. Bastaría con validar solo cuando hay un robot guardado. Toca `@trayectoria/widgets` y `robot-spec`.
 4. **`supabase-js` en todas las páginas (53,5 kB)**, incluso sin sesión. Ya se carga diferido; cargarlo solo cuando hay sesión local lo quitaría a los visitantes anónimos. Toca `@trayectoria/auth`.
@@ -175,4 +175,4 @@ Capturas (`e2e/visual`) de los simuladores y e2e de ambos simuladores: en verde 
 
 - **TBT del brazo.** Lo domina la tarea larga de `react-dom` y `three` al montar la escena (Chromium sin GPU en Lighthouse). No hay trabajo no crítico acotado que diferir en `apps/web`; reducirlo pasa por `@trayectoria/sims` (entradas en vez del barrel) o por cambiar el primer fotograma.
 - **Barrel de `@trayectoria/widgets` en `@trayectoria/sims`** (11 módulos): quitarlo bajaría el JS en ejecución de los simuladores. Toca otro paquete.
-- **`so101/foto.jpg` a WebP (§6.7):** el servicio de imágenes de Astro necesita `sharp` resoluble desde `apps/web`, que hoy solo lo tiene `astro`. Pendiente del spec gap #457.
+- **`so101/foto.jpg` a WebP (§6.7):** el servicio de imágenes de Astro necesita `sharp` resoluble desde `apps/web`, que hoy solo lo tiene `astro`. Pendiente del spec gap #457. Resuelto por DOCS-DEPS (#466): `sharp` 0.35.4 es `devDependency` de `apps/web` y la foto se sirve como WebP con `getImage` en `/brazos/` y `/brazos/so101/` (106 kB → 51 kB en el build).
