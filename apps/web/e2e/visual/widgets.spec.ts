@@ -354,6 +354,43 @@ test('DiffDriveWidget-odometry looks as approved', async ({ page }) => {
   await expect(story).toHaveScreenshot('DiffDriveWidget-odometry.png');
 });
 
+// #394 (T-5.5): la «Explora» de T-5.5 con la «Maniobra en tres movimientos» activada. Conmutarla
+// reinicia la carrera en pausa en t = 0, así que la escena está quieta: el panel muestra la fase
+// «1 · Girar», la duración 4.14 s y los sliders «Giro» y «Avance» en lugar de v y ω. Tras la
+// captura, «Reproducir» recorre la maniobra y se pausa sola al terminar, en (0, 0.2 m, 0°).
+test('DiffDriveWidget-maneuver looks as approved', async ({ page }) => {
+  await openPlayground(page, 'DiffDriveWidget');
+  const story = page.locator('[data-widget="DiffDriveWidget"] [data-story="Maneuver55"]');
+  await expect(story).toBeVisible();
+  const toggle = story.getByRole('button', { name: 'Maniobra en tres movimientos' });
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await expect(story.getByRole('slider', { name: /^Giro/ })).toBeVisible();
+  const canvas = story.locator('[data-testid="scene2d"] canvas');
+  await expect(canvas).toBeVisible();
+  await expect
+    .poll(async () =>
+      canvas.evaluate(
+        (element: HTMLCanvasElement, intrinsicWidth_px: number) =>
+          element.width > intrinsicWidth_px,
+        INTRINSIC_CANVAS_WIDTH_PX,
+      ),
+    )
+    .toBe(true);
+  await expect(story).toHaveScreenshot('DiffDriveWidget-maneuver.png');
+
+  const row = (term: string): Locator =>
+    story
+      .locator('dt', { hasText: new RegExp(`^${term}$`) })
+      .locator('xpath=following-sibling::dd[1]');
+  await story.getByRole('button', { name: 'Reproducir' }).click();
+  await expect(row('Fase')).toHaveText('Terminada', { timeout: 15_000 });
+  await expect(story.getByRole('button', { name: 'Reproducir' })).toBeVisible();
+  await expect(row('Posición x')).toHaveText('0.00 m');
+  await expect(row('Posición y')).toHaveText('0.200 m');
+  await expect(row('Orientación')).toHaveText('0.00 °');
+});
+
 test('ExerciseWidget looks as approved', async ({ page }) => {
   const story = await answerScalar(page, EXERCISE_ANSWER_S);
   await expect(story.getByTestId('exercise-result')).toContainText('Correcto');
