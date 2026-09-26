@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { OwnerRowLimitError } from '../checkViolation';
 import {
   URDF_BUCKET,
   deleteRobot,
@@ -202,6 +203,21 @@ describe('saveUploadedRobot size bound (#210)', () => {
     const { db, calls } = mockDb({ failing: ['robots.insert'], error });
     await expect(saveUploadedRobot(db, upload(SPEC))).rejects.toBeInstanceOf(RangeError);
     expect(calls.map((call) => call.op)).toEqual(['robots.insert']);
+  });
+
+  it('turns the 23514 of the owner row limit into an OwnerRowLimitError (#215)', async () => {
+    const message =
+      'new row for relation "robots" violates check constraint "robots_owner_row_limit"';
+    const error = { message, code: '23514' };
+    const { db, calls } = mockDb({ failing: ['robots.insert'], error });
+    await expect(saveUploadedRobot(db, upload(SPEC))).rejects.toBeInstanceOf(OwnerRowLimitError);
+    expect(calls.map((call) => call.op)).toEqual(['robots.insert']);
+  });
+
+  it('shows the limit notice for the owner row limit (#215)', () => {
+    expect(saveErrorKey(new OwnerRowLimitError('x'), 'auth.robots.uploadFailed')).toBe(
+      'auth.robots.limitReached',
+    );
   });
 
   it('shows the too-large notice only for that error', () => {

@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as Sims from '@trayectoria/sims';
 
+import { OwnerRowLimitError } from '../../lib/checkViolation';
+
 // F4-06 (#191, decision 6): the decision of where the saved tracks go, with the session and the
 // adapter mocked. Without a session, the local store; with one, the Supabase adapter. What each
 // layer does inside is covered by its own tests (`localTracks.test.ts` and
@@ -135,6 +137,12 @@ describe('savedTracks (F4-06)', () => {
     const database = await storeSavedTrack('Óvalo', TRACK).catch((error: unknown) => error);
     expect(saveErrorKey(database)).toBe('sims.trackEditor.save.tooLarge');
     expect(saveErrorKey(new Error('duplicate key'))).toBe('sims.trackEditor.save.error');
+  });
+
+  it('shows the limit notice for the owner row limit of the database (#215)', () => {
+    expect(saveErrorKey(new OwnerRowLimitError('tracks_owner_row_limit'))).toBe(
+      'sims.trackEditor.save.limitReached',
+    );
   });
 
   it('waits for the session to be read before deciding', async () => {

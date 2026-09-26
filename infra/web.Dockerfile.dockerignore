@@ -1,0 +1,15 @@
+# Build context exclusions for infra/web.Dockerfile (the context is the repository root).
+**/node_modules
+**/dist
+**/.astro
+**/coverage
+**/playwright-report
+**/test-results
+**/*.tsbuildinfo
+**/.env
+**/.env.*
+!.env.example
+.git
+.claude
+supabase/.temp
+supabase/.branches
