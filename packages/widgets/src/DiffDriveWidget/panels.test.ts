@@ -5,16 +5,15 @@ import type { Translate } from '@trayectoria/i18n';
 import { defaultRobot, mobileOf } from './compute';
 import {
   applyCalibration,
-  applyTheta,
   applyTwist,
   applyWheel,
   calibrationParams,
+  theta0Of,
   thetaParam,
   twistParams,
   wheelParams,
 } from './panels';
 import { calibrationOf } from './odometry';
-import type { Pose } from './compute';
 
 const SPEC = mobileOf(defaultRobot());
 /** The translator of the tests: the key itself, so a label is checked without the locale file. */
@@ -37,13 +36,12 @@ describe('DiffDriveWidget panels (F2-09a)', () => {
     expect(omega?.step).toBe(0.05);
   });
 
-  it('el slider de θ recorre [−180°, 180°] y muestra la orientación en grados', () => {
-    const pose: Pose = { x_m: 0, y_m: 0, theta_rad: degToRad(90) };
-    const [theta] = thetaParam(pose, t);
+  it('el slider de θ₀ recorre [−180°, 180°] y muestra la orientación inicial en grados', () => {
+    const [theta] = thetaParam(degToRad(90), t);
     expect(theta?.min).toBe(-180);
     expect(theta?.max).toBe(180);
     expect(theta?.value).toBe(90);
-    expect(applyTheta(pose, -90).theta_rad).toBeCloseTo(-Math.PI / 2, 12);
+    expect(theta0Of(-90)).toBeCloseTo(-Math.PI / 2, 12);
   });
 
   it('cada cambio toca solo su valor y una clave desconocida no cambia nada', () => {

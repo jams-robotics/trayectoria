@@ -6,7 +6,6 @@
 import { useRef } from 'react';
 import type { DiffDriveState } from '@trayectoria/sim-core';
 
-import { INITIAL_POSE } from './timeline';
 import type { Path, Preroll } from './timeline';
 import { estimatedVelocity, odometryStep, stepOf, ticksAt } from './odometry';
 import type { Calibration, EstimatedVelocity, Step, Ticks } from './odometry';
@@ -43,11 +42,14 @@ interface EstimatorState {
   velocity: EstimatedVelocity;
   trace: Array<readonly [number, number]>;
   lastAt_s: number;
+  /** Last state of the model integrated, to tell a restart at the same instant (#371). */
+  at: DiffDriveState;
   calibration: Calibration;
 }
 
 /**
- * The estimator back at the origin. `preroll` are the states the simulation went through before
+ * The estimator back at the start, which it knows: the pose of the first state, `θ₀` included
+ * (#371). `preroll` are the states the simulation went through before
  * the first paint, and they are replayed so a widget opened at `initialTime_s` shows an
  * estimated trace as long as the real one (#93, decision 4).
  */
@@ -55,23 +57,28 @@ function restart(preroll: Preroll, calibration: Calibration): EstimatorState {
   const first = preroll[0];
   if (first === undefined) throw new Error('La odometría necesita al menos un estado del modelo');
   let current: EstimatorState = {
-    estimated: INITIAL_POSE,
+    estimated: { x_m: first.x_m, y_m: first.y_m, theta_rad: first.theta_rad },
     ticks: ticksAt(first, calibration.ticksPerRev),
     step: NO_STEP,
     velocity: NO_VELOCITY,
     trace: [],
     lastAt_s: first.t_s,
+    at: first,
     calibration,
   };
   for (const state of preroll.slice(1)) current = advance(current, state);
   return current;
 }
 
-/** True when the run went back in time («Reiniciar») or the believed calibration changed. */
+/**
+ * True when the run went back in time («Reiniciar»), started again at the same instant with
+ * another state (a new `θ₀`, #371) or the believed calibration changed.
+ */
 function needsRestart(current: EstimatorState, state: DiffDriveState, next: Calibration): boolean {
   const { calibration } = current;
   return (
     state.t_s < current.lastAt_s ||
+    (state.t_s === current.lastAt_s && state !== current.at) ||
     calibration.ticksPerRev !== next.ticksPerRev ||
     calibration.wheelRadius_m !== next.wheelRadius_m ||
     calibration.wheelBase_m !== next.wheelBase_m
@@ -96,6 +103,7 @@ function advance(current: EstimatorState, state: DiffDriveState): EstimatorState
     velocity: estimatedVelocity(step, dt_s),
     trace: [...current.trace.slice(-TRACE_LIMIT), [estimated.x_m, estimated.y_m]],
     lastAt_s: state.t_s,
+    at: state,
   };
 }
 

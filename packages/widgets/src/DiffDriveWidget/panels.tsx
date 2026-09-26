@@ -103,22 +103,22 @@ export function twistParams(
   ];
 }
 
-/** The `θ` slider of the pose panel, in degrees (#92, decision 6). */
-export function thetaParam(pose: Pose, t: Translate): readonly ParamPanelParam[] {
+/** The slider of the initial orientation `θ₀`, in degrees (#92, decision 6; #371). */
+export function thetaParam(theta0_rad: number, t: Translate): readonly ParamPanelParam[] {
   return [
     {
       key: 'theta',
       label: t('widgets.DiffDriveWidget.paramTheta'),
       unit: t('widgets.DiffDriveWidget.unitDeg'),
-      value: Math.round(radToDeg(pose.theta_rad)),
+      value: Math.round(radToDeg(theta0_rad)),
       ...THETA_RANGE_DEG,
     },
   ];
 }
 
-/** Applies a change of the `θ` slider, which arrives in degrees (#92, decision 6). */
-export function applyTheta(pose: Pose, value_deg: number): Pose {
-  return { ...pose, theta_rad: degToRad(value_deg) };
+/** Turns a change of the `θ₀` slider, which arrives in degrees, into radians (#371). */
+export function theta0Of(value_deg: number): number {
+  return degToRad(value_deg);
 }
 
 /** Applies a change of one wheel slider (#92, decision 4). */
@@ -215,19 +215,25 @@ export interface PosePanelProps {
   readout: Readout;
   spec: MobileSpec;
   withFrames: boolean;
+  /** Initial orientation `θ₀` the slider shows, not the current one of the pose (#371). */
+  theta0_rad: number;
+  /** True while the simulation runs: the slider is disabled and keeps showing `θ₀` (#371). */
+  running: boolean;
   onTheta: (value_deg: number) => void;
   t: Translate;
 }
 
 /**
  * The pose panel: `x, y, θ`, `v, ω, R` and the wheel commands, plus the terms of `R(θ)` and the
- * global sensor coordinates when `show` includes `frames` (#92, decision 6). `θ` is edited here
- * with a slider, because the scene only drags `x, y`.
+ * global sensor coordinates when `show` includes `frames` (#92, decision 6). The initial
+ * orientation `θ₀` is edited here with a slider, because the scene only drags `x, y` (#371).
  */
 export function PosePanel({
   readout,
   spec,
   withFrames,
+  theta0_rad,
+  running,
   onTheta,
   t,
 }: PosePanelProps): JSX.Element {
@@ -240,12 +246,15 @@ export function PosePanel({
           rows={frameRows(readout.pose, spec, t)}
         />
       ) : null}
-      <ParamPanel
-        params={thetaParam(readout.pose, t)}
-        onChange={(_key, value) => {
-          onTheta(value);
-        }}
-      />
+      {/* A disabled fieldset disables the slider and its field without a prop on ParamPanel. */}
+      <fieldset disabled={running} className="m-0 min-w-0 border-0 p-0">
+        <ParamPanel
+          params={thetaParam(theta0_rad, t)}
+          onChange={(_key, value) => {
+            onTheta(value);
+          }}
+        />
+      </fieldset>
     </div>
   );
 }

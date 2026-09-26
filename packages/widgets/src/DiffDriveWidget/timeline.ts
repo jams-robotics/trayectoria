@@ -5,7 +5,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Simulation, createDiffDriveModel } from '@trayectoria/sim-core';
-import type { DiffDriveState, WheelCommand } from '@trayectoria/sim-core';
+import type { DiffDriveState, Model, WheelCommand } from '@trayectoria/sim-core';
 import type { MobileSpec } from '@trayectoria/robot-spec';
 
 import { createFrameClock, useSimulationDriver } from '../Scene2D/useSimulationDriver';
@@ -29,7 +29,10 @@ export type Path = ReadonlyArray<readonly [number, number]>;
  */
 export type Preroll = readonly DiffDriveState[];
 
-/** Pose the robot starts from and returns to on «Reiniciar» (#92, decision 6). */
+/**
+ * Pose the robot starts from and returns to on «Reiniciar» (#92, decision 6); its orientation is
+ * replaced by the initial orientation `θ₀` of the slider (#371).
+ */
 export const INITIAL_POSE: Pose = { x_m: 0, y_m: 0, theta_rad: 0 };
 
 /** The state of the playback plus everything `SimControls` needs to move it. */
@@ -44,6 +47,10 @@ export interface Timeline {
   trace_m: Path;
   /** Moves the robot while it is paused; ignored while it is running (#92, decision 6). */
   setPose: (next: (current: Pose) => Pose) => void;
+  /** Initial orientation `θ₀` the run starts from and «Reiniciar» returns to (#371). */
+  theta0_rad: number;
+  /** Sets `θ₀` and restarts the run from it; ignored while it is running (#371). */
+  setTheta0: (theta0_rad: number) => void;
   /** State of the model, which the odometry of F2-09b reads the encoder angles from. */
   state: DiffDriveState;
   /** States the preroll went through, for an estimator that opens at `initialTime_s`. */
@@ -75,22 +82,41 @@ function useTrace(pose: Pose, t_s: number, preroll: Path): Path {
  * paint with the opening command, so the story and the snapshot show a pose the model itself
  * produced (#92, decision 3).
  */
+/**
+ * The model of sim-core with its initial state turned to `θ₀`. The orientation is read from the
+ * ref on every `init`, so «Reiniciar» starts from the current `θ₀` without rebuilding the
+ * simulation (#371).
+ */
+function startingAt(
+  model: Model<DiffDriveState, WheelCommand>,
+  theta0: { readonly current: number },
+): Model<DiffDriveState, WheelCommand> {
+  return {
+    init: (seed) => ({ ...model.init(seed), theta_rad: theta0.current }),
+    step: (state, input, dt_s) => model.step(state, input, dt_s),
+  };
+}
+
 function useSim(
   spec: MobileSpec,
   clock: FrameClock,
   initialTime_s: number,
   command: WheelCommand,
+  theta0: { readonly current: number },
 ): { sim: Simulation<DiffDriveState, WheelCommand>; preroll: Path; states: Preroll } {
   // The preroll runs on the command the widget opens with; later ones arrive through `setInput`,
   // so this ref never makes the simulation rebuild when a slider moves.
   const opening = useRef(command);
   return useMemo(() => {
-    const sim = new Simulation<DiffDriveState, WheelCommand>(createDiffDriveModel(spec), {
-      dt_s: DT_S,
-      seed: 0,
-      clock,
-      input: opening.current,
-    });
+    const sim = new Simulation<DiffDriveState, WheelCommand>(
+      startingAt(createDiffDriveModel(spec), theta0),
+      {
+        dt_s: DT_S,
+        seed: 0,
+        clock,
+        input: opening.current,
+      },
+    );
     const preroll: Array<readonly [number, number]> = [];
     const states: DiffDriveState[] = [sim.state];
     const steps = Math.round(initialTime_s / DT_S);
@@ -101,12 +127,35 @@ function useSim(
       states.push(sim.state);
     }
     return { sim, preroll, states };
-  }, [clock, spec, initialTime_s]);
+  }, [clock, spec, initialTime_s, theta0]);
 }
 
 /** The pose the model has integrated, without the wheel angles and the twist beside it. */
 function poseOf(state: DiffDriveState): Pose {
   return { x_m: state.x_m, y_m: state.y_m, theta_rad: state.theta_rad };
+}
+
+/**
+ * The initial orientation `θ₀`: the model reads it from `theta0` on every `init`, so setting it
+ * resets the run to start from it. Ignored while the simulation runs (#371).
+ */
+function useTheta0(
+  theta0: { current: number },
+  driver: SimulationDriver<DiffDriveState>,
+  setManual: (next: (current: Pose | null) => Pose | null) => void,
+): Pick<Timeline, 'theta0_rad' | 'setTheta0'> {
+  const [theta0_rad, setTheta0_rad] = useState(theta0.current);
+  return {
+    theta0_rad,
+    setTheta0: (next_rad) => {
+      if (driver.running) return;
+      theta0.current = next_rad;
+      setTheta0_rad(next_rad);
+      // A pose dragged while paused keeps its x, y and takes the new orientation.
+      setManual((current) => (current === null ? null : { ...current, theta_rad: next_rad }));
+      driver.reset();
+    },
+  };
 }
 
 /** Pauses the playback on its own once `duration_s` is reached (#92, decision 3). */
@@ -128,11 +177,13 @@ export function useTimeline(
   initialTime_s: number,
 ): Timeline {
   const clock = useMemo(() => createFrameClock(), []);
-  const { sim, preroll, states } = useSim(spec, clock, initialTime_s, command);
+  const theta0 = useRef(INITIAL_POSE.theta_rad);
+  const { sim, preroll, states } = useSim(spec, clock, initialTime_s, command, theta0);
   sim.setInput(command);
 
   const driver = useSimulationDriver(sim, { clock });
   const [manual, setManual] = useState<Pose | null>(null);
+  const initial = useTheta0(theta0, driver, setManual);
   usePauseAt(driver, duration_s);
 
   const integrated = poseOf(driver.state);
@@ -159,5 +210,6 @@ export function useTimeline(
       if (driver.running) return;
       setManual((current) => next(current ?? integrated));
     },
+    ...initial,
   };
 }
