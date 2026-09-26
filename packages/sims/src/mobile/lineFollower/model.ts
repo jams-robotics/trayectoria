@@ -1,4 +1,5 @@
 import {
+  MOTOR_TIME_CONSTANT_S,
   createDiffDriveModel,
   createRng,
   pointAt,
@@ -137,7 +138,8 @@ export function createLineFollowerModel({
   startPose,
 }: LineFollowerOptions): Model<LineFollowerState, LineFollowerInput> {
   const mobile = mobileOf(spec);
-  const drive = createDiffDriveModel(mobile);
+  // The line follower always lags its motors, also in manual mode (docs/ARCHITECTURE.md §4.1).
+  const drive = createDiffDriveModel(mobile, { motorTimeConstant_s: MOTOR_TIME_CONSTANT_S });
   const index = buildTrackIndex(track);
   const origin = startPose ?? startPoseOf(track);
   // The generator lives outside the state so it is not copied on every step; `init` rebuilds it,
