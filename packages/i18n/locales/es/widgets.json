@@ -399,6 +399,25 @@
     "storyOdometry54": "Odometría de T-5.4 con ω_L = 12 y ω_R = 13 rad/s: pose real y estimada",
     "storyManeuver55": "Maniobra de T-5.5: girar 90°, avanzar 0.2 m y deshacer el giro"
   },
+  "LineSensorWidget": {
+    "scene": "Vista cenital del arreglo de sensores sobre un tramo recto de línea de 20 mm, desplazada {{offset}} m hacia la izquierda y girada {{angle}} rad; cada sensor lleva su índice, 0 el de la izquierda",
+    "readings": "Lecturas de los sensores",
+    "sensor": "v_{{k}}",
+    "binary": "b_{{k}} = {{b}}",
+    "lineLost": "Línea perdida: la suma de las lecturas es menor que 0.5 y p conserva el último signo",
+    "panel": "Posición de la línea",
+    "weightedIndex": "Índice ponderado k̄",
+    "linePosition": "Posición p",
+    "lineOffset": "Desplazamiento y_línea",
+    "paramoffset": "Desplazamiento de la línea (positivo a la izquierda)",
+    "paramangle": "Ángulo de la línea",
+    "paramnoise": "Ruido σ",
+    "paramthreshold": "Umbral u",
+    "unitM": "m",
+    "unitRad": "rad",
+    "status": "La línea está en p = {{p}}, a {{offset}} del centro del arreglo",
+    "statusLost": "Línea perdida: p conserva el último signo, p = {{p}}"
+  },
   "ExerciseWidget": {
     "title": "Ejercicio",
     "number": "E{{n}}",

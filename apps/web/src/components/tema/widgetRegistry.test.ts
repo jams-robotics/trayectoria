@@ -11,6 +11,7 @@ describe('TOPIC_WIDGETS', () => {
       'GearWidget',
       'KinematicsWidget',
       'LineFollowerWidget',
+      'LineSensorWidget',
       'MyRobotWidget',
       'PowerWidget',
       'ProjectileWidget',
@@ -43,5 +44,11 @@ describe('TOPIC_WIDGETS', () => {
     const lineFollower = await loadWidget('LineFollowerWidget');
 
     expect(lineFollower.name).toBe('LineFollowerWidget');
+  });
+
+  it('loads LineSensorWidget from its own entry of @trayectoria/widgets (T-6.1)', async () => {
+    const lineSensor = await loadWidget('LineSensorWidget');
+
+    expect(lineSensor.name).toBe('LineSensorWidget');
   });
 });
