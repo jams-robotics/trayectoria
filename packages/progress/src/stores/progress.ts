@@ -24,6 +24,8 @@ export const $progress = atom<ProgressMap>({});
 
 let userId: string | null = null;
 let hydrated = false;
+/** `true` once `configureProgressSession` has run at least once (#482, `isSessionReady`). */
+let sessionReady = false;
 /** Topics whose remote write failed; retried with the next write of the same session. */
 let pendingTopics = new Set<string>();
 /** Bumped by every session change; a fetch started under an older one is stale. */
@@ -131,6 +133,7 @@ function merged(local: ProgressMap, remote: ProgressMap): ProgressMap {
  * browser never shows one learner's progress to the next.
  */
 export async function configureProgressSession(nextUserId: string | null): Promise<void> {
+  sessionReady = true;
   if (nextUserId === userId && hydrated) return;
   sessionGeneration += 1;
   const generation = sessionGeneration;
@@ -169,6 +172,11 @@ export function currentUserId(): string | null {
   return userId;
 }
 
+/** `true` once the session has settled at least once; `progressAdapter.sessionReady()` reads it. */
+export function isSessionReady(): boolean {
+  return sessionReady;
+}
+
 /** The raw JSON of the browser copy; the tests of `src/` assert on it without touching storage. */
 export function storedProgressJson(): string | null {
   return storage()?.getItem(PROGRESS_STORAGE_KEY) ?? null;
@@ -186,6 +194,7 @@ export function seedStoredProgressForTest(map: ProgressMap, owner: string | null
 export function resetProgressForTest(clearStorage = true): void {
   userId = null;
   hydrated = false;
+  sessionReady = false;
   pendingTopics = new Set();
   $progress.set({});
   if (clearStorage) storage()?.removeItem(PROGRESS_STORAGE_KEY);
