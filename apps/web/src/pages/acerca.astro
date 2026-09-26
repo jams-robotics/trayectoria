@@ -1,0 +1,96 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import Base from '../layouts/Base.astro';
+
+// Public "about" page (F7-05). Vision, audience, scope and non-goals come from docs/PLAN.md §1.
+const REPO = 'https://github.com/jams-robotics/trayectoria';
+
+const audience = [t('aboutPage.audience.students'), t('aboutPage.audience.teachers')] as const;
+
+const scope = [
+  t('aboutPage.scope.route'),
+  t('aboutPage.scope.mobile'),
+  t('aboutPage.scope.arm'),
+  t('aboutPage.scope.accounts'),
+  t('aboutPage.scope.aula'),
+] as const;
+
+const notIs = [
+  t('aboutPage.notIs.lms'),
+  t('aboutPage.notIs.simulators'),
+  t('aboutPage.notIs.cad'),
+  t('aboutPage.notIs.teacher'),
+] as const;
+
+const secondaryLink =
+  'bg-bg-raised text-fg border-border hover:border-fg-muted rounded-md inline-flex min-h-[44px] items-center border px-5 font-semibold no-underline';
+---
+
+<Base title={t('aboutPage.title')} description={t('aboutPage.description')}>
+  <article class="mx-auto max-w-[1120px] px-5 pt-11 pb-12 md:px-8">
+    <header class="max-w-[72ch]">
+      <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
+        {t('aboutPage.eyebrow')}
+      </p>
+      <h1 class="text-xl md:text-2xl leading-tight mt-4 font-semibold">{t('aboutPage.title')}</h1>
+      <p class="text-fg-muted text-lg leading-body mt-6">{t('aboutPage.lead')}</p>
+    </header>
+
+    <section class="mt-11 max-w-[72ch]" aria-labelledby="quien-titulo">
+      <h2 id="quien-titulo" class="text-lg leading-tight font-semibold">
+        {t('aboutPage.audience.title')}
+      </h2>
+      <ul class="leading-body mt-4 list-disc space-y-2 pl-6">
+        {audience.map((item) => (
+          <li>{item}</li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="mt-11 max-w-[72ch]" aria-labelledby="alcance-titulo">
+      <h2 id="alcance-titulo" class="text-lg leading-tight font-semibold">
+        {t('aboutPage.scope.title')}
+      </h2>
+      <ul class="leading-body mt-4 list-disc space-y-2 pl-6">
+        {scope.map((item) => (
+          <li>{item}</li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="mt-11 max-w-[72ch]" aria-labelledby="no-es-titulo">
+      <h2 id="no-es-titulo" class="text-lg leading-tight font-semibold">
+        {t('aboutPage.notIs.title')}
+      </h2>
+      <ul class="leading-body mt-4 list-disc space-y-2 pl-6">
+        {notIs.map((item) => (
+          <li>{item}</li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="mt-11 max-w-[72ch]" aria-labelledby="metodo-titulo">
+      <h2 id="metodo-titulo" class="text-lg leading-tight font-semibold">
+        {t('aboutPage.method.title')}
+      </h2>
+      <p class="leading-body mt-4">{t('aboutPage.method.kinematic')}</p>
+      <p class="leading-body mt-4">{t('aboutPage.method.references')}</p>
+    </section>
+
+    <section class="mt-11 max-w-[72ch]" aria-labelledby="licencia-titulo">
+      <h2 id="licencia-titulo" class="text-lg leading-tight font-semibold">
+        {t('aboutPage.license.title')}
+      </h2>
+      <p class="leading-body mt-4">{t('aboutPage.license.text')}</p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a href={REPO} class={secondaryLink}>
+          {t('aboutPage.license.repository')}
+        </a>
+        <a href="/contribuir" class={secondaryLink}>
+          {t('aboutPage.license.contribute')}
+        </a>
+      </div>
+    </section>
+  </article>
+</Base>

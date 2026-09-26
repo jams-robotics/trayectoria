@@ -104,26 +104,43 @@ function parseAll(values: readonly string[]): readonly number[] | null {
  * Seed of the instance in play and the way to move to the next one (#94, decision 2): derived
  * from the session while there is one, drawn at random per mount when there is not, and fixed
  * when the caller passes `fixedSeed`.
+ *
+ * The server never knows the session (there is no request-scoped adapter, #482), so it always
+ * renders the anonymous branch. A `client:visible` island can hydrate after the session has
+ * already settled elsewhere on the page, and reading `adapter.sessionReady()`/`userId()` straight
+ * away would then make the first client render pick the derived per-user seed while the server
+ * markup was anonymous — a mismatch, same failure mode `useSession`'s `ssr: 'initial'` avoids for
+ * `$session`/`$sessionReady` (`packages/auth`). So the first render always takes the anonymous
+ * branch regardless of what the adapter already reports, and only an effect after mount — never
+ * during render — is allowed to adopt the real session.
  */
 function useSeed(
-  userId: string | null,
+  adapter: ProgressAdapter,
   topicId: string,
   exerciseId: string,
   fixedSeed: number | undefined,
 ): { seed: number; next: () => void } {
   const [round, setRound] = useState(0);
+  // `false` on the render that must match the server, `true` once an effect has confirmed this is
+  // the client (mirrors `ssr: 'initial'` of `useSession`, `packages/auth/src/useSession.ts`).
+  const [mounted, setMounted] = useState(false);
+  const userId = mounted ? adapter.userId() : null;
+  const sessionReady = mounted && adapter.sessionReady();
   // A random seed drawn while rendering would differ between the server pass and the client
   // bundle and discard the hydrated tree (docs/audits F2-01a), so the anonymous instance starts
   // from the deterministic seed of round 0 and is redrawn in an effect right after hydration,
   // and again on «Nuevos valores».
-  const anonymous = userId === null && fixedSeed === undefined;
+  const anonymous = (!sessionReady || userId === null) && fixedSeed === undefined;
   const [mountSeed, setMountSeed] = useState<number | null>(null);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   useEffect(() => {
     if (anonymous) setMountSeed(randomSeed());
   }, [anonymous]);
 
   const derived = seedFor(userId ?? '', topicId, exerciseId, round);
-  const seed = fixedSeed ?? (userId === null ? (mountSeed ?? derived) : derived);
+  const seed = fixedSeed ?? (anonymous ? (mountSeed ?? derived) : derived);
   const next = (): void => {
     if (anonymous) setMountSeed(randomSeed());
     setRound((current) => current + 1);
@@ -192,7 +209,7 @@ export function useExercise<V>(
   fixedSeed: number | undefined,
 ): ExerciseState {
   const adapter = useProgressAdapter();
-  const { seed, next } = useSeed(adapter.userId(), topicId, exercise.id, fixedSeed);
+  const { seed, next } = useSeed(adapter, topicId, exercise.id, fixedSeed);
 
   const { count, unit } = useInstance(exercise, seed);
   const [responses, setResponses] = useState<Responses>(EMPTY);

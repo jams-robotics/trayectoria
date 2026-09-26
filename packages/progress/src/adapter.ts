@@ -7,12 +7,18 @@
  * one that hands this adapter to `ProgressAdapterProvider`.
  */
 import type { ExerciseAttempt } from './model';
-import { currentUserId, recordAttempt } from './stores/progress';
+import { currentUserId, isSessionReady, recordAttempt } from './stores/progress';
 
 /** How the widget reaches the session and the attempt store. */
 export interface ProgressAdapter {
   /** Id of the signed-in learner, or `null` when there is no session. */
   userId: () => string | null;
+  /**
+   * `false` until the session has been read once (#482): `userId()` alone cannot tell a session
+   * still resolving from one already resolved to anonymous, and the exercise seed must not
+   * change once it has rendered.
+   */
+  sessionReady: () => boolean;
   recordAttempt: (attempt: ExerciseAttempt) => void | Promise<void>;
 }
 
@@ -23,6 +29,7 @@ export interface ProgressAdapter {
 export function progressAdapterFor(requiredExerciseIds: readonly string[]): ProgressAdapter {
   return {
     userId: () => currentUserId(),
+    sessionReady: () => isSessionReady(),
     recordAttempt: (attempt) => recordAttempt(attempt, requiredExerciseIds),
   };
 }
