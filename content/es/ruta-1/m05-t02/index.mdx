@@ -1,0 +1,157 @@
+---
+id: ruta-1/m05-t02
+title: 'Cinemática directa del robot diferencial'
+module: 5
+order: 2
+estimatedMinutes: 35
+prerequisites: [ruta-1/m04-t02, ruta-1/m05-t01]
+objectives:
+  - Obtener v y ω del robot a partir de las velocidades de rueda
+  - Calcular el radio de giro y el centro instantáneo de rotación
+  - Predecir la trayectoria
+widgets: [DiffDriveWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [siegwart-3, corke-4]
+status: review
+---
+
+<Gancho>
+  Mandas 15 rad/s a la rueda izquierda y 20 rad/s a la derecha. ¿Qué hace el robot: a qué velocidad
+  avanza, cuánto gira y con qué radio?
+</Gancho>
+
+<Concepto>
+La **cinemática directa** del robot diferencial va de las velocidades de las ruedas al
+movimiento del robot. Sin deslizamiento, cada rueda avanza v = ω·r. Con r = 0.032 m, la rueda
+izquierda del gancho avanza v_L = 15·0.032 = 0.48 m/s y la derecha v_R = 20·0.032 = 0.64 m/s.
+
+El centro del eje está a medio camino entre las dos ruedas, así que avanza el promedio:
+v = (0.64 + 0.48)/2 = 0.56 m/s.
+
+La diferencia entre las ruedas hace girar al robot. Si la derecha va más rápido, el robot gira
+a la izquierda, en sentido antihorario. La velocidad angular es esa diferencia dividida por la
+distancia entre ruedas: ω = (0.64 − 0.48)/0.15 = 1.067 rad/s.
+
+En cada instante, el robot gira alrededor de un punto: el **centro instantáneo de rotación**
+(CIR). Está sobre la recta que prolonga el eje de las ruedas, porque ninguna rueda puede
+moverse de lado. Su distancia al centro del eje es el **radio de giro**, R = v/ω. En el gancho,
+R = 0.56/1.067 = 0.525 m, con el CIR a la izquierda.
+
+Tres casos aparecen en todo robot. Con las dos ruedas iguales, ω = 0: el CIR se va al infinito
+y el robot avanza en línea recta. Con las ruedas opuestas, v = 0: el CIR cae en el centro del
+eje y el robot gira en el lugar. Con una rueda en cero, el CIR está sobre esa rueda y el robot
+pivota con R = L/2.
+
+Mientras las velocidades de rueda no cambien, v y ω son constantes. El robot recorre un arco
+de circunferencia de radio R y su orientación crece a ritmo constante: θ = θ₀ + ω·t. El
+simulador hace exactamente este cálculo en cada paso: toma ω_L y ω_R, obtiene v y ω y avanza la
+pose.
+
+</Concepto>
+
+<Formulas>
+<Formula latex="v_L = \omega_L r,\quad v_R = \omega_R r" />
+
+- `v_L`, `v_R` · velocidad lineal de rueda izquierda y derecha · m/s
+- `ω_L`, `ω_R` · velocidad angular de rueda izquierda y derecha · rad/s
+- `r` · radio de rueda · m
+
+<Formula latex="v = \frac{v_R + v_L}{2}" />
+
+- `v` · velocidad lineal del robot · m/s
+- `v_L`, `v_R` · velocidad lineal de rueda izquierda y derecha · m/s
+
+<Formula latex="\omega = \frac{v_R - v_L}{L}" />
+
+- `ω` · velocidad angular del robot · rad/s
+- `v_L`, `v_R` · velocidad lineal de rueda izquierda y derecha · m/s
+- `L` · distancia entre ruedas · m
+
+<Formula latex="R = \frac{v}{\omega} = \frac{L}{2}\,\frac{v_R+v_L}{v_R-v_L}" />
+
+- `R` · radio de giro · m
+- `v` · velocidad lineal del robot · m/s
+- `ω` · velocidad angular del robot · rad/s
+- `L` · distancia entre ruedas · m
+- `v_L`, `v_R` · velocidad lineal de rueda izquierda y derecha · m/s
+
+<Formula latex="\theta(t) = \theta_0 + \omega t" />
+
+- `θ` · orientación del robot · rad
+- `θ₀` · ángulo inicial · rad
+- `ω` · velocidad angular del robot · rad/s
+- `t` · tiempo · s
+  </Formulas>
+
+<Explora>
+El robot parte con ω_L = 15 rad/s y ω_R = 20 rad/s, los del gancho, durante 8 s. La vista
+muestra el CIR, el radio de giro, la trayectoria y la velocidad de cada rueda.
+
+<DiffDriveWidget
+  mode="forward"
+  show={['icr', 'radius', 'trace', 'wheelVelocities']}
+  initial={{ omegaL_radps: 15, omegaR_radps: 20 }}
+  duration_s={8}
+/>
+
+<Experimento
+  cambia="ω_L a 20 rad/s, igual que ω_R"
+  observa="el CIR y el radio de giro"
+  porque="¿Por qué el robot avanza en línea recta?"
+>
+  Con las dos ruedas a la misma velocidad, v_R = v_L y ω = 0. El radio R = v/ω crece sin límite y el
+  CIR se va al infinito. Un arco de radio infinito es una recta.
+</Experimento>
+
+<Experimento
+  cambia="ω_L a −20 rad/s, con ω_R = 20 rad/s"
+  observa="dónde queda el CIR y cuánto vale el radio de giro"
+  porque="¿Por qué el robot gira sin moverse del sitio?"
+>
+  Con las ruedas opuestas, v = (v_R + v_L)/2 = 0 y el centro del eje no avanza. El robot solo gira,
+  con ω = 2·0.64/0.15 = 8.533 rad/s. El CIR está en el centro del eje y el radio es cero.
+</Experimento>
+
+<Experimento
+  cambia="ω_L a 0 rad/s, con ω_R = 20 rad/s"
+  observa="dónde queda el CIR y cuánto vale el radio de giro"
+  porque="¿Por qué el CIR cae sobre la rueda izquierda?"
+>
+La rueda izquierda está quieta, así que es el único punto del eje que no se mueve: ahí está el
+CIR. El radio es la distancia de esa rueda al centro del eje, R = L/2 = 0.075 m.
+</Experimento>
+</Explora>
+
+<AlRobot>
+Con las ruedas de tu perfil de «Mi robot», los mismos comandos del gancho, ω_L = 15 rad/s y
+ω_R = 20 rad/s, dan otro movimiento. El radio de rueda r fija cuánto avanza cada rueda, y la
+distancia entre ruedas L fija cuánto gira el robot con la misma diferencia:
+
+<RobotFormula calc="ruta-1/m05-t02/linear-velocity" />
+
+<RobotFormula calc="ruta-1/m05-t02/angular-velocity" />
+
+<RobotFormula calc="ruta-1/m05-t02/turn-radius" />
+
+Si tu perfil no es un robot móvil, el cálculo usa el robot de referencia: r = 0.032 m y
+L = 0.15 m. Con él, el robot avanza a 0.56 m/s, gira a 1.067 rad/s y describe un arco de
+0.525 m de radio con el CIR a la izquierda.
+
+Para girar en el lugar, manda la misma velocidad a las dos ruedas con signos opuestos. Con
+±10 rad/s, v = 0 y toda la diferencia se convierte en giro:
+
+<RobotFormula calc="ruta-1/m05-t02/spin-angular-velocity" />
+
+Con el robot de referencia son 4.267 rad/s: media vuelta, π rad, en 0.736 s. Un robot con las
+ruedas más juntas gira más rápido con los mismos comandos, porque ω es inversamente
+proporcional a L.
+
+</AlRobot>
+
+<Verifica
+  ejercicios={['ruta-1/m05-t02/e1', 'ruta-1/m05-t02/e2', 'ruta-1/m05-t02/e3', 'ruta-1/m05-t02/e4']}
+  topicId="ruta-1/m05-t02"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['siegwart-3', 'corke-4']} topicId="ruta-1/m05-t02" />
