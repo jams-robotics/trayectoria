@@ -128,6 +128,7 @@ describe('stories catalogue', () => {
           ['Forward52', expect.any(Function)],
           ['Inverse53', expect.any(Function)],
           ['Odometry54', expect.any(Function)],
+          ['Maneuver55', expect.any(Function)],
         ],
       },
       {

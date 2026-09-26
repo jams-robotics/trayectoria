@@ -6,6 +6,7 @@ import type { Translate } from '@trayectoria/i18n';
 import { ParamPanel } from '../ParamPanel/ParamPanel';
 import type { ParamPanelParam } from '../ParamPanel/ParamPanel';
 import { ReadoutPanel } from '../shared/ReadoutPanel';
+import type { ReadoutRow } from '../shared/ReadoutPanel';
 import { maxSpeed_mps, maxWheelSpeed_radps } from './compute';
 import type { DiffDriveMode, Pose, WheelCommand } from './compute';
 import type { Calibration } from './odometry';
@@ -220,6 +221,8 @@ export interface PosePanelProps {
   /** True while the simulation runs: the slider is disabled and keeps showing `θ₀` (#371). */
   running: boolean;
   onTheta: (value_deg: number) => void;
+  /** Lines added after the pose ones: the phase and duration of the maneuver (#394), or none. */
+  extraRows: readonly ReadoutRow[];
   t: Translate;
 }
 
@@ -235,11 +238,15 @@ export function PosePanel({
   theta0_rad,
   running,
   onTheta,
+  extraRows,
   t,
 }: PosePanelProps): JSX.Element {
   return (
     <div className="flex flex-col gap-4">
-      <ReadoutPanel title={t('widgets.DiffDriveWidget.panel')} rows={poseRows(readout, spec, t)} />
+      <ReadoutPanel
+        title={t('widgets.DiffDriveWidget.panel')}
+        rows={[...poseRows(readout, spec, t), ...extraRows]}
+      />
       {withFrames ? (
         <ReadoutPanel
           title={t('widgets.DiffDriveWidget.framesPanel')}

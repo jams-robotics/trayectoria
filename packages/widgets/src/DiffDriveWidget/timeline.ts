@@ -4,13 +4,15 @@
  * decision 3). The widget owns no integration of its own.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Simulation, createDiffDriveModel } from '@trayectoria/sim-core';
+import { Simulation } from '@trayectoria/sim-core';
 import type { DiffDriveState, Model, WheelCommand } from '@trayectoria/sim-core';
 import type { MobileSpec } from '@trayectoria/robot-spec';
 
 import { createFrameClock, useSimulationDriver } from '../Scene2D/useSimulationDriver';
 import type { FrameClock, SimulationDriver } from '../Scene2D/useSimulationDriver';
 import type { Pose } from './compute';
+import { maneuverDuration_s, maneuverModel } from './maneuver';
+import type { ManeuverPlan } from './maneuver';
 
 /** Integration step of the simulation, in seconds (#92, decision 3). */
 export const DT_S = 0.01;
@@ -51,6 +53,8 @@ export interface Timeline {
   theta0_rad: number;
   /** Sets `θ₀` and restarts the run from it; ignored while it is running (#371). */
   setTheta0: (theta0_rad: number) => void;
+  /** Pauses and returns to `t = 0` and `(0, 0, θ₀)`: a change of the maneuver (#394). */
+  restart: () => void;
   /** State of the model, which the odometry of F2-09b reads the encoder angles from. */
   state: DiffDriveState;
   /** States the preroll went through, for an estimator that opens at `initialTime_s`. */
@@ -103,13 +107,14 @@ function useSim(
   initialTime_s: number,
   command: WheelCommand,
   theta0: { readonly current: number },
+  plan: { readonly current: ManeuverPlan | null },
 ): { sim: Simulation<DiffDriveState, WheelCommand>; preroll: Path; states: Preroll } {
   // The preroll runs on the command the widget opens with; later ones arrive through `setInput`,
   // so this ref never makes the simulation rebuild when a slider moves.
   const opening = useRef(command);
   return useMemo(() => {
     const sim = new Simulation<DiffDriveState, WheelCommand>(
-      startingAt(createDiffDriveModel(spec), theta0),
+      startingAt(maneuverModel(spec, plan), theta0),
       {
         dt_s: DT_S,
         seed: 0,
@@ -127,7 +132,7 @@ function useSim(
       states.push(sim.state);
     }
     return { sim, preroll, states };
-  }, [clock, spec, initialTime_s, theta0]);
+  }, [clock, spec, initialTime_s, theta0, plan]);
 }
 
 /** The pose the model has integrated, without the wheel angles and the twist beside it. */
@@ -158,11 +163,38 @@ function useTheta0(
   };
 }
 
-/** Pauses the playback on its own once `duration_s` is reached (#92, decision 3). */
-function usePauseAt(driver: SimulationDriver<DiffDriveState>, duration_s: number): void {
+/**
+ * Pauses the playback on its own once `duration_s` is reached (#92, decision 3) or, with a
+ * maneuver, once it ends at `t = T`, whichever comes first (#394).
+ */
+function usePauseAt(
+  driver: SimulationDriver<DiffDriveState>,
+  duration_s: number,
+  maneuver: ManeuverPlan | null,
+): void {
+  const stop_s =
+    maneuver === null ? duration_s : Math.min(duration_s, maneuverDuration_s(maneuver));
   useEffect(() => {
-    if (driver.running && driver.t_s >= duration_s) driver.pause();
-  }, [driver, duration_s]);
+    if (driver.running && driver.t_s >= stop_s) driver.pause();
+  }, [driver, stop_s]);
+}
+
+/**
+ * Playback actions that drop the manual pose before handing the time back to the driver;
+ * `restart` is the «Reiniciar» a change of the maneuver triggers (#394).
+ */
+function liveControls(
+  driver: SimulationDriver<DiffDriveState>,
+  setManual: (next: Pose | null) => void,
+): Pick<Timeline, 'controls' | 'restart'> {
+  const live = (action: () => void) => () => {
+    setManual(null);
+    action();
+  };
+  return {
+    controls: { play: live(driver.play), step: live(driver.step), reset: live(driver.reset) },
+    restart: live(driver.reset),
+  };
 }
 
 /**
@@ -175,34 +207,31 @@ export function useTimeline(
   command: WheelCommand,
   duration_s: number,
   initialTime_s: number,
+  maneuver: ManeuverPlan | null,
 ): Timeline {
   const clock = useMemo(() => createFrameClock(), []);
   const theta0 = useRef(INITIAL_POSE.theta_rad);
-  const { sim, preroll, states } = useSim(spec, clock, initialTime_s, command, theta0);
+  // Pushed in on every render like the command: a change of the maneuver always comes with a
+  // `restart`, which pauses the driver, so no step runs on a stale plan.
+  const plan = useRef(maneuver);
+  plan.current = maneuver;
+  const { sim, preroll, states } = useSim(spec, clock, initialTime_s, command, theta0, plan);
   sim.setInput(command);
 
   const driver = useSimulationDriver(sim, { clock });
   const [manual, setManual] = useState<Pose | null>(null);
   const initial = useTheta0(theta0, driver, setManual);
-  usePauseAt(driver, duration_s);
+  usePauseAt(driver, duration_s, maneuver);
 
   const integrated = poseOf(driver.state);
   const pose = manual ?? integrated;
   const trace_m = useTrace(pose, driver.t_s, preroll);
 
-  const live = (action: () => void) => () => {
-    setManual(null);
-    action();
-  };
   return {
     pose,
     t_s: driver.t_s,
     driver,
-    controls: {
-      play: live(driver.play),
-      step: live(driver.step),
-      reset: live(driver.reset),
-    },
+    ...liveControls(driver, setManual),
     trace_m,
     state: driver.state,
     preroll: states,
