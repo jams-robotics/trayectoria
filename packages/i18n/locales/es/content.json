@@ -101,5 +101,11 @@
     "e2": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. En Δt = {{dt_s}} s cuentas Δticks = {{deltaTicks}}. ¿Cuál es la velocidad angular ω de la rueda, en rad/s, y la velocidad lineal v del robot, en m/s?",
     "e3": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. ¿Cuántos ticks cuentas mientras el robot recorre D = {{distance_m}} m en línea recta?",
     "e4": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. Cuentas ticks = {{ticks}}. ¿Qué distancia s recorre la rueda, en m?"
+  },
+  "ruta-1/m05-t04": {
+    "e1": "En un paso de odometría, el encoder izquierdo de tu robot cuenta Δticks_L = {{deltaTicksL}} y el derecho Δticks_R = {{deltaTicksR}}. Con r = 0.032 m, N_e = 360 y L = 0.15 m, ¿cuánto avanza el robot, Δs en m, y cuánto gira, Δθ en rad?",
+    "e2": "En un paso de odometría, el encoder izquierdo de tu robot cuenta Δticks_L = {{deltaTicksL}} y el derecho Δticks_R = {{deltaTicksR}}, con r = 0.032 m, N_e = 360 y L = 0.15 m. Si parte de la pose (0, 0, 0), ¿cuál es su nueva posición (x, y), en m? Usa el ángulo medio del paso.",
+    "e3": "La odometría de tu robot usa un radio de rueda de 0.032 m, pero la rueda real mide r = {{wheelRadius_m}} m. Tras D = 10 m según la odometría, ¿cuánto vale la distancia real menos la estimada, en m?",
+    "e4": "La distancia entre ruedas real de tu robot es L = 0.150 m, pero su odometría usa 0.155 m. El robot gira 360° reales en el lugar. ¿Cuál es el error de rumbo, estimado menos real, en °?"
   }
 }
