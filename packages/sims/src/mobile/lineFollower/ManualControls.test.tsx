@@ -2,7 +2,7 @@ import '@testing-library/jest-dom/vitest';
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 
-import { ManualControls, ManualHelp } from './ManualControls';
+import { ManualControls, ManualHelp, ManualViewer } from './ManualControls';
 import { MANUAL_DIFF_RADPS, commandOf } from './useManualKeyboard';
 import type { ManualDrive, ManualKey } from './useManualKeyboard';
 
@@ -77,5 +77,26 @@ describe('ManualHelp (F4-04)', () => {
     expect(help.className).toContain('font-mono');
     expect(help.className).toContain('text-xs');
     expect(help.textContent).toContain(String(MANUAL_DIFF_RADPS));
+  });
+
+  it('el visor enfocable es un grupo con nombre, con y sin modo manual (F7-01)', () => {
+    const { drive } = driveSpy();
+    const viewerRef = { current: null };
+    const { rerender } = render(
+      <ManualViewer viewerRef={viewerRef} manual={false} drive={drive}>
+        <canvas />
+      </ManualViewer>,
+    );
+    const idle = screen.getByTestId('line-follower-viewport');
+    expect(idle).toHaveAttribute('role', 'group');
+    expect(idle).toHaveAccessibleName(/\S/);
+    rerender(
+      <ManualViewer viewerRef={viewerRef} manual drive={drive}>
+        <canvas />
+      </ManualViewer>,
+    );
+    const viewer = screen.getByTestId('line-follower-viewport');
+    expect(viewer).toHaveAttribute('role', 'group');
+    expect(viewer).toHaveAttribute('aria-label');
   });
 });
