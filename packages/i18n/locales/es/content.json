@@ -130,5 +130,11 @@
     "e1": "Tu robot tiene rumbo θ = {{theta_deg}}° y avanza a v = {{v_mps}} m/s, así que su velocidad es (ẋ, ẏ) = v·(cosθ, sinθ). ¿Cuánto vale ẋ·sinθ − ẏ·cosθ, en m/s?",
     "e2": "Tu robot tiene rumbo θ = {{theta_deg}}° y le pides la velocidad (ẋ, ẏ) = ({{vx_mps}}, {{vy_mps}}) m/s. ¿Cuánto vale la restricción ẋ·sinθ − ẏ·cosθ, en m/s? Si no es 0, esa velocidad no es admisible.",
     "e3": "Tu robot se desplaza D = {{distance_m}} m hacia su izquierda con una maniobra en tres movimientos: gira 90° en el lugar a ω = {{omega_radps}} rad/s, avanza D a v = {{v_mps}} m/s y gira −90° en el lugar a ω. ¿Cuánto dura la maniobra completa, en s?"
+  },
+  "ruta-1/m06-t03": {
+    "e1": "Un controlador PID tiene K_p = {{kp_radps}} rad/s, K_i = {{ki_radps2}} rad/s², K_d = {{kd_rad}} rad y período Δt = {{dt_s}} s. En el paso k el error es e_k = {{error}}, en el paso anterior e_{k−1} = {{previousError}}, y la suma Σe_j·Δt vale {{errorSum_s}} s. ¿Cuál es la acción de control u_k, en rad/s?",
+    "e2": "Tu seguidor tiene K_i = {{ki_radps2}} rad/s² y mantiene un error constante e = {{error}} durante t = {{t_s}} s. La suma del error parte de 0 y no llega a I_max = 1 s. ¿Cuánto vale el término I, en rad/s?",
+    "e3": "Tu seguidor tiene K_d = {{kd_rad}} rad. El error pasa de e_{k−1} = {{previousError}} a e_k = {{error}} en un paso Δt = {{dt_s}} s. ¿Cuánto vale el término D, en rad/s?",
+    "e4": "Tu robot tiene v_max = 0.670 m/s, r = 0.032 m y L = 0.15 m. Entra en una curva de radio R = {{turnRadius_m}} m. ¿Cuál es la ω_base máxima con la que la rueda exterior no supera v_max, en rad/s?"
   }
 }

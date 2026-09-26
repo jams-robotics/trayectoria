@@ -1,0 +1,152 @@
+---
+id: ruta-1/m06-t03
+title: 'Control PID'
+module: 6
+order: 3
+estimatedMinutes: 40
+prerequisites: [ruta-1/m06-t02]
+objectives:
+  - Calcular los tres términos del PID discreto
+  - Entender qué corrige cada término (I, el error persistente en curvas; D, la oscilación)
+  - Sintonizar un PID por el método manual P → D → I
+  - Elegir ω_base según la curva más cerrada
+widgets: [LineFollowerWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [astrom-murray-11]
+status: review
+---
+
+<Gancho>
+Sigues la línea, pero en las rectas oscilas y en las curvas te vas hacia afuera. ¿Qué término
+del PID arregla cada cosa?
+</Gancho>
+
+<Concepto>
+Tu seguidor mide el error e cada Δt segundos. En cada paso k, el controlador **PID** calcula la
+acción de control u_k como la suma de tres términos, P, I y D, cada uno con su ganancia.
+
+El término P, K_p·e_k, mira el presente: corrige en proporción al error de ahora. Con solo P, tu
+robot sigue la línea, pero oscila en las rectas y en las curvas se queda desplazado hacia afuera.
+
+El término I, K_i·Σe_j·Δt, mira el pasado: acumula el error mientras dura. En una curva el error
+tiene un sesgo constante hacia afuera. Su suma crece y el término I empuja hacia adentro hasta
+reducirlo. Si el error dura mucho, la suma crece sin freno y luego tarda en descargarse. Por eso
+se limita, |Σe_j·Δt| ≤ I_max. Ese límite es el **anti-windup**.
+
+El término D, K_d·(e_k − e_\{k−1\})/Δt, mira la tendencia: se opone a que el error cambie rápido.
+El motor no alcanza al instante la velocidad que le pides. Cuando por fin responde, el robot ya
+cruzó la línea, y así nace la oscilación. D frena el giro antes de que eso ocurra. Su contra es el
+ruido: una lectura que salta de un paso al siguiente da una diferencia grande, y D la amplifica.
+
+Para sintonizar a mano, sube K_p hasta que el robot oscile. Añade K_d hasta que la oscilación se
+amortigüe. Añade al final un K_i pequeño que quite el sesgo de las curvas. La gráfica del PID
+muestra los tres términos por separado, así ves cuál actúa en cada tramo.
+
+Queda elegir ω_base. En una curva de radio R, la rueda exterior va más rápido que el centro del
+robot, v_ext = v·(1 + L/2R). Si v_ext pasa de v_max, esa rueda satura y el robot no gira tan
+cerrado como pide el controlador. La curva más cerrada de la pista fija el límite de ω_base.
+</Concepto>
+
+<Formulas>
+<Formula latex="u_k = K_p e_k + K_i \sum_{j\le k} e_j\,\Delta t + K_d\frac{e_k - e_{k-1}}{\Delta t}" />
+
+- `u_k` · acción de control en el paso k · rad/s
+- `K_p` · ganancia proporcional · rad/s
+- `K_i` · ganancia integral · rad/s²
+- `K_d` · ganancia derivativa · rad
+- `e_k` · error del controlador en el paso k · —
+- `e_{k−1}` · error del controlador en el paso anterior · —
+- `e_j` · error del controlador en el paso j · —
+- `Δt` · período del lazo, el paso · s
+
+<Formula latex="\left|\sum_{j\le k} e_j\,\Delta t\right| \le I_{max}" />
+
+- `e_j` · error del controlador en el paso j · —
+- `Δt` · período del lazo, el paso · s
+- `I_max` · límite de la integral del error (anti-windup) · s
+
+<Formula latex="v_{ext} = v\left(1 + \frac{L}{2R}\right) \le v_{max} \;\Rightarrow\; \omega_{base} \le \frac{v_{max}}{r\,(1 + L/2R)}" />
+
+- `v_ext` · velocidad de la rueda exterior en curva · m/s
+- `v` · velocidad lineal del robot · m/s
+- `L` · distancia entre ruedas · m
+- `R` · radio de giro · m
+- `v_max` · velocidad lineal máxima del robot · m/s
+- `ω_base` · velocidad base de las ruedas · rad/s
+- `r` · radio de rueda · m
+</Formulas>
+
+<Explora>
+Tu robot recorre la pista `tight`, con curvas de radio 0.15 m, con K_p = 20, K_i = 0, K_d = 0 y
+ω_base = 13 rad/s. La gráfica de error muestra cuánto se aparta de la línea y la del PID muestra
+los tres términos por separado, en cada instante.
+
+<LineFollowerWidget
+  track="tight"
+  controller="pid"
+  initialParams={{ kp: 20, ki: 0, kd: 0, omegaBase_radps: 13 }}
+  showPlots={['error', 'pid']}
+/>
+
+<Experimento
+  cambia="K_d de 0 a 0.8"
+  observa="el error en las rectas, en la gráfica de error"
+  porque="¿Por qué se amortigua la oscilación?"
+>
+El término D se opone a que el error cambie y frena el giro antes de que el robot cruce la línea,
+lo que compensa la respuesta lenta del motor. En 12 s, los cambios de signo del error bajan de 38
+a 22 y el RMS del error, de 0.334 a 0.283. Los cambios de signo que quedan son los de las esquinas.
+</Experimento>
+
+<Experimento
+  cambia="K_i de 0 a 2 y luego a 10, con K_d = 0.8"
+  observa="el término I en la gráfica del PID y el error en las curvas"
+  porque="¿Por qué se reduce el sesgo hacia afuera?"
+>
+Con K_i = 0, el error en las curvas tiene un sesgo constante hacia afuera. El término I acumula
+ese sesgo y empuja hacia adentro hasta reducirlo. El error medio pasa de −0.176 a −0.111 y a
+−0.036; en las curvas, de −0.286 a −0.199 y a −0.101.
+</Experimento>
+
+<Experimento
+  cambia="«Límite integral» de 1 a 0.1, con K_i = 10"
+  observa="el término I en la gráfica del PID y el error en las curvas"
+  porque="¿Por qué vuelve el sesgo?"
+>
+El anti-windup mantiene |Σe_j·Δt| ≤ I_max, así que el término I no pasa de K_i·I_max =
+10·0.1 = 1 rad/s. Ese tope no basta para compensar la curva y el error medio vuelve de −0.036 a
+−0.138. En ninguno de estos ajustes el robot pierde la línea.
+</Experimento>
+</Explora>
+
+<AlRobot>
+La curva más cerrada de la pista `tight` tiene R = 0.15 m. En ella, la rueda exterior de tu robot
+va más rápido que su centro, y no puede pasar de v_max. Con la v_max y la distancia entre ruedas L
+de tu perfil, la velocidad máxima del robot en esa curva es:
+
+<RobotFormula calc="ruta-1/m06-t03/outer-wheel-speed" />
+
+La ω_base máxima es la que lleva la rueda exterior justo a v_max en esa curva:
+
+<RobotFormula calc="ruta-1/m06-t03/omega-base" />
+
+Si tu perfil de «Mi robot» no es un robot móvil, el cálculo usa el robot de referencia.
+
+Con el robot de referencia, v ≤ 0.670/(1 + 0.15/0.3) = 0.447 m/s y ω_base ≤ 13.96 rad/s. El
+Explora usa ω_base = 13 rad/s, por debajo de ese límite. Con una ω_base mayor, la rueda exterior
+satura en cada esquina: el controlador pide un giro que el motor no puede dar, y ninguna ganancia
+lo arregla. Para ir más rápido en esa pista necesitas más v_max o menos L, no más K_p.
+</AlRobot>
+
+<Verifica
+  ejercicios={[
+    'ruta-1/m06-t03/e1',
+    'ruta-1/m06-t03/e2',
+    'ruta-1/m06-t03/e3',
+    'ruta-1/m06-t03/e4',
+  ]}
+  topicId="ruta-1/m06-t03"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['astrom-murray-11']} topicId="ruta-1/m06-t03" />
