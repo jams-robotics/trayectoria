@@ -125,5 +125,10 @@
     "e2": "En un paso de odometría, el encoder izquierdo de tu robot cuenta Δticks_L = {{deltaTicksL}} y el derecho Δticks_R = {{deltaTicksR}}, con r = 0.032 m, N_e = 360 y L = 0.15 m. Si parte de la pose (0, 0, 0), ¿cuál es su nueva posición (x, y), en m? Usa el ángulo medio del paso.",
     "e3": "La odometría de tu robot usa un radio de rueda de 0.032 m, pero la rueda real mide r = {{wheelRadius_m}} m. Tras D = 10 m según la odometría, ¿cuánto vale la distancia real menos la estimada, en m?",
     "e4": "La distancia entre ruedas real de tu robot es L = 0.150 m, pero su odometría usa 0.155 m. El robot gira 360° reales en el lugar. ¿Cuál es el error de rumbo, estimado menos real, en °?"
+  },
+  "ruta-1/m05-t05": {
+    "e1": "Tu robot tiene rumbo θ = {{theta_deg}}° y avanza a v = {{v_mps}} m/s, así que su velocidad es (ẋ, ẏ) = v·(cosθ, sinθ). ¿Cuánto vale ẋ·sinθ − ẏ·cosθ, en m/s?",
+    "e2": "Tu robot tiene rumbo θ = {{theta_deg}}° y le pides la velocidad (ẋ, ẏ) = ({{vx_mps}}, {{vy_mps}}) m/s. ¿Cuánto vale la restricción ẋ·sinθ − ẏ·cosθ, en m/s? Si no es 0, esa velocidad no es admisible.",
+    "e3": "Tu robot se desplaza D = {{distance_m}} m hacia su izquierda con una maniobra en tres movimientos: gira 90° en el lugar a ω = {{omega_radps}} rad/s, avanza D a v = {{v_mps}} m/s y gira −90° en el lugar a ω. ¿Cuánto dura la maniobra completa, en s?"
   }
 }
