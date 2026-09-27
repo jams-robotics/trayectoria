@@ -128,7 +128,7 @@
     "previous": "Anterior",
     "next": "Siguiente",
     "progress": "Progreso de la ruta",
-    "progressCount": "{{done}}/{{total}}",
+    "progressCount": "Ruta: {{done}} de {{total}} temas",
     "outline": "Secciones",
     "outlineOpen": "Ver las secciones",
     "sections": {
