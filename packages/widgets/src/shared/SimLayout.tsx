@@ -4,8 +4,8 @@ import type { CSSProperties, JSX, ReactNode } from 'react';
 export type SimLayoutBreakpoint = 'md' | 'lg';
 
 /**
- * Where an extra block sits in the single mobile column, which keeps the order it had before
- * the §6 layout: right after the viewer's first child, after the whole viewer, or at the end.
+ * Where an extra block sits in the single mobile column: right after the viewer's first child,
+ * after the parameters (with the rest of the extras, #530), or at the end.
  */
 export type SimExtraAnchor = 'afterViewerFirst' | 'afterViewer' | 'end';
 
@@ -40,23 +40,24 @@ interface LayoutClasses {
  * keyboard focus is not hidden under it (§8).
  *
  * Below the breakpoint every wrapper dissolves (`contents`) and the orders rebuild the single
- * column of §9: viewer, values, parameters, with each extra block at its `SimExtraAnchor`.
- * An extra right after the viewer pulls up 4 px to keep the 12 px gap it had inside it.
+ * column: viewer (with the playback controls right under it), values, parameters, and only then
+ * each extra block at its `SimExtraAnchor` (`afterViewer` and `end` both land after the
+ * parameters; `afterViewerFirst` stays right after the viewer's first child; #530).
  */
 const CLASSES: Readonly<Record<SimLayoutBreakpoint, LayoutClasses>> = {
   md: {
     top: 'max-md:contents md:grid md:grid-cols-[minmax(0,1fr)_auto] md:gap-4 md:[@media(min-height:640px)]:sticky md:[@media(min-height:640px)]:top-0 md:[@media(min-height:640px)]:z-10 md:[@media(min-height:640px)]:bg-bg md:[@media(min-height:640px)]:pb-3',
     viewer: 'flex min-w-0 flex-col gap-3 md:mx-auto md:w-full md:max-w-[calc(50vh*16/9)]',
     viewerSplit: 'max-md:contents max-md:[&>*:not(:first-child)]:order-2',
-    values: 'max-md:order-4 md:w-panel',
+    values: 'max-md:order-3 md:w-panel',
     valuesScroll: 'flex flex-col gap-4 md:max-h-[50vh] md:overflow-y-auto',
     params:
-      'flex min-w-0 flex-col gap-4 max-md:order-5 md:grid md:grid-cols-2 md:items-start md:[&>[data-param-grid]]:contents md:[&>[data-layout=stack]:only-child:has(>div>:nth-child(4))]:col-span-2 md:[&>:only-child:not([data-param-grid]):has([data-layout=stack]>div>:nth-child(4))]:col-span-2 md:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid md:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid-cols-2 md:[@media(min-height:640px)]:[&_:is(input,select,button)]:scroll-mt-[calc(50vh+64px)]',
+      'flex min-w-0 flex-col gap-4 max-md:order-4 md:grid md:grid-cols-2 md:items-start md:[&>[data-param-grid]]:contents md:[&>[data-layout=stack]:only-child:has(>div>:nth-child(4))]:col-span-2 md:[&>:only-child:not([data-param-grid]):has([data-layout=stack]>div>:nth-child(4))]:col-span-2 md:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid md:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid-cols-2 md:[@media(min-height:640px)]:[&_:is(input,select,button)]:scroll-mt-[calc(50vh+64px)]',
     extras:
       'flex min-w-0 flex-col gap-4 max-md:contents md:[@media(min-height:640px)]:[&_:is(input,select,button)]:scroll-mt-[calc(50vh+64px)]',
     anchor: {
       afterViewerFirst: 'max-md:order-1',
-      afterViewer: 'max-md:order-3 max-md:-mt-1',
+      afterViewer: 'max-md:order-5',
       end: 'max-md:order-6',
     },
   },
@@ -64,15 +65,15 @@ const CLASSES: Readonly<Record<SimLayoutBreakpoint, LayoutClasses>> = {
     top: 'max-lg:contents lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-4 lg:[@media(min-height:640px)]:sticky lg:[@media(min-height:640px)]:top-0 lg:[@media(min-height:640px)]:z-10 lg:[@media(min-height:640px)]:bg-bg lg:[@media(min-height:640px)]:pb-3',
     viewer: 'flex min-w-0 flex-col gap-3 lg:mx-auto lg:w-full lg:max-w-[calc(50vh*16/9)]',
     viewerSplit: 'max-lg:contents max-lg:[&>*:not(:first-child)]:order-2',
-    values: 'max-lg:order-4 lg:w-panel',
+    values: 'max-lg:order-3 lg:w-panel',
     valuesScroll: 'flex flex-col gap-4 lg:max-h-[50vh] lg:overflow-y-auto',
     params:
-      'flex min-w-0 flex-col gap-4 max-lg:order-5 lg:grid lg:grid-cols-2 lg:items-start lg:[&>[data-param-grid]]:contents lg:[&>[data-layout=stack]:only-child:has(>div>:nth-child(4))]:col-span-2 lg:[&>:only-child:not([data-param-grid]):has([data-layout=stack]>div>:nth-child(4))]:col-span-2 lg:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid lg:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid-cols-2 lg:[@media(min-height:640px)]:[&_:is(input,select,button)]:scroll-mt-[calc(50vh+64px)]',
+      'flex min-w-0 flex-col gap-4 max-lg:order-4 lg:grid lg:grid-cols-2 lg:items-start lg:[&>[data-param-grid]]:contents lg:[&>[data-layout=stack]:only-child:has(>div>:nth-child(4))]:col-span-2 lg:[&>:only-child:not([data-param-grid]):has([data-layout=stack]>div>:nth-child(4))]:col-span-2 lg:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid lg:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid-cols-2 lg:[@media(min-height:640px)]:[&_:is(input,select,button)]:scroll-mt-[calc(50vh+64px)]',
     extras:
       'flex min-w-0 flex-col gap-4 max-lg:contents lg:[@media(min-height:640px)]:[&_:is(input,select,button)]:scroll-mt-[calc(50vh+64px)]',
     anchor: {
       afterViewerFirst: 'max-lg:order-1',
-      afterViewer: 'max-lg:order-3 max-lg:-mt-1',
+      afterViewer: 'max-lg:order-5',
       end: 'max-lg:order-6',
     },
   },
