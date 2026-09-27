@@ -31,7 +31,6 @@ const emphasised = (text: string): { text: string; italic: boolean }[] =>
   <ul class="m-0 grid list-none gap-3 p-0" aria-label={t('topic.references')}>
     {references.map(({ key, text }) => (
       <li class="flex gap-3" data-reference={key}>
-        <span class="text-fg-muted font-mono text-xs">{key}</span>
         <span>
           {emphasised(text).map((part) =>
             part.italic ? <em>{part.text}</em> : <Fragment>{part.text}</Fragment>,
