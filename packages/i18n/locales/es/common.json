@@ -133,6 +133,8 @@
     "progressCount": "Ruta: {{done}} de {{total}} temas",
     "outline": "Secciones",
     "outlineOpen": "Ver las secciones",
+    "outlineExpand": "ver",
+    "outlineCollapse": "ocultar",
     "sections": {
       "gancho": "Gancho",
       "concepto": "Concepto",

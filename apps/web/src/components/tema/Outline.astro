@@ -28,8 +28,14 @@ const sections = [
     class="border-border rounded-lg bg-bg-raised mt-6 border md:hidden"
     data-outline="mobile"
   >
-    <summary class="min-h-11 text-fg-muted flex cursor-pointer items-center px-4 font-mono text-xs tracking-[0.06em] uppercase">
-      {t('topic.outline')}
+    <summary class="min-h-11 text-fg-muted flex cursor-pointer items-center gap-3 px-4 font-mono text-xs tracking-[0.06em] uppercase">
+      <span class="flex-1">{t('topic.outline')}</span>
+      <span class="outline-toggle-label whitespace-nowrap normal-case">
+        {t('topic.outlineExpand')} ▾
+      </span>
+      <span class="outline-toggle-label outline-toggle-label--open whitespace-nowrap normal-case">
+        {t('topic.outlineCollapse')} ▴
+      </span>
     </summary>
     <nav aria-label={t('topic.outline')} class="px-4 pb-4">
       <ol class="border-border m-0 grid list-none gap-0 border-l-2 p-0">
@@ -79,6 +85,18 @@ const sections = [
     border-left-color: var(--color-primary);
     color: var(--color-primary);
     font-weight: 600;
+  }
+
+  /* «ver ▾ / ocultar ▴» toggle of the mobile summary (#529): resolved with `details[open]` in
+     CSS alone, same pair as SimAccordion.tsx, no JavaScript added. */
+  details[data-outline='mobile'] > summary .outline-toggle-label--open {
+    display: none;
+  }
+  details[data-outline='mobile'][open] > summary .outline-toggle-label {
+    display: none;
+  }
+  details[data-outline='mobile'][open] > summary .outline-toggle-label--open {
+    display: inline;
   }
 </style>
 
