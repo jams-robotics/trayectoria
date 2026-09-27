@@ -1,4 +1,9 @@
-import type { JSX, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react';
+import type {
+  CSSProperties,
+  JSX,
+  KeyboardEvent as ReactKeyboardEvent,
+  PointerEvent as ReactPointerEvent,
+} from 'react';
 import type { Translate } from '@trayectoria/i18n';
 
 import type { PlotArea } from './options';
@@ -10,7 +15,9 @@ export interface MarkerLayerProps {
   /**
    * Real geometry of uPlot's plot area, in CSS pixels (#104). The axis label channel and the
    * chart's own padding (`options.ts`) shift the plot area in from the card's edge, so the
-   * marker is positioned against this rather than a percentage of the whole card.
+   * marker is positioned against this rather than a percentage of the whole card. The vertical
+   * fields (`top_px`, `height_px`) keep the line out of the x-axis label channel below the
+   * chart (#555).
    */
   plotArea: PlotArea;
   unit: string;
@@ -81,6 +88,21 @@ function useMarkerHandlers(
 }
 
 /**
+ * Grab-zone placement: `left` names the line, pulled half the zone's width to straddle it
+ * (#104/#107); `top`/`height` stop it at the real plot area (#555) instead of the whole card,
+ * which used to run the line through the x-axis label channel below the chart.
+ */
+function grabZoneStyle(left_px: number, plotArea: PlotArea): CSSProperties {
+  return {
+    left: `${String(left_px)}px`,
+    width: `${String(MARKER_GRAB_PX)}px`,
+    marginLeft: `${String(-MARKER_GRAB_PX / 2)}px`,
+    top: `${String(plotArea.top_px)}px`,
+    height: `${String(plotArea.height_px)}px`,
+  };
+}
+
+/**
  * Vertical marker over the plot area: draggable with the pointer and with the arrow keys
  * (docs/WIDGETS.md, Plot; docs/DESIGN.md §8). It is a DOM element rather than a canvas drawing
  * so it can take focus and expose its own `aria` state.
@@ -103,14 +125,8 @@ export function MarkerLayer({ marker, xRange, plotArea, unit, t }: MarkerLayerPr
       // A transparent grab zone centred on the line, so a real mouse press near it starts the
       // drag instead of falling through to uPlot's `.u-over` layer (#107). `touch-action: none`
       // keeps the browser from turning the drag into a scroll gesture on a touch screen.
-      className="absolute top-0 bottom-0 cursor-ew-resize touch-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus)]"
-      // `left` stays the line's own position; the box is pulled half its width to the left so
-      // the grab zone straddles it (#104 keeps `left_px` as the meaningful geometry).
-      style={{
-        left: `${String(left_px)}px`,
-        width: `${String(MARKER_GRAB_PX)}px`,
-        marginLeft: `${String(-MARKER_GRAB_PX / 2)}px`,
-      }}
+      className="absolute cursor-ew-resize touch-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus)]"
+      style={grabZoneStyle(left_px, plotArea)}
       onKeyDown={onKeyDown}
       onPointerDown={(event) => {
         // Pointer capture keeps the drag alive outside the 2 px line; jsdom does not
@@ -124,7 +140,9 @@ export function MarkerLayer({ marker, xRange, plotArea, unit, t }: MarkerLayerPr
     >
       {/*
         The line itself: 2 px wide, at an exact whole-pixel offset inside the grab zone so it
-        lands on the same column it occupied before the zone existed (the visual snapshots).
+        lands on the same column it occupied before the zone existed (the visual snapshots). The
+        zone above already stops at the plot area's own top/height, so top-0/bottom-0 here spans
+        exactly that, not the whole card (#555).
       */}
       <span
         aria-hidden="true"

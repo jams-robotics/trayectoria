@@ -13,6 +13,14 @@ import type { ActuatedJoint } from './types';
 /** Step of the sliders, in degrees. */
 const STEP_DEG = 1;
 
+/**
+ * Rounds a joint limit to whole degrees (#550: "-94.99984" from the raw URDF conversion), always
+ * inward, so the slider never asks the joint for an angle its real limit does not allow.
+ */
+function roundLimitInward_deg(value_deg: number, direction: 'lower' | 'upper'): number {
+  return direction === 'lower' ? Math.ceil(value_deg) : Math.floor(value_deg);
+}
+
 /** One `ParamPanel` parameter per joint, with the spec limits converted to degrees. */
 export function jointParams(
   joints: readonly ActuatedJoint[],
@@ -23,8 +31,8 @@ export function jointParams(
     key: joint.name,
     label: joint.name,
     unit: unit_deg,
-    min: radToDeg(joint.lower_rad),
-    max: radToDeg(joint.upper_rad),
+    min: roundLimitInward_deg(radToDeg(joint.lower_rad), 'lower'),
+    max: roundLimitInward_deg(radToDeg(joint.upper_rad), 'upper'),
     step: STEP_DEG,
     value: radToDeg(q_rad[index] ?? 0),
   }));

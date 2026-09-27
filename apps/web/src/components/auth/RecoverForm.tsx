@@ -5,11 +5,14 @@ import { useEffect, useState, type JSX, type SubmitEvent } from 'react';
 
 import {
   absoluteUrl,
+  emailValidationError,
   FormFooter,
   FormStatus,
+  passwordValidationError,
   SubmitButton,
   TextField,
   useAuthAction,
+  useFieldValidation,
 } from './fields';
 
 const MIN_PASSWORD_LENGTH = 6;
@@ -29,10 +32,14 @@ function useArrivedFromRecoveryLink(): boolean {
 function RequestLinkForm(): JSX.Element {
   const t = useT();
   const [email, setEmail] = useState('');
+  const validation = useFieldValidation();
   const { state, run } = useAuthAction();
 
+  // `noValidate` on the form (#534): the browser's own bubble speaks whatever language it is set
+  // to, not the Spanish of the rest of the page, so the field shows its own message instead.
   function submit(event: SubmitEvent<HTMLFormElement>): void {
     event.preventDefault();
+    if (!validation.validate(email, emailValidationError)) return;
     void run(
       () => resetPassword(email, absoluteUrl('/auth/recuperar')),
       () => t('auth.recover.sent'),
@@ -40,15 +47,19 @@ function RequestLinkForm(): JSX.Element {
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-4">
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
       <p className="text-fg-muted m-0 max-w-[72ch]">{t('auth.recover.body')}</p>
       <TextField
         id="email"
         label={t('auth.fields.email')}
         type="email"
         value={email}
-        onChange={setEmail}
+        onChange={(value) => {
+          setEmail(value);
+          validation.clear();
+        }}
         autoComplete="email"
+        error={validation.error}
       />
       <FormStatus {...state} />
       <div>
@@ -64,10 +75,14 @@ function RequestLinkForm(): JSX.Element {
 function NewPasswordForm(): JSX.Element {
   const t = useT();
   const [password, setPassword] = useState('');
+  const validation = useFieldValidation();
   const { state, run } = useAuthAction();
 
+  // `noValidate` on the form (#534): the browser's own bubble speaks whatever language it is set
+  // to, not the Spanish of the rest of the page, so the field shows its own message instead.
   function submit(event: SubmitEvent<HTMLFormElement>): void {
     event.preventDefault();
+    if (!validation.validate(password, passwordValidationError)) return;
     void run(
       () => updatePassword(password),
       () => t('auth.recover.updated'),
@@ -75,7 +90,7 @@ function NewPasswordForm(): JSX.Element {
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-4">
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
       <h2 className="text-xl leading-tight m-0 font-semibold">
         {t('auth.recover.newPasswordTitle')}
       </h2>
@@ -84,9 +99,13 @@ function NewPasswordForm(): JSX.Element {
         label={t('auth.fields.newPassword')}
         type="password"
         value={password}
-        onChange={setPassword}
+        onChange={(value) => {
+          setPassword(value);
+          validation.clear();
+        }}
         autoComplete="new-password"
         minLength={MIN_PASSWORD_LENGTH}
+        error={validation.error}
       />
       <FormStatus {...state} />
       <div className="flex flex-wrap items-center gap-4">

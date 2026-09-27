@@ -23,6 +23,17 @@ describe('JointSliders (F5-01a)', () => {
     expect(params.every((param) => param.unit === '°')).toBe(true);
   });
 
+  test('redondea un límite URDF no entero hacia dentro del rango real (#550)', () => {
+    // -1.658 rad ≈ -94.99984°, 1.658 rad ≈ 94.99984°: the raw conversion the ticket found.
+    const joints: readonly ActuatedJoint[] = [
+      { name: 'joint1', type: 'revolute', index: 0, lower_rad: -1.658, upper_rad: 1.658 },
+    ];
+    const params = jointParams(joints, [0], '°');
+    // Rounded inward (ceil the lower bound, floor the upper one), never past the real limit.
+    expect(params[0]?.min).toBe(-94);
+    expect(params[0]?.max).toBe(94);
+  });
+
   test('cada slider muestra grados y expone su rango a lectores de pantalla', () => {
     render(<JointSliders joints={JOINTS} q_rad={[0, 0]} onChange={vi.fn()} />);
     const panel = screen.getByTestId('joint-sliders');
