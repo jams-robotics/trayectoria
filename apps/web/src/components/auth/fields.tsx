@@ -4,6 +4,8 @@ import { useState, type JSX, type ReactNode } from 'react';
 
 // Shared pieces of the auth forms (F0-08): labelled inputs, the aria-live status region, the
 // submit flow and the mapping from generic error codes to i18n keys (literal keys, I18N.md).
+// Forms opt out of native validation (`noValidate`) and show their own Spanish messages instead
+// of the browser's, in the input's own language (#534).
 
 export const INPUT_CLASS =
   'border-border bg-bg text-fg rounded-md h-[44px] w-full border px-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus';
@@ -21,6 +23,13 @@ export interface TextFieldProps {
   readonly autoComplete: string;
   /** Default 0: no minimum length. */
   readonly minLength?: number;
+  /** Own validation message shown under the field; empty string when there is none (#534). */
+  readonly error?: string;
+}
+
+/** Id of the field's own error message, for `aria-describedby` (#534). */
+function errorId(id: string): string {
+  return `${id}-error`;
 }
 
 export function TextField({
@@ -31,7 +40,9 @@ export function TextField({
   onChange,
   autoComplete,
   minLength = 0,
+  error = '',
 }: TextFieldProps): JSX.Element {
+  const hasError = error !== '';
   return (
     <div className="flex flex-col gap-1">
       <label htmlFor={id} className="font-medium">
@@ -46,8 +57,15 @@ export function TextField({
         autoComplete={autoComplete}
         required
         minLength={minLength > 0 ? minLength : undefined}
+        aria-invalid={hasError ? 'true' : undefined}
+        aria-describedby={hasError ? errorId(id) : undefined}
         className={INPUT_CLASS}
       />
+      {hasError ? (
+        <p id={errorId(id)} role="alert" className="text-error m-0 text-sm">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -60,6 +78,9 @@ export interface EmailPasswordFieldsProps {
   readonly passwordAutoComplete: 'current-password' | 'new-password';
   /** Default 0: no minimum length. */
   readonly minPasswordLength?: number;
+  /** Own validation messages shown under each field; empty string when there is none (#534). */
+  readonly emailError?: string;
+  readonly passwordError?: string;
 }
 
 export function EmailPasswordFields({
@@ -69,6 +90,8 @@ export function EmailPasswordFields({
   onPassword,
   passwordAutoComplete,
   minPasswordLength = 0,
+  emailError = '',
+  passwordError = '',
 }: EmailPasswordFieldsProps): JSX.Element {
   const t = useT();
   return (
@@ -80,6 +103,7 @@ export function EmailPasswordFields({
         value={email}
         onChange={onEmail}
         autoComplete="email"
+        error={emailError}
       />
       <TextField
         id="password"
@@ -89,9 +113,88 @@ export function EmailPasswordFields({
         onChange={onPassword}
         autoComplete={passwordAutoComplete}
         minLength={minPasswordLength}
+        error={passwordError}
       />
     </>
   );
+}
+
+/** A plain, widely-supported email format check: something, `@`, something, `.`, something. */
+const EMAIL_FORMAT = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Own validation message for the email field; empty string when the value is fine (#534). */
+export function emailValidationError(t: Translate, email: string): string {
+  if (email === '') return t('auth.validation.emailRequired');
+  if (!EMAIL_FORMAT.test(email)) return t('auth.validation.emailInvalid');
+  return '';
+}
+
+/** Own validation message for the password field; empty string when the value is fine (#534). */
+export function passwordValidationError(t: Translate, password: string): string {
+  return password === '' ? t('auth.validation.passwordRequired') : '';
+}
+
+export interface FieldValidation {
+  readonly error: string;
+  /** Clears an already-shown error as the field changes; call from its `onChange`. */
+  readonly clear: () => void;
+  /** Validates `value` with `check`, sets the error and reports whether the form may submit. */
+  readonly validate: (value: string, check: (t: Translate, value: string) => string) => boolean;
+}
+
+/** The validation state a form with a single required field needs for `noValidate` (#534). */
+export function useFieldValidation(): FieldValidation {
+  const t = useT();
+  const [error, setError] = useState('');
+  return {
+    error,
+    clear: () => {
+      setError((current) => (current === '' ? current : ''));
+    },
+    validate: (value, check) => {
+      const next = check(t, value);
+      setError(next);
+      return next === '';
+    },
+  };
+}
+
+export interface EmailPasswordValidation {
+  readonly emailError: string;
+  readonly passwordError: string;
+  /** Clears an already-shown error as its field changes; call from each field's `onChange`. */
+  readonly clearEmailError: () => void;
+  readonly clearPasswordError: () => void;
+  /** Validates `email`/`password`, sets the field errors and reports whether the form may submit. */
+  readonly validate: (email: string, password: string) => boolean;
+}
+
+/**
+ * The email/password validation state a login, register or recover form needs for `noValidate`
+ * (#534): both fields' own messages, kept in sync as the learner types, plus the check `submit`
+ * runs before calling Supabase.
+ */
+export function useEmailPasswordValidation(): EmailPasswordValidation {
+  const t = useT();
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  return {
+    emailError,
+    passwordError,
+    clearEmailError: () => {
+      setEmailError((current) => (current === '' ? current : ''));
+    },
+    clearPasswordError: () => {
+      setPasswordError((current) => (current === '' ? current : ''));
+    },
+    validate: (email, password) => {
+      const nextEmailError = emailValidationError(t, email);
+      const nextPasswordError = passwordValidationError(t, password);
+      setEmailError(nextEmailError);
+      setPasswordError(nextPasswordError);
+      return nextEmailError === '' && nextPasswordError === '';
+    },
+  };
 }
 
 export interface AuthActionState {
