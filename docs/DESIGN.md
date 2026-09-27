@@ -153,7 +153,7 @@ Esquina inferior derecha, `bg-raised`, borde `border`, punto de 8 px `success`/`
 4 px, fondo `border`, relleno `primary`, radio 2. Siempre acompañada de la cifra mono (`9/29` o `31 %`). Nunca animada al cargar.
 
 ### Tabla
-`bg-raised` con borde y radio `lg`, `overflow:auto`. Cabecera `sm`/600, columnas de tema en mono `xs` muted centradas. Filas 44 px con divisor `border`. Primera columna sticky. Celdas de estado: cuadrado 26 px radio `sm` — completado `success` con "C", en curso `primary` con "E", con errores `error` con "✕", pendiente solo borde. Tinta sobre el color: `bg-raised`. Cada estado tiene letra además de color y `title`.
+`bg-raised` con borde y radio `lg`, `overflow:auto`. Cabecera `sm`/600, columnas de tema en mono `xs` muted centradas. Filas 44 px con divisor `border`. Primera columna sticky. Celdas de estado: cuadrado 26 px radio `sm` — completado `success` con "C", en curso `primary` con "E", con errores `error` con "✕", pendiente solo borde. Tinta sobre el color: `bg-raised`. Cada estado tiene letra además de color y `title`. La celda cuadrada es para la tabla del aula. En el índice de la ruta, donde el estudiante no puede cambiar el estado, no se usa nada con forma de control: el texto del estado más un punto `primary` de 10 px para «en curso», un check `success` tenue para «completado» y solo el texto para «pendiente», con `title` en el indicador (#532).
 
 ### Navegación
 Cabecera 56 px `bg-raised` con borde inferior. Marca (glifo de chasis ámbar + "Trayectoria" 18/600) · enlaces 500 muted, activo `primary` con subrayado 2 px · derecha: progreso 96 px + cifra mono, avatar 32 px con iniciales. En móvil: marca + botón menú; los enlaces pasan a hoja inferior.
