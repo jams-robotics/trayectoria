@@ -1,7 +1,8 @@
 {
   "meta": {
     "title": "{{title}} · Trayectoria",
-    "description": "Aprende ingeniería aplicada a robótica manipulando cada concepto."
+    "siteName": "Trayectoria · De la física al robot",
+    "description": "Trayectoria · De la física al robot. Ruta abierta y en español para estudiantes de ingeniería: cada tema termina en un cálculo con tu robot y en un simulador en el navegador."
   },
   "nav": {
     "main": "Principal",
@@ -16,7 +17,7 @@
     "toggle": "Cambiar entre tema claro y oscuro"
   },
   "footer": {
-    "license": "Trayectoria · Licencia MIT · Contenido CC BY-SA",
+    "license": "Trayectoria · De la física al robot · MIT · CC BY-SA",
     "repository": "Repositorio",
     "contribute": "Contribuir",
     "about": "Acerca"

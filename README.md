@@ -1,4 +1,4 @@
-# Trayectoria
+# Trayectoria · De la física al robot
 
 Plataforma web open source, en español, donde estudiantes de ingeniería aprenden matemática, física y mecánica manipulando cada concepto, y donde cada tema termina aplicado a un robot que pueden simular y, si quieren, construir.
 

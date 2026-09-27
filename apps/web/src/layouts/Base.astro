@@ -9,9 +9,11 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
+  /** Use `title` verbatim in <title>, skipping the `{{title}} · Trayectoria` template. Cover page only. */
+  titleFull?: boolean;
 }
 
-const { title, description = t('meta.description') } = Astro.props;
+const { title, description = t('meta.description'), titleFull = false } = Astro.props;
 
 // The inline script in <head> applies the saved or system theme before first paint.
 // Its storage key mirrors stores/theme.ts; an inline script cannot import the store.
@@ -23,6 +25,9 @@ const { title, description = t('meta.description') } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <script is:inline>
       (function () {
         var theme = null;
@@ -51,7 +56,7 @@ const { title, description = t('meta.description') } = Astro.props;
       type="font/woff2"
       crossorigin
     />
-    <title>{t('meta.title', { title })}</title>
+    <title>{titleFull ? title : t('meta.title', { title })}</title>
     <slot name="head" />
   </head>
   <body class="bg-bg text-fg font-sans flex min-h-dvh flex-col">

@@ -65,6 +65,16 @@ Claro: fg 14.6/15.7 · fg-muted 5.7/6.1 · primary 5.6/6.1 · physical 5.1/5.4 �
 Oscuro: todo texto ≥ 5.9; primary-fg/primary 8.6; physical-fg/physical 9.0.
 `--color-focus` es 3.2–3.5 sobre fondos (componente no textual, ≥3:1 OK). Bordes son decorativos (no se exige ratio).
 
+### Icono del sitio
+
+Icono provisional «la órbita», decisión del propietario 2026-09-27 (#592): un círculo primario (`#0d6a8e`, fijo en claro y oscuro para que la pestaña se vea igual en ambos temas), un arco blanco abierto (la órbita) y un punto ámbar (`#f0a742`, «el robot») en el punto de partida del arco. Es provisional hasta que exista un logo definitivo.
+
+Tres archivos en `apps/web/public/`:
+
+- `favicon.svg`: fuente vectorial, usada por navegadores modernos.
+- `favicon.ico` (32×32): compatibilidad, fondo transparente fuera del círculo.
+- `apple-touch-icon.png` (180×180): icono al añadir el sitio a la pantalla de inicio en iOS/Android.
+
 ---
 
 ## 3. Tipografía
