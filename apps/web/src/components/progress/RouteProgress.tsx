@@ -21,15 +21,12 @@ function labelOf(state: TopicState, t: Translate): string {
   return t('progress.status.pending');
 }
 
-// Status cell of DESIGN.md §5 Tabla: 26 px square, `sm` radius, a letter besides the colour,
-// `bg-raised` ink over the colour and a `title` with the text. Pending carries only a border.
-const CELL = 'inline-flex size-[26px] shrink-0 items-center justify-center rounded-sm font-mono text-xs';
-const CELL_BY_STATE: Record<TopicState, string> = {
-  completed: `${CELL} bg-success text-bg-raised`,
-  in_progress: `${CELL} bg-primary text-bg-raised`,
-  pending: `${CELL} border-border text-fg-muted border`,
-};
-const LETTER: Record<TopicState, string> = { completed: 'C', in_progress: 'E', pending: '' };
+// Status indicator (#532): the state changes only from the system, so it must not look like a
+// control. A colour dot for "en curso", a tenue check for "hecho", nothing but the text for
+// "pendiente" (docs/DESIGN.md §2.1 tokens; DESIGN.md §9 point 11: state is never colour alone,
+// hence the `title` and the text besides it).
+const DOT = 'inline-block size-[10px] shrink-0 rounded-full bg-primary';
+const CHECK = 'text-success/60 shrink-0 text-base leading-none';
 
 export interface TopicStatusProps {
   /** Topic id (`ruta-1/m00-t01`). */
@@ -37,7 +34,7 @@ export interface TopicStatusProps {
 }
 
 /**
- * State of a topic in the route index: the square of DESIGN.md §5 Tabla plus the text.
+ * State of a topic in the route index: the text plus a non-interactive indicator (#532).
  * The server renders it pending; the island hydrates from `$progress`.
  */
 export function TopicStatus({ topicId }: TopicStatusProps): JSX.Element {
@@ -52,9 +49,12 @@ export function TopicStatus({ topicId }: TopicStatusProps): JSX.Element {
       data-state={state}
     >
       <span className="text-fg-muted text-sm">{label}</span>
-      <span className={CELL_BY_STATE[state]} title={label} aria-hidden="true">
-        {LETTER[state]}
-      </span>
+      {state === 'in_progress' && <span className={DOT} title={label} aria-hidden="true" />}
+      {state === 'completed' && (
+        <span className={CHECK} title={label} aria-hidden="true">
+          ✓
+        </span>
+      )}
     </span>
   );
 }

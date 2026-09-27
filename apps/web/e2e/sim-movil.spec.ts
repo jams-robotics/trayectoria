@@ -191,7 +191,7 @@ test.describe('/simuladores/movil (F4-02b)', () => {
     await page.getByRole('button', { name: 'Pausa' }).first().click();
   });
 
-  test('a 390 px los paneles son acordeones, hay barra inferior y no hay «Paso»', async ({
+  test('a 390 px los paneles son acordeones, hay barra inferior y «Paso» (#531)', async ({
     page,
   }) => {
     await page.setViewportSize(MOBILE_VIEWPORT);
@@ -201,11 +201,11 @@ test.describe('/simuladores/movil (F4-02b)', () => {
     // pasan a acordeones (docs/DESIGN.md §9 punto 8).
     await expect(page.getByTestId('sim-accordion')).toHaveCount(6);
     await expect(page.getByTestId('sim-bottom-bar')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Paso' })).toHaveCount(0);
-    // Reproducir, Pausa y Reiniciar sí están, en la barra fija.
+    // #531: la barra ya no omite «Paso», con la misma acción y clave i18n de escritorio.
     const bar = page.getByTestId('sim-bottom-bar');
     await expect(bar.getByRole('button', { name: 'Reproducir' })).toBeVisible();
     await expect(bar.getByRole('button', { name: 'Pausa' })).toBeVisible();
+    await expect(bar.getByRole('button', { name: 'Paso' })).toBeVisible();
     await expect(bar.getByRole('button', { name: 'Reiniciar' })).toBeVisible();
   });
 });

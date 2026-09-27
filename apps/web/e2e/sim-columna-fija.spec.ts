@@ -4,6 +4,11 @@ import { expect, test } from '@playwright/test';
 // #375 (docs/DESIGN.md, "Páginas de simulador"): on desktop the left column of both simulator
 // pages (viewer plus «Gráficas» or the matrices panel) is sticky and scrolls inside; at 390 px
 // nothing changes. No Supabase needed: both pages are static.
+//
+// #528: the mobile sim's left column (`sim-left-column`) no longer caps its height or scrolls on
+// its own — that capped, sticky scroll clipped «Gráficas» to its title with no visible sign that
+// it continued. It is `static` at every viewport now. The arm sim's left column
+// (`arm-viewer-left`) is untouched: #528 is scoped to the mobile sim page only.
 
 /** Margin for the lazy islands (the arm one pulls three and urdf-loader). */
 const ISLAND_TIMEOUT_MS = 30_000;
@@ -39,19 +44,20 @@ async function openArmWithMatrices(page: Page): Promise<void> {
 test.describe('desktop', () => {
   test.use({ viewport: DESKTOP_VIEWPORT });
 
-  test('mobile sim: «Gráficas» sits under the viewer in a sticky left column', async ({ page }) => {
+  test('mobile sim: «Gráficas» sits under the viewer, column not sticky (#528)', async ({
+    page,
+  }) => {
     await openMobileSim(page);
     const left = page.getByTestId('sim-left-column');
     await expect(left.getByTestId('panel-plots')).toBeVisible();
-    expect(await layoutOf(page, 'sim-left-column')).toEqual({
-      position: 'sticky',
-      maxHeight: `${String(DESKTOP_VIEWPORT.height)}px`,
-    });
+    // #528: the column used to be sticky with a screen-capped height and its own scroll; now it
+    // grows with the page like any other block, at every viewport.
+    expect((await layoutOf(page, 'sim-left-column')).position).toBe('static');
     // The rest of the controls stay in the right column.
     await expect(left.getByTestId('panel-robot')).toHaveCount(0);
   });
 
-  test('mobile sim: «Gráficas» is not squeezed and leaves no blank space (#383)', async ({
+  test('mobile sim: «Gráficas» is not squeezed and leaves no blank space (#383, #528)', async ({
     page,
   }) => {
     await openMobileSim(page);
