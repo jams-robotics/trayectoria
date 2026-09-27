@@ -75,7 +75,30 @@ describe('BottomBar (#531)', () => {
 
   test('each button height stays 44 px and the bar is 56 px tall', () => {
     const html = renderToStaticMarkup(<BottomBar driver={createDriver()} />);
-    expect(html).toMatch(/class="[^"]*\bh-11\b[^"]*"[^>]*>Reproducir/);
+    // #531 (correction round): `h-11` is 80 px in this repo's remapped spacing scale
+    // (tokens.css `--space-11`), not 44 px; the true 44 px minimum touch target is `h-[44px]`.
+    expect(html).toMatch(/class="[^"]*h-\[44px\][^"]*"[^>]*>Reproducir/);
     expect(BOTTOM_BAR_HEIGHT_PX).toBe(56);
+  });
+
+  test('breaks out of the page’s padded column with a viewport-relative margin (#531)', () => {
+    // The bar sits inside `movil.astro`'s padded `<section>`; a plain in-flow width matches that
+    // column, not the viewport, and the correction round found it ~36 px short on each side at
+    // 390 px. `calc((100% - 100vw) / 2)` is the padding's width whatever it is, so a negative
+    // margin of that size pushes the bar out to the viewport edges regardless of the column.
+    const html = renderToStaticMarkup(<BottomBar driver={createDriver()} />);
+    expect(html).toContain('margin-left:calc((100% - 100vw) / 2)');
+    expect(html).toContain('margin-right:calc((100% - 100vw) / 2)');
+  });
+
+  test('every control keeps a 44 px minimum width for touch, not only height', () => {
+    const html = renderToStaticMarkup(<BottomBar driver={createDriver()} />);
+    const controlClasses = [
+      ...[...html.matchAll(/<button[^>]*class="([^"]*)"/g)].map((m) => m[1]),
+      /<select[^>]*class="([^"]*)"/.exec(html)?.[1],
+    ];
+    for (const classes of controlClasses) {
+      expect(classes).toMatch(/min-w-\[44px\]/);
+    }
   });
 });
