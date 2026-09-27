@@ -69,7 +69,7 @@ describe('ProjectileWidget · conmutador de B (#361)', () => {
 
   test('conmutar no reinicia el tiempo ni acorta la reproducción al vuelo de A', async () => {
     const user = userEvent.setup();
-    // A (0.25 m) aterriza en 0.226 s y B (1 m) en 0.452 s: en 0.3 s solo B sigue en el aire.
+    // A (0.25 m) lands at 0.226 s and B (1 m) at 0.452 s: at 0.3 s only B is still in the air.
     render(<ProjectileWidget mode="drop" initial={{ h_m: 0.25 }} overlay initialTime_s={0.3} />);
     expect(valueOf('Tiempo')).toBe('0.300 s  ·  0.300 s');
 
@@ -80,7 +80,7 @@ describe('ProjectileWidget · conmutador de B (#361)', () => {
   });
 
   test('con B oculto la reproducción dura lo que el vuelo más largo de A y B', () => {
-    // Abierto más allá del aterrizaje de A: el tiempo se queda en el de B, 0.452 s.
+    // Opened past the landing of A: the time stays at that of B, 0.452 s.
     render(
       <ProjectileWidget
         mode="drop"

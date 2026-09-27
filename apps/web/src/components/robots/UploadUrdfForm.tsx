@@ -16,7 +16,7 @@ export interface AcceptedUpload {
 }
 
 /**
- * What the form does with an accepted upload (F5-04, #137, decisión 4). `'save'` is the behaviour
+ * What the form does with an accepted upload (F5-04, #137, decision 4). `'save'` is the behaviour
  * of F3-04 and stays the default; `'parseOnly'` hands the caller the parsed zip and stores
  * nothing, which is what the importer of the arm simulator uses without a session.
  */

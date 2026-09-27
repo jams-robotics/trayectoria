@@ -1,9 +1,11 @@
 /**
- * Seeds for an exercise instance (#94, decision 2).
+ * Seeds for an exercise instance (#94, decision 2; #489).
  *
- * With a session the seed is derived from the user, the topic, the exercise and the round, so a
- * learner always finds the same numbers until they ask for new ones. Without a session there is
- * nothing to derive it from, so a fresh seed is drawn per mount.
+ * The first instance (round 0) is always the deterministic anonymous seed, for every learner, so
+ * the statement never redraws once a session settles in. From round 1 on, a signed-in learner's
+ * seed is derived from their user id, the topic, the exercise and the round, so they always find
+ * the same numbers until they ask for new ones; without a session there is nothing to derive it
+ * from, so a fresh seed is drawn per round instead.
  */
 
 const FNV_OFFSET_BASIS = 2166136261;

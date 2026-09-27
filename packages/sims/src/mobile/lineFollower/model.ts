@@ -55,7 +55,7 @@ export interface LineFollowerState {
   /** Pose `init` placed the robot at, so «Reiniciar» returns to it. */
   readonly startPose: Pose;
   /**
-   * Simulated time the lap in progress started at, in seconds (F4-03, #129, decisión 3). The lap
+   * Simulated time the lap in progress started at, in seconds (F4-03, #129, decision 3). The lap
    * timer closes a lap with `t − lapStart_s`, so the time it shows is exact simulated time and
    * does not depend on how the frame loop split the steps (#155).
    */
@@ -143,7 +143,7 @@ export function createLineFollowerModel({
   const index = buildTrackIndex(track);
   const origin = startPose ?? startPoseOf(track);
   // The generator lives outside the state so it is not copied on every step; `init` rebuilds it,
-  // which is what makes two runs of the same seed identical (#127, decisión 2).
+  // which is what makes two runs of the same seed identical (#127, decision 2).
   let rng: SeededRng | null = null;
   const sense = (state: DiffDriveState, prev?: LineReading): LineReading =>
     readLineArray(track, state, mobile, sensorOptions(noiseSigma, rng), prev);
@@ -193,7 +193,7 @@ function poseOf(robot: DiffDriveState): Pose {
 }
 
 /**
- * Where the lap in progress started (F4-03, #129, decisión 3): crossing the start closes the
+ * Where the lap in progress started (F4-03, #129, decision 3): crossing the start closes the
  * current lap and opens the next one at the very step it happened, so the time and the distance
  * the card shows are differences of exact simulated quantities.
  */
@@ -210,7 +210,7 @@ function lapStartOf(
 }
 
 /**
- * Where the line was lost (F4-03, #129, decisión 3): the pose of the step `lineLost` turned true,
+ * Where the line was lost (F4-03, #129, decision 3): the pose of the step `lineLost` turned true,
  * kept while it stays lost and dropped as soon as the array sees the line again. A `Reiniciar`
  * goes through `init`, which starts without one.
  */

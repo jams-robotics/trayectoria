@@ -3,10 +3,10 @@ import type { SimConfig } from '@trayectoria/robot-spec';
 
 import { SIM_CONFIGS_KEY, deleteSimConfig, listSimConfigs, saveSimConfig } from './simConfigs';
 
-// F4-05 (#131, decisión 4): el único archivo del repositorio que toca `localStorage`. Los tests
-// lo sustituyen por uno falso, así que nada depende del almacenamiento real del entorno.
+// F4-05 (#131, decision 4): the only file in the repository that touches `localStorage`. The tests
+// replace it with a fake one, so nothing depends on the real storage of the environment.
 
-/** Un `localStorage` de mentira: un mapa con la misma interfaz que el store usa. */
+/** A fake `localStorage`: a map with the same interface the store uses. */
 function fakeStorage(initial: Record<string, string> = {}): Storage {
   const data = new Map(Object.entries(initial));
   return {

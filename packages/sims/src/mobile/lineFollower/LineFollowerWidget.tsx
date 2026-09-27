@@ -37,10 +37,10 @@ function useApiReport(
   const latest = useRef(api);
   latest.current = api;
   const { state, driver } = api;
-  // La traza no entra: `useLineFollower` la reconstruye en un efecto propio, así que durante una
-  // carrera rápida cada muestra publicaría una api nueva y el consumidor volvería a renderizar el
-  // widget en cadena. Quien quiera la traza la tiene en la api que recibe; lo que dispara el aviso
-  // es el estado del modelo, que ya cambia en cada tick.
+  // The trace is not included: `useLineFollower` rebuilds it in an effect of its own, so during a
+  // fast run every sample would publish a new api and the consumer would re-render the
+  // widget in a chain. Whoever wants the trace has it in the api it receives; what triggers the notification
+  // is the model state, which already changes on every tick.
   useEffect(() => {
     onApi?.(latest.current);
   }, [onApi, state, driver.running, driver.speed]);
@@ -61,7 +61,7 @@ export interface LineFollowerWidgetProps {
   /** Hides the controller panel and the legend, for an embedded viewer. */
   compact?: boolean;
   /**
-   * Plots drawn under the viewer (F4-03, #129, decisión 6): `error`, `v`, `omega` and, with the
+   * Plots drawn under the viewer (F4-03, #129, decision 6): `error`, `v`, `omega` and, with the
    * PID selected, `pid` with its three terms. Without the prop none is drawn, which is exactly
    * how the widget behaved in F4-02a.
    */
@@ -76,7 +76,7 @@ export interface LineFollowerWidgetProps {
   /** Standard deviation of the sensor noise; without it the readings are exact. */
   noiseSigma?: number;
   /**
-   * Pose the run starts from (F4-02b, #128, decisión 2). Without it the robot starts at the
+   * Pose the run starts from (F4-02b, #128, decision 2). Without it the robot starts at the
    * beginning of the track, exactly as in F4-02a. Changing it rebuilds the simulation, so the
    * run restarts at `t = 0`, which is what the spec asks of a new start pose.
    */
@@ -93,14 +93,14 @@ export interface LineFollowerWidgetProps {
    */
   onApi?: (api: LineFollowerApi) => void;
   /**
-   * Wraps the controller panel, so a page can put it in an accordion in móvil (F4-02b; mismo
-   * patrón que `renderPanel` de `ArmViewer`). Without it the panel renders as it always has.
+   * Wraps the controller panel, so a page can put it in an accordion on mobile (F4-02b; same
+   * pattern as `renderPanel` of `ArmViewer`). Without it the panel renders as it always has.
    */
   renderPanel?: (panel: ReactNode) => ReactNode;
   /**
    * Wraps the viewer column, so a page can decide what surrounds it — e.g. swapping it for a
-   * track editor without reaching into the widget's DOM (#158, enmienda tras auditoría de PR
-   * #169; mismo patrón que `renderPanel`). Without it the viewer renders where it always has.
+   * track editor without reaching into the widget's DOM (#158, amendment after the audit of PR
+   * #169; same pattern as `renderPanel`). Without it the viewer renders where it always has.
    */
   renderViewer?: (viewer: ReactNode) => ReactNode;
   /**
@@ -109,16 +109,16 @@ export interface LineFollowerWidgetProps {
    */
   hideControls?: boolean;
   /**
-   * Semilla del generador de ruido (F4-05, #131, decisión 3). Sin ella la carrera usa la de
-   * siempre; es la que viaja en el enlace compartido, y cambiarla reconstruye la simulación
-   * pausada en `t = 0`, igual que cambiar de pista o de robot.
+   * Seed of the noise generator (F4-05, #131, decision 3). Without it the run uses the usual
+   * one; it is the one that travels in the shared link, and changing it rebuilds the simulation
+   * paused at `t = 0`, just like changing track or robot.
    */
   seed?: number;
 }
 
 /**
  * The start-pose control, only while the page asks for it: `startPose` alone would leave a
- * marker nobody can move, so both props are needed (#128, decisión 3).
+ * marker nobody can move, so both props are needed (#128, decision 3).
  */
 function handleOf(
   startPose: StartPose | undefined,
@@ -159,7 +159,7 @@ function Viewer({
   );
 }
 
-/** Space over the viewer plays or pauses the run (#130, decisión 2; docs/DESIGN.md §5). */
+/** Space over the viewer plays or pauses the run (#130, decision 2; docs/DESIGN.md §5). */
 function togglePlayOf(api: LineFollowerApi): () => void {
   return () => {
     if (api.driver.running) api.driver.pause();
@@ -187,7 +187,7 @@ function useRun(
   const resolved = useMemo(() => resolveTrack(track), [track]);
   const choice = useControllerChoice(controller, initialParams);
   const manual = choice.selected === 'manual';
-  // F4-04 (#130, decisión 2): the keyboard drives the robot while the manual tab is the one
+  // F4-04 (#130, decision 2): the keyboard drives the robot while the manual tab is the one
   // selected, and the run is the one already on screen — the command is an input of each step,
   // not a reason to rebuild the simulation.
   const playRef = useRef<() => void>(() => undefined);

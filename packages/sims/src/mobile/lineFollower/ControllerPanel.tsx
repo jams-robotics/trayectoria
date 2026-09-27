@@ -139,8 +139,8 @@ export function Panel({
       onParam={onParam}
     />
   );
-  // With `renderPanel` the page decides where the panel goes and how wide it is (F4-02b: la
-  // maqueta 04 lo pone en su propia columna, no junto al visor), so the widget adds no column of
+  // With `renderPanel` the page decides where the panel goes and how wide it is (F4-02b: mockup
+  // 04 puts it in its own column, not next to the viewer), so the widget adds no column of
   // its own; without it the panel keeps the side column of F4-02a.
   if (renderPanel !== undefined) return <>{renderPanel(content)}</>;
   return <div className="flex flex-col gap-4 lg:w-panel">{content}</div>;

@@ -1,5 +1,7 @@
 import type { SavedTrack, TrackJson } from '@trayectoria/sims';
 
+import { OwnerRowLimitError } from '../../lib/checkViolation';
+
 // F4-06 (#191, decision 2): where the saved tracks end up. Without a session, in the local store
 // of `@trayectoria/sims` (the only file with `localStorage`); with one, in the adapter of
 // `apps/web/src/lib/sim/trackPersistence.ts`, which is loaded with `import()` so as not to put
@@ -36,8 +38,12 @@ export async function loadSavedTracks(): Promise<readonly SavedTrack[]> {
   return listTracks(ownerId);
 }
 
-/** The notice of a failed save: its own one when the track is over the size bound (#210). */
+/**
+ * The notice of a failed save: its own one when the track is over the size bound (#210) and when
+ * the account is at its limit of tracks (#215).
+ */
 export function saveErrorKey(error: unknown): string {
+  if (error instanceof OwnerRowLimitError) return 'sims.trackEditor.save.limitReached';
   return error instanceof RangeError
     ? 'sims.trackEditor.save.tooLarge'
     : 'sims.trackEditor.save.error';

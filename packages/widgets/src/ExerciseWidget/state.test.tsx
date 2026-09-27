@@ -28,22 +28,21 @@ function RenderLog({ log }: { log: Array<{ params: unknown }> }): JSX.Element {
   return <span data-testid="statement">{JSON.stringify(state.params)}</span>;
 }
 
-describe('useExercise seed vs. session readiness (#482)', () => {
+describe('useExercise seed vs. session readiness (#482, #489)', () => {
   beforeEach(() => {
     // The anonymous branch of `useSeed` (`state.ts`) draws `mountSeed` from `Math.random()` in an
     // effect; pinned so it does not mask the seeds under test with two different random draws.
     vi.spyOn(Math, 'random').mockReturnValue(0.5);
   });
 
-  test('even an already-resolved session commits the server seed on its very first render', () => {
-    // This is the bug of #482: a `client:visible` island can hydrate after the session has
-    // already settled elsewhere on the page, so the adapter reports `sessionReady=true` and a
-    // real `userId` from the very first render call `useExercise` makes. `useSeed` must still
-    // commit the anonymous, server-matching instance on that first render (round 0, no user) and
-    // only move to the derived per-user seed on a later one (an effect after mount), exactly like
-    // `useSession`'s `ssr: 'initial'` (`packages/auth`) — or React would discard the hydrated
-    // tree, exactly as reported. `log` captures every render `useExercise` produces, in order, so
-    // its first entry is what would have reconciled against the server markup.
+  test('with an already-resolved session, the first render and the render after mount agree', () => {
+    // #489: the first instance (round 0) is the same deterministic anonymous seed for every
+    // learner, with or without a session, so the statement never redraws once the session
+    // settles. A `client:visible` island can hydrate after the session has already resolved
+    // elsewhere on the page, so the adapter reports `sessionReady=true` and a real `userId` from
+    // the very first render call `useExercise` makes; `useSeed` must still commit the same round-0
+    // instance on that render and on every one after mount. `log` captures every render
+    // `useExercise` produces, in order.
     const log: Array<{ params: unknown }> = [];
     const adapter = adapterOf('user-1', true);
     render(
@@ -59,8 +58,28 @@ describe('useExercise seed vs. session readiness (#482)', () => {
 
     expect(log[0]).toBeDefined();
     expect(log[0]?.params).toEqual(serverParams);
-    // And the settled render (after the mount effect ran) has moved on to the per-user seed.
-    expect(log.at(-1)?.params).not.toEqual(serverParams);
+    // And the render after mount still matches: round 0 never moves to the per-user seed.
+    expect(log.at(-1)?.params).toEqual(serverParams);
+  });
+
+  test('«Nuevos valores» moves a signed-in learner to their derived per-user seed', () => {
+    const adapter = adapterOf('user-1', true);
+    const hook = renderHook(() => useExercise(trackTimeExercise, TOPIC_ID, undefined), {
+      wrapper: wrapperFor(adapter),
+    });
+
+    const firstParams = hook.result.current.params;
+    hook.result.current.regenerate();
+    hook.rerender();
+    const secondParams = hook.result.current.params;
+
+    const derivedSeed = seedFor('user-1', TOPIC_ID, EXERCISE_ID, 1);
+    const derivedParams = renderHook(() =>
+      useExercise(trackTimeExercise, TOPIC_ID, derivedSeed),
+    ).result.current.params;
+
+    expect(secondParams).not.toEqual(firstParams);
+    expect(secondParams).toEqual(derivedParams);
   });
 
   test('while not ready, a signed-in and an anonymous learner derive the same params', () => {

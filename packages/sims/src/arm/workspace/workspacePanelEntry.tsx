@@ -5,11 +5,11 @@ import type { ArmSpec } from '@trayectoria/robot-spec';
 import { WorkspacePanel } from './WorkspacePanel';
 import type { WorkspaceState } from './WorkspacePanel';
 
-// F5-03 (#136, decisión 4): el panel del espacio de trabajo entra en la columna de paneles del
-// visor como uno más, con el mismo contrato que los de F5-01b y F5-02, para que la página lo
-// pliegue en móvil con su `renderPanel`.
+// F5-03 (#136, decision 4): the workspace panel enters the viewer's panel column
+// as one more, with the same contract as those of F5-01b and F5-02, so that the page
+// collapses it on mobile with its `renderPanel`.
 
-/** El panel del espacio de trabajo tal como lo consume `ArmViewer`. */
+/** The workspace panel as `ArmViewer` consumes it. */
 export interface WorkspacePanelEntry {
   readonly id: 'workspace';
   readonly title: string;
@@ -17,12 +17,12 @@ export interface WorkspacePanelEntry {
   readonly content: ReactNode;
 }
 
-/** Resumen de una línea del panel, legible con el panel plegado. */
+/** One-line summary of the panel, readable with the panel collapsed. */
 export function workspaceSummary(t: Translate): string {
   return t('sims.workspace.empty');
 }
 
-/** Construye la entrada del panel del espacio de trabajo para la columna del visor. */
+/** Builds the workspace panel entry for the viewer column. */
 export function workspacePanel(
   arm: ArmSpec,
   t: Translate,

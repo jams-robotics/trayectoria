@@ -4,27 +4,27 @@ import type { JSX } from 'react';
 import { loadWidget } from './widgetRegistry';
 
 /**
- * Isla que monta un widget de la página de tema por su **nombre**, resolviéndolo con el
- * `import()` dinámico de su entrada propia (`@trayectoria/widgets/<Widget>`, ADR-0009 y #188).
- * Así la página solo descarga los widgets que su MDX declara, y no el catálogo del barrel.
+ * Island that mounts a topic page widget by its **name**, resolving it with the
+ * dynamic `import()` of its own entry (`@trayectoria/widgets/<Widget>`, ADR-0009 and #188).
+ * That way the page only downloads the widgets its MDX declares, and not the barrel's catalogue.
  *
- * El nombre y las props llegan serializados desde el `.astro`, igual que en `VerificaExercise`
- * (#97, hallazgo alta de auditoría del PR #119): Astro serializa a JSON las props de una isla,
- * así que solo se pasan valores, nunca funciones.
+ * The name and the props arrive serialized from the `.astro`, just as in `VerificaExercise`
+ * (#97, high-severity audit finding of PR #119): Astro serializes an island's props to JSON,
+ * so only values are passed, never functions.
  *
- * Mientras el chunk del widget no ha llegado no se pinta nada: el hueco lo reserva el `.astro`
- * que envuelve la isla.
+ * While the widget chunk has not arrived nothing is painted: the space is reserved by the `.astro`
+ * that wraps the island.
  */
 export interface TopicWidgetProps {
-  /** Nombre del widget, tal y como lo registra `widgetRegistry`. */
+  /** Widget name, as `widgetRegistry` registers it. */
   readonly name: string;
-  /** Props del widget, ya serializadas por Astro. */
+  /** Widget props, already serialized by Astro. */
   readonly props: Readonly<Record<string, unknown>>;
 }
 
 export function TopicWidget({ name, props }: TopicWidgetProps): JSX.Element {
-  // `lazy` se crea una vez por nombre: recrearlo en cada render remontaría el widget y perdería
-  // su estado interno.
+  // `lazy` is created once per name: recreating it on every render would remount the widget and lose
+  // its internal state.
   const Widget = useMemo(() => lazy(async () => ({ default: await loadWidget(name) })), [name]);
   return (
     <Suspense fallback={null}>

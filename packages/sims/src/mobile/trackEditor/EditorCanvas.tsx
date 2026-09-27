@@ -8,9 +8,9 @@ import { SegmentBar } from './SegmentBar';
 import { segmentEndpoints } from './model';
 import type { TrackEditorApi } from './useTrackEditor';
 
-// #189 (decisión 1): el lienzo, su mapeo de píxeles a metros y la barra flotante del segmento
-// salen de `TrackEditor.tsx` a su propio módulo. Ese archivo ya rozaba el límite de 300 líneas de
-// docs/STANDARDS.md §4 y la maquetación nueva de `renderPanel` lo habría pasado.
+// #189 (decision 1): the canvas, its pixel-to-metre mapping and the floating segment bar
+// move out of `TrackEditor.tsx` into their own module. That file was already close to the 300-line limit of
+// docs/STANDARDS.md §4 and the new `renderPanel` layout would have pushed it over.
 
 /**
  * World width the editor shows, in metres. The four presets of sim-core are the widest thing it
@@ -33,7 +33,7 @@ const SNAP_MARKER_RADIUS_M = 0.015;
 
 /**
  * Radius of the marker drawn at each end of the selected segment, in CSS pixels: 12 px across,
- * so it reads as a ring over the 10 px stroke of the track (#160, precisión a la decisión 1).
+ * so it reads as a ring over the 10 px stroke of the track (#160, clarification of decision 1).
  */
 const SELECTED_ENDPOINT_RADIUS_PX = 6;
 
@@ -41,9 +41,9 @@ const SELECTED_ENDPOINT_RADIUS_PX = 6;
 const FALLBACK_CANVAS_WIDTH_PX = 480;
 
 /**
- * Ancho del hueco del lienzo en píxeles CSS, o 0 mientras no esté medido. `Scene2D` deriva su alto
- * de su ancho y de su relación de aspecto, así que la única manera de darle un alto exacto es
- * calcular la relación con el ancho que de verdad tiene (#189, decisión 3).
+ * Width of the canvas slot in CSS pixels, or 0 while it has not been measured. `Scene2D` derives its height
+ * from its width and its aspect ratio, so the only way to give it an exact height is to
+ * compute the ratio with the width it really has (#189, decision 3).
  */
 function useSlotWidth(ref: RefObject<HTMLDivElement | null>, enabled: boolean): number {
   const [width_px, setWidth] = useState(0);
@@ -153,7 +153,7 @@ function EditorScene({
     <Scene2D
       worldWidth_m={WORLD_WIDTH_M}
       center_m={SCENE_CENTER_M}
-      // `exactOptionalPropertyTypes`: sin relación de aspecto pedida, `Scene2D` usa la suya (16/9).
+      // `exactOptionalPropertyTypes`: with no aspect ratio requested, `Scene2D` uses its own (16/9).
       {...(aspect === undefined ? {} : { aspect })}
       description={t('sims.trackEditor.scene')}
     >
@@ -202,8 +202,8 @@ function SegmentBarLayer({ editor }: { editor: TrackEditorApi }): JSX.Element | 
 }
 
 /**
- * Relación ancho/alto que le da al lienzo el alto pedido, o `undefined` para dejarle el 16/9 de
- * `Scene2D` (#189, decisión 3).
+ * Width/height ratio that gives the canvas the requested height, or `undefined` to leave it the 16/9 of
+ * `Scene2D` (#189, decision 3).
  */
 function useCanvasAspect(
   slotRef: RefObject<HTMLDivElement | null>,
@@ -215,7 +215,7 @@ function useCanvasAspect(
   return slotWidth_px / height_px;
 }
 
-/** Traduce cada evento de puntero a metros del mundo antes de entregárselo al editor. */
+/** Translates each pointer event to world metres before handing it to the editor. */
 function pointerHandlers(
   hostRef: RefObject<HTMLDivElement | null>,
 ): (handler: (p_m: Vec2) => void) => (event: ReactPointerEvent<HTMLDivElement>) => void {
@@ -234,9 +234,9 @@ export function CanvasHost({
   editor: TrackEditorApi;
   hostRef: RefObject<HTMLDivElement | null>;
   /**
-   * Alto exacto del lienzo en píxeles CSS (#189, decisión 3). Lo pide la página cuando el editor
-   * ocupa la caja del visor, para que el lienzo tenga la misma altura que el visor al que
-   * sustituye; sin él, el lienzo conserva la relación 16/9 de `Scene2D`, que es la del playground.
+   * Exact height of the canvas in CSS pixels (#189, decision 3). The page asks for it when the editor
+   * occupies the viewer box, so that the canvas has the same height as the viewer it
+   * replaces; without it, the canvas keeps the 16/9 ratio of `Scene2D`, which is the playground one.
    */
   height_px?: number;
 }): JSX.Element {

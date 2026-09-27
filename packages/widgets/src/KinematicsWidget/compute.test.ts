@@ -91,9 +91,9 @@ describe('muestreo y encuadre (F2-04)', () => {
   });
 
   it('encuadra el rango de x con un 10 % de margen y al menos 1 m', () => {
-    // x va de 0 a 5 m en T-0.3: 5 m de rango más el 10 % son 5.5 m.
+    // x goes from 0 to 5 m in T-0.3: 5 m of range plus 10 % is 5.5 m.
     expect(worldWidthOf(T03, T03_DURATION_S)).toBeCloseTo(5.5, 12);
-    // Un movimiento casi quieto no colapsa la escena.
+    // An almost still motion does not collapse the scene.
     expect(worldWidthOf({ x0_m: 0, v0_mps: 0, a_mps2: 0 }, 4)).toBe(1);
   });
 });
@@ -123,14 +123,14 @@ describe('vista de la escena (#303)', () => {
   });
 
   it('centra el rango recorrido, también cuando la partícula retrocede', () => {
-    // x sube hasta x(0.7/1.1) ≈ 0.2227 m y baja hasta x(5) = −10.25 m.
+    // x rises up to x(0.7/1.1) ≈ 0.2227 m and falls down to x(5) = −10.25 m.
     const view = sceneViewOf({ x0_m: 0, v0_mps: 0.7, a_mps2: -1.1 }, 5);
     expect(view.centerX_m).toBeCloseTo((0.7 * 0.7) / (2 * 1.1) / 2 - 10.25 / 2, 12);
   });
 
   it('deja sitio a la flecha en los extremos del recorrido', () => {
     const view = sceneViewOf(T03, T03_DURATION_S);
-    // Al final, x(5) = 5 m con v(5) = 1.5 m/s: la flecha sigue midiendo al menos el 5 % de la vista.
+    // At the end, x(5) = 5 m with v(5) = 1.5 m/s: the arrow still measures at least 5 % of the view.
     const tip_m = velocityTipOf(5, velocityAt(T03, 5), view);
     expect(tip_m - 5).toBeGreaterThan(0.05 * view.worldWidth_m);
   });
@@ -155,7 +155,7 @@ describe('flecha de velocidad (#303)', () => {
     expect(right_m).toBeLessThan(max_m);
     expect(left_m).toBeLessThan(-3);
     expect(left_m).toBeGreaterThan(min_m);
-    // Pegada al borde, la flecha no apunta hacia atrás.
+    // Right at the edge, the arrow does not point backwards.
     expect(velocityTipOf(max_m - 0.01, 50, view)).toBe(max_m - 0.01);
   });
 });

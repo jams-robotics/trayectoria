@@ -5,13 +5,13 @@ import type { Translate } from '@trayectoria/i18n';
 import { Panel } from './SimPanel';
 import type { OpenPanelId } from './SimPanel';
 
-// #189 (decisión 2): mientras se edita la pista, la columna derecha muestra solo el panel del
-// segmento. Controlador, Robot, Pista y Gráficas no aplican con el visor fuera de la caja y su
-// sitio es justo el que el panel numérico del editor necesita; los cuatro vuelven al pulsar
-// «Volver a la simulación».
+// #189 (decision 2): while the track is being edited, the right column shows only the segment
+// panel. Controlador, Robot, Pista and Gráficas do not apply with the viewer out of the box and
+// their space is exactly what the editor's numeric panel needs; the four come back when
+// «Volver a la simulación» is pressed.
 
 export interface EditorColumnProps {
-  /** El panel numérico que el editor publica mientras está abierto. */
+  /** The numeric panel the editor publishes while it is open. */
   readonly panel: ReactNode;
   readonly mobile: boolean;
   readonly openId: OpenPanelId;
@@ -20,9 +20,9 @@ export interface EditorColumnProps {
 }
 
 /**
- * Abre el acordeón del panel del editor al entrar a editar y devuelve el grupo al panel que
- * estuviera abierto al salir (#189, decisión 2). Solo actúa en móvil, que es donde los paneles son
- * acordeones y solo uno puede estar abierto a la vez (docs/DESIGN.md §9.4).
+ * Opens the editor panel accordion when editing starts and returns the group to the panel that
+ * was open when leaving (#189, decision 2). It only acts on mobile, which is where the panels are
+ * accordions and only one can be open at a time (docs/DESIGN.md §9.4).
  */
 function useEditorAccordion(
   mobile: boolean,
@@ -42,7 +42,7 @@ function useEditorAccordion(
   }, [mobile, setOpenId]);
 }
 
-/** La columna derecha mientras `view === 'editor'`: el panel del segmento y nada más. */
+/** The right column while `view === 'editor'`: the segment panel and nothing else. */
 export function EditorColumn({
   panel,
   mobile,

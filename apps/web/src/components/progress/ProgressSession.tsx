@@ -4,12 +4,12 @@ import { subscribeSettledSession } from '@trayectoria/auth';
 import { configureProgressSession } from '@trayectoria/progress';
 
 /**
- * Único punto que conecta el servicio de progreso con la sesión (#120, decisión 2): una isla
- * `client:load` que sigue a `$session` y llama a `configureProgressSession(userId | null)`.
- * Vive aquí porque solo `apps/web` puede importar `@trayectoria/auth` y `@trayectoria/progress`
- * a la vez (regla de dependencias de `eslint.config.js`).
+ * The single point that connects the progress service with the session (#120, decision 2): a
+ * `client:load` island that follows `$session` and calls `configureProgressSession(userId | null)`.
+ * It lives here because only `apps/web` may import both `@trayectoria/auth` and
+ * `@trayectoria/progress` at once (dependency rule of `eslint.config.js`).
  *
- * No renderiza nada: las islas que muestran progreso leen `$progress`, no props.
+ * It renders nothing: the islands that show progress read `$progress`, not props.
  */
 export function startProgressSession(): () => void {
   // The store starts out anonymous, with the local progress of this browser: a visit that

@@ -10,9 +10,9 @@ const { listRobotSimConfigs, saveRobotSimConfig, deleteRobotSimConfig } = await 
 const { referenceRobot, robotSpecToJson } = await import('@trayectoria/widgets');
 const { parseSimConfig } = await import('@trayectoria/sims');
 
-// F4-05 (#131, decisión 5): el adaptador escribe `robots.spec.simConfigs` de la fila del robot
-// seleccionado con el cliente del estudiante. Lo que se comprueba aquí es la consulta: qué
-// columnas pide, con qué `eq` filtra y qué `spec` manda el `update`.
+// F4-05 (#131, decision 5): the adapter writes `robots.spec.simConfigs` of the selected robot's
+// row with the learner's client. What is checked here is the query: which
+// columns it asks for, which `eq` it filters with and which `spec` the `update` sends.
 
 interface Row {
   id: string;
@@ -21,9 +21,9 @@ interface Row {
 }
 
 /**
- * Una configuración cualquiera con la forma del ticket: óvalo, PID y semilla 1. Las ganancias son
- * literales y no `REFERENCE_PID_PARAMS`: `apps/web` no depende de sim-core
- * (docs/ARCHITECTURE.md §2), y lo que este adaptador guarda es el objeto tal cual, sea el que sea.
+ * Any configuration with the ticket's shape: oval, PID and seed 1. The gains are
+ * literals and not `REFERENCE_PID_PARAMS`: `apps/web` does not depend on sim-core
+ * (docs/ARCHITECTURE.md §2), and what this adapter saves is the object as is, whatever it is.
  */
 const CONFIG = {
   id: 'cfg-1',
@@ -35,8 +35,8 @@ const CONFIG = {
 };
 
 /**
- * Cliente de Supabase justo para estas dos consultas: `select ... eq ... eq ... maybeSingle` y
- * `update ... eq ... eq`. Registra los filtros y el objeto del `update` para poder mirarlos.
+ * Supabase client just for these two queries: `select ... eq ... eq ... maybeSingle` and
+ * `update ... eq ... eq`. It records the filters and the `update` object so they can be inspected.
  */
 function mockClient(row: Row | null, error: unknown = null, updateError: unknown = null) {
   const selectEq: Array<readonly [string, unknown]> = [];
@@ -69,7 +69,7 @@ function mockClient(row: Row | null, error: unknown = null, updateError: unknown
   return { client: { from } as never, from, selectEq, updateEq, columns, updates };
 }
 
-/** Una fila de `robots` cuyo `spec` es el robot de referencia con las `simConfigs` dadas. */
+/** A `robots` row whose `spec` is the reference robot with the given `simConfigs`. */
 function row(simConfigs: readonly unknown[] = []): Row {
   const spec = robotSpecToJson(referenceRobot()) as Record<string, unknown>;
   return { id: 'robot-1', spec: { ...spec, simConfigs }, spec_version: 1 };
@@ -118,16 +118,16 @@ describe('saveRobotSimConfig (F4-05)', () => {
     expect(saved).toEqual([CONFIG]);
     expect(mock.updates).toHaveLength(1);
     const values = mock.updates[0] ?? {};
-    // El `update` lleva `spec` y nada más: `spec_version` se queda como estaba.
+    // The `update` carries `spec` and nothing else: `spec_version` stays as it was.
     expect(Object.keys(values)).toEqual(['spec']);
     const spec = values['spec'] as Record<string, unknown>;
     expect(spec['simConfigs']).toEqual([CONFIG]);
-    // El resto del robot viaja intacto: el nombre, el tipo y la sección móvil siguen ahí.
+    // The rest of the robot travels intact: the name, the type and the mobile section are still there.
     const original = robotSpecToJson(referenceRobot()) as Record<string, unknown>;
     expect(spec['name']).toEqual(original['name']);
     expect(spec['kind']).toEqual(original['kind']);
     expect(spec['mobile']).toEqual(original['mobile']);
-    // La escritura pasa por RLS con el dueño de la sesión, nunca con `service_role`.
+    // The write goes through RLS with the session owner, never with `service_role`.
     expect(mock.updateEq).toEqual([
       ['id', 'robot-1'],
       ['owner_id', 'user-1'],

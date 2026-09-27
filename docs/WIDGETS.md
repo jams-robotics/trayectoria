@@ -63,7 +63,7 @@ UI de un ejercicio de `defineExercise`. Registra intentos si hay sesión.
 ```ts
 interface ExerciseWidgetProps { exercise: Exercise; topicId: string; required?: boolean; index?: number; seed?: number }
 ```
-`index` pinta el prefijo `E1`, `E2`… del ejercicio dentro del tema; `seed` fija la instancia para stories, tests y e2e (si no, sale de la sesión).
+`index` pinta el prefijo `E1`, `E2`… del ejercicio dentro del tema; `seed` fija la instancia para stories, tests y e2e (si no, la primera instancia es común a todos; desde «Nuevos valores» sale de la sesión, aprobado por el humano en el chat, 2026-09-26).
 
 ### MyRobotWidget
 Formulario del perfil móvil y tarjeta compacta.

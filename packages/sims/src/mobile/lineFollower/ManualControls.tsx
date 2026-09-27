@@ -7,13 +7,13 @@ import type { RobotSpec } from '@trayectoria/robot-spec';
 import { useManualKeyboard } from './useManualKeyboard';
 import type { ManualDrive, ManualKey } from './useManualKeyboard';
 
-// F4-04 (#130, decisión 3): los botones táctiles del modo manual, con la misma semántica que el
-// teclado. 44 px de lado (docs/DESIGN.md §5: altura mínima 44 en móvil y acciones principales).
+// F4-04 (#130, decision 3): the touch buttons of manual mode, with the same semantics as the
+// keyboard. 44 px per side (docs/DESIGN.md §5: minimum height 44 on mobile and for primary actions).
 
-/** Lado de cada botón, en píxeles (docs/DESIGN.md §5). */
+/** Side of each button, in pixels (docs/DESIGN.md §5). */
 const BUTTON_SIZE_PX = 44;
 
-/** Las cuatro direcciones y el glifo con el que se dibujan, en el orden del pad. */
+/** The four directions and the glyph they are drawn with, in pad order. */
 const KEYS: ReadonlyArray<readonly [ManualKey, string]> = [
   ['up', '↑'],
   ['left', '←'],
@@ -27,14 +27,14 @@ const BUTTON =
   'focus-visible:outline-color-focus focus-visible:outline-2 focus-visible:outline-offset-2';
 
 export interface ManualControlsProps {
-  /** El mando que el widget comparte con el teclado. */
+  /** The controller the widget shares with the keyboard. */
   readonly drive: ManualDrive;
 }
 
 /**
- * Pad de cuatro botones para conducir en manual sin teclado: `pointerdown` aplica la dirección y
- * `pointerup`/`pointercancel` la sueltan, igual que `keydown`/`keyup`. Solo se muestra con el
- * controlador manual seleccionado, que es quien decide el widget.
+ * Four-button pad to drive in manual mode without a keyboard: `pointerdown` applies the direction and
+ * `pointerup`/`pointercancel` release it, just like `keydown`/`keyup`. It is only shown with the
+ * manual controller selected, which is decided by the widget.
  */
 export function ManualControls({ drive }: ManualControlsProps): JSX.Element {
   const t = useT();
@@ -74,7 +74,7 @@ export function ManualControls({ drive }: ManualControlsProps): JSX.Element {
   );
 }
 
-/** Ayuda de interacción del modo manual, mono `xs` abajo-izquierda del visor (DESIGN §6). */
+/** Interaction help for manual mode, mono `xs` at the bottom-left of the viewer (DESIGN §6). */
 export function ManualHelp(): JSX.Element {
   const t = useT();
   return (
@@ -84,13 +84,13 @@ export function ManualHelp(): JSX.Element {
   );
 }
 
-/** Atajos que el visor manual anuncia (#130, decisión 2), en la sintaxis de `aria-keyshortcuts`. */
+/** Shortcuts the manual viewer announces (#130, decision 2), in `aria-keyshortcuts` syntax. */
 export const MANUAL_KEYSHORTCUTS = 'ArrowUp ArrowDown ArrowLeft ArrowRight Space';
 
 /**
- * El mando manual de un robot: el teclado del visor, con el techo de velocidad que el robot
- * admite, y el Espacio enganchado a la reproducción del widget. `enabled` lo ata al controlador
- * manual, así que con otro seleccionado nadie escucha.
+ * The manual controller of a robot: the viewer keyboard, with the speed ceiling the robot
+ * allows, and Space hooked to the widget's playback. `enabled` ties it to the manual
+ * controller, so with another one selected nobody listens.
  */
 export function useManualMode(
   viewerRef: RefObject<HTMLElement | null>,
@@ -109,9 +109,9 @@ export function useManualMode(
 }
 
 /**
- * La caja del visor en modo manual: el visor con `tabIndex = 0` para recibir el foco del teclado
- * y, debajo, el pad táctil y la ayuda de interacción. Fuera del modo manual es el visor y nada
- * más, con el mismo elemento enfocable para que el foco no salte al cambiar de controlador.
+ * The viewer box in manual mode: the viewer with `tabIndex = 0` to receive keyboard focus
+ * and, below it, the touch pad and the interaction help. Outside manual mode it is the viewer and nothing
+ * else, with the same focusable element so that focus does not jump when the controller changes.
  */
 export function ManualViewer({
   viewerRef,

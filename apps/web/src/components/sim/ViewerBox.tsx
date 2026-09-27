@@ -8,9 +8,9 @@ import { usePublishedPanel } from './editorPanelStore';
 import { TrackEditorBox } from './TrackEditorBox';
 import type { usePageState } from './useMobileSimState';
 
-// Separado de `MobileSimIsland.tsx` para mantener ese archivo bajo el límite de
-// docs/STANDARDS.md §4. Sigue siendo la misma caja del visor de #158 (enmienda tras auditoría de
-// PR #169) y #190 (decisión 3).
+// Split from `MobileSimIsland.tsx` to keep that file under the limit of
+// docs/STANDARDS.md §4. It is still the same viewer box of #158 (amendment after the audit of
+// PR #169) and #190 (decision 3).
 
 /**
  * #375 (docs/DESIGN.md, "Páginas de simulador"): from `lg` and with a window at least 640 px tall
@@ -38,7 +38,7 @@ interface ViewerBoxProps {
   page: ReturnType<typeof usePageState>;
   store: ApiStore;
   panels: EditorPanelStore;
-  /** Se llama al volver con el lienzo sin segmentos, para avisar de que la pista se conserva. */
+  /** Called when coming back with a canvas without segments, to warn that the track is kept. */
   onEmptyTrack: () => void;
   /** «Guardar» of the editor: the track goes to the account or to the browser (#191, decision 3). */
   onSaveTrack: (name: string, track: Exclude<TrackJson, string>) => Promise<void>;
@@ -47,10 +47,10 @@ interface ViewerBoxProps {
 }
 
 /**
- * La caja del visor: el visor de `LineFollowerWidget` (oculto con `hidden` mientras se edita, para
- * que la simulación siga viva) y, al editar, `TrackEditorBox` en su lugar (#158, enmienda tras
- * auditoría de PR #169). La página la pasa como `renderViewer`, así que decide ella el envoltorio
- * en lugar de que `TrackEditorBox` alcance el DOM interno del widget con un portal.
+ * The viewer box: the `LineFollowerWidget` viewer (hidden with `hidden` while editing, so
+ * that the simulation stays alive) and, when editing, `TrackEditorBox` in its place (#158, amendment
+ * after the audit of PR #169). The page passes it as `renderViewer`, so the page decides the wrapper
+ * instead of `TrackEditorBox` reaching the widget's inner DOM with a portal.
  */
 export function ViewerBox(props: ViewerBoxProps): JSX.Element {
   const { viewer, page, store, panels, onEmptyTrack, onSaveTrack, plots = null } = props;
@@ -60,9 +60,9 @@ export function ViewerBox(props: ViewerBoxProps): JSX.Element {
     (emptyTrack: boolean): void => {
       store.read()?.driver.reset();
       closeEditor();
-      // #190 (decisión 3): un lienzo sin segmentos no reemplaza a la pista que la página ya
-      // simulaba; se conserva aquella y se dice, porque si no el editor parecería no haber hecho
-      // nada.
+      // #190 (decision 3): a canvas without segments does not replace the track the page was
+      // already simulating; that one is kept and the page says so, because otherwise the editor
+      // would seem to have done nothing.
       if (emptyTrack) onEmptyTrack();
     },
     [store, closeEditor, onEmptyTrack],
@@ -86,9 +86,9 @@ export function ViewerBox(props: ViewerBoxProps): JSX.Element {
 }
 
 /**
- * El panel numérico que el editor entrega por `renderPanel`, encaminado hacia la columna derecha
- * (#189, decisión 2). No pinta nada donde el editor lo dejó: allí ya no hay sitio, y la columna es
- * quien lo muestra.
+ * The numeric panel the editor hands over through `renderPanel`, routed to the right column
+ * (#189, decision 2). It draws nothing where the editor left it: there is no room there, and the
+ * column is the one that shows it.
  */
 function EditorPanelPort({ store, panel }: { store: EditorPanelStore; panel: ReactNode }): null {
   usePublishedPanel(store, panel);

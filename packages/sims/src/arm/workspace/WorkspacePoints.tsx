@@ -4,18 +4,18 @@ import { BufferAttribute, BufferGeometry, Points, PointsMaterial } from 'three';
 
 import { pointColors, readWorkspacePalette } from './colors';
 
-// F5-03 (#136, decisiones 1 y 5): la nube va en un `Points` de three colgado del `Canvas` de
-// `Scene3D` con `<primitive>`, como el robot de `UrdfModel`. Los colores los calcula `colors.ts`
-// y viajan en el atributo `color` de la geometría: three no interpola nada, solo los pinta
-// (criterio del ticket: nada de shaders). Recalcular sustituye la nube y libera la anterior.
+// F5-03 (#136, decisions 1 and 5): the cloud goes in a three `Points` hung from the `Canvas` of
+// `Scene3D` with `<primitive>`, like the robot of `UrdfModel`. The colours are computed by `colors.ts`
+// and travel in the geometry's `color` attribute: three interpolates nothing, it only paints them
+// (ticket criterion: no shaders). Recomputing replaces the cloud and disposes the previous one.
 
-/** Tamaño del punto en píxeles; `sizeAttenuation: false` lo mantiene fijo con el zoom. */
+/** Point size in pixels; `sizeAttenuation: false` keeps it fixed with the zoom. */
 const POINT_SIZE_PX = 2;
 
 export interface WorkspacePointsProps {
-  /** La nube aplanada `[x0, y0, z0, …]`, en metros, de `sampleWorkspaceInBatches`. */
+  /** The flattened cloud `[x0, y0, z0, …]`, in metres, from `sampleWorkspaceInBatches`. */
   points: Float32Array;
-  /** Si la nube se dibuja; el toggle del panel la apaga sin recalcularla. */
+  /** Whether the cloud is drawn; the panel toggle turns it off without recomputing it. */
   visible: boolean;
 }
 
@@ -36,7 +36,7 @@ export function buildWorkspacePoints(points: Float32Array, element: Element | nu
   return new Points(geometry, material);
 }
 
-/** El objeto `Points`, reconstruido solo cuando cambia la nube; libera el anterior al morir. */
+/** The `Points` object, rebuilt only when the cloud changes; disposes the previous one when it dies. */
 function useWorkspaceObject(points: Float32Array): Points {
   const object = useMemo(
     () =>
@@ -50,7 +50,7 @@ function useWorkspaceObject(points: Float32Array): Points {
   useEffect(
     () => () => {
       object.geometry.dispose();
-      // `material` de three puede ser uno o varios; el de la nube es siempre uno.
+      // A three `material` can be one or several; the cloud's is always one.
       const materials = Array.isArray(object.material) ? object.material : [object.material];
       for (const material of materials) material.dispose();
     },
@@ -61,14 +61,14 @@ function useWorkspaceObject(points: Float32Array): Points {
 }
 
 /**
- * Nube de puntos del espacio de trabajo del brazo. Cada punto es una posición alcanzable
- * calculada por sim-core; el color viene de su distancia a la base (docs/DESIGN.md §2.2).
+ * Point cloud of the arm workspace. Each point is a reachable position
+ * computed by sim-core; the colour comes from its distance to the base (docs/DESIGN.md §2.2).
  */
 export function WorkspacePoints({ points, visible }: WorkspacePointsProps): JSX.Element {
   const object = useWorkspaceObject(points);
-  // La visibilidad se pone en el propio objeto de three, no como prop de `<primitive>`: R3F
-  // asigna cada prop al objeto, así que el elemento no lleva más prop que el objeto mismo
-  // (mismo criterio que `UrdfModel`, F5-01a).
+  // Visibility is set on the three object itself, not as a prop of `<primitive>`: R3F
+  // assigns every prop to the object, so the element carries no prop other than the object itself
+  // (same criterion as `UrdfModel`, F5-01a).
   object.visible = visible;
   return <primitive object={object} />;
 }

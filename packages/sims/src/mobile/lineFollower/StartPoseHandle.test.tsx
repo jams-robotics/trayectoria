@@ -7,7 +7,7 @@ import { pointAt, presets } from '@trayectoria/sim-core';
 import { StartPoseHandle, StartPoseMarker, TANGENT_STEP_M, poseOnTrack } from './StartPoseHandle';
 import { buildTrackIndex, projectOnTrack } from './lap';
 
-/** Pista de los valores dorados del ticket (#128). */
+/** Track of the ticket's golden values (#128). */
 const TRACK = presets.oval;
 
 describe('poseOnTrack (F4-02b)', () => {
@@ -15,8 +15,8 @@ describe('poseOnTrack (F4-02b)', () => {
     const index = buildTrackIndex(TRACK);
     const pose = poseOnTrack(TRACK, [0.3, 0.9]);
 
-    // Valor dorado del ticket: el mismo `s` que da `projectOnTrack`, y el rumbo tomado con
-    // `pointAt(s)` y `pointAt(s + 1e-3)` con tolerancia 1e-6.
+    // Golden value from the ticket: the same `s` that `projectOnTrack` gives, and the heading taken with
+    // `pointAt(s)` and `pointAt(s + 1e-3)` with tolerance 1e-6.
     const s_m = projectOnTrack(index, [0.3, 0.9]);
     const here = pointAt(TRACK, s_m);
     const ahead = pointAt(TRACK, s_m + TANGENT_STEP_M);
@@ -63,8 +63,8 @@ describe('StartPoseHandle (F4-02b)', () => {
       </StartPoseHandle>,
     );
 
-    // El campo es controlado por la página; el test escribe el valor final de una vez, que es
-    // lo que el padre ve al confirmarlo.
+    // The field is controlled by the page; the test types the final value at once, which is
+    // what the parent sees when it confirms it.
     const field = screen.getByTestId('start-pose-s');
     expect(field).toHaveValue(0);
     fireEvent.change(field, { target: { value: '0.25' } });
@@ -91,14 +91,14 @@ describe('StartPoseHandle (F4-02b)', () => {
 });
 
 describe('StartPoseHandle · arrastre sobre la pista (F4-02b)', () => {
-  // jsdom da caja cero a todo, así que se le fija una al lienzo: 720 × 405 px sobre el encuadre
-  // del óvalo (`viewOf`), que es el que el visor pasa al asa. El mapeo es el mismo
-  // `createTransform` que pinta la escena, así que píxeles y metros coinciden por construcción.
+  // jsdom gives everything a zero box, so one is fixed on the canvas: 720 × 405 px over the framing
+  // of the oval (`viewOf`), which is the one the viewer passes to the handle. The mapping is the same
+  // `createTransform` that paints the scene, so pixels and metres match by construction.
   const VIEW = { worldWidth_m: 1.3, center_m: [0.3, 0.25] as const };
   const BOX = { x: 0, y: 0, top: 0, left: 0, right: 720, bottom: 405, width: 720, height: 405 };
   const PX_PER_M = BOX.width / VIEW.worldWidth_m;
 
-  /** Píxeles del lienzo del punto `p_m`, con el mapeo del asa. */
+  /** Canvas pixels of the point `p_m`, with the handle's mapping. */
   function px(p_m: readonly [number, number]): { clientX: number; clientY: number } {
     return {
       clientX: BOX.width / 2 + (p_m[0] - VIEW.center_m[0]) * PX_PER_M,
@@ -106,7 +106,7 @@ describe('StartPoseHandle · arrastre sobre la pista (F4-02b)', () => {
     };
   }
 
-  /** Da caja al lienzo y devuelve el contenedor al que llegan los eventos de puntero. */
+  /** Gives the canvas a box and returns the container the pointer events reach. */
   function layOutCanvas(): HTMLElement {
     const canvas = screen.getByRole('img', { name: t('sims.lineFollower.scene') });
     vi.spyOn(canvas, 'getBoundingClientRect').mockReturnValue({ ...BOX, toJSON: () => BOX });
@@ -139,7 +139,7 @@ describe('StartPoseHandle · arrastre sobre la pista (F4-02b)', () => {
     fireEvent.pointerMove(host, { pointerId: 1, ...px([0.3, 0.75]) });
     fireEvent.pointerUp(host, { pointerId: 1, ...px([0.3, 0.9]) });
 
-    // Valor dorado de #128: el mismo `s` que `projectOnTrack` y el rumbo de `pointAt(s + 1e-3)`.
+    // Golden value from #128: the same `s` as `projectOnTrack` and the heading of `pointAt(s + 1e-3)`.
     const expected = poseOnTrack(TRACK, [0.3, 0.9]);
     const last = onChange.mock.calls.at(-1)?.[0] as typeof expected;
     expect(last.s_m).toBeCloseTo(expected.s_m, 12);
@@ -190,7 +190,7 @@ describe('StartPoseHandle · arrastre sobre la pista (F4-02b)', () => {
     const host = screen.getByTestId('start-pose-handle');
     host.setPointerCapture = () => undefined;
 
-    // Sin `<canvas>` dentro del asa, `worldOf` devuelve null y el arrastre no arranca.
+    // Without a `<canvas>` inside the handle, `worldOf` returns null and the drag does not start.
     fireEvent.pointerDown(host, { pointerId: 1, clientX: 10, clientY: 10 });
     fireEvent.pointerUp(host, { pointerId: 1, clientX: 10, clientY: 10 });
 

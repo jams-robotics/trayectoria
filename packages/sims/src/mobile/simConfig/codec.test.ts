@@ -4,10 +4,10 @@ import type { SimConfig } from '@trayectoria/robot-spec';
 
 import { MAX_LINK_CHARS, SHARE_PARAM, decode, encode, shareLink } from './codec';
 
-// F4-05 (#131, decisión 8): los valores dorados del ticket. El enlace del óvalo con el PID de
-// referencia y semilla 1 es el caso que la spec fija, así que se comprueba tal cual.
+// F4-05 (#131, decision 8): the ticket's golden values. The link of the oval with the reference
+// PID and seed 1 is the case the spec fixes, so it is checked as is.
 
-/** La configuración dorada del ticket: óvalo, PID de referencia y semilla 1. */
+/** The ticket's golden configuration: oval, reference PID and seed 1. */
 const GOLDEN: SimConfig = {
   id: 'cfg-golden',
   name: 'Óvalo con el PID de referencia',
@@ -17,18 +17,18 @@ const GOLDEN: SimConfig = {
   seed: 1,
 };
 
-/** Longitud máxima del texto del enlace dorado que pide el criterio de aceptación. */
+/** Maximum length of the golden link text required by the acceptance criterion. */
 const GOLDEN_MAX_LENGTH = 2000;
 
-/** Segmentos de la pista sintética cuyo enlace sigue cabiendo (#182, decisión 3). */
+/** Segments of the synthetic track whose link still fits (#182, decision 3). */
 const SHORT_TRACK_SEGMENTS = 30;
 
-/** Segmentos de la pista sintética cuyo enlace ya no cabe: por encima de `MAX_LINK_CHARS`. */
+/** Segments of the synthetic track whose link no longer fits: above `MAX_LINK_CHARS`. */
 const LONG_TRACK_SEGMENTS = 250;
 
 /**
- * Una pista serializada de `count` segmentos de línea, con coordenadas que no se repiten: un
- * `deflate-raw` sobre números iguales comprimiría a casi nada y no mediría lo que interesa.
+ * A serialised track of `count` line segments, with coordinates that do not repeat: a
+ * `deflate-raw` over equal numbers would compress to almost nothing and would not measure what matters.
  */
 function syntheticTrack(count: number): string {
   const segments = Array.from({ length: count }, (_unused, k) => ({
@@ -39,7 +39,7 @@ function syntheticTrack(count: number): string {
   return JSON.stringify({ version: 1, lineWidth_m: 0.02, segments });
 }
 
-/** El texto de `config`, o el fallo si no cabe; falla el test si se esperaba que cupiera. */
+/** The text of `config`, or the failure if it does not fit; fails the test if it was expected to fit. */
 async function encodedText(config: SimConfig): Promise<string> {
   const result = await encode(config);
   if (!result.ok) throw new Error(`encode falló: ${result.error}`);
@@ -78,7 +78,7 @@ describe('codec (F4-05)', () => {
   });
 
   it('un JSON que no cumple el esquema SimConfig es inválido', async () => {
-    // Un objeto sin `controller` ni `params`: base64url correcto, deflate correcto, esquema no.
+    // An object without `controller` or `params`: valid base64url, valid deflate, invalid schema.
     const bad = await encodeRaw(JSON.stringify({ id: 'x', name: 'y' }));
     await expect(decode(bad)).resolves.toEqual({ ok: false, error: 'invalid' });
   });
@@ -141,7 +141,7 @@ describe('codec (F4-05)', () => {
   });
 });
 
-/** Comprime y codifica un JSON cualquiera, para probar textos que el esquema rechaza. */
+/** Compresses and encodes any JSON, to test texts the schema rejects. */
 async function encodeRaw(json: string): Promise<string> {
   const source = new ReadableStream<Uint8Array>({
     start(controller) {

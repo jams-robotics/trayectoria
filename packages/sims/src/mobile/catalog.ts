@@ -2,52 +2,52 @@ import { parseRobotSpec } from '@trayectoria/robot-spec';
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import { maxWheelSpeed_radps } from '@trayectoria/sim-core';
 
-// F4-04 (#130, decisión 4): los tres robots de referencia viven en `catalog/mobile/{id}.json`
-// (docs/ARCHITECTURE.md §2) y se sirven por la integración de catálogo de `apps/web` bajo
-// `/catalog/mobile/`. Aquí solo se descargan y se validan con `parseRobotSpec`; ningún valor de
-// los robots se duplica en código.
+// F4-04 (#130, decision 4): the three reference robots live in `catalog/mobile/{id}.json`
+// (docs/ARCHITECTURE.md §2) and are served by the catalog integration of `apps/web` under
+// `/catalog/mobile/`. Here they are only downloaded and validated with `parseRobotSpec`; no value of
+// the robots is duplicated in code.
 
-/** Los robots de referencia del catálogo móvil, en el orden en que los muestra el selector. */
+/** The reference robots of the mobile catalog, in the order the selector shows them. */
 export const CATALOG_MOBILE_IDS = [
   'pequeno-competitivo',
   'educativo-estandar',
   'grande-lento',
 ] as const;
 
-/** Identificador de un robot de referencia del catálogo móvil. */
+/** Identifier of a reference robot of the mobile catalog. */
 export type CatalogMobileId = (typeof CATALOG_MOBILE_IDS)[number];
 
-/** Prefijo bajo el que la integración de catálogo sirve los robots móviles. */
+/** Prefix under which the catalog integration serves the mobile robots. */
 const CATALOG_MOBILE_PREFIX = '/catalog/mobile/';
 
-/** Decimales del resumen de velocidad del selector. */
+/** Decimals of the selector's speed summary. */
 const SUMMARY_DECIMALS = 2;
 
-/** Un robot del catálogo ya validado, con el identificador con el que se pidió. */
+/** An already validated catalog robot, with the identifier it was requested with. */
 export interface CatalogMobileEntry {
   readonly id: CatalogMobileId;
   readonly spec: RobotSpec;
 }
 
 export interface LoadCatalogMobileOptions {
-  /** `fetch` a usar; el del navegador por defecto. */
+  /** `fetch` to use; the browser one by default. */
   readonly fetchFn?: typeof fetch;
 }
 
-/** True cuando `id` nombra a un robot de referencia del catálogo. */
+/** True when `id` names a reference robot of the catalog. */
 export function isCatalogMobileId(id: string): id is CatalogMobileId {
   return CATALOG_MOBILE_IDS.some((candidate) => candidate === id);
 }
 
-/** URL del JSON de `id`, tal como lo sirve la integración de catálogo. */
+/** URL of the JSON of `id`, as the catalog integration serves it. */
 export function catalogMobileUrl(id: CatalogMobileId): string {
   return `${CATALOG_MOBILE_PREFIX}${id}.json`;
 }
 
 /**
- * Descarga el robot `id` del catálogo y lo valida con `parseRobotSpec`.
+ * Downloads the robot `id` from the catalog and validates it with `parseRobotSpec`.
  *
- * @throws Error si la descarga falla o si el JSON no es un `RobotSpec` válido.
+ * @throws Error if the download fails or if the JSON is not a valid `RobotSpec`.
  */
 export async function loadCatalogMobile(
   id: CatalogMobileId,
@@ -67,7 +67,7 @@ export async function loadCatalogMobile(
   return parsed.value;
 }
 
-/** Descarga y valida los tres robots de referencia, en el orden de `CATALOG_MOBILE_IDS`. */
+/** Downloads and validates the three reference robots, in the order of `CATALOG_MOBILE_IDS`. */
 export async function loadCatalogMobileAll(
   options: LoadCatalogMobileOptions = {},
 ): Promise<readonly CatalogMobileEntry[]> {
@@ -77,8 +77,8 @@ export async function loadCatalogMobileAll(
 }
 
 /**
- * Resumen de un robot para el selector: su velocidad máxima derivada, en m/s. Un spec sin perfil
- * móvil no tiene velocidad que resumir, así que devuelve cadena vacía en lugar de inventar una.
+ * Summary of a robot for the selector: its derived maximum speed, in m/s. A spec without a mobile
+ * profile has no speed to summarise, so it returns an empty string instead of inventing one.
  */
 export function summaryOf(spec: RobotSpec): string {
   const { mobile } = spec;

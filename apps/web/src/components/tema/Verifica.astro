@@ -7,29 +7,29 @@ import { ProgressSession } from '../progress/ProgressSession';
 import Section from './Section.astro';
 import { VerificaExercise } from './VerificaExercise';
 
-// Sección 6 (docs/CONTENT-STANDARDS.md §2): de 3 a 5 ejercicios, uno por `ExerciseWidget`, con
-// el índice correlativo y `required` según `requiredExercises` del frontmatter (#97, decisión 2).
+// Section 6 (docs/CONTENT-STANDARDS.md §2): 3 to 5 exercises, one per `ExerciseWidget`, with
+// the consecutive index and `required` according to `requiredExercises` of the frontmatter (#97, decision 2).
 //
-// El tema declara claves, no objetos: `content/` vive fuera de `apps/web` (ADR-0005) y un MDX no
-// resuelve los paquetes del workspace, así que la resolución ocurre aquí. La isla recibe solo la
-// clave (string serializable): Astro serializa a JSON las props de una isla `client:visible`, y
-// las funciones `generate`/`check` de `Exercise` no sobreviven esa serialización (#97, hallazgo
-// alta de auditoría del PR #119) — el objeto se resuelve en `VerificaExercise` desde el mismo
-// registro (`apps/web/src/lib/exercises.ts`).
+// The topic declares keys, not objects: `content/` lives outside `apps/web` (ADR-0005) and an MDX does
+// not resolve the workspace packages, so resolution happens here. The island receives only the
+// key (a serializable string): Astro serializes the props of a `client:visible` island to JSON, and
+// the `generate`/`check` functions of `Exercise` do not survive that serialization (#97, high-severity
+// audit finding of PR #119); the object is resolved in `VerificaExercise` from the same
+// registry (`apps/web/src/lib/exercises.ts`).
 
 interface Props {
-  /** Claves de los ejercicios del tema, en orden de dificultad creciente. */
+  /** Keys of the topic's exercises, in increasing order of difficulty. */
   ejercicios: readonly string[];
-  /** Id del tema (`ruta-N/mNN-tNN`), que el widget reporta al adaptador de progreso. */
+  /** Topic id (`ruta-N/mNN-tNN`), which the widget reports to the progress adapter. */
   topicId: string;
-  /** Ids de los ejercicios obligatorios; `requiredExercises` del frontmatter. */
+  /** Ids of the mandatory exercises; `requiredExercises` of the frontmatter. */
   obligatorios?: readonly string[];
 }
 
 const { ejercicios, topicId, obligatorios = [] } = Astro.props;
 const required = new Set(obligatorios);
 
-// Una clave desconocida detiene el build nombrando el tema y la clave, igual que las referencias.
+// An unknown key stops the build naming the topic and the key, just like the references.
 for (const key of ejercicios) {
   if (findExercise(key) === undefined) {
     throw new Error(

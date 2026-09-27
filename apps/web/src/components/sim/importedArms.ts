@@ -1,12 +1,12 @@
 /**
- * Los brazos importados del estudiante en `/simuladores/brazo` (F5-04, #137, decisiones 3 y 5).
- * Vive en `apps/web` porque solo la app puede importar `@trayectoria/db` y `@trayectoria/auth`
- * (regla de dependencias de `eslint.config.js`), y `ArmSimIsland` lo carga con `import()`, así que
- * `@supabase/supabase-js` no entra en el JS inicial de la página: un estudiante sin sesión nunca
- * llega a descargarlo (docs/ARCHITECTURE.md §8).
+ * The learner's imported arms in `/simuladores/brazo` (F5-04, #137, decisions 3 and 5).
+ * It lives in `apps/web` because only the app may import `@trayectoria/db` and `@trayectoria/auth`
+ * (dependency rule of `eslint.config.js`), and `ArmSimIsland` loads it with `import()`, so
+ * `@supabase/supabase-js` does not enter the page's initial JS: a learner without a session
+ * never downloads it (docs/ARCHITECTURE.md §8).
  *
- * Todo corre con el cliente de la sesión y la clave anon; RLS es el único control de acceso y no
- * hay migración ni política nueva.
+ * Everything runs with the session client and the anon key; RLS is the only access control and
+ * there is no new migration or policy.
  */
 import { ensureSessionReady } from '@trayectoria/auth';
 import { getDbClient } from '@trayectoria/db';
@@ -27,18 +27,18 @@ export async function currentOwnerId(): Promise<string | null> {
   return session?.user.id ?? null;
 }
 
-/** Los brazos guardados del estudiante con sesión ahora mismo, o la lista vacía si no la hay. */
+/** The saved arms of the currently signed-in learner, or the empty list if there is no session. */
 export async function loadImportedArms(): Promise<readonly ImportedArm[]> {
   const ownerId = await currentOwnerId();
   return ownerId === null ? [] : listImportedArms(getDbClient(), ownerId);
 }
 
-/** El zip de un brazo guardado, descargado del propio bucket con la ruta que trae su fila. */
+/** The zip of a saved arm, downloaded from its own bucket with the path its row carries. */
 export async function fetchArmZip(urdfPath: string): Promise<Uint8Array> {
   return downloadRobotZip(getDbClient(), urdfPath);
 }
 
-/** Guarda un zip ya comprobado como un brazo del estudiante, igual que hace F3-04. */
+/** Saves an already checked zip as one of the learner's arms, just like F3-04 does. */
 export async function saveImportedArm(upload: {
   readonly ownerId: string;
   readonly robotId: string;

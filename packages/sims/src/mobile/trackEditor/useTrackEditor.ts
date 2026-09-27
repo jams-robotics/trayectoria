@@ -182,7 +182,7 @@ function useWholeTrack(
   ];
 }
 
-/** «Deshacer» y «Rehacer»: un paso atrás o adelante en el historial (spec de #126). */
+/** «Deshacer» and «Rehacer»: one step back or forward in the history (spec of #126). */
 function useTimeTravel(
   history: History<EditorState>,
   replace: (next: History<EditorState>) => void,
@@ -198,9 +198,9 @@ function useTimeTravel(
 }
 
 /**
- * «Nueva» (#190, decisión 1): el lienzo vacío con el ancho de línea que se estaba usando. Pasa por
- * `commit` y no por `reset` como los presets, así que es una edición más del historial y
- * «Deshacer» devuelve la pista que había.
+ * «Nueva» (#190, decision 1): the empty canvas with the line width that was in use. It goes through
+ * `commit` and not through `reset` like the presets, so it is one more edit in the history and
+ * «Deshacer» brings back the track that was there.
  */
 function useNewTrack(state: EditorState, commit: (next: EditorState) => void): () => void {
   const { lineWidth_m } = state.track;

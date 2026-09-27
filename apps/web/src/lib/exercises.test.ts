@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { exerciseKeys, findExercise } from './exercises';
 
-// El mapa real de `@trayectoria/content` está vacío hasta T-0.1: se sustituye por uno construido
-// con el `registerTopics` real y un tema de prueba, fuera de `content/es/`.
+// The real map of `@trayectoria/content` is empty until T-0.1: it is replaced by one built
+// with the real `registerTopics` and a test topic, outside `content/es/`.
 vi.mock('@trayectoria/content', async (importOriginal) => {
   const actual = await importOriginal<typeof Content>();
   const { componentsExercise: fixture } = await import('@trayectoria/widgets/ExerciseWidget');

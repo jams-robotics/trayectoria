@@ -123,9 +123,9 @@ describe('DiffDriveWidget compute (F2-09a)', () => {
     closeTo(wheelSpeed_mps(saturate(command, SPEC).omegaR_radps, SPEC), 0.67);
   });
 
-  // El enunciado de e2 es «círculo de radio R a v» con los datos 0.4 y 0.3, así que R = 0.4 m y
-  // v = 0.3 m/s: son los únicos que dan las velocidades doradas (su media es v y su
-  // semidiferencia ω L/2 con ω = v/R = 0.75 rad/s).
+  // The statement of e2 is «círculo de radio R a v» with the data 0.4 and 0.3, so R = 0.4 m and
+  // v = 0.3 m/s: they are the only ones that give the golden velocities (their mean is v and their
+  // half-difference is ω L/2 with ω = v/R = 0.75 rad/s).
   it('un círculo de R = 0.4 m a v = 0.3 m/s da v_L = 0.2437 y v_R = 0.3562 m/s (e2 de T-5.3)', () => {
     const command = inverseKinematics(0.3, 0.3 / 0.4, SPEC);
     closeTo(wheelSpeed_mps(command.omegaL_radps, SPEC), 0.2437);

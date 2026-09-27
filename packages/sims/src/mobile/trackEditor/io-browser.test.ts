@@ -2,9 +2,9 @@ import { describe, expect, test, vi } from 'vitest';
 
 import { TRACK_FILE_NAME, downloadJson, readFileText } from './io-browser';
 
-// F4-01b, decisión 6 de #126: `packages/sims` no puede usar `window`, así que la descarga vive
-// aquí sobre `Blob`, `URL.createObjectURL` y `document.createElement('a')`, con el disparador
-// inyectable para poder probarlo sin navegación real.
+// F4-01b, decision 6 of #126: `packages/sims` cannot use `window`, so the download lives
+// here on top of `Blob`, `URL.createObjectURL` and `document.createElement('a')`, with an
+// injectable trigger so it can be tested without real navigation.
 describe('io-browser (F4-01b)', () => {
   test('downloads the JSON as pista.json and releases the object URL', () => {
     const clicked: HTMLAnchorElement[] = [];

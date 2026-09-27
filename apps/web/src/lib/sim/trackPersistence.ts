@@ -18,7 +18,7 @@ import type { DbClient, Json } from '@trayectoria/db';
 import { fromJson, serializeTrack } from '@trayectoria/sims';
 import type { SavedTrack, TrackJson } from '@trayectoria/sims';
 
-import { isCheckViolation } from '../checkViolation';
+import { OwnerRowLimitError, isCheckViolation } from '../checkViolation';
 
 /**
  * The track with geometry: the `TrackJson` without the preset-name branch. `apps/web` cannot
@@ -29,6 +29,9 @@ type Track = Exclude<TrackJson, string>;
 
 /** The size check of `tracks.track` (migration 0007, #210). */
 const SIZE_CHECK = 'tracks_track_size_check';
+
+/** The limit of 50 tracks per owner (migration 0008, #215). */
+const ROW_LIMIT = 'tracks_owner_row_limit';
 
 /** The columns the page needs from each row. */
 const COLUMNS = 'id, name, track, updated_at';
@@ -89,7 +92,8 @@ export async function listTracks(
  *
  * The caller has already checked the size of the text (#210), but the `jsonb` stored can take
  * more than its text, so a rejection by the size check of migration 0007 becomes a `RangeError`:
- * the same error, and so the same notice, as that check.
+ * the same error, and so the same notice, as that check. A rejection by the limit of tracks per
+ * owner of migration 0008 (#215) becomes an `OwnerRowLimitError`.
  */
 export async function saveTrack(
   ownerId: string,
@@ -104,6 +108,7 @@ export async function saveTrack(
       { onConflict: 'owner_id,name' },
     );
   if (error === null) return;
+  if (isCheckViolation(error, ROW_LIMIT)) throw new OwnerRowLimitError(error.message);
   throw isCheckViolation(error, SIZE_CHECK)
     ? new RangeError(error.message)
     : new Error(error.message);

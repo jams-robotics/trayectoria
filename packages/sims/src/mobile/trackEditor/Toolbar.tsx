@@ -26,7 +26,7 @@ const BUTTON =
 const SELECT =
   'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus min-h-11 shrink-0 border px-2 font-mono focus-visible:outline-2 focus-visible:outline-offset-2';
 
-// #189 (decisión 1): beside the simulator side panel the bar controls —four tools, undo, redo,
+// #189 (decision 1): beside the simulator side panel the bar controls —four tools, undo, redo,
 // export, import, «Nueva» (#190), «Guardar» (#191) and the preset— go with 8 px of padding and the
 // `xs` body, the minimum of docs/DESIGN.md §9.2. Even so they ask for ~920 px and the viewer box
 // measures 672 px at 1280 px, so the bar wraps into a second row (#225). The 44 px height is the
@@ -36,7 +36,7 @@ const PAD_TIGHT = 'px-2';
 const TEXT = 'text-sm';
 const TEXT_TIGHT = 'text-xs';
 
-/** Las dos clases que aprietan un control de la barra: su padding lateral y su cuerpo. */
+/** The two classes that tighten a bar control: its side padding and its body. */
 interface Sizing {
   readonly pad: string;
   readonly text: string;
@@ -52,7 +52,7 @@ export interface ToolbarProps {
   onSave: () => void;
   onLoad: (file: File) => void;
   onPreset: (name: PresetName) => void;
-  /** «Nueva»: deja el lienzo vacío, preguntando antes si hay algo que perder (#190, decisión 1). */
+  /** «Nueva»: empties the canvas, asking first if there is anything to lose (#190, decision 1). */
   onNew: () => void;
   /**
    * Saves the track under the name the learner types, in the account or in the browser (F4-06,
@@ -125,13 +125,13 @@ function LoadButton({
   );
 }
 
-/** Valor de la opción «Vacía» del selector, que no es un preset de sim-core (#190, decisión 2). */
+/** Value of the selector's «Vacía» option, which is not a sim-core preset (#190, decision 2). */
 const EMPTY_OPTION = 'empty';
 
 /**
  * The preset picker; it goes back to its placeholder so picking the same one twice works. Its
- * first option is «Vacía», que equivale a «Nueva»: vaciar el lienzo es una forma más de partir de
- * cero, y quien busca la pista de la que arrancar mira aquí (#190, decisión 2).
+ * first option is «Vacía», which is equivalent to «Nueva»: emptying the canvas is one more way of starting from
+ * scratch, and whoever looks for the track to start from looks here (#190, decision 2).
  */
 function PresetPicker({
   onPreset,
@@ -167,9 +167,9 @@ function PresetPicker({
 }
 
 /**
- * De dónde sale la pista entera: cargarla de un archivo, empezar una en blanco o partir de un
- * preset (#190, decisiones 1 y 2). «Nueva» va junto a «Cargar» y al selector porque las tres
- * responden a la misma pregunta, y no junto a las herramientas de dibujo.
+ * Where the whole track comes from: loading it from a file, starting a blank one or starting from a
+ * preset (#190, decisions 1 and 2). «Nueva» goes next to «Cargar» and the selector because all three
+ * answer the same question, and not next to the drawing tools.
  */
 function TrackGroup({
   onLoad,

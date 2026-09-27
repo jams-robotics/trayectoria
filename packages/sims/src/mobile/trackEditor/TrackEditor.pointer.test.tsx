@@ -7,8 +7,8 @@ import { describe, expect, test, vi } from 'vitest';
 
 import { TrackEditor } from './TrackEditor';
 
-// F4-01b: lo que el puntero dibuja sobre el lienzo. Va aparte de TrackEditor.test.tsx, que
-// cubre el panel numérico y la barra, para no pasar de 300 líneas por archivo
+// F4-01b: what the pointer draws on the canvas. It is separate from TrackEditor.test.tsx, which
+// covers the numeric panel and the bar, so as not to exceed 300 lines per file
 // (docs/STANDARDS.md §4).
 const LINE_TRACK: Track = {
   segments: [{ type: 'line', from: [0, 0], to: [0.3, 0] }],
@@ -32,7 +32,7 @@ describe('TrackEditor con el puntero (F4-01b)', () => {
     height: 405,
   };
 
-  /** Píxeles del lienzo del punto `p_m`, con el mismo mapeo que usa el editor. */
+  /** Canvas pixels of the point `p_m`, with the same mapping the editor uses. */
   function px(p_m: readonly [number, number]): { clientX: number; clientY: number } {
     return {
       clientX: 360 + (p_m[0] - 0.475) * 400,
@@ -59,7 +59,7 @@ describe('TrackEditor con el puntero (F4-01b)', () => {
     render(<TrackEditor onChange={(track) => changes.push(track)} />);
     const host = layOutCanvas();
     // (0,0) is the centre of the 560 × 315 box; 0.2 m to the right is 80 px.
-    // Sin herramienta de dibujo, «Seleccionar» no añade nada.
+    // Without a drawing tool, «Seleccionar» adds nothing.
     fireEvent.pointerDown(host, { pointerId: 1, ...px([0, 0]) });
     fireEvent.pointerMove(host, { pointerId: 1, ...px([0.2, 0]) });
     fireEvent.pointerUp(host, { pointerId: 1, ...px([0.2, 0]) });
@@ -83,7 +83,7 @@ describe('TrackEditor con el puntero (F4-01b)', () => {
     await userEvent
       .setup()
       .click(screen.getByRole('radio', { name: t('sims.trackEditor.tool.arc') }));
-    // El arrastre dorado del ticket: (0,0) → (0.2,0) pasando por encima de la cuerda.
+    // The ticket's golden drag: (0,0) → (0.2,0) passing above the chord.
     fireEvent.pointerDown(host, { pointerId: 1, ...px([0, 0]) });
     fireEvent.pointerMove(host, { pointerId: 1, ...px([0.1, 0.05]) });
     fireEvent.pointerUp(host, { pointerId: 1, ...px([0.2, 0]) });
@@ -93,9 +93,9 @@ describe('TrackEditor con el puntero (F4-01b)', () => {
     expect(segment.ccw).toBe(true);
   });
 
-  // #160: el segmento seleccionado debe distinguirse en el lienzo. El marcado que lo prueba es
-  // `data-selected` en su elemento de la lista; el resaltado del lienzo es canvas y se cubre con
-  // la captura visual `TrackEditor-selected.png`.
+  // #160: the selected segment must stand out on the canvas. The markup that proves it is
+  // `data-selected` on its list element; the canvas highlight is canvas and is covered by
+  // the visual capture `TrackEditor-selected.png`.
   test('clicking a segment marks it as selected and clicking away unmarks it', () => {
     render(<TrackEditor initialTrack={LINE_TRACK} />);
     const host = layOutCanvas();
@@ -104,12 +104,12 @@ describe('TrackEditor con el puntero (F4-01b)', () => {
     });
     expect(segment).not.toHaveAttribute('data-selected');
 
-    // La recta va de (0,0) a (0.3,0): un clic sobre ella la selecciona.
+    // The straight goes from (0,0) to (0.3,0): a click on it selects it.
     fireEvent.pointerDown(host, { pointerId: 1, ...px([0.15, 0]) });
     fireEvent.pointerUp(host, { pointerId: 1, ...px([0.15, 0]) });
     expect(segment).toHaveAttribute('data-selected', 'true');
 
-    // Un clic lejos de la pista la deselecciona.
+    // A click far from the track deselects it.
     fireEvent.pointerDown(host, { pointerId: 1, ...px([0.15, 0.4]) });
     fireEvent.pointerUp(host, { pointerId: 1, ...px([0.15, 0.4]) });
     expect(segment).not.toHaveAttribute('data-selected');

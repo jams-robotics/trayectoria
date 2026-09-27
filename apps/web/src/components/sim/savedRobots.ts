@@ -1,14 +1,14 @@
 /**
- * Los robots móviles guardados del estudiante (F4-02b, #128, decisión 2): las filas
- * `kind = 'mobile-diff'` de `public.robots`. Vive en `apps/web` porque solo la app puede importar
- * `@trayectoria/db` y `@trayectoria/auth` (regla de dependencias de `eslint.config.js`), y lee con
- * el cliente y las políticas que ya existen: RLS las acota a `owner_id = auth.uid()` y no hay
- * migración ni política nueva (mismo acceso que `apps/web/src/stores/robotPersistence.ts`,
- * revisado en F2-11).
+ * The learner's saved mobile robots (F4-02b, #128, decision 2): the rows
+ * `kind = 'mobile-diff'` of `public.robots`. It lives in `apps/web` because only the app may import
+ * `@trayectoria/db` and `@trayectoria/auth` (dependency rule of `eslint.config.js`), and it reads
+ * with the client and the policies that already exist: RLS limits them to `owner_id = auth.uid()`
+ * and there is no new migration or policy (same access as `apps/web/src/stores/robotPersistence.ts`,
+ * reviewed in F2-11).
  *
- * `RobotSource` lo carga con `import()`: así `@supabase/supabase-js` no entra en el JS inicial de
- * `/simuladores/movil` y la página cumple el presupuesto de docs/ARCHITECTURE.md §8. Un estudiante
- * sin sesión nunca llega a descargarlo.
+ * `RobotSource` loads it with `import()`: that way `@supabase/supabase-js` does not enter the
+ * initial JS of `/simuladores/movil` and the page meets the budget of docs/ARCHITECTURE.md §8. A
+ * learner without a session never downloads it.
  */
 import { ensureSessionReady } from '@trayectoria/auth';
 import { getDbClient } from '@trayectoria/db';
@@ -16,10 +16,10 @@ import type { DbClient } from '@trayectoria/db';
 import { parseStoredRobot } from '@trayectoria/widgets/MyRobotWidget';
 import type { RobotSpec } from '@trayectoria/widgets/MyRobotWidget';
 
-/** El único `kind` que esta página simula. */
+/** The only `kind` this page simulates. */
 export const MOBILE_KIND = 'mobile-diff';
 
-/** Un robot guardado tal y como lo muestra el selector. */
+/** A saved robot as the selector shows it. */
 export interface SavedRobot {
   readonly id: string;
   readonly name: string;
@@ -27,9 +27,9 @@ export interface SavedRobot {
 }
 
 /**
- * Los robots móviles del dueño `ownerId`, ordenados por nombre. Una fila cuyo `spec` no valida se
- * deja fuera en lugar de romper el selector; un error de la consulta devuelve la lista vacía,
- * que es lo que la página muestra como «no hay robots guardados».
+ * The mobile robots of owner `ownerId`, sorted by name. A row whose `spec` does not validate is
+ * left out instead of breaking the selector; a query error returns the empty list,
+ * which is what the page shows as «no hay robots guardados».
  */
 export async function listSavedRobots(
   ownerId: string,

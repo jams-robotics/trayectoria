@@ -4,10 +4,10 @@ import { describe, expect, test } from 'vitest';
 
 import { formatEntry, linkTransforms, matrixRows } from './matrices';
 
-// F5-02 (#135, decisiones 2, 3 y 6): los valores dorados del ticket sobre el brazo plano de
-// docs/ROBOT-SPEC.md §4 (l₁ = 0,20 m, l₂ = 0,15 m, dos articulaciones revolutas sobre Z).
+// F5-02 (#135, decisions 2, 3 and 6): the ticket's golden values on the planar arm of
+// docs/ROBOT-SPEC.md §4 (l₁ = 0,20 m, l₂ = 0,15 m, two revolute joints about Z).
 
-/** Brazo plano de 2 GDL del catálogo, escrito aquí para no depender de la carga del URDF. */
+/** 2-DOF planar arm from the catalog, written here so as not to depend on loading the URDF. */
 const PLANAR_2DOF: ArmSpec = {
   baseLink: 'base_link',
   endEffectorLink: 'tool0',
@@ -42,7 +42,7 @@ const PLANAR_2DOF: ArmSpec = {
   ],
 };
 
-/** Brazo con una articulación prismática sobre +Y, para el caso `Trans(axis · q)`. */
+/** Arm with a prismatic joint along +Y, for the `Trans(axis · q)` case. */
 const PRISMATIC: ArmSpec = {
   baseLink: 'base_link',
   endEffectorLink: 'slider',
@@ -60,13 +60,13 @@ const PRISMATIC: ArmSpec = {
   ],
 };
 
-/** La configuración dorada del ticket: q₁ = 90°, q₂ = −90°. */
+/** The ticket's golden configuration: q₁ = 90°, q₂ = −90°. */
 const GOLDEN_Q_RAD = [Math.PI / 2, -Math.PI / 2] as const;
 
-/** Tolerancia de las comparaciones entrada a entrada del ticket. */
+/** Tolerance of the ticket's entry-by-entry comparisons. */
 const TOLERANCE = 1e-12;
 
-/** La transformada del eslabón, o un fallo explícito si la cadena no lo trae. */
+/** The transform of the link, or an explicit failure if the chain does not contain it. */
 function transformOf(spec: ArmSpec, q_rad: readonly number[], link: string): readonly number[] {
   const found = linkTransforms(spec, q_rad).find((entry) => entry.link === link);
   expect(found).toBeDefined();
@@ -77,7 +77,7 @@ describe('linkTransforms (F5-02)', () => {
   test('`T_joint` de joint1 con q₁ = π/2 es Rz(π/2)', () => {
     const rows = linkTransforms(PLANAR_2DOF, GOLDEN_Q_RAD);
     const joint1 = rows.find((entry) => entry.joint === 'joint1');
-    // Valor dorado del ticket, en columna-mayor como el `Mat4` de sim-core.
+    // Golden value from the ticket, column-major like the sim-core `Mat4`.
     const RZ_90 = [0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
     RZ_90.forEach((expected, index) => {
       expect(joint1?.T_joint[index] ?? Number.NaN).toBeCloseTo(expected, 12);
@@ -94,10 +94,10 @@ describe('linkTransforms (F5-02)', () => {
   });
 
   test('`T_cumulative` de la punta del eslabón 2 con q = (π/2, −π/2) traslada (0.15, 0.20, 0)', () => {
-    // Valor dorado del ticket. La traslación (0.15, 0.20, 0) es la de la punta del segundo
-    // eslabón, que en el URDF del catálogo es el marco `tool0`: el marco propio de `link2` está
-    // en su base, a (0, 0.20, 0) tras girar q₁ = 90°. Se comprueban los dos, porque el que fija
-    // el ticket es el número, y `forwardKinematics` da el mismo (test siguiente).
+    // Golden value from the ticket. The translation (0.15, 0.20, 0) is that of the tip of the second
+    // link, which in the catalog URDF is the `tool0` frame: the own frame of `link2` is
+    // at its base, at (0, 0.20, 0) after rotating q₁ = 90°. Both are checked, because what the
+    // ticket fixes is the number, and `forwardKinematics` gives the same one (next test).
     const tip = transformOf(PLANAR_2DOF, GOLDEN_Q_RAD, 'tool0');
     expect(tip[12] ?? Number.NaN).toBeCloseTo(0.15, 9);
     expect(tip[13] ?? Number.NaN).toBeCloseTo(0.2, 9);

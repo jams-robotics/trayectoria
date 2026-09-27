@@ -6,23 +6,23 @@ import { ExerciseWidget, ProgressAdapterProvider } from '@trayectoria/widgets/Ex
 import { findExercise } from '../../lib/exercises';
 
 /**
- * Isla de cliente que monta un `ExerciseWidget` a partir de la clave del ejercicio, no del
- * objeto `Exercise` (#97, hallazgo alta de auditoría del PR #119): Astro serializa a JSON las
- * props de una isla `client:visible`, y las funciones `generate`/`check` de `Exercise` no
- * sobreviven esa serialización. `Verifica.astro` ya valida la clave contra el registro en tiempo
- * de build, así que aquí solo se resuelve de nuevo (el registro es el mismo módulo).
+ * Client island that mounts an `ExerciseWidget` from the exercise key, not from the
+ * `Exercise` object (#97, high-severity audit finding of PR #119): Astro serializes to JSON the
+ * props of a `client:visible` island, and the `generate`/`check` functions of `Exercise` do not
+ * survive that serialization. `Verifica.astro` already validates the key against the registry at
+ * build time, so here it is only resolved again (the registry is the same module).
  *
- * Además inyecta el adaptador real de `@trayectoria/progress` (#120, decisión 1): solo
- * `apps/web` puede importar a la vez `widgets` y `progress`. El adaptador necesita los
- * obligatorios **completos** del tema, no solo si este ejercicio lo es, porque la regla de
- * completado compara ese conjunto entero con los ejercicios acertados.
+ * It also injects the real adapter of `@trayectoria/progress` (#120, decision 1): only
+ * `apps/web` may import both `widgets` and `progress` at once. The adapter needs the
+ * **complete** set of the topic's mandatory exercises, not only whether this exercise is one, because
+ * the completion rule compares that whole set with the exercises answered correctly.
  */
 export interface VerificaExerciseProps {
   readonly exerciseKey: string;
   readonly topicId: string;
   readonly index: number;
   readonly required: boolean;
-  /** Ids de los ejercicios obligatorios del tema, completos (#120, decisión 1). */
+  /** Ids of the topic's mandatory exercises, complete (#120, decision 1). */
   readonly requiredExerciseIds: readonly string[];
 }
 
@@ -37,7 +37,7 @@ export function VerificaExercise({
   const ids = requiredExerciseIds.join(',');
   const adapter = useMemo(() => progressAdapterFor(ids === '' ? [] : ids.split(',')), [ids]);
   if (exercise === undefined) {
-    // `Verifica.astro` ya falló el build si la clave no existe; esto solo cierra el tipo.
+    // `Verifica.astro` already failed the build if the key does not exist; this only narrows the type.
     throw new Error(`unknown exercise key "${exerciseKey}" (components/tema/VerificaExercise)`);
   }
   return (

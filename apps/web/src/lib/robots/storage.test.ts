@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { OwnerRowLimitError } from '../checkViolation';
 import {
   URDF_BUCKET,
   deleteRobot,
@@ -163,6 +164,19 @@ describe('saveUploadedRobot (F3-04, decision 6)', () => {
     expect(calls[2]?.filters).toMatchObject({ id: ROBOT, owner_id: OWNER });
   });
 
+  it('maps the urdf owner object limit (#502) to the same limitReached notice as #215', async () => {
+    // The exact shape a local Supabase Storage (storage-js 2.116.0) hands back for the 21st
+    // upload rejected by migration 0009's trigger: no constraint name, just a generic
+    // `StorageApiError` with `code: "DatabaseError"` and the SQLSTATE inside the message.
+    const { db } = mockDb({
+      failing: ['storage.urdf.upload'],
+      row: INSERTED,
+      error: { message: 'database error, code: 23514', code: 'DatabaseError' },
+    });
+    const upload = { ownerId: OWNER, robotId: ROBOT, name: 'Brazo', spec: SPEC, specVersion: 1, zipBytes: ZIP };
+    await expect(saveUploadedRobot(db, upload)).rejects.toBeInstanceOf(OwnerRowLimitError);
+  });
+
   it('never uploads anything when the insert fails', async () => {
     const { db, calls } = mockDb({ failing: ['robots.insert'] });
     await expect(
@@ -202,6 +216,21 @@ describe('saveUploadedRobot size bound (#210)', () => {
     const { db, calls } = mockDb({ failing: ['robots.insert'], error });
     await expect(saveUploadedRobot(db, upload(SPEC))).rejects.toBeInstanceOf(RangeError);
     expect(calls.map((call) => call.op)).toEqual(['robots.insert']);
+  });
+
+  it('turns the 23514 of the owner row limit into an OwnerRowLimitError (#215)', async () => {
+    const message =
+      'new row for relation "robots" violates check constraint "robots_owner_row_limit"';
+    const error = { message, code: '23514' };
+    const { db, calls } = mockDb({ failing: ['robots.insert'], error });
+    await expect(saveUploadedRobot(db, upload(SPEC))).rejects.toBeInstanceOf(OwnerRowLimitError);
+    expect(calls.map((call) => call.op)).toEqual(['robots.insert']);
+  });
+
+  it('shows the limit notice for the owner row limit (#215)', () => {
+    expect(saveErrorKey(new OwnerRowLimitError('x'), 'auth.robots.uploadFailed')).toBe(
+      'auth.robots.limitReached',
+    );
   });
 
   it('shows the too-large notice only for that error', () => {

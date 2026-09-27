@@ -142,7 +142,7 @@ describe('track editor model (F4-01a)', () => {
   });
 });
 
-// #159, decisión 2: invertir el sentido conserva `from`, `to` y el radio, y solo niega `ccw`.
+// #159, decision 2: inverting the direction keeps `from`, `to` and the radius, and only negates `ccw`.
 describe('setArcDirection (#159)', () => {
   it('keeps both endpoints and the radius and flips the sweep', () => {
     const state = addArc(emptyEditor(), ORIGIN, RIGHT, 0.15, false);
