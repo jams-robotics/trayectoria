@@ -4,7 +4,7 @@
   "dof": 2,
   "reach_m": 0.35,
   "payload_kg": null,
-  "cost_usd_approx": 0,
+  "cost_usd_approx": null,
   "license": {
     "hardware": "MIT",
     "software": "MIT"
