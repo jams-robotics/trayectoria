@@ -67,7 +67,7 @@ test('Scalar: the right answer shows the correct state', async ({ page }) => {
   await expect(scope.getByTestId('exercise')).toHaveAttribute('data-status', 'correct');
 });
 
-test('Scalar: an answer 10 % off shows the percentage and the attempt counter', async ({
+test('Scalar: an answer 10 % off shows «Incorrecto», the hint and the attempt counter', async ({
   page,
 }) => {
   await openPlayground(page);
@@ -75,7 +75,8 @@ test('Scalar: an answer 10 % off shows the percentage and the attempt counter', 
 
   await answer(scope, String(1.1 * SCALAR_ANSWER_S));
 
-  await expect(result(scope)).toContainText('Incorrecto · fuera por 10.0 %');
+  await expect(result(scope)).toHaveText(/Incorrecto$/);
+  await expect(scope.getByTestId('exercise-hint')).toHaveText('Revisa el cálculo y las unidades.');
   await expect(scope.getByTestId('exercise-attempt')).toHaveText('Intento 1');
   await expect(scope.getByTestId('exercise')).toHaveAttribute('data-status', 'incorrect');
 });
@@ -121,7 +122,7 @@ test('Vector: one field per component, both must be inside the tolerance', async
 
   await expect(scope.getByRole('textbox')).toHaveCount(2);
   await answer(scope, '0.372394', String(1.1 * 0.998503));
-  await expect(result(scope)).toContainText('Incorrecto · fuera por 10.0 %');
+  await expect(result(scope)).toHaveText(/Incorrecto$/);
 
   await answer(scope, '0.372394', '0.998503');
   await expect(result(scope)).toContainText(EXERCISE.correct);

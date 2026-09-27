@@ -29,8 +29,9 @@ export interface ExerciseWidgetProps<V> {
 function announcement(state: ExerciseState, t: Translate): string {
   if (state.status === 'correct') return t('widgets.ExerciseWidget.correct');
   if (state.status !== 'incorrect') return '';
-  const line = t('widgets.ExerciseWidget.incorrect', { percent: state.percent });
-  return `${line} · ${t('widgets.ExerciseWidget.attempt', { n: state.attempt })}`;
+  const line = t('widgets.ExerciseWidget.incorrect');
+  const hint = t('widgets.ExerciseWidget.hint');
+  return `${line} · ${hint} · ${t('widgets.ExerciseWidget.attempt', { n: state.attempt })}`;
 }
 
 /** Statement of the instance, with the `E{n}` prefix and the «obligatorio» tag when they apply. */
@@ -88,7 +89,7 @@ function AnswerRow({ state, t }: { state: ExerciseState; t: Translate }): JSX.El
       >
         {t('widgets.ExerciseWidget.verify')}
       </button>
-      <ResultLine status={status} errorPercent={state.percent} t={t} />
+      <ResultLine status={status} relativeError={state.relativeError} t={t} />
     </div>
   );
 }
@@ -123,8 +124,12 @@ export function ExerciseWidget<V>({
         <p className="text-error mt-2 text-sm">{t('widgets.ExerciseWidget.invalid')}</p>
       ) : null}
       {state.status === 'incorrect' ? (
-        <p className="text-fg-muted mt-2 text-sm" data-testid="exercise-attempt">
-          {t('widgets.ExerciseWidget.attempt', { n: state.attempt })}
+        <p className="text-fg-muted mt-2 text-sm">
+          <span data-testid="exercise-hint">{t('widgets.ExerciseWidget.hint')}</span>
+          {' · '}
+          <span data-testid="exercise-attempt">
+            {t('widgets.ExerciseWidget.attempt', { n: state.attempt })}
+          </span>
         </p>
       ) : null}
       <button type="button" className={`${GHOST} mt-4`} onClick={state.regenerate}>

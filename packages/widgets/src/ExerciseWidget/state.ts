@@ -11,7 +11,6 @@ import { randomSeed, seedFor } from './seed';
 
 /** Significant figures of the statement values before interpolation (#94, decision 4). */
 const STATEMENT_SIG_FIGS = 4;
-const PERCENT_DECIMALS = 1;
 /** Typographic minus sign of the statements (V-05, #475). */
 const MINUS_SIGN = '−';
 
@@ -59,8 +58,9 @@ export interface ExerciseState {
   /** Values of the current instance, rounded and ready to interpolate. */
   params: TParams;
   status: ExerciseStatus;
-  /** Relative error of the last graded response as a percentage, to 1 decimal. */
-  percent: string;
+  /** Unrounded relative error of the last graded response, or null before grading. Not shown to the
+   * student (#533); it only travels in a data attribute for black-box e2e tests. */
+  relativeError: number | null;
   attempt: number;
   invalid: boolean;
   values: readonly string[];
@@ -133,8 +133,7 @@ function useSeed(
     if (anonymous) setMountSeed(randomSeed());
   }, [anonymous, round]);
 
-  const derived =
-    round === 0 ? firstInstance : seedFor(userId ?? '', topicId, exerciseId, round);
+  const derived = round === 0 ? firstInstance : seedFor(userId ?? '', topicId, exerciseId, round);
   const seed = fixedSeed ?? (anonymous ? (mountSeed ?? derived) : derived);
   const next = (): void => {
     setRound((current) => current + 1);
@@ -154,12 +153,20 @@ interface Grading<V> {
   setResponses: (responses: Responses) => void;
 }
 
+/**
+ * Clears any previous outcome so only one message shows: a non-numeric submission never leaves
+ * a stale «Incorrecto» next to «Escribe un número.» (#533).
+ */
+function invalidResponse(values: readonly string[], attempt: number): Responses {
+  return { values, graded: null, attempt, invalid: true, checking: false };
+}
+
 /** Grades the drafts, reports the attempt and moves the row to its next state. */
 function grade<V>(context: Grading<V>): void {
   const { exercise, topicId, seed, count, adapter, responses, values, setResponses } = context;
   const numbers = parseAll(values);
   if (numbers === null) {
-    setResponses({ ...responses, values, invalid: true });
+    setResponses(invalidResponse(values, responses.attempt));
     return;
   }
   const outcome = check(exercise, seed, count === 1 ? (numbers[0] ?? Number.NaN) : numbers);
@@ -232,7 +239,7 @@ export function useExercise<V>(
     statementKey: instance.statementKey,
     params: statementParams(instance.values),
     status: statusOf(responses),
-    percent: ((responses.graded?.relError ?? 0) * 100).toFixed(PERCENT_DECIMALS),
+    relativeError: responses.graded?.relError ?? null,
     attempt: responses.attempt,
     invalid: responses.invalid,
     values,

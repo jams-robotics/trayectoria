@@ -18,13 +18,13 @@ function regionOf(container: HTMLElement, name: string): HTMLElement {
 const STICKY = '[@media(min-height:640px)]:sticky';
 
 describe('SimLayout (docs/DESIGN.md §6)', () => {
-  test('keeps the mobile order: viewer, values, then the parameters', () => {
+  test('keeps the mobile order: viewer, values, then the parameters (#530)', () => {
     const { container } = render(
       <SimLayout viewer={<i />} values={<i />} params={<i data-testid="params" />} />,
     );
     expect(regionOrder(container)).toEqual(['viewer', 'values', 'params']);
-    expect(regionOf(container, 'values')).toHaveClass('max-lg:order-4');
-    expect(regionOf(container, 'params')).toHaveClass('max-lg:order-5');
+    expect(regionOf(container, 'values')).toHaveClass('max-lg:order-3');
+    expect(regionOf(container, 'params')).toHaveClass('max-lg:order-4');
   });
 
   test('puts viewer and values in a top row that is sticky from the breakpoint', () => {
@@ -118,10 +118,35 @@ describe('SimLayout with extras (docs/DESIGN.md §6, point 3)', () => {
     );
   });
 
-  test('on mobile puts each extra at its anchor', () => {
+  test('on mobile puts each extra at its anchor, after the parameters (#530)', () => {
     render(<SimLayout viewer={<i />} values={<i />} params={<i />} extras={extras} />);
-    expect(screen.getByTestId('chart').parentElement).toHaveClass('max-lg:order-3', 'max-lg:-mt-1');
+    expect(screen.getByTestId('chart').parentElement).toHaveClass('max-lg:order-5');
     expect(screen.getByTestId('panel').parentElement).toHaveClass('max-lg:order-6');
+  });
+
+  test('on mobile the playback controls stay under the canvas, ahead of values, params and the afterViewer charts (#530)', () => {
+    const { container } = render(
+      <SimLayout
+        viewer={
+          <>
+            <i data-testid="canvas" />
+            <i data-testid="controls" />
+          </>
+        }
+        values={<i />}
+        params={<i />}
+        extras={extras}
+      />,
+    );
+    // Without an `afterViewerFirst` extra the viewer keeps its own source order (canvas,
+    // then controls), and the whole viewer region renders before values, params and the extras.
+    const viewer = regionOf(container, 'viewer');
+    expect(viewer.querySelector('[data-testid="canvas"]')).not.toBeNull();
+    expect(viewer.querySelector('[data-testid="controls"]')).not.toBeNull();
+    expect(regionOrder(container)).toEqual(['viewer', 'values', 'params', 'extras']);
+    expect(regionOf(container, 'values')).toHaveClass('max-lg:order-3');
+    expect(regionOf(container, 'params')).toHaveClass('max-lg:order-4');
+    expect(screen.getByTestId('chart').parentElement).toHaveClass('max-lg:order-5');
   });
 
   test('splits the viewer only for an extra anchored after its first child', () => {
