@@ -4,7 +4,15 @@ Plataforma web open source, en español, donde estudiantes de ingeniería aprend
 
 - **Código:** MIT (`LICENSE`).
 - **Contenido** (`content/`, `docs/`): CC BY-SA 4.0 (`LICENSE-CONTENT`).
-- **Estado:** en construcción. El alcance de la v1 está en [`docs/PLAN.md`](docs/PLAN.md).
+
+## Estado: v1.0.0
+
+La v1.0.0 incluye la ruta 1 completa (27 temas en 7 módulos), el simulador móvil 2D, el simulador de brazo 3D, el perfil «Mi robot» y el modo aula. El alcance está en [`docs/PLAN.md`](docs/PLAN.md) y el detalle de la versión en [`CHANGELOG.md`](CHANGELOG.md).
+
+- **Instancia pública:** `https://<dominio>`
+- **Cómo probarla:** abre la instancia pública o arráncala en local con [los 5 comandos](#arrancar-en-5-comandos).
+- **Cómo contribuir:** [`CONTRIBUTING.md`](CONTRIBUTING.md).
+- **Cómo autoalojarla:** [`docs/ops/SELF-HOSTING.md`](docs/ops/SELF-HOSTING.md).
 
 ## Arrancar en 5 comandos
 
