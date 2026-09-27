@@ -13,18 +13,13 @@ import type { usePageState } from './useMobileSimState';
 // PR #169) and #190 (decision 3).
 
 /**
- * #375 (docs/DESIGN.md, "Páginas de simulador"): from `lg` and with a window at least 640 px tall
- * the left column (viewer and «Gráficas») is sticky while the right column scrolls, and scrolls
- * inside if it is taller than the window. Literal classes so Tailwind sees them. #383: the
- * children never shrink, or the capped height squeezes «Gráficas» (its `overflow-hidden` lets
- * it) down to its title and leaves the column's scroll area blank.
+ * #528 (option 1): the column used to be sticky with a screen-capped height and its own scroll
+ * (`max-h-screen` + `overflow-y-auto` from `lg`), which clipped «Gráficas» to its title with no
+ * visible scrollbar or any sign that it continued. The column no longer caps its height or
+ * scrolls on its own: the page grows and the four plots show in full. Only the viewer keeps a
+ * capped, centred size (`VIEWER_CAP`, below), not the whole column.
  */
-const LEFT_COLUMN =
-  'flex min-w-0 flex-1 flex-col gap-3 [&>*]:shrink-0 ' +
-  '[@media(min-width:1024px)_and_(min-height:640px)]:sticky ' +
-  '[@media(min-width:1024px)_and_(min-height:640px)]:top-0 ' +
-  '[@media(min-width:1024px)_and_(min-height:640px)]:max-h-screen ' +
-  '[@media(min-width:1024px)_and_(min-height:640px)]:overflow-y-auto';
+const LEFT_COLUMN = 'flex min-w-0 flex-1 flex-col gap-3';
 
 /** The viewer is capped at 50 vh (16/9, so 50vh·16/9 wide) and centred, same conditions. */
 const VIEWER_CAP =
