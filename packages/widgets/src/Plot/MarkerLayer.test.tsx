@@ -11,7 +11,7 @@ const t = (key: string, params?: Record<string, unknown>): string =>
   params === undefined ? key : `${key} ${JSON.stringify(params)}`;
 
 /** A plot area flush with the card: `left_px: 0`, so a ratio-based test can still read `%`-like px. */
-const FLUSH_PLOT_AREA: PlotArea = { left_px: 0, width_px: 200 };
+const FLUSH_PLOT_AREA: PlotArea = { left_px: 0, width_px: 200, top_px: 0, height_px: 100 };
 
 /**
  * The marker over an x range of [0, 2] s, inside the relative wrapper `Plot` gives it: the
@@ -145,7 +145,7 @@ describe('MarkerLayer', () => {
     const onDrag = vi.fn();
     // A plot area that has not been laid out yet (uPlot has not reported its geometry) gives
     // no usable position.
-    const marker = renderMarker(1, onDrag, { left_px: 0, width_px: 0 });
+    const marker = renderMarker(1, onDrag, { left_px: 0, width_px: 0, top_px: 0, height_px: 0 });
     const track = marker.parentElement as HTMLElement;
     track.getBoundingClientRect = () => ({ left: 0, width: 0 }) as DOMRect;
 
@@ -172,16 +172,30 @@ describe('MarkerLayer', () => {
     // The y-axis label channel and the chart's padding shift uPlot's plot area 40 px in from
     // the card's edge; before the fix the marker used `ratio * 100%` of the whole card, which
     // draws it to the left of its real x whenever that channel is non-zero.
-    const marker = renderMarker(1, undefined, { left_px: 40, width_px: 200 });
+    const marker = renderMarker(1, undefined, { left_px: 40, width_px: 200, top_px: 0, height_px: 100 });
 
     // ratio 0.5 of [0, 2] at x=1, over a 200 px wide plot area starting 40 px in.
     expect(marker.style.left).toBe('140px');
   });
 
+  it('stops at the plot area top and height, out of the x-axis label channel (#555)', () => {
+    // Before the fix the line spanned the whole card (`top-0 bottom-0`), which on a real chart
+    // crosses the x-axis label channel below the plot area, landing on the "0" tick label.
+    const marker = renderMarker(1, undefined, {
+      left_px: 0,
+      width_px: 200,
+      top_px: 8,
+      height_px: 150,
+    });
+
+    expect(marker.style.top).toBe('8px');
+    expect(marker.style.height).toBe('150px');
+  });
+
   it('offers a grab zone wider than the line so a real mouse press hits it (#107)', () => {
     // Before the fix the element was the 2 px line itself: a press two pixels off it fell
     // through to uPlot's `.u-over` layer and no drag ever started.
-    const marker = renderMarker(1, undefined, { left_px: 40, width_px: 200 });
+    const marker = renderMarker(1, undefined, { left_px: 40, width_px: 200, top_px: 0, height_px: 100 });
 
     expect(marker.style.width).toBe('12px');
     // `left` still names the line; the box is pulled half its width to the left around it.
@@ -193,7 +207,7 @@ describe('MarkerLayer', () => {
 
   it('converts a pointer position back to x using the plot area, not the whole card', async () => {
     const onDrag = vi.fn();
-    const marker = renderMarker(1, onDrag, { left_px: 40, width_px: 200 });
+    const marker = renderMarker(1, onDrag, { left_px: 40, width_px: 200, top_px: 0, height_px: 100 });
     const track = marker.parentElement as HTMLElement;
     // The card starts at clientX 0; the plot area therefore starts at clientX 40.
     track.getBoundingClientRect = () => ({ left: 0, width: 240 }) as DOMRect;

@@ -10,7 +10,7 @@ import type { PlotTheme } from '../shared/theme';
 import type { PlotAxis, PlotLive, PlotProps, PlotRefLine, PlotSegment, PlotSeries } from './types';
 
 /** Plot area before uPlot has reported its first layout (docs/DESIGN.md §5 padding, #104). */
-const INITIAL_PLOT_AREA: PlotArea = { left_px: 0, width_px: 0 };
+const INITIAL_PLOT_AREA: PlotArea = { left_px: 0, width_px: 0, top_px: 0, height_px: 0 };
 
 /** Default plot area height in CSS pixels (docs/DESIGN.md §5: 200 in the simulator). */
 export const DEFAULT_HEIGHT_PX = 200;
@@ -228,7 +228,12 @@ function usePlotArea(): { plotArea: PlotArea; onPlotArea: (area: PlotArea) => vo
   const [plotArea, setPlotArea] = useState<PlotArea>(INITIAL_PLOT_AREA);
   const onPlotArea = useCallback((area: PlotArea): void => {
     setPlotArea((current) =>
-      current.left_px === area.left_px && current.width_px === area.width_px ? current : area,
+      current.left_px === area.left_px &&
+      current.width_px === area.width_px &&
+      current.top_px === area.top_px &&
+      current.height_px === area.height_px
+        ? current
+        : area,
     );
   }, []);
   return { plotArea, onPlotArea };
