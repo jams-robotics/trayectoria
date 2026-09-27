@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import { t } from '@trayectoria/i18n';
 
+import ReportIssue from '../../components/ReportIssue.astro';
 import { ArmSimIsland } from '../../components/sim/ArmSimIsland';
 import Base from '../../layouts/Base.astro';
 
@@ -29,5 +30,12 @@ const arms = collection.map((arm) => ({ id: arm.id, name: arm.data.name }));
     <ArmSimIsland arms={arms} client:only="react">
       <div slot="fallback" class="mt-6 min-h-[740px]" aria-hidden="true"></div>
     </ArmSimIsland>
+    <ReportIssue
+      title="[Simulador de brazo] "
+      label="bug"
+      place="simuladores/brazo"
+      issueLabel={t('sims.report.issue')}
+      emailLabel={t('sims.report.email')}
+    />
   </section>
 </Base>

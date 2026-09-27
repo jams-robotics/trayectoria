@@ -1,6 +1,7 @@
 ---
 import { t } from '@trayectoria/i18n';
 
+import ReportIssue from '../components/ReportIssue.astro';
 import TopicOutline from '../components/tema/Outline.astro';
 import Base from './Base.astro';
 
@@ -17,6 +18,8 @@ export interface TopicLink {
 
 interface Props {
   title: string;
+  /** Topic id (`ruta-1/m04-t02`), filled into the report-an-error link (#591). */
+  topicId: string;
   /** Route the topic belongs to, for the breadcrumb and the progress bar. */
   route: TopicLink & { title: string };
   /** Mono line above the title: «Ruta … · Tema 4.2». */
@@ -31,9 +34,20 @@ interface Props {
   next: TopicLink | undefined;
 }
 
-const { title, route, eyebrow, estimatedMinutes, prerequisites, done, total, previous, next } =
-  Astro.props;
+const {
+  title,
+  topicId,
+  route,
+  eyebrow,
+  estimatedMinutes,
+  prerequisites,
+  done,
+  total,
+  previous,
+  next,
+} = Astro.props;
 const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+const topicSlug = topicId.split('/')[1] ?? topicId;
 ---
 
 <Base title={title}>
@@ -93,6 +107,14 @@ const percent = total === 0 ? 0 : Math.round((done / total) * 100);
         <article class="mt-8">
           <slot />
         </article>
+
+        <ReportIssue
+          title={`[Tema ${topicSlug}] `}
+          label="contenido"
+          place={topicId}
+          issueLabel={t('topic.report.issue')}
+          emailLabel={t('topic.report.email')}
+        />
 
         <nav aria-label={t('topic.pagination')} class="border-border mt-10 border-t pt-6">
           <ul class="m-0 flex list-none flex-col gap-5 p-0 md:flex-row md:justify-between">

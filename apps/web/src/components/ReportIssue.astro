@@ -1,0 +1,27 @@
+---
+import { reportEmailHref, reportIssueUrl } from '../lib/contact';
+
+// Shared "did you spot an error?" pair (#591): a prefilled GitHub issue plus its no-GitHub-account
+// mailto: alternative, both built with URLSearchParams (never by concatenating unencoded text).
+interface Props {
+  /** Prefilled issue title, e.g. `[Tema m04-t02] `. */
+  title: string;
+  /** `contenido` for topics, `bug` for simulators and the arm catalog. */
+  label: 'contenido' | 'bug';
+  /** Topic id or page path filled into the template's `tema` field and the mailto subject. */
+  place: string;
+  /** i18n key for the issue link text; sections use a different phrasing than pages. */
+  issueLabel: string;
+  /** i18n key for the mailto link text. */
+  emailLabel: string;
+}
+
+const { title, label, place, issueLabel, emailLabel } = Astro.props;
+const issueUrl = reportIssueUrl({ title, label, tema: place });
+const emailUrl = reportEmailHref(place);
+---
+
+<p class="text-fg-muted mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+  <a href={issueUrl} target="_blank" rel="noopener">{issueLabel}</a>
+  <a href={emailUrl}>{emailLabel}</a>
+</p>
