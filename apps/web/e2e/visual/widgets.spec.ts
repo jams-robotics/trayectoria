@@ -404,7 +404,7 @@ test('ExerciseWidget looks as approved', async ({ page }) => {
 
 test('ExerciseWidget-incorrect looks as approved', async ({ page }) => {
   const story = await answerScalar(page, 1.1 * EXERCISE_ANSWER_S);
-  await expect(story.getByTestId('exercise-result')).toContainText('Incorrecto · fuera por 10.0 %');
+  await expect(story.getByTestId('exercise-result')).toContainText('Incorrecto · fuera por 10 %');
   await expect(story).toHaveScreenshot('ExerciseWidget-incorrect.png');
 });
 

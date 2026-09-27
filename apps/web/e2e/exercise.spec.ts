@@ -75,7 +75,7 @@ test('Scalar: an answer 10 % off shows the percentage and the attempt counter', 
 
   await answer(scope, String(1.1 * SCALAR_ANSWER_S));
 
-  await expect(result(scope)).toContainText('Incorrecto · fuera por 10.0 %');
+  await expect(result(scope)).toContainText('Incorrecto · fuera por 10 %');
   await expect(scope.getByTestId('exercise-attempt')).toHaveText('Intento 1');
   await expect(scope.getByTestId('exercise')).toHaveAttribute('data-status', 'incorrect');
 });
@@ -121,7 +121,7 @@ test('Vector: one field per component, both must be inside the tolerance', async
 
   await expect(scope.getByRole('textbox')).toHaveCount(2);
   await answer(scope, '0.372394', String(1.1 * 0.998503));
-  await expect(result(scope)).toContainText('Incorrecto · fuera por 10.0 %');
+  await expect(result(scope)).toContainText('Incorrecto · fuera por 10 %');
 
   await answer(scope, '0.372394', '0.998503');
   await expect(result(scope)).toContainText(EXERCISE.correct);
