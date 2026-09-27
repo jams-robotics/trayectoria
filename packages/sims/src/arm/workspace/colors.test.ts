@@ -8,13 +8,13 @@ import {
   readWorkspacePalette,
 } from './colors';
 
-// F5-03 (#136, decisión 3): distancia a la base → color de la paleta de datos. Todo se calcula
-// aquí, nunca en un shader ni en three (criterio del ticket).
+// F5-03 (#136, decision 3): distance to the base → colour of the data palette. Everything is computed
+// here, never in a shader or in three (ticket criterion).
 
-/** Paleta dorada: los tokens `data-1` y `data-3` en claro (docs/DESIGN.md §2.2). */
+/** Golden palette: the `data-1` and `data-3` tokens in light mode (docs/DESIGN.md §2.2). */
 const PALETTE = { near: '#0072b2', far: '#009e73' } as const;
 
-/** Componentes `[0, 1]` de `#0072b2` y `#009e73`, los extremos de la interpolación. */
+/** `[0, 1]` components of `#0072b2` and `#009e73`, the ends of the interpolation. */
 const NEAR_RGB = [0, 0x72 / 255, 0xb2 / 255] as const;
 const FAR_RGB = [0, 0x9e / 255, 0x73 / 255] as const;
 

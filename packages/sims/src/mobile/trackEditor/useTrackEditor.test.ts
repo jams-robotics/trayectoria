@@ -3,10 +3,10 @@ import { describe, expect, test } from 'vitest';
 
 import { arcFromDrag, useTrackEditor } from './useTrackEditor';
 
-// F4-01b, valores dorados del issue #126: un arrastre de (0,0) a (0.2,0) en modo Arco por
-// encima de la cuerda produce un arco de radio cuerda/2 · 1.25 = 0.125 m. El signo de `ccw` se
-// fija aquí: el punto intermedio del arrastre está a la izquierda de la cuerda from → to
-// (producto cruzado > 0) y eso es el sentido antihorario (decisión 5 del comentario de #126).
+// F4-01b, golden values from issue #126: a drag from (0,0) to (0.2,0) in «Arco» mode
+// above the chord produces an arc of radius chord/2 · 1.25 = 0.125 m. The sign of `ccw` is
+// fixed here: the midpoint of the drag is to the left of the chord from → to
+// (cross product > 0) and that is the counter-clockwise direction (decision 5 of the #126 comment).
 describe('arcFromDrag (F4-01b)', () => {
   test('a drag of (0,0) → (0.2,0) above the chord gives radius_m = 0.125 and ccw', () => {
     const arc = arcFromDrag([0, 0], [0.2, 0], [0.1, 0.05]);

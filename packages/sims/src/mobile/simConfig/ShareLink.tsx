@@ -5,13 +5,13 @@ import type { SimConfig } from '@trayectoria/robot-spec';
 
 import { SHARE_PARAM, encode, shareLink } from './codec';
 
-// F4-05 (#131, decisión 6): «Copiar enlace». El enlace se calcula del estado en curso —cada vez
-// que la configuración cambia—, se muestra en un campo de solo lectura para poder leerlo o
-// seleccionarlo a mano, y el botón lo lleva al portapapeles con un toast (docs/DESIGN.md §5).
+// F4-05 (#131, decision 6): «Copiar enlace». The link is computed from the current state —every time
+// the configuration changes—, shown in a read-only field so it can be read or
+// selected by hand, and the button takes it to the clipboard with a toast (docs/DESIGN.md §5).
 //
-// #182 (decisión 2): una configuración que no cabe en `MAX_LINK_CHARS` deja el campo vacío y el
-// botón activo; al pulsarlo no se copia nada y se avisa con `tooLong`. Antes el enlace se
-// mostraba igualmente y no abría al otro lado.
+// #182 (decision 2): a configuration that does not fit in `MAX_LINK_CHARS` leaves the field empty and the
+// button enabled; pressing it copies nothing and warns with `tooLong`. Before, the link was
+// shown anyway and did not open on the other side.
 
 const BUTTON =
   'border-border bg-bg-raised text-fg inline-flex h-11 items-center rounded-md border px-3 ' +
@@ -21,32 +21,32 @@ const FIELD =
   'border-border bg-bg text-fg-muted h-11 min-w-0 flex-1 rounded-md border px-3 font-mono ' +
   'text-xs focus-visible:outline-color-focus focus-visible:outline-2 focus-visible:outline-offset-2';
 
-/** Por qué no se copió el enlace, cuando el motivo no es el portapapeles. */
+/** Why the link was not copied, when the reason is not the clipboard. */
 export type CopyFailure = 'tooLong';
 
 export interface ShareLinkProps {
-  /** La configuración que el enlace debe reproducir. */
+  /** The configuration the link must reproduce. */
   readonly config: SimConfig;
-  /** Origen del enlace; el de la página cuando no se da (los tests pasan uno fijo). */
+  /** Origin of the link; the page's one when not given (the tests pass a fixed one). */
   readonly origin?: string;
   /**
-   * Se llama tras copiar, con `true` si el portapapeles aceptó el texto. Con `false` y `tooLong`
-   * no hubo nada que copiar: la configuración no cabe en un enlace.
+   * Called after copying, with `true` if the clipboard accepted the text. With `false` and `tooLong`
+   * there was nothing to copy: the configuration does not fit in a link.
    */
   readonly onCopied: (copied: boolean, reason?: CopyFailure) => void;
 }
 
-/** El estado del enlace: aún codificando, listo, o más largo de lo que un enlace admite. */
+/** The state of the link: still encoding, ready, or longer than a link allows. */
 interface LinkState {
-  /** El enlace listo para copiar; vacío mientras se codifica y cuando no cabe. */
+  /** The link ready to copy; empty while encoding and when it does not fit. */
   readonly link: string;
-  /** La configuración no cabe en `MAX_LINK_CHARS`: no hay enlace que dar. */
+  /** The configuration does not fit in `MAX_LINK_CHARS`: there is no link to give. */
   readonly tooLong: boolean;
 }
 
 const ENCODING: LinkState = { link: '', tooLong: false };
 
-/** El enlace de `config`, recalculado cada vez que la configuración cambia. */
+/** The link of `config`, recomputed every time the configuration changes. */
 function useLink(config: SimConfig, origin: string | undefined): LinkState {
   const [state, setState] = useState<LinkState>(ENCODING);
   useEffect(() => {
@@ -69,8 +69,8 @@ function useLink(config: SimConfig, origin: string | undefined): LinkState {
 }
 
 /**
- * Lleva `link` al portapapeles, o avisa de que no hay enlace porque la configuración no cabe
- * (#182): en ese caso no se toca el portapapeles, para no borrar lo que hubiera dentro.
+ * Takes `link` to the clipboard, or warns that there is no link because the configuration does not fit
+ * (#182): in that case the clipboard is not touched, so as not to erase whatever was inside.
  */
 function copyLink(
   state: LinkState,
@@ -91,9 +91,9 @@ function copyLink(
 }
 
 /**
- * El enlace que reproduce la simulación en curso y el botón que lo copia. El texto se muestra
- * además en un campo de solo lectura: un navegador que niegue el permiso del portapapeles deja
- * igualmente el enlace a la vista para copiarlo a mano.
+ * The link that reproduces the current simulation and the button that copies it. The text is also
+ * shown in a read-only field: a browser that denies the clipboard permission still leaves
+ * the link in view to copy it by hand.
  */
 export function ShareLink({ config, origin, onCopied }: ShareLinkProps): JSX.Element {
   const t = useT();

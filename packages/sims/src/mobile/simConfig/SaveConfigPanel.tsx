@@ -7,10 +7,10 @@ import type { SimConfig } from '@trayectoria/robot-spec';
 import { ShareLink } from './ShareLink';
 import type { CopyFailure } from './ShareLink';
 
-// F4-05 (#131, decisión 6): el panel «Guardar y compartir». No decide dónde se guarda —eso lo
-// elige la página según haya sesión y robot guardado (decisión 5)— ni fabrica ids: recibe la lista
-// y los tres callbacks, así que este archivo vale igual para el almacenamiento local y para la
-// fila de `robots`.
+// F4-05 (#131, decision 6): the «Guardar y compartir» panel. It does not decide where things are saved —that is
+// chosen by the page depending on whether there is a session and a saved robot (decision 5)— nor does it make ids: it receives the list
+// and the three callbacks, so this file works the same for local storage and for the
+// `robots` row.
 
 const BUTTON =
   'border-border bg-bg-raised text-fg inline-flex h-11 items-center rounded-md border px-3 ' +
@@ -28,26 +28,26 @@ const FIELD =
   'focus-visible:outline-color-focus focus-visible:outline-2 focus-visible:outline-offset-2';
 
 export interface SaveConfigPanelProps {
-  /** La configuración en curso, sin `id` ni `name`: los pone «Guardar». */
+  /** The current configuration, without `id` or `name`: «Guardar» sets them. */
   readonly current: Omit<SimConfig, 'id' | 'name'>;
-  /** Las configuraciones guardadas que la página decide mostrar. */
+  /** The saved configurations the page decides to show. */
   readonly saved: readonly SimConfig[];
-  /** «Guardar»: la página le da un `id` y la escribe donde corresponda. */
+  /** «Guardar»: the page gives it an `id` and writes it wherever appropriate. */
   readonly onSave: (name: string, config: Omit<SimConfig, 'id' | 'name'>) => void;
-  /** «Cargar»: la página aplica pista, controlador, parámetros y semilla. */
+  /** «Cargar»: the page applies track, controller, parameters and seed. */
   readonly onLoad: (config: SimConfig) => void;
-  /** «Borrar», ya confirmado en línea. */
+  /** «Borrar», already confirmed inline. */
   readonly onDelete: (id: string) => void;
   /**
-   * Se llama al copiar el enlace, con `true` si el portapapeles lo aceptó. Con `false` y
-   * `'tooLong'` no hubo nada que copiar: la configuración no cabe en un enlace (#182).
+   * Called when the link is copied, with `true` if the clipboard accepted it. With `false` and
+   * `'tooLong'` there was nothing to copy: the configuration does not fit in a link (#182).
    */
   readonly onCopied: (copied: boolean, reason?: CopyFailure) => void;
-  /** Origen del enlace; el de la página cuando no se da. */
+  /** Origin of the link; the page's one when not given. */
   readonly origin?: string;
 }
 
-/** El campo del nombre de la configuración. */
+/** The configuration name field. */
 function NameField({
   name,
   onName,
@@ -76,7 +76,7 @@ function NameField({
   );
 }
 
-/** El campo del nombre y «Guardar»; sin nombre el botón está deshabilitado, nunca oculto. */
+/** The name field and «Guardar»; without a name the button is disabled, never hidden. */
 function SaveRow({ onSave, t }: { onSave: (name: string) => void; t: Translate }): JSX.Element {
   const [name, setName] = useState('');
   const trimmed = name.trim();
@@ -101,7 +101,7 @@ function SaveRow({ onSave, t }: { onSave: (name: string) => void; t: Translate }
   );
 }
 
-/** La pregunta y los dos botones de la confirmación de «Borrar». */
+/** The question and the two buttons of the «Borrar» confirmation. */
 function DeleteConfirm({
   onDelete,
   onCancel,
@@ -134,7 +134,7 @@ function DeleteConfirm({
   );
 }
 
-/** «Borrar» y su confirmación en línea: nada se borra sin un segundo clic (docs/DESIGN.md §5). */
+/** «Borrar» and its inline confirmation: nothing is deleted without a second click (docs/DESIGN.md §5). */
 function DeleteAction({
   onDelete,
   t,
@@ -168,7 +168,7 @@ function DeleteAction({
   );
 }
 
-/** Una fila de la lista: el nombre, «Cargar» y «Borrar» con su confirmación en línea. */
+/** One row of the list: the name, «Cargar» and «Borrar» with its inline confirmation. */
 function SavedRow({
   config,
   onLoad,
@@ -203,7 +203,7 @@ function SavedRow({
   );
 }
 
-/** La lista de guardadas, o el aviso de que todavía no hay ninguna. */
+/** The list of saved ones, or the notice that there are none yet. */
 function SavedList({
   saved,
   onLoad,
@@ -228,8 +228,8 @@ function SavedList({
 }
 
 /**
- * «Guardar y compartir» (docs/DESIGN.md §5): el nombre y «Guardar», la lista de configuraciones
- * guardadas con «Cargar» y «Borrar», y el enlace que reproduce la simulación en curso.
+ * «Guardar y compartir» (docs/DESIGN.md §5): the name and «Guardar», the list of saved
+ * configurations with «Cargar» and «Borrar», and the link that reproduces the current simulation.
  */
 export function SaveConfigPanel({
   current,
@@ -241,8 +241,8 @@ export function SaveConfigPanel({
   origin,
 }: SaveConfigPanelProps): JSX.Element {
   const t = useT();
-  // El enlace se recalcula en un efecto de `ShareLink`, así que un objeto nuevo en cada render
-  // lo volvería a codificar sin parar: se memoiza sobre la configuración en curso.
+  // The link is recomputed in an effect of `ShareLink`, so a new object on every render
+  // would re-encode it endlessly: it is memoised on the current configuration.
   const linkConfig = useMemo<SimConfig>(
     () => ({ id: 'link', name: t('sims.simConfig.linkName'), ...current }),
     [current, t],

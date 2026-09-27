@@ -7,10 +7,10 @@ import { describe, expect, test } from 'vitest';
 
 import { TrackEditor } from './TrackEditor';
 
-// #159: la barra flotante del segmento seleccionado, sus atajos de teclado y el control
-// segmentado de sentido que sustituye a la casilla «invertir» del panel numérico. Como en
-// TrackEditor.test.tsx, jsdom no hace layout: lo que se comprueba aquí es el comportamiento de
-// los controles, no su posición sobre el lienzo (eso va al visual de apps/web).
+// #159: the floating bar of the selected segment, its keyboard shortcuts and the segmented
+// direction control that replaces the «invertir» checkbox of the numeric panel. As in
+// TrackEditor.test.tsx, jsdom does no layout: what is checked here is the behaviour of
+// the controls, not their position over the canvas (that goes to the apps/web visual).
 
 const ARC_TRACK: Track = {
   segments: [

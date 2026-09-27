@@ -6,10 +6,10 @@ import { ManualControls, ManualHelp, ManualViewer } from './ManualControls';
 import { MANUAL_DIFF_RADPS, commandOf } from './useManualKeyboard';
 import type { ManualDrive, ManualKey } from './useManualKeyboard';
 
-// F4-04 (#130, decisión 3): los botones táctiles aplican y sueltan las mismas direcciones que el
-// teclado, con `pointerdown` y `pointerup`.
+// F4-04 (#130, decision 3): the touch buttons apply and release the same directions as the
+// keyboard, with `pointerdown` and `pointerup`.
 
-/** Un mando de prueba que solo registra las direcciones pulsadas y soltadas. */
+/** A test controller that only records the pressed and released directions. */
 function driveSpy(): {
   drive: ManualDrive;
   press: ReturnType<typeof vi.fn>;

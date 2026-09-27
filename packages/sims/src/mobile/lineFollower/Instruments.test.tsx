@@ -6,8 +6,8 @@ import { RingBuffer } from '@trayectoria/widgets';
 import { Instruments, MOBILE_PLOT_HEIGHT_PX, PLOT_HEIGHT_PX } from './Instruments';
 import type { InstrumentBuffers } from './useInstruments';
 
-// F4-03 (#129, decisiones 4 y 6): qué gráficas se pintan y con qué alto. Los datos en sí los
-// dibuja `Plot`, que tiene sus propios tests en `packages/widgets`.
+// F4-03 (#129, decisions 4 and 6): which plots are drawn and at what height. The data itself is
+// drawn by `Plot`, which has its own tests in `packages/widgets`.
 
 function buffers(): InstrumentBuffers {
   return {
@@ -50,7 +50,7 @@ describe('Instruments (F4-03)', () => {
   });
 
   it('en móvil se apilan a 120 px y en escritorio a 200 (docs/DESIGN.md §9 punto 8)', () => {
-    // Los dos altos son los de la spec; el componente los pasa a `Plot` como `height`.
+    // Both heights are the ones in the spec; the component passes them to `Plot` as `height`.
     expect(MOBILE_PLOT_HEIGHT_PX).toBe(120);
     expect(PLOT_HEIGHT_PX).toBe(200);
     const { container, rerender } = render(<Instruments buffers={buffers()} show={['v']} mobile />);

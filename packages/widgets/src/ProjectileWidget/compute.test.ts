@@ -94,9 +94,9 @@ describe('tiro parabólico (F2-05)', () => {
 });
 
 describe('suelta desde un robot en movimiento (F2-05)', () => {
-  /** e4 de T-1.3: el robot avanza a 0.5 m/s y suelta desde 0.25 m. */
+  /** e4 of T-1.3: the robot moves forward at 0.5 m/s and releases from 0.25 m. */
   const SLOW: Launch = { v0_mps: 0, launchAngle_rad: 0, h_m: 0.25, vRobot_mps: 0.5 };
-  /** e5 de T-1.4: el robot avanza a 0.6 m/s y suelta desde 0.25 m. */
+  /** e5 of T-1.4: the robot moves forward at 0.6 m/s and releases from 0.25 m. */
   const FAST: Launch = { ...SLOW, vRobot_mps: 0.6 };
 
   it('a 0.5 m/s desde 0.25 m el adelanto es 0.1129 m (e4 de T-1.3)', () => {
@@ -121,7 +121,7 @@ describe('suelta desde un robot en movimiento (F2-05)', () => {
   it('hereda v_x del robot y ninguna velocidad vertical (T-1.4)', () => {
     expect(initialVelocity('dropFromRobot', FAST)).toEqual([0.6, 0]);
     expect(maxHeight('dropFromRobot', FAST)).toBeCloseTo(0.25, 12);
-    // El tiempo de caída no depende de v_x: es el mismo que soltándola en reposo.
+    // The fall time does not depend on v_x: it is the same as releasing it at rest.
     expect(flightTime('dropFromRobot', FAST)).toBeCloseTo(flightTime('drop', DROP), 12);
   });
 });

@@ -11,29 +11,29 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { MISSING_MESH_KEY, loadArm, meshLoaderForZip } from './loadUrdf';
 import { useArmSim } from './useArmSim';
 
-// F5-04 (#137, decisiones 2 y 7): cargar un brazo desde un zip en memoria, sin red y sin tocar
-// `/catalog/`. Los valores dorados son los de F5-01a: la FK de three coincide con la de sim-core
-// por debajo de 1e-6.
+// F5-04 (#137, decisions 2 and 7): loading an arm from an in-memory zip, without network and without touching
+// `/catalog/`. The golden values are those of F5-01a: the three FK matches the sim-core one
+// below 1e-6.
 
 const CATALOG = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../catalog/arms');
 const ROBOT_ID = '00000000-0000-4000-8000-000000000137';
 
 const PLANAR_URDF = readFileSync(resolve(CATALOG, 'planar2dof/planar2dof.urdf'), 'utf8');
 
-/** Un STL binario mínimo y válido: cabecera de 80 bytes y cero triángulos. */
+/** A minimal, valid binary STL: 80-byte header and zero triangles. */
 function emptyStl(): Uint8Array {
   const bytes = new Uint8Array(84);
   return bytes;
 }
 
-/** Un zip almacenado con los archivos dados; `fflate` ya es dependencia del paquete (ADR-0008). */
+/** A stored zip with the given files; `fflate` is already a dependency of the package (ADR-0008). */
 function zipOf(files: Readonly<Record<string, Uint8Array>>): Uint8Array {
   return zipSync({ ...files }, { level: 0 });
 }
 
 const encoder = new TextEncoder();
 
-/** El zip del brazo plano: solo su URDF, sin mallas (su geometría es primitiva). */
+/** The zip of the planar arm: only its URDF, without meshes (its geometry is primitive). */
 function planarZip(path = 'planar2dof.urdf'): Uint8Array {
   return zipOf({ [path]: encoder.encode(PLANAR_URDF) });
 }
@@ -44,7 +44,7 @@ function planarSpecFromCatalog(): RobotSpec {
   return parsed.value;
 }
 
-/** Las URL de objeto creadas durante un test, para comprobar que se revocan. */
+/** The object URLs created during a test, to check that they are revoked. */
 const created: string[] = [];
 const revoked: string[] = [];
 
@@ -144,7 +144,7 @@ describe('loadArm desde un zip en memoria (F5-04)', () => {
       { domParser: new DOMParser(), robotId: ROBOT_ID },
     );
 
-    // Una malla del zip se sirve como URL de objeto, nunca como una petición de red.
+    // A zip mesh is served as an object URL, never as a network request.
     expect(created).toHaveLength(1);
     loaded.revoke();
     expect(revoked).toEqual(created);
@@ -226,7 +226,7 @@ describe('loadArm desde un zip en memoria (F5-04)', () => {
     );
     expect(fetchFn).toHaveBeenCalledWith('/catalog/arms/planar2dof/planar2dof.urdf');
     expect(loaded.spec.arm?.endEffectorLink).toBe('tool0');
-    // Un brazo del catálogo no crea ninguna URL de objeto, así que revocar no hace nada.
+    // A catalog arm creates no object URL, so revoking does nothing.
     expect(() => loaded.revoke()).not.toThrow();
   });
 });

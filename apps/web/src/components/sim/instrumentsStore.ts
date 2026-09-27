@@ -1,17 +1,17 @@
 import { useMemo, useRef, useSyncExternalStore } from 'react';
 import type { LiveInstruments } from '@trayectoria/sims';
 
-// F4-03 (#129, decisión 6): el canal por el que `LineFollowerWidget` le entrega a la página los
-// anillos de las gráficas y el cronómetro de vuelta, por la misma razón que `apiStore.ts` existe
-// para la api: guardarlos en el estado de la isla la encadenaría consigo misma.
+// F4-03 (#129, decision 6): the channel through which `LineFollowerWidget` hands the page the
+// plot rings and the lap timer, for the same reason `apiStore.ts` exists for the api: storing
+// them in the island's state would chain it to itself.
 
-/** La instrumentación en curso, publicada a quien la mire sin re-renderizar la página entera. */
+/** The running instrumentation, published to whoever watches it without re-rendering the page. */
 export interface InstrumentsStore {
-  /** La última publicada, o null mientras el simulador no haya montado. */
+  /** The last one published, or null while the simulator has not mounted. */
   readonly read: () => LiveInstruments | null;
-  /** La entrega el widget en cada cambio observable. */
+  /** The widget hands it over on every observable change. */
   readonly publish: (instruments: LiveInstruments) => void;
-  /** Avisa a un consumidor; devuelve la baja. */
+  /** Notifies a consumer; returns the unsubscribe function. */
   readonly subscribe: (listener: () => void) => () => void;
 }
 
@@ -34,7 +34,7 @@ export function useInstruments(): InstrumentsStore {
   );
 }
 
-/** La instrumentación en curso, re-renderizando solo al componente que la lee. */
+/** The running instrumentation, re-rendering only the component that reads it. */
 export function useInstrumentsStore(store: InstrumentsStore): LiveInstruments | null {
   return useSyncExternalStore(store.subscribe, store.read, () => null);
 }

@@ -2,39 +2,39 @@ import type { PidParams } from '@trayectoria/sim-core';
 
 import type { Pose } from './model';
 
-// F4-03 (#129, decisión 2): las métricas de la instrumentación, puras y sin reloj de plataforma.
-// Todo número sale del estado del modelo, que lleva su propio tiempo simulado.
+// F4-03 (#129, decision 2): the instrumentation metrics, pure and without a platform clock.
+// Every number comes from the model state, which carries its own simulated time.
 
-/** Una vuelta cerrada: lo que tardó, lo que recorrió y a qué velocidad media. */
+/** A closed lap: how long it took, how far it travelled and at what average speed. */
 export interface Lap {
   readonly lapTime_s: number;
-  /** Distancia que el odómetro del modelo acumuló en la vuelta, en metros. */
+  /** Distance the model odometer accumulated during the lap, in metres. */
   readonly distance_m: number;
-  /** Velocidad media de la vuelta: la longitud de la pista dividida por lo que tardó. */
+  /** Average speed of the lap: the track length divided by how long it took. */
   readonly avgSpeed_mps: number;
 }
 
-/** Cronómetro de vueltas: las cerradas hasta ahora y el mejor tiempo entre ellas. */
+/** Lap stopwatch: the laps closed so far and the best time among them. */
 export interface LapTimer {
   readonly laps: readonly Lap[];
-  /** Mejor tiempo, en segundos; `null` mientras no hay ninguna vuelta cerrada. */
+  /** Best time, in seconds; `null` while no lap has been closed. */
   readonly best_s: number | null;
-  /** Tiempo simulado en que empezó la vuelta en curso, en segundos. */
+  /** Simulated time at which the lap in progress started, in seconds. */
   readonly startedAt_s: number;
-  /** Odómetro del modelo al empezar la vuelta en curso, en metros. */
+  /** Model odometer at the start of the lap in progress, in metres. */
   readonly startedAtDistance_m: number;
-  /** Longitud de la pista que se está dando, en metros; es la que define la velocidad media. */
+  /** Length of the track being lapped, in metres; it is what defines the average speed. */
   readonly trackLength_m: number;
 }
 
 /**
- * Velocidad media de una vuelta: la longitud de la pista dividida por lo que se tardó en darla
- * (enmienda de #129 tras el spec gap #170). No es la distancia que el odómetro acumuló: el
- * seguidor corta los arcos por dentro, así que recorre sistemáticamente un 2-3 % menos que la
- * línea, y la cifra que interesa al estudiante es a qué ritmo dio la vuelta a la pista.
+ * Average speed of a lap: the track length divided by how long it took to complete it
+ * (amendment of #129 after spec gap #170). It is not the distance the odometer accumulated: the
+ * follower cuts the arcs on the inside, so it systematically travels 2-3 % less than the
+ * line, and the figure the student cares about is the pace at which it lapped the track.
  *
- * Una vuelta de duración nula (o negativa, que no puede ocurrir con tiempo simulado creciente)
- * da 0 en lugar de un infinito que la tarjeta no sabría mostrar.
+ * A lap of zero duration (or negative, which cannot happen with increasing simulated time)
+ * gives 0 instead of an infinity the card would not know how to show.
  */
 export function avgSpeed_mps(trackLength_m: number, lapTime_s: number): number {
   if (!(lapTime_s > 0)) return 0;
@@ -42,21 +42,21 @@ export function avgSpeed_mps(trackLength_m: number, lapTime_s: number): number {
 }
 
 /**
- * Cronómetro recién puesto a cero para una pista de `trackLength_m` metros: sin vueltas y con la
- * primera empezando en `t = 0`.
+ * Stopwatch freshly reset for a track of `trackLength_m` metres: no laps and with the
+ * first one starting at `t = 0`.
  */
 export function createLapTimer(trackLength_m = 0): LapTimer {
   return { laps: [], best_s: null, startedAt_s: 0, startedAtDistance_m: 0, trackLength_m };
 }
 
 /**
- * Cierra la vuelta en curso en el instante simulado `t_s`, con el odómetro del modelo en
- * `distance_m`, y abre la siguiente ahí mismo. El tiempo y la distancia de la vuelta son
- * diferencias contra el arranque de la vuelta, así que no dependen del reparto de fotogramas:
- * dos corridas con los mismos pasos dan exactamente la misma vuelta (#155).
+ * Closes the lap in progress at the simulated instant `t_s`, with the model odometer at
+ * `distance_m`, and opens the next one right there. The time and the distance of the lap are
+ * differences against the start of the lap, so they do not depend on how frames are split:
+ * two runs with the same steps give exactly the same lap (#155).
  *
- * La velocidad media sale de la longitud de la pista del cronómetro, no de esa distancia, de modo
- * que `lapTime_s · avgSpeed_mps` reproduce la longitud de la pista exactamente (#170).
+ * The average speed comes from the stopwatch's track length, not from that distance, so
+ * that `lapTime_s · avgSpeed_mps` reproduces the track length exactly (#170).
  */
 export function recordLap(timer: LapTimer, t_s: number, distance_m: number): LapTimer {
   const lapTime_s = t_s - timer.startedAt_s;
@@ -74,29 +74,29 @@ export function recordLap(timer: LapTimer, t_s: number, distance_m: number): Lap
   };
 }
 
-/** Los tres términos del PID en una muestra, más el integrador que deja para la siguiente. */
+/** The three PID terms in one sample, plus the integrator it leaves for the next one. */
 export interface PidTerms {
   readonly P: number;
   readonly I: number;
   readonly D: number;
-  /** Integral del error tras este paso, ya saturada a `±iMax`. */
+  /** Integral of the error after this step, already saturated to `±iMax`. */
   readonly integral: number;
 }
 
-/** Satura `x` a `±limit`, la misma regla de anti-windup de `packages/sim-core/src/control/pid.ts`. */
+/** Saturates `x` to `±limit`, the same anti-windup rule as `packages/sim-core/src/control/pid.ts`. */
 function clamp(x: number, limit: number): number {
   return Math.min(limit, Math.max(-limit, x));
 }
 
 /**
- * Términos `P`, `I` y `D` de un paso del PID, con la fórmula y el anti-windup de sim-core
- * (`createPidController`): `integral = clamp(integral + e·dt, ±iMax)`, `D` por diferencia hacia
- * atrás y cero cuando no hay tiempo transcurrido. Su suma es la `u` que el controlador aplica,
- * que es lo que hace comparable la gráfica con la carrera que se está viendo.
+ * `P`, `I` and `D` terms of one PID step, with the sim-core formula and anti-windup
+ * (`createPidController`): `integral = clamp(integral + e·dt, ±iMax)`, `D` by backward
+ * difference and zero when no time has elapsed. Their sum is the `u` the controller applies,
+ * which is what makes the plot comparable with the run being watched.
  *
- * El controlador de sim-core no publica sus términos por separado — solo el `WheelCommand` —, así
- * que se reproducen aquí con los `params` vigentes en cada muestra (#161: las ganancias se leen en
- * cada `update()`, de modo que mover un slider cambia los términos desde la muestra siguiente).
+ * The sim-core controller does not publish its terms separately — only the `WheelCommand` —, so
+ * they are reproduced here with the `params` in force at each sample (#161: the gains are read on
+ * every `update()`, so moving a slider changes the terms from the next sample on).
  */
 export function pidTerms(
   params: PidParams,
@@ -115,15 +115,15 @@ export function pidTerms(
   };
 }
 
-/** El evento de línea perdida: la pose en que ocurrió. */
+/** The line-lost event: the pose at which it happened. */
 export interface LostEvent {
   readonly pose: Pose;
 }
 
 /**
- * El flanco de subida de `lineLost`: devuelve la pose en que el arreglo acaba de perder la línea,
- * o `null` mientras no ocurra. Seguir perdido no lo vuelve a disparar, así que la simulación se
- * pausa una sola vez y el marcador se queda donde se perdió.
+ * The rising edge of `lineLost`: returns the pose at which the array has just lost the line,
+ * or `null` while it does not happen. Staying lost does not fire it again, so the simulation
+ * pauses only once and the marker stays where it was lost.
  */
 export function lostEvent(
   prevLineLost: boolean,

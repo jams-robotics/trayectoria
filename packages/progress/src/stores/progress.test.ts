@@ -165,7 +165,7 @@ describe('progress store with a session (F3-01)', () => {
 describe('progress store across page loads (F3-01)', () => {
   test('a fresh page never adopts the copy left by a signed-in learner', () => {
     // What a reload looks like: the copy of the learner survives in storage, the module state
-    // does not. An anonymous visitor must not see it (criterio de aceptación del e2e con sesión).
+    // does not. An anonymous visitor must not see it (acceptance criterion of the session e2e).
     seedStoredProgressForTest({ [TOPIC]: { ...emptyProgress(), status: 'completed' } }, USER);
     resetProgressForTest(false);
 

@@ -3,9 +3,9 @@ import { render, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { describe, expect, test, vi } from 'vitest';
 
-// La sección perezosa `ArmViewer` monta `Scene3D`, que en jsdom no tiene WebGL ni
-// `ResizeObserver` (F2-12, #96, decisión 6): se sustituye por marcadores, como en
-// `arm/ArmViewer.test.tsx`. Aquí solo se comprueba que la sección se resuelve y en qué orden.
+// The lazy `ArmViewer` section mounts `Scene3D`, which in jsdom has neither WebGL nor
+// `ResizeObserver` (F2-12, #96, decision 6): it is replaced with markers, as in
+// `arm/ArmViewer.test.tsx`. Here it is only checked that the section resolves and in what order.
 vi.mock('@trayectoria/widgets/scene3d', () => ({
   Scene3D: ({ children }: { children: ReactNode }): ReactNode => (
     <div data-testid="canvas">{children}</div>
@@ -15,9 +15,9 @@ vi.mock('@trayectoria/widgets/scene3d', () => ({
 
 import { SimGallery, includesArmViewer, sectionsFor, stories } from './SimGallery';
 
-// F4-01b, decisión 2 de #126: `/dev/sims` repite el patrón de `/dev/widgets` tras el PR #140 —
-// filtro `?section=` leído en `apps/web` y la misma convención `data-section` / `data-story`,
-// de modo que una captura visual se toma sobre una página que solo lleva su propia sección.
+// F4-01b, decision 2 of #126: `/dev/sims` repeats the pattern of `/dev/widgets` after PR #140 —
+// `?section=` filter read in `apps/web` and the same `data-section` / `data-story` convention,
+// so that a visual capture is taken on a page that only carries its own section.
 describe('sims catalogue (F4-01b)', () => {
   test("orders each section's stories per its declared `default.order`", () => {
     expect(stories).toEqual([
@@ -83,9 +83,9 @@ describe('sims catalogue (F4-01b)', () => {
     expect(container.querySelectorAll('[data-section]')).toHaveLength(0);
   });
 
-  // F5-01a (#133, decisión 2): la sección `ArmViewer` se carga con `React.lazy` para que `three`
-  // y `urdf-loader` no entren en el chunk principal del playground. No aparece en `stories`, que
-  // solo lista las secciones importadas de forma estática.
+  // F5-01a (#133, decision 2): the `ArmViewer` section is loaded with `React.lazy` so that `three`
+  // and `urdf-loader` do not get into the main chunk of the playground. It does not appear in `stories`, which
+  // only lists the statically imported sections.
   test('keeps the lazy `ArmViewer` section out of the static catalogue', () => {
     expect(stories.map(({ title }) => title)).not.toContain('ArmViewer');
     expect(includesArmViewer(undefined)).toBe(true);

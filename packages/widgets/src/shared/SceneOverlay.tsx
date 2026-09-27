@@ -18,7 +18,7 @@ import { useSceneTransformValue } from './useSceneTransformValue';
 export const KEY_STEP = 0.1;
 /** Shift raises the arrow step to this value (#86, decision 4: ±1.0). */
 export const SHIFT_STEP = 1;
-// DESIGN.md §5 Slider: área de arrastre 24 px
+// DESIGN.md §5 Slider: 24 px drag area
 /** Side of the square hit area of a handle, in CSS pixels. */
 const HANDLE_PX = 24;
 

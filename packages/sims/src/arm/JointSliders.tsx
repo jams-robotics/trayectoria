@@ -7,13 +7,13 @@ import type { ParamPanelParam } from '@trayectoria/widgets';
 
 import type { ActuatedJoint } from './types';
 
-// F5-01a (#133, decisión 7): un slider por articulación actuada, en grados en pantalla y
-// radianes internos, con los límites del spec. `ParamPanel` ya recorta al rango y encaja al paso.
+// F5-01a (#133, decision 7): one slider per actuated joint, in degrees on screen and
+// radians internally, with the spec limits. `ParamPanel` already clamps to the range and snaps to the step.
 
-/** Paso de los sliders, en grados. */
+/** Step of the sliders, in degrees. */
 const STEP_DEG = 1;
 
-/** Un parámetro de `ParamPanel` por articulación, con los límites del spec pasados a grados. */
+/** One `ParamPanel` parameter per joint, with the spec limits converted to degrees. */
 export function jointParams(
   joints: readonly ActuatedJoint[],
   q_rad: readonly number[],
@@ -33,11 +33,11 @@ export function jointParams(
 export interface JointSlidersProps {
   joints: readonly ActuatedJoint[];
   q_rad: readonly number[];
-  /** Recibe el índice de la articulación y su nuevo valor en radianes. */
+  /** Receives the joint index and its new value in radians. */
   onChange: (index: number, q_rad: number) => void;
 }
 
-/** Sliders de las articulaciones del brazo, uno por articulación actuada. */
+/** Sliders for the arm joints, one per actuated joint. */
 export function JointSliders({ joints, q_rad, onChange }: JointSlidersProps): JSX.Element {
   const t = useT();
   const unit_deg = t('sims.arm.unitDeg');

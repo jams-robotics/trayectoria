@@ -8,39 +8,39 @@ import type { LapTimer } from './metrics';
 import type { LineFollowerState, Pose } from './model';
 import type { LineFollowerApi } from './useLineFollower';
 
-// F4-03 (#129, decisiones 3, 4 y 5): el muestreo de la instrumentación. Es el único sitio que
-// mira la carrera fotograma a fotograma; las métricas en sí son puras y viven en `metrics.ts`.
+// F4-03 (#129, decisions 3, 4 and 5): instrumentation sampling. It is the only place that
+// looks at the run frame by frame; the metrics themselves are pure and live in `metrics.ts`.
 
-/** Ventana deslizante de las gráficas, en segundos (decisión 4). */
+/** Sliding window of the plots, in seconds (decision 4). */
 export const PLOT_WINDOW_S = 10;
 
 /**
- * Muestras que cabe guardar por gráfica. Se toma **una por fotograma** (decisión 4), así que a
- * 60 fps la ventana de 10 s son 600; el doble deja margen para pantallas de 120 Hz sin que el
- * anillo se coma la ventana. Con `dt_s` por defecto un fotograma son varios pasos del modelo, de
- * modo que la gráfica muestrea la carrera, no cada integración: es la resolución que el ojo
- * distingue y la que `Plot` puede redibujar sin quedarse atrás.
+ * Samples that can be stored per plot. **One per frame** is taken (decision 4), so at
+ * 60 fps the 10 s window is 600; double that leaves margin for 120 Hz screens without the
+ * ring eating the window. With the default `dt_s` one frame is several model steps, so
+ * the plot samples the run, not each integration: it is the resolution the eye
+ * can tell apart and the one `Plot` can redraw without falling behind.
  */
 const PLOT_CAPACITY = 2 * Math.ceil(PLOT_WINDOW_S / DEFAULT_DT_S / 10);
 
-/** Los anillos de las cuatro gráficas: `error`, `v`, `ω` y los tres términos del PID juntos. */
+/** The rings of the four plots: `error`, `v`, `ω` and the three PID terms together. */
 export interface InstrumentBuffers {
   readonly error: RingBuffer;
   readonly v: RingBuffer;
   readonly omega: RingBuffer;
-  /** Tres series en un solo anillo: `P`, `I` y `D` en ese orden (decisión 4). */
+  /** Three series in a single ring: `P`, `I` and `D` in that order (decision 4). */
   readonly pid: RingBuffer;
 }
 
-/** Lo que la instrumentación publica al visor y a la página. */
+/** What the instrumentation publishes to the viewer and to the page. */
 export interface Instruments {
   readonly buffers: InstrumentBuffers;
   readonly timer: LapTimer;
-  /** La pose en que se perdió la línea, mientras el aviso sigue en pie. */
+  /** The pose at which the line was lost, while the warning is still up. */
   readonly lostAt: Pose | undefined;
 }
 
-/** Anillos nuevos para una carrera: uno por gráfica, con tres series en el del PID. */
+/** New rings for a run: one per plot, with three series in the PID one. */
 function createBuffers(): InstrumentBuffers {
   return {
     error: new RingBuffer(PLOT_CAPACITY, 1),
@@ -50,7 +50,7 @@ function createBuffers(): InstrumentBuffers {
   };
 }
 
-/** Los `PidParams` vigentes, o `null` cuando el controlador en curso no es un PID. */
+/** The `PidParams` in force, or `null` when the current controller is not a PID. */
 function pidParamsOf(params: Record<string, number> | undefined): PidParams | null {
   if (params === undefined) return null;
   const { omegaBase_radps, kp, ki, kd, iMax } = params;
@@ -58,14 +58,14 @@ function pidParamsOf(params: Record<string, number> | undefined): PidParams | nu
   return { omegaBase_radps: omegaBase_radps ?? 0, kp, ki, kd, iMax };
 }
 
-/** El integrador y el error anterior que el muestreo del PID arrastra de una muestra a la otra. */
+/** The integrator and the previous error that the PID sampling carries from one sample to the next. */
 interface PidMemory {
   integral: number;
   ePrev: number;
   hasPrev: boolean;
 }
 
-/** Empuja la muestra de este fotograma a los cuatro anillos. */
+/** Pushes this frame's sample into the four rings. */
 function sample(
   buffers: InstrumentBuffers,
   state: LineFollowerState,
@@ -79,8 +79,8 @@ function sample(
   buffers.v.push(t_s, [state.robot.v_mps]);
   buffers.omega.push(t_s, [state.robot.omega_radps]);
   if (pid === null) return;
-  // Los `params` vigentes en cada muestra (#161): mover una ganancia cambia los términos desde la
-  // muestra siguiente, sin reconstruir nada ni perder el integrador.
+  // The `params` in force at each sample (#161): moving a gain changes the terms from the
+  // next sample on, without rebuilding anything or losing the integrator.
   const terms = pidTerms(pid, e, memory.integral, memory.hasPrev ? memory.ePrev : e, dt_s);
   buffers.pid.push(t_s, [terms.P, terms.I, terms.D]);
   memory.integral = terms.integral;
@@ -91,20 +91,20 @@ function sample(
 export interface UseInstrumentsOptions {
   readonly api: LineFollowerApi;
   readonly track: Track;
-  /** Ganancias en curso; solo se usan cuando el controlador seleccionado es el PID. */
+  /** Current gains; only used when the selected controller is the PID. */
   readonly params?: Record<string, number>;
-  /** Cierto mientras el controlador seleccionado es un PID, que es cuando hay términos. */
+  /** True while the selected controller is a PID, which is when there are terms. */
   readonly pid: boolean;
 }
 
 /**
- * Instrumenta la carrera en curso: muestrea el estado del modelo una vez por fotograma en los
- * anillos de las gráficas, cierra una vuelta cada vez que el contador del modelo sube y pausa la
- * simulación en cuanto el arreglo pierde la línea (decisiones 3, 4 y 5).
+ * Instruments the run in progress: samples the model state once per frame into the
+ * plot rings, closes a lap every time the model's counter goes up and pauses the
+ * simulation as soon as the array loses the line (decisions 3, 4 and 5).
  *
- * Todo número sale del estado del modelo, que lleva su propio tiempo simulado: aquí no se lee
- * ningún reloj de plataforma. Reiniciar la carrera o cambiar de pista vacía los anillos, pone el
- * cronómetro a cero y borra el aviso de línea perdida.
+ * Every number comes from the model state, which carries its own simulated time: no
+ * platform clock is read here. Restarting the run or changing track empties the rings, resets the
+ * stopwatch and clears the line-lost warning.
  */
 export function useInstruments({ api, track, params, pid }: UseInstrumentsOptions): Instruments {
   const length_m = useMemo(() => trackLength_m(track), [track]);
@@ -113,20 +113,20 @@ export function useInstruments({ api, track, params, pid }: UseInstrumentsOption
   const [lostAt, setLostAt] = useState<Pose | undefined>(undefined);
   const memory = useRef<PidMemory>({ integral: 0, ePrev: 0, hasPrev: false });
   const last = useRef({ t_s: -1, laps: 0, lost: false });
-  // Lo que cambia en cada render y el efecto necesita leer sin volver a suscribirse: las ganancias
-  // vigentes (#161), el driver que pausa y la longitud de la pista en curso.
+  // What changes on every render and the effect needs to read without resubscribing: the gains
+  // in force (#161), the driver that pauses and the length of the current track.
   const live = useRef({ pid: pidParamsOf(params), driver: api.driver, length_m });
   live.current = { pid: pid ? pidParamsOf(params) : null, driver: api.driver, length_m };
 
   const { state } = api;
   useEffect(() => {
     const previous = last.current;
-    // Un render que no ha avanzado el modelo no aporta muestra: `useSimulationDriver` entrega un
-    // objeto nuevo en cada render, y empujar en todos dejaría el anillo creciendo con la pausa
-    // puesta — y con él la gráfica redibujándose sin parar.
+    // A render that has not advanced the model contributes no sample: `useSimulationDriver` hands a
+    // new object on every render, and pushing on all of them would leave the ring growing with the pause
+    // on — and with it the plot redrawing endlessly.
     if (state.robot.t_s === previous.t_s) return;
-    // Un reinicio, una pista nueva o una simulación reconstruida traen el reloj hacia atrás: la
-    // instrumentación empieza de cero con ellos, igual que la traza del visor.
+    // A restart, a new track or a rebuilt simulation bring the clock backwards: the
+    // instrumentation starts from zero with them, just like the viewer trace.
     const restarted = state.robot.t_s < previous.t_s;
     if (restarted) {
       for (const buffer of [buffers.error, buffers.v, buffers.omega, buffers.pid]) buffer.clear();
@@ -134,16 +134,16 @@ export function useInstruments({ api, track, params, pid }: UseInstrumentsOption
       setTimer(createLapTimer(live.current.length_m));
       setLostAt(undefined);
     }
-    // La muestra del estado de partida entra igual tras un reinicio, así que la gráfica vuelve a
-    // arrancar con el punto de salida y no en blanco.
+    // The sample of the starting state goes in all the same after a restart, so the plot starts
+    // again with the starting point and not blank.
     const dt_s = restarted ? 0 : Math.max(state.robot.t_s - previous.t_s, 0);
     sample(buffers, state, live.current.pid, memory.current, dt_s);
     if (!restarted) {
       if (state.laps > previous.laps) {
         setTimer((current) => recordLap(current, state.robot.t_s, state.distance_m));
       }
-      // El flanco de subida de `lineLost` pausa la carrera y deja el marcador donde se perdió;
-      // seguir perdido no la vuelve a pausar (decisión 5).
+      // The rising edge of `lineLost` pauses the run and leaves the marker where it was lost;
+      // staying lost does not pause it again (decision 5).
       if (state.lineLost && !previous.lost && state.lostAt !== undefined) {
         setLostAt(state.lostAt);
         live.current.driver.pause();
@@ -152,8 +152,8 @@ export function useInstruments({ api, track, params, pid }: UseInstrumentsOption
     last.current = { t_s: state.robot.t_s, laps: state.laps, lost: state.lineLost };
   }, [state, buffers]);
 
-  // La longitud de la pista define la velocidad media (#170): cambiar de pista reinicia la
-  // simulación, y el cronómetro tiene que arrancar ya con la longitud nueva.
+  // The track length defines the average speed (#170): changing track restarts the
+  // simulation, and the stopwatch has to start already with the new length.
   useEffect(() => {
     setTimer(createLapTimer(length_m));
   }, [length_m]);

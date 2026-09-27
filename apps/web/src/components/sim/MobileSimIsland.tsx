@@ -23,35 +23,35 @@ import type { SimConfigsApi } from './useSimConfigs';
 import type { ControllerChoice, PageState } from './useMobileSimState';
 import { useMounted, usePageState } from './useMobileSimState';
 
-// F4-02b (#128, decisiones 1, 2 y 4): la isla de `/simuladores/movil`. Es `client:visible` y no
-// importa `three`: el simulador es el `LineFollowerWidget` de F4-02a tal cual, y esta isla solo
-// compone a su alrededor el origen del robot, el de la pista, la pose inicial y la maqueta de
-// escritorio (04) y móvil (08).
+// F4-02b (#128, decisions 1, 2 and 4): the island of `/simuladores/movil`. It is `client:visible`
+// and does not import `three`: the simulator is the `LineFollowerWidget` of F4-02a as is, and this
+// island only composes around it the robot source, the track source, the initial pose and the
+// desktop (04) and mobile (08) mockups.
 //
-// `@trayectoria/sims` se carga con `import()`, no de forma estática (mismo patrón que
-// `ArmSimIsland` de F5-01b): su `index.ts` reexporta también `SimGallery` con las stories del
-// playground, y traerlas en el chunk inicial dejaba la página en 252 kB comprimidos, por encima
-// del presupuesto de docs/ARCHITECTURE.md §8. Cargado aparte, el JS inicial baja a lo que la
-// página necesita para pintarse y el simulador entra en cuanto resuelve su chunk.
+// `@trayectoria/sims` is loaded with `import()`, not statically (same pattern as
+// `ArmSimIsland` of F5-01b): its `index.ts` also re-exports `SimGallery` with the playground
+// stories, and bringing them into the initial chunk left the page at 252 kB compressed, above
+// the budget of docs/ARCHITECTURE.md §8. Loaded separately, the initial JS drops to what the
+// page needs to paint itself and the simulator comes in as soon as its chunk resolves.
 //
-// El estado de la página vive en `useMobileSimState.ts` y los paneles (Robot, Pista, Lecturas y
-// la columna derecha que los agrupa) en `MobileSimPanels.tsx`; este archivo solo compone ambos
-// con el `LineFollowerWidget` (docs/STANDARDS.md §4, límite de tamaño de archivo).
+// The page state lives in `useMobileSimState.ts` and the panels (Robot, Pista, Lecturas and
+// the right column that groups them) in `MobileSimPanels.tsx`; this file only composes both
+// with the `LineFollowerWidget` (docs/STANDARDS.md §4, file size limit).
 
-// F4-05 (#131, decisiones 6 y 7): la isla es además quien lee `?c=` al montar, quien compone la
-// `SimConfig` en curso y quien decide dónde se guarda (local o la fila del robot), en
-// `useSimConfigs.ts`. El panel «Guardar y compartir» es uno más de la columna derecha.
+// F4-05 (#131, decisions 6 and 7): the island is also the one that reads `?c=` on mount, composes
+// the running `SimConfig` and decides where it is saved (local or the robot's row), in
+// `useSimConfigs.ts`. The «Guardar y compartir» panel is one more in the right column.
 
-/** El simulador de F4-02a, resuelto solo cuando el navegador lo renderiza. */
+/** The F4-02a simulator, resolved only when the browser renders it. */
 const LazyLineFollowerWidget = lazy(async () => {
   const module = await import('@trayectoria/sims');
   return { default: module.LineFollowerWidget };
 });
 
 /**
- * La configuración en curso, estable mientras nada cambie de valor. `SaveConfigPanel` la usa para
- * codificar el enlace en un efecto, así que un objeto nuevo en cada render volvería a codificarlo
- * sin parar: se compara por su JSON y solo se devuelve otro cuando de verdad es otra.
+ * The running configuration, stable while no value changes. `SaveConfigPanel` uses it to
+ * encode the link in an effect, so a new object on every render would re-encode it
+ * endlessly: it is compared by its JSON and another one is returned only when it truly differs.
  */
 function useStableConfig(config: Omit<SimConfig, 'id' | 'name'>): Omit<SimConfig, 'id' | 'name'> {
   const kept = useRef(config);
@@ -60,9 +60,9 @@ function useStableConfig(config: Omit<SimConfig, 'id' | 'name'>): Omit<SimConfig
 }
 
 /**
- * Lo que «Guardar y compartir» guarda y comparte: la pista de la página y el controlador, los
- * parámetros y la semilla con los que corre el widget. La pista viaja como el preset elegido
- * mientras no se haya editado, y como el JSON del editor en cuanto sí (F4-05, decisión 2).
+ * What «Guardar y compartir» saves and shares: the page's track and the controller, the
+ * parameters and the seed the widget runs with. The track travels as the chosen preset
+ * while it has not been edited, and as the editor's JSON as soon as it has (F4-05, decision 2).
  */
 function useCurrentConfig(
   page: ReturnType<typeof usePageState>,
@@ -78,15 +78,15 @@ function useCurrentConfig(
 }
 
 /**
- * El `renderPanel` que la isla le da al widget: el widget entrega ahí su panel del controlador y
- * la página lo devuelve dentro de la columna derecha completa (maqueta 04), con Robot, Pista,
- * Lecturas y «Guardar y compartir» debajo.
+ * The `renderPanel` the island gives the widget: the widget hands its controller panel there and
+ * the page returns it inside the complete right column (mockup 04), with Robot, Pista,
+ * Lecturas and «Guardar y compartir» below.
  *
- * `renderPanel` es una prop del widget, así que un callback nuevo lo vuelve a renderizar; y el
- * widget publica su estado con `onApi`, que actualiza esta página. Si el callback dependiera del
- * estado, cada estado publicado produciría un callback nuevo y con él otro render, es decir un
- * bucle. Lo que cambia en cada estado se lee de un ref dentro del propio callback, de modo que su
- * identidad solo depende de lo que cambia la maqueta.
+ * `renderPanel` is a widget prop, so a new callback re-renders it; and the widget publishes its
+ * state with `onApi`, which updates this page. If the callback depended on the state, every
+ * published state would produce a new callback and with it another render, that is, a loop.
+ * What changes on every state is read from a ref inside the callback itself, so that its
+ * identity only depends on what changes the mockup.
  */
 function useSidePanels(
   props: Omit<SidePanelsProps, 'controller' | 'onPlotsPid'>,
@@ -139,7 +139,7 @@ function Notices({
   return <Toast message={shown.notice.message} tone={shown.notice.tone} onClose={shown.dismiss} />;
 }
 
-/** La pista, el controlador, el robot y la pose con los que la página abre la carrera. */
+/** The track, controller, robot and pose the page opens the run with. */
 function runProps(page: ReturnType<typeof usePageState>): {
   track: PageState['choice']['track'];
   controller: ControllerChoice['controller'];
@@ -158,7 +158,7 @@ function runProps(page: ReturnType<typeof usePageState>): {
   };
 }
 
-/** Lo que la isla le pasa al simulador: la página, la maqueta y los tres canales de salida. */
+/** What the island passes the simulator: the page, the mockup and the three output channels. */
 interface SimulatorProps {
   readonly page: ReturnType<typeof usePageState>;
   readonly mobile: boolean;
@@ -167,7 +167,7 @@ interface SimulatorProps {
   readonly onInstruments: (instruments: LiveInstruments) => void;
   readonly store: ApiStore;
   readonly panels: EditorPanelStore;
-  /** Se llama al volver del editor con el lienzo sin segmentos (#190, decisión 3). */
+  /** Called when coming back from the editor with a canvas without segments (#190, decision 3). */
   readonly onEmptyTrack: () => void;
   /** «Guardar» of the editor: the track goes to the account or to the browser (#191, decision 3). */
   readonly onSaveTrack: SavedTracksApi['onSave'];
@@ -175,7 +175,7 @@ interface SimulatorProps {
   readonly plots: ReactNode;
 }
 
-/** El aviso mientras el chunk del simulador se resuelve. */
+/** The notice shown while the simulator chunk resolves. */
 function SimulatorFallback(): JSX.Element {
   const t = useT();
   // F7-02b (#444): the notice reserves the space of the simulator, which is always taller
@@ -188,7 +188,7 @@ function SimulatorFallback(): JSX.Element {
   );
 }
 
-/** El simulador: el `LineFollowerWidget` de F4-02a con la pista, el robot y la pose de la página. */
+/** The simulator: the `LineFollowerWidget` of F4-02a with the page's track, robot and pose. */
 function Simulator({
   page,
   mobile,
@@ -209,9 +209,9 @@ function Simulator({
   return (
     <Suspense fallback={<SimulatorFallback />}>
       <LazyLineFollowerWidget
-        // F4-05: cargar una configuración sube `configKey` y el widget se remonta con el
-        // controlador, los parámetros y la semilla nuevos; `useControllerChoice` los lee al
-        // montar, así que sin el `key` la configuración cargada no llegaría a los mandos.
+        // F4-05: loading a configuration bumps `configKey` and the widget remounts with the
+        // new controller, parameters and seed; `useControllerChoice` reads them on
+        // mount, so without the `key` the loaded configuration would never reach the controls.
         key={page.configKey}
         {...runProps(page)}
         onStartPoseChange={page.setStartPose}
@@ -236,9 +236,9 @@ function Simulator({
 }
 
 /**
- * Página del simulador móvil 2D: el robot, la pista, la pose inicial y el `LineFollowerWidget`.
- * En escritorio el visor va a la izquierda y los paneles a la derecha (maqueta 04); en móvil los
- * paneles son acordeones y los controles van en la barra inferior fija (maqueta 08).
+ * 2D mobile simulator page: the robot, the track, the initial pose and the `LineFollowerWidget`.
+ * On desktop the viewer goes on the left and the panels on the right (mockup 04); on mobile the
+ * panels are accordions and the controls go in the fixed bottom bar (mockup 08).
  */
 export function MobileSimIsland(): JSX.Element {
   const t = useT();
@@ -247,10 +247,10 @@ export function MobileSimIsland(): JSX.Element {
   const [openId, setOpenId] = useState<OpenPanelId>('robot');
   const page = usePageState();
   const store = useApiStore();
-  // F4-03 (#129, decisión 6): las gráficas y la tarjeta de vuelta salen del widget por
-  // `onInstruments` y llegan al panel «Gráficas» por su propio store, como la api por `apiStore`.
+  // F4-03 (#129, decision 6): the plots and the lap card come out of the widget through
+  // `onInstruments` and reach the «Gráficas» panel through their own store, like the api via `apiStore`.
   const instruments = useInstruments();
-  // #189 (decisión 2): el panel del editor viaja de la caja del visor a la columna derecha.
+  // #189 (decision 2): the editor panel travels from the viewer box to the right column.
   const panels = useEditorPanelStore();
   const configs = useSimConfigs(page.robotId, page.applyConfig);
   // #191 (decisions 2 and 4): the saved tracks of the «Mis pistas» group. Picking one loads it as
@@ -264,12 +264,12 @@ export function MobileSimIsland(): JSX.Element {
     onChoice: setLive, instruments, panels, tracks,
   });
 
-  // Maqueta 04: el visor a la izquierda y la columna de tarjetas a la derecha. El widget ocupa
-  // la rejilla entera porque su propia fila ya coloca el visor y el panel del controlador; las
-  // tarjetas Robot, Pista y Lecturas van bajo el controlador, en esa misma columna derecha.
+  // Mockup 04: the viewer on the left and the column of cards on the right. The widget takes
+  // the whole grid because its own row already places the viewer and the controller panel; the
+  // Robot, Pista and Lecturas cards go under the controller, in that same right column.
   //
-  // `ViewerBox` entra por `renderViewer` (#158, enmienda tras auditoría de PR #169): la página
-  // decide qué ocupa la caja del visor sin que `TrackEditorBox` toque el DOM interno del widget.
+  // `ViewerBox` comes in through `renderViewer` (#158, amendment after the audit of PR #169): the
+  // page decides what fills the viewer box without `TrackEditorBox` touching the widget's inner DOM.
   return (
     <div
       className="mt-6 flex flex-col gap-5"

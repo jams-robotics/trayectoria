@@ -36,7 +36,7 @@ describe('RotationWidget (F2-06)', () => {
     expect(valueOf('Velocidad angular en rpm')).toBe('200 rpm');
     expect(valueOf('Período')).toBe('0.300 s');
     expect(valueOf('Frecuencia')).toBe('3.33 Hz');
-    // v = 20.94 · 0.032 = 0.6702 m/s (e1 de T-4.2).
+    // v = 20.94 · 0.032 = 0.6702 m/s (e1 of T-4.2).
     expect(valueOf('Velocidad del borde')).toBe('0.670 m/s');
   });
 
@@ -48,7 +48,7 @@ describe('RotationWidget (F2-06)', () => {
   });
 
   test('el modo rolling avanza 2πr = 0.201 m en una vuelta (experimento 1 de T-4.2)', () => {
-    // Una vuelta a 20.94 rad/s dura T = 0.3 s.
+    // One turn at 20.94 rad/s lasts T = 0.3 s.
     render(<RotationWidget mode="rolling" inputUnit="rpm" initial={WHEEL} initialTime_s={0.3} />);
 
     expect(valueOf('Avance del centro')).toBe('0.201 m');
@@ -68,7 +68,7 @@ describe('RotationWidget (F2-06)', () => {
     await user.click(screen.getByRole('button', { name: 'rad/s' }));
 
     expect(sliderFor('Velocidad angular').getAttribute('aria-valuetext')).toBe('6.28 rad/s');
-    // El valor físico no cambia: el panel sigue mostrando ambas unidades.
+    // The physical value does not change: the panel still shows both units.
     expect(valueOf('Velocidad angular')).toBe('6.28 rad/s');
     expect(valueOf('Velocidad angular en rpm')).toBe('60.0 rpm');
   });
@@ -96,7 +96,7 @@ describe('RotationWidget (F2-06)', () => {
     await user.clear(field);
     await user.type(field, '1{Enter}');
 
-    // ω = 1/0.032 = 31.25 rad/s, que con tres cifras significativas se muestra 31.3.
+    // ω = 1/0.032 = 31.25 rad/s, which with three significant figures is shown as 31.3.
     expect(valueOf('Velocidad angular')).toBe('31.3 rad/s');
     expect(valueOf('Velocidad angular en rpm')).toBe('298 rpm');
   });
@@ -109,7 +109,7 @@ describe('RotationWidget (F2-06)', () => {
       />,
     );
 
-    // a_t = 41.89 · 0.032 = 1.340 m/s²; de 0 a 200 rpm tarda 0.5 s.
+    // a_t = 41.89 · 0.032 = 1.340 m/s²; from 0 to 200 rpm it takes 0.5 s.
     expect(valueOf('Aceleración tangencial')).toBe('1.34 m/s²');
     expect(valueOf('Tiempo hasta 200 rpm')).toBe('0.500 s');
     expect(valueOf('Velocidad angular')).toBe('0.00 rad/s');
@@ -137,16 +137,16 @@ describe('RotationWidget (F2-06)', () => {
       />,
     );
 
-    // Defectos de la decisión 7: R = 0.5 m, v = 0.6 m/s, μs = 0.6 → a_c = 0.6²/0.5 = 0.72 m/s².
+    // Defaults of decision 7: R = 0.5 m, v = 0.6 m/s, μs = 0.6 → a_c = 0.6²/0.5 = 0.72 m/s².
     expect(valueOf('Aceleración centrípeta', 1)).toBe('0.720 m/s²');
 
     const radius = screen.getByRole('textbox', { name: /Radio de la curva/ });
     await user.clear(radius);
     await user.type(radius, '0.3{Enter}');
 
-    // v_max = √(0.6 · 9.81 · 0.3) = 1.329 m/s (e4 de T-4.3).
+    // v_max = √(0.6 · 9.81 · 0.3) = 1.329 m/s (e4 of T-4.3).
     expect(valueOf('Velocidad máxima en curva', 1)).toBe('1.33 m/s');
-    // Reducir R con la misma v aumenta a_c (experimento 3 de T-4.3).
+    // Reducing R with the same v increases a_c (experiment 3 of T-4.3).
     expect(valueOf('Aceleración centrípeta', 1)).toBe('1.20 m/s²');
   });
 
@@ -192,7 +192,7 @@ describe('RotationWidget (F2-06)', () => {
 
     expect(valueOf('Velocidad angular')).toBe('20.9 rad/s');
     expect(valueOf('Período')).toBe('0.300 s');
-    // Sólo cambia la rapidez del punto del borde: se duplica (experimento 2 de T-4.2).
+    // Only the speed of the rim point changes: it doubles (experiment 2 of T-4.2).
     expect(valueOf('Velocidad del borde')).toBe('1.34 m/s');
   });
 
@@ -226,7 +226,7 @@ describe('RotationWidget (F2-06)', () => {
       await user.type(box, `${value}{Enter}`);
     };
 
-    // Valores iniciales: R = 0.5 m, v = 0.6 m/s, a_c = 0.72 m/s²; v_max = 1.72 m/s, sin aviso.
+    // Initial values: R = 0.5 m, v = 0.6 m/s, a_c = 0.72 m/s²; v_max = 1.72 m/s, no warning.
     expect(view().getAttribute('aria-label')).toContain('0.720 m/s²');
     expect(screen.queryByText('Patinaría: v > v_max')).toBeNull();
 
@@ -251,11 +251,11 @@ describe('RotationWidget (F2-06)', () => {
     expect(valueOf('Avance del centro')).toBe('0.00 m');
   });
 
-  // QA de PR #110, ronda 1: en /dev/widgets, story Disc, «Reproducir» parecía no arrancar la
-  // animación. La causa real era ajena al modo disc (una carrera de hidratación del propio
-  // playground, ya cubierta en widgets.spec.ts con un retry-poll como en RobotOnTrack); este
-  // test usa el rAF real de jsdom (sin mock) para dejar constancia de que, una vez montado el
-  // widget, «Reproducir» en disc sí avanza t_s y las vueltas.
+  // QA of PR #110, round 1: in /dev/widgets, story Disc, «Reproducir» seemed not to start the
+  // animation. The real cause was unrelated to the disc mode (a hydration race of the
+  // playground itself, already covered in widgets.spec.ts with a retry-poll as in RobotOnTrack); this
+  // test uses the real rAF of jsdom (no mock) to record that, once the widget is
+  // mounted, «Reproducir» in disc does advance t_s and the turns.
   test('Reproducir en disc avanza t_s y las vueltas con el rAF real de jsdom', async () => {
     const user = userEvent.setup({ delay: null });
     render(<RotationWidget mode="disc" inputUnit="rpm" initial={WHEEL} />);

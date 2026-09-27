@@ -4,10 +4,10 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { MANUAL_DIFF_RADPS, MANUAL_STEP_RADPS, commandOf, useManualKeyboard } from './useManualKeyboard';
 
-// F4-04 (#130, decisiones 2 y 6): el teclado del modo manual. Escucha solo en el elemento del
-// visor, nunca en `window` ni en `document` (prohibido fuera de `apps/web`).
+// F4-04 (#130, decisions 2 and 6): the keyboard of manual mode. It listens only on the viewer
+// element, never on `window` or `document` (forbidden outside `apps/web`).
 
-/** Un elemento de visor ya montado, como el que el widget pasa por `ref`. */
+/** An already mounted viewer element, like the one the widget passes through `ref`. */
 function viewerRef(): { ref: { current: HTMLDivElement | null }; element: HTMLDivElement } {
   const element = document.createElement('div');
   document.body.append(element);
@@ -16,21 +16,21 @@ function viewerRef(): { ref: { current: HTMLDivElement | null }; element: HTMLDi
   return { ref, element };
 }
 
-/** Envía un `keydown` sobre el visor con la tecla dada. */
+/** Sends a `keydown` on the viewer with the given key. */
 function press(element: HTMLElement, key: string): void {
   act(() => {
     element.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
   });
 }
 
-/** Envía un `keyup` sobre el visor con la tecla dada. */
+/** Sends a `keyup` on the viewer with the given key. */
 function release(element: HTMLElement, key: string): void {
   act(() => {
     element.dispatchEvent(new KeyboardEvent('keyup', { key, bubbles: true, cancelable: true }));
   });
 }
 
-/** Envía un `keydown` de auto-repeat (tecla mantenida) sobre el visor. */
+/** Sends an auto-repeat `keydown` (key held down) on the viewer. */
 function repeatPress(element: HTMLElement, key: string): void {
   act(() => {
     element.dispatchEvent(new KeyboardEvent('keydown', { key, repeat: true, bubbles: true, cancelable: true }));
@@ -77,8 +77,8 @@ describe('useManualKeyboard', () => {
     const { result } = renderHook(() => useManualKeyboard(ref, { omegaMax_radps: OMEGA_MAX_RADPS }));
 
     press(element, 'ArrowRight');
-    // Signo de la decisión 2 de #130: → gira a la derecha, es decir la rueda izquierda corre más
-    // que la derecha, y eso es `diff = −2` con `ωL = base − diff`, `ωR = base + diff`.
+    // Sign from decision 2 of #130: → turns right, that is, the left wheel runs faster
+    // than the right one, and that is `diff = −2` with `ωL = base − diff`, `ωR = base + diff`.
     expect(result.current.diff_radps).toBe(-MANUAL_DIFF_RADPS);
     release(element, 'ArrowRight');
     expect(result.current.diff_radps).toBe(0);

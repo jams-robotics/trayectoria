@@ -2,17 +2,17 @@ import '@testing-library/jest-dom/vitest';
 import { render } from '@testing-library/react';
 import { beforeAll, describe, expect, test, vi } from 'vitest';
 
-// Sin WebGL en jsdom (mismo criterio que `UrdfModel.test.tsx`): `<primitive>` es un elemento de
-// three, no de HTML, así que React lo deja en el DOM como elemento desconocido. El `Canvas` real
-// nunca se monta aquí, de modo que la geometría se comprueba sobre `buildWorkspacePoints`.
+// No WebGL in jsdom (same criterion as `UrdfModel.test.tsx`): `<primitive>` is a three
+// element, not an HTML one, so React leaves it in the DOM as an unknown element. The real `Canvas`
+// is never mounted here, so the geometry is checked on `buildWorkspacePoints`.
 import { Points } from 'three';
 
 import { WorkspacePoints, buildWorkspacePoints } from './WorkspacePoints';
 
-/** Dos puntos: uno en la base y otro a 0.35 m, los extremos de la rampa de color. */
+/** Two points: one at the base and another at 0.35 m, the ends of the colour ramp. */
 const POINTS = new Float32Array([0, 0, 0, 0.35, 0, 0]);
 
-// `primitive` es un elemento de three; bajo jsdom React avisa por su capitalización.
+// `primitive` is a three element; under jsdom React warns about its capitalisation.
 beforeAll(() => {
   const warn = console.error.bind(console);
   vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
@@ -28,7 +28,7 @@ describe('buildWorkspacePoints (F5-03)', () => {
     expect(object.geometry.getAttribute('position').count).toBe(2);
     const colors = object.geometry.getAttribute('color');
     expect(colors.count).toBe(2);
-    // El punto de la base toma el extremo cercano de la rampa, `--color-data-1` (#0072b2).
+    // The base point takes the near end of the ramp, `--color-data-1` (#0072b2).
     expect(colors.getX(0)).toBeCloseTo(0, 5);
     expect(colors.getZ(0)).toBeCloseTo(0xb2 / 255, 5);
     // El punto lejano toma `--color-data-3` (#009e73).
@@ -49,8 +49,8 @@ describe('buildWorkspacePoints (F5-03)', () => {
 });
 
 /**
- * El objeto de three que cuelga del `primitive`. En jsdom el atributo `object` solo guarda su
- * conversión a texto, así que se lee de las props de React del nodo.
+ * The three object hanging from the `primitive`. In jsdom the `object` attribute only stores its
+ * conversion to text, so it is read from the React props of the node.
  */
 function renderedObject(container: HTMLElement): Points {
   const node = container.querySelector('primitive');
@@ -66,8 +66,8 @@ describe('WorkspacePoints (F5-03)', () => {
 
     const primitive = container.querySelector('primitive');
     expect(primitive).not.toBeNull();
-    // R3F asigna cada prop de `<primitive>` al objeto de three, así que un `data-*` haría
-    // estallar el render real (mismo criterio que `UrdfModel`, F5-01a).
+    // R3F assigns every prop of `<primitive>` to the three object, so a `data-*` would
+    // blow up the real render (same criterion as `UrdfModel`, F5-01a).
     expect(primitive?.getAttributeNames()).toEqual(['object']);
   });
 
@@ -79,7 +79,7 @@ describe('WorkspacePoints (F5-03)', () => {
     rerender(<WorkspacePoints points={POINTS} visible={false} />);
 
     expect(object.visible).toBe(false);
-    // El mismo objeto: cambiar la visibilidad no vuelve a construir la nube.
+    // The same object: changing the visibility does not rebuild the cloud.
     expect(renderedObject(container)).toBe(object);
   });
 });

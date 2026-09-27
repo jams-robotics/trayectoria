@@ -1,24 +1,24 @@
 import { useMemo, useRef, useSyncExternalStore } from 'react';
 import type { LineFollowerApi } from '@trayectoria/sims';
 
-// F4-02b (#128): el canal por el que `LineFollowerWidget` le cuenta a la página cómo va la
-// simulación, sin encadenarla consigo misma.
+// F4-02b (#128): the channel through which `LineFollowerWidget` tells the page how the
+// simulation is going, without chaining it to itself.
 
 /**
- * La simulación en curso, publicada a quien la mire sin volver a renderizar la página entera.
+ * The running simulation, published to whoever watches it without re-rendering the whole page.
  *
- * `LineFollowerWidget` recibe `renderPanel` y publica su api con `onApi`, así que guardar la api
- * en el estado de esta página la encadenaría consigo misma: cada estado publicado re-renderiza la
- * página, eso re-renderiza el widget y el widget publica otro estado. Con la api en un `ref` y
- * una suscripción aparte, el bucle no existe: el widget se renderiza por su cuenta y solo los dos
- * consumidores de la api («Lecturas» y la barra inferior) se enteran de cada tick.
+ * `LineFollowerWidget` receives `renderPanel` and publishes its api with `onApi`, so storing the
+ * api in this page's state would chain it to itself: every published state re-renders the
+ * page, that re-renders the widget and the widget publishes another state. With the api in a
+ * `ref` and a separate subscription, the loop does not exist: the widget renders on its own and
+ * only the two consumers of the api («Lecturas» and the bottom bar) hear about each tick.
  */
 export interface ApiStore {
-  /** La última api publicada, o null mientras el simulador no haya montado. */
+  /** The last published api, or null while the simulator has not mounted. */
   readonly read: () => LineFollowerApi | null;
-  /** La entrega el widget en cada cambio observable. */
+  /** The widget hands it over on every observable change. */
   readonly publish: (api: LineFollowerApi) => void;
-  /** Avisa a un consumidor; devuelve la baja. */
+  /** Notifies a consumer; returns the unsubscribe function. */
   readonly subscribe: (listener: () => void) => () => void;
 }
 
@@ -41,7 +41,7 @@ export function useApiStore(): ApiStore {
   );
 }
 
-/** La api en curso, re-renderizando solo al componente que la lee. */
+/** The running api, re-rendering only the component that reads it. */
 export function useApi(store: ApiStore): LineFollowerApi | null {
   return useSyncExternalStore(store.subscribe, store.read, () => null);
 }

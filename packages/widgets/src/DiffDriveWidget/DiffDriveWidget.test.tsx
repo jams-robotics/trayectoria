@@ -123,12 +123,12 @@ describe('DiffDriveWidget (F2-09a)', () => {
     const user = userEvent.setup();
     render(<DiffDriveWidget mode="forward" show={['frames']} initial={T52} />);
 
-    // En la pose inicial (0, 0, 0) la matriz es la identidad y el sensor central queda a 0.09 m.
+    // At the initial pose (0, 0, 0) the matrix is the identity and the central sensor sits at 0.09 m.
     expect(valueOf('R(θ) fila 1 columna 1')).toBe('1.00');
     expect(valueOf('R(θ) fila 1 columna 2')).toBe('0.00');
     expect(valueOf('Sensor 3 en el marco global')).toBe('(0.0900, 0.00 m)');
 
-    // Con θ = 90° la matriz tiene cos = 0 y sin = 1 (experimento 3 de T-5.1).
+    // With θ = 90° the matrix has cos = 0 and sin = 1 (experiment 3 of T-5.1).
     await typeValue(user, 'Orientación inicial', '90');
     expect(valueOf('R(θ) fila 1 columna 1')).toBe('0.00');
     expect(valueOf('R(θ) fila 2 columna 1')).toBe('1.00');
@@ -189,9 +189,9 @@ describe('DiffDriveWidget (F2-09a)', () => {
   test('initialTime_s abre el widget con el robot ya avanzado (#92, decisión 7)', () => {
     render(<DiffDriveWidget mode="forward" show={['trace']} initial={T52} initialTime_s={3} />);
 
-    // El modelo de sim-core rampa los comandos a maxAccel_radps2 = 40 rad/s², así que en 3 s el
-    // robot ha girado algo menos que los 3.2 rad del régimen permanente, pero ya ha recorrido
-    // más de media vuelta del arco de R = 0.525 m.
+    // The sim-core model ramps the commands at maxAccel_radps2 = 40 rad/s², so in 3 s the
+    // robot has turned somewhat less than the 3.2 rad of the steady state, but it has already covered
+    // more than half a turn of the arc of R = 0.525 m.
     expect(valueOf('Orientación en radianes')).toBe('2.74 rad');
     expect(valueOf('Radio de giro')).toBe('0.525 m');
   });
@@ -228,7 +228,7 @@ describe('DiffDriveWidget odometría (F2-09b)', () => {
 
     stepSimulation(30);
     expect(Number.parseFloat(valueOf('Posición x estimada'))).toBeGreaterThan(0);
-    // La cuantización de 360 ticks por vuelta deja un error de milímetros, no de centímetros.
+    // The quantization of 360 ticks per revolution leaves an error of millimetres, not centimetres.
     expect(Number.parseFloat(valueOf('Error de posición'))).toBeLessThan(0.01);
   });
 
@@ -250,10 +250,10 @@ describe('DiffDriveWidget odometría (F2-09b)', () => {
 
     await typeValue(user, 'Distancia entre ruedas creída', '0.2');
     stepSimulation(40);
-    // Con L creída 0.2 en vez de 0.15 el Δθ estimado es tres cuartos del real, así que el rumbo
-    // estimado se queda corto desde el primer paso y el error solo crece mientras el robot gire.
-    // El signo es lo que prueba la desviación: el margen exacto depende de cuánto haya avanzado
-    // la simulación, que no es lo que este caso comprueba.
+    // With a believed L of 0.2 instead of 0.15 the estimated Δθ is three quarters of the real one, so the
+    // estimated heading falls short from the first step and the error only grows while the robot turns.
+    // The sign is what proves the deviation: the exact margin depends on how far the simulation
+    // has advanced, which is not what this case checks.
     expect(Number.parseFloat(valueOf('Error de rumbo'))).toBeLessThan(0);
     expect(Math.abs(Number.parseFloat(valueOf('Error de rumbo')))).toBeGreaterThan(
       Math.abs(Number.parseFloat(valueOf('Error de posición'))),
@@ -271,11 +271,11 @@ describe('DiffDriveWidget odometría (F2-09b)', () => {
       />,
     );
 
-    // A los 10 s el robot lleva recorridos unos 4 m, y la estimación con la calibración exacta
-    // los sigue: ambas x son del mismo orden y el error queda en milímetros.
+    // At 10 s the robot has covered about 4 m, and the estimation with the exact calibration
+    // follows it: both x are of the same order and the error stays in millimetres.
     expect(Number.parseFloat(valueOf('Posición x estimada'))).not.toBe(0);
     expect(Number.parseFloat(valueOf('Error de posición'))).toBeLessThan(0.01);
-    // Los ticks se muestran como «(izquierda, derecha ticks)» y a los 10 s ya son millares.
+    // The ticks are shown as «(izquierda, derecha ticks)» and at 10 s they are already in the thousands.
     expect(valueOf('Ticks acumulados (izquierda, derecha)')).toMatch(/^\(\d{4}, \d{4} ticks\)$/);
   });
 

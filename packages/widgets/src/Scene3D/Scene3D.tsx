@@ -49,7 +49,7 @@ const GRID_ROTATION_RAD: Readonly<Record<'z' | 'y', readonly [number, number, nu
 
 /**
  * Background and grid colours read from the CSS tokens, re-read whenever `data-theme` changes
- * on `<html>` (docs/DESIGN.md §7: todo color viene de tokens, ningún hex en componentes).
+ * on `<html>` (docs/DESIGN.md §7: every colour comes from tokens, no hex in components).
  */
 export function useSceneColors(): { background: string; grid: string; axis: string } {
   const read = (): { background: string; grid: string; axis: string } => {

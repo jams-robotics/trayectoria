@@ -8,7 +8,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { ShareLink } from './ShareLink';
 import { decode } from './codec';
 
-// F4-05 (#131, decisión 6): el campo del enlace y «Copiar enlace».
+// F4-05 (#131, decision 6): the link field and «Copiar enlace».
 
 const CONFIG: SimConfig = {
   id: 'link',
@@ -19,7 +19,7 @@ const CONFIG: SimConfig = {
   seed: 1,
 };
 
-/** Una pista sintética cuyo enlace pasa de `MAX_LINK_CHARS` (#182). */
+/** A synthetic track whose link exceeds `MAX_LINK_CHARS` (#182). */
 const TOO_LONG: SimConfig = {
   ...CONFIG,
   id: 'link-largo',
@@ -53,7 +53,7 @@ describe('ShareLink (F4-05)', () => {
     expect(decoded).toEqual({ ok: true, value: CONFIG });
   });
 
-  // #182 (decisión 2): la configuración que no cabe en un enlace no deja un enlace roto a la vista.
+  // #182 (decision 2): a configuration that does not fit in a link does not leave a broken link in view.
   it('una configuración que no cabe deja el campo vacío y avisa sin copiar nada', async () => {
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);

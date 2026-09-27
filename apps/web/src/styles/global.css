@@ -4,9 +4,9 @@
 @import './tokens.css';
 @import 'tailwindcss';
 
-/* Las islas que publican los paquetes del workspace (AuthGate, widgets, sims) viven fuera de
-   apps/web: Tailwind debe escanearlas. Un paquete con UI propia que falte aquí no falla al
-   construir; sus clases simplemente no se generan y el componente se pinta sin ellas (#167). */
+/* The islands published by the workspace packages (AuthGate, widgets, sims) live outside
+   apps/web: Tailwind must scan them. A package with its own UI missing here does not fail to
+   build; its classes are simply not generated and the component is painted without them (#167). */
 @source '../../../../packages/auth/src';
 @source '../../../../packages/widgets/src';
 @source '../../../../packages/sims/src';
@@ -109,7 +109,7 @@
   width: var(--size-panel-side);
 }
 
-/* Subconjuntos latín y griego (DESIGN.md §3); cada archivo se descarga solo si la página usa su rango. */
+/* Latin and Greek subsets (DESIGN.md §3); each file is downloaded only if the page uses its range. */
 
 @font-face {
   font-family: 'Source Sans 3';

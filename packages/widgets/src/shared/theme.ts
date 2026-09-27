@@ -123,7 +123,7 @@ const SCENE_FALLBACKS: Readonly<Record<string, string>> = {
  * Resolves a palette token by name against `element` (#84, decision 3 of the assignment).
  * `name` is a CSS custom property name with or without the leading `--`; a literal colour is
  * never accepted, so an unknown name falls back to the muted foreground rather than painting
- * something outside the palette (docs/DESIGN.md §7: ningún hex en componentes).
+ * something outside the palette (docs/DESIGN.md §7: no hex in components).
  */
 export function tokenColor(element: Element | null, name: string): string {
   const property = name.startsWith('--') ? name : `--${name}`;

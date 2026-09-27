@@ -84,6 +84,32 @@ function failInsert(error: Result<unknown>['error']): never {
   fail(error, 'robot not saved');
 }
 
+/**
+ * A PostgREST error carries the constraint name in its message (`isCheckViolation`), but the
+ * Storage API does not: verified against local Supabase Storage (storage-js 2.116.0) that the
+ * owner object limit of the `urdf` bucket (migration 0009, #502) reaches the client as a
+ * `StorageApiError` whose own `code` is the string `"DatabaseError"`, not a SQLSTATE, and whose
+ * `message` is the generic `"database error, code: 23514"` — the constraint name
+ * `urdf_owner_object_limit` never leaves the server. `storage.objects` in the `urdf` bucket has no
+ * other `before insert` trigger, so any `23514` reaching an upload is this limit; a `23514` from a
+ * different cause here would need a second trigger this bucket does not have.
+ */
+function isUrdfOwnerObjectLimit(
+  error: Result<unknown>['error'],
+): error is { readonly message: string; readonly code?: string } {
+  return error !== null && error.code === 'DatabaseError' && error.message.includes('23514');
+}
+
+/**
+ * A rejection of the zip upload by the owner object limit of the `urdf` bucket (migration 0009,
+ * #502) as the same `OwnerRowLimitError` the row limit of `robots` uses so the client shows the
+ * one notice (`auth.robots.limitReached`) whichever of the two hit first; anything else as is.
+ */
+function failUpload(error: Result<unknown>['error']): never {
+  if (isUrdfOwnerObjectLimit(error)) throw new OwnerRowLimitError(error.message);
+  fail(error, 'urdf not uploaded');
+}
+
 /** Refuses a spec over the 64 KiB of `robots.spec` (docs/ARCHITECTURE.md §5.1) with a `RangeError`. */
 async function checkSize(spec: Json): Promise<void> {
   // Loaded on save only, so the package stays out of the initial JS of `/cuenta/robots`.
@@ -240,7 +266,7 @@ export async function saveUploadedRobot(
     });
   if (uploaded.error !== null) {
     await db.from('robots').delete().eq('id', robotId).eq('owner_id', ownerId);
-    fail(uploaded.error, 'urdf not uploaded');
+    failUpload(uploaded.error);
   }
   return toRobot(data);
 }

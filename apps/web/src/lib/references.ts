@@ -13,9 +13,9 @@ export interface Reference {
 }
 
 /**
- * Ruta de `docs/REFERENCES.md`. Se busca desde el directorio de trabajo hacia arriba en vez de
- * desde `import.meta.dirname`: el build empaqueta este módulo en un chunk de `dist/`, y allí el
- * directorio del módulo ya no guarda relación con el del código fuente.
+ * Path of `docs/REFERENCES.md`. It is searched from the working directory upwards instead of
+ * from `import.meta.dirname`: the build bundles this module into a `dist/` chunk, and there the
+ * module's directory no longer bears any relation to that of the source code.
  */
 function referencesFile(): string {
   let dir = process.cwd();

@@ -14,11 +14,11 @@ import { createLineFollowerModel } from './model';
 import type { LineFollowerState } from './model';
 import { avgSpeed_mps, createLapTimer, lostEvent, pidTerms, recordLap } from './metrics';
 
-// F4-03 (#129): las métricas puras de la instrumentación. Los valores dorados del ticket van
-// primero; después la corrida del óvalo con el PID de referencia y la comparación término a
-// término con el controlador real de sim-core.
+// F4-03 (#129): the pure instrumentation metrics. The ticket's golden values go
+// first; then the run on the oval with the reference PID and the term-by-term
+// comparison with the real sim-core controller.
 
-/** Semilla de las corridas; la misma que usa `useLineFollower`, para reproducir lo que se ve. */
+/** Seed of the runs; the same one `useLineFollower` uses, to reproduce what is seen. */
 const SEED = 7;
 
 describe('avgSpeed_mps (F4-03)', () => {
@@ -51,7 +51,7 @@ describe('createLapTimer / recordLap (F4-03)', () => {
   });
 
   test('la velocidad promedio sale de la longitud de la pista, no de la distancia recorrida', () => {
-    // Pista de 6 m y un robot que corta las curvas: recorre 5 m en la primera vuelta.
+    // 6 m track and a robot that cuts the curves: it travels 5 m in the first lap.
     const timer = recordLap(createLapTimer(6), 12, 5);
     expect(timer.laps[0]?.distance_m).toBe(5);
     expect(timer.laps[0]?.avgSpeed_mps).toBe(0.5);
@@ -111,10 +111,10 @@ describe('pidTerms (F4-03)', () => {
     let hasPrev = false;
 
     for (let k = 0; k < 1000; k += 1) {
-      // Error variable y con signo, lo bastante grande como para saturar el integrador.
+      // Variable, signed error, large enough to saturate the integrator.
       const e = Math.sin(k / 37) + 0.3 * Math.cos(k / 11);
       const command = controller.update({ values: [], linePosition: e, lineLost: false }, state, dt_s);
-      // `omegaL = omegaBase + u` en sim-core, así que la u real sale del comando.
+      // `omegaL = omegaBase + u` in sim-core, so the real u comes from the command.
       const u = command.omegaL_radps - params.omegaBase_radps;
 
       const terms = pidTerms(params, e, integral, hasPrev ? ePrev : e, dt_s);
@@ -144,9 +144,9 @@ describe('lostEvent (F4-03)', () => {
 });
 
 /**
- * El modelo del seguidor sobre `track`, con el PID de referencia. Se avanza paso a paso con
- * `step()` en lugar de montar una `Simulation`: lo que se mide es tiempo simulado, y el modelo
- * ya lo lleva en `robot.t_s`.
+ * The follower model on `track`, with the reference PID. It is advanced step by step with
+ * `step()` instead of mounting a `Simulation`: what is measured is simulated time, and the model
+ * already carries it in `robot.t_s`.
  */
 function modelOf(track: Track): ReturnType<typeof createLineFollowerModel> {
   return createLineFollowerModel({
@@ -157,7 +157,7 @@ function modelOf(track: Track): ReturnType<typeof createLineFollowerModel> {
 }
 
 describe('vuelta del óvalo con el PID de referencia (F4-03)', () => {
-  /** Pasos máximos de la corrida: el óvalo se completa en menos de 20 s simulados. */
+  /** Maximum steps of the run: the oval is completed in less than 20 simulated s. */
   const MAX_STEPS = 20_000;
 
   test('lapTime · avgSpeed reproduce la longitud del óvalo y la distancia recorrida es menor', () => {
@@ -178,19 +178,19 @@ describe('vuelta del óvalo con el PID de referencia (F4-03)', () => {
     expect(lap).toBeDefined();
     if (lap === undefined) return;
 
-    // Identidad exacta (#170, enmienda): el producto reproduce la longitud de la pista salvo el
-    // redondeo de un cociente y un producto en coma flotante.
+    // Exact identity (#170, amendment): the product reproduces the track length except for the
+    // rounding of a quotient and a product in floating point.
     expect(Math.abs(lap.avgSpeed_mps * lap.lapTime_s - length_m)).toBeLessThanOrEqual(1e-9);
 
-    // Y el odómetro queda por debajo: el seguidor corta los arcos de 0,25 m del óvalo, así que
-    // recorre menos que la línea (es el hallazgo de #170, no un fallo del odómetro).
+    // And the odometer stays below: the follower cuts the 0,25 m arcs of the oval, so it
+    // travels less than the line (that is the finding of #170, not an odometer failure).
     expect(lap.distance_m).toBeGreaterThan(0);
     expect(lap.distance_m).toBeLessThan(length_m);
   });
 });
 
 describe('pista abierta (F4-03)', () => {
-  /** El óvalo sin su último segmento: la línea se acaba y el arreglo la pierde. */
+  /** The oval without its last segment: the line ends and the array loses it. */
   const openTrack: Track = {
     ...presets.oval,
     segments: presets.oval.segments.slice(0, -1),
@@ -215,10 +215,10 @@ describe('pista abierta (F4-03)', () => {
 
     expect(event).not.toBeNull();
     expect(lostStep).toBeGreaterThan(0);
-    // La pose del evento es la del paso en que `lineLost` pasó a true, no una posterior.
+    // The pose of the event is that of the step in which `lineLost` turned true, not a later one.
     expect(event?.pose.x_m).toBeCloseTo(previous.robot.x_m, 12);
     expect(event?.pose.y_m).toBeCloseTo(previous.robot.y_m, 12);
-    // Y el modelo lo registra en su propio estado, que es de donde lo lee el widget.
+    // And the model records it in its own state, which is where the widget reads it from.
     expect(previous.lostAt).toEqual(event?.pose);
   });
 });

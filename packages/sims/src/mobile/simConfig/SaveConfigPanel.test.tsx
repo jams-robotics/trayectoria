@@ -9,13 +9,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SaveConfigPanel } from './SaveConfigPanel';
 import { decode } from './codec';
 
-// F4-05 (#131, decisión 6): el panel «Guardar y compartir». El panel no guarda nada por su
-// cuenta: lo que se comprueba es que el nombre, la lista y el enlace llaman a la página con lo
-// que corresponde.
+// F4-05 (#131, decision 6): the «Guardar y compartir» panel. The panel saves nothing on its
+// own: what is checked is that the name, the list and the link call the page with what
+// corresponds.
 
 const ORIGIN = 'https://trayectoria.test';
 
-/** La configuración en curso: óvalo, PID de referencia y semilla 1 (valores dorados). */
+/** The current configuration: oval, reference PID and seed 1 (golden values). */
 const CURRENT: Omit<SimConfig, 'id' | 'name'> = {
   track: { preset: 'oval' },
   controller: 'pid',
@@ -60,7 +60,7 @@ describe('SaveConfigPanel (F4-05)', () => {
     await user.click(save);
 
     expect(onSave).toHaveBeenCalledWith('Óvalo rápido', CURRENT);
-    // El campo queda listo para la siguiente, sin el nombre anterior.
+    // The field is left ready for the next one, without the previous name.
     expect(screen.getByTestId('sim-config-name')).toHaveValue('');
   });
 
@@ -111,7 +111,7 @@ describe('SaveConfigPanel (F4-05)', () => {
     const link = (field as HTMLInputElement).value;
     expect(link.startsWith(`${ORIGIN}/simuladores/movil?c=`)).toBe(true);
 
-    // Lo que viaja en el enlace es la configuración en curso, no una copia aproximada.
+    // What travels in the link is the current configuration, not an approximate copy.
     const text = new URL(link).searchParams.get('c') ?? '';
     const decoded = await decode(text);
     expect(decoded.ok && decoded.value).toMatchObject(CURRENT);

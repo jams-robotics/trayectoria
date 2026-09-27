@@ -27,13 +27,13 @@ export interface UseLineFollowerOptions {
   readonly noiseSigma?: number;
   readonly startPose?: Pose;
   /**
-   * Wheel speeds that override the controller on every step (F4-04, #130, decisión 2): the
+   * Wheel speeds that override the controller on every step (F4-04, #130, decision 2): the
    * manual mode drives the robot with them instead of with a control law. Without it the
    * controller decides, exactly as before.
    */
   readonly command?: WheelCommand;
   /**
-   * Seed of the noise generator (F4-05, #131, decisión 3). Without it the run uses
+   * Seed of the noise generator (F4-05, #131, decision 3). Without it the run uses
    * `DEFAULT_SEED`, exactly as before. It is what a shared link carries, so two browsers that
    * open the same link integrate the very same sequence of readings; changing it rebuilds the
    * simulation, which comes back paused at `t = 0` like a new track or a new robot.
@@ -62,7 +62,7 @@ function appended(
  * controller driving it.
  *
  * It is rebuilt only when something that defines the run changes — the robot, the track, the
- * controller type, the noise, the start pose or the seed (#161, decisión 3; F4-05) — and then it
+ * controller type, the noise, the start pose or the seed (#161, decision 3; F4-05) — and then it
  * comes back paused at `t = 0`, ready for «Reproducir» without a «Reiniciar» first. The gains are
  * deliberately not part of that: they reach the running controller through `controller.params`, so
  * moving a slider
@@ -124,7 +124,7 @@ function useSimulationOf({
  * here reads a platform clock — and keeps the trace of the poses it has passed through.
  *
  * Changing a gain or the base speed applies to the run in progress, leaving `t`, the trace and the
- * playback state alone (#161, decisión 1); the playback speed is the driver's own multiplier and
+ * playback state alone (#161, decision 1); the playback speed is the driver's own multiplier and
  * never pauses either. The simulation is rebuilt only when the robot, the track, the controller
  * type or the start pose changes, and then it comes back paused at `t = 0`.
  */
@@ -149,7 +149,7 @@ export function useLineFollower(options: UseLineFollowerOptions): LineFollowerAp
   // A rebuilt simulation comes back paused at `t = 0`, and so must the driver: `useSimulationDriver`
   // keeps `running` across a new `sim`, so a run going when the learner picks another controller
   // would carry on over the fresh one. Pausing here is what makes «Reproducir» enough afterwards,
-  // with no «Reiniciar» in between (#161, decisión 3).
+  // with no «Reiniciar» in between (#161, decision 3).
   const { pause } = published;
   const driven = useRef(sim);
   useEffect(() => {
