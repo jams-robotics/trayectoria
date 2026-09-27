@@ -14,7 +14,8 @@ export const fichaSchema = z
     reach_m: z.number().positive(),
     // Null when the source documents no payload: the catalog never invents figures.
     payload_kg: z.number().positive().nullable(),
-    cost_usd_approx: z.number().min(0),
+    // Null when the model is didactic and has no real-world cost: the catalog never invents figures.
+    cost_usd_approx: z.number().min(0).nullable(),
     license: z
       .object({
         hardware: z.string().min(1),

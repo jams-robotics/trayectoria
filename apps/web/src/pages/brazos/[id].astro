@@ -88,7 +88,7 @@ const links = [
                   {t('catalog.cost')}
                 </th>
                 <td class="p-3 text-right font-mono tabular-nums">
-                  {formatUsd(ficha.cost_usd_approx)}
+                  {formatUsd(ficha.cost_usd_approx) ?? t('catalog.noApplicable')}
                 </td>
               </tr>
               <tr class="border-border border-b">
