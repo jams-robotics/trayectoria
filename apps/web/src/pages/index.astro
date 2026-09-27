@@ -148,7 +148,10 @@ const features = [
     <p class="text-fg-muted leading-body mt-4 max-w-[72ch]">{t('home.thread.text')}</p>
     <ol class="mt-7 grid list-none gap-5 p-0 md:grid-cols-2 lg:grid-cols-3">
       {modules.map(({ name, topics, idea }, index) => (
-        <li class="bg-bg-raised border-border rounded-lg border p-6">
+        <li
+          class="bg-bg-raised border-border rounded-lg border p-6"
+          class:list={{ 'md:col-span-2 lg:col-span-3': index === modules.length - 1 }}
+        >
           <h3 class="text-base leading-tight m-0 font-semibold">
             <span class="text-fg-muted mr-2 font-mono text-xs font-normal">
               {t('home.thread.moduleLabel', { number: index })}

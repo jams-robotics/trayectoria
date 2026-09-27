@@ -101,6 +101,7 @@
     "licenseSoftware": "Software",
     "verifiedAt": "Datos verificados el",
     "noData": "sin dato",
+    "noApplicable": "no aplica",
     "links": "Enlaces",
     "linkRepo": "Repositorio",
     "linkPlans": "Planos",
@@ -129,7 +130,7 @@
     "previous": "Anterior",
     "next": "Siguiente",
     "progress": "Progreso de la ruta",
-    "progressCount": "{{done}}/{{total}}",
+    "progressCount": "Ruta: {{done}} de {{total}} temas",
     "outline": "Secciones",
     "outlineOpen": "Ver las secciones",
     "sections": {
