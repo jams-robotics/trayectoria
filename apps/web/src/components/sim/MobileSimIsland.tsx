@@ -10,7 +10,6 @@ import { useEditorPanelStore } from './editorPanelStore';
 import type { EditorPanelStore } from './editorPanelStore';
 import { EmptyTrackToast, useEmptyTrackNotice } from './EmptyTrackNotice';
 import { useInstruments } from './instrumentsStore';
-import { BOTTOM_BAR_HEIGHT_PX } from './BottomBar';
 import { LiveBottomBar, SidePanels } from './MobileSimPanels';
 import { useDesktopPlots } from './PlotsPanel';
 import type { OpenPanelId, SidePanelsProps } from './MobileSimPanels';
@@ -271,10 +270,7 @@ export function MobileSimIsland(): JSX.Element {
   // `ViewerBox` comes in through `renderViewer` (#158, amendment after the audit of PR #169): the
   // page decides what fills the viewer box without `TrackEditorBox` touching the widget's inner DOM.
   return (
-    <div
-      className="mt-6 flex flex-col gap-5"
-      style={mobile ? { paddingBottom: `${String(BOTTOM_BAR_HEIGHT_PX)}px` } : undefined}
-    >
+    <div className="mt-6 flex flex-col gap-5">
       <Simulator
         page={page}
         mobile={mobile}
@@ -287,9 +283,11 @@ export function MobileSimIsland(): JSX.Element {
         onSaveTrack={tracks.onSave}
         plots={plots}
       />
-      {mobile ? <LiveBottomBar store={store} /> : null}
       <Notices configs={configs} tracks={tracks} />
       <EmptyTrackToast notice={emptyTrack} />
+      {/* #531: at the end of the island's flow, `sticky bottom-0` inside `BottomBar`, so it never
+          overlaps the layout's own footer. */}
+      {mobile ? <LiveBottomBar store={store} /> : null}
     </div>
   );
 }

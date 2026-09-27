@@ -99,13 +99,14 @@ test.describe('F7-04 · smoke móvil (390 px)', () => {
     });
     expect(errors).toEqual([]);
     expect(await hasNoHorizontalScroll(page)).toBe(true);
-    // At mobile widths the page renders its own fixed bottom bar instead of `SimControls`
-    // (apps/web/src/components/sim/BottomBar.tsx, F4-02b decisión 4): Reproducir, Pausa,
-    // Reiniciar and the speed selector, deliberately without «Paso».
+    // At mobile widths the page renders its own sticky bottom bar instead of `SimControls`
+    // (apps/web/src/components/sim/BottomBar.tsx, F4-02b decisión 4; #531): Reproducir, Pausa,
+    // Paso, Reiniciar and the speed selector.
     const bar = page.getByTestId('sim-bottom-bar');
     await expect(bar).toBeVisible();
     await expect(bar.getByRole('button', { name: 'Reproducir' })).toBeVisible();
     await expect(bar.getByRole('button', { name: 'Pausa' })).toBeVisible();
+    await expect(bar.getByRole('button', { name: 'Paso' })).toBeVisible();
     await expect(bar.getByRole('button', { name: 'Reiniciar' })).toBeVisible();
   });
 
