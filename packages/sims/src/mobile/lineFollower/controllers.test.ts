@@ -65,7 +65,12 @@ describe('controllers (F4-02a)', () => {
     expect(keys).toEqual(['omegaBase_radps', 'kp', 'ki', 'kd', 'iMax']);
     const omegaBase = params[0];
     expect(omegaBase?.value).toBe(REFERENCE_PID_PARAMS.omegaBase_radps);
-    expect(omegaBase?.max).toBeCloseTo(maxWheelSpeed_radps(SPEC), 9);
+    // The panel shows the domain's own precision for a wheel speed, one decimal (#550): the
+    // exact bound (20.943951023931955 rad/s for this spec) would suggest a precision the robot
+    // does not have. Rounded down, never up, so the slider never asks for more than the robot
+    // can give.
+    expect(maxWheelSpeed_radps(SPEC)).toBeCloseTo(20.943951023931955, 9);
+    expect(omegaBase?.max).toBe(20.9);
     expect(params.find((param) => param.key === 'kp')?.max).toBe(20);
     expect(params.find((param) => param.key === 'ki')?.max).toBe(10);
     expect(params.find((param) => param.key === 'kd')?.max).toBe(5);

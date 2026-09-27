@@ -16,8 +16,12 @@ export function formatMetres(value_m: number): string {
   return value_m.toLocaleString('es', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-/** Formats an approximate cost in US dollars, rounded to whole dollars. */
-export function formatUsd(cost_usd: number): string {
+/**
+ * Formats an approximate cost in US dollars, rounded to whole dollars, or `undefined` when the
+ * model is didactic and has no real-world cost.
+ */
+export function formatUsd(cost_usd: number | null): string | undefined {
+  if (cost_usd === null) return undefined;
   return cost_usd.toLocaleString('es', { maximumFractionDigits: 0 });
 }
 

@@ -199,7 +199,11 @@ function RowTrack({ param, onChange, t, controls }: RowPartProps): JSX.Element {
         step={param.step}
         value={param.value}
         style={fillStyle(param)}
-        aria-label={t('widgets.ParamPanel.slider', { label: param.label, unit: param.unit })}
+        aria-label={
+          param.unit === ''
+            ? param.label
+            : t('widgets.ParamPanel.slider', { label: param.label, unit: param.unit })
+        }
         aria-valuenow={param.value}
         aria-valuemin={param.min}
         aria-valuemax={param.max}

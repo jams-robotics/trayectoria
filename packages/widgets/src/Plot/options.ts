@@ -71,10 +71,15 @@ export function buildSeries(series: readonly PlotSeries[], theme: PlotTheme): uP
   ];
 }
 
-/** Left offset and width of the plot area, in CSS pixels (#104). */
+/**
+ * Geometry of the plot area, in CSS pixels (#104 for the horizontal fields; #555 for the
+ * vertical ones, which keep the marker line out of the x-axis label channel below the chart).
+ */
 export interface PlotArea {
   left_px: number;
   width_px: number;
+  top_px: number;
+  height_px: number;
 }
 
 export interface BuildOptionsInput {
@@ -92,7 +97,7 @@ export interface BuildOptionsInput {
   /**
    * Reports the plot area's geometry in CSS pixels whenever it can change: the axis label
    * channel and the padding shift it in from the card's edge, so `MarkerLayer` needs it rather
-   * than a percentage of the card (#104).
+   * than a percentage of the card (#104 horizontally, #555 vertically).
    */
   onPlotArea?: (area: PlotArea) => void;
 }
@@ -100,7 +105,12 @@ export interface BuildOptionsInput {
 /** `self.bbox` is in canvas pixels; the layout consumers of `onPlotArea` want CSS pixels. */
 function reportPlotArea(self: uPlot, onPlotArea: (area: PlotArea) => void): void {
   const ratio = self.width === 0 ? 1 : self.ctx.canvas.width / self.width;
-  onPlotArea({ left_px: self.bbox.left / ratio, width_px: self.bbox.width / ratio });
+  onPlotArea({
+    left_px: self.bbox.left / ratio,
+    width_px: self.bbox.width / ratio,
+    top_px: self.bbox.top / ratio,
+    height_px: self.bbox.height / ratio,
+  });
 }
 
 /**

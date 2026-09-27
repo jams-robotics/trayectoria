@@ -90,23 +90,24 @@ describe('GearWidget (F2-08)', () => {
   test('una etapa solo ofrece z1 y z2; dos etapas añaden z3 y z4 (decisión 5)', () => {
     const one = render(<GearWidget stages={1} initial={ONE_STAGE} />);
 
+    // #550: the aria-label omits "en" when the parameter has no unit (teeth counts, efficiency).
     expect(sliderLabels(one.container)).toEqual([
-      'Dientes del engranaje de entrada en ',
-      'Dientes del segundo engranaje en ',
+      'Dientes del engranaje de entrada',
+      'Dientes del segundo engranaje',
       'Velocidad de entrada en rpm',
       'Torque de entrada en N·m',
-      'Eficiencia en ',
+      'Eficiencia',
     ]);
 
     const two = render(<GearWidget stages={2} initial={TWO_STAGE} />);
     expect(sliderLabels(two.container)).toEqual([
-      'Dientes del engranaje de entrada en ',
-      'Dientes del segundo engranaje en ',
-      'Dientes del tercer engranaje en ',
-      'Dientes del engranaje de salida en ',
+      'Dientes del engranaje de entrada',
+      'Dientes del segundo engranaje',
+      'Dientes del tercer engranaje',
+      'Dientes del engranaje de salida',
       'Velocidad de entrada en rpm',
       'Torque de entrada en N·m',
-      'Eficiencia en ',
+      'Eficiencia',
     ]);
   });
 

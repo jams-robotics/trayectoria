@@ -11,7 +11,9 @@ import {
   SubmitButton,
   TextField,
   useAuthAction,
+  useEmailPasswordValidation,
 } from './fields';
+import type { EmailPasswordValidation } from './fields';
 
 // Supabase local minimum (supabase/config.toml, minimum_password_length); the server re-checks.
 const MIN_PASSWORD_LENGTH = 6;
@@ -52,7 +54,11 @@ function RoleChoice({ values, onChange }: RegisterFieldsProps): JSX.Element {
   );
 }
 
-function RegisterFields({ values, onChange }: RegisterFieldsProps): JSX.Element {
+function RegisterFields({
+  values,
+  onChange,
+  validation,
+}: RegisterFieldsProps & { validation: EmailPasswordValidation }): JSX.Element {
   const t = useT();
   return (
     <>
@@ -67,10 +73,18 @@ function RegisterFields({ values, onChange }: RegisterFieldsProps): JSX.Element 
       <EmailPasswordFields
         email={values.email}
         password={values.password}
-        onEmail={(email) => onChange({ email })}
-        onPassword={(password) => onChange({ password })}
+        onEmail={(email) => {
+          onChange({ email });
+          validation.clearEmailError();
+        }}
+        onPassword={(password) => {
+          onChange({ password });
+          validation.clearPasswordError();
+        }}
         passwordAutoComplete="new-password"
         minPasswordLength={MIN_PASSWORD_LENGTH}
+        emailError={validation.emailError}
+        passwordError={validation.passwordError}
       />
       <RoleChoice values={values} onChange={onChange} />
     </>
@@ -82,10 +96,14 @@ function RegisterFields({ values, onChange }: RegisterFieldsProps): JSX.Element 
 export function RegisterForm(): JSX.Element {
   const t = useT();
   const [values, setValues] = useState<RegisterValues>(EMPTY);
+  const validation = useEmailPasswordValidation();
   const { state, run } = useAuthAction();
 
+  // `noValidate` on the form (#534): the browser's own bubble speaks whatever language it is set
+  // to, not the Spanish of the rest of the page, so each field shows its own message instead.
   function submit(event: SubmitEvent<HTMLFormElement>): void {
     event.preventDefault();
+    if (!validation.validate(values.email, values.password)) return;
     void run(
       () => signUp({ ...values, redirectTo: absoluteUrl('/cuenta') }),
       (result) => (result.ok && result.session ? goTo('/cuenta') : t('auth.register.confirmEmail')),
@@ -93,8 +111,12 @@ export function RegisterForm(): JSX.Element {
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-4">
-      <RegisterFields values={values} onChange={(patch) => setValues({ ...values, ...patch })} />
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+      <RegisterFields
+        values={values}
+        onChange={(patch) => setValues({ ...values, ...patch })}
+        validation={validation}
+      />
       <FormStatus {...state} />
       <div>
         <SubmitButton pending={state.pending} label={t('auth.register.submit')} />

@@ -1,6 +1,6 @@
 # Trayectoria — Plan de acción v1
 
-> Nombre de trabajo: **Trayectoria** (una trayectoria es a la vez el camino de aprendizaje y el objeto de estudio). Cambiar cuando se decida el nombre final.
+> Nombre: **Trayectoria · De la física al robot** (una trayectoria es a la vez el camino de aprendizaje y el objeto de estudio). Decisión final del propietario, 2026-09-26: se mantiene «Trayectoria» con el apellido fijo «de la física al robot».
 >
 > Estado: aprobado en sesión de diseño del 2026-09-13. Este documento es la fuente de verdad del alcance. Cualquier cambio de alcance se hace aquí primero, nunca en el código.
 

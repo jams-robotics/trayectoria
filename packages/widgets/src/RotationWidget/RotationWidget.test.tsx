@@ -172,13 +172,14 @@ describe('RotationWidget (F2-06)', () => {
         initial={{ omega_radps: 0, r_m: 0.032, alpha_radps2: 41.89 }}
       />,
     );
+    // #550: the aria-label omits "en" when the parameter has no unit (the friction coefficient).
     expect(sliderLabels()).toEqual([
       'Velocidad angular en rad/s',
       'Radio de la rueda en m',
       'Aceleración angular en rad/s²',
       'Radio de la curva en m',
       'Velocidad en la curva en m/s',
-      'Coeficiente de rozamiento estático en ',
+      'Coeficiente de rozamiento estático',
     ]);
   });
 
