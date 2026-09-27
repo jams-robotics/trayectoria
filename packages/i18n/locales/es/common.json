@@ -232,9 +232,28 @@
   },
   "aboutPage": {
     "title": "Acerca de Trayectoria",
-    "description": "Qué es Trayectoria, para quién es y qué incluye la versión 1.",
+    "description": "Qué es Trayectoria, quién la hace, cómo se hizo y se revisa, qué incluye la versión 1 y cómo escribirnos.",
     "eyebrow": "Acerca",
     "lead": "Una plataforma web open source, en español, para aprender matemática, física y mecánica manipulando cada concepto. Cada tema termina en un robot que puedes simular y, si quieres, construir.",
+    "author": {
+      "title": "Quién lo hace",
+      "name": "Jaime Torres",
+      "bio": "Ingeniero mecatrónico por la Universidad Don Bosco. Hace Trayectoria desde El Salvador.",
+      "photoAlt": "Retrato de Jaime Torres: hombre de barba y cabello oscuros, de perfil, mirando por la ventana de un auto.",
+      "organization": "Trayectoria se publica en GitHub bajo la organización jams-robotics.",
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "organizationLink": "jams-robotics en GitHub"
+    },
+    "making": {
+      "title": "Cómo se hizo y cómo se revisa",
+      "ai": "El contenido y el código se escribieron con ayuda de modelos de IA (Claude, de Anthropic), bajo la dirección y la revisión de Jaime Torres.",
+      "sources": "Cada uno de los 27 temas se contrasta con la bibliografía universitaria que cita en su sección «Profundiza».",
+      "audits": "En septiembre de 2026 se auditaron el contenido (física, matemática y robótica), la experiencia de uso y la seguridad. Esas auditorías las hicieron agentes de IA con el rol de revisores, no personas externas.",
+      "findings": "Cada hallazgo es un issue público en GitHub y se cierra a la vista de todos.",
+      "contentIssues": "Hallazgos de contenido",
+      "uxIssues": "Hallazgos de experiencia de uso"
+    },
     "audience": {
       "title": "Para quién",
       "students": "Estudiantes de ingeniería (mecatrónica, eléctrica, mecánica, sistemas) que llevan las materias base y no ven para qué sirven.",
@@ -256,7 +275,7 @@
       "teacher": "No reemplaza al docente; lo equipa."
     },
     "method": {
-      "title": "Cómo está hecho",
+      "title": "Simuladores y fuentes",
       "kinematic": "Los dos simuladores son cinemáticos: la versión 1 no tiene motor de física. La simulación usa un paso de tiempo fijo y es determinista: los mismos parámetros dan el mismo resultado.",
       "references": "El contenido cita capítulos de libros de referencia, como Física universitaria de Young y Freedman o Introduction to Autonomous Mobile Robots de Siegwart, Nourbakhsh y Scaramuzza. Nunca blogs ni videos."
     },
@@ -265,6 +284,20 @@
       "text": "Código bajo MIT y contenido bajo CC BY-SA 4.0. Lo mantienen jams-robotics y quienes contribuyen.",
       "repository": "Ver el repositorio en GitHub",
       "contribute": "Cómo contribuir"
+    },
+    "future": {
+      "title": "Qué viene",
+      "text": "La versión 1 cubre la primera ruta. El plan del proyecto deja para versiones posteriores: nuevas rutas (el brazo robot, control, sensores y estimación, electrónica y automatización); cinemática inversa y un motor de física; que el estudiante escriba el código que controla su robot; un asistente que arme el modelo del brazo a partir de sus medidas; y la plataforma en español e inglés."
+    },
+    "privacy": {
+      "title": "Privacidad",
+      "text": "El sitio no usa analítica ni cookies de seguimiento. Sin cuenta, tu progreso y tu robot se guardan solo en tu navegador; con cuenta, Supabase guarda tu correo, tu nombre y rol, tus robots y pistas, tu progreso, tus respuestas a los ejercicios y tus grupos del modo aula, solo para que el producto funcione."
+    },
+    "contact": {
+      "title": "Contacto",
+      "text": "Para preguntas, errores o propuestas, escribe a este correo:",
+      "contribute": "Si quieres proponer un cambio al contenido o al código, empieza por la guía para contribuir.",
+      "contributeLink": "Cómo contribuir"
     }
   }
 }

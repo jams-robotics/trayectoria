@@ -49,3 +49,47 @@ test('footer links lead to /contribuir and /acerca', async ({ page }) => {
   await expect(page).toHaveURL(/\/acerca\/?$/);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(common.aboutPage.title);
 });
+
+// #581: /acerca says who makes it, how it was made and reviewed, what comes next, privacy and
+// contact; the photo keeps a fixed 96 px box and every external link carries rel="noopener".
+test('/acerca shows author, findings, privacy and contact', async ({ page }) => {
+  await page.goto('/acerca');
+  const about = common.aboutPage;
+
+  for (const title of [
+    about.author.title,
+    about.making.title,
+    about.future.title,
+    about.privacy.title,
+    about.contact.title,
+  ]) {
+    await expect(page.getByRole('heading', { level: 2, name: title })).toBeVisible();
+  }
+
+  const photo = page.getByRole('img', { name: about.author.photoAlt });
+  await expect(photo).toHaveAttribute('width', '96');
+  await expect(photo).toHaveAttribute('height', '96');
+
+  const main = page.getByRole('main');
+  await expect(main.getByRole('link', { name: about.making.contentIssues })).toHaveAttribute(
+    'href',
+    /label%3Acontenido$/,
+  );
+  await expect(main.getByRole('link', { name: about.making.uxIssues })).toHaveAttribute(
+    'href',
+    /label%3Aux$/,
+  );
+  await expect(main.getByRole('link', { name: 'contacto@trayectoria.org' })).toHaveAttribute(
+    'href',
+    'mailto:contacto@trayectoria.org',
+  );
+  await expect(
+    main.getByRole('link', { name: about.contact.contributeLink, exact: true }).last(),
+  ).toHaveAttribute('href', '/contribuir');
+
+  const external = main.locator('a[href^="https://"]');
+  expect(await external.count()).toBeGreaterThan(0);
+  for (const link of await external.all()) {
+    await expect(link).toHaveAttribute('rel', /noopener/);
+  }
+});
