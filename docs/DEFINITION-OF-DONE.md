@@ -67,7 +67,7 @@ Un ticket está terminado cuando cumple **todo** lo de "Común" más lo de su ti
 - [ ] Enlaces internos válidos (`pnpm docs:check`).
 - [ ] Mergea el humano.
 
-## Rúbrica de calificación (la aplica el humano en cada PR, en `docs/agent-scorecard.md`)
+## Rúbrica de calificación (la aplica el humano en cada PR)
 
 | Criterio | 0 | 1 | 2 |
 |---|---|---|---|

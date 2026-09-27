@@ -1,6 +1,6 @@
 # Auditoría de coherencia — C-M1
 
-2026-09-26 · auditor de coherencia / Claude Opus 5.5 · T-1.1 Movimiento rectilíneo uniforme (#320), T-1.2 Movimiento uniformemente acelerado (#289), T-1.3 Caída libre (#323) y T-1.4 Tiro parabólico (#332), todos en `status: review` sobre `main` (21f61ff).
+2026-09-26 · auditor de coherencia · T-1.1 Movimiento rectilíneo uniforme (#320), T-1.2 Movimiento uniformemente acelerado (#289), T-1.3 Caída libre (#323) y T-1.4 Tiro parabólico (#332), todos en `status: review` sobre `main` (21f61ff).
 
 ## Método
 

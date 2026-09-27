@@ -1,6 +1,6 @@
 # Auditoría de coherencia — C-M5
 
-2026-09-26 · auditor de coherencia / Claude Opus 5.5 · T-5.1 Pose y marcos de referencia (#413), T-5.2 Cinemática directa del robot diferencial (#412), T-5.3 Cinemática inversa del robot diferencial (#411), T-5.4 Odometría (#415) y T-5.5 Restricción no holonómica (#424), con la maniobra de `DiffDriveWidget` (M5-W, #414). Los cinco están en `status: review` sobre `main` (f2e9925).
+2026-09-26 · auditor de coherencia · T-5.1 Pose y marcos de referencia (#413), T-5.2 Cinemática directa del robot diferencial (#412), T-5.3 Cinemática inversa del robot diferencial (#411), T-5.4 Odometría (#415) y T-5.5 Restricción no holonómica (#424), con la maniobra de `DiffDriveWidget` (M5-W, #414). Los cinco están en `status: review` sobre `main` (f2e9925).
 
 ## Método
 

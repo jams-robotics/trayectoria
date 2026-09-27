@@ -1,6 +1,6 @@
 # Auditoría de coherencia — C-M2
 
-2026-09-26 · auditor de coherencia / Claude Opus 5.5 · T-2.1 Leyes de Newton y diagrama de cuerpo libre, T-2.2 Fricción y T-2.3 Torque, todos en `status: review` sobre `main` (21f61ff; los temas no cambian hasta d9a35f9).
+2026-09-26 · auditor de coherencia · T-2.1 Leyes de Newton y diagrama de cuerpo libre, T-2.2 Fricción y T-2.3 Torque, todos en `status: review` sobre `main` (21f61ff; los temas no cambian hasta d9a35f9).
 
 ## Método
 

@@ -1,6 +1,6 @@
 # QA global — QA-v1
 
-2026-09-26 · QA / Claude Sonnet 5 · F7-04 (#464) · rama `qa/F7-04-qa-global` sobre `main` (a618bb1)
+2026-09-26 · QA · F7-04 (#464) · rama `qa/F7-04-qa-global` sobre `main` (a618bb1)
 
 ## 1. Spec
 

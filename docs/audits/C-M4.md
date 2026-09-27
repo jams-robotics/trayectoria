@@ -1,6 +1,6 @@
 # Auditoría de coherencia — C-M4
 
-2026-09-26 · auditor de coherencia / Claude Opus 5.5 · T-4.1 Movimiento circular y velocidad angular (#322), T-4.2 v = ω·r: la velocidad del robot (#339), T-4.3 Aceleración angular y centrípeta (#340), T-4.4 Transmisión y reducción (#330, #354) y T-4.5 Encoders (#344). Los cinco están en `status: review` sobre `main` (6e3157e).
+2026-09-26 · auditor de coherencia · T-4.1 Movimiento circular y velocidad angular (#322), T-4.2 v = ω·r: la velocidad del robot (#339), T-4.3 Aceleración angular y centrípeta (#340), T-4.4 Transmisión y reducción (#330, #354) y T-4.5 Encoders (#344). Los cinco están en `status: review` sobre `main` (6e3157e).
 
 ## Método
 
