@@ -60,14 +60,14 @@ describe('ExerciseWidget (F2-10)', () => {
     expect(screen.getByTestId('exercise')).toHaveAttribute('data-status', 'correct');
   });
 
-  test('a response outside the 2 % tolerance is incorrect (1.021·x) and shows the error', async () => {
+  test('a response outside the 2 % tolerance is incorrect (1.021·x) and shows the error, rounded to an integer percent (#533)', async () => {
     const user = userEvent.setup();
     renderScalar();
 
     await user.type(scalarField(), String(1.021 * SCALAR_ANSWER_S));
     await user.click(verifyButton());
 
-    expect(result()).toHaveTextContent('Incorrecto · fuera por 2.1 %');
+    expect(result()).toHaveTextContent('Incorrecto · fuera por 2 %');
     expect(screen.getByText('Intento 1')).toBeInTheDocument();
     expect(screen.getByTestId('exercise')).toHaveAttribute('data-status', 'incorrect');
   });
@@ -84,7 +84,7 @@ describe('ExerciseWidget (F2-10)', () => {
       expect(screen.getByText(`Intento ${String(attempt)}`)).toBeInTheDocument();
     }
 
-    expect(result()).toHaveTextContent('Incorrecto · fuera por 10.0 %');
+    expect(result()).toHaveTextContent('Incorrecto · fuera por 10 %');
     expect(screen.getByTestId('exercise-statement')).toHaveTextContent(statement ?? '');
   });
 
@@ -113,6 +113,34 @@ describe('ExerciseWidget (F2-10)', () => {
 
     expect(recordAttempt).not.toHaveBeenCalled();
     expect(screen.queryByText(/Intento/)).not.toBeInTheDocument();
+  });
+
+  test('a non numeric submission clears a previous incorrect result: only one message shows (#533)', async () => {
+    const user = userEvent.setup();
+    renderScalar();
+
+    // «9» graded as incorrect first, as in the ticket's repro.
+    await user.type(scalarField(), '9');
+    await user.click(verifyButton());
+    expect(screen.getByTestId('exercise-result')).toHaveTextContent('Incorrecto · fuera por 54 %');
+    expect(screen.getByTestId('exercise')).toHaveAttribute('data-status', 'incorrect');
+
+    // Then a non numeric submission must clear that result: no stale «Incorrecto» left behind.
+    await user.clear(scalarField());
+    await user.type(scalarField(), 'abc');
+    await user.click(verifyButton());
+
+    expect(screen.getByText('Escribe un número.')).toBeInTheDocument();
+    expect(screen.queryByTestId('exercise-result')).not.toBeInTheDocument();
+    expect(screen.getByTestId('exercise')).toHaveAttribute('data-status', 'pending');
+    expect(screen.queryByText(/Intento/)).not.toBeInTheDocument();
+
+    // The attempt counter kept its value from the one valid submission: the next incorrect
+    // answer is «Intento 2», not «Intento 1» again.
+    await user.clear(scalarField());
+    await user.type(scalarField(), '9');
+    await user.click(verifyButton());
+    expect(screen.getByText('Intento 2')).toBeInTheDocument();
   });
 
   test('«Nuevos valores» draws a new instance and resets the attempt counter', async () => {
@@ -220,7 +248,7 @@ describe('ExerciseWidget (F2-10)', () => {
     await user.type(first, String(VECTOR_VX_MPS));
     await user.type(second, String(1.1 * VECTOR_VY_MPS));
     await user.click(verifyButton());
-    expect(result()).toHaveTextContent('Incorrecto · fuera por 10.0 %');
+    expect(result()).toHaveTextContent('Incorrecto · fuera por 10 %');
 
     await user.clear(second);
     await user.type(second, String(VECTOR_VY_MPS));
@@ -275,7 +303,7 @@ describe('ExerciseWidget (F2-10)', () => {
     await user.type(scalarField(), String(1.1 * SCALAR_ANSWER_S));
     await user.click(verifyButton());
 
-    expect(live).toHaveTextContent('Incorrecto · fuera por 10.0 % · Intento 1');
+    expect(live).toHaveTextContent('Incorrecto · fuera por 10 % · Intento 1');
   });
 });
 

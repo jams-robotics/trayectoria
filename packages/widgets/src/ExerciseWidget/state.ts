@@ -11,7 +11,8 @@ import { randomSeed, seedFor } from './seed';
 
 /** Significant figures of the statement values before interpolation (#94, decision 4). */
 const STATEMENT_SIG_FIGS = 4;
-const PERCENT_DECIMALS = 1;
+/** Decimals of the error percent shown on an incorrect result, rounded as docs/DESIGN.md §5's own example («12 %», #533). */
+const PERCENT_DECIMALS = 0;
 /** Typographic minus sign of the statements (V-05, #475). */
 const MINUS_SIGN = '−';
 
@@ -59,7 +60,7 @@ export interface ExerciseState {
   /** Values of the current instance, rounded and ready to interpolate. */
   params: TParams;
   status: ExerciseStatus;
-  /** Relative error of the last graded response as a percentage, to 1 decimal. */
+  /** Relative error of the last graded response as a percentage, rounded (#533). */
   percent: string;
   attempt: number;
   invalid: boolean;
@@ -154,12 +155,20 @@ interface Grading<V> {
   setResponses: (responses: Responses) => void;
 }
 
+/**
+ * Clears any previous outcome so only one message shows: a non-numeric submission never leaves
+ * a stale «Incorrecto» next to «Escribe un número.» (#533).
+ */
+function invalidResponse(values: readonly string[], attempt: number): Responses {
+  return { values, graded: null, attempt, invalid: true, checking: false };
+}
+
 /** Grades the drafts, reports the attempt and moves the row to its next state. */
 function grade<V>(context: Grading<V>): void {
   const { exercise, topicId, seed, count, adapter, responses, values, setResponses } = context;
   const numbers = parseAll(values);
   if (numbers === null) {
-    setResponses({ ...responses, values, invalid: true });
+    setResponses(invalidResponse(values, responses.attempt));
     return;
   }
   const outcome = check(exercise, seed, count === 1 ? (numbers[0] ?? Number.NaN) : numbers);

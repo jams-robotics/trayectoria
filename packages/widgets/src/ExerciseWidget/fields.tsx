@@ -90,7 +90,7 @@ function ResultGlyph({ correct }: { correct: boolean }): JSX.Element {
 
 export interface ResultLineProps {
   status: ExerciseStatus;
-  /** Relative error of the last graded response, as a percentage already rounded to 1 decimal. */
+  /** Relative error of the last graded response, as a percentage already rounded (docs/DESIGN.md §5). */
   errorPercent: string;
   t: Translate;
 }
