@@ -36,6 +36,11 @@ describe('F2-01a ParamPanel', () => {
     ).toBeInTheDocument();
   });
 
+  test('omits "en" from the aria-label when the parameter has no unit (#550)', () => {
+    renderPanel([{ ...KP, unit: '' }]);
+    expect(screen.getByRole('slider', { name: 'Ganancia proporcional' })).toBeInTheDocument();
+  });
+
   test('the slider exposes aria-valuenow/min/max and aria-valuetext with the unit', () => {
     renderPanel();
     const slider = screen.getByRole('slider');

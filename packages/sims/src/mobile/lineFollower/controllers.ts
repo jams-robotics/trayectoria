@@ -48,6 +48,19 @@ const RANGES: Readonly<Record<string, readonly [number, number, number]>> = {
 /** Step of the two speed parameters, in rad/s. */
 const SPEED_STEP_RADPS = 0.5;
 
+/** Decimals the domain actually distinguishes for a wheel speed in rad/s (#550). */
+const SPEED_DISPLAY_DECIMALS = 1;
+
+/**
+ * Rounds a wheel-speed bound down to what the domain shows (#550: "20.943951" on the slider's
+ * maximum). Rounding down instead of to nearest keeps the bound inside `maxWheelSpeed_radps`,
+ * so the slider never offers a speed the robot cannot actually reach.
+ */
+function roundSpeedBound_radps(value_radps: number): number {
+  const scale = 10 ** SPEED_DISPLAY_DECIMALS;
+  return Math.floor(value_radps * scale) / scale;
+}
+
 function numberAt(params: ControllerParams, key: string, fallback: number): number {
   const value = params[key];
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
@@ -117,7 +130,7 @@ export function isControllerId(id: string): id is ControllerId {
 /** Range of one parameter: the speeds are bounded by the robot, the gains by `RANGES`. */
 function rangeOf(key: string, spec: MobileSpec): readonly [number, number, number] {
   if (key === 'omegaBase_radps' || key === 'delta_radps') {
-    return [0, maxWheelSpeed_radps(spec), SPEED_STEP_RADPS];
+    return [0, roundSpeedBound_radps(maxWheelSpeed_radps(spec)), SPEED_STEP_RADPS];
   }
   return RANGES[key] ?? [0, 1, 0.01];
 }
