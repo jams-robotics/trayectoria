@@ -86,12 +86,12 @@ async function checkOnce(exercise: Locator): Promise<string | null> {
   return exercise.getAttribute('data-status');
 }
 
-/** «Incorrecto · fuera por X %» → `X / 100` as a plain fraction. */
+/** The unrounded relative error the result line carries in `data-relative-error`. The percentage
+ * is no longer shown to the student (#533), so this black-box solver reads the attribute. */
 async function readRelativeError(exercise: Locator): Promise<number> {
-  const text = (await exercise.getByTestId('exercise-result').textContent()) ?? '';
-  const match = /([\d.]+)\s*%/.exec(text);
-  if (match === null) throw new Error(`no percentage in result line "${text}"`);
-  return Number(match[1]) / 100;
+  const raw = await exercise.getByTestId('exercise-result').getAttribute('data-relative-error');
+  if (raw === null) throw new Error('no data-relative-error on the result line');
+  return Number(raw);
 }
 
 /**
@@ -99,8 +99,7 @@ async function readRelativeError(exercise: Locator): Promise<number> {
  * `error = |probe − expected| / |expected|`, so either `probe` is above `expected`
  * (`expected = probe / (1 + error)`) or below it (`expected = probe / (1 − error)`, only valid
  * while `error < 1`). Near `expected = 0` that ratio is unstable (`check.ts` falls back to the
- * absolute error exactly at `expected === 0`, and rounds `errorPercent` to 1 decimal right next to
- * it either way), so the two candidates of the absolute reading — `probe ± error` — are added too;
+ * absolute error exactly at `expected === 0`), so the two candidates of the absolute reading — `probe ± error` — are added too;
  * one of the four is always within rounding of the true `expected`.
  */
 function candidatesFor(probe: number, error: number): readonly number[] {
@@ -211,7 +210,8 @@ async function solveATopicExercise(
 
 /** Best case of `readRelativeError` after a probe: either it graded correct, or the (probe,
  * error) pair to refine from. */
-type ProbeOutcome = { readonly correct: true } | { readonly correct: false; readonly error: number };
+type ProbeOutcome =
+  { readonly correct: true } | { readonly correct: false; readonly error: number };
 
 /** Fills `value`, presses «Comprobar» and reads back the outcome, or a defect string. */
 async function probe(
@@ -227,7 +227,8 @@ async function probe(
   }
   const status = await checkOnce(exercise);
   if (status === 'correct') return { correct: true };
-  if (status !== 'incorrect') return `${topicId}: unexpected data-status "${status}" after Comprobar`;
+  if (status !== 'incorrect')
+    return `${topicId}: unexpected data-status "${status}" after Comprobar`;
   return { correct: false, error: await readRelativeError(exercise) };
 }
 
@@ -253,8 +254,8 @@ const STALL_ROUNDS = 2;
  * `expected` can make wobble for a round without truly failing to converge.
  *
  * This replaces an earlier version that fixed two probes (1 and 3.7) and solved the resulting pair
- * of equations algebraically: `errorPercent` is shown rounded to 1 decimal
- * (`ExerciseWidget/state.ts`), and a probe far from `expected` reads an error close to 1 (100 %),
+ * of equations algebraically: the widget then showed the error rounded to 1 decimal (before
+ * #533 moved the unrounded value to `data-relative-error`), and a probe far from `expected` reads an error close to 1 (100 %),
  * where that rounding is large enough in absolute terms that the two fixed probes' equations do
  * not agree to any useful precision even though both readings were correct.
  */

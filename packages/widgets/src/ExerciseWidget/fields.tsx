@@ -90,13 +90,13 @@ function ResultGlyph({ correct }: { correct: boolean }): JSX.Element {
 
 export interface ResultLineProps {
   status: ExerciseStatus;
-  /** Relative error of the last graded response, as a percentage already rounded (docs/DESIGN.md §5). */
-  errorPercent: string;
+  /** Unrounded relative error, exposed only as `data-relative-error` for black-box e2e tests (#533). */
+  relativeError: number | null;
   t: Translate;
 }
 
-/** «Correcto» or «Incorrecto · fuera por X %» next to the button (docs/DESIGN.md §5). */
-export function ResultLine({ status, errorPercent, t }: ResultLineProps): JSX.Element | null {
+/** «Correcto» or «Incorrecto» next to the button; no internal percentage is shown (docs/DESIGN.md §5, #533). */
+export function ResultLine({ status, relativeError, t }: ResultLineProps): JSX.Element | null {
   if (status === 'checking') {
     return (
       <span className="text-fg-muted text-sm" data-testid="exercise-result">
@@ -109,12 +109,11 @@ export function ResultLine({ status, errorPercent, t }: ResultLineProps): JSX.El
   return (
     <span
       data-testid="exercise-result"
+      data-relative-error={relativeError ?? undefined}
       className={`flex items-center gap-2 text-sm font-semibold ${correct ? 'text-success' : 'text-error'}`}
     >
       <ResultGlyph correct={correct} />
-      {correct
-        ? t('widgets.ExerciseWidget.correct')
-        : t('widgets.ExerciseWidget.incorrect', { percent: errorPercent })}
+      {correct ? t('widgets.ExerciseWidget.correct') : t('widgets.ExerciseWidget.incorrect')}
     </span>
   );
 }
