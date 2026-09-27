@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Confirma tu cuenta</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 24px;
+      background: #ffffff;
+      color: #1a1a1a;
+      font-family: system-ui, sans-serif;
+      line-height: 1.5;
+    "
+  >
+    <h1 style="font-size: 20px; margin: 0 0 16px">Confirma tu cuenta</h1>
+    <p>
+      Recibimos una solicitud para crear una cuenta en Trayectoria con {{ .Email }}. Confirma tu
+      correo para activarla.
+    </p>
+    <p style="margin: 24px 0">
+      <a
+        href="{{ .ConfirmationURL }}"
+        style="
+          display: inline-block;
+          padding: 10px 18px;
+          background: #1a1a1a;
+          color: #ffffff;
+          text-decoration: none;
+          border-radius: 6px;
+        "
+        >Confirmar mi correo</a
+      >
+    </p>
+    <p>Si el botón no funciona, copia este enlace en tu navegador:<br />{{ .ConfirmationURL }}</p>
+    <p style="color: #555555; font-size: 14px">Si no creaste esta cuenta, ignora este mensaje.</p>
+    <p style="color: #555555; font-size: 14px">Trayectoria · {{ .SiteURL }}</p>
+  </body>
+</html>

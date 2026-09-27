@@ -243,6 +243,20 @@ otp_expiry = 3600
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
 
+# Spanish auth emails (F7-05b). The hosted project does not read this file: paste the same
+# subject and HTML in the dashboard (docs/ops/DEPLOY.md).
+[auth.email.template.confirmation]
+subject = "Confirma tu cuenta en Trayectoria"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.magic_link]
+subject = "Tu enlace para entrar en Trayectoria"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.recovery]
+subject = "Restablece tu contraseña de Trayectoria"
+content_path = "./supabase/templates/recovery.html"
+
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
 # enabled = true
