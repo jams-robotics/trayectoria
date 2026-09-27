@@ -31,8 +31,15 @@
       ]
     },
     "cost_usd_approx": {
-      "type": "number",
-      "minimum": 0
+      "anyOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "license": {
       "type": "object",

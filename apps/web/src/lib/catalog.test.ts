@@ -94,4 +94,8 @@ describe('catalog helpers', () => {
   it('has no mass to format when the source documents none', () => {
     expect(formatKilograms(null)).toBeUndefined();
   });
+
+  it('has no cost to format when the model is didactic (#554)', () => {
+    expect(formatUsd(null)).toBeUndefined();
+  });
 });

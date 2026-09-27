@@ -88,7 +88,7 @@ test('la cabecera muestra tiempo, prerrequisitos y el progreso 0/N de la ruta', 
   await openTopic(page);
   await expect(page.getByText('20 min')).toBeVisible();
   await expect(page.getByText(common.topic.noPrerequisites)).toBeVisible();
-  await expect(page.getByTestId('route-progress')).toHaveText(`0/${ORDERED.length}`);
+  await expect(page.getByTestId('route-progress')).toHaveText(`Ruta: 0 de ${ORDERED.length} temas`);
 });
 
 test('a 390 px el índice está plegado y se despliega', async ({ page }) => {
