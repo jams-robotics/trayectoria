@@ -1,6 +1,6 @@
 # Auditoría de coherencia — C-M0
 
-2026-09-23 · auditor de coherencia / Claude Opus 5.5 · T-0.1 Unidades y magnitudes (#261), T-0.2 Vectores (#269), T-0.3 La derivada como razón de cambio (#257), todos en `status: review` sobre `main` (dcc6653).
+2026-09-23 · auditor de coherencia · T-0.1 Unidades y magnitudes (#261), T-0.2 Vectores (#269), T-0.3 La derivada como razón de cambio (#257), todos en `status: review` sobre `main` (dcc6653).
 
 ## Método
 

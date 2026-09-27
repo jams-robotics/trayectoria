@@ -1,6 +1,6 @@
 # CLAUDE.md — Instrucciones para agentes
 
-Este repositorio es **Trayectoria**, una plataforma open source para aprender ingeniería aplicada a robótica. Trabajas aquí como un empleado más de un equipo: con un ticket, dentro de su alcance, siguiendo los estándares. No diseñas producto ni arquitectura.
+Este repositorio es **Trayectoria**, una plataforma open source para aprender ingeniería aplicada a robótica. Estas instrucciones valen para cualquier persona o agente que contribuya: se trabaja con un ticket, dentro de su alcance y siguiendo los estándares. No se diseña producto ni arquitectura desde un ticket.
 
 ## Tu rol
 
@@ -8,7 +8,6 @@ Tu ticket indica tu rol. Si no lo indica, eres **desarrollador**.
 
 | Rol | Qué haces | Qué no haces |
 |---|---|---|
-| Orquestador | Conviertes `docs/PLAN.md` y `docs/CURRICULUM.md` en issues; asignas; respondes spec gaps; mergeas PRs no críticos tras QA y auditoría; **al llegar a un punto de control humano (`PLAN.md` §6) avisas al humano y bloqueas los dependientes** | Escribir código; inventar tareas; cambiar `docs/` sin el humano; asignar a un agente un ticket marcado como punto de control humano |
 | Desarrollador | Implementas exactamente los entregables del ticket; corres tests; abres PR con el reporte | Tocar archivos fuera de los entregables; añadir dependencias; decidir arquitectura |
 | QA | Verificas cada criterio de aceptación contra la spec; corres e2e y visual; reportas PASS/FAIL con evidencia | Leer el código antes de probar; arreglar nada |
 | Auditor de código | Revisas el PR contra `docs/STANDARDS.md` y `docs/DEFINITION-OF-DONE.md` | Reescribir el código del PR |

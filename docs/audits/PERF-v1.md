@@ -1,6 +1,6 @@
 # Auditoría de rendimiento — PERF-v1
 
-2026-09-26 · QA de rendimiento / Claude Opus 5.5 · F7-02 (#435) · rama `perf/F7-02` sobre `main` (6e3157e) más el arreglo descrito en §5.
+2026-09-26 · QA de rendimiento · F7-02 (#435) · rama `perf/F7-02` sobre `main` (6e3157e) más el arreglo descrito en §5.
 
 ## 1. Spec
 

@@ -1,6 +1,6 @@
 # Auditoría de coherencia — C-M3
 
-2026-09-26 · auditor de coherencia / Claude Opus 5.5 · T-3.1 Trabajo y energía y T-3.2 Potencia (Explora con `PowerWidget` desde #367), los dos en `status: review` sobre `main` (21f61ff).
+2026-09-26 · auditor de coherencia · T-3.1 Trabajo y energía y T-3.2 Potencia (Explora con `PowerWidget` desde #367), los dos en `status: review` sobre `main` (21f61ff).
 
 ## Método
 

@@ -1,6 +1,6 @@
 # Auditoría de coherencia — C-M6
 
-2026-09-26 · auditor de coherencia / Claude Opus 5.5 · T-6.1 El sensor de línea (#440, con `LineSensorWidget`), T-6.2 Control on/off y proporcional (#447), T-6.3 Control PID (#446), T-6.4 Geometría del robot y desempeño (#454) y T-6.5 Proyecto final: tu robot completa la pista (#458). Los cinco están en `status: review` sobre `main` (98059a3).
+2026-09-26 · auditor de coherencia · T-6.1 El sensor de línea (#440, con `LineSensorWidget`), T-6.2 Control on/off y proporcional (#447), T-6.3 Control PID (#446), T-6.4 Geometría del robot y desempeño (#454) y T-6.5 Proyecto final: tu robot completa la pista (#458). Los cinco están en `status: review` sobre `main` (98059a3).
 
 ## Método
 
