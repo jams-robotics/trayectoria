@@ -3,8 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { CONTACT_EMAIL, COFFEE_URL, mailtoHref, reportEmailHref, reportIssueUrl } from './contact';
 
 describe('contact', () => {
-  it('coffee link is empty until the owner defines it (#591)', () => {
-    expect(COFFEE_URL).toBe('');
+  it('uses the domain contact address, never a personal one (#591, #605)', () => {
+    expect(CONTACT_EMAIL).toBe('contacto@trayectoria.org');
+  });
+
+  it('points the coffee link at the Ko-fi page (#605)', () => {
+    expect(COFFEE_URL).toBe('https://ko-fi.com/jams286');
   });
 
   it('builds a mailto link with an encoded subject', () => {
