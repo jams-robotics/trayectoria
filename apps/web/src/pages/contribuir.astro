@@ -2,10 +2,15 @@
 import { t } from '@trayectoria/i18n';
 
 import Base from '../layouts/Base.astro';
+import { reportEmailHref, reportIssueUrl } from '../lib/contact';
 
 // Public page on contributing (F7-05). The rules and licenses mirror CONTRIBUTING.md, LICENSE
 // and LICENSE-CONTENT; the catalog criteria mirror docs/PLAN.md §3.
 const REPO = 'https://github.com/jams-robotics/trayectoria';
+
+// The topic report template and its no-GitHub-account mailto alternative (#591).
+const reportTopicIssueUrl = reportIssueUrl({ title: '[Tema] ', label: 'contenido', tema: '' });
+const reportTopicEmailUrl = reportEmailHref('un tema');
 
 const criteria = [
   t('contributePage.robots.criteria.urdf'),
@@ -50,7 +55,14 @@ const secondaryLink =
         {t('contributePage.content.title')}
       </h2>
       <p class="leading-body mt-4">{t('contributePage.content.text')}</p>
-      <p class="leading-body mt-4">{t('contributePage.content.report')}</p>
+      <div class="mt-4 flex flex-wrap gap-3">
+        <a href={reportTopicIssueUrl} class={secondaryLink}>
+          {t('contributePage.content.report')}
+        </a>
+        <a href={reportTopicEmailUrl} class={secondaryLink}>
+          {t('topic.report.email')}
+        </a>
+      </div>
     </section>
 
     <section class="mt-11 max-w-[72ch]" aria-labelledby="robots-titulo">

@@ -20,7 +20,10 @@
     "license": "Trayectoria · De la física al robot · MIT · CC BY-SA",
     "repository": "Repositorio",
     "contribute": "Contribuir",
-    "about": "Acerca"
+    "about": "Acerca",
+    "contact": "Contacto",
+    "reportError": "Reportar un error",
+    "coffee": "Invítame a un café"
   },
   "home": {
     "title": "Inicio",
@@ -110,7 +113,9 @@
     "openInSimulator": "Abrir en simulador",
     "openArm": "Ver la ficha de {{name}}",
     "specs": "Ficha técnica",
-    "back": "Volver al catálogo"
+    "back": "Volver al catálogo",
+    "reportIssue": "¿Viste un error aquí?",
+    "reportEmail": "Escríbenos por correo"
   },
   "route": {
     "eyebrow": "Ruta {{number}}",
@@ -143,6 +148,10 @@
       "alRobot": "Al robot",
       "verifica": "Verifica",
       "profundiza": "Profundiza"
+    },
+    "report": {
+      "issue": "¿Viste un error en este tema?",
+      "email": "Escríbenos por correo"
     },
     "experiment": {
       "change": "Cambia",
@@ -194,8 +203,8 @@
     "lead": "El código vive en GitHub y todo cambio parte de un issue. La regla número uno: si no está en la documentación del repositorio, no existe.",
     "content": {
       "title": "Contenido",
-      "text": "Hasta la versión 1.0 las contribuciones de contenido están cerradas. Los 27 temas siguen una especificación fija y unos estándares de contenido publicados en el repositorio.",
-      "report": "Si encuentras un error en un tema, abre un issue con el tema y la sección."
+      "text": "Los 27 temas siguen una especificación fija y unos estándares de contenido publicados en el repositorio. Si encuentras un error en uno, repórtalo con la plantilla de reporte; no hace falta cuenta de GitHub.",
+      "report": "Abrir la plantilla de reporte"
     },
     "robots": {
       "title": "Robots",

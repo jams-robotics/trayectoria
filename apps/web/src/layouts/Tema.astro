@@ -1,6 +1,7 @@
 ---
 import { t } from '@trayectoria/i18n';
 
+import ReportIssue from '../components/ReportIssue.astro';
 import TopicOutline from '../components/tema/Outline.astro';
 import Base from './Base.astro';
 
@@ -17,6 +18,8 @@ export interface TopicLink {
 
 interface Props {
   title: string;
+  /** Topic id (`ruta-1/m04-t02`), filled into the report-an-error link (#591). */
+  topicId: string;
   /** `<title>` and Open Graph title; falls back to `title` when missing (#579). */
   seoTitle?: string | undefined;
   /** Falls back to `meta.description` in Base.astro when missing (#579). */
@@ -37,6 +40,7 @@ interface Props {
 
 const {
   title,
+  topicId,
   seoTitle,
   description,
   route,
@@ -49,6 +53,7 @@ const {
   next,
 } = Astro.props;
 const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+const topicSlug = topicId.split('/')[1] ?? topicId;
 ---
 
 <Base title={seoTitle ?? title} description={description}>
@@ -108,6 +113,14 @@ const percent = total === 0 ? 0 : Math.round((done / total) * 100);
         <article class="mt-8">
           <slot />
         </article>
+
+        <ReportIssue
+          title={`[Tema ${topicSlug}] `}
+          label="contenido"
+          place={topicId}
+          issueLabel={t('topic.report.issue')}
+          emailLabel={t('topic.report.email')}
+        />
 
         <nav aria-label={t('topic.pagination')} class="border-border mt-10 border-t pt-6">
           <ul class="m-0 flex list-none flex-col gap-5 p-0 md:flex-row md:justify-between">

@@ -1,0 +1,50 @@
+name: Reportar un error en un tema
+description: Algo en un tema, un simulador o el catálogo de brazos está mal o no funciona.
+title: '[Tema] '
+labels: ['contenido']
+body:
+  - type: input
+    id: tema
+    attributes:
+      label: Tema o página
+      description: El nombre del tema o la ruta de la página donde viste el error.
+      placeholder: 'M04-T02 · Rotación, o /simuladores/brazo'
+    validations:
+      required: true
+  - type: dropdown
+    id: seccion
+    attributes:
+      label: Sección
+      description: Si es un tema, en qué sección está el error. Si no aplica, elige «No aplica».
+      options:
+        - Gancho
+        - Concepto
+        - Fórmulas
+        - Explora
+        - Al robot
+        - Verifica
+        - Profundiza
+        - No aplica
+    validations:
+      required: true
+  - type: textarea
+    id: que-dice
+    attributes:
+      label: Qué dice
+      description: Copia o describe el texto, el número o el comportamiento que está mal.
+    validations:
+      required: true
+  - type: textarea
+    id: que-deberia-decir
+    attributes:
+      label: Qué debería decir
+      description: Qué esperabas ver en su lugar.
+    validations:
+      required: true
+  - type: textarea
+    id: como-lo-sabes
+    attributes:
+      label: Cómo lo sabes
+      description: Opcional. Una fuente, un cálculo propio o por qué crees que es un error.
+    validations:
+      required: false

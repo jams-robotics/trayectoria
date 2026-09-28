@@ -176,6 +176,10 @@
     "expand": "ver",
     "collapse": "ocultar"
   },
+  "report": {
+    "issue": "¿Viste un error aquí?",
+    "email": "Escríbenos por correo"
+  },
   "playground": {
     "title": "Catálogo de simuladores",
     "lead": "Cada componente de simulación con sus configuraciones de ejemplo. Página de desarrollo: no se enlaza desde la navegación."
