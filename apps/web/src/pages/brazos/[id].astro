@@ -4,6 +4,7 @@ import { getImage } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import { t } from '@trayectoria/i18n';
 
+import ReportIssue from '../../components/ReportIssue.astro';
 import Base from '../../layouts/Base.astro';
 import { formatKilograms, formatMetres, formatUsd, simulatorHref } from '../../lib/catalog';
 
@@ -136,6 +137,14 @@ const links = [
           </svg>
           {t('catalog.openInSimulator')}
         </a>
+
+        <ReportIssue
+          title={`[Brazo ${ficha.name}] `}
+          label="bug"
+          place={`brazos/${arm.id}`}
+          issueLabel={t('catalog.reportIssue')}
+          emailLabel={t('catalog.reportEmail')}
+        />
       </div>
     </div>
   </section>

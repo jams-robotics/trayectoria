@@ -28,6 +28,10 @@ const topicSchema = z
     requiredExercises: z.array(z.string().regex(/^e\d+$/)),
     references: z.array(z.string().min(1)),
     status: z.enum(['draft', 'review', 'published']),
+    /** Falls back to `title` in <title> and Open Graph tags when missing (#579). */
+    seoTitle: z.string().min(1).max(60).optional(),
+    /** Falls back to `meta.description` when missing (#579). */
+    seoDescription: z.string().min(120).max(155).optional(),
   })
   .strict();
 

@@ -1,11 +1,22 @@
 ---
 import { t } from '@trayectoria/i18n';
 
+import { COFFEE_URL, CONTACT_EMAIL, mailtoHref, reportIssueUrl } from '../lib/contact';
+
 const links = [
   { href: 'https://github.com/jams-robotics/trayectoria', label: t('footer.repository') },
   { href: '/contribuir', label: t('footer.contribute') },
   { href: '/acerca', label: t('footer.about') },
+  { href: mailtoHref(CONTACT_EMAIL, t('footer.contact')), label: t('footer.contact') },
+  {
+    href: reportIssueUrl({ title: '[Sitio] ', label: 'bug', tema: 'sitio' }),
+    label: t('footer.reportError'),
+  },
 ] as const;
+
+// The coffee link is empty until the owner defines it (#591, decision 2): hidden while it is.
+const coffeeLink =
+  COFFEE_URL === '' ? undefined : { href: COFFEE_URL, label: t('footer.coffee') };
 ---
 
 <footer class="border-border border-t">
@@ -19,6 +30,13 @@ const links = [
           </a>
         </li>
       ))}
+      {coffeeLink !== undefined && (
+        <li>
+          <a href={coffeeLink.href} rel="noopener" class="no-underline hover:underline">
+            {coffeeLink.label}
+          </a>
+        </li>
+      )}
     </ul>
   </div>
 </footer>

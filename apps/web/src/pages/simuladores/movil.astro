@@ -1,6 +1,7 @@
 ---
 import { t } from '@trayectoria/i18n';
 
+import ReportIssue from '../../components/ReportIssue.astro';
 import { MobileSimIsland } from '../../components/sim/MobileSimIsland';
 import Base from '../../layouts/Base.astro';
 
@@ -16,5 +17,12 @@ import Base from '../../layouts/Base.astro';
     <h1 class="text-xl leading-tight md:text-2xl font-semibold">{t('sims.mobilePage.title')}</h1>
     <p class="text-fg-muted mt-4 max-w-[72ch]">{t('sims.mobilePage.lead')}</p>
     <MobileSimIsland client:visible />
+    <ReportIssue
+      title="[Simulador móvil] "
+      label="bug"
+      place="simuladores/movil"
+      issueLabel={t('sims.report.issue')}
+      emailLabel={t('sims.report.email')}
+    />
   </section>
 </Base>

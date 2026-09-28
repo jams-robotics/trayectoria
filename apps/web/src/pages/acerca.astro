@@ -3,8 +3,16 @@ import { t } from '@trayectoria/i18n';
 
 import Base from '../layouts/Base.astro';
 
-// Public "about" page (F7-05). Vision, audience, scope and non-goals come from docs/PLAN.md §1.
+// Public "about" page (F7-05, #581). Vision, audience, scope, non-goals and the "what comes
+// next" paragraph come from docs/PLAN.md §1; author, contact and privacy data from #581.
 const REPO = 'https://github.com/jams-robotics/trayectoria';
+const ORGANIZATION = 'https://github.com/jams-robotics';
+const LINKEDIN = 'https://www.linkedin.com/in/jaime-torres286/';
+const GITHUB = 'https://github.com/jams286';
+const CONTENT_ISSUES = `${REPO}/issues?q=is%3Aissue+label%3Acontenido`;
+const UX_ISSUES = `${REPO}/issues?q=is%3Aissue+label%3Aux`;
+const CONTACT_EMAIL = 'contacto@trayectoria.org';
+const PHOTO_SIZE_PX = 96;
 
 const audience = [t('aboutPage.audience.students'), t('aboutPage.audience.teachers')] as const;
 
@@ -25,6 +33,7 @@ const notIs = [
 
 const secondaryLink =
   'bg-bg-raised text-fg border-border hover:border-fg-muted rounded-md inline-flex min-h-[44px] items-center border px-5 font-semibold no-underline';
+const inlineLink = 'inline-flex min-h-[44px] items-center font-semibold';
 ---
 
 <Base title={t('aboutPage.title')} description={t('aboutPage.description')}>
@@ -36,6 +45,43 @@ const secondaryLink =
       <h1 class="text-xl md:text-2xl leading-tight mt-4 font-semibold">{t('aboutPage.title')}</h1>
       <p class="text-fg-muted text-lg leading-body mt-6">{t('aboutPage.lead')}</p>
     </header>
+
+    <section class="mt-11 max-w-[72ch]" aria-labelledby="autor-titulo">
+      <h2 id="autor-titulo" class="text-lg leading-tight font-semibold">
+        {t('aboutPage.author.title')}
+      </h2>
+      <div class="mt-4 flex items-start gap-5">
+        <img
+          src="/acerca/jaime-torres.jpg"
+          alt={t('aboutPage.author.photoAlt')}
+          width={PHOTO_SIZE_PX}
+          height={PHOTO_SIZE_PX}
+          loading="lazy"
+          decoding="async"
+          class="size-[96px] shrink-0 rounded-full object-cover"
+        />
+        <div>
+          <p class="leading-body font-semibold">{t('aboutPage.author.name')}</p>
+          <p class="leading-body mt-1">{t('aboutPage.author.bio')}</p>
+          <ul class="mt-2 flex flex-wrap gap-x-5">
+            <li>
+              <a href={LINKEDIN} rel="noopener" class={inlineLink}>
+                {t('aboutPage.author.linkedin')}
+              </a>
+            </li>
+            <li>
+              <a href={GITHUB} rel="noopener" class={inlineLink}>
+                {t('aboutPage.author.github')}
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <p class="leading-body mt-4">{t('aboutPage.author.organization')}</p>
+      <a href={ORGANIZATION} rel="noopener" class={inlineLink}>
+        {t('aboutPage.author.organizationLink')}
+      </a>
+    </section>
 
     <section class="mt-11 max-w-[72ch]" aria-labelledby="quien-titulo">
       <h2 id="quien-titulo" class="text-lg leading-tight font-semibold">
@@ -70,6 +116,28 @@ const secondaryLink =
       </ul>
     </section>
 
+    <section class="mt-11 max-w-[72ch]" aria-labelledby="como-se-hizo-titulo">
+      <h2 id="como-se-hizo-titulo" class="text-lg leading-tight font-semibold">
+        {t('aboutPage.making.title')}
+      </h2>
+      <p class="leading-body mt-4">{t('aboutPage.making.ai')}</p>
+      <p class="leading-body mt-4">{t('aboutPage.making.sources')}</p>
+      <p class="leading-body mt-4">{t('aboutPage.making.audits')}</p>
+      <p class="leading-body mt-4">{t('aboutPage.making.findings')}</p>
+      <ul class="mt-2 flex flex-wrap gap-x-5">
+        <li>
+          <a href={CONTENT_ISSUES} rel="noopener" class={inlineLink}>
+            {t('aboutPage.making.contentIssues')}
+          </a>
+        </li>
+        <li>
+          <a href={UX_ISSUES} rel="noopener" class={inlineLink}>
+            {t('aboutPage.making.uxIssues')}
+          </a>
+        </li>
+      </ul>
+    </section>
+
     <section class="mt-11 max-w-[72ch]" aria-labelledby="metodo-titulo">
       <h2 id="metodo-titulo" class="text-lg leading-tight font-semibold">
         {t('aboutPage.method.title')}
@@ -78,19 +146,47 @@ const secondaryLink =
       <p class="leading-body mt-4">{t('aboutPage.method.references')}</p>
     </section>
 
+    <section class="mt-11 max-w-[72ch]" aria-labelledby="que-viene-titulo">
+      <h2 id="que-viene-titulo" class="text-lg leading-tight font-semibold">
+        {t('aboutPage.future.title')}
+      </h2>
+      <p class="leading-body mt-4">{t('aboutPage.future.text')}</p>
+    </section>
+
     <section class="mt-11 max-w-[72ch]" aria-labelledby="licencia-titulo">
       <h2 id="licencia-titulo" class="text-lg leading-tight font-semibold">
         {t('aboutPage.license.title')}
       </h2>
       <p class="leading-body mt-4">{t('aboutPage.license.text')}</p>
       <div class="mt-6 flex flex-wrap gap-3">
-        <a href={REPO} class={secondaryLink}>
+        <a href={REPO} rel="noopener" class={secondaryLink}>
           {t('aboutPage.license.repository')}
         </a>
         <a href="/contribuir" class={secondaryLink}>
           {t('aboutPage.license.contribute')}
         </a>
       </div>
+    </section>
+
+    <section class="mt-11 max-w-[72ch]" aria-labelledby="privacidad-titulo">
+      <h2 id="privacidad-titulo" class="text-lg leading-tight font-semibold">
+        {t('aboutPage.privacy.title')}
+      </h2>
+      <p class="leading-body mt-4">{t('aboutPage.privacy.text')}</p>
+    </section>
+
+    <section class="mt-11 max-w-[72ch]" aria-labelledby="contacto-titulo">
+      <h2 id="contacto-titulo" class="text-lg leading-tight font-semibold">
+        {t('aboutPage.contact.title')}
+      </h2>
+      <p class="leading-body mt-4">{t('aboutPage.contact.text')}</p>
+      <a href={`mailto:${CONTACT_EMAIL}`} class={inlineLink}>
+        {CONTACT_EMAIL}
+      </a>
+      <p class="leading-body mt-4">{t('aboutPage.contact.contribute')}</p>
+      <a href="/contribuir" class={inlineLink}>
+        {t('aboutPage.contact.contributeLink')}
+      </a>
     </section>
   </article>
 </Base>
