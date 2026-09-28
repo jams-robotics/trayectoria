@@ -1,17 +1,16 @@
 const REPO = 'https://github.com/jams-robotics/trayectoria';
 
 /**
- * Contact address for the whole site (#591): the public one of the organisation while there is
- * no domain. `mailto:` links built from it go through `reportEmailHref` / `mailtoHref`, never
+ * Contact address for the whole site (#591): the domain address, forwarded by Cloudflare Email
+ * Routing. Never a personal address. `mailto:` links built from it go through `reportEmailHref` / `mailtoHref`, never
  * concatenated by hand.
  */
-export const CONTACT_EMAIL = 'Jaime286tm@gmail.com';
+export const CONTACT_EMAIL = 'contacto@trayectoria.org';
 
 /**
- * "Invite me for a coffee" link. Empty until the owner defines it (#591, decision 2): callers
- * must hide the element while this is `''`, and the i18n key stays ready for when it is filled.
+ * "Invite me for a coffee" link (#591, #605). Callers hide the element if this is ever `''`.
  */
-export const COFFEE_URL = '';
+export const COFFEE_URL: string = 'https://ko-fi.com/jams286';
 
 /** `mailto:` link with a prefilled subject, built with `URLSearchParams` (never string concatenation). */
 export function mailtoHref(email: string, subject: string): string {
