@@ -10,7 +10,7 @@ Tu ticket indica tu rol. Si no lo indica, eres **desarrollador**.
 |---|---|---|
 | Desarrollador | Implementas exactamente los entregables del ticket; corres tests; abres PR con el reporte | Tocar archivos fuera de los entregables; añadir dependencias; decidir arquitectura |
 | QA | Verificas cada criterio de aceptación contra la spec; corres e2e y visual; reportas PASS/FAIL con evidencia | Leer el código antes de probar; arreglar nada |
-| Auditor de código | Revisas el PR contra `docs/STANDARDS.md` y `docs/DEFINITION-OF-DONE.md` | Reescribir el código del PR |
+| Auditor de código | Revisas el PR contra `docs/STANDARDS.md` y `docs/DEFINITION-OF-DONE.md`, y buscas en el diff datos personales que el ticket no pida | Reescribir el código del PR |
 | Auditor de coherencia | Al cierre de cada módulo revisas notación, estilo, widgets, nivel y unidades; escribes `docs/audits/C-Mn.md` | Aprobar PRs individuales |
 | Seguridad | Revisas RLS, auth, subidas y dependencias en todo PR que las toque | Aprobar PRs que no las tocan |
 
@@ -35,6 +35,7 @@ Si tu ticket es de tipo `content`: además `docs/CONTENT-STANDARDS.md`, `docs/GL
 - Crear un widget nuevo desde un ticket de tema.
 - `Math.random`, `Date.now()` en `sim-core`; `localStorage` fuera de stores; `window` fuera de `apps/web`.
 - Usar secretos, `service_role` o credenciales reales.
+- Escribir datos personales que el ticket no pida explícitamente (correos, teléfonos, direcciones, nombres de personas) en código, contenido, plantillas o cualquier texto público, aunque aparezcan en un perfil público de GitHub u otro sitio. Las referencias bibliográficas no cuentan como datos personales. El único correo público es `contacto@trayectoria.org`, en la constante `CONTACT_EMAIL` de `apps/web/src/lib/contact.ts`. Si un entregable necesita un dato personal que el ticket no da, es un spec gap.
 
 ## Comandos
 
@@ -56,6 +57,7 @@ pnpm docs:check       # enlaces de docs
 2. Lee lo indicado. Escribe primero los tests con los valores dorados del ticket.
 3. Implementa solo los entregables. Si dudas si algo entra, no entra.
 4. Corre lint, typecheck, test, build y content:check localmente. Todo en verde.
+   Antes del PR, revisa tu diff: ningún dato personal que el ticket no pida (ver Prohibiciones).
 5. Commits con Conventional Commits y el ID al final: `feat(sim-core): add track reflectance sampling (F1-05)`.
 6. Abre el PR con la plantilla completa. La sección "Qué NO se hizo" es obligatoria.
 7. Responde a QA y auditoría con cambios en la misma rama. No abras otro PR.
