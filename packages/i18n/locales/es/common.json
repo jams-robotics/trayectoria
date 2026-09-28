@@ -300,7 +300,7 @@
     },
     "privacy": {
       "title": "Privacidad",
-      "text": "El sitio no usa analítica ni cookies de seguimiento. Sin cuenta, tu progreso y tu robot se guardan solo en tu navegador; con cuenta, Supabase guarda tu correo, tu nombre y rol, tus robots y pistas, tu progreso, tus respuestas a los ejercicios y tus grupos del modo aula, solo para que el producto funcione."
+      "text": "Para saber cuántas personas visitan cada página y desde qué país, usamos Cloudflare Web Analytics, que no usa cookies ni te identifica. Sin cuenta, tu progreso y tu robot se guardan solo en tu navegador; con cuenta, Supabase guarda tu correo, tu nombre y rol, tus robots y pistas, tu progreso, tus respuestas a los ejercicios y tus grupos del modo aula, solo para que el producto funcione."
     },
     "contact": {
       "title": "Contacto",
