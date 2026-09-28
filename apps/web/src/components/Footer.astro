@@ -14,7 +14,7 @@ const links = [
   },
 ] as const;
 
-// The coffee link is empty until the owner defines it (#591, decision 2): hidden while it is.
+// The coffee link is hidden whenever COFFEE_URL is empty (#591, #605).
 const coffeeLink =
   COFFEE_URL === '' ? undefined : { href: COFFEE_URL, label: t('footer.coffee') };
 ---
