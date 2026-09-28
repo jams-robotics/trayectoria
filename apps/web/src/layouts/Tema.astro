@@ -20,6 +20,10 @@ interface Props {
   title: string;
   /** Topic id (`ruta-1/m04-t02`), filled into the report-an-error link (#591). */
   topicId: string;
+  /** `<title>` and Open Graph title; falls back to `title` when missing (#579). */
+  seoTitle?: string | undefined;
+  /** Falls back to `meta.description` in Base.astro when missing (#579). */
+  description?: string | undefined;
   /** Route the topic belongs to, for the breadcrumb and the progress bar. */
   route: TopicLink & { title: string };
   /** Mono line above the title: «Ruta … · Tema 4.2». */
@@ -37,6 +41,8 @@ interface Props {
 const {
   title,
   topicId,
+  seoTitle,
+  description,
   route,
   eyebrow,
   estimatedMinutes,
@@ -50,7 +56,7 @@ const percent = total === 0 ? 0 : Math.round((done / total) * 100);
 const topicSlug = topicId.split('/')[1] ?? topicId;
 ---
 
-<Base title={title}>
+<Base title={seoTitle ?? title} description={description}>
   <div class="mx-auto max-w-[1200px] px-5 py-9 md:px-8">
     <div class="md:flex md:items-start md:gap-10">
       <div class="md:order-2 md:min-w-0 md:flex-1">

@@ -8,12 +8,15 @@ import '../styles/global.css';
 
 interface Props {
   title: string;
-  description?: string;
+  description?: string | undefined;
   /** Use `title` verbatim in <title>, skipping the `{{title}} · Trayectoria` template. Cover page only. */
   titleFull?: boolean;
 }
 
 const { title, description = t('meta.description'), titleFull = false } = Astro.props;
+const pageTitle = titleFull ? title : t('meta.title', { title });
+const ogImage = new URL('/og.png', Astro.site).toString();
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
 
 // The inline script in <head> applies the saved or system theme before first paint.
 // Its storage key mirrors stores/theme.ts; an inline script cannot import the store.
@@ -25,6 +28,15 @@ const { title, description = t('meta.description'), titleFull = false } = Astro.
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={t('meta.siteName')} />
+    <meta property="og:locale" content="es" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -56,7 +68,7 @@ const { title, description = t('meta.description'), titleFull = false } = Astro.
       type="font/woff2"
       crossorigin
     />
-    <title>{titleFull ? title : t('meta.title', { title })}</title>
+    <title>{pageTitle}</title>
     <slot name="head" />
   </head>
   <body class="bg-bg text-fg font-sans flex min-h-dvh flex-col">

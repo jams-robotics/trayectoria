@@ -6,6 +6,7 @@ import { defineConfig } from 'astro/config';
 import { catalogAssets } from './src/integrations/catalog';
 
 export default defineConfig({
+  site: 'https://trayectoria.org',
   output: 'static',
   integrations: [react(), mdx(), catalogAssets()],
   vite: {

@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /dev/
+Disallow: /cuenta
+Disallow: /auth
+Disallow: /aula
+
+Sitemap: https://trayectoria.org/sitemap.xml
