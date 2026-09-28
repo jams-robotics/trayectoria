@@ -17,6 +17,10 @@ export interface TopicLink {
 
 interface Props {
   title: string;
+  /** `<title>` and Open Graph title; falls back to `title` when missing (#579). */
+  seoTitle?: string | undefined;
+  /** Falls back to `meta.description` in Base.astro when missing (#579). */
+  description?: string | undefined;
   /** Route the topic belongs to, for the breadcrumb and the progress bar. */
   route: TopicLink & { title: string };
   /** Mono line above the title: «Ruta … · Tema 4.2». */
@@ -31,12 +35,23 @@ interface Props {
   next: TopicLink | undefined;
 }
 
-const { title, route, eyebrow, estimatedMinutes, prerequisites, done, total, previous, next } =
-  Astro.props;
+const {
+  title,
+  seoTitle,
+  description,
+  route,
+  eyebrow,
+  estimatedMinutes,
+  prerequisites,
+  done,
+  total,
+  previous,
+  next,
+} = Astro.props;
 const percent = total === 0 ? 0 : Math.round((done / total) * 100);
 ---
 
-<Base title={title}>
+<Base title={seoTitle ?? title} description={description}>
   <div class="mx-auto max-w-[1200px] px-5 py-9 md:px-8">
     <div class="md:flex md:items-start md:gap-10">
       <div class="md:order-2 md:min-w-0 md:flex-1">

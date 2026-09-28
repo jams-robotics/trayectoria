@@ -71,13 +71,15 @@ const prerequisites: TopicLink[] = topic.data.prerequisites.map((id) => {
 });
 
 const { Content } = await render(topic);
-const { title, estimatedMinutes, module, order } = topic.data;
+const { title, seoTitle, seoDescription, estimatedMinutes, module, order } = topic.data;
 // Real progress arrives with F3-01; until then every topic of the route counts as pending.
 const DONE_TOPICS = 0;
 ---
 
 <Tema
   title={title}
+  seoTitle={seoTitle}
+  description={seoDescription}
   route={{ title: route.data.title, href: `/ruta/${route.id}` }}
   eyebrow={t('topic.number', { module, order })}
   estimatedMinutes={estimatedMinutes}
