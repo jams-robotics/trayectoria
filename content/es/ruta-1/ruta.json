@@ -36,10 +36,11 @@
     {
       "id": "m03",
       "number": 3,
-      "title": "Energía",
+      "title": "Energía y motor",
       "topics": [
         { "id": "m03-t01", "title": "Trabajo y energía" },
-        { "id": "m03-t02", "title": "Potencia" }
+        { "id": "m03-t02", "title": "Potencia" },
+        { "id": "m03-t03", "title": "El motor y la batería" }
       ]
     },
     {

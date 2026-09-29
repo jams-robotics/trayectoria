@@ -5,7 +5,7 @@ import ChassisIcon from '../components/ChassisIcon.astro';
 import { AccountDeletedNotice } from '../components/auth/AccountDeletedNotice';
 import Base from '../layouts/Base.astro';
 
-// Route 1 as specified in docs/PLAN.md §2 (7 modules, 27 topics).
+// Route 1 as specified in docs/PLAN.md §2 (7 modules, 28 topics).
 // Each idea condenses the objectives of the module's topics in docs/CURRICULUM.md (F7-05).
 const modules = [
   { name: t('home.modules.tools'), topics: 3, idea: t('home.thread.ideas.tools') },
@@ -15,7 +15,7 @@ const modules = [
     idea: t('home.thread.ideas.particleKinematics'),
   },
   { name: t('home.modules.dynamics'), topics: 3, idea: t('home.thread.ideas.dynamics') },
-  { name: t('home.modules.energy'), topics: 2, idea: t('home.thread.ideas.energy') },
+  { name: t('home.modules.energy'), topics: 3, idea: t('home.thread.ideas.energy') },
   { name: t('home.modules.rotation'), topics: 5, idea: t('home.thread.ideas.rotation') },
   {
     name: t('home.modules.differentialRobot'),

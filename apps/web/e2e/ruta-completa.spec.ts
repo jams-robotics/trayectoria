@@ -10,7 +10,7 @@ import { openMobileSim, readout } from './sim-movil.helpers';
 /**
  * F7-04 acceptance criterion 1: the full route, end to end, against the local Supabase stack.
  *
- * A single registered student walks the 27 topics of `content/es/ruta-1/ruta.json` and answers a
+ * A single registered student walks the 28 topics of `content/es/ruta-1/ruta.json` and answers a
  * scalar `Verifica` exercise of each one, then opens the mobile simulator with «Mi robot», and
  * finally a teacher who shares a group with the student sees their progress in `/aula`.
  *
@@ -75,7 +75,7 @@ async function checkOnce(exercise: Locator): Promise<string | null> {
   // window blocks on Playwright's own actionability wait for the button to re-enable instead of
   // failing outright. Re-clicking on every poll iteration (as this used to) could therefore stack
   // that actionability wait for a slow `recordAttempt` write (packages/db writes under load, e.g.
-  // the local Supabase stack across this spec's 27 topics) inside a single iteration and burn the
+  // the local Supabase stack across this spec's 28 topics) inside a single iteration and burn the
   // whole 15 s budget in one `click()` call before ever reading back a settled status. One click
   // starts the attempt; the poll below only reads `data-status` afterwards, waiting past
   // `checking` (a real, non-terminal status while the write settles) to `correct`/`incorrect`.
@@ -304,21 +304,21 @@ async function solveVisibleExercise(exercise: Locator, topicId: string): Promise
 }
 
 test.describe('F7-04 · ruta completa', () => {
-  test('registro, 27 temas con un ejercicio cada uno, simulador móvil con «Mi robot» y progreso docente', async ({
+  test('registro, 28 temas con un ejercicio cada uno, simulador móvil con «Mi robot» y progreso docente', async ({
     page,
     browser,
   }) => {
     test.setTimeout(20 * 60 * 1000);
-    expect(TOPICS).toHaveLength(27);
+    expect(TOPICS).toHaveLength(28);
 
     // 1. Registro de un estudiante nuevo.
     const studentEmail = uniqueEmail('ruta-completa-estudiante');
     const student = await signUp('student', STUDENT_NAME, studentEmail);
     await signInOnPage(page, studentEmail);
 
-    // 2. Los 27 temas, un ejercicio cada uno. Un tema roto se anota y no detiene la ruta. Los
+    // 2. Los 28 temas, un ejercicio cada uno. Un tema roto se anota y no detiene la ruta. Los
     // hydration mismatches conocidos (ver `waitForStableStatement`) se cuentan aparte: son un
-    // defecto único que se repite por tema, no 27 defectos distintos.
+    // defecto único que se repite por tema, no 28 defectos distintos.
     const defects: string[] = [];
     const hydrationMismatches: string[] = [];
     for (const { topicId, title } of TOPICS) {
@@ -374,10 +374,10 @@ test.describe('F7-04 · ruta completa', () => {
     await openHydrated(teacherPage, teacherPage.url().slice(teacherPage.url().indexOf('/aula')));
     await expect(teacherPage.getByTestId('progress-table')).toBeVisible();
     await expect(teacherPage.getByTestId('progress-column').first()).toHaveText(STUDENT_NAME);
-    // A topic only turns `completed` (and only then counts in `progress-summary`'s "N/27") once
+    // A topic only turns `completed` (and only then counts in `progress-summary`'s "N/28") once
     // every one of its required exercises is answered correctly (packages/progress/src/model.ts
-    // `isCompleted`), and this spec answers just one exercise per topic — so "N/27" can stay
-    // "0/27" even though every topic was genuinely attempted. What the teacher's aula must show
+    // `isCompleted`), and this spec answers just one exercise per topic — so "N/28" can stay
+    // "0/28" even though every topic was genuinely attempted. What the teacher's aula must show
     // instead is at least one cell no longer `pending` (`data-state`, ProgressGrid.tsx), unless
     // every topic in fact failed to grade above.
     if (defects.length < TOPICS.length) {
@@ -390,7 +390,7 @@ test.describe('F7-04 · ruta completa', () => {
     await teacher.client.auth.signOut();
     await teacherContext.close();
 
-    // Report every topic that could not be solved, so a single failing topic still shows all 27
+    // Report every topic that could not be solved, so a single failing topic still shows all 28
     // outcomes above (console log) instead of stopping at the first one.
     expect(defects, defects.join('\n')).toEqual([]);
   });

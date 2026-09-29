@@ -1,0 +1,204 @@
+---
+id: ruta-1/m03-t03
+title: 'El motor y la batería'
+module: 3
+order: 3
+estimatedMinutes: 30
+prerequisites: [ruta-1/m03-t02, ruta-1/m02-t03]
+objectives:
+  - Leer la recta torque–velocidad de un motor de corriente continua y ubicar su punto de trabajo
+  - Calcular la potencia mecánica máxima y la velocidad a la que se da
+  - Estimar la corriente, la eficiencia del motor y la autonomía en un punto de trabajo
+widgets: [MotorCurveWidget, ExerciseWidget]
+requiredExercises: [e1, e2, e3]
+references: [young-freedman-27, siegwart-2]
+status: published
+seoTitle: "El motor de tu robot: curva torque–velocidad y batería"
+seoDescription: "Aprende a leer la recta torque–velocidad de un motor de corriente continua, a ubicar su punto de trabajo y a estimar su corriente, eficiencia y autonomía."
+---
+
+<Gancho>
+La hoja de datos dice 6000 rpm y 0.012 N·m. ¿Puede el motor dar las dos cosas a la vez?
+</Gancho>
+
+<Concepto>
+La hoja de datos de [Unidades y magnitudes](/ruta/ruta-1/m00/t01) no da un punto de trabajo
+sino dos extremos. Sin carga, el eje gira a la **velocidad sin carga** ω₀, n₀ en rpm en la hoja
+de datos, y el torque es cero. Con el eje detenido, el motor da el **torque de bloqueo** τ_s y
+la velocidad es cero. En un motor de corriente continua, entre esos extremos el torque baja en
+línea recta con la velocidad: τ(ω) = τ_s·(1 − ω/ω₀).
+
+El **punto de trabajo** es donde el torque que pide la carga corta esa recta. De ahí sale la
+velocidad: ω = ω₀·(1 − τ/τ_s). Por eso el robot va más despacio cuesta arriba. La rampa de 20° de
+[Torque](/ruta/ruta-1/m02/t03) pide 0.0483 N·m por rueda. Con la reducción i = 30 y **η_caja** = 0.6,
+su eficiencia, son 0.002683 N·m en el motor, y la recta da 4658 rpm: 155.3 rpm en la rueda,
+0.520 m/s frente a los 0.670 m/s de la velocidad sin carga. [Transmisión y reducción](/ruta/ruta-1/m04/t04)
+explica de dónde sale i.
+
+La potencia mecánica P = τ·ω es cero en los dos extremos y máxima en el medio: P_max = τ_s·ω₀/4,
+en ω₀/2. Con el motor de referencia, 1.885 W a 3000 rpm.
+
+La corriente crece con el torque, de I₀ sin carga a I_s en bloqueo: I = I₀ + (I_s − I₀)·τ/τ_s.
+La **eficiencia del motor**, η_motor = P_mec/(V·I), no es η_caja. El motor de referencia rinde
+0.48 en el punto de potencia máxima, frente al 0.6 de la reducción. En bloqueo toda la potencia
+eléctrica es calor.
+
+El comando de velocidad del simulador es una fracción de la tensión (PWM): ω₀ y τ_s se escalan
+con ella y la recta se desplaza. La velocidad tampoco se establece al instante:
+ω(t) = ω_f·(1 − e^(−t/τ_m)), con τ_m = 0.185 s en el simulador. Esa demora es la que hace oscilar
+al control proporcional de [Control on/off y proporcional](/ruta/ruta-1/m06/t02).
+
+La autonomía se calcula con la corriente del punto de trabajo, no con la de bloqueo: la de
+[Potencia](/ruta/ruta-1/m03/t02) era la cota inferior.
+</Concepto>
+
+<Formulas>
+<Formula latex="\tau(\omega) = \tau_s\left(1 - \frac{\omega}{\omega_0}\right)" />
+
+- `τ(ω)` · recta torque–velocidad · N·m
+- `τ_s` · torque de bloqueo · N·m
+- `ω` · velocidad angular · rad/s
+- `ω₀` · velocidad sin carga · rad/s
+- `n₀` · velocidad sin carga, la de la hoja de datos (`ω₀ = n₀·2π/60`) · rpm (dato de entrada, no SI)
+
+<Formula latex="\omega = \omega_0\left(1 - \frac{\tau}{\tau_s}\right)" />
+
+- `ω` · velocidad angular del punto de trabajo · rad/s
+- `ω₀` · velocidad sin carga · rad/s
+- `τ` · torque que pide la carga · N·m
+- `τ_s` · torque de bloqueo · N·m
+
+<Formula latex="P = \tau\,\omega" />
+
+- `P` · potencia · W
+- `τ` · torque · N·m
+- `ω` · velocidad angular · rad/s
+
+<Formula latex="P_{max} = \frac{\tau_s\,\omega_0}{4}" />
+
+- `P_max` · potencia mecánica máxima, en ω = ω₀/2 · W
+- `τ_s` · torque de bloqueo · N·m
+- `ω₀` · velocidad sin carga · rad/s
+
+<Formula latex="I = I_0 + (I_s - I_0)\frac{\tau}{\tau_s}" />
+
+- `I` · corriente · A
+- `I₀` · corriente sin carga · A
+- `I_s` · corriente de bloqueo · A
+- `τ` · torque · N·m
+- `τ_s` · torque de bloqueo · N·m
+
+<Formula latex="\eta_{motor} = \frac{P_{mec}}{V I}" />
+
+- `η_motor` · eficiencia del motor · —
+- `P_mec` · potencia mecánica · W
+- `V` · voltaje · V
+- `I` · corriente · A
+
+<Formula latex="\omega(t) = \omega_f\left(1 - e^{-t/\tau_m}\right)" />
+
+- `ω(t)` · velocidad angular en el instante t · rad/s
+- `ω_f` · velocidad angular final, la del punto de trabajo · rad/s
+- `t` · tiempo · s
+- `τ_m` · constante de tiempo del motor · s
+
+<Formula latex="t_{\text{autonomía}} = \frac{C}{2 V I}" />
+
+- `t_autonomía` · autonomía de dos motores · h
+- `C` · capacidad de batería · Wh
+- `V` · voltaje · V
+- `I` · corriente de cada motor · A
+</Formulas>
+
+<Explora>
+El widget dibuja la recta torque–velocidad del motor de referencia arriba y su parábola de
+potencia abajo, de 0 a n₀. El punto de trabajo se arrastra en cualquiera de las dos gráficas o se
+mueve con el control «Velocidad», y el panel muestra τ, P, I, V·I y η_motor. Entra el motor del
+gancho, 6000 rpm y 0.012 N·m, con I₀ = 0.1 A, I_s = 1.2 A y 6 V. El punto empieza en 3000 rpm,
+el de potencia máxima, y no en uno de los dos extremos de la hoja de datos.
+
+<MotorCurveWidget
+  initial={{
+    stallTorque_Nm: 0.012,
+    noLoadSpeed_rpm: 6000,
+    noLoadCurrent_A: 0.1,
+    stallCurrent_A: 1.2,
+    voltage_V: 6,
+    speed_rpm: 3000,
+  }}
+  editable={['stallTorque_Nm']}
+/>
+
+<Experimento
+  cambia="el punto de trabajo: arrástralo desde 6000 rpm hasta 0"
+  observa="la potencia mecánica P"
+  porque="¿Por qué sube hasta 1.885 W en 3000 rpm y vuelve a cero?"
+>
+P = τ·ω. Sin carga, en 6000 rpm, τ = 0; en bloqueo, ω = 0: en ninguno de los dos extremos el
+motor entrega potencia. En 3000 rpm, τ_s/2 = 0.006 N·m por ω₀/2 = 314.2 rad/s dan 1.885 W, el
+máximo de la parábola.
+</Experimento>
+
+<Experimento
+  cambia="τ_s al doble, de 0.012 a 0.024 N·m"
+  observa="P_max y la velocidad a la que se da"
+  porque="¿Por qué se duplica a 3.77 W y sigue en 3000 rpm?"
+>
+P_max = τ_s·ω₀/4 es proporcional a τ_s·ω₀: con el doble de τ_s, el doble de potencia. La
+velocidad del máximo, ω₀/2, depende solo de ω₀, que no cambió.
+</Experimento>
+
+<Experimento
+  cambia="el punto de trabajo al bloqueo, 0 rpm"
+  observa="la corriente I y las dos potencias, eléctrica y mecánica"
+  porque="¿Por qué 1.2 A y 0 W mecánicos?"
+>
+En bloqueo I = I_s = 1.2 A y el eje no gira: los 6·1.2 = 7.2 W eléctricos se van en calor. Sin
+carga pide I₀ = 0.1 A y tampoco entrega potencia. En 3000 rpm consume 0.65 A, 3.9 W eléctricos, y
+entrega 1.885 W mecánicos: η_motor = 0.48.
+</Experimento>
+</Explora>
+
+<AlRobot>
+Tu motor no da a la vez la velocidad sin carga y el torque de bloqueo de tu perfil de «Mi robot».
+Su punto de potencia máxima está en el medio de la recta. Con τ_s y n₀ de tu perfil:
+
+<RobotFormula calc="ruta-1/m03-t03/max-power" />
+
+En ese punto el motor gira a n₀/2 con τ_s/2. La reducción i y η_caja de tu perfil lo llevan a la
+rueda, y el radio r a la velocidad de avance:
+
+<RobotFormula calc="ruta-1/m03-t03/max-power-point" />
+
+La corriente en ese punto sale de I₀ e I_s, y con ella la eficiencia del motor, distinta de
+η_caja:
+
+<RobotFormula calc="ruta-1/m03-t03/current-efficiency" />
+
+Con esa corriente, y no con la de bloqueo, la batería C de tu perfil alimenta a los dos motores:
+
+<RobotFormula calc="ruta-1/m03-t03/autonomy" />
+
+Si tu perfil no define el motor, sus corrientes o la batería, el cálculo usa los del robot de
+referencia: 0.012 N·m, 6 V, η_caja = 0.6, I₀ = 0.1 A, I_s = 1.2 A y 11.1 Wh. Si no es un robot
+móvil, usa el robot de referencia completo.
+
+Con el robot de referencia, ω₀ = 628.3 rad/s y P_max = 1.885 W. El motor gira a 3000 rpm con
+0.006 N·m, la rueda a 100 rpm con 0.108 N·m y el robot avanza a 0.335 m/s. La corriente es
+0.65 A y η_motor = 0.483. Los dos motores consumen 7.8 W y la batería dura 1.423 h, unos
+85.4 min, frente a los 46.3 min de la cota inferior de [Potencia](/ruta/ruta-1/m03/t02), calculada
+con la corriente de bloqueo.
+</AlRobot>
+
+<Verifica
+  ejercicios={[
+    'ruta-1/m03-t03/e1',
+    'ruta-1/m03-t03/e2',
+    'ruta-1/m03-t03/e3',
+    'ruta-1/m03-t03/e4',
+  ]}
+  topicId="ruta-1/m03-t03"
+  obligatorios={['e1', 'e2', 'e3']}
+/>
+
+<Profundiza referencias={['young-freedman-27', 'siegwart-2']} topicId="ruta-1/m03-t03" />

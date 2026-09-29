@@ -40,11 +40,11 @@ async function openRoute(page: Page): Promise<void> {
 }
 
 test('every topic completed: the route index shows «Ruta completada»', async ({ page }) => {
-  expect(TOPIC_IDS).toHaveLength(27);
+  expect(TOPIC_IDS).toHaveLength(28);
   await seedProgress(page, Object.fromEntries(TOPIC_IDS.map((id) => [id, topic('completed')])));
   await openRoute(page);
 
-  await expect(page.getByTestId('route-progress-count')).toHaveText('27/27');
+  await expect(page.getByTestId('route-progress-count')).toHaveText('28/28');
   await expect(page.getByTestId('route-completed')).toHaveText(common.route.completed);
 });
 
@@ -56,7 +56,7 @@ test('one topic in progress: the notice is not shown', async ({ page }) => {
   });
   await openRoute(page);
 
-  await expect(page.getByTestId('route-progress-count')).toHaveText('26/27');
+  await expect(page.getByTestId('route-progress-count')).toHaveText('27/28');
   await expect(page.getByTestId('route-completed')).toHaveCount(0);
 });
 
@@ -67,6 +67,6 @@ test('one topic never started: the notice is not shown', async ({ page }) => {
   );
   await openRoute(page);
 
-  await expect(page.getByTestId('route-progress-count')).toHaveText('26/27');
+  await expect(page.getByTestId('route-progress-count')).toHaveText('27/28');
   await expect(page.getByTestId('route-completed')).toHaveCount(0);
 });

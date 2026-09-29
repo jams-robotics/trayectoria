@@ -70,7 +70,7 @@
     "thread": {
       "eyebrow": "El hilo de la ruta",
       "title": "Cada tema termina en tu robot",
-      "text": "Los 27 temas cierran con la sección «Al robot»: el mismo concepto, calculado con los datos de tu perfil «Mi robot». En el módulo 6 ese perfil es el robot que simulas y controlas.",
+      "text": "Los 28 temas cierran con la sección «Al robot»: el mismo concepto, calculado con los datos de tu perfil «Mi robot». En el módulo 6 ese perfil es el robot que simulas y controlas.",
       "moduleLabel": "M{{number}}",
       "ideas": {
         "tools": "Convertir rpm a rad/s, descomponer vectores y leer la velocidad como la pendiente de una gráfica x–t.",
@@ -165,7 +165,7 @@
     "title": "Trayectoria en clase",
     "description": "Cómo usar Trayectoria en clase: temas, modo aula y catálogo de robots.",
     "eyebrow": "Para docentes",
-    "lead": "27 temas con widgets y dos simuladores que corren en el navegador. Proyectas el tema, el grupo mueve los mismos parámetros y tú ves su avance por tema.",
+    "lead": "28 temas con widgets y dos simuladores que corren en el navegador. Proyectas el tema, el grupo mueve los mismos parámetros y tú ves su avance por tema.",
     "classroom": {
       "title": "Cómo usarla en clase",
       "steps": {
@@ -203,7 +203,7 @@
     "lead": "El código vive en GitHub y todo cambio parte de un issue. La regla número uno: si no está en la documentación del repositorio, no existe.",
     "content": {
       "title": "Contenido",
-      "text": "Los 27 temas siguen una especificación fija y unos estándares de contenido publicados en el repositorio. Si encuentras un error en uno, repórtalo con la plantilla de reporte; no hace falta cuenta de GitHub.",
+      "text": "Los 28 temas siguen una especificación fija y unos estándares de contenido publicados en el repositorio. Si encuentras un error en uno, repórtalo con la plantilla de reporte; no hace falta cuenta de GitHub.",
       "report": "Abrir la plantilla de reporte"
     },
     "robots": {
@@ -257,7 +257,7 @@
     "making": {
       "title": "Cómo se hizo y cómo se revisa",
       "ai": "El contenido y el código se escribieron con ayuda de modelos de IA (Claude, de Anthropic), bajo la dirección y la revisión de Jaime Torres.",
-      "sources": "Cada uno de los 27 temas se contrasta con la bibliografía universitaria que cita en su sección «Profundiza».",
+      "sources": "Cada uno de los 28 temas se contrasta con la bibliografía universitaria que cita en su sección «Profundiza».",
       "audits": "En septiembre de 2026 se auditaron el contenido (física, matemática y robótica), la experiencia de uso y la seguridad. Esas auditorías las hicieron agentes de IA con el rol de revisores, no personas externas.",
       "findings": "Cada hallazgo es un issue público en GitHub y se cierra a la vista de todos.",
       "contentIssues": "Hallazgos de contenido",
@@ -270,7 +270,7 @@
     },
     "scope": {
       "title": "Qué incluye la versión 1",
-      "route": "La ruta 1, De la física al robot móvil: 27 temas en 7 módulos.",
+      "route": "La ruta 1, De la física al robot móvil: 28 temas en 7 módulos.",
       "mobile": "Un simulador móvil 2D: robot diferencial, pista editable con 4 pistas prediseñadas, sensores de línea y controladores on/off, P y PID.",
       "arm": "Un simulador de brazo 3D: carga URDF, cinemática directa, marcos, matrices y espacio de trabajo.",
       "accounts": "Cuentas, progreso, perfil «Mi robot» y robots guardados.",
