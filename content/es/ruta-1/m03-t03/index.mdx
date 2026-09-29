@@ -23,25 +23,25 @@ La hoja de datos dice 6000 rpm y 0.012 N·m. ¿Puede el motor dar las dos cosas 
 
 <Concepto>
 La hoja de datos de [Unidades y magnitudes](/ruta/ruta-1/m00/t01) no da un punto de trabajo
-sino dos extremos. Sin carga, el eje gira a la **velocidad sin carga** ω₀ y el torque es cero.
-Con el eje detenido, el motor da el **torque de bloqueo** τ_s y la velocidad es cero. En un motor
-de corriente continua, entre esos extremos el torque baja en línea recta con la velocidad:
-τ(ω) = τ_s·(1 − ω/ω₀).
+sino dos extremos. Sin carga, el eje gira a la **velocidad sin carga** ω₀, n₀ en rpm en la hoja
+de datos, y el torque es cero. Con el eje detenido, el motor da el **torque de bloqueo** τ_s y
+la velocidad es cero. En un motor de corriente continua, entre esos extremos el torque baja en
+línea recta con la velocidad: τ(ω) = τ_s·(1 − ω/ω₀).
 
 El **punto de trabajo** es donde el torque que pide la carga corta esa recta. De ahí sale la
 velocidad: ω = ω₀·(1 − τ/τ_s). Por eso el robot va más despacio cuesta arriba. La rampa de 20° de
-[Torque](/ruta/ruta-1/m02/t03) pide 0.0483 N·m por rueda. Pasando por i = 30 y η_caja = 0.6, de
-dónde sale i lo explica [Transmisión y reducción](/ruta/ruta-1/m04/t04), son 0.002683 N·m en el
-motor, y la recta da 4658 rpm: 155.3 rpm en la rueda, 0.520 m/s frente a los 0.670 m/s de la
-velocidad sin carga.
+[Torque](/ruta/ruta-1/m02/t03) pide 0.0483 N·m por rueda. Con la reducción i = 30 y **η_caja** = 0.6,
+su eficiencia, son 0.002683 N·m en el motor, y la recta da 4658 rpm: 155.3 rpm en la rueda,
+0.520 m/s frente a los 0.670 m/s de la velocidad sin carga. [Transmisión y reducción](/ruta/ruta-1/m04/t04)
+explica de dónde sale i.
 
 La potencia mecánica P = τ·ω es cero en los dos extremos y máxima en el medio: P_max = τ_s·ω₀/4,
 en ω₀/2. Con el motor de referencia, 1.885 W a 3000 rpm.
 
 La corriente crece con el torque, de I₀ sin carga a I_s en bloqueo: I = I₀ + (I_s − I₀)·τ/τ_s.
-La **eficiencia del motor**, η_motor = P_mec/(V·I), no es la de la caja. El motor de referencia
-rinde 0.48 en el punto de potencia máxima; el 0.6 del perfil es η_caja, la de la reducción. En
-bloqueo toda la potencia eléctrica es calor.
+La **eficiencia del motor**, η_motor = P_mec/(V·I), no es η_caja. El motor de referencia rinde
+0.48 en el punto de potencia máxima, frente al 0.6 de la reducción. En bloqueo toda la potencia
+eléctrica es calor.
 
 El comando de velocidad del simulador es una fracción de la tensión (PWM): ω₀ y τ_s se escalan
 con ella y la recta se desplaza. La velocidad tampoco se establece al instante:
@@ -59,6 +59,7 @@ La autonomía se calcula con la corriente del punto de trabajo, no con la de blo
 - `τ_s` · torque de bloqueo · N·m
 - `ω` · velocidad angular · rad/s
 - `ω₀` · velocidad sin carga · rad/s
+- `n₀` · velocidad sin carga, la de la hoja de datos (`ω₀ = n₀·2π/60`) · rpm (dato de entrada, no SI)
 
 <Formula latex="\omega = \omega_0\left(1 - \frac{\tau}{\tau_s}\right)" />
 
