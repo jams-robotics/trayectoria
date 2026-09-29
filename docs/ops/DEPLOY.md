@@ -53,9 +53,7 @@ En *Project Settings → API Keys* (pestaña de claves `anon`/`service_role`) co
 En *Authentication → URL Configuration*:
 
 - **Site URL**: `https://<dominio>`.
-- **Redirect URLs**, una por línea:
-  - `https://<dominio>/**`
-  - `https://*-trayectoria.<subdominio>.workers.dev/**` (vistas previas de PR)
+- **Redirect URLs**: solo `https://<dominio>/**`. Las URL de vista previa de los PR (`https://*-trayectoria.<subdominio>.workers.dev`) **no** van en la lista (#516): el código de un PR sin revisar no puede recibir los enlaces de registro, entrada ni recuperación de las cuentas reales.
 
 Los correos llevan al usuario a `/cuenta` o `/auth/recuperar`; si la URL de destino no está en esta lista, Supabase lo envía a la Site URL.
 
@@ -117,7 +115,9 @@ Las dos variables se incrustan en el sitio al construirlo: si cambian, hay que v
 
 **Primer despliegue.** Mergea cualquier PR a `main` o, en *Actions → Deploy*, abre el último run de `main` y pulsa *Re-run all jobs*. El job `deploy` termina en verde y crea el Worker, que todavía no tiene dirección pública: la recibe al asociar el dominio (paso 4.2). Después de 4.2, comprueba que `https://<dominio>` carga la portada y que una ruta inexistente muestra la página 404 del sitio.
 
-Las vistas previas de PR suben versiones del mismo Worker, así que necesitan que exista: el primer despliegue desde `main` va antes que cualquier vista previa. Las vistas previas usan las mismas variables que producción, es decir, **el mismo proyecto de Supabase**: lo que hagas con una cuenta en una vista previa queda en la base de producción.
+Las vistas previas de PR suben versiones del mismo Worker, así que necesitan que exista: el primer despliegue desde `main` va antes que cualquier vista previa. Las vistas previas usan las mismas variables que producción, es decir, **el mismo proyecto de Supabase** (no hay un segundo proyecto para ellas, #516).
+
+**En las vistas previas no se inicia sesión.** Su dirección no está en las Redirect URLs, así que los enlaces de los correos (confirmar el registro, entrar con enlace, recuperar la contraseña) llevan al dominio y no a la vista previa. Entrar con contraseña sí llega a Supabase, pero opera sobre la base de producción: una vista previa sirve para revisar páginas, temas y simuladores sin cuenta. Lo que necesita cuenta se prueba en local (`docs/ops/SUPABASE.md`) o en producción tras el merge.
 
 ## 4. Dominio: Namecheap y Cloudflare
 
