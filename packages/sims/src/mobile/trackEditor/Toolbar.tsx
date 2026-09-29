@@ -40,9 +40,11 @@ const TEXT_TIGHT = 'text-xs';
 
 /**
  * One group of the bar after the first (#552): a left border separates it from the one before, so
- * tools, history and file read as three blocks instead of eleven loose buttons.
+ * tools, history and file read as three blocks instead of eleven loose buttons. The group shrinks
+ * to the row (`min-w-0`, no `shrink-0`) so its own controls wrap inside it at 390 px instead of
+ * running past the edge of the box.
  */
-const GROUP = 'border-border flex shrink-0 flex-wrap items-center gap-2 border-l pl-3';
+const GROUP = 'border-border flex min-w-0 flex-wrap items-center gap-2 border-l pl-3';
 
 /** The two classes that tighten a bar control: its side padding and its body. */
 interface Sizing {
