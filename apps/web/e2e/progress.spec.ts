@@ -11,7 +11,8 @@ import progress from '../../../packages/i18n/locales/es/progress.json' with { ty
 const TOPIC_PATH = '/dev/tema';
 const ROUTE_PATH = '/ruta/ruta-1';
 const TOPIC_ID = 'ruta-1/m00-t01';
-const TOTAL_TOPICS = 28;
+// Topics of Fundamentos, the route of ROUTE_PATH (docs/CURRICULUM.md, «Estructura»).
+const TOTAL_TOPICS = 14;
 const PASSWORD = 'trayectoria-e2e-2026';
 const DISPLAY_NAME = 'Estudiante E2E';
 

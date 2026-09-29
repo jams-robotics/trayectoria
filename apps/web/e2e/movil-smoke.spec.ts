@@ -80,9 +80,9 @@ test.describe('F7-04 · smoke móvil (390 px)', () => {
     await expect(exercise.getByRole('textbox')).toBeVisible();
   });
 
-  test('un tema de M6 (m06-t01)', async ({ page }) => {
+  test('un tema del seguidor de línea (ruta-2/m02-t01)', async ({ page }) => {
     const errors = await consoleErrors(page, async () => {
-      await page.goto('/ruta/ruta-1/m06/t01');
+      await page.goto('/ruta/ruta-2/m02/t01');
       await expect(page.locator('h1').first()).toBeVisible();
     });
     expect(errors).toEqual([]);

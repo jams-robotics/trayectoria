@@ -32,7 +32,7 @@ describe('integración de catálogo (F5-01a)', () => {
   });
 
   test('ignora las URL que no son del catálogo', () => {
-    expect(resolveCatalogPath('/ruta/m04-t02', ROOT)).toBeNull();
+    expect(resolveCatalogPath('/ruta/m01-t04', ROOT)).toBeNull();
     expect(resolveCatalogPath('/catalogo/arms/so101/so101.urdf', ROOT)).toBeNull();
     expect(resolveCatalogPath('', ROOT)).toBeNull();
     expect(resolveCatalogPath('/catalog/', ROOT)).toBeNull();
@@ -95,7 +95,7 @@ describe('integración de catálogo (F5-01a)', () => {
     expect(middleware).toBeTypeOf('function');
 
     let nexted = false;
-    middleware?.({ url: '/ruta/m04-t02' }, {}, () => {
+    middleware?.({ url: '/ruta/m01-t04' }, {}, () => {
       nexted = true;
     });
     expect(nexted).toBe(true);
