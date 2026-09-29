@@ -88,6 +88,7 @@ Los datos locales se conservan entre `stop` y `start`; ese `start` restaura el b
 | `0003_functions.sql` | `join_group(invite_code)`, trigger `on_auth_user_created` que crea el perfil, bucket privado `urdf` (20 MiB) y políticas de `storage.objects` por dueño en `{uid}/*` |
 | `0004_profiles_column_grants.sql` | La actualización de `profiles` desde el cliente queda limitada a la columna `display_name`; `id`, `role` y `created_at` los pone el trigger de auth (spec gap #41) |
 | `0005_membership_and_account.sql` | Política para que un estudiante borre su propia membresía (salir de un grupo) y función `delete_account()` (#123), sustituida en 0011 |
+| `0010_display_name_fallback.sql` | `handle_new_user` pone `'Estudiante'` como `display_name` cuando el alta no trae nombre, nunca la parte local del correo (#523) |
 | `0011_reauthentication.sql` | `verify_reauthentication(nonce)` y `delete_account(nonce)`: eliminar la cuenta exige el código de reautenticación que GoTrue envía por correo; se elimina `delete_account()` sin argumentos (#521) |
 
 Tras la migración 0005 (#123) hay que correr `db reset` en local antes de volver a trabajar: la base existente no la tiene aplicada y `start` no reaplica migraciones.
