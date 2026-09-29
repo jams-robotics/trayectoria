@@ -58,6 +58,9 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | V, I | voltaje, corriente | V, A | `voltage_V`, `current_A` |
 | C | capacidad de batería | Wh | `batteryCapacity_Wh` |
 | t_autonomía | autonomía (C / P_el) | h | `autonomy_h` |
+| t_rampa | duración de la rampa de arranque desde el reposo hasta v, `v / a` (proyecto final, T2-2.5) | s | `rampTime_s` |
+| x_rampa | distancia recorrida durante la rampa de arranque, `v² / (2a)` (T2-2.5) | m | `rampDistance_m` |
+| D_rec | distancia recorrida que muestra el simulador («Distancia recorrida»; T2-2.5) | m | `distance_m` |
 | [q] | unidad de la magnitud q, en análisis dimensional (`[v] = m/s`) | — | — (solo notación) |
 
 ## Motor
