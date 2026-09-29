@@ -159,9 +159,12 @@ test.describe('/simuladores/brazo (F5-01b)', () => {
     const matrices = page.locator('[data-testid="matrices-toggle"]');
     await expect(frames).toHaveAttribute('aria-pressed', 'true');
     await matrices.click();
+    await expect(matrices).toHaveAttribute('aria-pressed', 'true');
     const fill = (locator: typeof frames): Promise<string> =>
       locator.evaluate((element) => getComputedStyle(element).backgroundColor);
-    expect(await fill(frames)).toBe(await fill(matrices));
+    // El color cambia con una transición de 120 ms (docs/DESIGN.md §5): se espera a que acabe.
+    const framesFill = await fill(frames);
+    await expect.poll(() => fill(matrices)).toBe(framesFill);
   });
 
   test('a 390 px la cabecera de vista muestra el estado y «Marcos» va dentro (#542)', async ({
