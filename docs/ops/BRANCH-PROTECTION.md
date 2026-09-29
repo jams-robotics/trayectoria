@@ -110,6 +110,22 @@ gh api --method PATCH repos/jams-robotics/trayectoria \
   -F delete_branch_on_merge=true
 ```
 
+## 3b. Seguridad del código (Settings → Advanced Security)
+
+Se activan desde el panel; el repositorio solo aporta `.github/dependabot.yml` y el `audit` semanal de `ci.yml` (#515). Todo es gratuito en un repositorio público.
+
+| Opción | Valor |
+|---|---|
+| Private vulnerability reporting | **activado**: es el canal de `SECURITY.md` (#514) |
+| Dependency graph y Dependabot alerts | **activados** |
+| Dependabot security updates | **activado**: PR automáticos para las dependencias con advisory |
+| Dependabot version updates | los define `.github/dependabot.yml` (npm agrupado por minor/patch, acciones y la imagen de Docker; lunes, con 3 días de espera tras cada versión) |
+| Code scanning → CodeQL analysis | **Default setup** |
+| Secret Protection (secret scanning) | **activado** |
+| Push protection | **activado**: GitHub rechaza el push que contiene un secreto conocido |
+
+El workflow `ci.yml` corre además el job `audit` cada lunes a las 06:00 UTC. Si falla, GitHub avisa a quien modificó por última vez el `cron` del workflow y el run queda en rojo en *Actions → CI*.
+
 ## 4. Verificación
 
 1. Abrir un PR de prueba con un cambio trivial: deben aparecer los siete checks y el botón de merge debe quedar bloqueado hasta que pasen.
