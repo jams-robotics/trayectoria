@@ -31,7 +31,7 @@ Documento normativo. Los valores viven en `tokens.css`; aquí se explica por qu�
 | `--color-primary` | `#0d6a8e` | `#5fc1dd` | Acción principal, enlaces, estado "en curso", slider activo |
 | `--color-primary-fg` | `#ffffff` | `#0a1a22` | Texto sobre primary |
 | `--color-primary-hover` | `#0a5471` | `#88d4ea` | Hover de primary |
-| `--color-physical` | `#a25607` | `#f0a742` | Robot, botón "Abrir en simulador", eslabones del brazo |
+| `--color-physical` | `#a25607` | `#f0a742` | Robot, eslabones del brazo |
 | `--color-physical-fg` | `#ffffff` | `#1f1300` | Texto sobre physical |
 | `--color-success` | `#1c7a4e` | `#4fc487` | Correcto, completado, sensor activo |
 | `--color-error` | `#bf3a2b` | `#f07a6d` | Incorrecto, con errores, eje x |
@@ -111,7 +111,7 @@ Todos: altura mínima 40 px (44 px en acciones principales y en móvil), foco `o
 
 ### Botón
 - **Primario**: fondo `primary`, texto `primary-fg`, borde 1 px `primary`, 600, radio `md`, altura 44 (40 en barras). Hover: `primary-hover`. Un primario por vista.
-- **Físico** (variante de primario): fondo `physical`, texto `physical-fg`. Solo para "Abrir en simulador" y acciones que afectan al robot. Lleva glifo de chasis a la izquierda.
+- **Físico** (variante de primario): fondo `physical`, texto `physical-fg`. Solo para acciones que afectan al robot. Lleva glifo de chasis a la izquierda. "Abrir en simulador" es el primario azul de su página, con el mismo glifo de chasis: en ámbar se leía como otro sistema y no como la acción principal (#541).
 - **Secundario**: fondo `bg-raised`, borde `border`, texto `fg`, 600. Hover: borde `fg-muted`.
 - **Fantasma**: transparente, sin borde (o borde `border` si está sobre `bg`), texto `fg-muted`; hover texto `fg`. Para acciones de baja prioridad ("Comprobar" antes de escribir, "Editar").
 - Deshabilitado: opacidad 0.45, cursor default. Nunca ocultar el botón.
