@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { RobotSpec } from '@trayectoria/robot-spec';
-import type { CameraPosition_m } from '@trayectoria/widgets/scene3d';
+import type { Vec3_m } from '@trayectoria/widgets/scene3d';
 import type { URDFRobot } from 'urdf-loader';
 
 import { ArmColumns } from './armLayout';
@@ -62,10 +62,10 @@ export interface ArmViewerProps {
    * follow `show` and the page composes the button in its view group (#537).
    */
   framesToggle?: boolean;
-  /** Camera to start from, in metres; it wins over the framing by reach of the card (#556). */
-  cameraPosition_m?: CameraPosition_m | undefined;
-  /** Reports the camera each time the user orbits or zooms, to keep it across arms (#556). */
-  onCameraChange?: ((position_m: CameraPosition_m) => void) | undefined;
+  /** Camera offset from the orbit target to start from, in metres: the zoom kept across arms (#556). */
+  cameraOffset_m?: Vec3_m | undefined;
+  /** Reports the camera offset each time the user orbits or zooms, to keep it across arms (#556). */
+  onCameraChange?: ((offset_m: Vec3_m) => void) | undefined;
 }
 
 /** The arm as `useLoadedArm` holds it: nothing while loading or after a failure. */
@@ -126,7 +126,7 @@ interface ArmViewerReadyProps {
   compact: boolean;
   renderPanel: ((panel: ArmViewerPanel) => ReactNode) | undefined;
   framesToggle: boolean;
-  camera: Omit<SceneCamera, 'frameRadius_m'>;
+  camera: SceneCamera;
 }
 
 /**
@@ -169,7 +169,7 @@ function ArmViewerReady(props: ArmViewerReadyProps): JSX.Element {
       onFrames={frames.onFrames}
       highlightLink={showMatrices ? (highlighted ?? undefined) : undefined}
       workspace={showWorkspace ? workspace : HIDDEN_WORKSPACE}
-      camera={{ ...props.camera, frameRadius_m: ficha?.reach_m }}
+      camera={props.camera}
     />
   );
   // #375: the full viewer is the simulator page's layout (sticky left column).
@@ -210,7 +210,7 @@ export function ArmViewer({
   compact = false,
   renderPanel,
   framesToggle = true,
-  cameraPosition_m,
+  cameraOffset_m,
   onCameraChange,
 }: ArmViewerProps): JSX.Element {
   const t = useT();
@@ -238,7 +238,7 @@ export function ArmViewer({
       compact={compact}
       renderPanel={renderPanel}
       framesToggle={framesToggle}
-      camera={{ position_m: cameraPosition_m, onChange: onCameraChange }}
+      camera={{ offset_m: cameraOffset_m, onChange: onCameraChange }}
     />
   );
 }

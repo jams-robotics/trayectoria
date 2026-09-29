@@ -64,7 +64,7 @@ export function catalogUrdfUrl(catalogId: string): string {
   return `${catalogBaseUrl(catalogId)}/${catalogId}.urdf`;
 }
 
-/** URL of the `ficha.json` of a catalog arm (#535, #556). */
+/** URL of the `ficha.json` of a catalog arm (#535). */
 export function catalogFichaUrl(catalogId: string): string {
   return `${catalogBaseUrl(catalogId)}/${FICHA_FILE}`;
 }

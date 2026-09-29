@@ -6,7 +6,7 @@ import type { RobotSpec } from '@trayectoria/robot-spec';
 import { radToDeg } from '@trayectoria/sim-core';
 import type { Mat4 } from '@trayectoria/sim-core';
 import { Frame, Scene3D } from '@trayectoria/widgets/scene3d';
-import type { CameraPosition_m } from '@trayectoria/widgets/scene3d';
+import type { Vec3_m } from '@trayectoria/widgets/scene3d';
 import type { URDFRobot } from 'urdf-loader';
 
 import { labelOf } from './ficha';
@@ -93,13 +93,17 @@ function LinkFrames({ transforms }: { transforms: ReadonlyMap<string, Mat4> }): 
 }
 
 /**
- * Where the scene camera starts (#556): the reach of the card frames it, and the position the
- * user left on the previous arm, when there is one, wins over it.
+ * Where the scene camera starts (#556): it frames the arm at rest, and the offset the user left
+ * on the previous arm, when there is one, keeps its zoom.
  */
 export interface SceneCamera {
-  readonly frameRadius_m: number | undefined;
-  readonly position_m: CameraPosition_m | undefined;
-  readonly onChange: ((position_m: CameraPosition_m) => void) | undefined;
+  readonly offset_m: Vec3_m | undefined;
+  readonly onChange: ((offset_m: Vec3_m) => void) | undefined;
+}
+
+/** The link origins of the arm, from sim-core: what the initial camera frames (#556). */
+export function framePoints(transforms: ReadonlyMap<string, Mat4>): readonly Vec3_m[] {
+  return [...transforms.values()].map(translationOf);
 }
 
 /** What the scene draws: the arm, its frames, the workspace cloud and where the camera starts. */
@@ -131,8 +135,8 @@ function ArmScene({
   return (
     <Scene3D
       description={t('sims.arm.scene', { name: spec.name })}
-      frameRadius_m={camera.frameRadius_m}
-      cameraPosition_m={camera.position_m}
+      framePoints_m={framePoints(sim.linkTransforms)}
+      cameraOffset_m={camera.offset_m}
       onCameraChange={camera.onChange}
     >
       {robot === null ? null : (

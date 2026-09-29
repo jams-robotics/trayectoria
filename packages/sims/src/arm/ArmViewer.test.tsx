@@ -16,20 +16,20 @@ vi.mock('@trayectoria/widgets/scene3d', () => ({
   Scene3D: ({
     children,
     description,
-    frameRadius_m,
-    cameraPosition_m,
+    framePoints_m,
+    cameraOffset_m,
   }: {
     children: ReactNode;
     description: string;
-    frameRadius_m?: number;
-    cameraPosition_m?: readonly number[];
+    framePoints_m?: readonly (readonly number[])[];
+    cameraOffset_m?: readonly number[];
   }): ReactNode => (
     <div
       data-testid="canvas"
       role="img"
       aria-label={description}
-      data-frame-radius={String(frameRadius_m)}
-      data-camera={String(cameraPosition_m)}
+      data-frame-points={JSON.stringify(framePoints_m)}
+      data-camera={String(cameraOffset_m)}
     >
       {children}
     </div>
@@ -272,7 +272,7 @@ async function renderReady(node: ReactNode): Promise<ReturnType<typeof render>> 
   return view;
 }
 
-describe('ArmViewer · catalog card (#535, #556)', () => {
+describe('ArmViewer · catalog card and framing (#535, #556)', () => {
   test('the sliders take the readable names of the card, with the URDF id as auxiliary text', async () => {
     stubCatalogWithFicha();
     await renderReady(<ArmViewer catalogId="planar2dof" show={['frames']} />);
@@ -281,23 +281,31 @@ describe('ArmViewer · catalog card (#535, #556)', () => {
     expect(sliders.getByText('joint1')).toBeInTheDocument();
   });
 
-  test('the initial camera frames the reach of the card', async () => {
-    stubCatalogWithFicha();
+  test('the initial camera frames the link origins at rest, from sim-core (#556)', async () => {
+    stubCatalogFetch();
     await renderReady(<ArmViewer catalogId="planar2dof" show={[]} />);
-    expect(screen.getByTestId('canvas')).toHaveAttribute('data-frame-radius', '0.35');
+    // base_link, link1, link2 and tool0 of the planar arm with q = 0 (l₁ = 0.20 m, l₂ = 0.15 m).
+    const points = JSON.parse(
+      screen.getByTestId('canvas').getAttribute('data-frame-points') ?? '[]',
+    ) as number[][];
+    expect(points).toEqual([
+      [0, 0, 0],
+      [0, 0, 0],
+      [0.2, 0, 0],
+      [0.35, 0, 0],
+    ]);
   });
 
-  test('without a card: URDF names and the default framing', async () => {
+  test('without a card: URDF names', async () => {
     stubCatalogFetch();
     await renderReady(<ArmViewer catalogId="planar2dof" show={[]} />);
     expect(within(screen.getByTestId('joint-sliders')).getByText('joint1')).toBeInTheDocument();
-    expect(screen.getByTestId('canvas')).toHaveAttribute('data-frame-radius', 'undefined');
   });
 
   test('passes the camera the page kept to the scene (#556)', async () => {
     stubCatalogWithFicha();
     await renderReady(
-      <ArmViewer catalogId="planar2dof" show={[]} cameraPosition_m={[0.5, -0.5, 0.4]} />,
+      <ArmViewer catalogId="planar2dof" show={[]} cameraOffset_m={[0.5, -0.5, 0.4]} />,
     );
     expect(screen.getByTestId('canvas')).toHaveAttribute('data-camera', '0.5,-0.5,0.4');
   });

@@ -1,7 +1,7 @@
 import { Suspense, lazy, useCallback, useRef, useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
-import type { CameraPosition_m } from '@trayectoria/widgets/scene3d';
+import type { Vec3_m } from '@trayectoria/widgets/scene3d';
 
 import { ArmSource, IMPORTED_VALUE, resolveArmId, savedIdOf } from './ArmSource';
 import type { ArmOption } from './ArmSource';
@@ -94,17 +94,17 @@ function usePanelWrapper(
 }
 
 /**
- * The camera the user left (#556). It lives in a ref, not in state: the orbit reports it on every
+ * The camera offset the user left (#556). It lives in a ref, not in state: the orbit reports it on every
  * frame and the island must not re-render for that. The viewer reads it when it remounts for
- * another arm, so the zoom is kept; until the user moves it, each arm is framed by its reach.
+ * another arm, so the zoom is kept; until the user moves it, each arm is framed at rest.
  */
 function useKeptCamera(): {
-  camera: { readonly current: CameraPosition_m | undefined };
-  onCameraChange: (position_m: CameraPosition_m) => void;
+  camera: { readonly current: Vec3_m | undefined };
+  onCameraChange: (offset_m: Vec3_m) => void;
 } {
-  const camera = useRef<CameraPosition_m | undefined>(undefined);
-  const onCameraChange = useCallback((position_m: CameraPosition_m): void => {
-    camera.current = position_m;
+  const camera = useRef<Vec3_m | undefined>(undefined);
+  const onCameraChange = useCallback((offset_m: Vec3_m): void => {
+    camera.current = offset_m;
   }, []);
   return { camera, onCameraChange };
 }
@@ -113,8 +113,8 @@ function useKeptCamera(): {
 interface ViewerOptions {
   show: ShowLayer[];
   renderPanel: (panel: ArmViewerPanel) => ReactNode;
-  cameraPosition_m: CameraPosition_m | undefined;
-  onCameraChange: (position_m: CameraPosition_m) => void;
+  cameraOffset_m: Vec3_m | undefined;
+  onCameraChange: (offset_m: Vec3_m) => void;
 }
 
 /**
@@ -325,7 +325,7 @@ export function ArmSimIsland({ arms }: ArmSimIslandProps): JSX.Element {
         options={{
           show: showLayers(layers),
           renderPanel,
-          cameraPosition_m: camera.current,
+          cameraOffset_m: camera.current,
           onCameraChange,
         }}
       />

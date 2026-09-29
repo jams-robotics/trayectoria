@@ -1,7 +1,7 @@
-// The catalog card (`catalog/arms/<id>/ficha.json`) as the viewer reads it (#535 and #556). The
+// The catalog card (`catalog/arms/<id>/ficha.json`) as the viewer reads it (#535). The
 // full card is validated at build time by `apps/web` against `catalog/arms/ficha.schema.json`;
 // here only the fields the viewer uses are checked, and a card that cannot be read is not an
-// error of the viewer: the arm is drawn with the default framing and the URDF names.
+// error of the viewer: the arm is drawn with the URDF names.
 
 /** File name of the catalog card of an arm, next to its URDF. */
 export const FICHA_FILE = 'ficha.json';
@@ -15,13 +15,8 @@ export interface ArmLabels {
 /** An arm without readable names: every label falls back to the URDF name. */
 export const NO_LABELS: ArmLabels = { joints: new Map(), links: new Map() };
 
-/**
- * What the viewer takes from the card: the reach that frames the initial camera (#556) and the
- * readable labels (#535). A zip import has no card.
- */
+/** What the viewer takes from the card: the readable labels (#535). A zip import has no card. */
 export interface ArmFicha {
-  /** Reach of the arm, in metres. */
-  readonly reach_m: number;
   readonly labels: ArmLabels;
 }
 
@@ -40,13 +35,10 @@ function labelMapOf(value: unknown): ReadonlyMap<string, string> {
   );
 }
 
-/** What the viewer needs from a parsed card, or `null` if it has no positive `reach_m`. */
+/** What the viewer needs from a parsed card, or `null` if it is not an object. */
 export function parseFicha(value: unknown): ArmFicha | null {
-  if (typeof value !== 'object' || value === null) return null;
-  const reach_m: unknown = Reflect.get(value, 'reach_m');
-  if (typeof reach_m !== 'number' || !Number.isFinite(reach_m) || reach_m <= 0) return null;
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
   return {
-    reach_m,
     labels: {
       joints: labelMapOf(Reflect.get(value, 'joint_labels')),
       links: labelMapOf(Reflect.get(value, 'link_labels')),

@@ -25,6 +25,7 @@ vi.mock('@react-three/drei', () => ({
       data-testid="orbit-controls"
       data-make-default={String(props.makeDefault === true)}
       data-reports={String(typeof props.onChange === 'function')}
+      data-target={String(props.target)}
       onClick={(event) => {
         const raw = (event.currentTarget as HTMLElement).dataset.camera ?? '';
         const [x, y, z] = raw.split(',').map(Number);
@@ -38,13 +39,11 @@ vi.mock('@react-three/drei', () => ({
 
 import { tokenColor } from '../shared/theme';
 import { AXIS_TOKENS, Frame } from './Frame';
-import { Scene3D, framedCameraPosition_m, initialCameraPosition_m } from './Scene3D';
+import { Scene3D } from './Scene3D';
+import { framedView } from './framing';
 
-/** Default camera position of the scene, in metres, and its distance to the origin. */
+/** Default camera position of the scene, in metres. */
 const DEFAULT_CAMERA_M: readonly [number, number, number] = [0.8, -0.9, 0.7];
-const DEFAULT_DISTANCE_M = Math.hypot(...DEFAULT_CAMERA_M);
-/** Half the vertical field of view of the camera, in radians (45° in `Scene3D`). */
-const HALF_FOV_RAD = (45 / 2) * (Math.PI / 180);
 
 /** Fires the `change` event of the mocked controls with the camera at `position_m`. */
 function orbitTo(position_m: readonly [number, number, number]): void {
@@ -157,64 +156,64 @@ describe('Scene3D', () => {
 });
 
 describe('Scene3D · initial framing (#556)', () => {
-  test('without a radius the camera keeps the default position that frames the grid', () => {
+  const POINTS_M: readonly (readonly [number, number, number])[] = [
+    [0, 0, 0],
+    [0.2, 0, 0],
+    [0.35, 0, 0],
+  ];
+
+  test('without points the camera keeps the default position that frames the grid', () => {
     renderScene();
-    expect(screen.getByTestId('canvas')).toHaveAttribute(
+    const canvas = screen.getByTestId('canvas');
+    expect(canvas).toHaveAttribute('data-camera-position', DEFAULT_CAMERA_M.join(','));
+    expect(canvas).toHaveAttribute('data-camera-target', '0,0,0');
+  });
+
+  test('`framePoints_m` puts the target at the middle of the points and the camera on the framing', () => {
+    renderScene({ framePoints_m: POINTS_M });
+    const view = framedView(POINTS_M, [0, 0, 1]);
+    const canvas = screen.getByTestId('canvas');
+    expect(canvas).toHaveAttribute('data-camera-target', view.target_m.join(','));
+    expect(canvas).toHaveAttribute(
       'data-camera-position',
-      DEFAULT_CAMERA_M.join(','),
+      view.target_m.map((value, axis) => value + (view.offset_m[axis] ?? 0)).join(','),
     );
-    expect(initialCameraPosition_m(undefined, undefined)).toEqual(DEFAULT_CAMERA_M);
-  });
-
-  test('golden: a sphere of radius r fills the frame height at distance r / tan(fov / 2)', () => {
-    // Planar arm of the catalog: reach 0.35 m → 0.35 / tan(22.5°) = 0.845 m from the origin.
-    const position_m = framedCameraPosition_m(0.35);
-    expect(Math.hypot(...position_m)).toBeCloseTo(0.35 / Math.tan(HALF_FOV_RAD), 9);
-    expect(Math.hypot(...position_m)).toBeCloseTo(0.845, 3);
-    // Same viewing direction as the default camera: only the distance changes.
-    position_m.forEach((coordinate_m, axis) => {
-      expect(coordinate_m / Math.hypot(...position_m)).toBeCloseTo(
-        (DEFAULT_CAMERA_M[axis] ?? Number.NaN) / DEFAULT_DISTANCE_M,
-        9,
-      );
-    });
-    // SO-101: reach 0.48 m → 1.159 m.
-    expect(Math.hypot(...framedCameraPosition_m(0.48))).toBeCloseTo(1.159, 3);
-  });
-
-  test('the arm at rest spans at least half the frame: the default camera was too far', () => {
-    // The vertical extent visible at the origin is 2·d·tan(fov/2); an arm of length r framed
-    // this way is half of it, against a third with the default distance for the planar arm.
-    const framed_m = Math.hypot(...framedCameraPosition_m(0.35));
-    expect(0.35 / (2 * framed_m * Math.tan(HALF_FOV_RAD))).toBeCloseTo(0.5, 9);
-    expect(0.35 / (2 * DEFAULT_DISTANCE_M * Math.tan(HALF_FOV_RAD))).toBeLessThan(0.35);
-  });
-
-  test('`frameRadius_m` moves the mounted camera to the framed position', () => {
-    renderScene({ frameRadius_m: 0.35 });
-    expect(screen.getByTestId('canvas')).toHaveAttribute(
-      'data-camera-position',
-      framedCameraPosition_m(0.35).join(','),
+    expect(screen.getByTestId('orbit-controls')).toHaveAttribute(
+      'data-target',
+      view.target_m.join(','),
     );
   });
 
-  test('an explicit `cameraPosition_m` wins over the radius: the zoom the user left', () => {
-    renderScene({ frameRadius_m: 0.35, cameraPosition_m: [1, 2, 3] });
-    expect(screen.getByTestId('canvas')).toHaveAttribute('data-camera-position', '1,2,3');
+  test('an explicit `cameraOffset_m` keeps the zoom the user left, around the new target', () => {
+    renderScene({ framePoints_m: POINTS_M, cameraOffset_m: [1, 2, 3] });
+    const [x, y, z] = framedView(POINTS_M, [0, 0, 1]).target_m;
+    expect(screen.getByTestId('canvas')).toHaveAttribute(
+      'data-camera-position',
+      [x + 1, y + 2, z + 3].join(','),
+    );
   });
 
-  test('reports the camera the user orbits to, but not the initial position the controls echo', () => {
+  test('reports the offset the user orbits to, but not the initial one the controls echo', () => {
     const onCameraChange = vi.fn();
-    renderScene({ frameRadius_m: 0.35, onCameraChange });
+    renderScene({ framePoints_m: POINTS_M, onCameraChange });
     expect(screen.getByTestId('orbit-controls')).toHaveAttribute('data-reports', 'true');
+    const view = framedView(POINTS_M, [0, 0, 1]);
+    const at = (offset_m: readonly number[]): [number, number, number] => [
+      view.target_m[0] + (offset_m[0] ?? 0),
+      view.target_m[1] + (offset_m[1] ?? 0),
+      view.target_m[2] + (offset_m[2] ?? 0),
+    ];
 
     // The first `update()` of the controls fires `change` with the camera still in place.
-    orbitTo(framedCameraPosition_m(0.35));
+    orbitTo(at(view.offset_m));
     expect(onCameraChange).not.toHaveBeenCalled();
 
-    orbitTo([0.5, -0.5, 0.4]);
+    orbitTo(at([0.5, -0.5, 0.4]));
     expect(onCameraChange).toHaveBeenCalledTimes(1);
-    expect(onCameraChange).toHaveBeenLastCalledWith([0.5, -0.5, 0.4]);
+    const [reported] = onCameraChange.mock.calls[0] as [number[]];
+    [0.5, -0.5, 0.4].forEach((value, axis) => {
+      expect(reported[axis]).toBeCloseTo(value, 9);
+    });
   });
 
   test('without `onCameraChange` the controls report nothing', () => {

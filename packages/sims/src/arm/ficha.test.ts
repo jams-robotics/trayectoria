@@ -6,7 +6,7 @@ import { describe, expect, test, vi } from 'vitest';
 import { NO_LABELS, fetchFicha, labelOf, parseFicha } from './ficha';
 import { catalogFichaUrl, loadUrdf } from './loadUrdf';
 
-// #535 and #556: what the viewer reads from `catalog/arms/<id>/ficha.json`.
+// #535: what the viewer reads from `catalog/arms/<id>/ficha.json`.
 
 /** Root of the repository catalog, to read the real cards and URDFs without network. */
 const CATALOG = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../catalog/arms');
@@ -37,13 +37,12 @@ function catalogFetch(catalogId: string): typeof fetch {
 const OPTIONS = { domParser: new DOMParser(), robotId: '00000000-0000-4000-8000-000000000001' };
 
 describe('parseFicha', () => {
-  test('takes the reach and the label maps of the card', () => {
+  test('takes the label maps of the card', () => {
     const ficha = parseFicha({
       reach_m: 0.35,
       joint_labels: { joint1: 'Articulación 1' },
       link_labels: { base_link: 'Base' },
     });
-    expect(ficha?.reach_m).toBe(0.35);
     expect(ficha?.labels.joints.get('joint1')).toBe('Articulación 1');
     expect(ficha?.labels.links.get('base_link')).toBe('Base');
   });
@@ -59,12 +58,9 @@ describe('parseFicha', () => {
     expect([...(ficha?.labels.joints ?? [])]).toEqual([['c', 'Codo']]);
   });
 
-  test.each([null, 'ficha', {}, { reach_m: 0 }, { reach_m: -1 }, { reach_m: '0.35' }])(
-    'rejects a card without a positive reach: %j',
-    (value) => {
-      expect(parseFicha(value)).toBeNull();
-    },
-  );
+  test.each([null, 'ficha', 3, []])('rejects a card that is not an object: %j', (value) => {
+    expect(parseFicha(value)).toBeNull();
+  });
 });
 
 describe('labelOf', () => {
@@ -113,16 +109,6 @@ describe('the catalog cards', () => {
       for (const link of arm?.links ?? []) expect(ficha?.labels.links.has(link.name)).toBe(true);
     },
   );
-
-  test('golden (#556): the reach of the cards is 0.35 m and 0.48 m', async () => {
-    const planar = await loadUrdf('planar2dof', {
-      ...OPTIONS,
-      fetchFn: catalogFetch('planar2dof'),
-    });
-    const so101 = await loadUrdf('so101', { ...OPTIONS, fetchFn: catalogFetch('so101') });
-    expect(planar.ficha?.reach_m).toBe(0.35);
-    expect(so101.ficha?.reach_m).toBe(0.48);
-  });
 
   test('without a card the arm still loads, with no card', async () => {
     const xml = catalogFile('planar2dof', 'planar2dof.urdf');
