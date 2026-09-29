@@ -29,7 +29,11 @@ export interface SimAccordionProps {
   children: ReactNode;
 }
 
-/** Collapsible panel with a touch-target header and a summary readable when closed. */
+/**
+ * Collapsible panel with a touch-target header and a summary readable when closed. The title
+ * keeps its line and the summary truncates instead: a long summary never wraps the title into a
+ * taller header (#542, docs/DESIGN.md §9.3: 48–52 px).
+ */
 export function SimAccordion({
   title,
   summary,
@@ -56,7 +60,7 @@ export function SimAccordion({
             onToggle?.(!open);
           }}
         >
-          <span className="text-fg flex-1 font-semibold">{title}</span>
+          <span className="text-fg flex-auto font-semibold whitespace-nowrap">{title}</span>
           {summary === undefined ? null : (
             <span className="text-fg-muted truncate font-mono text-xs">{summary}</span>
           )}

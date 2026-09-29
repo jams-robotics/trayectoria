@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import '@testing-library/jest-dom/vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import { t } from '@trayectoria/i18n';
 import type { ReactNode } from 'react';
 import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
@@ -16,11 +16,21 @@ vi.mock('@trayectoria/widgets/scene3d', () => ({
   Scene3D: ({
     children,
     description,
+    framePoints_m,
+    cameraOffset_m,
   }: {
     children: ReactNode;
     description: string;
+    framePoints_m?: readonly (readonly number[])[];
+    cameraOffset_m?: readonly number[];
   }): ReactNode => (
-    <div data-testid="canvas" role="img" aria-label={description}>
+    <div
+      data-testid="canvas"
+      role="img"
+      aria-label={description}
+      data-frame-points={JSON.stringify(framePoints_m)}
+      data-camera={String(cameraOffset_m)}
+    >
       {children}
     </div>
   ),
@@ -33,6 +43,7 @@ import { ArmViewer, matricesSummary, translationOf } from './ArmViewer';
 
 const CATALOG = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../catalog/arms');
 const PLANAR_URDF = readFileSync(resolve(CATALOG, 'planar2dof/planar2dof.urdf'), 'utf8');
+const PLANAR_FICHA = readFileSync(resolve(CATALOG, 'planar2dof/ficha.json'), 'utf8');
 
 beforeAll(() => {
   const warn = console.error.bind(console);
@@ -233,5 +244,93 @@ describe('matricesSummary (F5-02)', () => {
   test('resume con el eslabón elegido, y con la base si aún no hay ninguno', () => {
     expect(matricesSummary('link2', t)).toBe('link2');
     expect(matricesSummary(null, t)).toBe(t('sims.matrices.baseLink'));
+  });
+});
+
+/** `fetch` of the catalog planar arm with its card: the URDF and `ficha.json` by URL. */
+function stubCatalogWithFicha(): void {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((url: string) => {
+      const body = url.endsWith('ficha.json') ? PLANAR_FICHA : PLANAR_URDF;
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve(body),
+        json: () => Promise.resolve(JSON.parse(body) as unknown),
+      });
+    }),
+  );
+}
+
+/** Renders the viewer and waits for the arm to be drawn. */
+async function renderReady(node: ReactNode): Promise<ReturnType<typeof render>> {
+  const view = render(node);
+  await waitFor(() => {
+    expect(screen.getByTestId('arm-viewer')).toBeInTheDocument();
+  });
+  return view;
+}
+
+describe('ArmViewer · catalog card and framing (#535, #556)', () => {
+  test('the sliders take the readable names of the card, with the URDF id as auxiliary text', async () => {
+    stubCatalogWithFicha();
+    await renderReady(<ArmViewer catalogId="planar2dof" show={['frames']} />);
+    const sliders = within(screen.getByTestId('joint-sliders'));
+    expect(sliders.getByText('Articulación 1')).toBeInTheDocument();
+    expect(sliders.getByText('joint1')).toBeInTheDocument();
+  });
+
+  test('the initial camera frames the link origins at rest, from sim-core (#556)', async () => {
+    stubCatalogFetch();
+    await renderReady(<ArmViewer catalogId="planar2dof" show={[]} />);
+    // base_link, link1, link2 and tool0 of the planar arm with q = 0 (l₁ = 0.20 m, l₂ = 0.15 m).
+    const points = JSON.parse(
+      screen.getByTestId('canvas').getAttribute('data-frame-points') ?? '[]',
+    ) as number[][];
+    expect(points).toEqual([
+      [0, 0, 0],
+      [0, 0, 0],
+      [0.2, 0, 0],
+      [0.35, 0, 0],
+    ]);
+  });
+
+  test('without a card: URDF names', async () => {
+    stubCatalogFetch();
+    await renderReady(<ArmViewer catalogId="planar2dof" show={[]} />);
+    expect(within(screen.getByTestId('joint-sliders')).getByText('joint1')).toBeInTheDocument();
+  });
+
+  test('passes the camera the page kept to the scene (#556)', async () => {
+    stubCatalogWithFicha();
+    await renderReady(
+      <ArmViewer catalogId="planar2dof" show={[]} cameraOffset_m={[0.5, -0.5, 0.4]} />,
+    );
+    expect(screen.getByTestId('canvas')).toHaveAttribute('data-camera', '0.5,-0.5,0.4');
+  });
+});
+
+describe('ArmViewer · «Marcos» owned by the page (#537)', () => {
+  test('with `framesToggle={false}` there is no button and the frames follow `show`', async () => {
+    stubCatalogFetch();
+    const { rerender } = await renderReady(
+      <ArmViewer catalogId="planar2dof" show={['frames']} framesToggle={false} />,
+    );
+    expect(screen.queryByTestId('frames-toggle')).not.toBeInTheDocument();
+    expect(screen.getAllByTestId('frame')).toHaveLength(4);
+
+    rerender(<ArmViewer catalogId="planar2dof" show={[]} framesToggle={false} />);
+    expect(screen.queryAllByTestId('frame')).toHaveLength(0);
+  });
+
+  test('the own button of the viewer shows its active state with the primary fill', async () => {
+    stubCatalogFetch();
+    await renderReady(<ArmViewer catalogId="planar2dof" show={['frames']} />);
+    expect(screen.getByTestId('frames-toggle').className).toContain('bg-primary');
+    screen.getByTestId('frames-toggle').click();
+    await waitFor(() => {
+      expect(screen.getByTestId('frames-toggle').className).not.toContain('bg-primary');
+    });
   });
 });

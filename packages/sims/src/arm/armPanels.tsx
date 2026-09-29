@@ -3,6 +3,8 @@ import type { JSX, ReactNode } from 'react';
 import type { Translate } from '@trayectoria/i18n';
 
 import { EffectorPanel } from './EffectorPanel';
+import { NO_LABELS, labelOf } from './ficha';
+import type { ArmLabels } from './ficha';
 import { JointSliders } from './JointSliders';
 import { MatrixPanel } from './MatrixPanel';
 import { linkTransforms } from './matrices';
@@ -30,9 +32,16 @@ export interface ArmViewerPanel {
   readonly content: ReactNode;
 }
 
-/** One-line summary of the matrix panel: which link is being looked at. */
-export function matricesSummary(link: string | null, t: Translate): string {
-  return link ?? t('sims.matrices.baseLink');
+/**
+ * One-line summary of the matrix panel: which link is being looked at, by its readable name
+ * when the card gives one (#535).
+ */
+export function matricesSummary(
+  link: string | null,
+  t: Translate,
+  linkLabels: ReadonlyMap<string, string> = NO_LABELS.links,
+): string {
+  return link === null ? t('sims.matrices.baseLink') : labelOf(linkLabels, link);
 }
 
 /** What the viewer knows about the matrix panel when it builds the column. */
@@ -49,17 +58,23 @@ export interface WorkspacePanelState {
 }
 
 /** Matrix panel, only with `show: ['matrices']` (#135, decision 5). */
-function matricesPanel(sim: ArmSim, t: Translate, matrices: MatricesPanelState): ArmViewerPanel {
+function matricesPanel(
+  sim: ArmSim,
+  t: Translate,
+  matrices: MatricesPanelState,
+  linkLabels: ReadonlyMap<string, string>,
+): ArmViewerPanel {
   return {
     id: 'matrices',
     title: t('sims.matrices.title'),
-    summary: matricesSummary(matrices.highlighted, t),
+    summary: matricesSummary(matrices.highlighted, t, linkLabels),
     // `overflow-hidden` completes the `w-0 min-w-full` of MatrixPanel (docs/DESIGN.md §9.8, #223).
     content: (
       <div className="overflow-hidden">
         <MatrixPanel
           rows={linkTransforms(sim.arm, sim.q_rad)}
           onHighlightLink={matrices.onHighlight}
+          linkLabels={linkLabels}
         />
       </div>
     ),
@@ -73,13 +88,21 @@ export function armPanels(
   summaries: { readonly joints: string; readonly effector: string },
   matrices: MatricesPanelState,
   workspace: WorkspacePanelState,
+  labels: ArmLabels = NO_LABELS,
 ): readonly ArmViewerPanel[] {
   const panels: ArmViewerPanel[] = [
     {
       id: 'joints',
       title: t('sims.arm.joints'),
       summary: summaries.joints,
-      content: <JointSliders joints={sim.joints} q_rad={sim.q_rad} onChange={sim.setJoint} />,
+      content: (
+        <JointSliders
+          joints={sim.joints}
+          q_rad={sim.q_rad}
+          onChange={sim.setJoint}
+          labels={labels.joints}
+        />
+      ),
     },
     {
       id: 'effector',
@@ -90,7 +113,7 @@ export function armPanels(
   ];
   // The matrix panel only exists with `show: ['matrices']` (#135, decision 5); it goes in as one
   // more panel so that the page collapses it on mobile with the same `renderPanel`.
-  if (matrices.show) panels.push(matricesPanel(sim, t, matrices));
+  if (matrices.show) panels.push(matricesPanel(sim, t, matrices, labels.links));
   // The workspace panel, like the matrix one, only with `show: ['workspace']`
   // (#136, decision 4) and as one more panel so that the page collapses it on mobile.
   if (workspace.show) panels.push(workspacePanel(sim.arm, t, workspace.onChange));

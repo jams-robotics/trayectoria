@@ -18,8 +18,21 @@ vi.mock('@react-three/fiber', () => ({
 }));
 
 vi.mock('@react-three/drei', () => ({
+  // The marker exposes the `change` event of the controls through `data-camera`, so a test can
+  // move the camera the way the user's orbit would (#556).
   OrbitControls: (props: Record<string, unknown>) => (
-    <div data-testid="orbit-controls" data-make-default={String(props.makeDefault === true)} />
+    <div
+      data-testid="orbit-controls"
+      data-make-default={String(props.makeDefault === true)}
+      data-reports={String(typeof props.onChange === 'function')}
+      data-target={String(props.target)}
+      onClick={(event) => {
+        const raw = (event.currentTarget as HTMLElement).dataset.camera ?? '';
+        const [x, y, z] = raw.split(',').map(Number);
+        const onChange = props.onChange as ((event: unknown) => void) | undefined;
+        onChange?.({ target: { object: { position: { x, y, z } } } });
+      }}
+    />
   ),
   Html: ({ children }: { children: ReactNode }) => <div data-testid="html">{children}</div>,
 }));
@@ -27,6 +40,17 @@ vi.mock('@react-three/drei', () => ({
 import { tokenColor } from '../shared/theme';
 import { AXIS_TOKENS, Frame } from './Frame';
 import { Scene3D } from './Scene3D';
+import { framedView } from './framing';
+
+/** Default camera position of the scene, in metres. */
+const DEFAULT_CAMERA_M: readonly [number, number, number] = [0.8, -0.9, 0.7];
+
+/** Fires the `change` event of the mocked controls with the camera at `position_m`. */
+function orbitTo(position_m: readonly [number, number, number]): void {
+  const controls = screen.getByTestId('orbit-controls');
+  controls.setAttribute('data-camera', position_m.join(','));
+  controls.click();
+}
 
 /** Light values of the axis tokens, resolved the same way `Frame` resolves them at runtime. */
 const AXIS_COLORS = AXIS_TOKENS.map((token) => tokenColor(null, token));
@@ -128,6 +152,73 @@ describe('Scene3D', () => {
     });
     expect(screen.getByTestId('canvas').style.background).toBe('rgb(26, 34, 44)');
     spy.mockRestore();
+  });
+});
+
+describe('Scene3D · initial framing (#556)', () => {
+  const POINTS_M: readonly (readonly [number, number, number])[] = [
+    [0, 0, 0],
+    [0.2, 0, 0],
+    [0.35, 0, 0],
+  ];
+
+  test('without points the camera keeps the default position that frames the grid', () => {
+    renderScene();
+    const canvas = screen.getByTestId('canvas');
+    expect(canvas).toHaveAttribute('data-camera-position', DEFAULT_CAMERA_M.join(','));
+    expect(canvas).toHaveAttribute('data-camera-target', '0,0,0');
+  });
+
+  test('`framePoints_m` puts the target at the middle of the points and the camera on the framing', () => {
+    renderScene({ framePoints_m: POINTS_M });
+    const view = framedView(POINTS_M, [0, 0, 1]);
+    const canvas = screen.getByTestId('canvas');
+    expect(canvas).toHaveAttribute('data-camera-target', view.target_m.join(','));
+    expect(canvas).toHaveAttribute(
+      'data-camera-position',
+      view.target_m.map((value, axis) => value + (view.offset_m[axis] ?? 0)).join(','),
+    );
+    expect(screen.getByTestId('orbit-controls')).toHaveAttribute(
+      'data-target',
+      view.target_m.join(','),
+    );
+  });
+
+  test('an explicit `cameraOffset_m` keeps the zoom the user left, around the new target', () => {
+    renderScene({ framePoints_m: POINTS_M, cameraOffset_m: [1, 2, 3] });
+    const [x, y, z] = framedView(POINTS_M, [0, 0, 1]).target_m;
+    expect(screen.getByTestId('canvas')).toHaveAttribute(
+      'data-camera-position',
+      [x + 1, y + 2, z + 3].join(','),
+    );
+  });
+
+  test('reports the offset the user orbits to, but not the initial one the controls echo', () => {
+    const onCameraChange = vi.fn();
+    renderScene({ framePoints_m: POINTS_M, onCameraChange });
+    expect(screen.getByTestId('orbit-controls')).toHaveAttribute('data-reports', 'true');
+    const view = framedView(POINTS_M, [0, 0, 1]);
+    const at = (offset_m: readonly number[]): [number, number, number] => [
+      view.target_m[0] + (offset_m[0] ?? 0),
+      view.target_m[1] + (offset_m[1] ?? 0),
+      view.target_m[2] + (offset_m[2] ?? 0),
+    ];
+
+    // The first `update()` of the controls fires `change` with the camera still in place.
+    orbitTo(at(view.offset_m));
+    expect(onCameraChange).not.toHaveBeenCalled();
+
+    orbitTo(at([0.5, -0.5, 0.4]));
+    expect(onCameraChange).toHaveBeenCalledTimes(1);
+    const [reported] = onCameraChange.mock.calls[0] as [number[]];
+    [0.5, -0.5, 0.4].forEach((value, axis) => {
+      expect(reported[axis]).toBeCloseTo(value, 9);
+    });
+  });
+
+  test('without `onCameraChange` the controls report nothing', () => {
+    renderScene();
+    expect(screen.getByTestId('orbit-controls')).toHaveAttribute('data-reports', 'false');
   });
 });
 

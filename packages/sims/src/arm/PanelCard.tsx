@@ -7,6 +7,18 @@ import type { JSX, ReactNode } from 'react';
 /** Card classes: `bg-raised` over the page background, `border` and radius `lg`. */
 const CARD = 'border-border bg-bg-raised mt-3 flex flex-col rounded-lg border p-6';
 
+/**
+ * The title of a side panel. `data-panel-title` lets a collapsible header that already names the
+ * panel hide it, so the page does not show the title twice (#542).
+ */
+export function PanelTitle({ children }: { children: ReactNode }): JSX.Element {
+  return (
+    <h3 className="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase" data-panel-title>
+      {children}
+    </h3>
+  );
+}
+
 /** A side panel's title and its content in a card. */
 export function PanelCard({
   title,
@@ -22,7 +34,7 @@ export function PanelCard({
 }): JSX.Element {
   return (
     <>
-      <h3 className="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">{title}</h3>
+      <PanelTitle>{title}</PanelTitle>
       <div className={`${CARD} ${gapClass}`} data-testid={testId}>
         {children}
       </div>

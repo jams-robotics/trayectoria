@@ -147,3 +147,37 @@ describe('matrixLabel (F5-02)', () => {
     expect(matrixLabel('cumulative', 2, t)).toBe('⁰T₂');
   });
 });
+
+describe('MatrixPanel · readable labels (#535)', () => {
+  const LINK_LABELS = new Map([
+    ['base_link', 'Base'],
+    ['link1', 'Eslabón 1'],
+    ['link2', 'Eslabón 2'],
+  ]);
+
+  test('each link chip shows its readable name and keeps the URDF id in `title`', () => {
+    render(<MatrixPanel rows={linkTransforms(PLANAR_2DOF, [0, 0])} linkLabels={LINK_LABELS} />);
+    const chips = chipsOf(t('sims.matrices.links'));
+    expect(chips.map((chip) => chip.textContent)).toEqual(['Base', 'Eslabón 1', 'Eslabón 2']);
+    expect(chips.map((chip) => chip.getAttribute('title'))).toEqual([
+      'base_link',
+      'link1',
+      'link2',
+    ]);
+    expect(screen.getByTestId('matrix-panel-live').textContent).toContain('Eslabón 2');
+  });
+
+  test('a link the card does not name falls back to its URDF id', () => {
+    render(
+      <MatrixPanel
+        rows={linkTransforms(PLANAR_2DOF, [0, 0])}
+        linkLabels={new Map([['base_link', 'Base']])}
+      />,
+    );
+    expect(chipsOf(t('sims.matrices.links')).map((chip) => chip.textContent)).toEqual([
+      'Base',
+      'link1',
+      'link2',
+    ]);
+  });
+});
