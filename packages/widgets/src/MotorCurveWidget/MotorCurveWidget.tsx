@@ -168,6 +168,7 @@ export function MotorCurveWidget({ initial, editable = [] }: MotorCurveWidgetPro
   // rounded and both views land on the same value.
   const marker: PlotMarker = {
     x: state.speed_rpm,
+    label: t('widgets.MotorCurveWidget.marker'),
     onDrag: (speed_rpm) => {
       setState((current) => applyChange(current, SPEED_KEY, Math.round(speed_rpm)));
     },

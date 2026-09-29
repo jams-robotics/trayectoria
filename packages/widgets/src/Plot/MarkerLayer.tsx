@@ -113,7 +113,7 @@ export function MarkerLayer({ marker, xRange, plotArea, unit, t }: MarkerLayerPr
     <div
       role="slider"
       tabIndex={0}
-      aria-label={t('widgets.Plot.marker')}
+      aria-label={marker.label ?? t('widgets.Plot.marker')}
       aria-valuemin={xRange[0]}
       aria-valuemax={xRange[1]}
       aria-valuenow={marker.x}

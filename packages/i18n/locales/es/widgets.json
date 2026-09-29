@@ -331,6 +331,7 @@
     "seriesTorque": "Torque",
     "seriesPower": "Potencia mecánica",
     "maxPowerLabel": "P_max = {{value}}",
+    "marker": "Punto de trabajo",
     "speed": "Velocidad",
     "omega": "Velocidad angular",
     "torque": "Torque",

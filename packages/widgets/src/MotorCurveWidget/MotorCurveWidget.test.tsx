@@ -171,7 +171,7 @@ describe('MotorCurveWidget (W-MOTOR)', () => {
     expect(valueOf('Velocidad')).toBe('3010 rpm');
     expect(valueOf('Torque')).toBe('0.00598 N·m');
     // The two charts share the working point: both markers moved with the slider.
-    const markers = screen.getAllByRole('slider', { name: 'Marcador de tiempo' });
+    const markers = screen.getAllByRole('slider', { name: 'Punto de trabajo' });
     expect(markers).toHaveLength(2);
     for (const marker of markers) expect(marker).toHaveAttribute('aria-valuenow', '3010');
   });
@@ -180,7 +180,7 @@ describe('MotorCurveWidget (W-MOTOR)', () => {
     const user = userEvent.setup();
     render(<MotorCurveWidget initial={REFERENCE} />);
 
-    const [torqueMarker] = screen.getAllByRole('slider', { name: 'Marcador de tiempo' });
+    const [torqueMarker] = screen.getAllByRole('slider', { name: 'Punto de trabajo' });
     if (torqueMarker === undefined) throw new Error('missing marker');
     await user.click(torqueMarker);
     // One arrow step is 2 % of the 0 to 6000 rpm range: 120 rpm.
@@ -188,7 +188,7 @@ describe('MotorCurveWidget (W-MOTOR)', () => {
 
     expect(sliderFor('Velocidad en rpm')).toHaveAttribute('aria-valuenow', '3120');
     expect(valueOf('Velocidad')).toBe('3120 rpm');
-    const markers = screen.getAllByRole('slider', { name: 'Marcador de tiempo' });
+    const markers = screen.getAllByRole('slider', { name: 'Punto de trabajo' });
     for (const marker of markers) expect(marker).toHaveAttribute('aria-valuenow', '3120');
   });
 
@@ -197,7 +197,7 @@ describe('MotorCurveWidget (W-MOTOR)', () => {
 
     expect(screen.getByRole('region', { name: /^Recta torque/ })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: /^Parábola de potencia/ })).toBeInTheDocument();
-    const markers = screen.getAllByRole('slider', { name: 'Marcador de tiempo' });
+    const markers = screen.getAllByRole('slider', { name: 'Punto de trabajo' });
     for (const marker of markers) {
       expect(marker).toHaveAttribute('aria-valuemin', '0');
       expect(marker).toHaveAttribute('aria-valuemax', '6000');
