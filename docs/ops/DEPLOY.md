@@ -48,6 +48,8 @@ pnpm dlx supabase@2.117.0 db push
 
 En *Project Settings → API Keys* (pestaña de claves `anon`/`service_role`) copia la clave **`anon`**, y en *Project Settings → Data API* la **Project URL** (`https://<project-ref>.supabase.co`). Son los valores de `PUBLIC_SUPABASE_URL` y `PUBLIC_SUPABASE_ANON_KEY` del paso 3. La clave `anon` es pública por diseño (el acceso pasa por RLS). La clave `service_role` no se usa nunca en el sitio ni en GitHub.
 
+En *Project Settings → Data API*, en **Exposed schemas** deja solo `public` y quita `graphql_public` (#527): el sitio no usa GraphQL. En *Database → Extensions*, desactiva `pg_graphql`.
+
 ### 1.4 URLs de autenticación
 
 En *Authentication → URL Configuration*:

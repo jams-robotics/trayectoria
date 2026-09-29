@@ -55,7 +55,7 @@ El archivo es generado: no se edita a mano y está excluido de ESLint y Prettier
 
 ## Correr los tests de políticas
 
-Los tests de `supabase/tests/` son pgTAP y cubren los criterios de F0-07: esquema y RLS activo, aislamiento del progreso entre estudiantes, ocultación del `invite_code` y comportamiento de `join_group`. Cada archivo simula dos o más usuarios fijando `request.jwt.claims` y el rol `authenticated`/`anon`, y hace `rollback` al final, así que no dejan datos.
+Los tests de `supabase/tests/` son pgTAP y cubren los criterios de F0-07: esquema y RLS activo, aislamiento del progreso entre estudiantes, ocultación del `invite_code` y comportamiento de `join_group`. `security_hygiene.sql` (#527) recorre además todas las tablas y vistas de `public`, incluidas las que se añadan después: RLS activo y ningún privilegio para `anon`. Una tabla nueva sin RLS o con permisos para `anon` lo hace fallar. Cada archivo simula dos o más usuarios fijando `request.jwt.claims` y el rol `authenticated`/`anon`, y hace `rollback` al final, así que no dejan datos.
 
 ```bash
 pnpm dlx supabase@2.117.0 test db
