@@ -171,6 +171,8 @@ Con el dominio activo, comprueba que la **Site URL** de Supabase es `https://<do
 | `base-uri`, `form-action` | `'self'` | |
 | `frame-ancestors` | `'none'` | Ninguna web puede enmarcar el sitio (junto con `X-Frame-Options: DENY`) |
 
+En la zona de Cloudflare, **Rocket Loader** (*Speed → Optimization*) y **Email Address Obfuscation** (*Scrape Shield*) deben quedar desactivados: los dos inyectan scripts en línea sin hash que la CSP bloquea. Web Analytics sí puede estar activado: su baliza es una de las fuentes de la tabla.
+
 El archivo lleva `__SUPABASE_ORIGINS__` en lugar del proyecto: tras el build, el workflow ejecuta `infra/csp-origins.sh`, que lo sustituye por el origen de `PUBLIC_SUPABASE_URL` y su forma `wss://`. Si despliegas a mano, ejecútalo tú antes de `wrangler deploy`:
 
 ```bash
