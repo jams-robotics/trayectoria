@@ -38,14 +38,16 @@ export interface CsvRecord {
 
 /**
  * Leading characters a spreadsheet reads as a formula prefix (OWASP CSV injection): the field
- * gets a `'` guard prepended before quoting so Excel/Sheets never evaluate it.
+ * gets a `'` guard prepended before quoting so Excel/Sheets never evaluate it. Tab (0x09) and
+ * carriage return (0x0D) are in the list because Excel/LibreOffice discard them before
+ * evaluating what follows (#524).
  */
-const FORMULA_PREFIX = /^[=+\-@]/;
+const FORMULA_PREFIX = /^[=+\-@\t\r]/;
 
 /**
  * Quotes a field that carries a comma, a quote or a line break, doubling its quotes. A field
- * starting with `=`, `+`, `-` or `@` is guarded with a leading `'` and always quoted, so a
- * spreadsheet never runs it as a formula.
+ * starting with `=`, `+`, `-`, `@`, a tab or a carriage return is guarded with a leading `'`
+ * and always quoted, so a spreadsheet never runs it as a formula.
  */
 export function csvEscape(field: string): string {
   const guarded = FORMULA_PREFIX.test(field) ? `'${field}` : field;

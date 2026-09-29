@@ -27,6 +27,11 @@ export const E3_T_S: Range = { min: 0.1, max: 1 };
 /** e4: speeds up to `v_max` of the reference robot, from the gripper height of the hook (#287). */
 export const E4_V_MPS: Range = { min: 0.1, max: 0.67 };
 export const E4_H_M = 0.25;
+/**
+ * e4 draws again while Δx is below this: with relative 2 %, a correct response rounded to the
+ * millimetre (up to 0.0005 m off) is only accepted from 0.025 m on (#568).
+ */
+export const MIN_RELATIVE_ANSWER = 0.025;
 
 /** A value on the grid of step 1/`perUnit`, in [min, max]. */
 function drawOnGrid(rng: SeededRng, range: Range, perUnit: number): number {
@@ -85,13 +90,17 @@ interface RobotSpeed {
 
 /**
  * e4 (optional, preview of T-1.4): the piece keeps the robot's v while it falls from 0.25 m, so
- * it lands `Δx = v·t_caída` ahead of where it was released.
+ * it lands `Δx = v·t_caída` ahead of where it was released. Drawn again while Δx < 0.025 m, that
+ * is v ≤ 0.11 m/s (#568).
  */
 const e4 = defineExercise<RobotSpeed>({
   id: 'e4',
   generate: (rng) => {
-    const v_mps = drawOnGrid(rng, E4_V_MPS, HUNDREDTHS);
-    return { values: { v_mps }, answer: v_mps * freeFallTime(E4_H_M), unit: 'm' };
+    for (;;) {
+      const v_mps = drawOnGrid(rng, E4_V_MPS, HUNDREDTHS);
+      const lead_m = v_mps * freeFallTime(E4_H_M);
+      if (lead_m >= MIN_RELATIVE_ANSWER) return { values: { v_mps }, answer: lead_m, unit: 'm' };
+    }
   },
   statement: () => statementKey('e4'),
   tolerance: RELATIVE_2_PERCENT,

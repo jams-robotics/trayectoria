@@ -35,6 +35,11 @@ export const E3_MASS_KG: Range = { min: 0.2, max: 3 };
 export const E3_WHEEL_RADIUS_M: Range = { min: 0.015, max: 0.05 };
 export const E4_LEVER_ARM_M: Range = { min: 0.1, max: 0.35 };
 export const E4_MASS_KG: Range = { min: 0.1, max: 1 };
+/**
+ * e1 and e3 draw again while τ is below this: with relative 2 %, a correct response rounded to the
+ * thousandth (up to 0.0005 N·m off) is only accepted from 0.025 N·m on (#568).
+ */
+export const MIN_RELATIVE_ANSWER = 0.025;
 
 /** A value on the grid of step 1/`perUnit`, in [min, max]. */
 function drawOnGrid(rng: SeededRng, range: Range, perUnit: number): number {
@@ -52,18 +57,23 @@ interface Gearmotor {
   readonly efficiency: number;
 }
 
-/** e1: `τ_rueda = τ_motor · i · η`. */
+/** e1: `τ_rueda = τ_motor · i · η`, drawn again while τ_rueda < 0.025 N·m (#568). */
 const e1 = defineExercise<Gearmotor>({
   id: 'e1',
   generate: (rng) => {
-    const motorTorque_Nm = drawOnGrid(rng, E1_MOTOR_TORQUE_NM, THOUSANDTHS);
-    const gearRatio = drawOnGrid(rng, E1_GEAR_RATIO, UNITS);
-    const efficiency = drawOnGrid(rng, E1_EFFICIENCY, HUNDREDTHS);
-    return {
-      values: { motorTorque_Nm, gearRatio, efficiency },
-      answer: motorTorque_Nm * gearRatio * efficiency,
-      unit: 'N·m',
-    };
+    for (;;) {
+      const motorTorque_Nm = drawOnGrid(rng, E1_MOTOR_TORQUE_NM, THOUSANDTHS);
+      const gearRatio = drawOnGrid(rng, E1_GEAR_RATIO, UNITS);
+      const efficiency = drawOnGrid(rng, E1_EFFICIENCY, HUNDREDTHS);
+      const wheelTorque_Nm = motorTorque_Nm * gearRatio * efficiency;
+      if (wheelTorque_Nm >= MIN_RELATIVE_ANSWER) {
+        return {
+          values: { motorTorque_Nm, gearRatio, efficiency },
+          answer: wheelTorque_Nm,
+          unit: 'N·m',
+        };
+      }
+    }
   },
   statement: () => statementKey('e1'),
   tolerance: RELATIVE_2_PERCENT,
@@ -96,19 +106,27 @@ interface Climb {
   readonly wheelRadius_m: number;
 }
 
-/** e3: at constant speed each of the two driven wheels takes half of `mg·sinφ`, times `r`. */
+/**
+ * e3: at constant speed each of the two driven wheels takes half of `mg·sinφ`, times `r`. Drawn
+ * again while τ < 0.025 N·m (#568).
+ */
 const e3 = defineExercise<Climb>({
   id: 'e3',
   generate: (rng) => {
-    const slope_deg = drawOnGrid(rng, E3_SLOPE_DEG, UNITS);
-    const mass_kg = drawOnGrid(rng, E3_MASS_KG, HUNDREDTHS);
-    const wheelRadius_m = drawOnGrid(rng, E3_WHEEL_RADIUS_M, THOUSANDTHS);
-    const weightAlong_N = mass_kg * G_MPS2 * Math.sin(slope_deg * DEG_TO_RAD);
-    return {
-      values: { slope_deg, mass_kg, wheelRadius_m },
-      answer: (weightAlong_N / DRIVEN_WHEELS) * wheelRadius_m,
-      unit: 'N·m',
-    };
+    for (;;) {
+      const slope_deg = drawOnGrid(rng, E3_SLOPE_DEG, UNITS);
+      const mass_kg = drawOnGrid(rng, E3_MASS_KG, HUNDREDTHS);
+      const wheelRadius_m = drawOnGrid(rng, E3_WHEEL_RADIUS_M, THOUSANDTHS);
+      const weightAlong_N = mass_kg * G_MPS2 * Math.sin(slope_deg * DEG_TO_RAD);
+      const wheelTorque_Nm = (weightAlong_N / DRIVEN_WHEELS) * wheelRadius_m;
+      if (wheelTorque_Nm >= MIN_RELATIVE_ANSWER) {
+        return {
+          values: { slope_deg, mass_kg, wheelRadius_m },
+          answer: wheelTorque_Nm,
+          unit: 'N·m',
+        };
+      }
+    }
   },
   statement: () => statementKey('e3'),
   tolerance: RELATIVE_2_PERCENT,

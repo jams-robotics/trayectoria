@@ -449,6 +449,7 @@
     "title": "Ejercicio",
     "number": "E{{n}}",
     "required": "obligatorio",
+    "precision": "Responde con al menos tres cifras significativas.",
     "answer": "Respuesta en {{unit}}",
     "component": "Componente {{index}} en {{unit}}",
     "componentShort": "{{index}}",

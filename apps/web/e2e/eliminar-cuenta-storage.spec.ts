@@ -4,10 +4,11 @@ import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 
 import auth from '../../../packages/i18n/locales/es/auth.json' with { type: 'json' };
+import { typeEmailedCode } from './helpers/mail';
 import { E2E_PASSWORD, signUp, type TestUser } from './helpers/supabase';
 import { makeTextZip } from './helpers/zip';
 
-// #178: deleting the account empties `urdf/{uid}/` before `delete_account()` runs. The learner
+// #178: deleting the account empties `urdf/{uid}/` before `delete_account` runs. The learner
 // uploads one arm through the browser and then deletes the account; a second client of the same
 // learner, signed in before the deletion, is what reads the bucket back — `list` under the
 // prefix has to come back empty, which is only true if the client removed the object.
@@ -43,28 +44,24 @@ async function signInOnPage(page: Page, email: string): Promise<void> {
 /** Uploads the planar arm on `/cuenta/robots` and returns its object key. */
 async function uploadArm(page: Page, user: TestUser): Promise<string> {
   await openHydrated(page, '/cuenta/robots');
-  await page
-    .getByLabel(auth.robots.uploadField, { exact: true })
-    .setInputFiles({
-      name: 'planar2dof.zip',
-      mimeType: 'application/zip',
-      buffer: Buffer.from(makeTextZip({ 'planar2dof.urdf': PLANAR_URDF })),
-    });
+  await page.getByLabel(auth.robots.uploadField, { exact: true }).setInputFiles({
+    name: 'planar2dof.zip',
+    mimeType: 'application/zip',
+    buffer: Buffer.from(makeTextZip({ 'planar2dof.urdf': PLANAR_URDF })),
+  });
   await page.getByRole('button', { name: auth.robots.uploadSubmit, exact: true }).click();
   await expect(page.getByTestId('robot-row').getByTestId('robot-name')).toHaveText(PLANAR_NAME);
 
-  const { data: rows } = await user.client
-    .from('robots')
-    .select('id')
-    .eq('owner_id', user.userId);
+  const { data: rows } = await user.client.from('robots').select('id').eq('owner_id', user.userId);
   expect(rows).toHaveLength(1);
   return `${user.userId}/${rows?.[0]?.id}.zip`;
 }
 
-/** Types `ELIMINAR` and confirms, landing on the home page with the notice. */
-async function deleteAccountOnPage(page: Page): Promise<void> {
+/** Types the emailed code (#521) and `ELIMINAR` and confirms, landing on the home page. */
+async function deleteAccountOnPage(page: Page, email: string): Promise<void> {
   await openHydrated(page, '/cuenta');
   await page.getByTestId('delete-account-start').click();
+  await typeEmailedCode(page, email, auth.reauth.codeLabel);
   await page.getByLabel(auth.deleteAccount.confirmLabel, { exact: true }).fill('ELIMINAR');
   await page.getByTestId('delete-account-submit').click();
   await page.waitForURL('**/?cuenta=eliminada');
@@ -82,9 +79,9 @@ test('deleting the account empties the urdf bucket of the learner', async ({ pag
   const stored = await user.client.storage.from('urdf').download(objectPath);
   expect(stored.error).toBeNull();
 
-  await deleteAccountOnPage(page);
+  await deleteAccountOnPage(page, email);
 
-  // The prefix is empty: the client removed the object before `delete_account()` ran.
+  // The prefix is empty: the client removed the object before `delete_account` ran.
   const { data: objects } = await user.client.storage.from('urdf').list(user.userId);
   expect(objects ?? []).toHaveLength(0);
   const gone = await user.client.storage.from('urdf').download(objectPath);

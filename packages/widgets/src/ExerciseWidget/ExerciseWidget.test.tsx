@@ -49,6 +49,23 @@ function result(): HTMLElement {
 }
 
 describe('ExerciseWidget (F2-10)', () => {
+  test('shows the fixed note on significant figures before and after checking (#568)', async () => {
+    const user = userEvent.setup();
+    renderScalar();
+
+    const note = screen.getByTestId('exercise-precision');
+    expect(note).toHaveTextContent('Responde con al menos tres cifras significativas.');
+    expect(note).toHaveClass('text-fg-muted', 'text-sm');
+
+    await user.type(scalarField(), String(1.021 * SCALAR_ANSWER_S));
+    await user.click(verifyButton());
+
+    expect(result()).toHaveTextContent('Incorrecto');
+    expect(screen.getByTestId('exercise-precision')).toHaveTextContent(
+      'Responde con al menos tres cifras significativas.',
+    );
+  });
+
   test('a response inside the 2 % tolerance is correct (1.019·x)', async () => {
     const user = userEvent.setup();
     renderScalar();

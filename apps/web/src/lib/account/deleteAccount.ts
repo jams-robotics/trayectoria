@@ -1,6 +1,7 @@
 /**
  * Deleting the learner's account (#178): the client empties `urdf/{uid}/` with the Storage API
- * and only then calls `delete_account()`.
+ * and only then calls `delete_account(nonce)`. Since #521 the call carries the reauthentication
+ * code emailed to the learner: it is checked before the files go, so a wrong code costs nothing.
  *
  * `storage.objects` is outside the `on delete cascade` of the tables of docs/ARCHITECTURE.md
  * §5.1, so the files have to go through the Storage API to be really gone; the row deletion the
@@ -11,6 +12,7 @@
 import { getDbClient, type DbClient } from '@trayectoria/db';
 
 import { URDF_BUCKET } from '../robots/storage';
+import { ReauthenticationError, verifyReauthentication } from './reauthentication';
 
 /** Objects asked for per `list` call; a full page means there may be another one behind it. */
 export const LIST_PAGE_SIZE = 100;
@@ -19,7 +21,7 @@ export const LIST_PAGE_SIZE = 100;
 export const MAX_LIST_CALLS = 200;
 
 /**
- * The files could not be emptied, so `delete_account()` was never called and the account is
+ * The files could not be emptied, so `delete_account` was never called and the account is
  * still there. The UI turns this into `auth.deleteAccount.storageFailed`.
  */
 export class StorageCleanupError extends Error {
@@ -84,19 +86,27 @@ async function listObjectPaths(db: DbClient, userId: string): Promise<readonly s
 }
 
 /**
- * Deletes the caller's account: first the objects of `urdf/{uid}/`, then the account itself.
+ * Deletes the caller's account: first the code `nonce` is checked, then the objects of
+ * `urdf/{uid}/` go, then the account itself.
  *
- * A failure while listing or removing the objects rejects with a `StorageCleanupError` and the
- * RPC is never called, so the learner is never left with an account gone and files behind.
- * `delete_account` takes no arguments — it acts on `auth.uid()` — and the cascades of migration
- * 0001 take the profile, memberships, robots, progress and attempts with it.
+ * A wrong or expired code rejects with a `ReauthenticationError` before anything is touched. A
+ * failure while listing or removing the objects rejects with a `StorageCleanupError` and the RPC
+ * is never called, so the learner is never left with an account gone and files behind.
+ * `delete_account(nonce)` acts on `auth.uid()` and checks the code again (migration 0011); the
+ * cascades of migration 0001 take the profile, memberships, robots, progress and attempts with it.
  */
-export async function deleteAccount(userId: string, db: DbClient = getDbClient()): Promise<void> {
+export async function deleteAccount(
+  userId: string,
+  nonce: string,
+  db: DbClient = getDbClient(),
+): Promise<void> {
+  if (!(await verifyReauthentication(nonce, db))) throw new ReauthenticationError();
   const paths = await listObjectPaths(db, userId);
   if (paths.length > 0) {
     const { error }: Result<unknown> = await db.storage.from(URDF_BUCKET).remove([...paths]);
     if (error !== null) throw new StorageCleanupError(error.message);
   }
-  const { error } = await db.rpc('delete_account');
+  const { data, error } = await db.rpc('delete_account', { nonce });
   if (error !== null) throw new Error(error.message);
+  if (data !== true) throw new ReauthenticationError();
 }

@@ -34,11 +34,12 @@ export const E1_MAX_TICKS_DIFFERENCE = Math.floor(
 );
 /**
  * e1 draws again while Δθ is nonzero and closer to 0 than this, and e2 while a coordinate is:
- * with relative 2 %, a correct response rounded to the thousandth would be rejected (#451). An
- * exact 0 stays: `check` grades it with the absolute error.
+ * below it, relative 2 % is tighter than the rounding to the thousandth (up to 0.0005), so a
+ * correct response rounded to the thousandth would be rejected (#451, #568). An exact 0 stays:
+ * `check` grades it with the absolute error.
  */
-export const E1_MIN_NONZERO_DELTA_THETA_RAD = 0.01;
-export const E2_MIN_NONZERO_COORDINATE_M = 0.01;
+export const E1_MIN_NONZERO_DELTA_THETA_RAD = 0.025;
+export const E2_MIN_NONZERO_COORDINATE_M = 0.025;
 /** e3 draws the real wheel radius; the odometry believes 0.032 m and reports 10 m. */
 export const E3_WHEEL_RADIUS_M: Range = { min: 0.0325, max: 0.035 };
 export const E3_BELIEVED_RADIUS_M = 0.032;
@@ -56,7 +57,7 @@ function isSmallNonzero(value: number, min: number): boolean {
   return value !== 0 && Math.abs(value) < min;
 }
 
-interface EncoderStep {
+export interface EncoderStep {
   readonly deltaTicksL: number;
   readonly deltaTicksR: number;
 }
@@ -102,6 +103,16 @@ const e1 = defineExercise<EncoderStep>({
   tolerance: RELATIVE_2_PERCENT,
 });
 
+/**
+ * `(x, y) = Δs·(cos(Δθ/2), sin(Δθ/2))`: the position after one step from (0, 0, 0). Exported so
+ * the golden value of the spec, whose y = 0.01745 m e2 now draws again (#568), is still tested.
+ */
+export function positionAfterStep_m(values: EncoderStep): [number, number] {
+  const { deltaS_m, deltaTheta_rad } = odometryStep(values);
+  const midHeading_rad = deltaTheta_rad / 2;
+  return [deltaS_m * Math.cos(midHeading_rad), deltaS_m * Math.sin(midHeading_rad)];
+}
+
 /** e2: pose after the step from (0, 0, 0), with the mid-step heading θ + Δθ/2. */
 const e2 = defineExercise<EncoderStep>({
   id: 'e2',
@@ -110,9 +121,7 @@ const e2 = defineExercise<EncoderStep>({
     let answer: [number, number];
     do {
       values = drawTicks(rng);
-      const { deltaS_m, deltaTheta_rad } = odometryStep(values);
-      const midHeading_rad = deltaTheta_rad / 2;
-      answer = [deltaS_m * Math.cos(midHeading_rad), deltaS_m * Math.sin(midHeading_rad)];
+      answer = positionAfterStep_m(values);
     } while (answer.some((value_m) => isSmallNonzero(value_m, E2_MIN_NONZERO_COORDINATE_M)));
     return { values, answer, unit: 'm' };
   },

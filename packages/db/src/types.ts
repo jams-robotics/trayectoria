@@ -321,12 +321,13 @@ export type Database = {
       }
     }
     Functions: {
-      delete_account: { Args: never; Returns: undefined }
+      delete_account: { Args: { nonce: string }; Returns: boolean }
       is_group_member: { Args: { target_group_id: string }; Returns: boolean }
       is_teacher: { Args: never; Returns: boolean }
       join_group: { Args: { invite_code: string }; Returns: string }
       owns_group: { Args: { target_group_id: string }; Returns: boolean }
       teaches_user: { Args: { target_user_id: string }; Returns: boolean }
+      verify_reauthentication: { Args: { nonce: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

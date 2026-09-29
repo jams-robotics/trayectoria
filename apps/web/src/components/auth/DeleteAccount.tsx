@@ -3,13 +3,16 @@ import { useT, type Translate } from '@trayectoria/i18n';
 import { useState, type JSX } from 'react';
 
 import { StorageCleanupError, deleteAccount } from '../../lib/account/deleteAccount';
+import { ReauthenticationError } from '../../lib/account/reauthentication';
 import { GHOST_BUTTON } from '../aula/MemberList';
 import { INPUT_CLASS, PRIMARY_BUTTON, SECONDARY_BUTTON } from './fields';
+import { ReauthCodeField, useReauthCode, type ReauthCodeState } from './ReauthCode';
 
 /** Where the browser lands once the account is gone; `/` shows the notice for this parameter. */
 const DONE_URL = '/?cuenta=eliminada';
 
 interface ConfirmFormProps {
+  readonly reauth: ReauthCodeState;
   readonly typed: string;
   readonly error: string;
   readonly pending: boolean;
@@ -52,6 +55,7 @@ function ConfirmField({
 }
 
 function ConfirmForm({
+  reauth,
   typed,
   error,
   pending,
@@ -60,15 +64,19 @@ function ConfirmForm({
   onCancel,
 }: ConfirmFormProps): JSX.Element {
   const t = useT();
+  const confirmed = typed.trim() === t('auth.deleteAccount.confirmWord') && reauth.complete;
   return (
-    <div className="mt-4">
-      <ConfirmField typed={typed} error={error} onTyped={onTyped} />
-      <div className="mt-4 flex flex-wrap gap-3">
+    <div className="mt-4 flex flex-col gap-4">
+      <ReauthCodeField state={reauth} id="delete-account-code" />
+      <div>
+        <ConfirmField typed={typed} error={error} onTyped={onTyped} />
+      </div>
+      <div className="flex flex-wrap gap-3">
         <button
           type="button"
           data-testid="delete-account-submit"
           onClick={onSubmit}
-          disabled={pending || typed.trim() !== t('auth.deleteAccount.confirmWord')}
+          disabled={pending || !confirmed}
           className={PRIMARY_BUTTON}
         >
           {t('auth.deleteAccount.submit')}
@@ -94,17 +102,29 @@ interface DeleteState extends ConfirmFormProps {
 /** What `runDeletion` needs from the hook to report back into the section's status. */
 interface DeletionHandlers {
   readonly t: Translate;
+  readonly reauth: ReauthCodeState;
   readonly setError: (message: string) => void;
   readonly setPending: (pending: boolean) => void;
 }
 
+/** The message for a failed deletion; nothing was deleted in any of these cases. */
+function failureMessage(t: Translate, cause: unknown): string {
+  // A wrong or expired code (#521): the server burnt it, so the learner asks for a new one.
+  if (cause instanceof ReauthenticationError) return t('auth.reauth.invalid');
+  // The files are still there and the account was not touched: a different message, because
+  // retrying is what the learner should do and nothing has been lost (#178).
+  if (cause instanceof StorageCleanupError) return t('auth.deleteAccount.storageFailed');
+  return t('auth.deleteAccount.failed');
+}
+
 /**
- * Deletes the account of `userId` and leaves the page (F3-03, #178). Without a session there is
- * no `auth.uid()` behind the calls, so nothing is deleted and the learner is asked to retry.
+ * Deletes the account of `userId` and leaves the page (F3-03, #178), once the emailed code of
+ * `reauth` checks out (#521). Without a session there is no `auth.uid()` behind the calls, so
+ * nothing is deleted and the learner is asked to retry.
  */
 async function runDeletion(
   userId: string | undefined,
-  { t, setError, setPending }: DeletionHandlers,
+  { t, reauth, setError, setPending }: DeletionHandlers,
 ): Promise<void> {
   if (userId === undefined) {
     setError(t('auth.deleteAccount.failed'));
@@ -113,17 +133,12 @@ async function runDeletion(
   setPending(true);
   setError('');
   try {
-    await deleteAccount(userId);
+    await deleteAccount(userId, reauth.code);
     await signOut();
     window.location.assign(DONE_URL);
   } catch (cause) {
-    // The files are still there and the account was not touched: a different message, because
-    // retrying is what the learner should do and nothing has been lost (#178).
-    setError(
-      cause instanceof StorageCleanupError
-        ? t('auth.deleteAccount.storageFailed')
-        : t('auth.deleteAccount.failed'),
-    );
+    setError(failureMessage(t, cause));
+    if (cause instanceof ReauthenticationError) reauth.reset();
     setPending(false);
   }
 }
@@ -132,6 +147,7 @@ async function runDeletion(
 function useDeleteAccount(): DeleteState {
   const t = useT();
   const { session } = useSession();
+  const reauth = useReauthCode();
   const [open, setOpen] = useState(false);
   const [typed, setTyped] = useState('');
   const [error, setError] = useState('');
@@ -139,12 +155,13 @@ function useDeleteAccount(): DeleteState {
 
   return {
     open,
+    reauth,
     typed,
     error,
     pending,
     onStart: () => setOpen(true),
     onTyped: setTyped,
-    onSubmit: () => void runDeletion(session?.user.id, { t, setError, setPending }),
+    onSubmit: () => void runDeletion(session?.user.id, { t, reauth, setError, setPending }),
     onCancel: () => {
       setOpen(false);
       setTyped('');
@@ -171,10 +188,10 @@ function StartButton({ onStart }: Pick<DeleteState, 'onStart'>): JSX.Element {
 }
 
 /**
- * "Eliminar cuenta" at the end of `/cuenta` (F3-03): a danger ghost button that opens a field
- * where the student has to type `ELIMINAR` exactly. It empties `urdf/{uid}/` and then calls
- * `delete_account` (migration 0005), signs out and lands on the home page with the notice; the
- * text above lists what is deleted.
+ * "Eliminar cuenta" at the end of `/cuenta` (F3-03): a danger ghost button that opens the code
+ * step of #521 and a field where the student has to type `ELIMINAR` exactly. It checks the code,
+ * empties `urdf/{uid}/` and then calls `delete_account(nonce)` (migration 0011), signs out and
+ * lands on the home page with the notice; the text above lists what is deleted.
  */
 export function DeleteAccount(): JSX.Element {
   const t = useT();

@@ -92,7 +92,9 @@ describe('T-6.2 exercises', () => {
         // A zero component (e = 0) only takes the exact value; skip those instances.
         if (components.some((value) => value === 0)) continue;
         const scaled = (factor: number) =>
-          Array.isArray(answer) ? components.map((value) => value * factor) : components[0]! * factor;
+          Array.isArray(answer)
+            ? components.map((value) => value * factor)
+            : components[0]! * factor;
         expect(check(candidate, seed, scaled(1.019)).correct).toBe(true);
         expect(check(candidate, seed, scaled(1.021)).correct).toBe(false);
       }
@@ -101,9 +103,15 @@ describe('T-6.2 exercises', () => {
 });
 
 describe('e1 · Kp, e, ω_base: u, ω_L, ω_R', () => {
-  it('redraws when a nonzero wheel command is below 0.01 rad/s (#461)', () => {
-    // First draw: Kp = 11.1, e = 0.45, ω_base = 5 → ω_R = 0.005 rad/s, redrawn; then the golden draw.
-    const { values } = exercise('e1').generate(scriptedRng([111, 45, 10, 80, 40, 30]));
+  it('redraws when a nonzero wheel command is below 0.025 rad/s (#461, #568)', () => {
+    // First draw: Kp = 16.6, e = 0.3, ω_base = 5 → ω_R = 0.02 rad/s, redrawn; then the golden draw.
+    const { values } = exercise('e1').generate(scriptedRng([166, 30, 10, 80, 40, 30]));
+    expect(values).toEqual({ kp: 8, error: 0.4, omegaBase_radps: 15 });
+  });
+
+  it('redraws when u is nonzero and below 0.025 rad/s (#568)', () => {
+    // First draw: Kp = 1, e = 0.01, ω_base = 5 → u = 0.01 rad/s, redrawn; then the golden draw.
+    const { values } = exercise('e1').generate(scriptedRng([10, 1, 10, 80, 40, 30]));
     expect(values).toEqual({ kp: 8, error: 0.4, omegaBase_radps: 15 });
   });
 
@@ -252,11 +260,11 @@ describe('e3 · Kp máxima sin saturar', () => {
   });
 });
 
-describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94; #451; #461)', () => {
+describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94; #451; #461; #568)', () => {
   const SWEEP_SEEDS = Array.from({ length: 5000 }, (_, seed) => seed + 1);
   const STATEMENT_SIG_FIGS = 4;
-  /** #451: an answer graded with a relative tolerance is exactly 0 or at least 0.01 in its unit. */
-  const MIN_NONZERO_ANSWER = 0.01;
+  /** #451, #568: an answer graded with a relative tolerance is exactly 0 or at least 0.025. */
+  const MIN_NONZERO_ANSWER = 0.025;
   const shown = (value: number): number => Number(format(value, '', STATEMENT_SIG_FIGS));
   const isShownExactly = (value: number): boolean =>
     Math.abs(shown(value) - value) <= EPSILON * Math.max(1, Math.abs(value));
@@ -276,7 +284,7 @@ describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94
     expect(failures.slice(0, 5)).toEqual([]);
   });
 
-  it('keeps every answer graded with a relative tolerance at 0 or at least 0.01', () => {
+  it('keeps every answer graded with a relative tolerance at 0 or at least 0.025', () => {
     const failures: string[] = [];
     for (const { id, generate, tolerance } of exercises as readonly Exercise<unknown>[]) {
       for (const seed of SWEEP_SEEDS) {

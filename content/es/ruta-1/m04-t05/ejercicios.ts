@@ -12,6 +12,11 @@ const RELATIVE_2_PERCENT = { type: 'relative', value: 0.02 } as const;
 
 const THOUSANDTHS = 1000;
 const HUNDREDTHS = 100;
+/**
+ * e1 answers in mm (#626): in m the resolution goes from 0.000046 to 0.026, below the 0.025 that
+ * relative 2 % needs to accept a response rounded to the thousandth (#568); in mm it starts at 0.046.
+ */
+const MM_PER_M = 1000;
 
 interface Range {
   readonly min: number;
@@ -59,7 +64,7 @@ interface Encoder {
   readonly wheelRadius_m: number;
 }
 
-/** e1: linear resolution, res = 2πr / N_e. */
+/** e1: linear resolution, res = 2πr / N_e, answered in mm (#626). */
 const e1 = defineExercise<Encoder>({
   id: 'e1',
   generate: (rng) => {
@@ -67,8 +72,8 @@ const e1 = defineExercise<Encoder>({
     const wheelRadius_m = drawOnGrid(rng, E1_WHEEL_RADIUS_M, THOUSANDTHS);
     return {
       values: { encoderTicksPerRev, wheelRadius_m },
-      answer: resolution_m(wheelRadius_m, encoderTicksPerRev),
-      unit: 'm',
+      answer: resolution_m(wheelRadius_m, encoderTicksPerRev) * MM_PER_M,
+      unit: 'mm',
     };
   },
   statement: () => statementKey('e1'),

@@ -4,11 +4,12 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 
 import { catalogAssets } from './src/integrations/catalog';
+import { devPages } from './src/integrations/devPages';
 
 export default defineConfig({
   site: 'https://trayectoria.org',
   output: 'static',
-  integrations: [react(), mdx(), catalogAssets()],
+  integrations: [react(), mdx(), catalogAssets(), devPages()],
   vite: {
     plugins: [tailwindcss()],
   },
