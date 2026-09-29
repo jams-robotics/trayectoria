@@ -7,7 +7,7 @@ Plataforma web open source, en español, donde estudiantes de ingeniería aprend
 
 ## Estado: v1.0.0
 
-La v1.0.0 incluye la ruta 1 completa (28 temas en 7 módulos), el simulador móvil 2D, el simulador de brazo 3D, el perfil «Mi robot» y el modo aula. El alcance está en [`docs/PLAN.md`](docs/PLAN.md) y el detalle de la versión en [`CHANGELOG.md`](CHANGELOG.md).
+La v1.0.0 incluye dos rutas encadenadas completas, Fundamentos (física y matemática para robots, 14 temas en 4 módulos) y Robot móvil (del encoder a la pista, 11 temas en 3 módulos), el simulador móvil 2D, el simulador de brazo 3D, el perfil «Mi robot» y el modo aula. El alcance está en [`docs/PLAN.md`](docs/PLAN.md) y el detalle de la versión en [`CHANGELOG.md`](CHANGELOG.md).
 
 - **Instancia pública:** `https://<dominio>`
 - **Cómo probarla:** abre la instancia pública o arráncala en local con [los 5 comandos](#arrancar-en-5-comandos).
@@ -75,6 +75,6 @@ Todo el trabajo entra por tickets derivados de `docs/PLAN.md`: un ticket, una ra
 | [`docs/PLAN.md`](docs/PLAN.md)                 | Visión, alcance y backlog               |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Estructura, librerías, datos, seguridad |
 | [`docs/STANDARDS.md`](docs/STANDARDS.md)       | Estándares de código                    |
-| [`docs/CURRICULUM.md`](docs/CURRICULUM.md)     | Los 28 temas de la ruta 1               |
+| [`docs/CURRICULUM.md`](docs/CURRICULUM.md)     | Los 25 temas de las dos rutas           |
 | [`docs/DESIGN.md`](docs/DESIGN.md)             | Sistema de diseño                       |
 | [`docs/adr/`](docs/adr/)                       | Decisiones de arquitectura              |

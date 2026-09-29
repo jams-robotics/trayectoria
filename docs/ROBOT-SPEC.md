@@ -52,7 +52,7 @@ export const MobileSpec = z.object({
 });
 ```
 
-`omegaMax_radps` de rueda se **deriva** (`rpmToRadps(maxMotorSpeed_rpm) / gearRatio`), no se guarda. `maxMotorSpeed_rpm` es la velocidad sin carga del motor (`n₀`), y `motor.stallTorque_Nm` su torque de bloqueo: son los dos extremos de la recta torque–velocidad de T-3.3 y no se dan a la vez. La eficiencia del motor (eléctrica → eje) no se guarda: se calcula en un punto de trabajo con las corrientes (#609). Los dos campos de corriente son opcionales para que los perfiles guardados sigan válidos sin cambiar `specVersion`; el formulario de «Mi robot» los ofrece como opcionales.
+`omegaMax_radps` de rueda se **deriva** (`rpmToRadps(maxMotorSpeed_rpm) / gearRatio`), no se guarda. `maxMotorSpeed_rpm` es la velocidad sin carga del motor (`n₀`), y `motor.stallTorque_Nm` su torque de bloqueo: son los dos extremos de la recta torque–velocidad de T1-3.3 y no se dan a la vez. La eficiencia del motor (eléctrica → eje) no se guarda: se calcula en un punto de trabajo con las corrientes (#609). Los dos campos de corriente son opcionales para que los perfiles guardados sigan válidos sin cambiar `specVersion`; el formulario de «Mi robot» los ofrece como opcionales.
 
 ### 1.2 ArmSpec
 
@@ -150,7 +150,7 @@ Errores: `urdf.parse`, `urdf.noRoot`, `urdf.multipleRoots`, `urdf.cycle`, `urdf.
 
 Derivados que el contenido usa como valores dorados: `omegaMax_radps = 6000·2π/60/30 = 20.944 rad/s`; `vMax_mps = 20.944·0.032 = 0.670 m/s`; giro en el lugar a `vL = −vR = 0.3 m/s`: `ω = 0.6/0.15 = 4 rad/s`; torque de rueda en bloqueo `0.012·30·0.6 = 0.216 N·m`; fuerza de tracción por rueda en bloqueo `0.216/0.032 = 6.75 N`; semiancho del arreglo de sensores `(5−1)/2·0.012 = 0.024 m`.
 
-Derivados del motor (#609, T-3.3): `ω₀ = 628.3 rad/s`; `P_max = τ_s ω₀/4 = 1.885 W` en `n₀/2 = 3000 rpm` y `τ_s/2 = 0.006 N·m`; en la rueda en ese punto `100 rpm`, `0.108 N·m`, `0.335 m/s`, `1.131 W`; corriente en ese punto `I = 0.1 + 1.1·0.5 = 0.65 A`, `P_el = 3.9 W`, `η_motor = 0.483`; autonomía de dos motores en ese punto `11.1/(2·6·0.65) = 1.423 h = 85.4 min`, y en bloqueo (peor caso) `11.1/14.4 = 46.3 min`. Aceleración que el motor puede pedir desde el reposo a plena tensión, `2·0.216/(0.032·0.9) = 15.0 m/s²`, frente al límite de fricción `μ_s β g = 3.53 m/s²`: manda la fricción; `maxAccel_radps2 = 40` (`1.28 m/s²`) es la rampa del simulador, por debajo de ese límite. Velocidad máxima en la curva de R = 0.15 m con β: `√(0.6·0.6·9.81·0.15) = 0.728 m/s`.
+Derivados del motor (#609, T1-3.3): `ω₀ = 628.3 rad/s`; `P_max = τ_s ω₀/4 = 1.885 W` en `n₀/2 = 3000 rpm` y `τ_s/2 = 0.006 N·m`; en la rueda en ese punto `100 rpm`, `0.108 N·m`, `0.335 m/s`, `1.131 W`; corriente en ese punto `I = 0.1 + 1.1·0.5 = 0.65 A`, `P_el = 3.9 W`, `η_motor = 0.483`; autonomía de dos motores en ese punto `11.1/(2·6·0.65) = 1.423 h = 85.4 min`, y en bloqueo (peor caso) `11.1/14.4 = 46.3 min`. Aceleración que el motor puede pedir desde el reposo a plena tensión, `2·0.216/(0.032·0.9) = 15.0 m/s²`, frente al límite de fricción `μ_s β g = 3.53 m/s²`: manda la fricción; `maxAccel_radps2 = 40` (`1.28 m/s²`) es la rampa del simulador, por debajo de ese límite. Velocidad máxima en la curva de R = 0.15 m con β: `√(0.6·0.6·9.81·0.15) = 0.728 m/s`.
 
 ## 4. Brazo plano 2 GDL (catálogo `planar2dof`)
 
