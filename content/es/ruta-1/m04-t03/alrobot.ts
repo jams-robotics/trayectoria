@@ -5,13 +5,14 @@ import type { RobotCalc } from '../../../index';
 
 /**
  * «Al robot» calcs of T-4.3 (docs/CURRICULUM.md § T-4.3): the tangential acceleration of the
- * wheel rim of «Mi robot», `a_t = α · r` with `α = maxAccel_radps2`, and the top speed on the
- * tight curve of the preset track, `v_max,curva = √(μs · g · R)`. The MDX renders them with
+ * wheel rim of «Mi robot», `a_t = α · r` with `α = maxAccel_radps2` (the simulator ramp, #609),
+ * and the top speed on the tight curve of the preset track with only the driven wheels gripping,
+ * `v_max,curva = √(μs · β · g · R)` (#562). The MDX renders them with
  * `<RobotFormula calc="ruta-1/m04-t03/tangential-accel" />` and `…/max-curve-speed`; `…/v-max-vs-curve`
  * sets the `v_max` of «Mi robot» next to that limit (V-37).
  */
 
-/** Three significant figures: 1.28 m/s² and 0.94 m/s. */
+/** Three significant figures: 1.28 m/s²; speeds keep trailing zeros, 0.670 and 0.728 m/s. */
 const SIGNIFICANT_FIGURES = 3;
 
 /**
@@ -21,9 +22,13 @@ const SIGNIFICANT_FIGURES = 3;
 const REFERENCE_ALPHA_RADPS2 = 40;
 const REFERENCE_WHEEL_RADIUS_M = 0.032;
 
-/** Tight curve of the preset track and its static friction (docs/CURRICULUM.md § T-4.3). */
+/**
+ * Tight curve of the preset track, its static friction and the fraction β of the weight on the
+ * driven wheels, the constants of T-2.2 and T-2.3 (docs/CURRICULUM.md § T-4.3, #609).
+ */
 const TIGHT_CURVE_RADIUS_M = 0.15;
 const TRACK_MU_S = 0.6;
+const DRIVEN_WEIGHT_FRACTION = 0.6;
 
 interface Drive {
   readonly wheelRadius_m: number;
@@ -49,6 +54,16 @@ function format(value: number, significantFigures = SIGNIFICANT_FIGURES): string
   return String(Number(value.toPrecision(significantFigures)));
 }
 
+/** Speeds keep their trailing zeros, as the spec writes 0.670 m/s. */
+function formatSpeed(speed_mps: number): string {
+  return speed_mps.toPrecision(SIGNIFICANT_FIGURES);
+}
+
+/** `v_max,curva = √(μs · β · g · R)` on the tight curve of the preset track. */
+function maxCurveSpeedOf(): number {
+  return Math.sqrt(TRACK_MU_S * DRIVEN_WEIGHT_FRACTION * G_MPS2 * TIGHT_CURVE_RADIUS_M);
+}
+
 /** `a_t = α · r`. */
 export const tangentialAccel: RobotCalc = {
   id: 'tangential-accel',
@@ -63,16 +78,18 @@ export const tangentialAccel: RobotCalc = {
   },
 };
 
-/** `v_max,curva = √(μs · g · R)` on the tight curve of the preset track; no profile field. */
+/**
+ * `v_max,curva = √(μs · β · g · R)` on the tight curve of the preset track, with only the driven
+ * wheels gripping (a caster wheel gives no lateral force); no profile field.
+ */
 export const maxCurveSpeed: RobotCalc = {
   id: 'max-curve-speed',
   compute() {
-    const maxCurveSpeed_mps = Math.sqrt(TRACK_MU_S * G_MPS2 * TIGHT_CURVE_RADIUS_M);
     return {
-      latex: String.raw`v_{\max,\text{curva}} = \sqrt{\mu_s \, g \, R}`,
+      latex: String.raw`v_{\max,\text{curva}} = \sqrt{\mu_s \, \beta \, g \, R}`,
       substituted:
-        String.raw`v_{\max,\text{curva}} = \sqrt{${TRACK_MU_S} \cdot ${G_MPS2}\ \text{m/s}^2 \cdot ${TIGHT_CURVE_RADIUS_M}\ \text{m}}` +
-        String.raw` = ${format(maxCurveSpeed_mps)}\ \text{m/s}`,
+        String.raw`v_{\max,\text{curva}} = \sqrt{${TRACK_MU_S} \cdot ${DRIVEN_WEIGHT_FRACTION} \cdot ${G_MPS2}\ \text{m/s}^2 \cdot ${TIGHT_CURVE_RADIUS_M}\ \text{m}}` +
+        String.raw` = ${formatSpeed(maxCurveSpeedOf())}\ \text{m/s}`,
     };
   },
 };
@@ -100,8 +117,8 @@ export const vMaxVsCurve: RobotCalc = {
       wheelRadius_m: REFERENCE_WHEEL_RADIUS_M,
     };
     const omegaMax_radps = (maxMotorSpeed_rpm / gearRatio) * RPM_TO_RADPS;
-    const vMax = format(omegaMax_radps * wheelRadius_m);
-    const maxCurve = format(Math.sqrt(TRACK_MU_S * G_MPS2 * TIGHT_CURVE_RADIUS_M));
+    const vMax = formatSpeed(omegaMax_radps * wheelRadius_m);
+    const maxCurve = formatSpeed(maxCurveSpeedOf());
     const relation =
       Number(vMax) < Number(maxCurve) ? '<' : Number(vMax) > Number(maxCurve) ? '>' : '=';
     return {
