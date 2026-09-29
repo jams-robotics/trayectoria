@@ -1,6 +1,7 @@
 -- F0-07 · criterion 2: a student cannot read another student's progress (nor attempts); a
 -- teacher reads only the progress of the members of their groups; anon reads nothing.
--- Users: teacher A owns group G; student B is a member of G; student C is not.
+-- Users: teacher A owns group G; student B is a member of G; student C is not. C signs up with no
+-- metadata, so the trigger gives the neutral 'Estudiante' (#523, migration 0010).
 begin;
 create extension if not exists pgtap with schema extensions;
 select plan(13);
@@ -20,7 +21,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
 
 select results_eq(
   $$ select display_name, role from public.profiles order by display_name $$,
-  $$ values ('Ana', 'teacher'), ('Bruno', 'student'), ('c', 'student') $$,
+  $$ values ('Ana', 'teacher'), ('Bruno', 'student'), ('Estudiante', 'student') $$,
   'the auth trigger creates one profile per user with the metadata role and a student default'
 );
 

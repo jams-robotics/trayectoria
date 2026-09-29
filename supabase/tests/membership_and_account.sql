@@ -1,6 +1,8 @@
 -- F3-03 · criterion 1: a member deletes their own membership and not another's, and
--- `delete_account()` removes the caller's data (profile, memberships, robots and their storage
--- objects) without touching anybody else's. anon cannot call the function at all.
+-- `delete_account(nonce)` removes the caller's data (profile, memberships, robots and their
+-- storage objects) without touching anybody else's. anon cannot call the function at all.
+-- Since #521 (migration 0011) the function takes the reauthentication code GoTrue emailed to the
+-- caller; B holds a pending code '123456' (the code checks themselves: reauthentication.sql).
 -- Users: teacher A owns group G (code 'def456def456'); students B and C are members.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -18,6 +20,12 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-4000-8000-00000000000a', 'a@test.local', '{"display_name":"Ana","role":"teacher"}'),
   ('00000000-0000-4000-8000-00000000000b', 'b@test.local', '{"display_name":"Bruno"}'),
   ('00000000-0000-4000-8000-00000000000c', 'c@test.local', '{"display_name":"Carla"}');
+-- The code GoTrue stores for B after `POST /reauthenticate`: hex(sha224(email || code)).
+update auth.users
+   set reauthentication_token =
+         encode(extensions.digest('b@test.local' || '123456', 'sha224'), 'hex'),
+       reauthentication_sent_at = now()
+ where id = '00000000-0000-4000-8000-00000000000b';
 insert into public.groups (id, owner_id, name, invite_code)
 values ('00000000-0000-4000-8000-0000000000a1', '00000000-0000-4000-8000-00000000000a', 'Aula 1',
         'def456def456');
@@ -54,8 +62,9 @@ select results_eq(
 
 -- delete_account as B: their profile, membership, robots and storage objects go; C keeps theirs.
 select pg_temp.act_as('00000000-0000-4000-8000-00000000000b');
-select lives_ok(
-  $$ select public.delete_account() $$,
+select is(
+  public.delete_account('123456'),
+  true,
   'a member deletes their own account'
 );
 
@@ -94,7 +103,7 @@ select results_eq(
 -- anon cannot even call the function.
 set local role anon;
 select throws_ok(
-  $$ select public.delete_account() $$,
+  $$ select public.delete_account('123456') $$,
   '42501',
   null,
   'anon cannot call delete_account'

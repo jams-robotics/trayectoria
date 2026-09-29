@@ -1,5 +1,5 @@
 import { signUp, type UserRole } from '@trayectoria/auth';
-import { useT } from '@trayectoria/i18n';
+import { useT, type Translate } from '@trayectoria/i18n';
 import { useState, type JSX, type SubmitEvent } from 'react';
 
 import {
@@ -12,8 +12,9 @@ import {
   TextField,
   useAuthAction,
   useEmailPasswordValidation,
+  useFieldValidation,
 } from './fields';
-import type { EmailPasswordValidation } from './fields';
+import type { EmailPasswordValidation, FieldValidation } from './fields';
 
 // Supabase local minimum (supabase/config.toml, minimum_password_length); the server re-checks.
 const MIN_PASSWORD_LENGTH = 6;
@@ -27,6 +28,15 @@ interface RegisterValues {
 }
 
 const EMPTY: RegisterValues = { displayName: '', email: '', password: '', role: 'student' };
+
+/**
+ * Own validation message for the name field; empty string when the value is fine (#523). The
+ * name is required: without it the database would fall back to a neutral one, and the name is
+ * what the learner's teachers read, never the email.
+ */
+export function displayNameValidationError(t: Translate, displayName: string): string {
+  return displayName.trim() === '' ? t('auth.validation.displayNameRequired') : '';
+}
 
 interface RegisterFieldsProps {
   readonly values: RegisterValues;
@@ -54,22 +64,43 @@ function RoleChoice({ values, onChange }: RegisterFieldsProps): JSX.Element {
   );
 }
 
+interface RegisterValidation {
+  readonly validation: EmailPasswordValidation;
+  readonly nameValidation: FieldValidation;
+}
+
+/** The required name (#523), with its own message under the field (#534). */
+function NameField({
+  values,
+  onChange,
+  nameValidation,
+}: RegisterFieldsProps & Pick<RegisterValidation, 'nameValidation'>): JSX.Element {
+  const t = useT();
+  return (
+    <TextField
+      id="display-name"
+      label={t('auth.fields.displayName')}
+      type="text"
+      value={values.displayName}
+      onChange={(displayName) => {
+        onChange({ displayName });
+        nameValidation.clear();
+      }}
+      autoComplete="name"
+      error={nameValidation.error}
+    />
+  );
+}
+
 function RegisterFields({
   values,
   onChange,
   validation,
-}: RegisterFieldsProps & { validation: EmailPasswordValidation }): JSX.Element {
-  const t = useT();
+  nameValidation,
+}: RegisterFieldsProps & RegisterValidation): JSX.Element {
   return (
     <>
-      <TextField
-        id="display-name"
-        label={t('auth.fields.displayName')}
-        type="text"
-        value={values.displayName}
-        onChange={(displayName) => onChange({ displayName })}
-        autoComplete="name"
-      />
+      <NameField values={values} onChange={onChange} nameValidation={nameValidation} />
       <EmailPasswordFields
         email={values.email}
         password={values.password}
@@ -93,19 +124,23 @@ function RegisterFields({
 
 // Astro mounts it with client:visible. With email confirmations disabled (local stack) sign-up
 // returns a session and the form goes to /cuenta; otherwise it asks the user to check the email.
+// An address that already has an account gets that same answer (#520).
 export function RegisterForm(): JSX.Element {
   const t = useT();
   const [values, setValues] = useState<RegisterValues>(EMPTY);
   const validation = useEmailPasswordValidation();
+  const nameValidation = useFieldValidation();
   const { state, run } = useAuthAction();
 
   // `noValidate` on the form (#534): the browser's own bubble speaks whatever language it is set
   // to, not the Spanish of the rest of the page, so each field shows its own message instead.
   function submit(event: SubmitEvent<HTMLFormElement>): void {
     event.preventDefault();
-    if (!validation.validate(values.email, values.password)) return;
+    const nameOk = nameValidation.validate(values.displayName, displayNameValidationError);
+    if (!validation.validate(values.email, values.password) || !nameOk) return;
+    const displayName = values.displayName.trim();
     void run(
-      () => signUp({ ...values, redirectTo: absoluteUrl('/cuenta') }),
+      () => signUp({ ...values, displayName, redirectTo: absoluteUrl('/cuenta') }),
       (result) => (result.ok && result.session ? goTo('/cuenta') : t('auth.register.confirmEmail')),
     );
   }
@@ -116,6 +151,7 @@ export function RegisterForm(): JSX.Element {
         values={values}
         onChange={(patch) => setValues({ ...values, ...patch })}
         validation={validation}
+        nameValidation={nameValidation}
       />
       <FormStatus {...state} />
       <div>

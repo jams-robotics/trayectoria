@@ -90,8 +90,17 @@ select results_eq(
 );
 
 -- Deleting the account takes the tracks with it, through the cascade of 0001
--- (auth.users → profiles → tracks): `delete_account()` does not enumerate the table.
-select public.delete_account();
+-- (auth.users → profiles → tracks): `delete_account(nonce)` does not enumerate the table. Since
+-- #521 it takes the reauthentication code GoTrue emailed: D holds a pending '123456'.
+reset role;
+update auth.users
+   set reauthentication_token =
+         encode(extensions.digest('d@test.local' || '123456', 'sha224'), 'hex'),
+       reauthentication_sent_at = now()
+ where id = '00000000-0000-4000-8000-00000000000d';
+set local role authenticated;
+select pg_temp.act_as('00000000-0000-4000-8000-00000000000d');
+select public.delete_account('123456');
 reset role;
 select is_empty(
   $$ select * from public.tracks

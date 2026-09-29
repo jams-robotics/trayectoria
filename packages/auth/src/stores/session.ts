@@ -6,10 +6,16 @@ export type UserRole = 'student' | 'teacher';
 
 /**
  * Generic outcome codes. The UI maps them to i18n keys; none of them reveals whether an email
- * address has an account.
+ * address has an account (a sign-up with a taken address answers like a new one, #520).
  */
 export type AuthErrorCode =
-  'invalid-credentials' | 'weak-password' | 'rate-limited' | 'sign-up-failed' | 'unknown';
+  | 'invalid-credentials'
+  | 'weak-password'
+  | 'rate-limited'
+  | 'sign-up-failed'
+  | 'reauthentication-needed'
+  | 'reauthentication-invalid'
+  | 'unknown';
 
 export type AuthResult =
   | { readonly ok: true; readonly session: Session | null }
@@ -64,7 +70,15 @@ const SILENT_EMAIL_CODES = new Set(['otp_disabled', 'over_email_send_rate_limit'
 function isSilentEmailError(error: AuthError): boolean {
   return error.code !== undefined && SILENT_EMAIL_CODES.has(error.code);
 }
-const SIGN_UP_CODES = new Set(['user_already_exists', 'email_exists', 'signup_disabled']);
+// Sign-up: with email confirmations off (the local stack) GoTrue answers these for a taken
+// address; with them on (production, docs/ops/DEPLOY.md) it answers like a new sign-up. Both are
+// reported as a sign-up pending confirmation, so the form never reveals the address is taken
+// (#520). Only a globally disabled sign-up stays visible as sign-up-failed.
+const TAKEN_EMAIL_CODES = new Set(['user_already_exists', 'email_exists']);
+
+function isTakenEmailError(error: AuthError): boolean {
+  return error.code !== undefined && TAKEN_EMAIL_CODES.has(error.code);
+}
 
 function toErrorCode(error: AuthError, fallback: AuthErrorCode): AuthErrorCode {
   if (error.status === 429 || (error.code !== undefined && RATE_LIMIT_CODES.has(error.code))) {
@@ -72,7 +86,9 @@ function toErrorCode(error: AuthError, fallback: AuthErrorCode): AuthErrorCode {
   }
   if (error.code === 'weak_password') return 'weak-password';
   if (error.code === 'invalid_credentials') return 'invalid-credentials';
-  if (error.code !== undefined && SIGN_UP_CODES.has(error.code)) return 'sign-up-failed';
+  if (error.code === 'signup_disabled') return 'sign-up-failed';
+  if (error.code === 'reauthentication_needed') return 'reauthentication-needed';
+  if (error.code === 'reauthentication_not_valid') return 'reauthentication-invalid';
   return fallback;
 }
 
@@ -101,7 +117,10 @@ export async function signUp(input: SignUpInput): Promise<AuthResult> {
       data: { role: input.role, display_name: input.displayName },
     },
   });
-  if (error) return failure(error, 'sign-up-failed');
+  if (error) {
+    if (isTakenEmailError(error)) return { ok: true, session: null };
+    return failure(error, 'sign-up-failed');
+  }
   if (data.session) $session.set(data.session);
   return { ok: true, session: data.session };
 }
@@ -123,9 +142,27 @@ export async function resetPassword(email: string, redirectTo: string): Promise<
   return { ok: true, session: null };
 }
 
-/** Sets a new password for the signed-in user (the recovery link signs the user in first). */
-export async function updatePassword(password: string): Promise<AuthResult> {
-  const { error } = await getAuthClient().updateUser({ password });
+/**
+ * Emails the signed-in user a one-time code (template `reauthentication`) that proves they still
+ * read the address, whatever way they signed in: `updatePassword` and `delete_account` take it
+ * as `nonce` (#521). The per-address email limit stays visible: the address is the caller's own.
+ */
+export async function reauthenticate(): Promise<AuthResult> {
+  const { error } = await getAuthClient().reauthenticate();
+  if (error) return failure(error);
+  return { ok: true, session: $session.get() };
+}
+
+/**
+ * Sets a new password for the signed-in user (the recovery link signs the user in first). With
+ * `secure_password_change` on (#521) GoTrue checks the `nonce` of `reauthenticate` itself when
+ * the session is older than 24 h, and answers `reauthentication-needed` if it is missing; the web
+ * form always asks for the code and checks it in the database first.
+ */
+export async function updatePassword(password: string, nonce?: string): Promise<AuthResult> {
+  const { error } = await getAuthClient().updateUser(
+    nonce === undefined ? { password } : { password, nonce },
+  );
   if (error) return failure(error);
   $passwordRecovery.set(false);
   return { ok: true, session: $session.get() };
