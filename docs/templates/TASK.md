@@ -3,12 +3,12 @@
 Copiar íntegra al issue. Ningún campo se deja vacío; si no aplica, escribir "ninguno".
 
 ```
-ID: F1-04                      (o T-4.2 para temas, C-M4 para auditorías)
+ID: F1-04                      (o T1-1.4 para temas, C-R1-M1 para auditorías)
 Título: Modelo diferencial cinemático
 Tipo: infra | core | widget | sim | content | qa | docs
 Tamaño: S | M | L              (L se divide antes de asignar)
 Rol: desarrollador | qa | auditor-codigo | auditor-coherencia | seguridad
-Módulo: M0..M6 | ninguno
+Módulo: R1-M0..R1-M3 | R2-M0..R2-M2 | ninguno
 Crítico (mergea humano): sí | no
 Revisión de seguridad: sí | no
 
