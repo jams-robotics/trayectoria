@@ -1,7 +1,7 @@
 import type uPlot from 'uplot';
 import { describe, expect, it, vi } from 'vitest';
 
-import { axisTitle, buildOptions, refLinesPlugin, segmentsPlugin } from './options';
+import { axisTitle, axisValues, buildOptions, refLinesPlugin, segmentsPlugin } from './options';
 import { readTheme } from '../shared/theme';
 import type { PlotRefLine } from './types';
 
@@ -64,6 +64,29 @@ describe('buildOptions: escalas', () => {
   });
 });
 
+// W-MOTOR: the speed axis of MotorCurveWidget reaches 6000 rpm and used to read `6,000`.
+describe('buildOptions: valores de los ejes', () => {
+  /** The `values` hook of the axis at `index`, applied to a list of splits. */
+  function valuesOf(index: number, splits: number[]): unknown {
+    const values = options().axes?.[index]?.values;
+    if (typeof values !== 'function') throw new Error('the axis has no values function');
+    return values(null as unknown as uPlot, splits, index, 0, 0);
+  }
+
+  it('writes the values without a thousands separator (docs/WIDGETS.md, Plot)', () => {
+    expect(valuesOf(0, [0, 1000, 6000, 20000])).toEqual(['0', '1000', '6000', '20000']);
+  });
+
+  it('keeps the decimals of the splits, with a point, on both axes', () => {
+    expect(valuesOf(0, [0.5, 1.25, 0.125])).toEqual(['0.5', '1.25', '0.125']);
+    expect(valuesOf(1, [0.005, 0.01, 1234.5])).toEqual(['0.005', '0.01', '1234.5']);
+  });
+
+  it('passes the hook straight through `axisValues`, with a blank for a null split', () => {
+    expect(axisValues(null as unknown as uPlot, [null, 2])).toEqual(['', '2']);
+  });
+});
+
 /** The canvas calls the draw hook makes, plus the text state it must reset itself. */
 interface FakeContext {
   save: ReturnType<typeof vi.fn>;
@@ -101,7 +124,8 @@ describe('refLinesPlugin', () => {
       ctx: { ...ctx, canvas: { width: 960 } },
       width: 480,
       bbox: { left: 0, top: 0, width: 480, height: 200 },
-      valToPos: (value: number) => (value === 0 ? 100 : Number.NaN),
+      // y = 0 sits mid-chart; y = 1 is 10 canvas pixels under the top edge of the plot area.
+      valToPos: (value: number) => (value === 0 ? 100 : value === 1 ? 10 : Number.NaN),
     } as unknown as uPlot;
     return { chart, ctx: (chart as unknown as { ctx: FakeContext }).ctx };
   }
@@ -128,6 +152,17 @@ describe('refLinesPlugin', () => {
     // The plot area is clipped so a rule never spills over the axes.
     expect(ctx.clip).toHaveBeenCalled();
     expect(ctx.restore).toHaveBeenCalled();
+  });
+
+  it('writes the label below a line at the top of the plot area, where it does not fit above (W-MOTOR)', () => {
+    const { chart, ctx } = fakeChart();
+    // 10 canvas pixels under the top edge: a 24 px (2x) label above the line would be clipped,
+    // as `P_max` was in MotorCurveWidget, so it hangs from the line instead.
+    draw(refLinesPlugin([{ y: 1, label: 'P_max = 1.88 W' }], THEME), chart);
+
+    expect(ctx.moveTo).toHaveBeenCalledWith(0, 10);
+    expect(ctx.fillText).toHaveBeenCalledWith('P_max = 1.88 W', 12, 14);
+    expect(ctx.textBaseline).toBe('top');
   });
 
   it('skips a line whose position cannot be computed', () => {

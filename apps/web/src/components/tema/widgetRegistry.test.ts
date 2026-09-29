@@ -12,6 +12,7 @@ describe('TOPIC_WIDGETS', () => {
       'KinematicsWidget',
       'LineFollowerWidget',
       'LineSensorWidget',
+      'MotorCurveWidget',
       'MyRobotWidget',
       'PowerWidget',
       'ProjectileWidget',
@@ -50,5 +51,11 @@ describe('TOPIC_WIDGETS', () => {
     const lineSensor = await loadWidget('LineSensorWidget');
 
     expect(lineSensor.name).toBe('LineSensorWidget');
+  });
+
+  it('loads MotorCurveWidget from its own entry of @trayectoria/widgets (W-MOTOR)', async () => {
+    const motorCurve = await loadWidget('MotorCurveWidget');
+
+    expect(motorCurve.name).toBe('MotorCurveWidget');
   });
 });

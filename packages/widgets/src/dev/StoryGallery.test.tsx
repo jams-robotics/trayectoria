@@ -122,6 +122,14 @@ describe('stories catalogue', () => {
         ],
       },
       {
+        title: 'MotorCurveWidget',
+        stories: [
+          ['Reference', expect.any(Function)],
+          ['NoCurrents', expect.any(Function)],
+          ['Editable', expect.any(Function)],
+        ],
+      },
+      {
         title: 'DiffDriveWidget',
         stories: [
           ['Forward51', expect.any(Function)],

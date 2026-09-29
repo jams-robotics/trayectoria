@@ -45,6 +45,7 @@ const LOADERS: Readonly<Record<string, WidgetLoader>> = {
   // The one topic widget that lives in `packages/sims`, with an entry of its own there (#409).
   LineFollowerWidget: () => import('@trayectoria/sims/LineFollowerWidget'),
   LineSensorWidget: () => import('@trayectoria/widgets/LineSensorWidget'),
+  MotorCurveWidget: () => import('@trayectoria/widgets/MotorCurveWidget'),
   MyRobotWidget: () => import('@trayectoria/widgets/MyRobotWidget'),
   ParamPanel: () => import('@trayectoria/widgets/ParamPanel'),
   Plot: () => import('@trayectoria/widgets/Plot'),
@@ -74,6 +75,7 @@ export const TOPIC_WIDGETS = [
   'KinematicsWidget',
   'LineFollowerWidget',
   'LineSensorWidget',
+  'MotorCurveWidget',
   'MyRobotWidget',
   'PowerWidget',
   'ProjectileWidget',

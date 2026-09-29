@@ -9,6 +9,7 @@ import * as freeBodyStories from '../FreeBodyWidget/FreeBodyWidget.stories';
 import * as gearStories from '../GearWidget/GearWidget.stories';
 import * as kinematicsStories from '../KinematicsWidget/KinematicsWidget.stories';
 import * as lineSensorStories from '../LineSensorWidget/LineSensorWidget.stories';
+import * as motorCurveStories from '../MotorCurveWidget/MotorCurveWidget.stories';
 import * as myRobotStories from '../MyRobotWidget/MyRobotWidget.stories';
 import * as paramPanelStories from '../ParamPanel/ParamPanel.stories';
 import * as plotStories from '../Plot/Plot.stories';
@@ -66,6 +67,7 @@ export const stories: readonly WidgetStories[] = [
   collect(energyStories),
   collect(powerStories),
   collect(gearStories),
+  collect(motorCurveStories),
   collect(diffDriveStories),
   collect(lineSensorStories),
   collect(exerciseStories),

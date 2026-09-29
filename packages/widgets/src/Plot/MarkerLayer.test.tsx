@@ -112,6 +112,22 @@ describe('MarkerLayer', () => {
     expect(marker).toHaveAttribute('aria-valuenow', '1');
   });
 
+  it('takes the accessible name the caller gives it, instead of «Marcador de tiempo» (W-MOTOR)', () => {
+    render(
+      <div style={{ position: 'relative' }}>
+        <MarkerLayer
+          marker={{ x: 1, label: 'Punto de trabajo' }}
+          xRange={[0, 2]}
+          plotArea={FLUSH_PLOT_AREA}
+          unit="rpm"
+          t={t}
+        />
+      </div>,
+    );
+
+    expect(screen.getByTestId('plot-marker')).toHaveAttribute('aria-label', 'Punto de trabajo');
+  });
+
   it('drags with the pointer within the x range', async () => {
     const onDrag = vi.fn();
     const marker = renderMarker(1, onDrag);

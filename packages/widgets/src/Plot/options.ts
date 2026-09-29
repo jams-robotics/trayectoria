@@ -28,6 +28,19 @@ export function axisTitle(axis: PlotAxis): string {
   return `${axis.label} (${axis.unit})`;
 }
 
+/**
+ * Number format of the axis values: no thousands separator (`6000`, not `6,000`), like the rest
+ * of the content (docs/WIDGETS.md, Plot). uPlot's own formatter groups the digits with the
+ * browser locale; this one keeps its decimals (three at most, on splits uPlot already rounded)
+ * with a fixed locale, so the decimal point matches the `toFixed` readouts around the chart.
+ */
+const AXIS_NUMBER_FORMAT = new Intl.NumberFormat('en-US', { useGrouping: false });
+
+/** uPlot `values` hook of both axes: one label per split, formatted as above. */
+export function axisValues(_self: uPlot, splits: readonly (number | null)[]): string[] {
+  return splits.map((value) => (value === null ? '' : AXIS_NUMBER_FORMAT.format(value)));
+}
+
 /** Shared axis styling: `--sim-axis` strokes, `--sim-grid` grid, no ticks (docs/DESIGN.md §5). */
 function axisStyle(theme: PlotTheme): uPlot.Axis {
   return {
@@ -35,6 +48,7 @@ function axisStyle(theme: PlotTheme): uPlot.Axis {
     font: AXIS_FONT,
     labelFont: AXIS_LABEL_FONT,
     labelSize: 20,
+    values: axisValues,
     grid: { stroke: theme.grid, width: AXIS_WIDTH_PX },
     ticks: { stroke: theme.axis, width: AXIS_WIDTH_PX, size: 4 },
     border: { stroke: theme.axis, width: AXIS_WIDTH_PX },
@@ -208,6 +222,7 @@ export function refLinesPlugin(refLines: readonly PlotRefLine[], theme: PlotThem
         ctx.textAlign = 'left';
         ctx.textBaseline = 'bottom';
         const gap = REF_LINE_LABEL_GAP_PX * ratio;
+        const fontHeight = AXIS_FONT_SIZE_PX * ratio;
         for (const line of refLines) {
           const y = self.valToPos(line.y, 'y', true);
           if (!Number.isFinite(y)) continue;
@@ -215,7 +230,12 @@ export function refLinesPlugin(refLines: readonly PlotRefLine[], theme: PlotThem
           ctx.moveTo(left, y);
           ctx.lineTo(left + width, y);
           ctx.stroke();
-          ctx.fillText(line.label, left + gap, y - gap / 3);
+          // The label sits above the line unless that would run past the top of the plot area
+          // (a line at the top of the y range, such as `P_max`); then it goes below the line, or
+          // the clip above would cut it (docs/WIDGETS.md, Plot).
+          const fitsAbove = y - gap / 3 - fontHeight >= top;
+          ctx.textBaseline = fitsAbove ? 'bottom' : 'top';
+          ctx.fillText(line.label, left + gap, fitsAbove ? y - gap / 3 : y + gap / 3);
         }
         ctx.restore();
       },

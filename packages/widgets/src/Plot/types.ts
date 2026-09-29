@@ -42,10 +42,14 @@ export interface PlotLive {
   windowSeconds: number;
 }
 
-/** Draggable vertical marker; `onDrag` receives the x it was moved to. */
+/**
+ * Draggable vertical marker; `onDrag` receives the x it was moved to. `label` is its accessible
+ * name; without one it reads «Marcador de tiempo» (docs/WIDGETS.md, Plot).
+ */
 export interface PlotMarker {
   x: number;
   onDrag?: (x: number) => void;
+  label?: string;
 }
 
 export interface PlotProps {

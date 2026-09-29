@@ -48,6 +48,10 @@ const WIDGETS = [
   // (#91, decisión 6). La reproducción solo avanza con «Reproducir», así que los cuatro
   // engranajes están quietos y la escena es comparable fotograma a fotograma.
   { name: 'GearWidget', story: 'TwoStage', shot: 'GearWidget' },
+  // El robot de referencia de WIDGETS.md con sus corrientes en 3000 rpm (W-MOTOR, #611): el
+  // modelo es cerrado y nada anima, así que las dos gráficas, el marcador y el panel son
+  // comparables fotograma a fotograma.
+  { name: 'MotorCurveWidget', story: 'Reference', shot: 'MotorCurveWidget' },
   // La «Explora» de T-5.2 (ω_L = 15, ω_R = 20 rad/s) abierta en t = 3 s: el caso aprobado de
   // F2-09a (#92, decisión 7). Lleva el CIR, el radio, los marcos, la traza y los vectores de
   // rueda, y como la reproducción solo avanza con «Reproducir», la escena es comparable
@@ -144,6 +148,10 @@ for (const widget of WIDGETS) {
     // all four canvases, or the shot catches the charts still empty (F2-04).
     if (widget.name === 'KinematicsWidget') {
       await expect(target.locator('canvas')).toHaveCount(4);
+    }
+    // MotorCurveWidget draws on two lazily loaded uPlot charts: wait for both canvases (W-MOTOR).
+    if (widget.name === 'MotorCurveWidget') {
+      await expect(target.locator('canvas')).toHaveCount(2);
     }
     // Scene2D measures its container with a `ResizeObserver` and then paints inside a
     // `requestAnimationFrame`, so the canvas is still at its intrinsic 300 x 150 and blank when
