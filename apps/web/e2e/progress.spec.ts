@@ -11,7 +11,7 @@ import progress from '../../../packages/i18n/locales/es/progress.json' with { ty
 const TOPIC_PATH = '/dev/tema';
 const ROUTE_PATH = '/ruta/ruta-1';
 const TOPIC_ID = 'ruta-1/m00-t01';
-const TOTAL_TOPICS = 27;
+const TOTAL_TOPICS = 28;
 const PASSWORD = 'trayectoria-e2e-2026';
 const DISPLAY_NAME = 'Estudiante E2E';
 

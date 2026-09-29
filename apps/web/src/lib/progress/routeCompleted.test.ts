@@ -5,7 +5,7 @@ import type { ProgressMap } from '@trayectoria/progress';
 import ruta from '../../../../../content/es/ruta-1/ruta.json' with { type: 'json' };
 import { isRouteCompleted } from './routeCompleted';
 
-// Every topic id of Ruta 1, in the order of ruta.json (27 topics, ARCHITECTURE §3.2).
+// Every topic id of Ruta 1, in the order of ruta.json (28 topics, ARCHITECTURE §3.2).
 const ROUTE_1_TOPIC_IDS = ruta.modules.flatMap((module) =>
   module.topics.map((topic) => `ruta-1/${topic.id}`),
 );
@@ -17,8 +17,8 @@ function mapOf(topicIds: readonly string[], progress = COMPLETED): ProgressMap {
 }
 
 describe('isRouteCompleted', () => {
-  it('reads the 27 topics of Ruta 1', () => {
-    expect(ROUTE_1_TOPIC_IDS).toHaveLength(27);
+  it('reads the 28 topics of Ruta 1', () => {
+    expect(ROUTE_1_TOPIC_IDS).toHaveLength(28);
   });
 
   it('is true when every topic of the route is completed', () => {
@@ -30,8 +30,8 @@ describe('isRouteCompleted', () => {
     expect(isRouteCompleted(ROUTE_1_TOPIC_IDS, progress)).toBe(true);
   });
 
-  it('is false with 26 of 27 completed and the last one missing', () => {
-    const progress = mapOf(ROUTE_1_TOPIC_IDS.slice(0, 26));
+  it('is false with 27 of 28 completed and the last one missing', () => {
+    const progress = mapOf(ROUTE_1_TOPIC_IDS.slice(0, 27));
     expect(isRouteCompleted(ROUTE_1_TOPIC_IDS, progress)).toBe(false);
   });
 
