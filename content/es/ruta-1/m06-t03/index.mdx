@@ -36,8 +36,9 @@ reducirlo. Si el error dura mucho, la suma crece sin freno y luego tarda en desc
 se limita, |Σe_j·Δt_c| ≤ I_max. Ese límite es el **anti-windup**.
 
 El término D, K_d·(e_k − e_\{k−1\})/Δt_c, mira la tendencia: se opone a que el error cambie rápido.
-El motor no alcanza al instante la velocidad que le pides. Cuando por fin responde, el robot ya
-cruzó la línea, y así nace la oscilación. D frena el giro antes de que eso ocurra. Su contra es el
+El motor no alcanza al instante la velocidad que le pides: tarda su constante de tiempo τ_m, la de
+[El motor y la batería](/ruta/ruta-1/m03/t03). Cuando por fin responde, el robot ya cruzó la
+línea, y así nace la oscilación. D frena el giro antes de que eso ocurra. Su contra es el
 ruido: una lectura que salta de un paso al siguiente da una diferencia grande, y D la amplifica.
 
 Para sintonizar a mano, sube K_p hasta que el robot oscile. Añade K_d hasta que la oscilación se

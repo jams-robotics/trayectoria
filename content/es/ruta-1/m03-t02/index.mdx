@@ -18,7 +18,7 @@ seoDescription: "Aprende a calcular la potencia mecánica y eléctrica de un mot
 ---
 
 <Gancho>
-Tu motor entrega 0.03 N·m a 5000 rpm. ¿Cuántos vatios mecánicos son? Y con una batería de
+Un motor entrega 0.03 N·m a 5000 rpm. ¿Cuántos vatios mecánicos son? Y con una batería de
 11.1 Wh y dos motores de 6 V y 1.2 A, ¿cuántos minutos corre el robot?
 </Gancho>
 
@@ -27,15 +27,18 @@ La **potencia** es la energía que se transfiere por unidad de tiempo: P = W/t. 
 vatios, 1 W = 1 J/s. Dos motores pueden hacer el mismo trabajo; el más potente lo hace en menos
 tiempo.
 
-Un eje que gira con torque τ a velocidad angular ω entrega P = τ·ω. El motor del gancho es otro,
-más grande que el de tu robot. Con los datos del gancho, 5000 rpm son 5000·2π/60 = 523.6 rad/s, y el motor entrega 0.03·523.6 = 15.71 W mecánicos.
+Un eje que gira con torque τ a velocidad angular ω entrega P = τ·ω. Con los datos del gancho,
+5000 rpm son 5000·2π/60 = 523.6 rad/s, y ese motor entrega 0.03·523.6 = 15.71 W mecánicos.
 
 Una fuerza F que empuja a un cuerpo que avanza a v en su misma dirección entrega P = F·v. Es la
 misma idea en línea recta: el trabajo F·d que se hace en cada segundo.
 
 El motor toma potencia eléctrica de la batería, P_el = V·I, y entrega potencia mecánica en el
-eje. La diferencia se pierde como calor. La **eficiencia** es la fracción que llega al eje:
-η = P_mec/P_el, un número entre 0 y 1. Con η = 0.6, de cada 10 W eléctricos llegan 6 W al eje.
+eje; la diferencia se pierde como calor. La **eficiencia** de cualquier máquina es la fracción
+que llega a la salida: η = P_mec/P_el, entre 0 y 1. Un motorreductor tiene dos: la del motor, de
+la electricidad al eje del motor, y la de la caja, del eje del motor a la rueda. El 0.6 del perfil
+de «Mi robot» es la de la caja, la de [Torque](/ruta/ruta-1/m02/t03); la del motor se calcula en
+[El motor y la batería](/ruta/ruta-1/m03/t03).
 
 La **capacidad** C de una batería es la energía que guarda, en vatios-hora. 1 Wh es la energía
 de 1 W durante una hora: 1 Wh = 3600 J. La batería del gancho guarda 11.1·3600 = 39960 J.
@@ -43,10 +46,9 @@ de 1 W durante una hora: 1 Wh = 3600 J. La batería del gancho guarda 11.1·3600
 La **autonomía** es el tiempo que la batería sostiene el consumo: t_autonomía = C/P_el, en horas
 si C va en Wh y P_el en W. Con dos motores a 6 V y 1.2 A cada uno, los de la hoja de datos de
 [Unidades y magnitudes](/ruta/ruta-1/m00/t01), P_el = 2·6·1.2 = 14.4 W. La batería dura
-11.1/14.4 = 0.771 h, unos 46.3 min.
-
-Un motor de corriente continua entrega su potencia mecánica máxima a la mitad de su velocidad
-sin carga.
+11.1/14.4 = 0.771 h, unos 46.3 min. Esos 1.2 A son la corriente de bloqueo, la máxima del motor,
+parado a plena tensión: es el peor caso, y en marcha la batería dura más. Cuánto más se calcula
+en [El motor y la batería](/ruta/ruta-1/m03/t03), con la corriente de trabajo.
 </Concepto>
 
 <Formulas>
@@ -128,10 +130,9 @@ En t = 1 s la carga está a 0.4893 m: E_p = m·g·h = 4.32 J, igual que W = 4.32
 </Explora>
 
 <AlRobot>
-Tu robot tiene dos motores que se alimentan de la misma batería. Juntos consumen
-P_el = 2·V·I. V es el voltaje nominal del motor de tu perfil de «Mi robot». I no está en el
-perfil: es la corriente de la hoja de datos del gancho de
-[Unidades y magnitudes](/ruta/ruta-1/m00/t01), 1.2 A por motor.
+Tu robot tiene dos motores que se alimentan de la misma batería. Parados a plena tensión, con el
+eje detenido, juntos consumen P_el = 2·V·I. V es el voltaje nominal e I la corriente de bloqueo
+del motor de tu perfil de «Mi robot», la máxima que pide el motor.
 
 <RobotFormula calc="ruta-1/m03-t02/electrical-power" />
 
@@ -139,14 +140,14 @@ Con esa potencia, la capacidad C de tu batería da la autonomía, en horas y en 
 
 <RobotFormula calc="ruta-1/m03-t02/autonomy" />
 
-Si tu perfil no define el voltaje del motor o la capacidad de la batería, o no es un robot
-móvil, el cálculo usa los del robot de referencia: 6 V y 11.1 Wh.
+Si tu perfil no define el voltaje del motor, su corriente de bloqueo o la capacidad de la
+batería, o no es un robot móvil, el cálculo usa los del robot de referencia: 6 V, 1.2 A y
+11.1 Wh.
 
 Con el robot de referencia, P_el = 2·6·1.2 = 14.4 W y t_autonomía = 11.1/14.4 = 0.771 h, unos
-46.3 min.
-
-Si cada motor consume más corriente, por ejemplo al subir una rampa, la potencia eléctrica sube
-y la autonomía baja en la misma proporción.
+46.3 min. Es una cota inferior de la autonomía: la corriente de bloqueo es la máxima que el motor
+pide, así que en marcha la corriente es menor y la batería dura más. Cuánto más lo calculas en
+[El motor y la batería](/ruta/ruta-1/m03/t03), con la corriente del punto de trabajo.
 </AlRobot>
 
 <Verifica

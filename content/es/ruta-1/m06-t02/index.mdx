@@ -40,7 +40,9 @@ pequeña. Con los datos del gancho y K_p = 8 rad/s, u = 8·0.4 = 3.2 rad/s: la r
 
 La ganancia K_p decide el comportamiento. Con K_p bajo, el robot corrige despacio y en una curva
 el error crece hasta que la línea sale del arreglo. Con K_p alto, oscila: el motor no cambia de
-velocidad al instante, la corrección llega tarde y el robot cruza la línea antes de que termine.
+velocidad al instante, tarda su constante de tiempo τ_m, la de
+[El motor y la batería](/ruta/ruta-1/m03/t03); la corrección llega tarde y el robot cruza la
+línea antes de que termine.
 
 K_p tampoco puede crecer sin límite. La rueda rápida pide ω_base + K_p·|e|, y ninguna rueda gira
 más rápido que ω_max. Para no saturar con el error más grande, ω_base + K_p·|e|_max ≤ ω_max.
@@ -117,8 +119,8 @@ pide un error cuatro veces menor, y el robot da 2 vueltas en 15 s (≈ 6.04 s y 
   observa="la gráfica del error en las rectas"
   porque="¿Por qué oscila de lado a lado?"
 >
-El motor tarda en cambiar de velocidad, así que la corrección llega tarde y el robot cruza la
-línea antes de que termine. En los primeros 5 s el error cambia de signo 10 veces, frente a 4 con
+El motor tarda en cambiar de velocidad, su constante de tiempo τ_m, así que la corrección llega
+tarde y el robot cruza la línea antes de que termine. En los primeros 5 s el error cambia de signo 10 veces, frente a 4 con
 K_p = 8. En la 2.ª vuelta la oscilación saca al robot de la línea, a t ≈ 7.9 s.
 </Experimento>
 

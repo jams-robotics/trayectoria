@@ -31,6 +31,8 @@ export const VOLTAGES_V = [3, 5, 6, 7.4, 12] as const;
 export const CURRENT_A: Range = { min: 0.2, max: 3 };
 export const E1_TORQUE_NM: Range = { min: 0.005, max: 0.1 };
 export const E1_SPEED_RPM: Range = { min: 500, max: 8000 };
+/** e1 draws again when `τ·ω` exceeds this power, so the motors stay educational-sized (#609). */
+export const E1_MAX_POWER_W = 10;
 export const E2_EFFICIENCY: Range = { min: 0.5, max: 0.9 };
 export const E3_BATTERY_WH: Range = { min: 3, max: 40 };
 export const E4_FORCE_N: Range = { min: 0.1, max: 3 };
@@ -50,22 +52,33 @@ function statementKey(exerciseId: string): string {
   return `content.${TOPIC_ID}.${exerciseId}`;
 }
 
-interface Shaft {
+export interface Shaft {
   readonly torque_Nm: number;
   readonly speed_rpm: number;
+}
+
+/** `P = τ·ω`, with `ω = n·2π/60`: the answer of e1, exported so the test fixes its golden value. */
+export function shaftPower_W({ torque_Nm, speed_rpm }: Shaft): number {
+  return torque_Nm * speed_rpm * RPM_TO_RADPS;
+}
+
+/** τ and n of e1, redrawn until `τ·ω` is at most 10 W (#609). */
+function drawShaft(rng: SeededRng): Shaft {
+  for (;;) {
+    const shaft = {
+      torque_Nm: drawOnGrid(rng, E1_TORQUE_NM, THOUSANDTHS),
+      speed_rpm: drawOnGrid(rng, E1_SPEED_RPM, WHOLE),
+    };
+    if (shaftPower_W(shaft) <= E1_MAX_POWER_W) return shaft;
+  }
 }
 
 /** e1: `P = τ·ω`, with `ω = n·2π/60`. */
 const e1 = defineExercise<Shaft>({
   id: 'e1',
   generate: (rng) => {
-    const torque_Nm = drawOnGrid(rng, E1_TORQUE_NM, THOUSANDTHS);
-    const speed_rpm = drawOnGrid(rng, E1_SPEED_RPM, WHOLE);
-    return {
-      values: { torque_Nm, speed_rpm },
-      answer: torque_Nm * speed_rpm * RPM_TO_RADPS,
-      unit: 'W',
-    };
+    const shaft = drawShaft(rng);
+    return { values: shaft, answer: shaftPower_W(shaft), unit: 'W' };
   },
   statement: () => statementKey('e1'),
   tolerance: RELATIVE_2_PERCENT,
