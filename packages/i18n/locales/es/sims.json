@@ -171,6 +171,7 @@
     "sourceHelp": "Elige un brazo del catálogo.",
     "fallback": "No hay ningún brazo con ese identificador; se muestra «{{name}}».",
     "view": "Controles de vista",
+    "viewNone": "ninguna capa",
     "workspace": "Espacio de trabajo",
     "matrices": "Matrices",
     "expand": "ver",

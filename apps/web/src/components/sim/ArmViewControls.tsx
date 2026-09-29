@@ -1,5 +1,6 @@
 import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
+import type { Translate } from '@trayectoria/i18n';
 
 import { SimAccordion } from './SimAccordion';
 import type { AccordionGroup } from './accordionGroup';
@@ -8,107 +9,102 @@ import type { AccordionGroup } from './accordionGroup';
 // `ArmSimIsland.tsx` when the import flow of F5-04 (#137) was added so that neither of the two
 // files goes over 300 lines (docs/STANDARDS.md §4). No public API of its own: `ArmSimIsland.tsx`
 // is the only one that imports from here.
+//
+// #537 and #542: «Espacio de trabajo», «Matrices» and «Marcos» are one segmented group in one
+// row (docs/DESIGN.md §5 and §6), all with the same active style, and on mobile the three go
+// inside the «Controles de vista» accordion, whose header shows which layers are on.
 
-/** The operative view button: active in `primary`, inactive secondary (docs/DESIGN.md §5). */
-const TOGGLE_BUTTON = 'h-9 rounded-sm border px-3 text-sm';
-const TOGGLE_ON = `${TOGGLE_BUTTON} bg-primary text-primary-fg border-primary`;
-const TOGGLE_OFF = `${TOGGLE_BUTTON} border-border bg-bg-raised text-fg-muted`;
+/** A segment of the group: 36 px on desktop (§6), 44 px touch target on mobile (§9.3). */
+const SEGMENT = 'px-3 text-sm transition-colors duration-[120ms]';
+const SEGMENT_ON = 'bg-primary text-primary-fg font-semibold';
+const SEGMENT_OFF = 'bg-bg-raised text-fg-muted hover:text-fg';
 
-/** A view control that turns on a viewer layer (#135 and #136, decision 4). */
-function LayerToggle({
-  label,
-  on,
-  testId,
-  onToggle,
-}: {
-  label: string;
-  on: boolean;
-  testId: string;
-  onToggle: (on: boolean) => void;
-}): JSX.Element {
-  return (
-    <button
-      type="button"
-      className={on ? TOGGLE_ON : TOGGLE_OFF}
-      aria-pressed={on}
-      data-testid={testId}
-      onClick={() => {
-        onToggle(!on);
-      }}
-    >
-      {label}
-    </button>
-  );
+/** The three layers the group turns on, in display order. */
+export interface ViewLayers {
+  readonly workspace: boolean;
+  readonly matrices: boolean;
+  readonly frames: boolean;
 }
 
-/** The row with the two operative view controls. */
-function ToggleRow({
-  matrices,
-  onMatrices,
-  workspace,
-  onWorkspace,
+/** Each layer with its label key and the `data-testid` the e2e tests already use. */
+const LAYERS: readonly {
+  readonly id: keyof ViewLayers;
+  readonly labelKey: string;
+  readonly testId: string;
+}[] = [
+  { id: 'workspace', labelKey: 'sims.armPage.workspace', testId: 'workspace-toggle' },
+  { id: 'matrices', labelKey: 'sims.armPage.matrices', testId: 'matrices-toggle' },
+  { id: 'frames', labelKey: 'sims.arm.frames', testId: 'frames-toggle' },
+];
+
+/**
+ * The state of the group in one line, for the header of the accordion (#542): the layers that
+ * are on, or that none is. It never repeats the title.
+ */
+export function viewSummary(layers: ViewLayers, t: Translate): string {
+  const on = LAYERS.filter((layer) => layers[layer.id]).map((layer) => t(layer.labelKey));
+  return on.length === 0 ? t('sims.armPage.viewNone') : on.join(' · ');
+}
+
+/** The segmented group with the three view toggles. */
+function ViewGroup({
+  layers,
+  onLayer,
+  mobile,
 }: {
-  matrices: boolean;
-  onMatrices: (on: boolean) => void;
-  workspace: boolean;
-  onWorkspace: (on: boolean) => void;
+  layers: ViewLayers;
+  onLayer: (id: keyof ViewLayers, on: boolean) => void;
+  mobile: boolean;
 }): JSX.Element {
   const t = useT();
+  const height = mobile ? 'h-11' : 'h-9';
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label={t('sims.armPage.view')}>
-      <LayerToggle
-        label={t('sims.armPage.workspace')}
-        on={workspace}
-        testId="workspace-toggle"
-        onToggle={onWorkspace}
-      />
-      <LayerToggle
-        label={t('sims.armPage.matrices')}
-        on={matrices}
-        testId="matrices-toggle"
-        onToggle={onMatrices}
-      />
+    <div
+      className="border-border divide-border flex w-fit divide-x overflow-hidden rounded-md border"
+      role="group"
+      aria-label={t('sims.armPage.view')}
+      data-testid="view-controls"
+    >
+      {LAYERS.map((layer) => (
+        <button
+          key={layer.id}
+          type="button"
+          className={`${SEGMENT} ${height} ${layers[layer.id] ? SEGMENT_ON : SEGMENT_OFF}`}
+          aria-pressed={layers[layer.id]}
+          data-testid={layer.testId}
+          onClick={() => {
+            onLayer(layer.id, !layers[layer.id]);
+          }}
+        >
+          {t(layer.labelKey)}
+        </button>
+      ))}
     </div>
   );
 }
 
 /**
- * The view controls. «Marcos» is not here: the `ArmViewer` itself provides it (#134,
- * decision 4). On mobile they go inside an accordion so they do not eat the height above the
- * viewer (docs/DESIGN.md §9 points 3 and 8).
+ * The view controls. On desktop, the group over the viewer; on mobile, inside an accordion so it
+ * does not eat the height above the viewer (docs/DESIGN.md §9 points 3 and 8).
  */
 export function ViewControls({
   mobile,
   group,
-  matrices,
-  onMatrices,
-  workspace,
-  onWorkspace,
+  layers,
+  onLayer,
 }: {
   mobile: boolean;
   group: AccordionGroup;
-  matrices: boolean;
-  onMatrices: (on: boolean) => void;
-  workspace: boolean;
-  onWorkspace: (on: boolean) => void;
+  layers: ViewLayers;
+  onLayer: (id: keyof ViewLayers, on: boolean) => void;
 }): JSX.Element {
   const t = useT();
-  const controls = (
-    <ToggleRow
-      matrices={matrices}
-      onMatrices={onMatrices}
-      workspace={workspace}
-      onWorkspace={onWorkspace}
-    />
-  );
-  // On desktop the controls go at the top left of the viewer (mockup 05). `Marcos` is not
-  // here: the `ArmViewer` itself draws it in the row immediately below, because reusing it
-  // as is is decision 4 of the ticket and its `FramesToggle` is internal.
+  const controls = <ViewGroup layers={layers} onLayer={onLayer} mobile={mobile} />;
   if (!mobile) return controls;
   return (
     <SimAccordion
       title={t('sims.armPage.view')}
-      summary={t('sims.armPage.view')}
+      summary={viewSummary(layers, t)}
       open={group.openId === 'view'}
       onToggle={(open) => {
         group.setOpenId(open ? 'view' : null);

@@ -113,6 +113,64 @@ test.describe('/simuladores/brazo (F5-01b)', () => {
     await expect(page.locator('[data-testid="sim-accordion"] button[aria-expanded="true"]')).toHaveCount(1);
   });
 
+  test('los tres controles de vista son un solo grupo en una fila, «Marcos» incluido (#537)', async ({
+    page,
+  }) => {
+    await openArm(page, 'planar2dof');
+
+    const toggles = page.locator('[data-testid="view-controls"] button');
+    await expect(toggles).toHaveCount(3);
+    await expect(page.locator('[data-testid="frames-toggle"]')).toHaveCount(1);
+    const tops = await toggles.evaluateAll((buttons) =>
+      buttons.map((button) => Math.round(button.getBoundingClientRect().top)),
+    );
+    expect(new Set(tops).size).toBe(1);
+    // «Marcos» arranca encendido y se ve como los otros dos al activarse: relleno primario.
+    const frames = page.locator('[data-testid="frames-toggle"]');
+    const matrices = page.locator('[data-testid="matrices-toggle"]');
+    await expect(frames).toHaveAttribute('aria-pressed', 'true');
+    await matrices.click();
+    const fill = (locator: typeof frames): Promise<string> =>
+      locator.evaluate((element) => getComputedStyle(element).backgroundColor);
+    expect(await fill(frames)).toBe(await fill(matrices));
+  });
+
+  test('a 390 px la cabecera de vista muestra el estado y «Marcos» va dentro (#542)', async ({
+    page,
+  }) => {
+    await page.setViewportSize(MOBILE_VIEWPORT);
+    await openArm(page, 'planar2dof');
+
+    const view = page.locator('[data-testid="sim-accordion"]').nth(0);
+    const header = view.locator('button[aria-expanded]');
+    const text = (await header.textContent()) ?? '';
+    expect(text.split('Controles de vista')).toHaveLength(2);
+    expect(text).toContain('Marcos');
+    await expect(view.locator('[data-testid="frames-toggle"]')).toHaveCount(1);
+
+    // «Articulaciones» abierto no repite su título dentro del panel.
+    const joints = page.locator('[data-testid="joint-sliders"]');
+    await expect(joints.locator('[data-panel-title]')).toBeHidden();
+    // Las etiquetas legibles de la ficha, con el id URDF como texto auxiliar (#535).
+    await expect(joints.getByText('Articulación 1', { exact: true })).toBeVisible();
+    await expect(joints.getByText('joint1', { exact: true })).toBeVisible();
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+
+  test('el encuadre inicial sale del alcance de la ficha (#556)', async ({ page }) => {
+    await openArm(page, 'planar2dof');
+    const canvas = page.locator('[data-camera-position]');
+    const distance_m = async (): Promise<number> => {
+      const raw = (await canvas.getAttribute('data-camera-position')) ?? '';
+      return Math.hypot(...raw.split(',').map(Number));
+    };
+    // 0.35 m / tan(22.5°) = 0.845 m (valor dorado de Scene3D.test.tsx).
+    expect(await distance_m()).toBeCloseTo(0.845, 3);
+  });
+
   test('cambiar de brazo en el selector actualiza la URL', async ({ page }) => {
     await openArm(page, 'planar2dof');
 
