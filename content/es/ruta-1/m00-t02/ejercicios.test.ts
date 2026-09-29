@@ -3,6 +3,7 @@ import type { Tolerance } from '@trayectoria/sim-core';
 import { describe, expect, it } from 'vitest';
 
 import {
+  MIN_RELATIVE_ANSWER,
   angleBetween_deg,
   components_mps,
   e1,
@@ -140,6 +141,56 @@ describe('T-0.2 exercises', () => {
       expect(answer).toBeGreaterThan(0);
       expect(unit).toBe('m');
     }
+  });
+
+  it('e3 draws again while |a⃗ + b⃗| < 0.025 m, where 2 % no longer covers the millimetre (#568)', () => {
+    // First draw: (0.01, 0.02) + (0, 0) → 0.02236 m, redrawn; then the golden draw → 1.526 m.
+    const draws = [1, 2, 0, 0, 120, 50, -40, 80];
+    const rng = {
+      next: () => 0,
+      nextInt: () => {
+        const draw = draws.shift();
+        if (draw === undefined) throw new Error('more draws than scripted');
+        return draw;
+      },
+      nextGaussian: () => 0,
+    };
+    const { values, answer } = e3.generate(rng);
+
+    expect(MIN_RELATIVE_ANSWER).toBe(0.025);
+    expect(values).toEqual({ ax_m: 1.2, ay_m: 0.5, bx_m: -0.4, by_m: 0.8 });
+    expect(answer).toBeCloseTo(1.526, 3);
+  });
+
+  it('never answers a component graded relative 2 % in (0, 0.025) over 20000 seeds (#568)', () => {
+    const failures: string[] = [];
+    for (const exercise of [e1, e2, e3] as const) {
+      for (let seed = 0; seed < 20000; seed += 1) {
+        const { answer } = exercise.generate(createRng(seed));
+        const components = typeof answer === 'number' ? [answer] : answer;
+        components.forEach((value, index) => {
+          const isRelative = toleranceAt(exercise.tolerance, index).type === 'relative';
+          if (isRelative && value !== 0 && Math.abs(value) < MIN_RELATIVE_ANSWER) {
+            failures.push(`${exercise.id} seed ${seed}: component ${index} = ${value}`);
+          }
+        });
+      }
+    }
+    expect(failures.slice(0, 5)).toEqual([]);
+  });
+
+  it('e1 draws again while a component is below 0.025 m/s: 0.1 m/s at 80° gives vₓ = 0.01736 (#568)', () => {
+    const draws = [10, 80, 50, 30];
+    const rng = {
+      next: () => 0,
+      nextInt: () => {
+        const draw = draws.shift();
+        if (draw === undefined) throw new Error('more draws than scripted');
+        return draw;
+      },
+      nextGaussian: () => 0,
+    };
+    expect(e1.generate(rng).values).toEqual({ v_mps: 0.5, theta_deg: 30 });
   });
 
   it('e4 always asks for the angle between (0.3, 0.4) and (0.5, 0), in °', () => {

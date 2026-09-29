@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import {
   E1_DT_S,
   E1_DX_M,
+  E1_MIN_SPEED_MPS,
   E2_COEF_C_MPS2,
   E2_T_S,
   E3_DT_S,
@@ -139,6 +140,24 @@ describe('e1 · velocidad media', () => {
       const answer_mps = answerOf('e1', seed);
       expect(answer_mps).toBeCloseTo(dx_m! / dt_s!, 12);
       expect(answer_mps).toBeLessThanOrEqual(MAX_SPEED_MPS + EPSILON);
+    }
+  });
+
+  it('draws again when Δx / Δt < 0.025 m/s, where 2 % no longer covers the thousandth (#568)', () => {
+    // 0.01 m in 1.5 s is 0.006667 m/s: redrawn. 0.01 m in 0.4 s is exactly 0.025 m/s: kept.
+    expect(E1_MIN_SPEED_MPS).toBe(0.025);
+    const { values, answer } = exercise('e1').generate(scriptedRng([1, 15, 1, 4]));
+
+    expect(values).toEqual({ dx_m: 0.01, dt_s: 0.4 });
+    expect(answer).toBeCloseTo(0.025, 10);
+  });
+
+  it('never answers a v̄ in (0, 0.025) m/s over 5000 seeds (#568)', () => {
+    for (const seed of MANY_SEEDS) {
+      // 0.025 m/s itself comes out of 0.01 / 0.4 as 0.024999999999999998, hence EPSILON.
+      expect(answerOf('e1', seed), `seed ${seed}`).toBeGreaterThanOrEqual(
+        E1_MIN_SPEED_MPS - EPSILON,
+      );
     }
   });
 });

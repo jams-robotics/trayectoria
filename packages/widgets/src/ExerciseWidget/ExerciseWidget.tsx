@@ -61,6 +61,18 @@ function Statement({
   );
 }
 
+/**
+ * Fixed help line under the statement, `sm` muted (docs/DESIGN.md §3): with relative 2 %, a
+ * response with three significant figures always passes (#568).
+ */
+function PrecisionNote({ t }: { t: Translate }): JSX.Element {
+  return (
+    <p className="text-fg-muted mt-2 text-sm" data-testid="exercise-precision">
+      {t('widgets.ExerciseWidget.precision')}
+    </p>
+  );
+}
+
 /** One numeric field per answer component, «Comprobar» and the result (docs/DESIGN.md §5). */
 function AnswerRow({ state, t }: { state: ExerciseState; t: Translate }): JSX.Element {
   const status: ExerciseStatus = state.status;
@@ -119,6 +131,7 @@ export function ExerciseWidget<V>({
       aria-label={t('widgets.ExerciseWidget.title')}
     >
       <Statement state={state} index={index} required={required} t={t} />
+      <PrecisionNote t={t} />
       <AnswerRow state={state} t={t} />
       {state.invalid ? (
         <p className="text-error mt-2 text-sm">{t('widgets.ExerciseWidget.invalid')}</p>

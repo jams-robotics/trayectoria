@@ -270,13 +270,13 @@ describe('e4 · punto global (1.5, 0.9) en {R}', () => {
   });
 });
 
-describe('answers close to 0 (#451)', () => {
-  // Golden threshold of #451: with relative 2 %, a nonzero answer below 0.01 (in its unit) would
-  // reject a correct response rounded to the thousandth. An exact 0 is graded with an absolute
+describe('answers close to 0 (#451, #568)', () => {
+  // Threshold of #451, raised by #568: with relative 2 %, a nonzero answer below 0.025 (in its unit)
+  // would reject a correct response rounded to the thousandth. An exact 0 is graded with an absolute
   // error by `check`, so it stays allowed.
-  const MIN_NONZERO_ANSWER = 0.01;
+  const MIN_NONZERO_ANSWER = 0.025;
 
-  it('never generates a nonzero answer below 0.01 in e1, e2 and e4', () => {
+  it('never generates a nonzero answer below 0.025 in e1, e2 and e4', () => {
     for (const id of ['e1', 'e2', 'e4']) {
       for (const seed of MANY_SEEDS) {
         const answer = exercise(id).generate(createRng(seed)).answer;

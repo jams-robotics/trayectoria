@@ -30,6 +30,11 @@ export const E3_DX_M: Range = { min: 0.2, max: 2 };
 export const E4_DX_M = 4;
 export const E4_A_MPS2 = 0.4;
 export const E4_V_MPS = 0.6;
+/**
+ * e2 draws again while Δx is below this: with relative 2 %, a correct response rounded to the
+ * millimetre (up to 0.0005 m off) is only accepted from 0.025 m on (#568).
+ */
+export const MIN_RELATIVE_ANSWER = 0.025;
 
 /** A value on the grid of step 1/`perUnit`, in [min, max]. */
 function drawOnGrid(rng: SeededRng, range: Range, perUnit: number): number {
@@ -68,13 +73,21 @@ interface Braking {
   readonly a_mps2: number;
 }
 
-/** e2: braking from v₀ to rest, v² = v₀² + 2·a·Δx with v = 0, so Δx = v₀² / (2·|a|). */
+/**
+ * e2: braking from v₀ to rest, v² = v₀² + 2·a·Δx with v = 0, so Δx = v₀² / (2·|a|), drawn again
+ * while Δx < 0.025 m (#568).
+ */
 const e2 = defineExercise<Braking>({
   id: 'e2',
   generate: (rng) => {
-    const v0_mps = drawOnGrid(rng, E2_V0_MPS, HUNDREDTHS);
-    const a_mps2 = -drawOnGrid(rng, E2_A_MAGNITUDE_MPS2, HUNDREDTHS);
-    return { values: { v0_mps, a_mps2 }, answer: v0_mps ** 2 / (2 * -a_mps2), unit: 'm' };
+    for (;;) {
+      const v0_mps = drawOnGrid(rng, E2_V0_MPS, HUNDREDTHS);
+      const a_mps2 = -drawOnGrid(rng, E2_A_MAGNITUDE_MPS2, HUNDREDTHS);
+      const brakingDistance_m = v0_mps ** 2 / (2 * -a_mps2);
+      if (brakingDistance_m >= MIN_RELATIVE_ANSWER) {
+        return { values: { v0_mps, a_mps2 }, answer: brakingDistance_m, unit: 'm' };
+      }
+    }
   },
   statement: () => statementKey('e2'),
   tolerance: RELATIVE_2_PERCENT,

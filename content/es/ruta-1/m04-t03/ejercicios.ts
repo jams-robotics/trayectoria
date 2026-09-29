@@ -31,6 +31,11 @@ export const E3_ALPHA_RADPS2: Range = { min: 10, max: 100 };
 export const E3_R_M: Range = { min: 0.015, max: 0.05 };
 export const E4_MU_S: Range = { min: 0.2, max: 1 };
 export const E4_R_M: Range = { min: 0.1, max: 2 };
+/**
+ * e2 draws again while a_c is below this: with relative 2 %, a correct response rounded to the
+ * thousandth (up to 0.0005 m/s² off) is only accepted from 0.025 m/s² on (#568).
+ */
+export const MIN_RELATIVE_ANSWER = 0.025;
 
 /** A value on the grid of step 1/`perUnit`, in [min, max]. */
 function drawOnGrid(rng: SeededRng, range: Range, perUnit: number): number {
@@ -64,13 +69,18 @@ interface Curve {
   readonly turnRadius_m: number;
 }
 
-/** e2: `a_c = v²/R`. */
+/** e2: `a_c = v²/R`, drawn again while a_c < 0.025 m/s² (#568). */
 const e2 = defineExercise<Curve>({
   id: 'e2',
   generate: (rng) => {
-    const v_mps = drawOnGrid(rng, E2_V_MPS, HUNDREDTHS);
-    const turnRadius_m = drawOnGrid(rng, E2_R_M, HUNDREDTHS);
-    return { values: { v_mps, turnRadius_m }, answer: v_mps ** 2 / turnRadius_m, unit: 'm/s²' };
+    for (;;) {
+      const v_mps = drawOnGrid(rng, E2_V_MPS, HUNDREDTHS);
+      const turnRadius_m = drawOnGrid(rng, E2_R_M, HUNDREDTHS);
+      const centripetal_mps2 = v_mps ** 2 / turnRadius_m;
+      if (centripetal_mps2 >= MIN_RELATIVE_ANSWER) {
+        return { values: { v_mps, turnRadius_m }, answer: centripetal_mps2, unit: 'm/s²' };
+      }
+    }
   },
   statement: () => statementKey('e2'),
   tolerance: RELATIVE_2_PERCENT,

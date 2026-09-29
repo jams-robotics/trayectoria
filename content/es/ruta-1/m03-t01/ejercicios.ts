@@ -24,8 +24,13 @@ export const E1_V_MPS: Range = { min: 0.1, max: 1.5 };
 export const E2_V_MPS: Range = { min: 0.1, max: 1.5 };
 export const E3_MASS_KG: Range = { min: 0.2, max: 3 };
 export const E3_V_MPS: Range = { min: 0.1, max: 1.5 };
-/** Smallest net work e3 asks for, in joules. */
-export const E3_MIN_WORK_J = 0.01;
+/**
+ * Smallest net work e3 asks for, in joules (V-32). From 0.025 J on, relative 2 % covers a correct
+ * response rounded to the thousandth (#568).
+ */
+export const E3_MIN_WORK_J = 0.025;
+/** e1 and e2 draw again while their answer is below this, for the same reason (#568). */
+export const MIN_RELATIVE_ANSWER = 0.025;
 export const E4_FRICTION_N: Range = { min: 0.1, max: 1 };
 export const E4_DISTANCE_M: Range = { min: 1, max: 10 };
 
@@ -55,12 +60,15 @@ function drawMassAndSpeed(rng: SeededRng, mass: Range, speed: Range): MassAndSpe
   return { mass_kg, v_mps };
 }
 
-/** e1: kinetic energy of m at v, `E_k = ½·m·v²`. */
+/** e1: kinetic energy of m at v, `E_k = ½·m·v²`, drawn again while E_k < 0.025 J (#568). */
 const e1 = defineExercise<MassAndSpeed>({
   id: 'e1',
   generate: (rng) => {
-    const values = drawMassAndSpeed(rng, E1_MASS_KG, E1_V_MPS);
-    return { values, answer: kineticEnergy_J(values.mass_kg, values.v_mps), unit: 'J' };
+    for (;;) {
+      const values = drawMassAndSpeed(rng, E1_MASS_KG, E1_V_MPS);
+      const answer = kineticEnergy_J(values.mass_kg, values.v_mps);
+      if (answer >= MIN_RELATIVE_ANSWER) return { values, answer, unit: 'J' };
+    }
   },
   statement: () => statementKey('e1'),
   tolerance: RELATIVE_2_PERCENT,
@@ -70,12 +78,26 @@ interface Speed {
   readonly v_mps: number;
 }
 
-/** e2: height reached by inertia without friction, `h_max = v² / (2g)`. */
+/**
+ * `h_max = v² / (2g)`. Exported so the golden value of the spec, 0.01835 m, which e2 now draws
+ * again (#568), is still tested.
+ */
+export function inertiaHeight_m(v_mps: number): number {
+  return v_mps ** 2 / (2 * G_MPS2);
+}
+
+/**
+ * e2: height reached by inertia without friction, `h_max = v² / (2g)`, drawn again while it is
+ * below 0.025 m, that is v ≤ 0.70 m/s (#568).
+ */
 const e2 = defineExercise<Speed>({
   id: 'e2',
   generate: (rng) => {
-    const v_mps = drawOnGrid(rng, E2_V_MPS, HUNDREDTHS);
-    return { values: { v_mps }, answer: v_mps ** 2 / (2 * G_MPS2), unit: 'm' };
+    for (;;) {
+      const v_mps = drawOnGrid(rng, E2_V_MPS, HUNDREDTHS);
+      const answer = inertiaHeight_m(v_mps);
+      if (answer >= MIN_RELATIVE_ANSWER) return { values: { v_mps }, answer, unit: 'm' };
+    }
   },
   statement: () => statementKey('e2'),
   tolerance: RELATIVE_2_PERCENT,
