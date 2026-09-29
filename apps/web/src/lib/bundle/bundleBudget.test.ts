@@ -131,13 +131,20 @@ function htmlPages(): string[] {
 }
 
 /**
- * The chunk that carries `three`, found by its renderer class. Rollup names it after its first
- * module: `Frame` (the only module of `@trayectoria/widgets/scene3d`) while the `/dev/*` pages
- * shared it, `ArmViewer` in a production build without them (#519).
+ * Marker of the core of `three`: `three.module.js` registers its revision under the global
+ * `__THREE__` (to warn about two copies on one page), and only the core module has that string.
+ * Minifying keeps it, because it is a property name used as a string.
  */
-function threeChunk(assets: readonly string[]): string | undefined {
-  return assets.find((asset) =>
-    readFileSync(join(ASSETS_DIR, asset), 'utf8').includes('WebGLRenderer'),
+const THREE_CORE_MARKER = '__THREE__';
+
+/**
+ * The chunks that carry the core of `three`. The name cannot be relied on: Rollup names the chunk
+ * after its first module, `Frame` (the only module of `@trayectoria/widgets/scene3d`) while the
+ * `/dev/*` pages shared it and `ArmViewer` in a production build without them (#519).
+ */
+function threeChunks(assets: readonly string[]): string[] {
+  return assets.filter((asset) =>
+    readFileSync(join(ASSETS_DIR, asset), 'utf8').includes(THREE_CORE_MARKER),
   );
 }
 
@@ -146,8 +153,11 @@ describe('presupuesto de bundle (ARCHITECTURE §8)', () => {
 
   test('ninguna página fuera de las 3D referencia el chunk de three', () => {
     const assets = assetNames();
-    const three = threeChunk(assets);
-    expect(three, 'no se encontró el chunk de three en dist/_astro').toBeDefined();
+    // Exactly one: none means the marker moved, two means `three` is duplicated; in either case
+    // the guard below would check the wrong chunk, so it stops here instead.
+    const matches = threeChunks(assets);
+    expect(matches, 'chunks de dist/_astro con el núcleo de three').toHaveLength(1);
+    const three = matches[0];
 
     const graph = staticImportGraph(assets);
     const offenders = htmlPages()
