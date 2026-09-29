@@ -90,7 +90,7 @@ Cualquier otra importación es un error de arquitectura (regla de ESLint `import
 | `/dev/widgets` | Playground de widgets (solo en dev) |
 | `/dev/sims` | Playground de `packages/sims` (solo en dev) |
 
-«Ruta completada» (DOCS-M6, #396; ticket de `apps/web`): el índice `/ruta/[ruta]` muestra, bajo la cabecera de la ruta, el aviso «Ruta completada» (clave nueva `route.completed` en `common.json`) cuando todos los temas de su `ruta.json` (27 en la Ruta 1) están en `completed`. La fuente es la misma que la de los estados de cada tema en el índice (F3-01: `progress` con sesión, `localStorage` sin ella). Estilo de estado correcto (`--color-success`), sin animación: el feedback nunca es celebratorio (`DESIGN-BRIEF.md` §5). Con un tema sin completar no se muestra nada.
+«Ruta completada» (DOCS-M6, #396; ticket de `apps/web`): el índice `/ruta/[ruta]` muestra, bajo la cabecera de la ruta, el aviso «Ruta completada» (clave nueva `route.completed` en `common.json`) cuando todos los temas de su `ruta.json` (28 en la Ruta 1) están en `completed`. La fuente es la misma que la de los estados de cada tema en el índice (F3-01: `progress` con sesión, `localStorage` sin ella). Estilo de estado correcto (`--color-success`), sin animación: el feedback nunca es celebratorio (`DESIGN-BRIEF.md` §5). Con un tema sin completar no se muestra nada.
 
 ### 3.3 Contenido como código
 
