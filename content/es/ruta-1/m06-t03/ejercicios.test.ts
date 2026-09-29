@@ -112,10 +112,10 @@ describe('T-6.3 exercises', () => {
 });
 
 describe('e1 · acción de control u_k del PID discreto', () => {
-  it('draws everything again while 0 < |u_k| < 0.01 rad/s (#461)', () => {
-    // First draw: Kp = 1, Ki = 0.1, Kd = 0, e_k = e_{k−1} = 0.01, Σe·Δt = −0.05 → u_k = 0.005.
+  it('draws everything again while 0 < |u_k| < 0.025 rad/s (#461, #568)', () => {
+    // First draw: Kp = 1, Ki = 0.1, Kd = 0, e_k = e_{k−1} = 0.02, Σe·Δt = −0.05 → u_k = 0.015.
     const { values } = exercise('e1').generate(
-      scriptedRng([10, 1, 0, 0, 1, 1, -5, 80, 20, 5, 1, 30, 50, 2]),
+      scriptedRng([10, 1, 0, 0, 2, 2, -5, 80, 20, 5, 1, 30, 50, 2]),
     );
     expect(values).toEqual({
       kp_radps: 8,
@@ -162,7 +162,9 @@ describe('e1 · acción de control u_k del PID discreto', () => {
       expect(DT_CHOICES_S).toContain(v.dt_s);
       expectWithin(v.error!, E1_ERROR);
       expectWithin(v.previousError!, E1_ERROR);
-      expect(Math.abs(v.error! - v.previousError!)).toBeLessThanOrEqual(E1_ERROR_STEP_MAX + EPSILON);
+      expect(Math.abs(v.error! - v.previousError!)).toBeLessThanOrEqual(
+        E1_ERROR_STEP_MAX + EPSILON,
+      );
       expectWithin(v.errorSum_s!, E1_ERROR_SUM_S);
       expectOnGrid(v.kp_radps!, 10);
       expectOnGrid(v.ki_radps2!, 10);
@@ -189,6 +191,12 @@ describe('e2 · término I con error constante', () => {
     expect(unit).toBe('rad/s');
   });
 
+  it('draws everything again while I < 0.025 rad/s (#568)', () => {
+    // First draw: Ki = 0.5, e = 0.05 during t = 0.5 s → I = 0.0125 rad/s, redrawn.
+    const { values } = exercise('e2').generate(scriptedRng([5, 5, 5, 20, 10, 20]));
+    expect(values).toEqual({ ki_radps2: 2, error: 0.1, t_s: 2 });
+  });
+
   it('draws Ki ∈ [0.5, 10], e ∈ [0.05, 0.3] and t ∈ [0.5, 3] s, so e·t < I_max = 1 s', () => {
     expect(E2_KI_RADPS2).toEqual({ min: 0.5, max: 10 });
     expect(E2_ERROR).toEqual({ min: 0.05, max: 0.3 });
@@ -208,9 +216,9 @@ describe('e2 · término I con error constante', () => {
 });
 
 describe('e3 · término D', () => {
-  it('draws everything again while |D| < 0.01 rad/s (#461)', () => {
-    // First draw: Kd = 0.01, Δt = 0.02 s, e from 0 to 0.01 → D = 0.005 rad/s, redrawn.
-    const { values } = exercise('e3').generate(scriptedRng([1, 2, 0, 1, 5, 1, 30, 35]));
+  it('draws everything again while |D| < 0.025 rad/s (#461, #568)', () => {
+    // First draw: Kd = 0.01, Δt = 0.02 s, e from 0 to 0.04 → D = 0.02 rad/s, redrawn.
+    const { values } = exercise('e3').generate(scriptedRng([1, 2, 0, 4, 5, 1, 30, 35]));
     expect(values).toEqual({ kd_rad: 0.05, dt_s: 0.01, previousError: 0.3, error: 0.35 });
   });
 
@@ -273,11 +281,11 @@ describe('e4 · ω_base máxima para una curva de radio R', () => {
   });
 });
 
-describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94; #451; #461)', () => {
+describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94; #451; #461; #568)', () => {
   const SWEEP_SEEDS = Array.from({ length: 5000 }, (_, seed) => seed + 1);
   const STATEMENT_SIG_FIGS = 4;
-  /** #451: an answer graded with a relative tolerance is exactly 0 or at least 0.01 in its unit. */
-  const MIN_NONZERO_ANSWER = 0.01;
+  /** #451, #568: an answer graded with a relative tolerance is exactly 0 or at least 0.025. */
+  const MIN_NONZERO_ANSWER = 0.025;
   const shown = (value: number): number => Number(format(value, '', STATEMENT_SIG_FIGS));
   const isShownExactly = (value: number): boolean =>
     Math.abs(shown(value) - value) <= EPSILON * Math.max(1, Math.abs(value));
@@ -297,7 +305,7 @@ describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94
     expect(failures.slice(0, 5)).toEqual([]);
   });
 
-  it('keeps every answer graded with a relative tolerance at 0 or at least 0.01', () => {
+  it('keeps every answer graded with a relative tolerance at 0 or at least 0.025', () => {
     const failures: string[] = [];
     for (const { id, generate, tolerance } of exercises as readonly Exercise<unknown>[]) {
       for (const seed of SWEEP_SEEDS) {

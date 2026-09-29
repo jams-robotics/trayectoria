@@ -21,11 +21,12 @@ const WHOLE_DEGREES = 1;
 const ZERO_NOISE_M = 1e-12;
 
 /**
- * e1 and e2 draw again while a coordinate is nonzero and closer to 0 than this: with relative 2 %,
- * a correct response rounded to the millimetre would be rejected (#451). An exact 0 stays: `check`
- * grades it with the absolute error.
+ * e1 and e2 draw again while a coordinate is nonzero and closer to 0 than this: below it, relative
+ * 2 % is tighter than the rounding to the millimetre (up to 0.0005 m), so a correct response
+ * rounded to the millimetre would be rejected (#451, #568). An exact 0 stays: `check` grades it
+ * with the absolute error.
  */
-export const MIN_NONZERO_COORDINATE_M = 0.01;
+export const MIN_NONZERO_COORDINATE_M = 0.025;
 
 interface Range {
   readonly min: number;

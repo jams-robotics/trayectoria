@@ -9,7 +9,7 @@ import type { JSX } from 'react';
  * PR #140). Reading `window.location.search` here, on the client, avoids that mismatch outright.
  *
  * Mounted with `client:only="react"` (no SSR pass, so there is nothing to mismatch) from
- * `apps/web/src/pages/dev/widgets.astro`, the only place `window` is allowed (CLAUDE.md,
+ * `apps/web/src/dev/pages/widgets.astro`, the only place `window` is allowed (CLAUDE.md,
  * prohibitions). `StoryGallery` and its `section` prop are unchanged.
  *
  * It is imported from `@trayectoria/widgets/dev` and not from the barrel: while it lived in the

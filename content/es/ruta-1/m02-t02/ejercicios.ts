@@ -31,6 +31,11 @@ export const E3_MU_S: Range = { min: 0.2, max: 1 };
 export const E3_DRIVEN_WEIGHT_FRACTION: Range = { min: 0.4, max: 1 };
 export const E4_V_MPS: Range = { min: 0.2, max: 1 };
 export const E4_MU_K: Range = { min: 0.2, max: 0.8 };
+/**
+ * e4 draws again while d_frenado is below this: with relative 2 %, a correct response rounded to
+ * the millimetre (up to 0.0005 m off) is only accepted from 0.025 m on (#568).
+ */
+export const MIN_RELATIVE_ANSWER = 0.025;
 
 /** A value on the grid of step 1/`perUnit`, in [min, max]. */
 function drawOnGrid(rng: SeededRng, range: Range, perUnit: number): number {
@@ -94,14 +99,21 @@ interface SlidingBrake {
   readonly mu_k: number;
 }
 
-/** e4 (optional): braking by sliding from v, `d_frenado = v² / (2·μk·g)`. */
+/**
+ * e4 (optional): braking by sliding from v, `d_frenado = v² / (2·μk·g)`, drawn again while it is
+ * below 0.025 m (#568).
+ */
 const e4 = defineExercise<SlidingBrake>({
   id: 'e4',
   generate: (rng) => {
-    const v_mps = drawOnGrid(rng, E4_V_MPS, HUNDREDTHS);
-    const mu_k = drawOnGrid(rng, E4_MU_K, HUNDREDTHS);
-    const brakingDistance_m = v_mps ** 2 / (2 * mu_k * G_MPS2);
-    return { values: { v_mps, mu_k }, answer: brakingDistance_m, unit: 'm' };
+    for (;;) {
+      const v_mps = drawOnGrid(rng, E4_V_MPS, HUNDREDTHS);
+      const mu_k = drawOnGrid(rng, E4_MU_K, HUNDREDTHS);
+      const brakingDistance_m = v_mps ** 2 / (2 * mu_k * G_MPS2);
+      if (brakingDistance_m >= MIN_RELATIVE_ANSWER) {
+        return { values: { v_mps, mu_k }, answer: brakingDistance_m, unit: 'm' };
+      }
+    }
   },
   statement: () => statementKey('e4'),
   tolerance: RELATIVE_2_PERCENT,

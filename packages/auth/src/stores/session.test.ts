@@ -12,13 +12,22 @@ const auth = {
   signInWithOtp: vi.fn(),
   resetPasswordForEmail: vi.fn(),
   updateUser: vi.fn(),
+  reauthenticate: vi.fn(),
   signOut: vi.fn(),
 };
 
 vi.mock('@trayectoria/db', () => ({ getDbClient: () => ({ auth }) }));
 
-const { $session, resetPassword, signIn, signInWithOtp, signOut, signUp } =
-  await import('./session');
+const {
+  $session,
+  reauthenticate,
+  resetPassword,
+  signIn,
+  signInWithOtp,
+  signOut,
+  signUp,
+  updatePassword,
+} = await import('./session');
 
 // Only the fields the store touches; the cast is confined to this test.
 function fakeSession(id: string): Session {
@@ -76,16 +85,31 @@ describe('$session store', () => {
     expect($session.get()).toBe(session);
   });
 
-  it('signUp maps an existing email and a weak password to generic codes', async () => {
-    auth.signUp.mockResolvedValueOnce({ data: {}, error: apiError('user_already_exists', 422) });
-    const existing = await signUp({
+  it('#520: signUp answers a taken email exactly like a sign-up pending confirmation', async () => {
+    for (const code of ['user_already_exists', 'email_exists']) {
+      auth.signUp.mockResolvedValueOnce({ data: {}, error: apiError(code, 422) });
+      const taken = await signUp({
+        email: 'b@example.com',
+        password: 'secret',
+        displayName: 'Ada',
+        role: 'student',
+        redirectTo: 'http://127.0.0.1:4321/cuenta',
+      });
+      expect(taken).toEqual({ ok: true, session: null });
+    }
+    expect($session.get()).toBeNull();
+  });
+
+  it('signUp maps a disabled sign-up and a weak password to generic codes', async () => {
+    auth.signUp.mockResolvedValueOnce({ data: {}, error: apiError('signup_disabled', 422) });
+    const disabled = await signUp({
       email: 'b@example.com',
       password: 'secret',
       displayName: 'Ada',
       role: 'student',
       redirectTo: 'http://127.0.0.1:4321/cuenta',
     });
-    expect(existing).toEqual({ ok: false, code: 'sign-up-failed' });
+    expect(disabled).toEqual({ ok: false, code: 'sign-up-failed' });
 
     auth.signUp.mockResolvedValueOnce({ data: {}, error: apiError('weak_password', 422) });
     const weak = await signUp({
@@ -136,6 +160,43 @@ describe('$session store', () => {
     await expect(resetPassword('a@example.com', 'http://x/auth/recuperar')).resolves.toEqual({
       ok: false,
       code: 'rate-limited',
+    });
+  });
+
+  it('#521: reauthenticate sends the code and keeps the rate limit visible', async () => {
+    auth.reauthenticate.mockResolvedValueOnce({ data: { user: null, session: null }, error: null });
+    await expect(reauthenticate()).resolves.toEqual({ ok: true, session: null });
+    expect(auth.reauthenticate).toHaveBeenCalledTimes(1);
+
+    auth.reauthenticate.mockResolvedValueOnce({
+      data: {},
+      error: apiError('over_email_send_rate_limit', 429),
+    });
+    await expect(reauthenticate()).resolves.toEqual({ ok: false, code: 'rate-limited' });
+  });
+
+  it('#521: updatePassword passes the nonce through and maps the reauthentication answers', async () => {
+    auth.updateUser.mockResolvedValueOnce({ data: {}, error: apiError('reauthentication_needed') });
+    await expect(updatePassword('nueva-clave')).resolves.toEqual({
+      ok: false,
+      code: 'reauthentication-needed',
+    });
+    expect(auth.updateUser).toHaveBeenLastCalledWith({ password: 'nueva-clave' });
+
+    auth.updateUser.mockResolvedValueOnce({
+      data: {},
+      error: apiError('reauthentication_not_valid'),
+    });
+    await expect(updatePassword('nueva-clave', '000000')).resolves.toEqual({
+      ok: false,
+      code: 'reauthentication-invalid',
+    });
+    expect(auth.updateUser).toHaveBeenLastCalledWith({ password: 'nueva-clave', nonce: '000000' });
+
+    auth.updateUser.mockResolvedValueOnce({ data: { user: {} }, error: null });
+    await expect(updatePassword('nueva-clave', '123456')).resolves.toEqual({
+      ok: true,
+      session: null,
     });
   });
 

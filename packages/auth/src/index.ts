@@ -8,6 +8,7 @@ export {
   $passwordRecovery,
   $session,
   $sessionReady,
+  reauthenticate,
   resetPassword,
   signIn,
   signInWithOtp,

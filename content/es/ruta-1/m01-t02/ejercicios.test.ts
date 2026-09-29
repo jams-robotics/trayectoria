@@ -12,6 +12,7 @@ import {
   E4_A_MPS2,
   E4_DX_M,
   E4_V_MPS,
+  MIN_RELATIVE_ANSWER,
   exercises,
 } from './ejercicios';
 
@@ -89,7 +90,9 @@ describe('T-1.2 exercises', () => {
       for (const seed of MANY_SEEDS.slice(0, 20)) {
         const { answer } = candidate.generate(createRng(seed));
         const scaled = (factor: number) =>
-          Array.isArray(answer) ? answer.map((value: number) => value * factor) : (answer as number) * factor;
+          Array.isArray(answer)
+            ? answer.map((value: number) => value * factor)
+            : (answer as number) * factor;
         expect(check(candidate, seed, scaled(1.019)).correct).toBe(true);
         expect(check(candidate, seed, scaled(1.021)).correct).toBe(false);
       }
@@ -195,5 +198,33 @@ describe('e4 · pista de 4 m: rampa + crucero', () => {
       expect(answer).toBeCloseTo(7.417, 3);
       expect(unit).toBe('s');
     }
+  });
+});
+
+describe('answers graded relative to 2 % (#568)', () => {
+  // Below 0.025 (in its unit), relative 2 % is tighter than the rounding to the thousandth, so a
+  // correct rounded response would be rejected. Every such answer is drawn again.
+  it('e2 draws again below 0.025: v₀ = 0.2 m/s and |a| = 3 m/s² give 0.006667 m', () => {
+    const { values } = exercise('e2').generate(scriptedRng([20, 300, 60, 120]));
+    expect(values).toEqual({ v0_mps: 0.6, a_mps2: -1.2 });
+  });
+
+  it('never answers a component graded relative 2 % in (0, 0.025) over 5000 seeds', () => {
+    expect(MIN_RELATIVE_ANSWER).toBe(0.025);
+    const failures: string[] = [];
+    for (const { id, generate, tolerance } of exercises as readonly Exercise<unknown>[]) {
+      for (let seed = 1; seed <= 5000; seed += 1) {
+        const { answer } = generate(createRng(seed));
+        const components = Array.isArray(answer) ? (answer as number[]) : [answer as number];
+        const tolerances = [tolerance].flat();
+        components.forEach((value, index) => {
+          const isRelative = (tolerances[index] ?? tolerances[0])?.type === 'relative';
+          if (isRelative && value !== 0 && Math.abs(value) < MIN_RELATIVE_ANSWER) {
+            failures.push(`${id} seed ${seed}: component ${index} = ${value}`);
+          }
+        });
+      }
+    }
+    expect(failures.slice(0, 5)).toEqual([]);
   });
 });

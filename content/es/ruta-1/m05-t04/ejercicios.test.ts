@@ -14,6 +14,7 @@ import {
   WHEEL_BASE_M,
   WHEEL_RADIUS_M,
   exercises,
+  positionAfterStep_m,
 } from './ejercicios';
 
 // Golden values of docs/CURRICULUM.md § T-5.4, Verifica (#394). Each one runs through the
@@ -152,12 +153,20 @@ describe('e1 · ticks de las dos ruedas: Δs y Δθ', () => {
 
 describe('e2 · pose nueva desde (0, 0, 0)', () => {
   it('400 and 440 ticks → (0.2339, 0.01745) m', () => {
-    const { values, answer, unit } = exercise('e2').generate(scriptedRng([400, 440]));
-
-    expect(values).toEqual({ deltaTicksL: 400, deltaTicksR: 440 });
-    const [x_m, y_m] = answer as number[];
+    // Fixed without a draw: y = 0.01745 m is below 0.025 m, so e2 draws these ticks again (#568).
+    const [x_m, y_m] = positionAfterStep_m({ deltaTicksL: 400, deltaTicksR: 440 });
     expect(x_m).toBeCloseTo(0.2339, 4);
     expect(y_m).toBeCloseTo(0.01745, 5);
+  });
+
+  it('draws the golden ticks again, whose y is below 0.025 m, and answers in m (#568)', () => {
+    // First draw: 400 and 440 ticks → y = 0.01745 m, redrawn; 400 and 480 → (0.2430, 0.03646) m.
+    const { values, answer, unit } = exercise('e2').generate(scriptedRng([400, 440, 400, 480]));
+
+    expect(values).toEqual({ deltaTicksL: 400, deltaTicksR: 480 });
+    const [x_m, y_m] = answer as number[];
+    expect(x_m).toBeCloseTo(0.243, 3);
+    expect(y_m).toBeCloseTo(0.03646, 5);
     expect(unit).toBe('m');
   });
 
@@ -229,10 +238,11 @@ describe('turn of one step at most 90° (V-41, #473)', () => {
   });
 
   it('draws again while the ticks differ by more than 421', () => {
-    // First draw: 50 and 1000 ticks → Δθ = 3.537 rad; second: the golden step.
+    // First draw: 50 and 1000 ticks → Δθ = 3.537 rad; second: 400 and 480 ticks, whose y
+    // (0.03646 m) e2 keeps, unlike the golden 400 and 440 (#568).
     for (const id of ['e1', 'e2']) {
-      const { values } = exercise(id).generate(scriptedRng([50, 1000, 400, 440]));
-      expect(values).toEqual({ deltaTicksL: 400, deltaTicksR: 440 });
+      const { values } = exercise(id).generate(scriptedRng([50, 1000, 400, 480]));
+      expect(values).toEqual({ deltaTicksL: 400, deltaTicksR: 480 });
     }
   });
 
@@ -252,13 +262,13 @@ describe('turn of one step at most 90° (V-41, #473)', () => {
   });
 });
 
-describe('answers close to 0 (#451)', () => {
-  // Golden threshold of #451: with relative 2 %, a nonzero answer below 0.01 (in its unit) would
-  // reject a correct response rounded to the thousandth. An exact 0 is graded with an absolute
+describe('answers close to 0 (#451, #568)', () => {
+  // Threshold of #451, raised by #568: with relative 2 %, a nonzero answer below 0.025 (in its unit)
+  // would reject a correct response rounded to the thousandth. An exact 0 is graded with an absolute
   // error by `check`, so it stays allowed.
-  const MIN_NONZERO_ANSWER = 0.01;
+  const MIN_NONZERO_ANSWER = 0.025;
 
-  it('never generates a nonzero answer below 0.01 in e1 to e3', () => {
+  it('never generates a nonzero answer below 0.025 in e1 to e3', () => {
     for (const id of ['e1', 'e2', 'e3']) {
       for (const seed of MANY_SEEDS) {
         const answer = exercise(id).generate(createRng(seed)).answer;

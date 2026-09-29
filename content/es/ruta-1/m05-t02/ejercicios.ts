@@ -24,12 +24,13 @@ export const WHEEL_BASE_M = 0.15;
 /** Generation ranges of the spec, in the units the statements announce. */
 export const E1_OMEGA_RADPS: Range = { min: 0, max: 20 };
 /**
- * e1 draws again while v or ω is nonzero and closer to 0 than this: with relative 2 %, a correct
- * response rounded to the thousandth would be rejected (#451). An exact 0 stays: `check` grades
- * it with the absolute error.
+ * e1 draws again while v or ω is nonzero and closer to 0 than this: below it, relative 2 % is
+ * tighter than the rounding to the thousandth (up to 0.0005), so a correct response rounded to the
+ * thousandth would be rejected (#451, #568). An exact 0 stays: `check` grades it with the
+ * absolute error.
  */
-export const E1_MIN_NONZERO_V_MPS = 0.01;
-export const E1_MIN_NONZERO_OMEGA_RADPS = 0.01;
+export const E1_MIN_NONZERO_V_MPS = 0.025;
+export const E1_MIN_NONZERO_OMEGA_RADPS = 0.025;
 /** e2 draws again while the wheels are closer than this: the CIR would be too far away. */
 export const E2_MIN_WHEEL_DIFFERENCE_RADPS = 1;
 /** e3 and e4 draw ω_R; the left wheel spins at ω_L = −ω_R. */

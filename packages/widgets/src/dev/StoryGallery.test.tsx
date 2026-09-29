@@ -16,6 +16,13 @@ vi.mock('@react-three/drei', () => ({
 
 import { StoryGallery, includesScene3D, sectionsFor, stories } from './StoryGallery';
 
+// Rendering the whole catalogue mounts every story of every widget (KaTeX, plots, the 2D scenes)
+// in one synchronous pass. Alone it takes 1-2 s, but under the v8 coverage of the CI `test` job
+// and with the other packages' workers competing for the CPU, two such renders took 9 s here and
+// failed Vitest's default 5 s timeout while asserting nothing wrong. Each test that renders the
+// full catalogue gets this explicit budget; the assertions are unchanged.
+const FULL_CATALOGUE = { timeout: 30_000 };
+
 // F2-01a (ronda 1): the story order must be fixed and explicit — it must not depend on the
 // iteration order of a stories module's export object, which differs between the server render
 // and the client bundle under `client:load` and caused a hydration mismatch
@@ -189,7 +196,7 @@ describe('stories catalogue', () => {
     expect(titles[titles.length - 1]).toBe('Scene3D');
   }, 30000);
 
-  test('renders the same story order on every call, matching `stories`', () => {
+  test('renders the same story order on every call, matching `stories`', FULL_CATALOGUE, () => {
     const { container: first } = render(<StoryGallery />);
     const { container: second } = render(<StoryGallery />);
     // Only the statically imported sections: the lazy `Scene3D` one resolves on its own
@@ -227,19 +234,23 @@ describe('section filter', () => {
 
   // `null` is what `URLSearchParams.get` returns for a parameter that is not in the URL, so it
   // is the value `/dev/widgets` passes when nobody asked for a section.
-  test('renders the whole catalogue without a section, with null and with an empty one', () => {
-    const all = stories.map(({ title }) => title);
-    expect(sectionsFor(undefined).map(({ title }) => title)).toEqual(all);
-    expect(sectionsFor(null).map(({ title }) => title)).toEqual(all);
-    expect(sectionsFor('').map(({ title }) => title)).toEqual(all);
-    const { container } = render(<StoryGallery />);
-    // Only the statically imported sections: the lazy `Scene3D` one resolves on its own
-    // microtask, so whether it is already in the DOM depends on timing (#96).
-    const titles = Array.from(container.querySelectorAll('[data-widget]'))
-      .map((element) => element.getAttribute('data-widget') ?? '')
-      .filter((title) => title !== 'Scene3D');
-    expect(titles).toEqual(all);
-  });
+  test(
+    'renders the whole catalogue without a section, with null and with an empty one',
+    FULL_CATALOGUE,
+    () => {
+      const all = stories.map(({ title }) => title);
+      expect(sectionsFor(undefined).map(({ title }) => title)).toEqual(all);
+      expect(sectionsFor(null).map(({ title }) => title)).toEqual(all);
+      expect(sectionsFor('').map(({ title }) => title)).toEqual(all);
+      const { container } = render(<StoryGallery />);
+      // Only the statically imported sections: the lazy `Scene3D` one resolves on its own
+      // microtask, so whether it is already in the DOM depends on timing (#96).
+      const titles = Array.from(container.querySelectorAll('[data-widget]'))
+        .map((element) => element.getAttribute('data-widget') ?? '')
+        .filter((title) => title !== 'Scene3D');
+      expect(titles).toEqual(all);
+    },
+  );
 
   test('renders nothing for a section that is not in the catalogue', () => {
     expect(sectionsFor('NoSuchWidget')).toEqual([]);

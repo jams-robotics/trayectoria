@@ -35,6 +35,11 @@ export const H_M: Range = { min: 0, max: 1 };
 /** e5 is fixed: a robot at 0.6 m/s drops a piece from 0.25 m. */
 export const E5_V_MPS = 0.6;
 export const E5_H_M = 0.25;
+/**
+ * e2 draws again while H is below this: with relative 2 %, a correct response rounded to the
+ * millimetre (up to 0.0005 m off) is only accepted from 0.025 m on (#568).
+ */
+export const MIN_RELATIVE_ANSWER = 0.025;
 
 /** A value on the grid of step 1/`perUnit`, in [min, max]. */
 function drawOnGrid(rng: SeededRng, range: Range, perUnit: number): number {
@@ -82,16 +87,15 @@ const e1 = defineExercise<GroundLaunch>({
   tolerance: RELATIVE_2_PERCENT,
 });
 
-/** e2: `H = h + (v₀ sinα)² / (2g)`. */
+/** e2: `H = h + (v₀ sinα)² / (2g)`, drawn again while H < 0.025 m (#568). */
 const e2 = defineExercise<RaisedLaunch>({
   id: 'e2',
   generate: (rng) => {
-    const values = drawRaisedLaunch(rng);
-    return {
-      values,
-      answer: maxHeight_m(values.v0_mps, degToRad(values.launchAngle_deg), values.h_m),
-      unit: 'm',
-    };
+    for (;;) {
+      const values = drawRaisedLaunch(rng);
+      const answer = maxHeight_m(values.v0_mps, degToRad(values.launchAngle_deg), values.h_m);
+      if (answer >= MIN_RELATIVE_ANSWER) return { values, answer, unit: 'm' };
+    }
   },
   statement: () => statementKey('e2'),
   tolerance: RELATIVE_2_PERCENT,

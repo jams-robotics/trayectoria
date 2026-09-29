@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync } from 'node:fs';
-import { basename, join, relative, sep } from 'node:path';
+import { join, relative, sep } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { beforeAll, describe, expect, test } from 'vitest';
 
@@ -130,9 +130,22 @@ function htmlPages(): string[] {
   return pages;
 }
 
-/** The `three` chunk is the one containing `Frame`, the only module of `@trayectoria/widgets/scene3d`. */
-function threeChunk(assets: readonly string[]): string | undefined {
-  return assets.find((asset) => basename(asset).startsWith('Frame.'));
+/**
+ * Marker of the core of `three`: `three.module.js` registers its revision under the global
+ * `__THREE__` (to warn about two copies on one page), and only the core module has that string.
+ * Minifying keeps it, because it is a property name used as a string.
+ */
+const THREE_CORE_MARKER = '__THREE__';
+
+/**
+ * The chunks that carry the core of `three`. The name cannot be relied on: Rollup names the chunk
+ * after its first module, `Frame` (the only module of `@trayectoria/widgets/scene3d`) while the
+ * `/dev/*` pages shared it and `ArmViewer` in a production build without them (#519).
+ */
+function threeChunks(assets: readonly string[]): string[] {
+  return assets.filter((asset) =>
+    readFileSync(join(ASSETS_DIR, asset), 'utf8').includes(THREE_CORE_MARKER),
+  );
 }
 
 describe('presupuesto de bundle (ARCHITECTURE §8)', () => {
@@ -140,8 +153,11 @@ describe('presupuesto de bundle (ARCHITECTURE §8)', () => {
 
   test('ninguna página fuera de las 3D referencia el chunk de three', () => {
     const assets = assetNames();
-    const three = threeChunk(assets);
-    expect(three, 'no se encontró el chunk de three en dist/_astro').toBeDefined();
+    // Exactly one: none means the marker moved, two means `three` is duplicated; in either case
+    // the guard below would check the wrong chunk, so it stops here instead.
+    const matches = threeChunks(assets);
+    expect(matches, 'chunks de dist/_astro con el núcleo de three').toHaveLength(1);
+    const three = matches[0];
 
     const graph = staticImportGraph(assets);
     const offenders = htmlPages()

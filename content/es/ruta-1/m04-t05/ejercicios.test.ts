@@ -109,13 +109,13 @@ describe('T-4.5 exercises', () => {
 });
 
 describe('e1 · N_e y r: resolución lineal', () => {
-  it('N_e = 360, r = 0.032 m → 0.0005585 m', () => {
+  it('N_e = 360, r = 0.032 m → 0.5585 mm (#626)', () => {
     // N_e = 360 is index 4 of the set; r = 0.032 m is 32 thousandths.
     const { values, answer, unit } = exercise('e1').generate(scriptedRng([4, 32]));
 
     expect(values).toEqual({ encoderTicksPerRev: 360, wheelRadius_m: 0.032 });
-    expect(answer).toBeCloseTo(0.0005585, 7);
-    expect(unit).toBe('m');
+    expect(answer).toBeCloseTo(0.5585, 4);
+    expect(unit).toBe('mm');
   });
 
   it('draws N_e from the set of the spec and r ∈ [0.015, 0.05] m in thousandths', () => {
@@ -127,10 +127,31 @@ describe('e1 · N_e y r: resolución lineal', () => {
       expectWithin(wheelRadius_m!, E1_WHEEL_RADIUS_M);
       expectOnGrid(wheelRadius_m!, 1000);
       expect(exercise('e1').generate(createRng(seed)).answer).toBeCloseTo(
-        (2 * Math.PI * wheelRadius_m!) / encoderTicksPerRev!,
-        15,
+        ((2 * Math.PI * wheelRadius_m!) / encoderTicksPerRev!) * 1000,
+        12,
       );
     }
+  });
+});
+
+describe('answers graded relative to 2 % (#568, #626)', () => {
+  it('never answers a component graded relative 2 % in (0, 0.025) over 5000 seeds', () => {
+    // e1 in mm starts at 2π·15/2048 = 0.046 mm, so nothing is drawn again.
+    const failures: string[] = [];
+    for (const { id, generate, tolerance } of exercises as readonly Exercise<unknown>[]) {
+      for (let seed = 1; seed <= 5000; seed += 1) {
+        const { answer } = generate(createRng(seed));
+        const components = Array.isArray(answer) ? (answer as number[]) : [answer as number];
+        const tolerances = [tolerance].flat();
+        components.forEach((value, index) => {
+          const isRelative = (tolerances[index] ?? tolerances[0])?.type === 'relative';
+          if (isRelative && value !== 0 && Math.abs(value) < 0.025) {
+            failures.push(`${id} seed ${seed}: component ${index} = ${value}`);
+          }
+        });
+      }
+    }
+    expect(failures.slice(0, 5)).toEqual([]);
   });
 });
 

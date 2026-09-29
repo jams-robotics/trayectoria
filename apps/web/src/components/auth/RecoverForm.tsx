@@ -1,7 +1,15 @@
 import { useStore } from '@nanostores/react';
-import { $passwordRecovery, resetPassword, updatePassword, useSession } from '@trayectoria/auth';
+import {
+  $passwordRecovery,
+  resetPassword,
+  updatePassword,
+  useSession,
+  type AuthResult,
+} from '@trayectoria/auth';
 import { useT } from '@trayectoria/i18n';
 import { useEffect, useState, type JSX, type SubmitEvent } from 'react';
+
+import { verifyReauthentication } from '../../lib/account/reauthentication';
 
 import {
   absoluteUrl,
@@ -14,6 +22,8 @@ import {
   useAuthAction,
   useFieldValidation,
 } from './fields';
+import type { FieldValidation } from './fields';
+import { ReauthCodeField, useReauthCode, type ReauthCodeState } from './ReauthCode';
 
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -72,19 +82,69 @@ function RequestLinkForm(): JSX.Element {
   );
 }
 
+/**
+ * Sets the new password once the emailed code of `reauth` checks out (#521). The server check
+ * burns a wrong code, so the field is emptied and a new code has to be asked for; GoTrue checks
+ * the same code again as `nonce` when the session is older than 24 h (`secure_password_change`).
+ */
+async function changePassword(password: string, reauth: ReauthCodeState): Promise<AuthResult> {
+  if (!reauth.complete) return { ok: false, code: 'reauthentication-needed' };
+  let valid: boolean;
+  try {
+    valid = await verifyReauthentication(reauth.code);
+  } catch {
+    return { ok: false, code: 'unknown' };
+  }
+  const result: AuthResult = valid
+    ? await updatePassword(password, reauth.code)
+    : { ok: false, code: 'reauthentication-invalid' };
+  if (!result.ok && result.code === 'reauthentication-invalid') reauth.reset();
+  return result;
+}
+
+interface NewPasswordFieldProps {
+  readonly password: string;
+  readonly onPassword: (value: string) => void;
+  readonly validation: FieldValidation;
+}
+
+function NewPasswordField({
+  password,
+  onPassword,
+  validation,
+}: NewPasswordFieldProps): JSX.Element {
+  const t = useT();
+  return (
+    <TextField
+      id="new-password"
+      label={t('auth.fields.newPassword')}
+      type="password"
+      value={password}
+      onChange={(value) => {
+        onPassword(value);
+        validation.clear();
+      }}
+      autoComplete="new-password"
+      minLength={MIN_PASSWORD_LENGTH}
+      error={validation.error}
+    />
+  );
+}
+
+// `noValidate` on the form (#534): the browser's own bubble speaks whatever language it is set
+// to, not the Spanish of the rest of the page, so the field shows its own message instead.
 function NewPasswordForm(): JSX.Element {
   const t = useT();
   const [password, setPassword] = useState('');
   const validation = useFieldValidation();
+  const reauth = useReauthCode();
   const { state, run } = useAuthAction();
 
-  // `noValidate` on the form (#534): the browser's own bubble speaks whatever language it is set
-  // to, not the Spanish of the rest of the page, so the field shows its own message instead.
   function submit(event: SubmitEvent<HTMLFormElement>): void {
     event.preventDefault();
     if (!validation.validate(password, passwordValidationError)) return;
     void run(
-      () => updatePassword(password),
+      () => changePassword(password, reauth),
       () => t('auth.recover.updated'),
     );
   }
@@ -94,19 +154,8 @@ function NewPasswordForm(): JSX.Element {
       <h2 className="text-xl leading-tight m-0 font-semibold">
         {t('auth.recover.newPasswordTitle')}
       </h2>
-      <TextField
-        id="new-password"
-        label={t('auth.fields.newPassword')}
-        type="password"
-        value={password}
-        onChange={(value) => {
-          setPassword(value);
-          validation.clear();
-        }}
-        autoComplete="new-password"
-        minLength={MIN_PASSWORD_LENGTH}
-        error={validation.error}
-      />
+      <NewPasswordField password={password} onPassword={setPassword} validation={validation} />
+      <ReauthCodeField state={reauth} id="new-password-code" />
       <FormStatus {...state} />
       <div className="flex flex-wrap items-center gap-4">
         <SubmitButton pending={state.pending} label={t('auth.recover.update')} />

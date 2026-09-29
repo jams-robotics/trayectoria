@@ -11,7 +11,9 @@ import {
   E3_V_MPS,
   E4_DISTANCE_M,
   E4_FRICTION_N,
+  MIN_RELATIVE_ANSWER,
   exercises,
+  inertiaHeight_m,
 } from './ejercicios';
 
 // Golden values of docs/CURRICULUM.md § T-3.1, Verifica. Each one runs through the exercise's own
@@ -123,10 +125,15 @@ describe('e1 · m a v: energía cinética', () => {
 
 describe('e2 · altura por inercia desde v sin fricción', () => {
   it('v = 0.6 m/s → 0.01835 m', () => {
-    const { values, answer, unit } = exercise('e2').generate(scriptedRng([60]));
+    // Fixed without a draw: 0.01835 m is below 0.025 m, so e2 draws it again (#568).
+    expect(inertiaHeight_m(0.6)).toBeCloseTo(0.01835, 5);
+  });
 
-    expect(values).toEqual({ v_mps: 0.6 });
-    expect(answer).toBeCloseTo(0.01835, 5);
+  it('draws the golden v = 0.6 m/s again and keeps 0.71 m/s → 0.02569 m (#568)', () => {
+    const { values, answer, unit } = exercise('e2').generate(scriptedRng([60, 70, 71]));
+
+    expect(values).toEqual({ v_mps: 0.71 });
+    expect(answer).toBeCloseTo(0.02569, 5);
     expect(unit).toBe('m');
   });
 
@@ -150,18 +157,19 @@ describe('e3 · trabajo neto para llevar m de v₁ a v₂', () => {
     expect(unit).toBe('J');
   });
 
-  it('redraws the speeds until the net work is at least 0.01 J', () => {
-    // m = 0.2 kg, 0.1 → 0.11 m/s gives 0.00021 J (redrawn); 0.1 → 0.5 m/s gives 0.024 J.
-    const { values, answer } = exercise('e3').generate(scriptedRng([20, 10, 11, 10, 50]));
+  it('redraws the speeds until the net work is at least 0.025 J (#568)', () => {
+    // m = 0.2 kg: 0.1 → 0.11 m/s gives 0.00021 J and 0.1 → 0.5 m/s gives 0.024 J (both redrawn);
+    // 0.1 → 0.52 m/s gives 0.02604 J.
+    const { values, answer } = exercise('e3').generate(scriptedRng([20, 10, 11, 10, 50, 10, 52]));
 
-    expect(values).toEqual({ mass_kg: 0.2, v1_mps: 0.1, v2_mps: 0.5 });
-    expect(answer).toBeCloseTo(0.024, 10);
+    expect(values).toEqual({ mass_kg: 0.2, v1_mps: 0.1, v2_mps: 0.52 });
+    expect(answer).toBeCloseTo(0.02604, 10);
   });
 
-  it('draws m ∈ [0.2, 3] kg and v₁ < v₂ ∈ [0.1, 1.5] m/s in hundredths, W ≥ 0.01 J', () => {
+  it('draws m ∈ [0.2, 3] kg and v₁ < v₂ ∈ [0.1, 1.5] m/s in hundredths, W ≥ 0.025 J', () => {
     expect(E3_MASS_KG).toEqual({ min: 0.2, max: 3 });
     expect(E3_V_MPS).toEqual({ min: 0.1, max: 1.5 });
-    expect(E3_MIN_WORK_J).toBe(0.01);
+    expect(E3_MIN_WORK_J).toBe(0.025);
     for (const seed of MANY_SEEDS) {
       const { mass_kg, v1_mps, v2_mps } = valuesOf('e3', seed);
       expectWithin(mass_kg!, E3_MASS_KG);
@@ -198,5 +206,33 @@ describe('e4 · energía disipada por la fricción de rodadura', () => {
       expectOnGrid(distance_m!, 10);
       expect(answerOf('e4', seed)).toBeCloseTo(friction_N! * distance_m!, 12);
     }
+  });
+});
+
+describe('answers graded relative to 2 % (#568)', () => {
+  // Below 0.025 (in its unit), relative 2 % is tighter than the rounding to the thousandth, so a
+  // correct rounded response would be rejected. Every such answer is drawn again.
+  it('e1 draws again below 0.025: m = 0.2 kg at 0.1 m/s gives 0.001 J', () => {
+    const { values } = exercise('e1').generate(scriptedRng([20, 10, 90, 60]));
+    expect(values).toEqual({ mass_kg: 0.9, v_mps: 0.6 });
+  });
+
+  it('never answers a component graded relative 2 % in (0, 0.025) over 5000 seeds', () => {
+    expect(MIN_RELATIVE_ANSWER).toBe(0.025);
+    const failures: string[] = [];
+    for (const { id, generate, tolerance } of exercises as readonly Exercise<unknown>[]) {
+      for (let seed = 1; seed <= 5000; seed += 1) {
+        const { answer } = generate(createRng(seed));
+        const components = Array.isArray(answer) ? (answer as number[]) : [answer as number];
+        const tolerances = [tolerance].flat();
+        components.forEach((value, index) => {
+          const isRelative = (tolerances[index] ?? tolerances[0])?.type === 'relative';
+          if (isRelative && value !== 0 && Math.abs(value) < MIN_RELATIVE_ANSWER) {
+            failures.push(`${id} seed ${seed}: component ${index} = ${value}`);
+          }
+        });
+      }
+    }
+    expect(failures.slice(0, 5)).toEqual([]);
   });
 });
