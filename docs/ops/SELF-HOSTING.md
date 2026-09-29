@@ -86,16 +86,20 @@ docker compose ps        # todos los servicios en "running (healthy)" tras uno o
 
 ### 5. Aplicar el esquema de Trayectoria
 
-Las tablas, políticas RLS, funciones y el bucket están en `supabase/migrations/` del repositorio (`docs/ops/SUPABASE.md`). Se aplican con la CLI de Supabase en la versión fijada (2.117.0), ejecutada dentro de un contenedor de Node para no instalar nada en la VM. `db push` se conecta al pooler de Postgres del compose de Supabase (puerto 5432, usuario `postgres.<POOLER_TENANT_ID>`); `<POOLER_TENANT_ID>` y `<POSTGRES_PASSWORD>` son los de `/opt/supabase-project/.env`:
+Las tablas, políticas RLS, funciones y el bucket están en `supabase/migrations/` del repositorio (`docs/ops/SUPABASE.md`). Se aplican con la CLI de Supabase en la versión fijada (2.117.0), ejecutada dentro de un contenedor de Node para no instalar nada en la VM. `db push` se conecta al pooler de Postgres del compose de Supabase (puerto 5432, usuario `postgres.<POOLER_TENANT_ID>`); `<POOLER_TENANT_ID>` es el de `/opt/supabase-project/.env`.
+
+La contraseña de Postgres **no** se escribe en el comando (#525): quedaría en el historial de la shell, en `ps` y en los registros de Docker. El comando la lee de `/opt/supabase-project/.env` a la variable `PGPASSWORD`, y el contenedor la hereda con `-e PGPASSWORD`, sin el valor en la línea de comandos:
 
 ```bash
 cd /opt/trayectoria
-docker run --rm --network host -v "$PWD":/repo -w /repo -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
-  node:24.18.0-alpine sh -c 'corepack enable && pnpm dlx supabase@2.117.0 db push --yes \
-  --db-url "postgresql://postgres.<POOLER_TENANT_ID>:<POSTGRES_PASSWORD>@127.0.0.1:5432/postgres?sslmode=disable"'
+PGPASSWORD="$(grep '^POSTGRES_PASSWORD=' /opt/supabase-project/.env | cut -d= -f2-)" \
+docker run --rm --network host -v "$PWD":/repo -w /repo -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 -e PGPASSWORD \
+  node:24.18.0-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd \
+  sh -c 'corepack enable && pnpm dlx supabase@2.117.0 db push --yes \
+  --db-url "postgresql://postgres.<POOLER_TENANT_ID>@127.0.0.1:5432/postgres?sslmode=disable"'
 ```
 
-La salida lista las migraciones `0001_schema.sql` … aplicadas. Si la contraseña contiene caracteres especiales (`@`, `:`, `/`, `#`), escríbelos codificados para URL (por ejemplo `@` como `%40`). Añade `--dry-run` antes de `--yes` para ver qué se aplicaría sin tocar la base.
+La salida lista las migraciones `0001_schema.sql` … aplicadas. Añade `--dry-run` antes de `--yes` para ver qué se aplicaría sin tocar la base. La imagen de Node va fijada por etiqueta y digest, la misma que usa `infra/web.Dockerfile`.
 
 ### 6. Obtener la clave `anon`
 
@@ -125,7 +129,7 @@ docker compose -f infra/docker-compose.yml up -d
 docker compose -f infra/docker-compose.yml logs -f web   # Ctrl+C para salir
 ```
 
-La construcción (`infra/web.Dockerfile`) instala las dependencias con `pnpm install --frozen-lockfile`, ejecuta `pnpm build` y copia `apps/web/dist` a una imagen de Caddy (`infra/Caddyfile`). Caddy envía en cada página las mismas cabeceras de seguridad que la instancia pública (CSP, HSTS, `X-Frame-Options` y demás, `docs/ops/DEPLOY.md` "Cabeceras de seguridad"); la CSP solo deja conectar con la `PUBLIC_SUPABASE_URL` con la que se construyó la imagen, así que si cambia hay que reconstruir. Tarda unos minutos la primera vez. En los registros debe aparecer `certificate obtained successfully` para los dos dominios.
+La construcción (`infra/web.Dockerfile`, con las imágenes base fijadas por digest) instala las dependencias con `pnpm install --frozen-lockfile`, ejecuta `pnpm build` y copia `apps/web/dist` a una imagen de Caddy (`infra/Caddyfile`). Caddy envía en cada página las mismas cabeceras de seguridad que la instancia pública (CSP, HSTS, `X-Frame-Options` y demás, `docs/ops/DEPLOY.md` "Cabeceras de seguridad"); la CSP solo deja conectar con la `PUBLIC_SUPABASE_URL` con la que se construyó la imagen, así que si cambia hay que reconstruir. Tarda unos minutos la primera vez. En los registros debe aparecer `certificate obtained successfully` para los dos dominios.
 
 ### 9. Verificación final
 
@@ -147,7 +151,7 @@ docker compose -f infra/docker-compose.yml -f infra/docker-compose.override.exam
 docker compose -f infra/docker-compose.yml -f infra/docker-compose.override.example.yml up -d
 ```
 
-`infra/docker-compose.override.example.yml` sirve el sitio por HTTP en `http://localhost:8080` en lugar de los puertos 80/443. Se puede copiar como `infra/docker-compose.override.yml` y adaptarlo. Para parar y limpiar:
+`infra/docker-compose.override.example.yml` sirve el sitio por HTTP en `http://localhost:8080` en lugar de los puertos 80/443, solo en la interfaz local del equipo: nadie más en la red alcanza la prueba (#525). Se puede copiar como `infra/docker-compose.override.yml` y adaptarlo. Para parar y limpiar:
 
 ```bash
 docker compose -f infra/docker-compose.yml -f infra/docker-compose.override.example.yml down -v --rmi all
@@ -208,5 +212,5 @@ docker compose exec -T db pg_restore -U supabase_admin -d postgres --clean --if-
 | El correo de confirmación no llega | SMTP sin configurar o rechazado | Revisa `SMTP_*` en el `.env` de Supabase y `docker compose logs auth` |
 | El enlace del correo lleva a otra dirección | `SITE_URL` o `ADDITIONAL_REDIRECT_URLS` sin actualizar | Corrígelos y ejecuta `docker compose up -d` en `/opt/supabase-project` |
 | `db push` falla con `tls error` | Falta `?sslmode=disable` en la URL | Copia el comando del paso 5 tal cual |
-| `db push` falla con `password authentication failed` o `tenant not found` | Usuario sin el sufijo `.<POOLER_TENANT_ID>` o contraseña sin codificar | Revisa el formato del paso 5 |
+| `db push` falla con `password authentication failed` o `tenant not found` | Usuario sin el sufijo `.<POOLER_TENANT_ID>`, o `PGPASSWORD` vacía porque el `grep` no encontró `POSTGRES_PASSWORD` | Revisa el formato del paso 5 y el `.env` de Supabase |
 | Tras actualizar, el sitio muestra la versión anterior | La imagen no se reconstruyó | Ejecuta `build` antes de `up -d` |
