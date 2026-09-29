@@ -138,7 +138,10 @@ function OpenButton({
   );
 }
 
-/** «Guardar» beside the open field; disabled while the name is empty. */
+/**
+ * «Guardar» beside the open field; disabled while the name is empty, with the reason in its
+ * `title` (#543). The bar has no room for a line under it, and the empty field is right beside.
+ */
 function ConfirmButton({
   pad,
   text,
@@ -158,6 +161,7 @@ function ConfirmButton({
       data-testid="track-editor-save-track-confirm"
       className={`${BUTTON} ${pad} ${text}`}
       disabled={disabled}
+      {...(disabled ? { title: t('sims.trackEditor.save.empty') } : {})}
       onClick={onCommit}
     >
       {t('sims.trackEditor.save.confirm')}

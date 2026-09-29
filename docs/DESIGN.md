@@ -114,7 +114,7 @@ Todos: altura mínima 40 px (44 px en acciones principales y en móvil), foco `o
 - **Físico** (variante de primario): fondo `physical`, texto `physical-fg`. Solo para acciones que afectan al robot. Lleva glifo de chasis a la izquierda. "Abrir en simulador" es el primario azul de su página, con el mismo glifo de chasis: en ámbar se leía como otro sistema y no como la acción principal (#541).
 - **Secundario**: fondo `bg-raised`, borde `border`, texto `fg`, 600. Hover: borde `fg-muted`.
 - **Fantasma**: transparente, sin borde (o borde `border` si está sobre `bg`), texto `fg-muted`; hover texto `fg`. Para acciones de baja prioridad ("Comprobar" antes de escribir, "Editar").
-- Deshabilitado: opacidad 0.45, cursor default. Nunca ocultar el botón. Siempre dice por qué: `title` con el motivo y una línea `sm` muted junto al control que lo explica ("Escribe un nombre para guardar"), enlazada con `aria-describedby`; la línea desaparece cuando el control se habilita (#543).
+- Deshabilitado: opacidad 0.45, cursor default. Nunca ocultar el botón. Siempre dice por qué: `title` con el motivo y una línea `sm` muted junto al control que lo explica ("Escribe un nombre para guardar"), enlazada con `aria-describedby`; la línea desaparece cuando el control se habilita. En una barra densa sin sitio para la línea (la del editor de pista) basta el `title` (#543).
 
 ### Slider (parámetro)
 Fila de cabecera: nombre + símbolo mono itálico a la izquierda; a la derecha un **campo numérico** mono con unidad en muted (`20.9 rad/s`) dentro de una caja `border`/`bg` radio `sm` — ese campo es editable: clic o Tab escribe el número, Enter aplica, flechas ±paso, Shift+flecha ×10.
