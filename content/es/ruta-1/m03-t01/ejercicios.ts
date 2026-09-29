@@ -24,8 +24,11 @@ export const E1_V_MPS: Range = { min: 0.1, max: 1.5 };
 export const E2_V_MPS: Range = { min: 0.1, max: 1.5 };
 export const E3_MASS_KG: Range = { min: 0.2, max: 3 };
 export const E3_V_MPS: Range = { min: 0.1, max: 1.5 };
-/** Smallest net work e3 asks for, in joules. */
-export const E3_MIN_WORK_J = 0.01;
+/**
+ * Smallest net work e3 asks for, in joules (V-32). From 0.025 J on, relative 2 % covers a correct
+ * response rounded to the thousandth (#568).
+ */
+export const E3_MIN_WORK_J = 0.025;
 export const E4_FRICTION_N: Range = { min: 0.1, max: 1 };
 export const E4_DISTANCE_M: Range = { min: 1, max: 10 };
 

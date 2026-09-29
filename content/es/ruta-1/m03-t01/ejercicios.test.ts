@@ -150,18 +150,19 @@ describe('e3 · trabajo neto para llevar m de v₁ a v₂', () => {
     expect(unit).toBe('J');
   });
 
-  it('redraws the speeds until the net work is at least 0.01 J', () => {
-    // m = 0.2 kg, 0.1 → 0.11 m/s gives 0.00021 J (redrawn); 0.1 → 0.5 m/s gives 0.024 J.
-    const { values, answer } = exercise('e3').generate(scriptedRng([20, 10, 11, 10, 50]));
+  it('redraws the speeds until the net work is at least 0.025 J (#568)', () => {
+    // m = 0.2 kg: 0.1 → 0.11 m/s gives 0.00021 J and 0.1 → 0.5 m/s gives 0.024 J (both redrawn);
+    // 0.1 → 0.52 m/s gives 0.02604 J.
+    const { values, answer } = exercise('e3').generate(scriptedRng([20, 10, 11, 10, 50, 10, 52]));
 
-    expect(values).toEqual({ mass_kg: 0.2, v1_mps: 0.1, v2_mps: 0.5 });
-    expect(answer).toBeCloseTo(0.024, 10);
+    expect(values).toEqual({ mass_kg: 0.2, v1_mps: 0.1, v2_mps: 0.52 });
+    expect(answer).toBeCloseTo(0.02604, 10);
   });
 
-  it('draws m ∈ [0.2, 3] kg and v₁ < v₂ ∈ [0.1, 1.5] m/s in hundredths, W ≥ 0.01 J', () => {
+  it('draws m ∈ [0.2, 3] kg and v₁ < v₂ ∈ [0.1, 1.5] m/s in hundredths, W ≥ 0.025 J', () => {
     expect(E3_MASS_KG).toEqual({ min: 0.2, max: 3 });
     expect(E3_V_MPS).toEqual({ min: 0.1, max: 1.5 });
-    expect(E3_MIN_WORK_J).toBe(0.01);
+    expect(E3_MIN_WORK_J).toBe(0.025);
     for (const seed of MANY_SEEDS) {
       const { mass_kg, v1_mps, v2_mps } = valuesOf('e3', seed);
       expectWithin(mass_kg!, E3_MASS_KG);

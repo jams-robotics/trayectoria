@@ -6,7 +6,8 @@ import type { SeededRng } from '@trayectoria/sim-core';
 //
 // Values are drawn on a grid the statement shows exactly: sensor spacing and line width to the
 // millimetre, speeds, distances, angles and radii to the hundredth, as in T-0.3 (#273).
-// e2 asks for Δs_ciclo in m with a relative tolerance, so it is drawn again below 1 cm (#461).
+// e2 asks for Δs_ciclo in m with a relative tolerance, so it is drawn again below 2.5 cm, where
+// 2 % covers the rounding to the millimetre (#461, #568).
 
 const TOPIC_ID = 'ruta-1/m06-t04';
 const RELATIVE_2_PERCENT = { type: 'relative', value: 0.02 } as const;
@@ -27,8 +28,11 @@ export const E1_SPACING_M: Range = { min: 0.008, max: 0.02 };
 export const E1_LINE_WIDTH_M: Range = { min: 0.01, max: 0.03 };
 export const E2_V_MPS: Range = { min: 0.2, max: 1.5 };
 export const E2_CONTROL_PERIODS_S: readonly number[] = [0.005, 0.01, 0.02, 0.05];
-/** e2 draws v and Δt_c again while Δs_ciclo is below 1 cm (#451, #461). */
-export const E2_MIN_STEP_M = 0.01;
+/**
+ * e2 draws v and Δt_c again while Δs_ciclo is below 2.5 cm (#451, #461, #568). With v ≤ 1.5 m/s
+ * this leaves out Δt_c = 0.005 s and 0.01 s, and v < 1.25 m/s with 0.02 s.
+ */
+export const E2_MIN_STEP_M = 0.025;
 /** e3 fixes the array (N = 5, e_s = 12 mm) and draws d₁, d₂ and Δθ. */
 export const E3_COUNT = 5;
 export const E3_SPACING_M = 0.012;
@@ -75,12 +79,20 @@ const e1 = defineExercise<LineLoss>({
   tolerance: ABSOLUTE_1_MM,
 });
 
-interface StepDistance {
+export interface StepDistance {
   readonly v_mps: number;
   readonly controlPeriod_s: number;
 }
 
-/** e2: `Δs_ciclo = v · Δt_c`, with v and Δt_c drawn again while it is below 1 cm (#461). */
+/**
+ * `Δs_ciclo = v · Δt_c`. Exported so the golden value of the spec, 0.01 m, which e2 now draws
+ * again (#568), is still tested.
+ */
+export function stepDistance_m({ v_mps, controlPeriod_s }: StepDistance): number {
+  return v_mps * controlPeriod_s;
+}
+
+/** e2: `Δs_ciclo = v · Δt_c`, with v and Δt_c drawn again while it is below 2.5 cm (#461, #568). */
 const e2 = defineExercise<StepDistance>({
   id: 'e2',
   generate: (rng) => {
@@ -88,7 +100,7 @@ const e2 = defineExercise<StepDistance>({
       const v_mps = drawOnGrid(rng, E2_V_MPS, HUNDREDTHS);
       const controlPeriod_s =
         E2_CONTROL_PERIODS_S[rng.nextInt(0, E2_CONTROL_PERIODS_S.length - 1)]!;
-      const step_m = v_mps * controlPeriod_s;
+      const step_m = stepDistance_m({ v_mps, controlPeriod_s });
       if (step_m >= E2_MIN_STEP_M) {
         return { values: { v_mps, controlPeriod_s }, answer: step_m, unit: 'm' };
       }

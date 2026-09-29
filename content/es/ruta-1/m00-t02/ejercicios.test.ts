@@ -3,6 +3,7 @@ import type { Tolerance } from '@trayectoria/sim-core';
 import { describe, expect, it } from 'vitest';
 
 import {
+  E3_MIN_MAGNITUDE_M,
   angleBetween_deg,
   components_mps,
   e1,
@@ -139,6 +140,33 @@ describe('T-0.2 exercises', () => {
       expect(answer).toBe(magnitude(values.ax_m + values.bx_m, values.ay_m + values.by_m));
       expect(answer).toBeGreaterThan(0);
       expect(unit).toBe('m');
+    }
+  });
+
+  it('e3 draws again while |a⃗ + b⃗| < 0.025 m, where 2 % no longer covers the millimetre (#568)', () => {
+    // First draw: (0.01, 0.02) + (0, 0) → 0.02236 m, redrawn; then the golden draw → 1.526 m.
+    const draws = [1, 2, 0, 0, 120, 50, -40, 80];
+    const rng = {
+      next: () => 0,
+      nextInt: () => {
+        const draw = draws.shift();
+        if (draw === undefined) throw new Error('more draws than scripted');
+        return draw;
+      },
+      nextGaussian: () => 0,
+    };
+    const { values, answer } = e3.generate(rng);
+
+    expect(E3_MIN_MAGNITUDE_M).toBe(0.025);
+    expect(values).toEqual({ ax_m: 1.2, ay_m: 0.5, bx_m: -0.4, by_m: 0.8 });
+    expect(answer).toBeCloseTo(1.526, 3);
+  });
+
+  it('e3 never answers a magnitude in (0, 0.025) m over 20000 seeds (#568)', () => {
+    for (let seed = 0; seed < 20000; seed += 1) {
+      expect(e3.generate(createRng(seed)).answer, `seed ${seed}`).toBeGreaterThanOrEqual(
+        E3_MIN_MAGNITUDE_M,
+      );
     }
   });
 

@@ -18,6 +18,12 @@ const ABSOLUTE_HALF_DEGREE = { type: 'absolute', value: 0.5 } as const;
 
 const HUNDREDTHS = 100;
 
+/**
+ * e3 draws again while the magnitude is below this: with relative 2 %, a correct response rounded
+ * to the millimetre (up to 0.0005 m off) is only accepted from 0.025 m on (#568).
+ */
+export const E3_MIN_MAGNITUDE_M = 0.025;
+
 /** e4 asks for the angle between two fixed vectors of the spec. */
 const E4_A: readonly [number, number] = [0.3, 0.4];
 const E4_B: readonly [number, number] = [0.5, 0];
@@ -108,7 +114,8 @@ export const e2 = defineExercise<VelocityVector>({
 
 /**
  * e3 · «Suma de desplazamientos (a) + (b): magnitud», components ∈ [−2, 2]. A zero sum has no
- * relative error to grade, so it is drawn again.
+ * relative error to grade, and below `E3_MIN_MAGNITUDE_M` relative 2 % is tighter than the
+ * rounding to the millimetre, so both are drawn again (#568).
  */
 export const e3 = defineExercise<Displacements>({
   id: 'e3',
@@ -119,7 +126,8 @@ export const e3 = defineExercise<Displacements>({
       const bx_m = hundredths(rng, -2, 2);
       const by_m = hundredths(rng, -2, 2);
       const sum_m = magnitude(ax_m + bx_m, ay_m + by_m);
-      if (sum_m > 0) return { values: { ax_m, ay_m, bx_m, by_m }, answer: sum_m, unit: 'm' };
+      if (sum_m >= E3_MIN_MAGNITUDE_M)
+        return { values: { ax_m, ay_m, bx_m, by_m }, answer: sum_m, unit: 'm' };
     }
   },
   statement: () => `${STATEMENT_PREFIX}.e3`,
