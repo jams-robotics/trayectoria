@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import type { OrbitControlsChangeEvent } from '@react-three/drei';
 
 import { tokenColor } from '../shared/theme';
 
@@ -21,6 +22,11 @@ const AMBIENT_INTENSITY = 0.6;
 const DIRECTIONAL_INTENSITY = 1.1;
 /** Position of the directional light, in metres. */
 const LIGHT_POSITION_M: readonly [number, number, number] = [1.5, -1.5, 2.5];
+/** Below this distance, in metres, two camera positions count as the same one. */
+const SAME_POSITION_EPS_M = 1e-6;
+
+/** Position of the camera, in metres. It always looks at the origin: the orbit never pans. */
+export type CameraPosition_m = readonly [number, number, number];
 
 export interface Scene3DProps {
   /** World axis that points up. Defaults to `z` (docs/WIDGETS.md, Scene3D). */
@@ -29,6 +35,15 @@ export interface Scene3DProps {
   showGrid?: boolean;
   /** Textual description of the scene, already translated by the widget that uses it. */
   description: string;
+  /**
+   * Radius, in metres, of the sphere around the origin that the initial camera frames so that
+   * it fills the frame height (#556). Without it, the fixed default position that frames the grid.
+   */
+  frameRadius_m?: number | undefined;
+  /** Camera position to start from, in metres; it takes precedence over `frameRadius_m`. */
+  cameraPosition_m?: CameraPosition_m | undefined;
+  /** Reports the camera position each time the user orbits or zooms away from the initial one. */
+  onCameraChange?: ((position_m: CameraPosition_m) => void) | undefined;
   children: ReactNode;
 }
 
@@ -46,6 +61,33 @@ const GRID_ROTATION_RAD: Readonly<Record<'z' | 'y', readonly [number, number, nu
   z: [Math.PI / 2, 0, 0],
   y: [0, 0, 0],
 };
+
+/**
+ * Camera position that frames a sphere of radius `frameRadius_m` centred on the origin (#556):
+ * the default viewing direction, at the distance `r / tan(fov / 2)` at which the vertical field of
+ * view spans exactly the diameter of the sphere, so the sphere fills the frame height.
+ */
+export function framedCameraPosition_m(frameRadius_m: number): CameraPosition_m {
+  const [x_m, y_m, z_m] = CAMERA_POSITION_M;
+  const length_m = Math.hypot(x_m, y_m, z_m);
+  const distance_m = frameRadius_m / Math.tan((CAMERA_FOV_DEG / 2) * (Math.PI / 180));
+  const scale = distance_m / length_m;
+  return [x_m * scale, y_m * scale, z_m * scale];
+}
+
+/** Where the camera starts: the given position, the framed one, or the fixed default. */
+export function initialCameraPosition_m(
+  cameraPosition_m: CameraPosition_m | undefined,
+  frameRadius_m: number | undefined,
+): CameraPosition_m {
+  if (cameraPosition_m !== undefined) return cameraPosition_m;
+  return frameRadius_m === undefined ? CAMERA_POSITION_M : framedCameraPosition_m(frameRadius_m);
+}
+
+/** Whether two camera positions are the same one, within floating-point noise. */
+function samePosition(a: CameraPosition_m, b: CameraPosition_m): boolean {
+  return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) < SAME_POSITION_EPS_M;
+}
 
 /**
  * Background and grid colours read from the CSS tokens, re-read whenever `data-theme` changes
@@ -77,7 +119,29 @@ export function useSceneColors(): { background: string; grid: string; axis: stri
   return colors;
 }
 
-/** Lights, ground grid and orbit controls: everything the viewer draws besides its children. */
+/**
+ * The orbit controls, reporting the camera position when the user moves it. The controls fire
+ * `change` once on their first update even though the camera has not moved, so a position equal
+ * to the initial one is not reported: only what the user actually orbits or zooms counts.
+ */
+function Orbit({
+  initial_m,
+  onCameraChange,
+}: {
+  initial_m: CameraPosition_m;
+  onCameraChange: ((position_m: CameraPosition_m) => void) | undefined;
+}): JSX.Element {
+  if (onCameraChange === undefined) return <OrbitControls makeDefault enablePan={false} />;
+  const report = (event?: OrbitControlsChangeEvent): void => {
+    const camera = event?.target.object;
+    if (camera === undefined) return;
+    const position_m: CameraPosition_m = [camera.position.x, camera.position.y, camera.position.z];
+    if (!samePosition(position_m, initial_m)) onCameraChange(position_m);
+  };
+  return <OrbitControls makeDefault enablePan={false} onChange={report} />;
+}
+
+/** Lights and ground grid: everything the viewer draws besides its children and the orbit. */
 function SceneRig({
   up,
   showGrid,
@@ -104,7 +168,6 @@ function SceneRig({
           ]}
         />
       ) : null}
-      <OrbitControls makeDefault enablePan={false} />
     </>
   );
 }
@@ -124,9 +187,14 @@ export function Scene3D({
   showGrid = true,
   description,
   children,
+  ...camera
 }: Scene3DProps): JSX.Element {
   const colors = useSceneColors();
   const upVector = UP_VECTORS[up];
+  // The camera reads its position only when the canvas mounts: the first value is the one that counts.
+  const [initial_m] = useState(() =>
+    initialCameraPosition_m(camera.cameraPosition_m, camera.frameRadius_m),
+  );
   return (
     <div
       className="bg-bg-raised border-border w-full overflow-hidden rounded-lg border"
@@ -142,14 +210,16 @@ export function Scene3D({
         // `e2e/visual/Scene3D.png` came out blank without it).
         gl={{ preserveDrawingBuffer: true }}
         camera={{
-          position: [CAMERA_POSITION_M[0], CAMERA_POSITION_M[1], CAMERA_POSITION_M[2]],
+          position: [initial_m[0], initial_m[1], initial_m[2]],
           fov: CAMERA_FOV_DEG,
           up: [upVector[0], upVector[1], upVector[2]],
         }}
         style={{ background: colors.background }}
         data-up={up}
+        data-camera-position={initial_m.join(',')}
       >
         <SceneRig up={up} showGrid={showGrid} colors={colors} />
+        <Orbit initial_m={initial_m} onCameraChange={camera.onCameraChange} />
         {children}
       </Canvas>
     </div>
