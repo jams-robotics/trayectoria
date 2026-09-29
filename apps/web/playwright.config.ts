@@ -38,6 +38,9 @@ function webServerEnv(): Record<string, string> {
     // Astro 7 detaches `astro dev` into a background daemon when it detects an AI agent shell
     // (am-i-vibing reads this variable). Playwright needs the server in the foreground to own it.
     CLAUDECODE: '',
+    // The e2e and visual specs run on the /dev/* pages, which a build only routes with this
+    // variable (#519, src/integrations/devPages.ts); `astro dev` routes them anyway.
+    DEV_PAGES: '1',
   };
 }
 

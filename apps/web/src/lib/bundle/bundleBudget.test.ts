@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync } from 'node:fs';
-import { basename, join, relative, sep } from 'node:path';
+import { join, relative, sep } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { beforeAll, describe, expect, test } from 'vitest';
 
@@ -130,9 +130,15 @@ function htmlPages(): string[] {
   return pages;
 }
 
-/** The `three` chunk is the one containing `Frame`, the only module of `@trayectoria/widgets/scene3d`. */
+/**
+ * The chunk that carries `three`, found by its renderer class. Rollup names it after its first
+ * module: `Frame` (the only module of `@trayectoria/widgets/scene3d`) while the `/dev/*` pages
+ * shared it, `ArmViewer` in a production build without them (#519).
+ */
 function threeChunk(assets: readonly string[]): string | undefined {
-  return assets.find((asset) => basename(asset).startsWith('Frame.'));
+  return assets.find((asset) =>
+    readFileSync(join(ASSETS_DIR, asset), 'utf8').includes('WebGLRenderer'),
+  );
 }
 
 describe('presupuesto de bundle (ARCHITECTURE §8)', () => {
