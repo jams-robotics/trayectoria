@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest';
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { t } from '@trayectoria/i18n';
 import {
   REFERENCE_PID_PARAMS,
   pointAt,
@@ -150,6 +151,10 @@ describe('LineFollowerWidget (F4-02a)', () => {
     expect(custom).toBeDisabled();
     expect(custom).toHaveAttribute('aria-disabled', 'true');
     expect(custom).toHaveTextContent('v2');
+    // #543: it says why, in its title and in the line its description points to.
+    expect(custom).toHaveAttribute('title', t('sims.lineFollower.customTitle'));
+    expect(custom).toHaveAccessibleDescription(t('sims.lineFollower.customHint'));
+    expect(screen.getByTestId('line-follower-custom-hint')).toBeVisible();
   });
 
   it('cambia de controlador y vuelve a sus parámetros por defecto', async () => {
