@@ -6,8 +6,10 @@ import type { RobotSpec } from '@trayectoria/robot-spec';
 import { radToDeg } from '@trayectoria/sim-core';
 import type { Mat4 } from '@trayectoria/sim-core';
 import { Frame, Scene3D } from '@trayectoria/widgets/scene3d';
+import type { CameraPosition_m } from '@trayectoria/widgets/scene3d';
 import type { URDFRobot } from 'urdf-loader';
 
+import { labelOf } from './ficha';
 import { FramesToggle } from './FramesToggle';
 import { UrdfModel } from './UrdfModel';
 import type { WorkspaceState } from './workspace/WorkspacePanel';
@@ -31,17 +33,24 @@ const FRAME_LENGTH_M = 0.06;
 /** Decimals of the joint summary, in degrees (same format as the effector panel). */
 const JOINT_SUMMARY_DECIMALS = 1;
 
-/** One-line summary of the joints: `joint1 90.0° · joint2 0.0°`. */
+/** Labels of an arm without a catalog card: the summary uses the URDF names. */
+const NO_JOINT_LABELS: ReadonlyMap<string, string> = new Map();
+
+/**
+ * One-line summary of the joints: `joint1 90.0° · joint2 0.0°`, with the readable name of the
+ * card instead of the URDF one when it has it (#535).
+ */
 export function jointsSummary(
   joints: readonly ActuatedJoint[],
   q_rad: readonly number[],
   unit_deg: string,
+  labels: ReadonlyMap<string, string> = NO_JOINT_LABELS,
 ): string {
   return joints
-    .map(
-      (joint, index) =>
-        `${joint.name} ${radToDeg(q_rad[index] ?? 0).toFixed(JOINT_SUMMARY_DECIMALS)}${unit_deg}`,
-    )
+    .map((joint, index) => {
+      const angle = radToDeg(q_rad[index] ?? 0).toFixed(JOINT_SUMMARY_DECIMALS);
+      return `${labelOf(labels, joint.name)} ${angle}${unit_deg}`;
+    })
     .join(' · ');
 }
 
@@ -58,9 +67,13 @@ export function effectorPanelSummary(readout: EffectorReadout, t: Translate): st
 }
 
 /** The one-line summaries of the two fixed panels, to collapse them on mobile. */
-export function panelSummaries(sim: ArmSim, t: Translate): { joints: string; effector: string } {
+export function panelSummaries(
+  sim: ArmSim,
+  t: Translate,
+  jointLabels?: ReadonlyMap<string, string>,
+): { joints: string; effector: string } {
   return {
-    joints: jointsSummary(sim.joints, sim.q_rad, t('sims.arm.unitDeg')),
+    joints: jointsSummary(sim.joints, sim.q_rad, t('sims.arm.unitDeg'), jointLabels),
     effector: effectorPanelSummary(sim.readout, t),
   };
 }
@@ -79,6 +92,27 @@ function LinkFrames({ transforms }: { transforms: ReadonlyMap<string, Mat4> }): 
   );
 }
 
+/**
+ * Where the scene camera starts (#556): the reach of the card frames it, and the position the
+ * user left on the previous arm, when there is one, wins over it.
+ */
+export interface SceneCamera {
+  readonly frameRadius_m: number | undefined;
+  readonly position_m: CameraPosition_m | undefined;
+  readonly onChange: ((position_m: CameraPosition_m) => void) | undefined;
+}
+
+/** What the scene draws: the arm, its frames, the workspace cloud and where the camera starts. */
+interface ArmSceneProps {
+  spec: RobotSpec;
+  sim: ArmSim;
+  robot: URDFRobot | null;
+  framesVisible: boolean;
+  highlightLink: string | undefined;
+  workspace: WorkspaceState;
+  camera: SceneCamera;
+}
+
 /** The viewer scene: the three arm and, when enabled, the link frames. */
 function ArmScene({
   spec,
@@ -87,21 +121,20 @@ function ArmScene({
   framesVisible,
   highlightLink,
   workspace,
-}: {
-  spec: RobotSpec;
-  sim: ArmSim;
-  robot: URDFRobot | null;
-  framesVisible: boolean;
-  highlightLink: string | undefined;
-  workspace: WorkspaceState;
-}): JSX.Element {
+  camera,
+}: ArmSceneProps): JSX.Element {
   const t = useT();
   const colors = useMemo(
     () => readArmColors(typeof document === 'undefined' ? null : document.documentElement),
     [],
   );
   return (
-    <Scene3D description={t('sims.arm.scene', { name: spec.name })}>
+    <Scene3D
+      description={t('sims.arm.scene', { name: spec.name })}
+      frameRadius_m={camera.frameRadius_m}
+      cameraPosition_m={camera.position_m}
+      onCameraChange={camera.onChange}
+    >
       {robot === null ? null : (
         <UrdfModel
           robot={robot}
@@ -144,37 +177,22 @@ export function useWorkspaceCloud(): {
   return { workspace, onWorkspace };
 }
 
-/** The viewer column: the frames toggle over the 3D scene. */
+/**
+ * The viewer column: the frames toggle over the 3D scene. Without `onFrames` there is no toggle:
+ * the page composes «Marcos» in its own view group (#537).
+ */
 export function SceneColumn({
-  spec,
-  sim,
-  robot,
-  framesVisible,
   onFrames,
-  highlightLink,
-  workspace,
-}: {
-  spec: RobotSpec;
-  sim: ArmSim;
-  robot: URDFRobot | null;
-  framesVisible: boolean;
-  onFrames: (visible: boolean) => void;
-  highlightLink: string | undefined;
-  workspace: WorkspaceState;
-}): JSX.Element {
+  ...scene
+}: ArmSceneProps & { onFrames: ((visible: boolean) => void) | undefined }): JSX.Element {
   return (
     <div className="min-w-0 flex-1">
-      <div className="mb-3">
-        <FramesToggle visible={framesVisible} onToggle={onFrames} />
-      </div>
-      <ArmScene
-        spec={spec}
-        sim={sim}
-        robot={robot}
-        framesVisible={framesVisible}
-        highlightLink={highlightLink}
-        workspace={workspace}
-      />
+      {onFrames === undefined ? null : (
+        <div className="mb-3">
+          <FramesToggle visible={scene.framesVisible} onToggle={onFrames} />
+        </div>
+      )}
+      <ArmScene {...scene} />
     </div>
   );
 }

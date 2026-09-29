@@ -7,6 +7,8 @@ import type { RobotSpec } from '@trayectoria/robot-spec';
 import { parseUrdf } from '@trayectoria/sim-core';
 
 import { listEntries, readEntry } from '../urdf/zipUrdf';
+import { FICHA_FILE, fetchFicha } from './ficha';
+import type { ArmFicha } from './ficha';
 
 // F5-01a (#133, decision 4): a catalog arm is loaded only once and produces two things
 // from the same XML: the three object with the hierarchy and the meshes (urdf-loader) and the
@@ -32,6 +34,8 @@ export const MISSING_MESH_KEY = 'urdf.missingMesh';
 export interface LoadedArm {
   readonly robot: URDFRobot;
   readonly spec: RobotSpec;
+  /** The catalog card, or `null` for a zip import or when the card cannot be read. */
+  readonly ficha: ArmFicha | null;
   /**
    * Releases the object URLs used by the zip meshes. The viewer calls it when the arm changes and
    * on unmount; for a catalog arm there is nothing to release and it does nothing.
@@ -58,6 +62,11 @@ export function catalogBaseUrl(catalogId: string): string {
 /** URL of the URDF of a catalog arm. */
 export function catalogUrdfUrl(catalogId: string): string {
   return `${catalogBaseUrl(catalogId)}/${catalogId}.urdf`;
+}
+
+/** URL of the `ficha.json` of a catalog arm (#535, #556). */
+export function catalogFichaUrl(catalogId: string): string {
+  return `${catalogBaseUrl(catalogId)}/${FICHA_FILE}`;
 }
 
 /**
@@ -256,9 +265,17 @@ function specOf(xml: string, options: LoadUrdfOptions, label: string): RobotSpec
  */
 export async function loadArm(source: ArmSource, options: LoadUrdfOptions): Promise<LoadedArm> {
   if (source.kind === 'catalog') {
-    const xml = await fetchCatalogUrdf(source.catalogId, options);
+    const [xml, ficha] = await Promise.all([
+      fetchCatalogUrdf(source.catalogId, options),
+      fetchFicha(catalogFichaUrl(source.catalogId), options.fetchFn ?? fetch),
+    ]);
     const spec = specOf(xml, options, source.catalogId);
-    return { robot: createLoader(source.catalogId).parse(xml), spec, revoke: () => undefined };
+    return {
+      robot: createLoader(source.catalogId).parse(xml),
+      spec,
+      ficha,
+      revoke: () => undefined,
+    };
   }
   const { xml, loader, tracked } = loaderForZip(source.bytes, source.urdfPath);
   const spec = specOf(xml, options, source.urdfPath);
@@ -266,6 +283,7 @@ export async function loadArm(source: ArmSource, options: LoadUrdfOptions): Prom
   return {
     robot,
     spec,
+    ficha: null,
     revoke: () => {
       for (const url of tracked.urls.splice(0)) URL.revokeObjectURL(url);
     },

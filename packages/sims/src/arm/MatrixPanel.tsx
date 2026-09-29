@@ -4,7 +4,9 @@ import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 import { Formula } from '@trayectoria/widgets';
 
+import { labelOf } from './ficha';
 import { MatrixBlock } from './MatrixBlock';
+import { PanelTitle } from './PanelCard';
 import { matrixRows } from './matrices';
 import type { LinkTransform } from './matrices';
 
@@ -63,6 +65,26 @@ export function matrixLabel(kind: MatrixKind, index: number, t: Translate): stri
   return `${toIndexText(0, SUPERSCRIPT)}T${toIndexText(index, SUBSCRIPT)}`;
 }
 
+/** One chip: its value, its visible text and its accessible name. */
+interface ChipOption<T extends string> {
+  readonly value: T;
+  readonly text: string;
+  readonly title: string;
+  /** Tooltip; the link chips keep the URDF id here (#535). */
+  readonly hint?: string;
+}
+
+/** The link chips: the readable name of the card, with the URDF id as tooltip (#535). */
+function linkOptions(
+  rows: readonly LinkTransform[],
+  linkLabels: ReadonlyMap<string, string>,
+): readonly ChipOption<string>[] {
+  return rows.map((entry) => {
+    const text = labelOf(linkLabels, entry.link);
+    return { value: entry.link, text, title: text, hint: entry.link };
+  });
+}
+
 /** A group of mutually exclusive chips: `aria-pressed` buttons with the radio role (docs/DESIGN.md §5). */
 function ChipGroup<T extends string>({
   label,
@@ -71,7 +93,7 @@ function ChipGroup<T extends string>({
   onSelect,
 }: {
   label: string;
-  options: readonly { readonly value: T; readonly text: string; readonly title: string }[];
+  options: readonly ChipOption<T>[];
   selected: T;
   onSelect: (value: T) => void;
 }): JSX.Element {
@@ -87,6 +109,7 @@ function ChipGroup<T extends string>({
             aria-checked={active}
             aria-pressed={active}
             aria-label={option.title}
+            title={option.hint}
             className={`rounded-sm border px-[10px] py-[3px] font-mono text-xs ${
               active
                 ? 'bg-primary text-primary-fg border-primary'
@@ -106,14 +129,14 @@ function ChipGroup<T extends string>({
 
 /** The two rows of chips of the panel: the link and the matrix (docs/DESIGN.md §6). */
 function Chips({
-  rows,
+  links,
   index,
   selectedLink,
   kind,
   onLink,
   onKind,
 }: {
-  rows: readonly LinkTransform[];
+  links: readonly ChipOption<string>[];
   index: number;
   selectedLink: string;
   kind: MatrixKind;
@@ -127,7 +150,7 @@ function Chips({
         label={t('sims.matrices.links')}
         selected={selectedLink}
         onSelect={onLink}
-        options={rows.map((entry) => ({ value: entry.link, text: entry.link, title: entry.link }))}
+        options={links}
       />
       <ChipGroup
         label={t('sims.matrices.matrix')}
@@ -149,7 +172,12 @@ export interface MatrixPanelProps {
   rows: readonly LinkTransform[];
   /** Reports which link is chosen, to highlight it in 3D. */
   onHighlightLink?: ((link: string | null) => void) | undefined;
+  /** Readable name of each link, by URDF name (#535); without it, the URDF names. */
+  linkLabels?: ReadonlyMap<string, string> | undefined;
 }
+
+/** Labels of an arm without a catalog card: every chip is named after its URDF link. */
+const NO_LINK_LABELS: ReadonlyMap<string, string> = new Map();
 
 /** The chosen matrix within the link's row. */
 function transformOf(row: LinkTransform, kind: MatrixKind): readonly number[] {
@@ -192,12 +220,23 @@ function useSelection(
   };
 }
 
+/** The entries of a matrix in one line, row by row, for the live region. */
+function liveValues(transform: readonly number[]): string {
+  return matrixRows(transform)
+    .map((cells) => cells.join(' '))
+    .join('; ');
+}
+
 /**
  * Matrix panel of the arm (docs/DESIGN.md §6): the chain of transforms, the chips to
  * choose link and matrix, and the corresponding 4×4 matrix. It updates with `q` because `rows`
  * is recomputed outside.
  */
-export function MatrixPanel({ rows, onHighlightLink }: MatrixPanelProps): JSX.Element | null {
+export function MatrixPanel({
+  rows,
+  onHighlightLink,
+  linkLabels = NO_LINK_LABELS,
+}: MatrixPanelProps): JSX.Element | null {
   const t = useT();
   const { selectedLink, setLink, kind, setKind, index } = useSelection(rows, onHighlightLink);
 
@@ -206,9 +245,8 @@ export function MatrixPanel({ rows, onHighlightLink }: MatrixPanelProps): JSX.El
 
   const latex = chainLatex(rows.length - 1);
   const label = matrixLabel(kind, index, t);
-  const values = matrixRows(transformOf(row, kind))
-    .map((cells) => cells.join(' '))
-    .join('; ');
+  const linkName = labelOf(linkLabels, selectedLink);
+  const values = liveValues(transformOf(row, kind));
 
   return (
     <section
@@ -216,25 +254,23 @@ export function MatrixPanel({ rows, onHighlightLink }: MatrixPanelProps): JSX.El
       data-testid="matrix-panel"
       className="flex w-0 min-w-full flex-col gap-3"
     >
-      <h3 className="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
-        {t('sims.matrices.title')}
-      </h3>
+      <PanelTitle>{t('sims.matrices.title')}</PanelTitle>
       {latex === null ? null : (
         <div aria-label={t('sims.matrices.chain')} data-testid="matrix-chain">
           <Formula latex={latex} />
         </div>
       )}
       <Chips
-        rows={rows}
+        links={linkOptions(rows, linkLabels)}
         index={index}
         selectedLink={selectedLink}
         kind={kind}
         onLink={setLink}
         onKind={setKind}
       />
-      <MatrixBlock transform={transformOf(row, kind)} label={label} link={selectedLink} />
+      <MatrixBlock transform={transformOf(row, kind)} label={label} link={linkName} />
       <p className="sr-only" aria-live="polite" data-testid="matrix-panel-live">
-        {t('sims.matrices.summary', { matrix: label, link: selectedLink, values })}
+        {t('sims.matrices.summary', { matrix: label, link: linkName, values })}
       </p>
     </section>
   );

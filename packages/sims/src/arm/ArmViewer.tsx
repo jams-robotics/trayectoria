@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { RobotSpec } from '@trayectoria/robot-spec';
+import type { CameraPosition_m } from '@trayectoria/widgets/scene3d';
 import type { URDFRobot } from 'urdf-loader';
 
 import { ArmColumns } from './armLayout';
@@ -14,6 +15,9 @@ import {
   useHighlightedLink,
   useWorkspaceCloud,
 } from './ArmScene';
+import type { SceneCamera } from './ArmScene';
+import { NO_LABELS } from './ficha';
+import type { ArmFicha } from './ficha';
 import { loadArm } from './loadUrdf';
 import type { ArmSource } from './loadUrdf';
 import { useArmSim } from './useArmSim';
@@ -53,6 +57,23 @@ export interface ArmViewerProps {
    * §9.4) without duplicating their content. Without it the markup is exactly that of F5-01a.
    */
   renderPanel?: (panel: ArmViewerPanel) => ReactNode;
+  /**
+   * Whether the viewer draws its own «Marcos» button (default `true`). With `false` the frames
+   * follow `show` and the page composes the button in its view group (#537).
+   */
+  framesToggle?: boolean;
+  /** Camera to start from, in metres; it wins over the framing by reach of the card (#556). */
+  cameraPosition_m?: CameraPosition_m | undefined;
+  /** Reports the camera each time the user orbits or zooms, to keep it across arms (#556). */
+  onCameraChange?: ((position_m: CameraPosition_m) => void) | undefined;
+}
+
+/** The arm as `useLoadedArm` holds it: nothing while loading or after a failure. */
+interface LoadedState {
+  robot: URDFRobot | null;
+  spec: RobotSpec | null;
+  ficha: ArmFicha | null;
+  failed: boolean;
 }
 
 /**
@@ -60,16 +81,13 @@ export interface ArmViewerProps {
  * imported arm are revoked when the source changes and on unmount (#137, decision 2), so none
  * is ever left alive once the viewer stops drawing that zip.
  */
-function useLoadedArm(source: ArmSource | undefined): {
-  robot: URDFRobot | null;
-  spec: RobotSpec | null;
-  failed: boolean;
-} {
-  const [state, setState] = useState<{
-    robot: URDFRobot | null;
-    spec: RobotSpec | null;
-    failed: boolean;
-  }>({ robot: null, spec: null, failed: false });
+function useLoadedArm(source: ArmSource | undefined): LoadedState {
+  const [state, setState] = useState<LoadedState>({
+    robot: null,
+    spec: null,
+    ficha: null,
+    failed: false,
+  });
 
   useEffect(() => {
     if (source === undefined) return;
@@ -82,10 +100,10 @@ function useLoadedArm(source: ArmSource | undefined): {
           return;
         }
         release = loaded.revoke;
-        setState({ robot: loaded.robot, spec: loaded.spec, failed: false });
+        setState({ robot: loaded.robot, spec: loaded.spec, ficha: loaded.ficha, failed: false });
       })
       .catch(() => {
-        if (active) setState({ robot: null, spec: null, failed: true });
+        if (active) setState({ robot: null, spec: null, ficha: null, failed: true });
       });
     return () => {
       active = false;
@@ -100,44 +118,58 @@ function useLoadedArm(source: ArmSource | undefined): {
 interface ArmViewerReadyProps {
   spec: RobotSpec;
   robot: URDFRobot | null;
+  ficha: ArmFicha | null;
   initialQ: number[] | undefined;
   showFrames: boolean;
   showMatrices: boolean;
   showWorkspace: boolean;
   compact: boolean;
   renderPanel: ((panel: ArmViewerPanel) => ReactNode) | undefined;
+  framesToggle: boolean;
+  camera: Omit<SceneCamera, 'frameRadius_m'>;
+}
+
+/**
+ * Visibility of the frames: the viewer's own button governs it, or, without the button, `show`
+ * does, because the page owns «Marcos» in its view group (#537).
+ */
+function useFrames(
+  showFrames: boolean,
+  framesToggle: boolean,
+): { visible: boolean; onFrames: ((visible: boolean) => void) | undefined } {
+  const [own, setOwn] = useState(showFrames);
+  if (!framesToggle) return { visible: showFrames, onFrames: undefined };
+  return { visible: own, onFrames: setOwn };
 }
 
 /** The viewer with an already resolved arm: scene, sliders and effector panel. */
-function ArmViewerReady({
-  spec,
-  robot,
-  initialQ,
-  showFrames,
-  showMatrices,
-  showWorkspace,
-  compact,
-  renderPanel,
-}: ArmViewerReadyProps): JSX.Element {
+function ArmViewerReady(props: ArmViewerReadyProps): JSX.Element {
+  const { spec, robot, ficha, showMatrices, showWorkspace, compact, renderPanel } = props;
   const t = useT();
-  const sim = useArmSim(spec, initialQ);
-  const [framesVisible, setFramesVisible] = useState(showFrames);
+  const sim = useArmSim(spec, props.initialQ);
+  const frames = useFrames(props.showFrames, props.framesToggle);
   const { highlighted, onHighlight } = useHighlightedLink();
   const { workspace, onWorkspace } = useWorkspaceCloud();
+  const labels = ficha?.labels ?? NO_LABELS;
   const matrices = { show: showMatrices, onHighlight, highlighted };
-  const panels = armPanels(sim, t, panelSummaries(sim, t), matrices, {
-    show: showWorkspace,
-    onChange: onWorkspace,
-  });
+  const panels = armPanels(
+    sim,
+    t,
+    panelSummaries(sim, t, labels.joints),
+    matrices,
+    { show: showWorkspace, onChange: onWorkspace },
+    labels,
+  );
   const scene = (
     <SceneColumn
       spec={spec}
       sim={sim}
       robot={robot}
-      framesVisible={framesVisible}
-      onFrames={setFramesVisible}
+      framesVisible={frames.visible}
+      onFrames={frames.onFrames}
       highlightLink={showMatrices ? (highlighted ?? undefined) : undefined}
       workspace={showWorkspace ? workspace : HIDDEN_WORKSPACE}
+      camera={{ ...props.camera, frameRadius_m: ficha?.reach_m }}
     />
   );
   // #375: the full viewer is the simulator page's layout (sticky left column).
@@ -147,6 +179,21 @@ function ArmViewerReady({
       {scene}
       <PanelColumn panels={panels} renderPanel={renderPanel} />
     </div>
+  );
+}
+
+/**
+ * Where the arm comes from: the given source or, without it, the catalog arm `catalogId`. It is
+ * always loaded when there is one: it is where the hierarchy and the meshes come from.
+ */
+function useArmSource(
+  source: ArmSource | undefined,
+  catalogId: string | undefined,
+): ArmSource | undefined {
+  return useMemo(
+    (): ArmSource | undefined =>
+      source ?? (catalogId === undefined ? undefined : { kind: 'catalog', catalogId }),
+    [source, catalogId],
   );
 }
 
@@ -162,16 +209,13 @@ export function ArmViewer({
   show,
   compact = false,
   renderPanel,
+  framesToggle = true,
+  cameraPosition_m,
+  onCameraChange,
 }: ArmViewerProps): JSX.Element {
   const t = useT();
-  // The source is always loaded when given: it is where the hierarchy and the meshes come from.
+  const loaded = useLoadedArm(useArmSource(source, catalogId));
   // `robot`, if passed, takes precedence for the spec (docs/WIDGETS.md, ArmViewerWidget).
-  const armSource = useMemo(
-    (): ArmSource | undefined =>
-      source ?? (catalogId === undefined ? undefined : { kind: 'catalog', catalogId }),
-    [source, catalogId],
-  );
-  const loaded = useLoadedArm(armSource);
   const spec = robot ?? loaded.spec;
 
   if (spec === null) {
@@ -186,12 +230,15 @@ export function ArmViewer({
     <ArmViewerReady
       spec={spec}
       robot={loaded.robot}
+      ficha={loaded.ficha}
       initialQ={initialQ}
       showFrames={show.includes('frames')}
       showMatrices={show.includes('matrices')}
       showWorkspace={show.includes('workspace')}
       compact={compact}
       renderPanel={renderPanel}
+      framesToggle={framesToggle}
+      camera={{ position_m: cameraPosition_m, onChange: onCameraChange }}
     />
   );
 }
