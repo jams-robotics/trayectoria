@@ -134,6 +134,27 @@ export function passwordValidationError(t: Translate, password: string): string 
   return password === '' ? t('auth.validation.passwordRequired') : '';
 }
 
+/**
+ * Minimum length of a new password (#512): `minimum_password_length` of supabase/config.toml and
+ * of the hosted project (docs/ops/DEPLOY.md). The server re-checks it.
+ */
+export const MIN_PASSWORD_LENGTH = 10;
+
+/**
+ * Own validation message for a new password (sign-up, recovery), mirroring the server's
+ * `password_requirements = "letters_digits"` (#512): at least one ASCII letter and one digit.
+ */
+export function newPasswordValidationError(t: Translate, password: string): string {
+  if (password === '') return t('auth.validation.passwordRequired');
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return t('auth.validation.passwordTooShort', { min: MIN_PASSWORD_LENGTH });
+  }
+  if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+    return t('auth.validation.passwordLettersDigits');
+  }
+  return '';
+}
+
 export interface FieldValidation {
   readonly error: string;
   /** Clears an already-shown error as the field changes; call from its `onChange`. */
@@ -172,9 +193,11 @@ export interface EmailPasswordValidation {
 /**
  * The email/password validation state a login, register or recover form needs for `noValidate`
  * (#534): both fields' own messages, kept in sync as the learner types, plus the check `submit`
- * runs before calling Supabase.
+ * runs before calling Supabase. A form that sets a new password passes `newPasswordValidationError`.
  */
-export function useEmailPasswordValidation(): EmailPasswordValidation {
+export function useEmailPasswordValidation(
+  checkPassword: (t: Translate, password: string) => string = passwordValidationError,
+): EmailPasswordValidation {
   const t = useT();
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
@@ -189,7 +212,7 @@ export function useEmailPasswordValidation(): EmailPasswordValidation {
     },
     validate: (email, password) => {
       const nextEmailError = emailValidationError(t, email);
-      const nextPasswordError = passwordValidationError(t, password);
+      const nextPasswordError = checkPassword(t, password);
       setEmailError(nextEmailError);
       setPasswordError(nextPasswordError);
       return nextEmailError === '' && nextPasswordError === '';

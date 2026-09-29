@@ -62,6 +62,14 @@ En *Authentication → Sign In / Providers → Email*:
 - Deja activado **Confirm email**: el registro exige confirmar el correo. Con esta opción, registrarse con un correo que ya tiene cuenta recibe la misma respuesta que un registro nuevo, así que el formulario no revela qué correos están registrados (#520).
 - Activa **Secure password change**: cambiar la contraseña desde una sesión de más de 24 horas exige el código de reautenticación (#521). Es el `secure_password_change = true` de `supabase/config.toml`.
 - Deja **Email OTP Expiration** en `3600` segundos. La migración `0011_reauthentication.sql` acepta el código de reautenticación durante una hora: si cambias este valor, el panel y la base de datos dejan de coincidir.
+- **Minimum password length**: `10`, y **Password Requirements**: *Letters and digits* (#512). Son los `minimum_password_length = 10` y `password_requirements = "letters_digits"` de `supabase/config.toml`, y lo que comprueba el formulario de registro antes de enviar.
+
+En *Authentication → Sessions* (#512), para que una sesión robada no se renueve indefinidamente:
+
+- **Time-box user sessions**: `24` horas (`timebox = "24h"` en `supabase/config.toml`).
+- **Inactivity timeout**: `8` horas (`inactivity_timeout = "8h"`).
+
+Estos dos ajustes solo están disponibles en el plan **Pro**; en el plan gratuito quedan pendientes hasta el cambio de plan (paso 1.1). El captcha del registro (Turnstile) queda para v2: mientras tanto frenan el abuso los límites de *Authentication → Rate Limits*.
 
 ### 1.5 Plantillas de correo en español
 
@@ -214,6 +222,7 @@ Sin `<version-id>`, `rollback` vuelve a la versión anterior a la actual. Cada d
 - [ ] SMTP externo configurado, dominio del remitente verificado y límite de envío ajustado.
 - [ ] Las cuatro plantillas en español pegadas en el panel.
 - [ ] Site URL y Redirect URLs de Supabase con el dominio definitivo; **Confirm email** y **Secure password change** activados; **Email OTP Expiration** en 3600 s.
+- [ ] Contraseña mínima de 10 caracteres con letras y números; sesiones con límite de 24 h y 8 h de inactividad (plan Pro).
 - [ ] Token de Cloudflare limitado a la zona `<dominio>`; secreto `CLOUDFLARE_API_TOKEN` en los entornos `production` (solo `main`) y `preview`, y no a nivel de repositorio; variables `PUBLIC_SUPABASE_URL` y `PUBLIC_SUPABASE_ANON_KEY` en GitHub.
 - [ ] Un push a `main` despliega en menos de 5 minutos (duración del run *Deploy* en *Actions*).
 - [ ] Un PR recibe el comentario con la URL de vista previa y esa URL carga el sitio.

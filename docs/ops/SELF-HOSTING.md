@@ -72,8 +72,28 @@ Edita `/opt/supabase-project/.env` siguiendo la guía oficial (<https://supabase
   SUPABASE_PUBLIC_URL=https://api.trayectoria.<universidad>.edu
   ```
 
-- Correo: rellena `SMTP_ADMIN_EMAIL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` y `SMTP_SENDER_NAME` con tu servidor SMTP. Si todavía no tienes SMTP, `ENABLE_EMAIL_AUTOCONFIRM=true` permite registrarse sin confirmar el correo (es la configuración del entorno local, `supabase/config.toml`); vuelve a `false` cuando el SMTP funcione.
+- Correo: rellena `SMTP_ADMIN_EMAIL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` y `SMTP_SENDER_NAME` con tu servidor SMTP. Deja `ENABLE_EMAIL_AUTOCONFIRM=false`: el registro exige confirmar el correo. Solo si todavía no tienes SMTP puedes ponerla en `true` **para la verificación inicial** (paso 9) y nada más; el paso 9.7 la devuelve a `false` (#512).
 - Deja `KONG_HTTP_PORT=8000` salvo que cambies también `SUPABASE_UPSTREAM`.
+
+Después, en `/opt/supabase-project/docker-compose.yml`, añade al bloque `environment:` del servicio `auth` las reglas de contraseña, reautenticación y sesión de `supabase/config.toml` (#512). El `.env` no las lleva porque el compose oficial no las lee de ahí:
+
+```yaml
+      GOTRUE_PASSWORD_MIN_LENGTH: 10
+      GOTRUE_PASSWORD_REQUIRED_CHARACTERS: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789'
+      GOTRUE_SECURITY_UPDATE_PASSWORD_REQUIRE_REAUTHENTICATION: 'true'
+      GOTRUE_SESSIONS_TIMEBOX: 24h
+      GOTRUE_SESSIONS_INACTIVITY_TIMEOUT: 8h
+```
+
+| Variable | Qué hace | Equivale en `supabase/config.toml` |
+|---|---|---|
+| `GOTRUE_PASSWORD_MIN_LENGTH` | Contraseña de al menos 10 caracteres (el formulario de registro pide lo mismo) | `minimum_password_length = 10` |
+| `GOTRUE_PASSWORD_REQUIRED_CHARACTERS` | Al menos una letra y un dígito | `password_requirements = "letters_digits"` |
+| `GOTRUE_SECURITY_UPDATE_PASSWORD_REQUIRE_REAUTHENTICATION` | Cambiar la contraseña desde una sesión antigua pide el código de reautenticación | `secure_password_change = true` |
+| `GOTRUE_SESSIONS_TIMEBOX` | La sesión caduca a las 24 h aunque se renueve | `[auth.sessions] timebox = "24h"` |
+| `GOTRUE_SESSIONS_INACTIVITY_TIMEOUT` | La sesión caduca tras 8 h sin uso | `[auth.sessions] inactivity_timeout = "8h"` |
+
+El captcha del registro queda para v2.
 
 ### 4. Arrancar Supabase
 
@@ -136,9 +156,10 @@ La construcción (`infra/web.Dockerfile`, con las imágenes base fijadas por dig
 1. `https://trayectoria.<universidad>.edu/` muestra la página de inicio con candado válido.
 2. `https://trayectoria.<universidad>.edu/ruta/ruta-1/m00/t01/` muestra el primer tema.
 3. Una ruta inexistente (`/no-existe/`) muestra la página «Página no encontrada».
-4. Registra un usuario de prueba desde «Entrar» en el sitio. Con SMTP, llega el correo de confirmación; con `ENABLE_EMAIL_AUTOCONFIRM=true`, la sesión se abre directamente.
+4. Registra un usuario de prueba desde «Entrar» en el sitio, con una contraseña de al menos 10 caracteres con letras y números. Con SMTP, llega el correo de confirmación; con `ENABLE_EMAIL_AUTOCONFIRM=true`, la sesión se abre directamente.
 5. En el Studio de Supabase aparece el usuario en _Authentication_ y su fila en la tabla `profiles`. El Studio **no** está en `https://api.trayectoria.<universidad>.edu` (esa dirección responde `403` fuera de las rutas de la API, #510): se abre desde tu equipo con un túnel SSH a la VM, `ssh -L 8000:127.0.0.1:8000 <usuario>@<vm>`, y después `http://localhost:8000` en el navegador, con el usuario y la contraseña del dashboard (`DASHBOARD_USERNAME` y `DASHBOARD_PASSWORD` del `.env` de Supabase). Cierra el túnel al terminar.
 6. Borra el usuario de prueba desde la página de cuenta del sitio o desde el Studio.
+7. Si pusiste `ENABLE_EMAIL_AUTOCONFIRM=true` en el paso 3, vuelve a `false` en `/opt/supabase-project/.env` y aplica el cambio con `docker compose up -d` en `/opt/supabase-project`. Sin SMTP funcionando, nadie más puede registrarse: configúralo antes de abrir el sitio a los estudiantes (#512).
 
 ## Prueba local
 

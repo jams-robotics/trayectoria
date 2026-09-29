@@ -60,7 +60,7 @@ export interface TestUser {
   readonly client: TestClient;
 }
 
-/** The password every e2e user shares; the local stack requires at least six characters. */
+/** The password every e2e user shares; the local stack asks for 10 characters, letters and digits. */
 export const E2E_PASSWORD = 'trayectoria-e2e-2026';
 
 /** Creates an account with the given role and returns it already signed in. */

@@ -16,7 +16,8 @@ import {
   emailValidationError,
   FormFooter,
   FormStatus,
-  passwordValidationError,
+  MIN_PASSWORD_LENGTH,
+  newPasswordValidationError,
   SubmitButton,
   TextField,
   useAuthAction,
@@ -24,8 +25,6 @@ import {
 } from './fields';
 import type { FieldValidation } from './fields';
 import { ReauthCodeField, useReauthCode, type ReauthCodeState } from './ReauthCode';
-
-const MIN_PASSWORD_LENGTH = 6;
 
 // The recovery link comes back to this page with `#access_token=…&type=recovery`; supabase-js
 // turns it into a session, clears the fragment and emits PASSWORD_RECOVERY, which sets
@@ -142,7 +141,7 @@ function NewPasswordForm(): JSX.Element {
 
   function submit(event: SubmitEvent<HTMLFormElement>): void {
     event.preventDefault();
-    if (!validation.validate(password, passwordValidationError)) return;
+    if (!validation.validate(password, newPasswordValidationError)) return;
     void run(
       () => changePassword(password, reauth),
       () => t('auth.recover.updated'),

@@ -8,6 +8,8 @@ import {
   FormFooter,
   FormStatus,
   goTo,
+  MIN_PASSWORD_LENGTH,
+  newPasswordValidationError,
   SubmitButton,
   TextField,
   useAuthAction,
@@ -16,8 +18,6 @@ import {
 } from './fields';
 import type { EmailPasswordValidation, FieldValidation } from './fields';
 
-// Supabase local minimum (supabase/config.toml, minimum_password_length); the server re-checks.
-const MIN_PASSWORD_LENGTH = 6;
 const ROLES: readonly UserRole[] = ['student', 'teacher'];
 
 interface RegisterValues {
@@ -128,7 +128,7 @@ function RegisterFields({
 export function RegisterForm(): JSX.Element {
   const t = useT();
   const [values, setValues] = useState<RegisterValues>(EMPTY);
-  const validation = useEmailPasswordValidation();
+  const validation = useEmailPasswordValidation(newPasswordValidationError);
   const nameValidation = useFieldValidation();
   const { state, run } = useAuthAction();
 
