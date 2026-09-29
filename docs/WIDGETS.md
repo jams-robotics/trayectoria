@@ -95,7 +95,7 @@ interface KinematicsWidgetProps { initial: { x0_m: number; v0_mps: number; a_mps
 ```
 
 ### ProjectileWidget
-Tiro parabólico, caída libre y objeto soltado desde un robot en movimiento. `mode` es el modo inicial; con más de un modo en `modes`, un selector segmentado cambia entre ellos (vuelve a `t = 0` en pausa y conserva `h_m`). `overlay` superpone dos trayectorias A y B en `launch` y también en `drop`, donde B empieza con 4 veces la altura de A (#304).
+Tiro parabólico, caída libre y objeto soltado desde un robot en movimiento. Desde #574 solo lo usan los dos temas de la reserva (TR-1, TR-2), que no se publican; sigue en el catálogo. `mode` es el modo inicial; con más de un modo en `modes`, un selector segmentado cambia entre ellos (vuelve a `t = 0` en pausa y conserva `h_m`). `overlay` superpone dos trayectorias A y B en `launch` y también en `drop`, donde B empieza con 4 veces la altura de A (#304).
 Con `overlay`, un conmutador (chip de «Tabs / segmentado», `DESIGN.md` §5, con `aria-pressed`) muestra u oculta B; va justo encima del panel de parámetros de B. Etiqueta i18n `widgets.ProjectileWidget.toggleB` («Mostrar lanzamiento B») en `launch` y `widgets.ProjectileWidget.toggleDropB` («Mostrar caída B») en `drop`. `initialShowOverlay` fija el estado inicial; por defecto `true` (B visible). Con B oculto desaparecen su trayectoria, sus marcas, sus vectores, su columna en el panel de valores y su panel de parámetros; sus valores se conservan. Conmutar no reinicia el tiempo ni cambia la duración de la reproducción (sigue siendo la del vuelo más largo de A y B). Cambiar de modo conserva el estado del conmutador (#351).
 ```ts
 interface ProjectileWidgetProps { mode: 'launch' | 'drop' | 'dropFromRobot'; modes?: Array<'launch' | 'drop' | 'dropFromRobot'>; initial: { v0_mps?: number; launchAngle_rad?: number; h_m: number; vRobot_mps?: number }; overlay?: boolean; initialShowOverlay?: boolean; showVectors?: Array<'v' | 'vx' | 'vy'> }
@@ -103,7 +103,7 @@ interface ProjectileWidgetProps { mode: 'launch' | 'drop' | 'dropFromRobot'; mod
 
 ### RotationWidget
 Disco o rueda con ω, punto en el borde, `v = ω·r`, período, vueltas; modos rodadura y aceleración angular.
-Escala (#351): la escena de cada modo tiene tamaño fijo en metros, calculado con el radio máximo del slider (`r_max = 0.1 m`, o `initial.r_m` si es mayor); el disco se dibuja con su radio real `r`, así que cambiar `r` cambia su tamaño en pantalla. Radio dibujado mínimo: 8 % de la altura de la escena; por debajo, el disco se dibuja con ese mínimo y los valores siguen usando el `r` real. Los vectores (velocidad del borde `v = ω·r`) usan una escala fija, igual en los tres modos: `k = L_max / v_ref`, con `v_ref = 2 m/s` (el máximo del slider `v` del modo rodadura), donde `L_max` es la longitud con la que la punta cae dentro de la escena en el peor caso (#366). Con los valores iniciales de m04-t01 y m04-t02 (`v ≈ 0.67 m/s`) la flecha mide ≈ 33 % de `L_max`. Por encima de `v_ref`, o si la punta saldría por otro motivo (p. ej. ω creciente en `angularAccel`), la longitud se satura en `L_max`: la punta nunca sale de la escena.
+Escala (#351): la escena de cada modo tiene tamaño fijo en metros, calculado con el radio máximo del slider (`r_max = 0.1 m`, o `initial.r_m` si es mayor); el disco se dibuja con su radio real `r`, así que cambiar `r` cambia su tamaño en pantalla. Radio dibujado mínimo: 8 % de la altura de la escena; por debajo, el disco se dibuja con ese mínimo y los valores siguen usando el `r` real. Los vectores (velocidad del borde `v = ω·r`) usan una escala fija, igual en los tres modos: `k = L_max / v_ref`, con `v_ref = 2 m/s` (el máximo del slider `v` del modo rodadura), donde `L_max` es la longitud con la que la punta cae dentro de la escena en el peor caso (#366). Con los valores iniciales de T1-1.3 y T1-1.4 (`ruta-1/m01-t03`, `ruta-1/m01-t04`; `v ≈ 0.67 m/s`) la flecha mide ≈ 33 % de `L_max`. Por encima de `v_ref`, o si la punta saldría por otro motivo (p. ej. ω creciente en `angularAccel`), la longitud se satura en `L_max`: la punta nunca sale de la escena.
 Panel de curva de `angularAccel` (DOCS-UX3): además de sus valores (`a_c = v²/R`, `v_max = √(μs·g·R)`) y sus tres sliders (`R`, `v`, `μs`, con los rangos y valores iniciales actuales), el panel tiene su propia vista animada, dentro del mismo widget.
 - **Qué se ve.** Vista cenital de una curva: el arco completo de radio `R` (circunferencia en `--sim-trace` punteada 2 px), su centro marcado (punto `fg-muted`) y el robot (círculo `--sim-robot`, radio 4 % de la altura de la escena) recorriéndola en sentido antihorario a velocidad `v`, desde el punto inferior. Del robot sale hacia el centro la flecha de la aceleración centrípeta en `--color-vector-force` (la aporta la fricción), 3 px con punta y etiqueta `a_c`. Escala visible de `0.5 m` como en todo visor (DESIGN §6).
 - **Escala.** Escena 16/9 dimensionada con `R_vista = max(R, 0.5 m)`: alto `2.5·R_vista`, centrada en el centro de la curva. Con `R ≤ 0.5 m` la escena es fija y la curva se dibuja a tamaño real (reducir `R` a la mitad la encoge a la mitad); por encima, la escena se ajusta a `R` para que la curva quepa. Flecha: `k = L_max / a_ref`, con `a_ref = 3 m/s²` y `L_max = 0.9·R_vista`; su longitud es `min(k·a_c, L_max, R)`: nunca pasa del centro ni sale de la escena. Con los valores iniciales (`R = 0.5 m`, `v = 0.6 m/s`, `a_c = 0.72 m/s²`) mide 24 % de `L_max`; con `R = 0.25 m`, el doble.
@@ -122,7 +122,7 @@ interface EnergyWidgetProps { mode: 'ramp' | 'power'; initial: { mass_kg: number
 ```
 
 ### PowerWidget
-Un motor levanta una carga a velocidad constante: con más potencia sube más rápido y una barra de energía potencial se llena hasta la altura final. Widget grande (Scene2D) del Explora de T-3.2 (#351).
+Un motor levanta una carga a velocidad constante: con más potencia sube más rápido y una barra de energía potencial se llena hasta la altura final. Widget grande (Scene2D) del Explora de T1-3.2 (#351).
 - Modelo: régimen permanente, sin arranque, sin fricción ni pérdidas; `P` es la potencia mecánica entregada a la carga. `v = P / (m g)`, `h(t) = min(v t, H)`, `E_p(t) = m g h(t)` (= `P t` mientras sube), `t_subida = m g H / P`. `g = G_MPS2` de `sim-core`.
 - Escena: suelo, un motor con tambor arriba, cable y carga (`--sim-robot`) que sube de `h = 0` a `H`; vector velocidad `--color-vector-velocity` en la carga mientras sube; escala visible. A la izquierda de la escena, una barra vertical `E_p` en `data-2` (mismo color que `E_p` en `EnergyWidget`) con escala fija `m g H` y la cifra mono `E_p / m g H` en J.
 - Parámetros (`ParamPanel`): `P` ∈ [0.5, 20] W, paso 0.01; `m` ∈ [0.1, 3] kg, paso 0.01. `H` es prop fija, ∈ [0.2, 2] m, sin slider.
@@ -143,7 +143,7 @@ interface GearWidgetProps { stages: 1 | 2; initial: { z1: number; z2: number; z3
 `nIn_rpm` y `torqueIn_Nm` son un punto de trabajo del motor, los dos a la vez (#609). Un tema no lo alimenta con la velocidad sin carga y el torque de bloqueo, que no coexisten (`MotorCurveWidget`); el robot de referencia entra con su punto de potencia máxima, 3000 rpm y 0.006 N·m. Las filas de potencia del panel (`P_1 = τ_1 ω_1`, `P_2 = P_1 η`) son correctas solo con un punto de trabajo real.
 
 ### MotorCurveWidget
-Recta torque–velocidad y parábola de potencia de un motor de corriente continua, con el punto de trabajo movible (T-3.3, #609).
+Recta torque–velocidad y parábola de potencia de un motor de corriente continua, con el punto de trabajo movible (T1-3.3, #609).
 ```ts
 interface MotorCurveWidgetProps {
   initial: {
@@ -182,14 +182,14 @@ En `mode="odometry"`, el panel muestra la velocidad estimada por los encoders, p
 
 El slider de orientación del panel es la orientación inicial `θ₀` y se etiqueta «Orientación inicial» (#371). Al reproducir, el robot parte de `θ₀`; «Reiniciar» lo devuelve a `θ₀`. Mientras la simulación corre, el slider queda deshabilitado y sigue mostrando `θ₀`; la orientación actual se lee en la lectura «Orientación» del panel de valores. Sin props nuevas.
 
-Maniobra en tres movimientos (#394, decisión C; T-5.5): girar, avanzar, deshacer el giro. Solo en `mode="inverse"`; en los demás modos `maneuver` se ignora. Sin la prop, el widget no cambia.
+Maniobra en tres movimientos (#394, decisión C; T2-1.4): girar, avanzar, deshacer el giro. Solo en `mode="inverse"`; en los demás modos `maneuver` se ignora. Sin la prop, el widget no cambia.
 - **Prop.** `turn_deg` ∈ [−180, 180] y `distance_m` ∈ [0, 0.5] son los valores iniciales de sus sliders. `omega_radps` ∈ [0.5, 5] (por defecto 1) y `v_mps` ∈ [0.05, 0.6] (por defecto 0.2) son las rapideces de giro y de avance; son fijas, sin slider.
 - **Secuencia.** Desde la pose inicial `(0, 0, θ₀)`: (1) giro en el lugar de `turn_deg` (positivo antihorario) con `v = 0` y `|ω| = omega_radps`; (2) avance recto de `distance_m` con `v = v_mps` y `ω = 0`; (3) giro en el lugar de `−turn_deg`, que devuelve el rumbo a `θ₀`. Duraciones `T₁ = T₃ = |turn|/ω` y `T₂ = d/v`; total `T = 2|turn|/ω + d/v`. Una fase de duración 0 se salta. Pose final: `(d·cos(θ₀ + turn), d·sin(θ₀ + turn), θ₀)`. Cada fase manda al modelo los comandos de rueda de la cinemática inversa de su `(v, ω)`, que pasan por la saturación como el resto de `inverse`, con su aviso si un comando no es realizable.
 - **Controles.** Un conmutador «Maniobra en tres movimientos» (chip de «Tabs / segmentado», `DESIGN.md` §5, con `aria-pressed`; clave `widgets.DiffDriveWidget.toggleManeuver`) encima de los sliders; empieza desactivado. Activo, los sliders «Giro» (°, [−180, 180], paso 1; `paramManeuverTurn`) y «Avance» (m, [0, 0.5], paso 0.01; `paramManeuverDistance`) sustituyen a los de `v` y `ω`, que conservan su valor para cuando se desactive. El slider `θ₀` del panel de pose no cambia.
 - **Reproducción.** Los mismos `SimControls`: «Reproducir» ejecuta la secuencia desde `t = 0` o sigue desde la pausa; «Paso» avanza un paso; «Reiniciar» vuelve a `t = 0`, a `(0, 0, θ₀)` y al inicio de la fase 1. En `t = T` el comando pasa a nulo y la reproducción se pausa sola; `duration_s` sigue siendo un límite (manda lo primero que llegue). Conmutar la maniobra o mover uno de sus sliders reinicia (pausa, `t = 0`, pose inicial), como `θ₀`. `initialTime_s` abre con la maniobra desactivada.
-- **Tiempo y determinismo.** La fase sale del `t` de la simulación (`DiffDriveState.t_s`); sin reloj propio, `Math.random` ni `Date.now`. Cada cambio de fase cae en su instante exacto: el paso de integración que lo contiene se parte en dos, así que la pose no depende de `DT_S` ni de los fotogramas. Con la maniobra activa, el modelo se integra sin la rampa de `maxAccel_radps2` (cinemática ideal de T-5.5: las velocidades cambian de golpe entre fases); desactivada, como hasta ahora. La secuencia vive en el modelo que avanza `useSimulationDriver`, un envoltorio del de sim-core como el de `θ₀`; `sim-core` no cambia.
+- **Tiempo y determinismo.** La fase sale del `t` de la simulación (`DiffDriveState.t_s`); sin reloj propio, `Math.random` ni `Date.now`. Cada cambio de fase cae en su instante exacto: el paso de integración que lo contiene se parte en dos, así que la pose no depende de `DT_S` ni de los fotogramas. Con la maniobra activa, el modelo se integra sin la rampa de `maxAccel_radps2` (cinemática ideal de T2-1.4: las velocidades cambian de golpe entre fases); desactivada, como hasta ahora. La secuencia vive en el modelo que avanza `useSimulationDriver`, un envoltorio del de sim-core como el de `θ₀`; `sim-core` no cambia.
 - **Qué muestra.** Traza, marcos y demás capas de `show` como siempre. Con la maniobra activa, el panel de valores añade «Fase» (`1 · Girar`, `2 · Avanzar`, `3 · Girar`, `Terminada`; `maneuverPhase`) y «Duración de la maniobra» `T` en s (`maneuverDuration`); `v` y `ω` del panel son los de la fase en curso. La descripción textual (`aria-live`) incluye la fase.
-- **Valores dorados** (robot de referencia, `θ₀ = 0`, 1 rad/s y 0.2 m/s, tolerancia 1e−6 en m y rad): giro 90°, avance 0.2 m → `T = 4.142 s`; en `t = π/2 s`, pose `(0, 0, 90°)`; en `t = π/2 + 0.5 s`, `(0, 0.1, 90°)`; al terminar, `(0, 0.2, 0°)`. Con giro −90°, `(0, −0.2, 0°)`. Con `θ₀ = 30°`, `(−0.1, 0.1732, 30°)`. Con 4 rad/s y 0.5 m/s, `T = 1.185 s` (T-5.5, Al robot y e3).
+- **Valores dorados** (robot de referencia, `θ₀ = 0`, 1 rad/s y 0.2 m/s, tolerancia 1e−6 en m y rad): giro 90°, avance 0.2 m → `T = 4.142 s`; en `t = π/2 s`, pose `(0, 0, 90°)`; en `t = π/2 + 0.5 s`, `(0, 0.1, 90°)`; al terminar, `(0, 0.2, 0°)`. Con giro −90°, `(0, −0.2, 0°)`. Con `θ₀ = 30°`, `(−0.1, 0.1732, 30°)`. Con 4 rad/s y 0.5 m/s, `T = 1.185 s` (T2-1.4, Al robot y e3).
 
 ### LineSensorWidget
 Arreglo de sensores sobre un tramo recto de línea desplazable; lecturas, posición ponderada, umbral (#396).
@@ -214,7 +214,7 @@ interface LineSensorWidgetProps { robot?: RobotSpec; initialOffset_m: number; in
   - 0.006 m a la izquierda → `[0, 1, 1, 0, 0]`, `p = −0.25`, `y_línea = −0.006 m`.
   - la línea se pierde por encima de 0.036 m, por la huella de 4 mm y el umbral de pérdida.
 
-Se construye en el ticket T-6.1 como excepción documentada, porque solo M6 lo usa. T-6.1 también lo expone en el mapa MDX (entrada en `widgetRegistry.ts` y envoltorio `catalog/LineSensorWidget.astro`).
+Se construyó en el ticket T-6.1 (hoy T2-2.1) como excepción documentada, porque solo el módulo Seguidor de línea de Robot móvil lo usa. Ese ticket también lo expuso en el mapa MDX (entrada en `widgetRegistry.ts` y envoltorio `catalog/LineSensorWidget.astro`).
 
 ### LineFollowerWidget
 El simulador móvil completo embebido (pista preset, controlador seleccionable, instrumentación reducida). Es el mismo componente que la página `/simuladores/movil` con `compact`.
@@ -307,7 +307,7 @@ El formulario de subida de F3-04 se reutiliza para importar sin guardar: `Upload
 
 ## Componentes MDX
 
-El mapa MDX (`apps/web/src/components/tema/`, ARCHITECTURE §3.3) expone, con su nombre y sus props, solo los widgets de tema con props serializables (#246): `Formula`, `VectorWidget`, `KinematicsWidget`, `ProjectileWidget`, `FreeBodyWidget`, `RotationWidget`, `EnergyWidget`, `GearWidget`, `DiffDriveWidget` y `MyRobotWidget`; en el Módulo 6 se añaden `LineSensorWidget` (T-6.1) y `LineFollowerWidget` (ticket de widget previo a T-6.2, #396). No se exponen `ParamPanel` ni `Plot`, que son piezas internas de otros widgets. `ExerciseWidget` se monta a través de `Verifica`.
+El mapa MDX (`apps/web/src/components/tema/`, ARCHITECTURE §3.3) expone, con su nombre y sus props, solo los widgets de tema con props serializables (#246): `Formula`, `VectorWidget`, `KinematicsWidget`, `ProjectileWidget`, `FreeBodyWidget`, `RotationWidget`, `EnergyWidget`, `GearWidget`, `DiffDriveWidget` y `MyRobotWidget`; para el módulo Seguidor de línea de Robot móvil se añaden `LineSensorWidget` (T2-2.1) y `LineFollowerWidget` (ticket de widget previo a T2-2.2, #396), y para Fundamentos, `PowerWidget` (T1-3.2) y `MotorCurveWidget` (T1-3.3). No se exponen `ParamPanel` ni `Plot`, que son piezas internas de otros widgets. `ExerciseWidget` se monta a través de `Verifica`.
 
 Cada widget de tema llega al mapa por un envoltorio `.astro` de una línea, `catalog/<Widget>.astro`, que monta el único mecanismo genérico, `CatalogWidget`, con el nombre del widget (PR #248). La lista vive en `TOPIC_WIDGETS` (`widgetRegistry.ts`); si la lista y los envoltorios no coinciden, falla el build (`catalogWidgets.ts`) y también `pnpm test` (`catalogWidgets.test.ts`). Añadir un widget al mapa es añadir su entrada y su envoltorio.
 
@@ -316,19 +316,40 @@ Además expone componentes propios del tema, que no viven en `packages/widgets`.
 ### RobotFormula
 `Formula` sustituida con los datos de «Mi robot» (#243). Resuelve `calc` entre los cálculos que exportan los `alrobot.ts` de los temas, lee `useMyRobot()` y pinta `Formula` con el `latex` y el `substituted` que devuelve el cálculo.
 ```ts
-interface RobotFormulaProps { calc: string } // clave `<topicId>/<calcId>`, p. ej. "ruta-1/m00-t01/omega-rueda"
+interface RobotFormulaProps { calc: string } // clave `<topicId>/<calcId>`, p. ej. "ruta-1/m00-t01/omega-motor"
 type RobotCalc = (spec: RobotSpec) => { latex: string; substituted: string }; // lo que exporta alrobot.ts
 ```
 
-## Relación tema → widgets (v1)
+## Relación tema → widgets (v1, dos rutas)
 
-| Módulo | Widgets |
-|---|---|
-| M0 | VectorWidget, KinematicsWidget, RotationWidget (unidades), MyRobotWidget |
-| M1 | KinematicsWidget, ProjectileWidget |
-| M2 | FreeBodyWidget, EnergyWidget (rampa), GearWidget (torque en rueda, modo 1 etapa) |
-| M3 | EnergyWidget, PowerWidget, MotorCurveWidget |
-| M4 | RotationWidget, GearWidget, DiffDriveWidget, MyRobotWidget |
-| M5 | DiffDriveWidget |
-| M6 | LineSensorWidget, LineFollowerWidget, MyRobotWidget |
-| Todos | Formula, ParamPanel, Plot, ExerciseWidget |
+Widgets del frontmatter de cada tema, según `CURRICULUM.md` (#574). Todos usan además `Formula`, `ParamPanel` y `Plot` (dentro de otros widgets) y `ExerciseWidget` (en Verifica). La reestructuración no añade ni modifica ningún widget.
+
+| Tema | Id | Widgets |
+|---|---|---|
+| T1-0.1 Unidades y magnitudes | `ruta-1/m00-t01` | RotationWidget (`disc`), MyRobotWidget (`form`) |
+| T1-0.2 Vectores | `ruta-1/m00-t02` | VectorWidget |
+| T1-0.3 La derivada como razón de cambio | `ruta-1/m00-t03` | KinematicsWidget |
+| T1-1.1 Movimiento rectilíneo uniforme | `ruta-1/m01-t01` | KinematicsWidget |
+| T1-1.2 Movimiento uniformemente acelerado | `ruta-1/m01-t02` | KinematicsWidget |
+| T1-1.3 Movimiento circular y velocidad angular | `ruta-1/m01-t03` | RotationWidget (`disc`) |
+| T1-1.4 Rodadura: de la rueda al robot | `ruta-1/m01-t04` | RotationWidget (`rolling`), MyRobotWidget (`card`) |
+| T1-2.1 Leyes de Newton y diagrama de cuerpo libre | `ruta-1/m02-t01` | FreeBodyWidget |
+| T1-2.2 Fricción | `ruta-1/m02-t02` | FreeBodyWidget |
+| T1-2.3 Aceleración angular y centrípeta | `ruta-1/m02-t03` | RotationWidget (`angularAccel`) |
+| T1-2.4 Torque, reducción y transmisión | `ruta-1/m02-t04` | GearWidget (dos etapas, punto de trabajo) |
+| T1-3.1 Trabajo y energía | `ruta-1/m03-t01` | EnergyWidget (`ramp`) |
+| T1-3.2 Potencia | `ruta-1/m03-t02` | PowerWidget |
+| T1-3.3 El motor y la batería | `ruta-1/m03-t03` | MotorCurveWidget |
+| T2-0.1 Encoders | `ruta-2/m00-t01` | DiffDriveWidget (`odometry`) |
+| T2-0.2 Pose y marcos de referencia | `ruta-2/m00-t02` | DiffDriveWidget (`forward`) |
+| T2-1.1 Cinemática directa del robot diferencial | `ruta-2/m01-t01` | DiffDriveWidget (`forward`) |
+| T2-1.2 Cinemática inversa del robot diferencial | `ruta-2/m01-t02` | DiffDriveWidget (`inverse`) |
+| T2-1.3 Odometría | `ruta-2/m01-t03` | DiffDriveWidget (`odometry`) |
+| T2-1.4 Restricción no holonómica | `ruta-2/m01-t04` | DiffDriveWidget (`inverse`, maniobra) |
+| T2-2.1 El sensor de línea | `ruta-2/m02-t01` | LineSensorWidget |
+| T2-2.2 Control on/off y proporcional | `ruta-2/m02-t02` | LineFollowerWidget |
+| T2-2.3 Control PID | `ruta-2/m02-t03` | LineFollowerWidget |
+| T2-2.4 Geometría del robot y desempeño | `ruta-2/m02-t04` | LineFollowerWidget, MyRobotWidget (`form`) |
+| T2-2.5 Proyecto final: tu robot completa la pista | `ruta-2/m02-t05` | LineFollowerWidget, MyRobotWidget |
+| TR-1 Caída libre (reserva, no se publica) | `reserva/caida-libre` | ProjectileWidget (`drop`) |
+| TR-2 Tiro parabólico (reserva, no se publica) | `reserva/tiro-parabolico` | ProjectileWidget (`launch`, `dropFromRobot`) |

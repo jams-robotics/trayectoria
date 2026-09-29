@@ -58,6 +58,9 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | V, I | voltaje, corriente | V, A | `voltage_V`, `current_A` |
 | C | capacidad de batería | Wh | `batteryCapacity_Wh` |
 | t_autonomía | autonomía (C / P_el) | h | `autonomy_h` |
+| t_rampa | duración de la rampa de arranque desde el reposo hasta v, `v / a` (proyecto final, T2-2.5) | s | `rampTime_s` |
+| x_rampa | distancia recorrida durante la rampa de arranque, `v² / (2a)` (T2-2.5) | m | `rampDistance_m` |
+| D_rec | distancia recorrida que muestra el simulador («Distancia recorrida»; T2-2.5) | m | `distance_m` |
 | [q] | unidad de la magnitud q, en análisis dimensional (`[v] = m/s`) | — | — (solo notación) |
 
 ## Motor
@@ -74,7 +77,7 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | η_caja | eficiencia de la caja de engranajes, eje del motor → rueda; es `motor.efficiency` del perfil | — | `gearboxEfficiency` (variable), `efficiency` (campo del perfil) |
 | τ_m | constante de tiempo del motor: la velocidad sigue `ω_f (1 − e^{−t/τ_m})` | s | `motorTimeConstant_s` |
 | α (rampa) | rampa de aceleración que el simulador aplica al comando de velocidad; parámetro del perfil, no límite del motor | rad/s² | `maxAccel_radps2` |
-| a_motor | aceleración que el motor puede pedir desde el reposo a plena tensión, `2 τ_s i η_caja / (r m)`; se compara con `a_max` | m/s² | `motorAccel_mps2` |
+| a_motor | aceleración que el motor puede pedir desde el reposo a plena tensión, `2 τ_s i η_caja / (r m)`, que T1-2.2 escribe `2 F_rueda / m` con `F_rueda` en bloqueo como dato; se compara con `a_max` | m/s² | `motorAccel_mps2` |
 
 ## Vectores
 
@@ -86,6 +89,7 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | (a, b) (en enunciados de vectores) | vector dado por sus componentes x e y | la de la magnitud que representa | `[number, number]` |
 | a⃗ · b⃗ | producto escalar (a_x·b_x + a_y·b_y) | producto de las unidades de a⃗ y b⃗ | `dot` |
 | φ (entre vectores) | ángulo entre dos vectores | rad | `angleBetween_rad` |
+| a⃗′ (en vectores) | el vector a⃗ girado un ángulo θ en sentido antihorario, con componentes a′_x = a_x·cosθ − a_y·sinθ y a′_y = a_x·sinθ + a_y·cosθ (recuadro de T1-0.2, #560) | la de a⃗ | `rotated: [number, number]` |
 
 ## Razón de cambio
 
@@ -96,7 +100,7 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | c (en derivadas) | coeficiente constante de c·tⁿ | la que da a c·tⁿ la unidad de la magnitud; en x = c·t², m/s² | `coefC_mps2` |
 | n (en derivadas) | exponente de t en c·tⁿ | — | `exponent` |
 | a, b (en polinomios de posición) | coeficientes de x(t) = a·t + b·t² | m/s, m/s² | `coefA_mps`, `coefB_mps2` |
-| c₁, c₂ (en polinomios de posición) | coeficientes de x(t) = c₁·t + c₂·t² (T-0.3 e4) | m/s, m/s² | `coefA_mps`, `coefB_mps2` |
+| c₁, c₂ (en polinomios de posición) | coeficientes de x(t) = c₁·t + c₂·t² (T1-0.3 e4) | m/s, m/s² | `coefA_mps`, `coefB_mps2` |
 
 ## Rotación
 
@@ -136,6 +140,7 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | R(θ) (en marcos) | matriz de rotación 2D | — | `rotationMatrix` |
 | p⃗_G, p⃗_R (en marcos) | un punto expresado en {G} y en {R}; el subíndice nombra el marco, no la rueda | m | `point_m` |
 | p⃗_{R,0} | origen de {R} en {G}: el (x, y) de la pose | m | `[x_m, y_m]` |
+| p_{G,x}, p_{G,y}; p_{R,x}, p_{R,y} (en marcos) | componentes de p⃗_G y de p⃗_R (rotación por componentes de T2-0.2, #560) | m | `point_m[0]`, `point_m[1]` |
 | θ_objetivo | rumbo hacia un objetivo | rad | `targetHeading_rad` |
 | (x_o, y_o) | punto objetivo | m | `target_m` |
 | Δs_L, Δs_R | arco recorrido por cada rueda en un paso de odometría | m | `deltaSL_m`, `deltaSR_m` |
@@ -160,7 +165,7 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 
 ## Seguidor de línea
 
-Símbolos del Módulo 6 (#396). Los que chocan con otro símbolo llevan calificador, como `α (en tiro)`.
+Símbolos del módulo Seguidor de línea de Robot móvil (antes Módulo 6, #396). Los que chocan con otro símbolo llevan calificador, como `α (en tiro)`.
 
 | Símbolo | Nombre | Unidad | Código |
 |---|---|---|---|

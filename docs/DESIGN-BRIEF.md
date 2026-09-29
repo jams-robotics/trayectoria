@@ -46,7 +46,7 @@ Justificar cada elección en una frase en `DESIGN.md`.
 ## 6. Pantallas a diseñar (claro y oscuro, escritorio y móvil)
 
 1. **Inicio**: propuesta de valor en una frase, el hilo de la ruta (un diagrama simple de módulos que terminan en el robot), entrada a la ruta y a los simuladores, bloque para docentes.
-2. **Índice de la ruta**: 7 módulos con sus temas, estado de cada uno, tiempo estimado, tarjeta "Mi robot" compacta.
+2. **Índice de la ruta**: los módulos de una ruta (4 en Fundamentos, 3 en Robot móvil; #574) con sus temas, estado de cada uno, tiempo estimado, tarjeta "Mi robot" compacta.
 3. **Página de tema**: las 7 secciones (Gancho, Concepto, Fórmulas, Explora, Al robot, Verifica, Profundiza) con un widget real de ejemplo en Explora (una rueda girando con vector de velocidad y un panel de 2 sliders), un bloque de fórmula con variables, y dos ejercicios en distintos estados.
 4. **Simulador móvil 2D**: pista con el robot y sus sensores, panel de robot, selector de controlador con sus ganancias, controles de simulación, gráficas en vivo, tiempo de vuelta.
 5. **Simulador de brazo 3D**: visor con el brazo y marcos, sliders por articulación, panel del efector (posición y orientación), panel de matrices plegable, botón de espacio de trabajo.
