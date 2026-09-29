@@ -74,3 +74,18 @@ test('logout empties the session and /cuenta shows the sign-up CTA', async ({ pa
   await expect(page.getByTestId('auth-gate')).toHaveAttribute('data-auth', 'anonymous');
   await expect(page.getByRole('link', { name: auth.gate.register })).toBeVisible();
 });
+
+// #523: the name is required on the form, so the database never has to fall back to one.
+test('sign-up without a name shows its own message and creates nothing', async ({ page }) => {
+  await openHydrated(page, '/auth/registro');
+  await page.getByLabel(auth.fields.displayName, { exact: true }).fill('   ');
+  await page.getByLabel(auth.fields.email, { exact: true }).fill(uniqueEmail());
+  await page.getByLabel(auth.fields.password, { exact: true }).fill(PASSWORD);
+  await page.getByRole('button', { name: auth.register.submit }).click();
+  await expect(page.getByText(auth.validation.displayNameRequired, { exact: true })).toBeVisible();
+  await expect(page.getByLabel(auth.fields.displayName, { exact: true })).toHaveAttribute(
+    'aria-invalid',
+    'true',
+  );
+  expect(new URL(page.url()).pathname).toBe('/auth/registro');
+});
