@@ -74,6 +74,7 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | η_caja | eficiencia de la caja de engranajes, eje del motor → rueda; es `motor.efficiency` del perfil | — | `gearboxEfficiency` (variable), `efficiency` (campo del perfil) |
 | τ_m | constante de tiempo del motor: la velocidad sigue `ω_f (1 − e^{−t/τ_m})` | s | `motorTimeConstant_s` |
 | α (rampa) | rampa de aceleración que el simulador aplica al comando de velocidad; parámetro del perfil, no límite del motor | rad/s² | `maxAccel_radps2` |
+| a_motor | aceleración que el motor puede pedir desde el reposo a plena tensión, `2 τ_s i η_caja / (r m)`; se compara con `a_max` | m/s² | `motorAccel_mps2` |
 
 ## Vectores
 
