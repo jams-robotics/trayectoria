@@ -9,7 +9,7 @@
 - **Humanos:** sección 1 a 5 explica qué se construye y por qué. Sección 6 es el backlog: cada tarea es un ticket listo para asignar.
 - **Orquestador (agente):** convierte cada tarea de la sección 6 en un issue de GitHub usando `docs/templates/TASK.md`, respetando dependencias y orden de fases. No inventa tareas nuevas: si falta algo, lo propone al humano como cambio de plan.
 - **Desarrollador (agente):** no lee este documento completo. Lee `CLAUDE.md`, su ticket y los documentos que el ticket referencia.
-- Los 27 temas de contenido están especificados en `docs/CURRICULUM.md`. Cada uno es un ticket `T-m.n`.
+- Los 28 temas de contenido están especificados en `docs/CURRICULUM.md`. Cada uno es un ticket `T-m.n`.
 
 Documentos relacionados: `ARCHITECTURE.md`, `STANDARDS.md`, `CONTENT-STANDARDS.md`, `GLOSSARY.md`, `ROBOT-SPEC.md`, `WIDGETS.md`, `DESIGN-BRIEF.md` (y `DESIGN.md` cuando D-01 esté hecho), `DEFINITION-OF-DONE.md`, `CURRICULUM.md`, `adr/`, `templates/`.
 
@@ -41,14 +41,14 @@ Documentos relacionados: `ARCHITECTURE.md`, `STANDARDS.md`, `CONTENT-STANDARDS.m
 | Control del robot en simuladores | Solo parámetros (sliders) en v1; el controlador es intercambiable para que en v2 entre código del estudiante |
 | Modo aula | Entra en v1, mínimo: roles docente/estudiante, grupos por código de invitación, progreso del grupo |
 | Perfil "Mi robot" | Entra en v1 desde el módulo 0 |
-| Ruta 1 | Completa, 27 temas |
+| Ruta 1 | Completa, 28 temas |
 | Catálogo de brazos | Mínimo: SO-101 (LeRobot) + brazo plano didáctico de 2 GDL propio |
 | Pista del seguidor | Editor por segmentos + pistas prediseñadas (sin importar foto) |
 | Motor de física | Ninguno en v1: ambos simuladores son cinemáticos |
 | Autoalojable | Sí, con `docker compose` |
 
 **Versión 1 (alcance congelado).**
-1. Ruta 1, *De la física al robot móvil*, 27 temas en 7 módulos.
+1. Ruta 1, *De la física al robot móvil*, 28 temas en 7 módulos.
 2. Simulador móvil 2D: robot diferencial parametrizable, pista editable, sensores de línea, controladores integrados, instrumentación.
 3. Simulador de brazo 3D: carga URDF, cinemática directa por articulación, marcos, matrices, espacio de trabajo, catálogo mínimo, importación de URDF propio.
 4. Cuentas, progreso, perfil "Mi robot", robots guardados.
@@ -66,14 +66,14 @@ Detalle completo en `CURRICULUM.md`. Reglas de estructura en `CONTENT-STANDARDS.
 
 **"Mi robot".** Perfil persistente (masa, radio de rueda, distancia entre ruedas, rpm del motor, reducción, encoder, sensores). Toda sección "Al robot" lo usa; en el módulo 6 ese mismo perfil es el que se simula. Es una instancia de `RobotSpec` (ver `ROBOT-SPEC.md`).
 
-**Ruta 1 — De la física al robot móvil** (27 temas):
+**Ruta 1 — De la física al robot móvil** (28 temas):
 
 | Módulo | Temas |
 |---|---|
 | M0 Herramientas | 0.1 Unidades y magnitudes · 0.2 Vectores · 0.3 Derivada como razón de cambio |
 | M1 Cinemática de la partícula | 1.1 MRU · 1.2 MRUA · 1.3 Caída libre · 1.4 Tiro parabólico |
 | M2 Dinámica | 2.1 Leyes de Newton y cuerpo libre · 2.2 Fricción · 2.3 Torque |
-| M3 Energía | 3.1 Trabajo y energía · 3.2 Potencia |
+| M3 Energía y motor | 3.1 Trabajo y energía · 3.2 Potencia · 3.3 El motor y la batería |
 | M4 Rotación | 4.1 Movimiento circular y ω · 4.2 v = ω·r, la velocidad del robot · 4.3 Aceleración angular y centrípeta · 4.4 Transmisión y reducción · 4.5 Encoders |
 | M5 Robot diferencial | 5.1 Pose y marcos de referencia · 5.2 Cinemática directa · 5.3 Cinemática inversa · 5.4 Odometría · 5.5 Restricción no holonómica |
 | M6 Seguidor de línea | 6.1 Sensor de línea · 6.2 Control on/off y proporcional · 6.3 PID · 6.4 Geometría vs desempeño · 6.5 Proyecto final |
@@ -84,7 +84,7 @@ Detalle completo en `CURRICULUM.md`. Reglas de estructura en `CONTENT-STANDARDS.
 
 ## 3. Simuladores
 
-**Principios del núcleo común** (una sola implementación para los 27 temas y los dos simuladores):
+**Principios del núcleo común** (una sola implementación para los 28 temas y los dos simuladores):
 1. Un solo bucle de simulación: paso de tiempo fijo, determinista, con pausa, paso a paso, reinicio y velocidad de reproducción.
 2. Un solo sistema de unidades: SI internamente, conversión solo en la interfaz.
 3. Un solo esquema de robot: `RobotSpec` (JSON versionado). URDF se importa y se mapea a él. Nada dibuja ni simula desde un URDF crudo.

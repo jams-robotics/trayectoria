@@ -60,6 +60,22 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 | t_autonomía | autonomía (C / P_el) | h | `autonomy_h` |
 | [q] | unidad de la magnitud q, en análisis dimensional (`[v] = m/s`) | — | — (solo notación) |
 
+## Motor
+
+| Símbolo | Nombre | Unidad | Código |
+|---|---|---|---|
+| τ_s | torque de bloqueo (eje detenido) | N·m | `stallTorque_Nm` |
+| ω₀, n₀ | velocidad sin carga (torque cero), en rad/s y en rpm | rad/s, rpm | `noLoadSpeed_radps`, `noLoadSpeed_rpm` (`maxMotorSpeed_rpm` en el perfil) |
+| τ(ω) | recta torque–velocidad, `τ_s (1 − ω/ω₀)` | N·m | `torqueAt_Nm` |
+| punto de trabajo | par (ω, τ) sobre la recta donde el torque que pide la carga corta la curva del motor | — | `operatingPoint` |
+| P_max | potencia mecánica máxima, `τ_s ω₀ / 4`, en `ω₀/2` | W | `maxPower_W` |
+| I₀, I_s | corriente sin carga y corriente de bloqueo | A | `noLoadCurrent_A`, `stallCurrent_A` |
+| η_motor | eficiencia del motor, eléctrica → eje del motor, `P_mec / (V I)` en un punto de trabajo | — | `motorEfficiency` |
+| η_caja | eficiencia de la caja de engranajes, eje del motor → rueda; es `motor.efficiency` del perfil | — | `gearboxEfficiency` (variable), `efficiency` (campo del perfil) |
+| τ_m | constante de tiempo del motor: la velocidad sigue `ω_f (1 − e^{−t/τ_m})` | s | `motorTimeConstant_s` |
+| α (rampa) | rampa de aceleración que el simulador aplica al comando de velocidad; parámetro del perfil, no límite del motor | rad/s² | `maxAccel_radps2` |
+| a_motor | aceleración que el motor puede pedir desde el reposo a plena tensión, `2 τ_s i η_caja / (r m)`; se compara con `a_max` | m/s² | `motorAccel_mps2` |
+
 ## Vectores
 
 | Símbolo | Nombre | Unidad | Código |

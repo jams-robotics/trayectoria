@@ -40,9 +40,10 @@ interface PlotProps {
   live?: { buffer: RingBuffer; windowSeconds: number };
   refLines?: Array<{ y: number; label: string }>;
   height?: number;
-  marker?: { x: number; onDrag?(x: number): void };
+  marker?: { x: number; onDrag?(x: number): void; label?: string };   // label: aria-label del marcador; por defecto «Marcador de tiempo» (#609)
 }
 ```
+Los valores de los ejes se escriben sin separador de miles (`6000`, no `6,000`), como el resto del contenido. La etiqueta de una `refLines` que cae en el borde superior del área de dibujo se escribe por debajo de la línea para que no se recorte (#609).
 
 ### Scene2D
 Canvas 2D en coordenadas físicas (m, Y hacia arriba). Hijos declarativos: `Grid`, `Axes`, `Vector`, `Trace`, `Circle`, `Rect`, `RobotBody` (desde `RobotSpec`), `Label`, `TrackLayer`.
@@ -138,6 +139,29 @@ Par de engranajes o tren de dos etapas; relación, sentidos, torque y velocidad.
 ```ts
 interface GearWidgetProps { stages: 1 | 2; initial: { z1: number; z2: number; z3?: number; z4?: number; nIn_rpm: number; torqueIn_Nm: number; efficiency?: number } }
 ```
+`nIn_rpm` y `torqueIn_Nm` son un punto de trabajo del motor, los dos a la vez (#609). Un tema no lo alimenta con la velocidad sin carga y el torque de bloqueo, que no coexisten (`MotorCurveWidget`); el robot de referencia entra con su punto de potencia máxima, 3000 rpm y 0.006 N·m. Las filas de potencia del panel (`P_1 = τ_1 ω_1`, `P_2 = P_1 η`) son correctas solo con un punto de trabajo real.
+
+### MotorCurveWidget
+Recta torque–velocidad y parábola de potencia de un motor de corriente continua, con el punto de trabajo movible (T-3.3, #609).
+```ts
+interface MotorCurveWidgetProps {
+  initial: {
+    stallTorque_Nm: number;      // τ_s, torque de bloqueo
+    noLoadSpeed_rpm: number;     // n₀, velocidad sin carga
+    noLoadCurrent_A?: number;    // I₀
+    stallCurrent_A?: number;     // I_s; con I₀ y voltage_V, el panel muestra I y η_motor
+    voltage_V?: number;          // V
+    speed_rpm?: number;          // punto de trabajo inicial; por defecto n₀/2
+  };
+  editable?: Array<'stallTorque_Nm' | 'noLoadSpeed_rpm'>;   // por defecto ninguno
+}
+```
+- Modelo: `τ(ω) = τ_s (1 − ω/ω₀)`, `P = τ ω`, `I = I₀ + (I_s − I₀) τ/τ_s`, `η_motor = P/(V I)` (`GLOSSARY.md`, «Motor»). Cerrado, sin simulación en el tiempo.
+- Dos `Plot` con el eje x compartido en rpm, de 0 a `n₀`: arriba τ (N·m), abajo P (W). El punto de trabajo es un `marker` arrastrable en las dos gráficas y a la vez un slider «Velocidad» de `ParamPanel` (0 a `n₀`, paso 1 rpm), para que sea operable con teclado; las dos vistas mueven el mismo estado. Los parámetros de `editable` son sliders del mismo panel: τ_s ∈ [0.001, 0.2] N·m, n₀ ∈ [500, 20000] rpm.
+- Panel de valores: velocidad (rpm y rad/s), torque, potencia mecánica, y con corrientes y tensión, corriente, potencia eléctrica `V I` y `η_motor`. Sin corrientes o sin tensión, esas tres filas no aparecen. Una línea de referencia en la gráfica de potencia marca `P_max` en `n₀/2`.
+- `aria-live`: «A n rpm el motor da τ y P» (más «con I» si hay corrientes).
+- Valores dorados (robot de referencia): en 3000 rpm `τ = 0.006 N·m`, `P = 1.885 W`, `I = 0.65 A`, `P_el = 3.9 W`, `η_motor = 0.483`; en 0 rpm `τ = 0.012 N·m`, `P = 0`, `I = 1.2 A`; en 6000 rpm `τ = 0`, `P = 0`, `I = 0.1 A`; con `τ_s = 0.024 N·m`, `P_max = 3.77 W` en 3000 rpm.
+- Captura `apps/web/e2e/visual/MotorCurveWidget.png`; stories con y sin corrientes y con `editable`.
 
 ## Robot móvil
 
@@ -295,7 +319,7 @@ type RobotCalc = (spec: RobotSpec) => { latex: string; substituted: string }; //
 | M0 | VectorWidget, KinematicsWidget, RotationWidget (unidades), MyRobotWidget |
 | M1 | KinematicsWidget, ProjectileWidget |
 | M2 | FreeBodyWidget, EnergyWidget (rampa), GearWidget (torque en rueda, modo 1 etapa) |
-| M3 | EnergyWidget, PowerWidget |
+| M3 | EnergyWidget, PowerWidget, MotorCurveWidget |
 | M4 | RotationWidget, GearWidget, DiffDriveWidget, MyRobotWidget |
 | M5 | DiffDriveWidget |
 | M6 | LineSensorWidget, LineFollowerWidget, MyRobotWidget |
