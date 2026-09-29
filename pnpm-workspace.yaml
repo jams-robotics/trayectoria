@@ -10,3 +10,10 @@ allowBuilds:
   # workerd (from wrangler, #511) gets its binary from the @cloudflare/workerd-<platform> optional
   # dependency; its postinstall only checks it or downloads it as a fallback.
   workerd: false
+# Supply chain (#526): a version must have been on the registry for 3 days (4320 minutes) before
+# pnpm resolves it, which leaves time to pull a hijacked release. Workspace packages are exempt.
+minimumReleaseAge: 4320
+minimumReleaseAgeExclude:
+  - '@trayectoria/*'
+# `pnpm run` and `pnpm exec` stop when node_modules does not match the lockfile.
+verifyDepsBeforeRun: error

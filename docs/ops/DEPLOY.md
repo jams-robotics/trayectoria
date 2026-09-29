@@ -51,10 +51,9 @@ En *Project Settings → API Keys* (pestaña de claves `anon`/`service_role`) co
 
 En *Authentication → URL Configuration*:
 
-- **Site URL**: `https://<dominio>` (mientras no haya dominio, `https://trayectoria.<subdominio>.workers.dev`).
+- **Site URL**: `https://<dominio>`.
 - **Redirect URLs**, una por línea:
   - `https://<dominio>/**`
-  - `https://trayectoria.<subdominio>.workers.dev/**`
   - `https://*-trayectoria.<subdominio>.workers.dev/**` (vistas previas de PR)
 
 Los correos llevan al usuario a `/cuenta` o `/auth/recuperar`; si la URL de destino no está en esta lista, Supabase lo envía a la Site URL.
@@ -89,7 +88,7 @@ Los asuntos son los mismos que declara `supabase/config.toml`. Si una plantilla 
 ### 2.1 Cuenta y subdominio `workers.dev`
 
 1. Crea la cuenta en <https://dash.cloudflare.com> (plan gratuito).
-2. Abre *Workers & Pages* una vez: Cloudflare asigna el subdominio `<subdominio>.workers.dev` de la cuenta. Hasta que el dominio esté listo, el sitio se sirve en `https://trayectoria.<subdominio>.workers.dev`.
+2. Abre *Workers & Pages* una vez: Cloudflare asigna el subdominio `<subdominio>.workers.dev` de la cuenta, que usan las URL de vista previa de los PR. El sitio **no** se publica en `https://trayectoria.<subdominio>.workers.dev` (`"workers_dev": false` en `apps/web/wrangler.jsonc`, #526): solo se sirve en el dominio del paso 4, para que no haya una segunda copia «oficial» del sitio ni una segunda dirección aceptada por Supabase.
 
 ### 2.2 Token de API para GitHub
 
@@ -110,7 +109,7 @@ En el repositorio, *Settings → Secrets and variables → Actions*:
 
 Las dos variables se incrustan en el sitio al construirlo: si cambian, hay que volver a desplegar.
 
-**Primer despliegue.** Mergea cualquier PR a `main` o, en *Actions → Deploy*, abre el último run de `main` y pulsa *Re-run all jobs*. El job `deploy` termina con la URL publicada. Comprueba que `https://trayectoria.<subdominio>.workers.dev` carga la portada y que una ruta inexistente muestra la página 404 del sitio.
+**Primer despliegue.** Mergea cualquier PR a `main` o, en *Actions → Deploy*, abre el último run de `main` y pulsa *Re-run all jobs*. El job `deploy` termina en verde y crea el Worker, que todavía no tiene dirección pública: la recibe al asociar el dominio (paso 4.2). Después de 4.2, comprueba que `https://<dominio>` carga la portada y que una ruta inexistente muestra la página 404 del sitio.
 
 Las vistas previas de PR suben versiones del mismo Worker, así que necesitan que exista: el primer despliegue desde `main` va antes que cualquier vista previa. Las vistas previas usan las mismas variables que producción, es decir, **el mismo proyecto de Supabase**: lo que hagas con una cuenta en una vista previa queda en la base de producción.
 
@@ -138,7 +137,7 @@ Las vistas previas de PR suben versiones del mismo Worker, así que necesitan qu
 1. *SSL/TLS → Overview → Configure*: modo **Full (strict)**.
 2. *SSL/TLS → Edge Certificates*: activa **Always Use HTTPS**.
 
-Con el dominio activo, cambia la **Site URL** de Supabase a `https://<dominio>` (paso 1.4) y, si el remitente del SMTP usaba otro dominio, pásalo a `<dominio>` (paso 1.6).
+Con el dominio activo, comprueba que la **Site URL** de Supabase es `https://<dominio>` (paso 1.4) y, si el remitente del SMTP usaba otro dominio, pásalo a `<dominio>` (paso 1.6). Si en algún momento añadiste `https://trayectoria.<subdominio>.workers.dev/**` a las Redirect URLs, quítala: esa dirección ya no sirve el sitio (#526).
 
 ## Rotar el token de Cloudflare
 
@@ -202,6 +201,6 @@ Sin `<version-id>`, `rollback` vuelve a la versión anterior a la actual. Cada d
 | `deploy` falla con `Authentication error [code: 10000]` | Token borrado, caducado o sin permisos | Crea un token nuevo (sección "Rotar el token de Cloudflare") |
 | `preview` falla con *Wrangler returned no preview URL* | Las URL de vista previa están desactivadas en el Worker | *Workers & Pages → trayectoria → Settings → Domains & Routes*: activa **Preview URLs** |
 | `preview` falla porque el Worker no existe | Aún no hubo un despliegue desde `main` | Haz el primer despliegue (paso 3) |
-| Los enlaces de los correos llevan a `localhost` o a `workers.dev` | Site URL o Redirect URLs sin actualizar | Paso 1.4 |
+| Los enlaces de los correos llevan a `localhost` o a `workers.dev` | Site URL o Redirect URLs sin actualizar | Paso 1.4: solo `https://<dominio>` |
 | El sitio carga pero no se puede entrar ni guardar | Variables `PUBLIC_*` de otro proyecto o vacías en el build | Corrige las variables y vuelve a desplegar |
 | `ERR_TOO_MANY_REDIRECTS` en el dominio | Modo SSL distinto de Full (strict) | Paso 4.4 |
