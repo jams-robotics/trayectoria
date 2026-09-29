@@ -1,14 +1,14 @@
 /**
  * The estimator of `mode: 'odometry'`: it reads the accumulated ticks of the simulation on every
  * published state and integrates the estimated pose with the believed calibration (#93,
- * decision 3). The real pose comes from the model of sim-core, never from here.
+ * decision 3). The velocity comes from the sample the state carries, at a fixed `Δt` (#567). The
+ * real pose comes from the model of sim-core, never from here.
  */
 import { useRef } from 'react';
-import type { DiffDriveState } from '@trayectoria/sim-core';
 
 import type { Path, Preroll } from './timeline';
-import { estimatedVelocity, odometryStep, stepOf, ticksAt } from './odometry';
-import type { Calibration, EstimatedVelocity, Step, Ticks } from './odometry';
+import { odometryStep, sampledVelocity, stepOf, ticksAt } from './odometry';
+import type { Calibration, EstimatedVelocity, SampledState, Step, Ticks } from './odometry';
 import type { Pose } from './compute';
 
 /** Samples of the estimated trace kept; the same budget the real trace uses. */
@@ -16,9 +16,6 @@ const TRACE_LIMIT = 600;
 
 /** A step of no ticks: what the panel shows before the simulation has advanced. */
 const NO_STEP: Step = { deltaSL_m: 0, deltaSR_m: 0, deltaS_m: 0, deltaTheta_rad: 0 };
-
-/** No velocity estimated yet: what the panel shows before a first step has a duration. */
-const NO_VELOCITY: EstimatedVelocity = { left_mps: 0, right_mps: 0, robot_mps: 0 };
 
 /** Everything `mode: 'odometry'` draws and reads beside the real pose. */
 export interface Odometry {
@@ -28,7 +25,7 @@ export interface Odometry {
   ticks: Ticks;
   /** Advance and turn of the last step taken. */
   step: Step;
-  /** Velocity the encoders estimate from that step, per wheel and for the robot (T-4.5). */
+  /** Velocity the encoders estimate over the last sampling period, per wheel and robot (#567). */
   velocity: EstimatedVelocity;
   /** Path the estimated pose has drawn since the last reset, in world metres. */
   trace_m: Path;
@@ -39,11 +36,10 @@ interface EstimatorState {
   estimated: Pose;
   ticks: Ticks;
   step: Step;
-  velocity: EstimatedVelocity;
   trace: Array<readonly [number, number]>;
   lastAt_s: number;
   /** Last state of the model integrated, to tell a restart at the same instant (#371). */
-  at: DiffDriveState;
+  at: SampledState;
   calibration: Calibration;
 }
 
@@ -60,7 +56,6 @@ function restart(preroll: Preroll, calibration: Calibration): EstimatorState {
     estimated: { x_m: first.x_m, y_m: first.y_m, theta_rad: first.theta_rad },
     ticks: ticksAt(first, calibration.ticksPerRev),
     step: NO_STEP,
-    velocity: NO_VELOCITY,
     trace: [],
     lastAt_s: first.t_s,
     at: first,
@@ -74,7 +69,7 @@ function restart(preroll: Preroll, calibration: Calibration): EstimatorState {
  * True when the run went back in time («Reiniciar»), started again at the same instant with
  * another state (a new `θ₀`, #371) or the believed calibration changed.
  */
-function needsRestart(current: EstimatorState, state: DiffDriveState, next: Calibration): boolean {
+function needsRestart(current: EstimatorState, state: SampledState, next: Calibration): boolean {
   const { calibration } = current;
   return (
     state.t_s < current.lastAt_s ||
@@ -86,7 +81,7 @@ function needsRestart(current: EstimatorState, state: DiffDriveState, next: Cali
 }
 
 /** Integrates one step from the ticks accumulated since the previous published state. */
-function advance(current: EstimatorState, state: DiffDriveState): EstimatorState {
+function advance(current: EstimatorState, state: SampledState): EstimatorState {
   const ticks = ticksAt(state, current.calibration.ticksPerRev);
   const delta: Ticks = {
     left: ticks.left - current.ticks.left,
@@ -94,13 +89,11 @@ function advance(current: EstimatorState, state: DiffDriveState): EstimatorState
   };
   const step = stepOf(delta, current.calibration);
   const estimated = odometryStep(current.estimated, step);
-  const dt_s = state.t_s - current.lastAt_s;
   return {
     ...current,
     estimated,
     ticks,
     step,
-    velocity: estimatedVelocity(step, dt_s),
     trace: [...current.trace.slice(-TRACE_LIMIT), [estimated.x_m, estimated.y_m]],
     lastAt_s: state.t_s,
     at: state,
@@ -113,7 +106,7 @@ function advance(current: EstimatorState, state: DiffDriveState): EstimatorState
  * slider never leaves a stale estimate on screen (#93, decision 3).
  */
 export function useOdometry(
-  state: DiffDriveState,
+  state: SampledState,
   preroll: Preroll,
   calibration: Calibration,
 ): Odometry {
@@ -134,7 +127,7 @@ export function useOdometry(
     estimated: next.estimated,
     ticks: next.ticks,
     step: next.step,
-    velocity: next.velocity,
+    velocity: sampledVelocity(state.sample, calibration),
     trace_m: next.trace,
   };
 }
