@@ -20,6 +20,10 @@ export const N_STEP = 1_000;
 
 /** 40 px tall button of the panel (docs/DESIGN.md §5, Botón). */
 const BUTTON_BASE = 'h-10 rounded-sm border px-3 text-sm';
+/** Secondary button (docs/DESIGN.md §5): dimmed, never hidden, while disabled. */
+const SECONDARY =
+  'border-border bg-bg-raised text-fg font-semibold hover:border-fg-muted ' +
+  'disabled:cursor-default disabled:opacity-45 disabled:hover:border-border';
 
 /** Integer percentage of a `[0, 1]` fraction, for the figure next to the bar. */
 function percent(progress: number): number {
@@ -178,7 +182,10 @@ function ComputeButton({
   );
 }
 
-/** The visibility toggle of the cloud; disabled while there is none. */
+/**
+ * The visibility toggle of the cloud: a secondary button, so «Calcular» stays the only primary of
+ * the panel, and disabled, with the reason as its tooltip, while there is no cloud (#551).
+ */
 function VisibilityButton({
   visible,
   hasPoints,
@@ -192,13 +199,10 @@ function VisibilityButton({
   return (
     <button
       type="button"
-      className={
-        visible
-          ? `${BUTTON_BASE} bg-primary text-primary-fg border-primary`
-          : `${BUTTON_BASE} border-border bg-bg-raised text-fg-muted`
-      }
+      className={`${BUTTON_BASE} ${SECONDARY}`}
       aria-pressed={visible}
       disabled={!hasPoints}
+      title={hasPoints ? undefined : t('sims.workspace.noCloud')}
       data-testid="workspace-visibility"
       onClick={onClick}
     >

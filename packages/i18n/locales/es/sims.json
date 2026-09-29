@@ -249,6 +249,7 @@
     "cancel": "Cancelar",
     "show": "Mostrar",
     "hide": "Ocultar",
+    "noCloud": "Todavía no hay nube: pulsa Calcular primero.",
     "progress": "Progreso del cálculo del espacio de trabajo",
     "computing": "Calculando el espacio de trabajo: {{percent}} %.",
     "empty": "Sin calcular. Pulsa Calcular para muestrear las posiciones alcanzables.",
