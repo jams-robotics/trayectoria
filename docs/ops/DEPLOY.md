@@ -20,7 +20,7 @@ El documento no contiene secretos: todo lo que aparece entre `<...>` lo defines 
 | `apps/web/public/_headers` | Cabeceras de seguridad de todas las respuestas (#507): CSP, HSTS, `X-Frame-Options`, `Referrer-Policy`, `X-Content-Type-Options` y `Permissions-Policy`. Ver "Cabeceras de seguridad". |
 | `supabase/templates/*.html` | Correos de auth en español: `confirmation.html` (registro), `magic_link.html` (entrar con enlace), `recovery.html` (recuperar contraseña) y `reauthentication.html` (código para eliminar la cuenta o cambiar la contraseña). `supabase/config.toml` los usa en local; en el proyecto alojado se pegan en el panel (paso 1.5). |
 
-El workflow necesita un secreto y dos variables en GitHub (paso 3). Mientras falte alguno, el job `gate` deja un aviso y los jobs `deploy` y `preview` se omiten sin fallar. Los PR que vienen de forks no reciben secretos, así que tampoco generan vista previa.
+El workflow necesita un secreto en dos entornos de GitHub y dos variables (paso 3). Mientras falte alguno, los jobs `deploy` y `preview` avisan y no hacen nada, sin fallar. Los PR que vienen de forks no reciben secretos, así que tampoco generan vista previa.
 
 Wrangler es una devDependency exacta de `apps/web` (4.141.0, #511): se instala con el resto del monorepo desde `pnpm-lock.yaml`, con su `integrity`, y el workflow usa esa copia a través de pnpm. En local se ejecuta desde `apps/web` con `pnpm exec wrangler ...`, que lee `wrangler.jsonc` de esa carpeta.
 
@@ -95,20 +95,25 @@ Los asuntos son los mismos que declara `supabase/config.toml`. Si una plantilla 
 
 1. *My Profile → API Tokens → Create Token*.
 2. Plantilla **Edit Cloudflare Workers → Use template**.
-3. *Account Resources*: `Include` → tu cuenta. *Zone Resources*: `Include` → `All zones from an account` → tu cuenta.
-4. *Continue to summary → Create Token*. Copia el valor: Cloudflare solo lo muestra una vez. Va directo al secreto de GitHub (paso 3); no lo guardes en ningún archivo.
+3. *Account Resources*: `Include` → tu cuenta. *Zone Resources*: `Include` → `Specific zone` → `<dominio>` (#517). El token solo puede tocar la zona del sitio, no las demás de la cuenta. La zona tiene que existir: si el dominio aún no está en Cloudflare, haz antes el paso 4.1.
+4. *Continue to summary → Create Token*. Copia el valor: Cloudflare solo lo muestra una vez. Va directo a los entornos de GitHub (paso 3); no lo guardes en ningún archivo.
 
-## 3. GitHub: secreto y variables
+## 3. GitHub: entornos, secreto y variables
 
-En el repositorio, *Settings → Secrets and variables → Actions*:
+El token vive en dos **entornos** de GitHub (#517): `production`, que usa el job `deploy`, y `preview`, que usa el job `preview`. Un secreto de entorno solo lo leen los jobs de ese entorno.
+
+1. *Settings → Environments*: abre `production` (el primer run de *Deploy* lo crea; si no existe, *New environment*). En *Deployment branches and tags* elige **Selected branches and tags** y añade `main`: ningún otro branch puede usar el token de producción. No actives *Required reviewers*: quien mergea a `main` ya aprueba el despliegue.
+2. En `production`, *Environment secrets → Add secret*: `CLOUDFLARE_API_TOKEN` con el token del paso 2.2.
+3. Repite el secreto en el entorno `preview` (sin restricciones de branch), que usan las vistas previas de los PR.
+4. Si el secreto `CLOUDFLARE_API_TOKEN` existía a nivel de repositorio (*Settings → Secrets and variables → Actions → Repository secrets*), bórralo: así el token solo está en los entornos.
+5. En *Settings → Secrets and variables → Actions → Variables*, las variables del repositorio:
 
 | Tipo | Nombre | Valor |
 |---|---|---|
-| Secret | `CLOUDFLARE_API_TOKEN` | token del paso 2.2 |
 | Variable | `PUBLIC_SUPABASE_URL` | Project URL del paso 1.3 |
 | Variable | `PUBLIC_SUPABASE_ANON_KEY` | clave `anon` del paso 1.3 |
 
-Las dos variables se incrustan en el sitio al construirlo: si cambian, hay que volver a desplegar.
+Las dos variables se incrustan en el sitio al construirlo: si cambian, hay que volver a desplegar. Si falta alguna, el job `gate` deja un aviso; si falta el token en un entorno, su job (`deploy` o `preview`) lo avisa y no hace nada, sin fallar.
 
 **Primer despliegue.** Mergea cualquier PR a `main` o, en *Actions → Deploy*, abre el último run de `main` y pulsa *Re-run all jobs*. El job `deploy` termina en verde y crea el Worker, que todavía no tiene dirección pública: la recibe al asociar el dominio (paso 4.2). Después de 4.2, comprueba que `https://<dominio>` carga la portada y que una ruta inexistente muestra la página 404 del sitio.
 
@@ -179,7 +184,7 @@ Sirve el sitio en `http://127.0.0.1:4399` con las cabeceras de `_headers`. Al te
 Una vez al año, cuando alguien con acceso deja el proyecto o ante cualquier sospecha de filtración:
 
 1. Crea un token nuevo con los pasos de 2.2.
-2. En GitHub sustituye el valor del secreto `CLOUDFLARE_API_TOKEN` (*Update secret*).
+2. En GitHub sustituye el valor del secreto `CLOUDFLARE_API_TOKEN` en los entornos `production` y `preview` (*Settings → Environments → <entorno> → Environment secrets*, lápiz de la fila).
 3. Relanza el último run de *Actions → Deploy* en `main` y comprueba que `deploy` termina en verde.
 4. En *My Profile → API Tokens*, borra el token anterior (menú de la fila → *Delete*).
 
@@ -209,7 +214,7 @@ Sin `<version-id>`, `rollback` vuelve a la versión anterior a la actual. Cada d
 - [ ] SMTP externo configurado, dominio del remitente verificado y límite de envío ajustado.
 - [ ] Las cuatro plantillas en español pegadas en el panel.
 - [ ] Site URL y Redirect URLs de Supabase con el dominio definitivo; **Confirm email** y **Secure password change** activados; **Email OTP Expiration** en 3600 s.
-- [ ] Secreto `CLOUDFLARE_API_TOKEN` y variables `PUBLIC_SUPABASE_URL` y `PUBLIC_SUPABASE_ANON_KEY` en GitHub.
+- [ ] Token de Cloudflare limitado a la zona `<dominio>`; secreto `CLOUDFLARE_API_TOKEN` en los entornos `production` (solo `main`) y `preview`, y no a nivel de repositorio; variables `PUBLIC_SUPABASE_URL` y `PUBLIC_SUPABASE_ANON_KEY` en GitHub.
 - [ ] Un push a `main` despliega en menos de 5 minutos (duración del run *Deploy* en *Actions*).
 - [ ] Un PR recibe el comentario con la URL de vista previa y esa URL carga el sitio.
 - [ ] `https://<dominio>` carga con candado válido; `http://<dominio>` y `https://www.<dominio>` redirigen a `https://<dominio>`.
@@ -232,7 +237,7 @@ Sin `<version-id>`, `rollback` vuelve a la versión anterior a la actual. Cada d
 
 | Síntoma | Causa probable | Qué hacer |
 |---|---|---|
-| El run muestra *Deploy skipped* y `deploy`/`preview` aparecen omitidos | Falta el secreto o alguna variable, o el PR viene de un fork | Revisa el paso 3; los forks no generan vista previa por diseño |
+| El run muestra *Deploy skipped* y `deploy`/`preview` no despliegan | Falta alguna variable, falta el secreto en el entorno del job, o el PR viene de un fork | Revisa el paso 3; los forks no generan vista previa por diseño |
 | `deploy` falla con `Authentication error [code: 10000]` | Token borrado, caducado o sin permisos | Crea un token nuevo (sección "Rotar el token de Cloudflare") |
 | `preview` falla con *Wrangler returned no preview URL* | Las URL de vista previa están desactivadas en el Worker | *Workers & Pages → trayectoria → Settings → Domains & Routes*: activa **Preview URLs** |
 | `preview` falla porque el Worker no existe | Aún no hubo un despliegue desde `main` | Haz el primer despliegue (paso 3) |

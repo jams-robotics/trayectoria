@@ -42,6 +42,7 @@ Reglas a marcar:
   - Required approvals: `0` (la aprobación la dan QA y auditoría en comentarios; el humano decide al mergear).
   - Dismiss stale pull request approvals when new commits are pushed: activado.
   - Allowed merge methods: solo *Squash*.
+  - Require review from Code Owners: desactivado. `.github/CODEOWNERS` pide la revisión del propietario en los PR que tocan `.github/`, `infra/` y `supabase/` (#517), pero el propietario es el único dueño y GitHub no deja aprobar el PR propio.
 - **Require status checks to pass**: activado.
   - Require branches to be up to date before merging: activado.
   - Status checks required: `lint`, `typecheck`, `test`, `build`, `audit`, `db`, `e2e` (aparecen en el buscador una vez que el workflow ha corrido al menos una vez en un PR).
