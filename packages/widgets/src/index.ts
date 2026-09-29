@@ -199,6 +199,29 @@ export {
 export type { GearStages, GearWidgetProps, ShaftSpeeds, Train } from './GearWidget';
 
 export {
+  MotorCurveWidget,
+  CURVE_SAMPLES as MOTOR_CURVE_SAMPLES,
+  clampSpeed_rpm,
+  currentAt_A,
+  defaultSpeed_rpm,
+  electricalOf,
+  electricalPowerAt_W,
+  maxPower_W,
+  maxPowerSpeed_rpm,
+  motorEfficiency,
+  powerAt_W,
+  sampleCurves,
+  torqueAt_Nm,
+} from './MotorCurveWidget';
+export type {
+  Motor,
+  MotorCurveEditable,
+  MotorCurveWidgetProps,
+  MotorCurves,
+  MotorElectrical,
+} from './MotorCurveWidget';
+
+export {
   DiffDriveWidget,
   DT_S as DIFF_DRIVE_DT_S,
   INITIAL_POSE,
