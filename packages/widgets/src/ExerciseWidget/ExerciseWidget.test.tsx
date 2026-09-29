@@ -345,6 +345,19 @@ describe('statementParams (F2-10)', () => {
     });
   });
 
+  test('drops the padding zeros of values drawn on a grid (#550)', () => {
+    expect(
+      statementParams({ v_mps: 0.98, t_s: 0.9, a_mps2: -2.53, dx_m: 4, big: 1234.5, tiny: 0.0001 }),
+    ).toEqual({
+      v_mps: '0.98',
+      t_s: '0.9',
+      a_mps2: '−2.53',
+      dx_m: '4',
+      big: '1235',
+      tiny: '1.000e-4',
+    });
+  });
+
   test('ignores values that are not an object', () => {
     expect(statementParams(null)).toEqual({});
     expect(statementParams(3)).toEqual({});
