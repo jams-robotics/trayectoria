@@ -49,13 +49,30 @@ const links = [
     <p class="text-fg-muted mt-3 max-w-[72ch]">{ficha.summary}</p>
 
     <div class="mt-6 grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <img
-        src={photoSrc}
-        alt={ficha.name}
-        width="640"
-        height="480"
-        class="bg-bg-raised border-border aspect-4/3 w-full rounded-lg border object-contain"
-      />
+      <!-- #538: the call to action goes under the photo, so the left column does not end in a
+        gap while the right one still holds the specs and the links. -->
+      <div>
+        <img
+          src={photoSrc}
+          alt={ficha.name}
+          width="640"
+          height="480"
+          class="bg-bg-raised border-border aspect-4/3 w-full rounded-lg border object-contain"
+        />
+
+        <a
+          href={simulatorHref(arm.id)}
+          class="bg-physical text-physical-fg mt-6 inline-flex h-11 items-center gap-2 rounded-md px-5 font-semibold"
+        >
+          <svg width="28" height="16" viewBox="0 0 28 16" fill="none" aria-hidden="true">
+            <rect x="3" y="2" width="22" height="12" rx="3" fill="currentColor" opacity="0.35"
+            ></rect>
+            <rect x="0" y="4" width="4" height="8" rx="1" fill="currentColor"></rect>
+            <rect x="24" y="4" width="4" height="8" rx="1" fill="currentColor"></rect>
+          </svg>
+          {t('catalog.openInSimulator')}
+        </a>
+      </div>
 
       <div>
         <h2 class="text-lg leading-tight font-semibold">{t('catalog.specs')}</h2>
@@ -124,19 +141,6 @@ const links = [
             </li>
           ))}
         </ul>
-
-        <a
-          href={simulatorHref(arm.id)}
-          class="bg-physical text-physical-fg mt-6 inline-flex h-11 items-center gap-2 rounded-md px-5 font-semibold"
-        >
-          <svg width="28" height="16" viewBox="0 0 28 16" fill="none" aria-hidden="true">
-            <rect x="3" y="2" width="22" height="12" rx="3" fill="currentColor" opacity="0.35"
-            ></rect>
-            <rect x="0" y="4" width="4" height="8" rx="1" fill="currentColor"></rect>
-            <rect x="24" y="4" width="4" height="8" rx="1" fill="currentColor"></rect>
-          </svg>
-          {t('catalog.openInSimulator')}
-        </a>
 
         <ReportIssue
           title={`[Brazo ${ficha.name}] `}

@@ -16,22 +16,25 @@ const cta = {
 ---
 
 <Base title={t('auth.account.title')}>
-  <section class="mx-auto max-w-[1120px] px-5 py-11 md:px-8">
+  <section class="mx-auto flex w-full max-w-[1120px] flex-1 flex-col px-5 py-11 md:px-8">
     <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
       {t('auth.account.eyebrow')}
     </p>
     <h1 class="text-2xl leading-tight mt-4 font-semibold">{t('auth.account.title')}</h1>
-    <div class="mt-7 max-w-[640px]">
-      <Account client:load cta={cta} />
+    <!-- #538: the sign-up card is centred in the height the page leaves under the title. -->
+    <div class="flex flex-1 flex-col has-[[data-auth=anonymous]]:justify-center">
+      <div class="mt-7 max-w-[640px]">
+        <Account client:load cta={cta} />
+      </div>
+      <!-- «Mi robot» (F2-11): its own island so it can attach the Supabase adapter to the store
+        and render only with a session, without touching the Account island. -->
+      <div class="mt-7 max-w-[640px]">
+        <MyRobotIsland client:load />
+      </div>
+      <!-- Saved robots and URDF upload live on their own page (F3-04). -->
+      <p class="mt-7 max-w-[640px]">
+        <a href="/cuenta/robots" class="text-primary underline">{t('auth.robots.link')}</a>
+      </p>
     </div>
-    <!-- «Mi robot» (F2-11): its own island so it can attach the Supabase adapter to the store
-      and render only with a session, without touching the Account island. -->
-    <div class="mt-7 max-w-[640px]">
-      <MyRobotIsland client:load />
-    </div>
-    <!-- Saved robots and URDF upload live on their own page (F3-04). -->
-    <p class="mt-7 max-w-[640px]">
-      <a href="/cuenta/robots" class="text-primary underline">{t('auth.robots.link')}</a>
-    </p>
   </section>
 </Base>
