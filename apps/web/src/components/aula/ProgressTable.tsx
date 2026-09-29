@@ -6,6 +6,7 @@ import {
   progressMatrix,
   type MatrixMember,
   type MatrixRoute,
+  type MatrixTopic,
   type ProgressRow,
 } from '../../lib/aula/progressMatrix';
 import { ExportCsvButton } from './ExportCsvButton';
@@ -108,17 +109,31 @@ function useProgressRows(memberIds: readonly string[]): { rows: ProgressRow[]; p
   return { rows, phase };
 }
 
+/** The route chosen in the selector and its topics; it starts on the first one, Fundamentos. */
+function useSelectedRoute(routes: readonly MatrixRoute[]): {
+  selectedId: string;
+  setSelectedId: (routeId: string) => void;
+  topics: readonly MatrixTopic[];
+} {
+  const [selectedId, setSelectedId] = useState(routes[0]?.id ?? '');
+  const topics = routes.find((route) => route.id === selectedId)?.topics ?? [];
+  return { selectedId, setSelectedId, topics };
+}
+
+/** The members as table columns; a member without a display name shows `unknown`. */
+function studentsOf(members: readonly Member[], unknown: string): MatrixMember[] {
+  return members.map((member) => ({
+    userId: member.userId,
+    displayName: member.displayName === '' ? unknown : member.displayName,
+  }));
+}
+
 /** Topic × student table of the chosen route, with the CSV export (F3-02b, #574). */
 export function ProgressTable({ groupName, members, routes }: ProgressTableProps): JSX.Element {
   const t = useT();
-  // Starts on the first route, Fundamentos (§3.2).
-  const [selectedId, setSelectedId] = useState(routes[0]?.id ?? '');
-  const topics = routes.find((route) => route.id === selectedId)?.topics ?? [];
+  const { selectedId, setSelectedId, topics } = useSelectedRoute(routes);
   const { rows, phase } = useProgressRows(members.map((member) => member.userId));
-  const students: MatrixMember[] = members.map((member) => ({
-    userId: member.userId,
-    displayName: member.displayName === '' ? t('aula.members.unknown') : member.displayName,
-  }));
+  const students = studentsOf(members, t('aula.members.unknown'));
   const matrix = progressMatrix(topics, students, rows);
   const ready = phase === 'ready';
 
@@ -138,14 +153,14 @@ export function ProgressTable({ groupName, members, routes }: ProgressTableProps
           />
         ) : null}
       </div>
-      {students.length > 0 ? (
-        <RouteSelector routes={routes} selectedId={selectedId} onSelect={setSelectedId} />
-      ) : null}
       {students.length === 0 ? (
         <p className="text-fg-muted mt-3 mb-0" data-testid="progress-empty">
           {t('aula.progress.empty')}
         </p>
-      ) : ready ? (
+      ) : (
+        <RouteSelector routes={routes} selectedId={selectedId} onSelect={setSelectedId} />
+      )}
+      {students.length === 0 ? null : ready ? (
         <ProgressGrid topics={topics} members={students} matrix={matrix} groupName={groupName} />
       ) : (
         <Phasing phase={phase} />

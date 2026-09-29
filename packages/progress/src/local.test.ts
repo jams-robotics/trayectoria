@@ -107,6 +107,7 @@ describe('local progress storage (F3-01)', () => {
 // docs/ARCHITECTURE.md §5.4, «Sin sesión»: the browser copy is converted with the equivalence
 // table once, the first time it is read, and written back with `routesVersion: 2`.
 describe('browser copy of the two routes (#574)', () => {
+  const STORED: TopicProgress = { ...VALID, status: 'completed' };
   const completed = (at: string, extra: Partial<TopicProgress> = {}): TopicProgress => ({
     ...emptyProgress(),
     status: 'completed',
@@ -193,25 +194,25 @@ describe('browser copy of the two routes (#574)', () => {
   });
 
   test('a copy without routesVersion is converted and flagged to be written back', () => {
-    const raw = JSON.stringify({ owner: USER, topics: { 'ruta-1/m04-t02': VALID } });
+    const raw = JSON.stringify({ owner: USER, topics: { 'ruta-1/m04-t02': STORED } });
 
     expect(readStoredProgress(raw, USER)).toEqual({
-      topics: { 'ruta-1/m01-t04': VALID },
+      topics: { 'ruta-1/m01-t04': STORED },
       converted: true,
     });
   });
 
   test('a plain map from before the envelope is converted too', () => {
-    const raw = JSON.stringify({ 'ruta-1/m05-t02': VALID });
+    const raw = JSON.stringify({ 'ruta-1/m05-t02': STORED });
 
     expect(readStoredProgress(raw, null)).toEqual({
-      topics: { 'ruta-2/m01-t01': VALID },
+      topics: { 'ruta-2/m01-t01': STORED },
       converted: true,
     });
   });
 
   test('a copy with routesVersion 2 is never converted again', () => {
-    const topics = { 'ruta-1/m01-t03': VALID };
+    const topics = { 'ruta-1/m01-t03': STORED };
     const once = readStoredProgress(serialiseProgress(USER, topics), USER);
 
     expect(once).toEqual({ topics, converted: false });
@@ -220,15 +221,15 @@ describe('browser copy of the two routes (#574)', () => {
   test('an older routesVersion is converted', () => {
     const raw = JSON.stringify({
       owner: null,
-      topics: { 'ruta-1/m01-t03': VALID },
+      topics: { 'ruta-1/m01-t03': STORED },
       routesVersion: 1,
     });
 
-    expect(readStoredProgress(raw, null).topics).toEqual({ 'reserva/caida-libre': VALID });
+    expect(readStoredProgress(raw, null).topics).toEqual({ 'reserva/caida-libre': STORED });
   });
 
   test('the copy of another learner is neither read nor flagged for writing', () => {
-    const raw = JSON.stringify({ owner: OTHER, topics: { 'ruta-1/m04-t02': VALID } });
+    const raw = JSON.stringify({ owner: OTHER, topics: { 'ruta-1/m04-t02': STORED } });
 
     expect(readStoredProgress(raw, USER)).toEqual({ topics: {}, converted: false });
   });
