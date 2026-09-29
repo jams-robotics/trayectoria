@@ -3,7 +3,7 @@
 Guía para que el equipo técnico de una universidad instale su propia copia de Trayectoria (`ARCHITECTURE.md` §5.3). La instalación tiene dos piezas en la misma máquina:
 
 - **Supabase** (base de datos, autenticación y almacenamiento) con el `docker compose` oficial de Supabase. Este repositorio no lo duplica.
-- **El sitio**: archivos estáticos de `apps/web` servidos por Caddy con `infra/docker-compose.yml`. Caddy obtiene los certificados HTTPS automáticamente y también publica la API de Supabase por HTTPS en un segundo dominio.
+- **El sitio**: archivos estáticos de `apps/web` servidos por Caddy con `infra/docker-compose.yml`. Caddy obtiene los certificados HTTPS automáticamente y también publica la API de Supabase por HTTPS en un segundo dominio. Solo la API: el Studio de Supabase no se publica en Internet (#510).
 
 El documento no contiene secretos reales: todo lo que aparece entre `<...>` lo defines tú.
 
@@ -18,7 +18,7 @@ El documento no contiene secretos reales: todo lo que aparece entre `<...>` lo d
 - Puertos 80 y 443 (TCP) y 443 (UDP) abiertos desde Internet hacia la VM. Caddy los necesita para emitir los certificados.
 - Recomendado: un servidor SMTP institucional para los correos de registro y recuperación de contraseña.
 
-**Cortafuegos.** El compose de Supabase publica en la VM el puerto de la API (8000), el del pooler de Postgres (5432) y otros. Los puertos publicados por Docker **no** los filtra `ufw`: limita el acceso en el cortafuegos perimetral (grupo de seguridad de la nube o cortafuegos de la universidad) a 22, 80 y 443.
+**Cortafuegos.** El compose de Supabase publica en la VM el puerto de Kong (8000, que sirve la API **y el Studio**), el del pooler de Postgres (5432) y otros. Los puertos publicados por Docker **no** los filtra `ufw`: limita el acceso en el cortafuegos perimetral (grupo de seguridad de la nube o cortafuegos de la universidad) a 22, 80 y 443. Desde Internet, la API solo se alcanza a través de Caddy, que no publica el Studio (#510).
 
 ## Variables de entorno
 
@@ -29,7 +29,7 @@ Viven en `infra/.env`, que no se versiona (`.gitignore` excluye `.env`).
 | `PUBLIC_SUPABASE_URL` | Argumento de build de `infra/web.Dockerfile`; queda incrustada en el sitio y el navegador la usa para hablar con Supabase | `https://api.trayectoria.<universidad>.edu` |
 | `PUBLIC_SUPABASE_ANON_KEY` | Argumento de build de `infra/web.Dockerfile`; clave `anon` de tu Supabase (pública por diseño, el acceso pasa por RLS) | valor de `ANON_KEY` del `.env` de Supabase |
 | `SITE_ADDRESS` | `infra/Caddyfile`: dominio del sitio; Caddy obtiene su certificado | `trayectoria.<universidad>.edu` |
-| `API_ADDRESS` | `infra/Caddyfile`: dominio de la API; Caddy lo reenvía a Supabase | `api.trayectoria.<universidad>.edu` |
+| `API_ADDRESS` | `infra/Caddyfile`: dominio de la API; Caddy reenvía a Supabase solo `/auth/v1/`, `/rest/v1/`, `/storage/v1/`, `/realtime/v1/` y `/functions/v1/`, y responde `403` a todo lo demás (el Studio y `pg-meta`, #510) | `api.trayectoria.<universidad>.edu` |
 | `SUPABASE_UPSTREAM` | `infra/Caddyfile`: dónde escucha la API del compose de Supabase, vista desde el contenedor (opcional) | `host.docker.internal:8000` (valor por defecto) |
 
 Las dos variables `PUBLIC_*` se fijan **al construir** la imagen: si cambian, hay que reconstruir (paso 8). Nunca pongas la clave `service_role` en `infra/.env` ni en el sitio.
@@ -133,7 +133,7 @@ La construcción (`infra/web.Dockerfile`) instala las dependencias con `pnpm ins
 2. `https://trayectoria.<universidad>.edu/ruta/ruta-1/m00/t01/` muestra el primer tema.
 3. Una ruta inexistente (`/no-existe/`) muestra la página «Página no encontrada».
 4. Registra un usuario de prueba desde «Entrar» en el sitio. Con SMTP, llega el correo de confirmación; con `ENABLE_EMAIL_AUTOCONFIRM=true`, la sesión se abre directamente.
-5. En el Studio de Supabase (`https://api.trayectoria.<universidad>.edu`, usuario y contraseña del dashboard) aparece el usuario en _Authentication_ y su fila en la tabla `profiles`.
+5. En el Studio de Supabase aparece el usuario en _Authentication_ y su fila en la tabla `profiles`. El Studio **no** está en `https://api.trayectoria.<universidad>.edu` (esa dirección responde `403` fuera de las rutas de la API, #510): se abre desde tu equipo con un túnel SSH a la VM, `ssh -L 8000:127.0.0.1:8000 <usuario>@<vm>`, y después `http://localhost:8000` en el navegador, con el usuario y la contraseña del dashboard (`DASHBOARD_USERNAME` y `DASHBOARD_PASSWORD` del `.env` de Supabase). Cierra el túnel al terminar.
 6. Borra el usuario de prueba desde la página de cuenta del sitio o desde el Studio.
 
 ## Prueba local
@@ -203,6 +203,7 @@ docker compose exec -T db pg_restore -U supabase_admin -d postgres --clean --if-
 | Error `bind: address already in use` en 80/443 | Otro servidor web (Apache, nginx) ocupa los puertos | Detén ese servicio |
 | El sitio carga pero no se puede entrar ni registrarse; la consola del navegador muestra errores de red o CORS | `PUBLIC_SUPABASE_URL` incorrecta, o la imagen se construyó antes de cambiarla | Corrige `infra/.env` y reconstruye (paso 8) |
 | `https://api...` responde `502 Bad Gateway` | Supabase no está arrancado o Kong no escucha en `SUPABASE_UPSTREAM` | `docker compose ps` en `/opt/supabase-project`; revisa `KONG_HTTP_PORT` |
+| `https://api...` responde `403 Forbidden` en el navegador | Es lo esperado: Caddy solo publica las rutas de la API (#510) | Para el Studio usa el túnel SSH del paso 9.5 |
 | `Invalid API key` al registrarse | `PUBLIC_SUPABASE_ANON_KEY` no corresponde al `JWT_SECRET` de Supabase | Vuelve a copiar `ANON_KEY` (paso 6) y reconstruye |
 | El correo de confirmación no llega | SMTP sin configurar o rechazado | Revisa `SMTP_*` en el `.env` de Supabase y `docker compose logs auth` |
 | El enlace del correo lleva a otra dirección | `SITE_URL` o `ADDITIONAL_REDIRECT_URLS` sin actualizar | Corrígelos y ejecuta `docker compose up -d` en `/opt/supabase-project` |

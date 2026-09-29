@@ -31,6 +31,16 @@
 	}
 }
 
+# Only the Supabase APIs are published (#510). Kong also serves the Studio and pg-meta (arbitrary
+# SQL) behind basic auth only; they stay private and are reached through an SSH tunnel
+# (docs/ops/SELF-HOSTING.md). GraphQL is not published either: the site does not use it (#527).
+# Anything else gets 403.
 {$API_ADDRESS} {
-	reverse_proxy {$SUPABASE_UPSTREAM:host.docker.internal:8000}
+	@api path /auth/v1/* /rest/v1/* /storage/v1/* /realtime/v1/* /functions/v1/*
+	handle @api {
+		reverse_proxy {$SUPABASE_UPSTREAM:host.docker.internal:8000}
+	}
+	handle {
+		respond 403
+	}
 }
