@@ -13,18 +13,20 @@ Cada tema termina en el robot. Si la sección "Al robot" es decorativa o forzada
 3. **Fórmulas.** Cada fórmula en su propio bloque con `Formula`, seguida de la lista de variables: símbolo, nombre, unidad SI. Símbolos exclusivamente del glosario.
 4. **Explora.** El widget interactivo con 2 a 4 experimentos guiados, cada uno con la forma exacta: **cambia X → observa Y → ¿por qué?**, y una respuesta desplegable de máximo 3 frases.
 5. **Al robot.** 100 a 300 palabras. El mismo concepto aplicado con datos de "Mi robot" (`useMyRobot()`) o del robot de referencia cuando el perfil no aplica. Debe incluir al menos un cálculo con los números del perfil del usuario, mostrado con `Formula` sustituida: `<RobotFormula calc="<topicId>/<calcId>" />`, con el cálculo exportado desde `alrobot.ts` (`WIDGETS.md`, Componentes MDX). Cuando ningún dato del perfil aplica, Al robot puede usar un dato del gancho y lo dice (aprobado por el humano en el chat, 2026-09-26).
+   - **Solo usa lo ya enseñado** (#559, #574): en su ruta, lo anterior al tema; en otra ruta, la que su ruta sigue. Un número que sale de una fórmula que se enseña después entra como **dato de tu perfil**: el cálculo de `alrobot.ts` lo obtiene del perfil sin mostrar esa fórmula, y el texto lo llama dato y enlaza hacia adelante («de dónde sale: `[Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04)`»). El tema que enseña la fórmula la calcula una vez con el perfil y dice qué temas la usaron como dato.
+   - **Añade, no repite** (#565): cada tema añade al menos una fila a «Mi robot» (tabla «Qué añade cada tema a Mi robot» de `CURRICULUM.md`). Un resultado que ya calculó otro tema se cita con enlace, sin `RobotFormula` propia.
 6. **Verifica.** 3 a 5 ejercicios con `ExerciseWidget`. Los marcados como obligatorios (mínimo 3) cuentan para completar el tema.
 7. **Profundiza.** 1 a 3 referencias en formato fijo (§6) y, opcionalmente, un enlace a un tema posterior que usa este.
 
 ## 3. Frontmatter
 
 ```yaml
-id: ruta-1/m04-t02
-title: "v = ω·r: la velocidad del robot"
-module: 4
-order: 2
+id: ruta-1/m01-t04
+title: "Rodadura: de la rueda al robot"
+module: 1
+order: 4
 estimatedMinutes: 25
-prerequisites: [ruta-1/m04-t01, ruta-1/m00-t01]
+prerequisites: [ruta-1/m01-t03, ruta-1/m00-t01]
 objectives:
   - Convertir velocidad angular a lineal para una rueda sin deslizamiento
   - Calcular la velocidad de avance de un robot a partir de rpm, reducción y radio
@@ -33,6 +35,11 @@ requiredExercises: [e1, e2, e3]
 references: [young-freedman-9, siegwart-3]
 status: draft | review | published
 ```
+
+- `id` es `ruta-N/mMM-tNN`, igual que la carpeta; `module` = MM y `order` = NN, la posición en su ruta (`CURRICULUM.md`, «Estructura»). Un tema en reserva lleva `id: reserva/<slug>` y `status: draft`.
+- `prerequisites` lleva ids completos, también los de otra ruta (#574): un tema de Robot móvil declara los temas concretos de Fundamentos que usa. Un prerrequisito va antes en la misma ruta o está en la ruta que esta sigue; nunca hacia adelante ni en la reserva (el build falla, `ARCHITECTURE.md` §3.2).
+- Solo `status: published` se publica; un tema en `draft` o `review` no genera página.
+- Los enlaces a otros temas en el cuerpo usan su URL, `/ruta/ruta-N/mMM/tNN`.
 
 ## 4. Tono y estilo
 

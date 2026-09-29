@@ -9,7 +9,7 @@
 - **Humanos:** sección 1 a 5 explica qué se construye y por qué. Sección 6 es el backlog: cada tarea es un ticket listo para asignar.
 - **Orquestador (agente):** convierte cada tarea de la sección 6 en un issue de GitHub usando `docs/templates/TASK.md`, respetando dependencias y orden de fases. No inventa tareas nuevas: si falta algo, lo propone al humano como cambio de plan.
 - **Desarrollador (agente):** no lee este documento completo. Lee `CLAUDE.md`, su ticket y los documentos que el ticket referencia.
-- Los 28 temas de contenido están especificados en `docs/CURRICULUM.md`. Cada uno es un ticket `T-m.n`.
+- Los 25 temas de contenido de las dos rutas (y los 2 en reserva) están especificados en `docs/CURRICULUM.md`. Cada uno es un ticket `T<ruta>-<módulo>.<orden>` (p. ej. `T1-1.4`).
 
 Documentos relacionados: `ARCHITECTURE.md`, `STANDARDS.md`, `CONTENT-STANDARDS.md`, `GLOSSARY.md`, `ROBOT-SPEC.md`, `WIDGETS.md`, `DESIGN-BRIEF.md` (y `DESIGN.md` cuando D-01 esté hecho), `DEFINITION-OF-DONE.md`, `CURRICULUM.md`, `adr/`, `templates/`.
 
@@ -39,16 +39,17 @@ Documentos relacionados: `ARCHITECTURE.md`, `STANDARDS.md`, `CONTENT-STANDARDS.m
 | Idioma | Español primero; i18n en la arquitectura desde el día 1 |
 | Nivel matemático | Universitario completo (vectores, cálculo, álgebra lineal). Se visualiza para entender, no para evitar |
 | Control del robot en simuladores | Solo parámetros (sliders) en v1; el controlador es intercambiable para que en v2 entre código del estudiante |
-| Modo aula | Entra en v1, mínimo: roles docente/estudiante, grupos por código de invitación, progreso del grupo |
+| Modo aula | Entra en v1, mínimo: roles docente/estudiante, grupos por código de invitación, progreso del grupo por ruta |
+| Rol docente | En v1 se elige en el registro, como decisión de producto: no está verificado y solo da la capacidad de crear grupos; un docente solo ve el progreso de quien entra a su grupo con su código (#513) |
 | Perfil "Mi robot" | Entra en v1 desde el módulo 0 |
-| Ruta 1 | Completa, 28 temas |
+| Rutas | Dos rutas encadenadas completas: Fundamentos (14 temas) y Robot móvil (11 temas); 2 temas en reserva sin publicar (#574) |
 | Catálogo de brazos | Mínimo: SO-101 (LeRobot) + brazo plano didáctico de 2 GDL propio |
 | Pista del seguidor | Editor por segmentos + pistas prediseñadas (sin importar foto) |
 | Motor de física | Ninguno en v1: ambos simuladores son cinemáticos |
 | Autoalojable | Sí, con `docker compose` |
 
 **Versión 1 (alcance congelado).**
-1. Ruta 1, *De la física al robot móvil*, 28 temas en 7 módulos.
+1. Dos rutas encadenadas: *Fundamentos: física y matemática para robots*, 14 temas en 4 módulos, y *Robot móvil: del encoder a la pista*, 11 temas en 3 módulos (25 temas en 7 módulos).
 2. Simulador móvil 2D: robot diferencial parametrizable, pista editable, sensores de línea, controladores integrados, instrumentación.
 3. Simulador de brazo 3D: carga URDF, cinemática directa por articulación, marcos, matrices, espacio de trabajo, catálogo mínimo, importación de URDF propio.
 4. Cuentas, progreso, perfil "Mi robot", robots guardados.
@@ -56,7 +57,12 @@ Documentos relacionados: `ARCHITECTURE.md`, `STANDARDS.md`, `CONTENT-STANDARDS.m
 
 **Visión completa (v2 en adelante, no se construye en v1):** cinemática inversa y dinámica con motor de física, celda o línea de producción, asistente que genera URDF desde medidas y GDL, código del estudiante como controlador (sandbox), pista importada desde foto, bilingüe, más rutas (brazo, control, sensores y estimación, electrónica, automatización), exportación a ROS 2, Web Worker para la simulación.
 
-**Criterio de éxito de v1.** Un estudiante termina la ruta 1 y calcula la velocidad de su propio robot con datos reales; un docente da una clase completa usando la plataforma y ve el progreso de su grupo.
+**Decisiones del propietario para v2** (2026-09-29; cada issue queda abierto en el hito v2):
+- **Rol docente por código de invitación** (#513): cuando haya usuarios, el rol docente se obtiene con un código de invitación en vez de elegirse en el registro.
+- **Boletín con aviso de privacidad** (#584): suscripción por correo para anunciar temas nuevos, con doble confirmación y aviso de privacidad enlazado desde «Acerca». En v1 el contacto es el correo de contacto del sitio.
+- **Eventos de analítica propios** (#578): eventos sin datos personales (tema completado, proyecto final completado y demás) y el embudo por tema. En v1 solo hay Cloudflare Web Analytics, sin cookies (`ARCHITECTURE.md` §6).
+
+**Criterio de éxito de v1.** Un estudiante termina las dos rutas y calcula la velocidad de su propio robot con datos reales; un docente da una clase completa usando la plataforma y ve el progreso de su grupo.
 
 ## 2. Mapa de contenidos
 
@@ -64,19 +70,28 @@ Detalle completo en `CURRICULUM.md`. Reglas de estructura en `CONTENT-STANDARDS.
 
 **Anatomía de un tema** (plantilla fija, 7 secciones): Gancho → Concepto → Fórmulas → Explora → Al robot → Verifica → Profundiza. Metadatos: prerrequisitos, objetivos, tiempo estimado, widgets usados.
 
-**"Mi robot".** Perfil persistente (masa, radio de rueda, distancia entre ruedas, rpm del motor, reducción, encoder, sensores). Toda sección "Al robot" lo usa; en el módulo 6 ese mismo perfil es el que se simula. Es una instancia de `RobotSpec` (ver `ROBOT-SPEC.md`).
+**"Mi robot".** Perfil persistente (masa, radio de rueda, distancia entre ruedas, rpm del motor, reducción, encoder, sensores). Toda sección "Al robot" lo usa, y cada tema añade un dato nuevo (`CURRICULUM.md`, «Qué añade cada tema a Mi robot»); en la ruta Robot móvil ese mismo perfil es el que se simula. Es una instancia de `RobotSpec` (ver `ROBOT-SPEC.md`).
 
-**Ruta 1 — De la física al robot móvil** (28 temas):
+**Ruta 1 — Fundamentos: física y matemática para robots** (14 temas, `ruta-1`):
 
 | Módulo | Temas |
 |---|---|
 | M0 Herramientas | 0.1 Unidades y magnitudes · 0.2 Vectores · 0.3 Derivada como razón de cambio |
-| M1 Cinemática de la partícula | 1.1 MRU · 1.2 MRUA · 1.3 Caída libre · 1.4 Tiro parabólico |
-| M2 Dinámica | 2.1 Leyes de Newton y cuerpo libre · 2.2 Fricción · 2.3 Torque |
+| M1 Cinemática | 1.1 MRU · 1.2 MRUA · 1.3 Movimiento circular y ω · 1.4 Rodadura: de la rueda al robot |
+| M2 Dinámica | 2.1 Leyes de Newton y cuerpo libre · 2.2 Fricción · 2.3 Aceleración angular y centrípeta · 2.4 Torque, reducción y transmisión |
 | M3 Energía y motor | 3.1 Trabajo y energía · 3.2 Potencia · 3.3 El motor y la batería |
-| M4 Rotación | 4.1 Movimiento circular y ω · 4.2 v = ω·r, la velocidad del robot · 4.3 Aceleración angular y centrípeta · 4.4 Transmisión y reducción · 4.5 Encoders |
-| M5 Robot diferencial | 5.1 Pose y marcos de referencia · 5.2 Cinemática directa · 5.3 Cinemática inversa · 5.4 Odometría · 5.5 Restricción no holonómica |
-| M6 Seguidor de línea | 6.1 Sensor de línea · 6.2 Control on/off y proporcional · 6.3 PID · 6.4 Geometría vs desempeño · 6.5 Proyecto final |
+
+**Ruta 2 — Robot móvil: del encoder a la pista** (11 temas, `ruta-2`; sigue a la ruta 1 y declara por tema qué temas de ella usa):
+
+| Módulo | Temas |
+|---|---|
+| M0 Medir y ubicar | 0.1 Encoders · 0.2 Pose y marcos de referencia |
+| M1 Cinemática del diferencial | 1.1 Cinemática directa · 1.2 Cinemática inversa · 1.3 Odometría · 1.4 Restricción no holonómica |
+| M2 Seguidor de línea | 2.1 Sensor de línea · 2.2 Control on/off y proporcional · 2.3 PID · 2.4 Geometría vs desempeño · 2.5 Proyecto final |
+
+**Reserva** (no se publica, #566): Caída libre y Tiro parabólico, para una ruta futura (lanzador, brazo).
+
+Reestructuración decidida por el propietario en #574 (2026-09-29), antes del lanzamiento: la ruta única de 28 temas en 7 módulos pasa a estas dos rutas, con Torque y Transmisión fundidos y los ids renumerados. Tabla de equivalencias en `CURRICULUM.md`; decisión técnica en ADR-0010.
 
 **Rutas futuras (solo módulos, v2+):** Del plano al brazo robot · Control · Sensores y estimación · Electrónica del robot · Automatización.
 
@@ -84,7 +99,7 @@ Detalle completo en `CURRICULUM.md`. Reglas de estructura en `CONTENT-STANDARDS.
 
 ## 3. Simuladores
 
-**Principios del núcleo común** (una sola implementación para los 28 temas y los dos simuladores):
+**Principios del núcleo común** (una sola implementación para los 25 temas y los dos simuladores):
 1. Un solo bucle de simulación: paso de tiempo fijo, determinista, con pausa, paso a paso, reinicio y velocidad de reproducción.
 2. Un solo sistema de unidades: SI internamente, conversión solo en la interfaz.
 3. Un solo esquema de robot: `RobotSpec` (JSON versionado). URDF se importa y se mapea a él. Nada dibuja ni simula desde un URDF crudo.
@@ -476,7 +491,9 @@ Todos los widgets siguen `WIDGETS.md` (API, props, eventos, demo aislada, captur
 
 ### Fase 6 — Contenido
 
-27 tickets `T-0.1` … `T-6.5` especificados en `CURRICULUM.md`, más 7 auditorías de coherencia `C-M0` … `C-M6` (una al cerrar cada módulo, la ejecuta el auditor de coherencia con el modelo fuerte, produce `docs/audits/C-Mn.md` con hallazgos y tickets de refactor).
+27 tickets `T-0.1` … `T-6.5` especificados en `CURRICULUM.md`, más 7 auditorías de coherencia `C-M0` … `C-M6` (una al cerrar cada módulo, la ejecuta el auditor de coherencia con el modelo fuerte, produce `docs/audits/C-Mn.md` con hallazgos y tickets de refactor). Hecho con la ruta única; después se añadió T-3.3 (#609).
+
+**Reestructuración en dos rutas (#574).** Especificada en DOCS-RUTAS (#623): `CURRICULUM.md` (dos rutas, tabla de equivalencias, specs que cambian, tema fusionado, guion del proyecto final), `ARCHITECTURE.md` §3.2, §3.3, §3.5 y §5.4, y ADR-0010. Los tickets de implementación (código y movimiento de carpetas, reescrituras de contenido por ruta, textos, auditorías `C-R1-Mn` y `C-R2-Mn`) los abre el orquestador a partir del desglose del PR de DOCS-RUTAS.
 
 Dependencias de widgets por módulo: M0 → F2-03, F2-04, F2-06; M1 → F2-04, F2-05; M2 → F2-03, F2-07; M3 → F2-07; M4 → F2-06, F2-08, F2-09, F2-11; M5 → F2-09; M6 → F4 completo.
 
@@ -495,7 +512,7 @@ Dependencias de widgets por módulo: M0 → F2-03, F2-04, F2-06; M1 → F2-04, F
 - Aceptación: instalación desde cero en una VM limpia siguiendo solo el documento.
 
 #### F7-04 · QA global · qa · L
-- Spec: e2e de la ruta completa (registro → 27 temas con al menos un ejercicio cada uno → simulador móvil con "Mi robot" → docente ve el progreso); smoke en móvil (viewport 390 px); informe de defectos.
+- Spec: e2e de la ruta completa (registro → 27 temas con al menos un ejercicio cada uno → simulador móvil con "Mi robot" → docente ve el progreso); smoke en móvil (viewport 390 px); informe de defectos. Con las dos rutas (#574), el recorrido es de los 25 temas publicados.
 - Aceptación: `docs/audits/QA-v1.md` sin defectos bloqueantes abiertos.
 
 #### F7-05 · Páginas públicas · content · M
@@ -519,7 +536,7 @@ Dependencias de widgets por módulo: M0 → F2-03, F2-04, F2-06; M1 → F2-04, F
 | Riesgo | Mitigación |
 |---|---|
 | Los agentes divergen en estilo o notación | Auditor de coherencia por módulo; glosario y catálogo de widgets como fuentes de verdad; sufijos de unidad en variables |
-| 27 temas son mucho contenido | Plantilla fija, widgets previos, specs pre-llenadas en `CURRICULUM.md`; se pueden paralelizar |
+| 25 temas en dos rutas son mucho contenido | Plantilla fija, widgets previos, specs pre-llenadas en `CURRICULUM.md`; se pueden paralelizar |
 | URDF del SO-101 cambia o su licencia se aclara distinto | Se copia una versión fijada al catálogo con fecha de verificación; ficha con "verificado el" |
 | Supabase autoalojado es pesado para una universidad | Documento paso a paso y compose probado en VM limpia (F7-03) |
 | Rendimiento en laptops modestas | Presupuesto de JS, three solo donde se usa, sim-core sin DOM listo para Worker en v2 |

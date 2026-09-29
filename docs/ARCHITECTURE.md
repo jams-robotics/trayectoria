@@ -28,13 +28,15 @@ trayectoria/
 ├── content/                 # paquete @trayectoria/content del workspace
 │   ├── index.ts             # mapa de ejercicios de todos los temas
 │   └── es/
-│       └── ruta-1/
-│           ├── ruta.json    # orden de módulos y temas
-│           └── m04-t02/     # un directorio por tema
-│               ├── index.mdx
-│               ├── ejercicios.ts
-│               ├── ejercicios.test.ts
-│               └── assets/
+│       ├── ruta-1/          # Fundamentos
+│       │   ├── ruta.json    # orden de módulos y temas
+│       │   └── m01-t04/     # un directorio por tema
+│       │       ├── index.mdx
+│       │       ├── ejercicios.ts
+│       │       ├── ejercicios.test.ts
+│       │       └── assets/
+│       ├── ruta-2/          # Robot móvil, sigue a ruta-1
+│       └── reserva/         # temas ocultos (status: draft), fuera de las rutas
 ├── catalog/
 │   ├── arms/{id}/           # urdf/, meshes/, ficha.json, LICENSE
 │   └── mobile/{id}.json     # robots de referencia (RobotSpec)
@@ -77,8 +79,9 @@ Cualquier otra importación es un error de arquitectura (regla de ESLint `import
 | Ruta | Página |
 |---|---|
 | `/` | Inicio |
-| `/ruta/[ruta]` | Índice de la ruta con progreso |
-| `/ruta/[ruta]/[modulo]/[tema]` | Tema (MDX) |
+| `/ruta/[ruta]` | Índice de cada ruta (`ruta-1`, `ruta-2`) con progreso |
+| `/ruta/[ruta]/[modulo]/[tema]` | Tema publicado (MDX) |
+| URLs antiguas de temas movidos | Redirección a la nueva (ver «Redirecciones») |
 | `/simuladores/movil` | Simulador móvil 2D |
 | `/simuladores/brazo` | Simulador de brazo 3D |
 | `/brazos`, `/brazos/[id]` | Catálogo |
@@ -90,19 +93,31 @@ Cualquier otra importación es un error de arquitectura (regla de ESLint `import
 | `/dev/widgets` | Playground de widgets (solo en dev) |
 | `/dev/sims` | Playground de `packages/sims` (solo en dev) |
 
-«Ruta completada» (DOCS-M6, #396; ticket de `apps/web`): el índice `/ruta/[ruta]` muestra, bajo la cabecera de la ruta, el aviso «Ruta completada» (clave nueva `route.completed` en `common.json`) cuando todos los temas de su `ruta.json` (28 en la Ruta 1) están en `completed`. La fuente es la misma que la de los estados de cada tema en el índice (F3-01: `progress` con sesión, `localStorage` sin ella). Estilo de estado correcto (`--color-success`), sin animación: el feedback nunca es celebratorio (`DESIGN-BRIEF.md` §5). Con un tema sin completar no se muestra nada.
+**Rutas múltiples** (#574, DOCS-RUTAS; `CURRICULUM.md`, «Estructura»). Hay dos rutas encadenadas: `ruta-1`, Fundamentos (4 módulos, 14 temas), y `ruta-2`, Robot móvil (3 módulos, 11 temas), cada una con su `content/es/ruta-N/ruta.json`. El esquema de `ruta.json` (`content.config.ts`) añade `shortTitle` (obligatorio: «Fundamentos», «Robot móvil») y `follows` (opcional: id de la ruta que esta continúa; `ruta-2` lleva `"follows": "ruta-1"`). Las rutas se ordenan por su número. Los módulos se numeran desde 0 en cada ruta. `/ruta/[ruta]` genera una página por ruta. El ítem de navegación (`nav.route`, «Rutas») sigue apuntando a `/ruta/ruta-1`. Bajo la cabecera de cada índice va un enlace a la otra ruta: en `ruta-1`, «Sigue con la ruta {{title}}» (clave nueva `route.continue`) hacia la ruta que la sigue; en `ruta-2`, «Esta ruta usa temas de {{title}}; cada tema dice cuáles necesita.» (`route.uses`) hacia la ruta que sigue; `{{title}}` es el `shortTitle`. Anterior y siguiente de un tema se quedan dentro de su ruta: el último tema de Fundamentos no enlaza al primero de Robot móvil.
+
+**Filtro por `status`.** Solo un tema con `status: 'published'` genera página. Las tres consultas a la colección `topics` filtran por él: `getStaticPaths` y el conjunto `published` de `ruta/[ruta]/[modulo]/[tema].astro`, y `publishedIds` de `ruta/[ruta]/index.astro`; también `sitemap.xml.ts`. El filtro va antes de las comprobaciones de directorio de `getStaticPaths`. Un tema de `ruta.json` que no está publicado se lista sin enlace, como hoy uno que no existe. Ocultar un tema es poner `status: draft` y quitarlo de su `ruta.json`.
+
+**Prerrequisitos entre rutas.** `prerequisites` lleva ids completos (`ruta-N/mMM-tNN`, `CONTENT-STANDARDS.md` §3). `[tema].astro` los resuelve contra los `ruta.json` de todas las rutas, no solo la del tema, y el build falla si un id no está en ninguna ruta (un tema de la reserva tampoco vale), si un prerrequisito de la misma ruta va después del tema o si uno de otra ruta no está en una ruta antecesora por `follows`. La cabecera del tema (`Tema.astro`) muestra en «Prerrequisitos» los de su ruta, como hoy, y debajo una línea por cada otra ruta con prerrequisitos: «Necesitas de {{route}}: …» (clave nueva `topic.prerequisitesFromRoute`, `{{route}}` = `shortTitle` de esa ruta), con cada tema por su título y enlazado a su URL (sin enlace si no está publicado). Si el tema solo tiene prerrequisitos de otra ruta, no aparece «ninguno». La barra de progreso del tema («Ruta: {{done}} de {{total}} temas») cuenta los temas de su ruta.
+
+**Redirecciones.** Las 15 URLs antiguas de temas movidos (filas 14 a 28 de la tabla de equivalencias de `CURRICULUM.md`) redirigen a la nueva con la opción `redirects` de `apps/web/astro.config.mjs`. Con `output: 'static'`, Astro genera en cada URL antigua una página HTML con `<meta http-equiv="refresh">` y `<link rel="canonical">` hacia la nueva, que sirve igual en Cloudflare Workers con static assets y en el autoalojado con Caddy, sin configuración nueva en ninguno de los dos. Las tres URLs antiguas que ahora sirven otro tema (`/ruta/ruta-1/m01/t03`, `/ruta/ruta-1/m01/t04` y `/ruta/ruta-1/m02/t03`) no redirigen: una URL no puede ser a la vez un tema y una redirección (spec gap de #623). Las páginas de redirección no entran en `sitemap.xml`. Un test de `apps/web` comprueba que cada URL antigua de la tabla que no es de un tema publicado tiene su redirección y que ninguna redirección pisa un tema publicado.
+
+**Temas en reserva.** `content/es/reserva/<slug>/`, id `reserva/<slug>`, `status: draft` y fuera de todo `ruta.json` (§3.3). Ninguna página los genera.
+
+«Ruta completada» (DOCS-M6, #396; por ruta desde #574; ticket de `apps/web`): el índice `/ruta/[ruta]` muestra, bajo la cabecera de la ruta, el aviso «Ruta completada» (clave `route.completed` en `common.json`) cuando todos los temas de su `ruta.json` (14 en Fundamentos, 11 en Robot móvil) están en `completed`. Cada ruta tiene el suyo y no depende de la otra. En Fundamentos, el aviso lleva al lado el enlace `route.continue` a Robot móvil (el mismo de la cabecera). La fuente es la misma que la de los estados de cada tema en el índice (F3-01: `progress` con sesión, `localStorage` sin ella). Estilo de estado correcto (`--color-success`), sin animación: el feedback nunca es celebratorio (`DESIGN-BRIEF.md` §5). Con un tema sin completar no se muestra nada.
+
+**Aula con dos rutas.** `/aula` lee en build los temas de las dos rutas desde la colección `routes`, en el orden de las rutas y de cada `ruta.json`, en vez de solo `ruta-1`. Encima de la tabla tema × estudiante va un selector de ruta (chip «Tabs / segmentado» de `DESIGN.md` §5, con `aria-pressed`; etiqueta `aula.progress.route`, «Ruta»; opciones con el `shortTitle`), que empieza en Fundamentos. La tabla, el resumen «Completados» `{{done}}/{{total}}` (14 o 11) y la exportación CSV son de la ruta elegida. En `MatrixTopic`, `moduleId` pasa a llevar la ruta (`ruta-1/m00`), porque `m00` se repite en las dos. La consulta a `progress` no cambia: trae las filas del grupo y cada ruta usa las suyas.
 
 ### 3.3 Contenido como código
 
-- Un tema = un directorio `content/es/ruta-1/mNN-tNN/` con `index.mdx`, `ejercicios.ts`, `assets/` y, si su «Al robot» calcula con el perfil, `alrobot.ts`.
+- Un tema = un directorio `content/es/ruta-N/mMM-tNN/` con `index.mdx`, `ejercicios.ts`, `assets/` y, si su «Al robot» calcula con el perfil, `alrobot.ts`. La colección `topics` carga `ruta-*/m*-t*/index.mdx`; la reserva (`content/es/reserva/<slug>/`, id `reserva/<slug>`, `status: draft`) queda fuera de la colección pero dentro del paquete: sus ejercicios y cálculos siguen registrados en `content/index.ts` con sus tests (claves `reserva/<slug>/…`). `pnpm content:check` solo recorre carpetas `mNN-tNN`, así que no la revisa; no hace falta mientras esté en `draft`.
 - `content/` es el paquete `@trayectoria/content` del workspace (F6-00): cubierto por `pnpm lint`, `typecheck` y `test`, y solo importa `sim-core` (y `robot-spec`, solo tipos; §2).
 - Cada tema exporta sus ejercicios (`defineExercise`) desde `ejercicios.ts`, con `ejercicios.test.ts` al lado (valores dorados). `content/index.ts` los reúne en un solo mapa con claves `<topicId>/<exerciseId>` (p. ej. `ruta-1/m00-t01/e1`); `apps/web/src/lib/exercises.ts` construye con él el registro que resuelve `Verifica`, que declara esas claves. Una clave de `Verifica` que no existe en el registro hace fallar `pnpm test` (`apps/web/src/lib/verifica.test.ts`) y el build.
 - Frontmatter validado por zod en `apps/web/src/content.config.ts` (campos en `CONTENT-STANDARDS.md`).
-- Orden y agrupación en `ruta.json`. La URL se deriva del directorio: `m04-t02` → `/ruta/ruta-1/m04/t02`.
+- Orden y agrupación en `ruta.json`, uno por ruta (§3.2). La URL se deriva del directorio: `ruta-1/m01-t04` → `/ruta/ruta-1/m01/t04`. Los ids, carpetas, claves y enlaces anteriores a las dos rutas se convierten con la tabla de equivalencias de `CURRICULUM.md` (#574).
 - Los temas solo pueden importar componentes del mapa MDX (F2-13) y widgets del catálogo. Cualquier `import` de otra cosa rompe `pnpm content:check`.
 - Widgets en el MDX (#243, #246): el mapa MDX (`temaComponents`) expone los widgets de tema del catálogo cuyas props son todas serializables, con el mismo nombre y las mismas props que `WIDGETS.md`, y el tema los escribe sin `import` (Astro compila los MDX y `content/` no importa paquetes del workspace, así que los widgets llegan por el mapa MDX en vez de por `import`). Un solo mecanismo genérico, el de `Formula.astro`: `CatalogWidget.astro` monta una isla `TopicWidget` con `client:only="react"` que carga el widget desde `widgetRegistry.ts`. Sobre él, cada widget tiene un envoltorio `.astro` de una línea, `catalog/<Widget>.astro`, que solo nombra su widget para `CatalogWidget` (PR #248). La lista vive solo en `TOPIC_WIDGETS` (`widgetRegistry.ts`): un envoltorio sin entrada, o una entrada sin envoltorio, hace fallar el build y `pnpm test` (`catalogWidgets.test.ts`). La lista está en `WIDGETS.md`, «Componentes MDX».
 - Enunciados de ejercicios (#243): claves i18n en `packages/i18n/locales/es/content.json`, bajo la raíz `content`, con la forma `content.<topicId>.<exerciseId>` (p. ej. `content.ruta-1/m00-t01.e1`). `ejercicios.ts` solo devuelve la clave (§4.6).
-- «Al robot» con el perfil (#243): cada tema exporta sus cálculos desde `alrobot.ts`, funciones `RobotSpec → { latex, substituted }` (el tipo viene de `robot-spec`, §2) registradas por clave `<topicId>/<calcId>`, igual que los ejercicios. El MDX escribe `<RobotFormula calc="ruta-1/m00-t01/omega-rueda" />`; la isla resuelve la clave, lee `useMyRobot()` y pinta `Formula` sustituida. Así no se pasan funciones a una isla.
+- «Al robot» con el perfil (#243): cada tema exporta sus cálculos desde `alrobot.ts`, funciones `RobotSpec → { latex, substituted }` (el tipo viene de `robot-spec`, §2) registradas por clave `<topicId>/<calcId>`, igual que los ejercicios. El MDX escribe `<RobotFormula calc="ruta-1/m00-t01/omega-motor" />`; la isla resuelve la clave, lee `useMyRobot()` y pinta `Formula` sustituida. Así no se pasan funciones a una isla.
 - i18n del contenido: por carpeta de idioma (`content/en/` en el futuro). Los textos de widgets van por claves.
 
 ### 3.4 Librerías fijas
@@ -127,6 +142,42 @@ Cualquier otra importación es un error de arquitectura (regla de ESLint `import
 Añadir una librería requiere un ADR. Versiones fijadas sin `^`.
 
 El envoltorio `sims/urdf` (ADR-0008, #124) es el único punto que toca `fflate`: lee y valida el zip antes de descomprimir nada. Sus textos van en el namespace i18n `urdf` (`locales/es/urdf.json`, `ops/I18N.md` §1).
+
+### 3.5 Portada y textos con dos rutas (#574)
+
+**Portada (`pages/index.astro`).** La lista de módulos del recuadro «La ruta» y las tarjetas de «El hilo de la ruta» salen de la colección `routes` (título de cada módulo y número de temas de cada `ruta.json`), no de un arreglo fijo en la página: siete módulos, agrupados por ruta en su orden, cada grupo encabezado por el `shortTitle` de su ruta. El recuadro termina, como hoy, con «Tu robot, simulado y controlado». Cada tarjeta del hilo lleva la etiqueta `home.thread.moduleLabel` y el texto `home.thread.ideas.<ruta>.<módulo>`. Se retiran las claves `home.modules.*`: los nombres de módulo vienen de `ruta.json`. El botón «Empezar» sigue en `/ruta/ruta-1`.
+
+**Claves de `packages/i18n/locales/es/common.json` que cambian o se añaden** (texto exacto):
+
+| Clave | Texto |
+|---|---|
+| `meta.description` | Trayectoria · De la física al robot. Dos rutas abiertas y en español para estudiantes de ingeniería: cada tema termina en un cálculo con tu robot y en un simulador en el navegador. |
+| `nav.route` | Rutas |
+| `home.lead` | Dos rutas encadenadas para ingeniería: Fundamentos, la física y la matemática que usa un robot, y Robot móvil, del encoder a la pista. Cada tema termina en tu robot: primero un móvil 2D, después un brazo articulado. |
+| `home.startRoute` | Empezar por Fundamentos |
+| `home.route.title` | Las dos rutas |
+| `home.features.myRobot.text` | Los parámetros que defines en el primer tema (masa, radio de rueda, sensores) acompañan cada ejercicio y simulación de las dos rutas. |
+| `home.thread.text` | Los 25 temas cierran con la sección «Al robot»: el mismo concepto, calculado con los datos de tu perfil «Mi robot», y cada uno añade un dato nuevo. En Robot móvil ese perfil es el robot que simulas y controlas, y el proyecto final usa un número de cada módulo de las dos rutas. |
+| `home.thread.moduleLabel` | {{route}} · M{{number}} |
+| `home.thread.ideas.ruta1.m00` | Convertir rpm a rad/s, descomponer y girar vectores, y leer la velocidad como la pendiente de una gráfica x–t. |
+| `home.thread.ideas.ruta1.m01` | Movimiento en recta, con velocidad constante y con aceleración, y en círculo, hasta la velocidad del robot: v = ω·r. |
+| `home.thread.ideas.ruta1.m02` | Las fuerzas sobre el robot: diagrama de cuerpo libre, la fricción que limita la tracción y la curva, y el torque que la reducción lleva a la rueda. |
+| `home.thread.ideas.ruta1.m03` | Trabajo, energía y potencia; la recta del motor de corriente continua y cuánta autonomía da la batería. |
+| `home.thread.ideas.ruta2.m00` | Los encoders que cuentan cuánto gira cada rueda y los marcos que dicen dónde está el robot y hacia dónde mira. |
+| `home.thread.ideas.ruta2.m01` | De dos ruedas a la pose (x, y, θ): cinemática directa e inversa, odometría y por qué el robot no avanza de lado. |
+| `home.thread.ideas.ruta2.m02` | El sensor de línea y el control on/off, P y PID, hasta que tu robot completa la pista con un número de cada módulo. |
+| `route.continue` | Sigue con la ruta {{title}} |
+| `route.uses` | Esta ruta usa temas de {{title}}; cada tema dice cuáles necesita. |
+| `topic.prerequisitesFromRoute` | Necesitas de {{route}}: |
+| `notFound.route` | Ver las rutas |
+| `teachersPage.lead` | 25 temas en dos rutas, con widgets y dos simuladores que corren en el navegador. Proyectas el tema, el grupo mueve los mismos parámetros y tú ves su avance por tema. |
+| `teachersPage.classroom.route` | Ver las rutas |
+| `contributePage.content.text` | Los 25 temas siguen una especificación fija y unos estándares de contenido publicados en el repositorio. Si encuentras un error en uno, repórtalo con la plantilla de reporte; no hace falta cuenta de GitHub. |
+| `aboutPage.making.sources` | Cada uno de los 25 temas se contrasta con la bibliografía universitaria que cita en su sección «Profundiza». |
+| `aboutPage.scope.route` | Dos rutas encadenadas: Fundamentos, física y matemática para robots (14 temas en 4 módulos), y Robot móvil, del encoder a la pista (11 temas en 3 módulos). |
+| `aboutPage.future.text` | La versión 1 cubre las dos primeras rutas, Fundamentos y Robot móvil. El plan del proyecto deja para versiones posteriores: nuevas rutas (el brazo robot, control, sensores y estimación, electrónica y automatización); cinemática inversa y un motor de física; que el estudiante escriba el código que controla su robot; un asistente que arme el modelo del brazo a partir de sus medidas; y la plataforma en español e inglés. |
+
+En `aula.json`, clave nueva `aula.progress.route`: «Ruta» (§3.2, «Aula con dos rutas»). Se retiran `home.modules.*` y `home.thread.ideas.{tools, particleKinematics, dynamics, energy, rotation, differentialRobot, lineFollower}`. Los comentarios de código que citan «7 modules, 28 topics» cambian con el mismo ticket.
 
 ## 4. sim-core
 
@@ -179,7 +230,7 @@ Respuesta del motor (DOCS-M6, #396): la rueda no alcanza al instante la velocida
   2. `oval`, PID `kp 20, ki 0, kd 0.5`, `ω_base = 15`, 15 s: completa 2 vueltas.
   3. `oval`, `REFERENCE_PID_PARAMS`: completa una vuelta (criterio de F4-02). PID `kp 8, ki 1, kd 0.05`, `ω_base = 15`, 18 s: completa 3 vueltas con y sin `σ = 0.03`.
   4. `tight`, PID `kp = 20`, `ω_base = 13`, 12 s: con `ki = 0`, subir `kd` de 0 a 0.8 baja el RMS del error; con `kd = 0.8`, subir `ki` de 0 a 2 y a 10 acerca a 0 el error medio.
-- Calibración (#408, #423): τ_m se busca en `[0.1, 0.2] s`. Con 0.15 s, `kp = 20` queda bien amortiguado; 0.185 s cumple los cuatro criterios. Con 0.185 s, el criterio 1 da 10 cambios de signo con `kp = 20` frente a 4 con `kp = 8`, y la razón se mantiene en al menos 1.5 en todo `[0.15, 0.2] s`. Si un cambio posterior rompe un criterio, se vuelve a buscar τ_m en ese rango y se documenta el valor; si ninguno cumple, spec gap. Las cifras de los experimentos de T-6.2 a T-6.5 en `CURRICULUM.md` están medidas con 0.185 s.
+- Calibración (#408, #423): τ_m se busca en `[0.1, 0.2] s`. Con 0.15 s, `kp = 20` queda bien amortiguado; 0.185 s cumple los cuatro criterios. Con 0.185 s, el criterio 1 da 10 cambios de signo con `kp = 20` frente a 4 con `kp = 8`, y la razón se mantiene en al menos 1.5 en todo `[0.15, 0.2] s`. Si un cambio posterior rompe un criterio, se vuelve a buscar τ_m en ese rango y se documenta el valor; si ninguno cumple, spec gap. Las cifras de los experimentos de T2-2.2 a T2-2.5 (antes T-6.2 a T-6.5) en `CURRICULUM.md` están medidas con 0.185 s.
 
 Cinemática inversa: `vR = v + ω·L/2`, `vL = v − ω·L/2`, `ω_rueda = v_rueda / r`.
 
@@ -255,7 +306,7 @@ attempts      (id uuid pk, user_id uuid → profiles, topic_id text, exercise_id
 tracks        (id uuid pk, owner_id uuid → profiles, name text, track jsonb, created_at, updated_at)
 ```
 
-`topic_id` = `ruta-1/m04-t02`. `exercise_id` = `ruta-1/m04-t02/e1`.
+`topic_id` = `ruta-1/m01-t04` (id completo del tema). `exercise_id` = el id del ejercicio dentro del tema, `e1`, como lo escribe `insertAttempt` (`packages/progress/src/remote.ts`); la clave completa `ruta-1/m01-t04/e1` es la del registro de ejercicios (§3.3).
 
 `robots.spec.simConfigs` lo escribe el cliente (F4-05, #131): cada configuración guardada lleva el `spec` completo del robot, no una referencia, para que abrirla no dependa de que ese robot siga existiendo. La tabla `robots` no cambia; es una clave más dentro del `jsonb` de `spec`.
 
@@ -285,6 +336,22 @@ El límite de filas de `robots` (20 por propietario) no bastaba: el bucket `urdf
 
 **Autoalojado (F7-03):** sitio estático servido por Caddy + Supabase autoalojado con su `docker compose` oficial. Variables: `PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY`. Documento paso a paso en `docs/ops/SELF-HOSTING.md`.
 
+### 5.4 Migración del progreso a las dos rutas (#574)
+
+Una sola vez, antes del lanzamiento, con la tabla de equivalencias de `CURRICULUM.md`. En código, la tabla vive en `packages/progress/src/routeMap.ts`: `TOPIC_ID_MAP` (28 pares id antiguo → id nuevo, también los que no cambian) y `MERGED_EXERCISE_MAP` (ejercicios de los dos temas que se funden: `ruta-1/m02-t03` `e1 → e1`, `e3 → e3`, `e2 → e4`; `ruta-1/m04-t04` `e3 → e2`). La migración SQL copia los mismos pares, y un test de `packages/progress` lee el archivo SQL y comprueba que coinciden. Varios ids son a la vez antiguos y nuevos (`ruta-1/m01-t03` era Caída libre y ahora es Movimiento circular), así que la conversión se hace en un solo paso y nunca dos veces sobre los mismos datos.
+
+Las filas de Caída libre y Tiro parabólico van a `reserva/caida-libre` y `reserva/tiro-parabolico`. Sus ids antiguos son ahora los de T1-1.3 y T1-1.4, y dejarlos tal cual contaría ese progreso en esos temas (spec gap de #623; es la forma de conservarlas «como están»).
+
+**Con sesión: migración `supabase/migrations/0010_two_routes.sql`**, en una transacción. Supabase la ejecuta una sola vez; no es idempotente, por el solapamiento de ids.
+1. Tabla temporal `topic_map (old_id text primary key, new_id text not null)` con los 28 pares.
+2. `progress`: una fila por `(user_id, new_id)` que agrega las filas antiguas que caen en ella: `status` = `completed` si alguna lo está, si no `in_progress`; `best_score` = el máximo; `attempts` = la suma; `completed_at` = el menor de los no nulos (la primera vez que completó); `updated_at` = el mayor. Se borran las filas cuyo `topic_id` está en `topic_map` y se insertan las agregadas, en la misma transacción, lo que evita choques de clave primaria entre ids antiguos y nuevos. Una fila con un `topic_id` fuera de la tabla no se toca. Solo las dos filas de Torque y Transmisión de un mismo usuario se funden de verdad; el resto es un cambio de id.
+3. `attempts`: `topic_id` pasa por `topic_map`. En las filas de los dos temas fusionados, `exercise_id` pasa por `MERGED_EXERCISE_MAP`; las de los cuatro ejercicios que se quitan (`ruta-1/m02-t03` e4 y `ruta-1/m04-t04` e1, e2 y e4) quedan en `ruta-1/m02-t04` con `exercise_id` = id antiguo sin la ruta (`m02-t03/e4`, `m04-t04/e1`, …), que no choca con ningún `eK` del tema. Hoy nada lee `attempts` (solo se inserta), así que no se ve en la interfaz.
+4. RLS, políticas y triggers no cambian; la migración corre como propietario de la base.
+
+Orden de despliegue: la migración (`db push`) antes del despliegue del sitio con las dos rutas. Entre los dos, el sitio anterior leería ids nuevos; antes del lanzamiento no hay progreso real que proteger.
+
+**Sin sesión: la copia del navegador.** La copia de `localStorage` (clave `trayectoria.progress`, `{ owner, topics }`) gana el campo `routesVersion: 2`. Al leerla, una copia sin `routesVersion` (o con uno menor) se convierte con `TOPIC_ID_MAP` y las mismas reglas de fusión del SQL. En los temas fusionados, `correctIds` y `firstTryCorrectIds` pasan por `MERGED_EXERCISE_MAP` y se unen, y se descartan los de ejercicios quitados. Después la copia se vuelve a escribir con `routesVersion: 2`. La conversión es una función pura en `packages/progress/src/local.ts`; la escritura la hace `stores/progress.ts`, el único módulo que toca `localStorage` (`STANDARDS.md` §10). El campo evita convertir dos veces una copia ya convertida, que con ids solapados cambiaría el progreso de tema. Vale igual para la copia anónima y para la de un usuario con sesión; con sesión, la fusión con las filas remotas (F3-01) no cambia, porque las dos partes usan ya ids nuevos.
+
 ## 6. Seguridad
 
 - RLS en todas las tablas; tests de políticas con dos usuarios.
@@ -294,7 +361,8 @@ El límite de filas de `robots` (20 por propietario) no bastaba: el bucket `urdf
 - Eliminar la cuenta borra también los ficheros: el cliente lista y borra los objetos de `urdf/{uid}/` con la API de Storage **antes** de llamar a `delete_account()`, y si ese borrado falla no llama al RPC (#178). Implementado en #205 en `apps/web/src/lib/account/deleteAccount.ts`, que es la única vía al RPC: la interfaz no llama a `delete_account()` por ningún otro camino. La función conserva su propio borrado de filas de `storage.objects` como red de seguridad, no como vía principal: `storage.objects` no entra en el `on delete cascade` de las tablas de §5.1.
 - Sin `dangerouslySetInnerHTML` salvo en `Formula` (salida de KaTeX, con `trust: false`).
 - Dependencias auditadas en CI (`pnpm audit --audit-level=high`).
-- Sin analytics de terceros en v1.
+- Analítica en v1: solo Cloudflare Web Analytics, sin cookies ni código propio (visitas por página, origen y país; decisión del propietario en #578). Los eventos propios (tema completado, proyecto final completado y demás) son de v2 (`PLAN.md` §1).
+- Rol docente en v1: se elige en el registro, como decisión de producto; no está verificado y solo da la capacidad de crear grupos, y un docente solo ve el progreso de quien entra a su grupo con su código (#513). En v2 el rol docente se obtiene con un código de invitación (`PLAN.md` §1).
 
 ## 7. Calidad
 
@@ -324,3 +392,4 @@ El límite de filas de `robots` (20 por propietario) no bastaba: el bucket `urdf
 - ADR-0007 ESLint y Prettier para archivos `.astro`
 - ADR-0008 fflate para leer zips en el navegador
 - ADR-0009 Exports por widget en `@trayectoria/widgets`
+- ADR-0010 Dos rutas encadenadas y temas en reserva
