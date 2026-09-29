@@ -34,6 +34,12 @@ export const fichaSchema = z
     /** Path of the photo, relative to the directory of the arm. */
     photo: z.string().min(1),
     summary: z.string().min(1),
+    /**
+     * Readable name of each joint and link, by URDF name, for the arm simulator (#535). Optional:
+     * without it the simulator shows the URDF names.
+     */
+    joint_labels: z.record(z.string(), z.string().min(1)).optional(),
+    link_labels: z.record(z.string(), z.string().min(1)).optional(),
   })
   .strict();
 

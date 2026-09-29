@@ -34,6 +34,47 @@ describe('JointSliders (F5-01a)', () => {
     expect(params[0]?.max).toBe(94);
   });
 
+  test('golden (#535): los límites del SO-101 salen en grados enteros, sin decimales del URDF', () => {
+    // wrist_roll [-2.74385, 2.84121] rad ≈ [-157.211025°, 162.789342°]; gripper upper
+    // 1.74533 rad ≈ 100.000043° and lower -0.174533 rad ≈ -10.000004°: the figures the audit saw.
+    const joints: readonly ActuatedJoint[] = [
+      { name: 'wrist_roll', type: 'revolute', index: 0, lower_rad: -2.74385, upper_rad: 2.84121 },
+      { name: 'gripper', type: 'revolute', index: 1, lower_rad: -0.174533, upper_rad: 1.74533 },
+    ];
+    const params = jointParams(joints, [0, 0], '°');
+    expect(params.map((param) => [param.min, param.max])).toEqual([
+      [-157, 162],
+      [-10, 100],
+    ]);
+    expect(
+      params.every((param) => Number.isInteger(param.min) && Number.isInteger(param.max)),
+    ).toBe(true);
+  });
+
+  test('etiqueta legible de la ficha con el id URDF como texto auxiliar (#535)', () => {
+    const labels = new Map([['joint1', 'Articulación 1']]);
+    const params = jointParams(JOINTS, [0, 0], '°', labels);
+    expect(params[0]?.label).toBe('Articulación 1');
+    expect(params[0]?.description).toBe('joint1');
+    // Without a readable label, the URDF id is the label and there is no auxiliary text.
+    expect(params[1]?.label).toBe('joint2');
+    expect(params[1]?.description).toBeUndefined();
+    // The key stays the URDF id: it is what maps the slider back to its joint.
+    expect(params.map((param) => param.key)).toEqual(['joint1', 'joint2']);
+  });
+
+  test('sin ficha, cada slider se llama como su articulación URDF', () => {
+    const params = jointParams(JOINTS, [0, 0], '°');
+    expect(params.map((param) => param.label)).toEqual(['joint1', 'joint2']);
+    expect(params.every((param) => param.description === undefined)).toBe(true);
+  });
+
+  test('el título interno se marca para que la cabecera de un acordeón lo sustituya (#542)', () => {
+    render(<JointSliders joints={JOINTS} q_rad={[0, 0]} onChange={vi.fn()} />);
+    const title = screen.getByRole('heading', { name: 'Articulaciones' });
+    expect(title).toHaveAttribute('data-panel-title');
+  });
+
   test('cada slider muestra grados y expone su rango a lectores de pantalla', () => {
     render(<JointSliders joints={JOINTS} q_rad={[0, 0]} onChange={vi.fn()} />);
     const panel = screen.getByTestId('joint-sliders');

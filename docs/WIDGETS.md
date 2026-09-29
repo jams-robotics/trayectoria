@@ -58,6 +58,7 @@ Canvas React Three Fiber con luces, grid, ejes, órbita. Hijos: `Frame` (tríada
 ```ts
 interface Scene3DProps { up?: 'z' | 'y'; showGrid?: boolean; children: ReactNode }
 ```
+Encuadre inicial (#556): con `framePoints_m?: [x, y, z][]` (los puntos clave de la escena en reposo; en un brazo, los orígenes de sus eslabones según sim-core) la órbita gira alrededor del centro de su caja y la cámara, en la dirección por defecto, se pone a la distancia a la que esos puntos abarcan el 45 % del lienzo en su dimensión mayor (`packages/widgets/src/Scene3D/framing.ts`); lo dibujado alrededor (mallas, base, marcos) ocupa más, y los dos brazos del catálogo quedan entre el 61 % y el 70 % del ancho y del alto, sin tocar los bordes. `cameraOffset_m?: [x, y, z]` (cámara menos objetivo) manda sobre la distancia encuadrada, y `onCameraChange?(offset_m)` avisa cada vez que el usuario orbita o hace zoom (no del eco inicial de los controles), para que la página conserve el zoom al cambiar de escena. Sin ninguno de los tres, la cámara fija de siempre mirando al origen.
 
 ### ExerciseWidget
 UI de un ejercicio de `defineExercise`. Registra intentos si hay sesión.
@@ -280,12 +281,19 @@ interface ArmViewerWidgetProps {
   show: Array<'frames' | 'matrices' | 'workspace'>;
   compact?: boolean;
   renderPanel?: (panel: ArmViewerPanel) => ReactNode;
+  framesToggle?: boolean;
+  cameraOffset_m?: [number, number, number];
+  onCameraChange?: (offset_m: [number, number, number]) => void;
 }
 ```
 Las tres capas de `show` son operativas: `frames` (F5-01a), `matrices` (#135) y `workspace` (#136). `renderPanel` recibe un panel a la vez, en orden, y pinta lo que devuelve en lugar del panel suelto, para plegarlos en acordeones en móvil (F5-01b, DESIGN.md §9.4):
 ```ts
 interface ArmViewerPanel { id: 'joints' | 'effector' | 'matrices' | 'workspace'; title: string; summary: string; content: ReactNode }
 ```
+`framesToggle` (por defecto `true`) dice si el visor pinta su propio botón «Marcos»; con `false` los marcos siguen a `show` y la página compone el botón en su grupo de vista (#537). El visor pasa a `Scene3D` los orígenes de los eslabones en la configuración inicial como `framePoints_m`, y `cameraOffset_m` y `onCameraChange` para conservar el zoom al cambiar de brazo (#556).
+
+Un brazo del catálogo trae su `ficha.json` junto al URDF (`LoadedArm.ficha`, `null` en un zip o si no se puede leer): sus mapas opcionales `joint_labels` y `link_labels` (nombre legible por nombre URDF, en español) rotulan los sliders, los resúmenes y los chips de eslabón de «Matrices»; el id URDF queda como texto auxiliar del slider y como `title` del chip. Sin nombre legible se muestra el id URDF (#535).
+
 El panel de matrices (#135) resalta en 3D el eslabón elegido: `UrdfModel` gana `highlightLink?: string` y sin valor no resalta nada. El panel de espacio de trabajo (#136) es el de F5-03 dentro del visor.
 
 De dónde sale el brazo lo decide `source`, que manda sobre `catalogId` cuando viene (#137); `loadArm` es la única vía de carga y las dos fuentes se exportan desde `sims`:

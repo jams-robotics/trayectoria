@@ -75,6 +75,24 @@ describe('WorkspacePanel (F5-03)', () => {
     expect(screen.getByTestId('workspace-visibility')).toBeDisabled();
   });
 
+  test('«Ocultar» es secundario y está deshabilitado, con su motivo, hasta que hay nube (#551)', async () => {
+    const { user } = renderPanel();
+    const toggle = screen.getByTestId('workspace-visibility');
+    expect(toggle).toBeDisabled();
+    expect(toggle).toHaveAttribute('title', t('sims.workspace.noCloud'));
+    // «Calcular» is the only primary action of the panel.
+    expect(toggle.className).not.toContain('bg-primary');
+    expect(computeButton().className).toContain('bg-primary');
+
+    await user.clear(countField());
+    await user.type(countField(), '200');
+    await user.click(computeButton());
+
+    expect(toggle).toBeEnabled();
+    expect(toggle).not.toHaveAttribute('title');
+    expect(toggle.className).not.toContain('bg-primary');
+  });
+
   test('calcular entrega la nube con tres coordenadas por muestra', async () => {
     const { onChange, user } = renderPanel();
     await user.clear(countField());

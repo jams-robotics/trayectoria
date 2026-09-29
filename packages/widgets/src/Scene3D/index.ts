@@ -2,5 +2,7 @@
 // 3D pages). The package barrel `src/index.ts` must never reexport anything from here.
 export { Scene3D, useSceneColors } from './Scene3D';
 export type { Scene3DProps } from './Scene3D';
+export { framedView, initialView, projectedFill } from './framing';
+export type { CameraView, Vec3_m } from './framing';
 export { Frame, AXIS_TOKENS } from './Frame';
 export type { FrameProps } from './Frame';

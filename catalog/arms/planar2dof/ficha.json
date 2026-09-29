@@ -14,5 +14,15 @@
   },
   "verifiedAt": "2026-09-19",
   "photo": "foto.svg",
-  "summary": "Brazo didáctico de dos eslabones en el plano, con l₁ = 0,20 m y l₂ = 0,15 m y dos articulaciones de rotación sobre Z. Es el modelo con el que se estudia la cinemática directa e inversa antes de pasar a un brazo real."
+  "summary": "Brazo didáctico de dos eslabones en el plano, con l₁ = 0,20 m y l₂ = 0,15 m y dos articulaciones de rotación sobre Z. Es el modelo con el que se estudia la cinemática directa e inversa antes de pasar a un brazo real.",
+  "joint_labels": {
+    "joint1": "Articulación 1",
+    "joint2": "Articulación 2"
+  },
+  "link_labels": {
+    "base_link": "Base",
+    "link1": "Eslabón 1",
+    "link2": "Eslabón 2",
+    "tool0": "Herramienta"
+  }
 }

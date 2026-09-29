@@ -52,6 +52,35 @@ async function setSlider(page: Page, index: number, value_deg: number): Promise<
   await slider.fill(String(value_deg));
 }
 
+/**
+ * Fracción del ancho y del alto del lienzo que ocupa lo que se dibuja del brazo (#556): píxeles
+ * opacos con color saturado (eslabones, marcos) u oscuros (base); la rejilla y los ejes son grises
+ * claros y el fondo del lienzo es transparente (lo pinta el CSS).
+ */
+async function armFill(page: Page): Promise<{ width: number; height: number }> {
+  return page.locator('canvas').first().evaluate((element: HTMLCanvasElement) => {
+    const copy = document.createElement('canvas');
+    copy.width = element.width;
+    copy.height = element.height;
+    const ctx = copy.getContext('2d');
+    if (ctx === null) return { width: 0, height: 0 };
+    ctx.drawImage(element, 0, 0);
+    const { data } = ctx.getImageData(0, 0, copy.width, copy.height);
+    let [x0, x1, y0, y1] = [copy.width, -1, copy.height, -1];
+    for (let y = 0; y < copy.height; y += 1) {
+      for (let x = 0; x < copy.width; x += 1) {
+        const i = (y * copy.width + x) * 4;
+        const [r = 0, g = 0, b = 0, a = 0] = [data[i], data[i + 1], data[i + 2], data[i + 3]];
+        const saturated = Math.max(r, g, b) - Math.min(r, g, b) > 70;
+        if (a < 200 || !(saturated || (r + g + b) / 3 < 110)) continue;
+        [x0, x1, y0, y1] = [Math.min(x0, x), Math.max(x1, x), Math.min(y0, y), Math.max(y1, y)];
+      }
+    }
+    if (x1 < 0) return { width: 0, height: 0 };
+    return { width: (x1 - x0 + 1) / copy.width, height: (y1 - y0 + 1) / copy.height };
+  });
+}
+
 test.describe('/simuladores/brazo (F5-01b)', () => {
   test('planar2dof con q₁ = 90° y q₂ = 0° coloca el efector en y = 0.350 m', async ({ page }) => {
     await openArm(page, 'planar2dof');
@@ -112,6 +141,78 @@ test.describe('/simuladores/brazo (F5-01b)', () => {
     await expect(headers.nth(1)).toHaveAttribute('aria-expanded', 'false');
     await expect(page.locator('[data-testid="sim-accordion"] button[aria-expanded="true"]')).toHaveCount(1);
   });
+
+  test('los tres controles de vista son un solo grupo en una fila, «Marcos» incluido (#537)', async ({
+    page,
+  }) => {
+    await openArm(page, 'planar2dof');
+
+    const toggles = page.locator('[data-testid="view-controls"] button');
+    await expect(toggles).toHaveCount(3);
+    await expect(page.locator('[data-testid="frames-toggle"]')).toHaveCount(1);
+    const tops = await toggles.evaluateAll((buttons) =>
+      buttons.map((button) => Math.round(button.getBoundingClientRect().top)),
+    );
+    expect(new Set(tops).size).toBe(1);
+    // «Marcos» arranca encendido y se ve como los otros dos al activarse: relleno primario.
+    const frames = page.locator('[data-testid="frames-toggle"]');
+    const matrices = page.locator('[data-testid="matrices-toggle"]');
+    await expect(frames).toHaveAttribute('aria-pressed', 'true');
+    await matrices.click();
+    await expect(matrices).toHaveAttribute('aria-pressed', 'true');
+    const fill = (locator: typeof frames): Promise<string> =>
+      locator.evaluate((element) => getComputedStyle(element).backgroundColor);
+    // El color cambia con una transición de 120 ms (docs/DESIGN.md §5): se espera a que acabe.
+    const framesFill = await fill(frames);
+    await expect.poll(() => fill(matrices)).toBe(framesFill);
+  });
+
+  test('a 390 px la cabecera de vista muestra el estado y «Marcos» va dentro (#542)', async ({
+    page,
+  }) => {
+    await page.setViewportSize(MOBILE_VIEWPORT);
+    await openArm(page, 'planar2dof');
+
+    const view = page.locator('[data-testid="sim-accordion"]').nth(0);
+    const header = view.locator('button[aria-expanded]');
+    const text = (await header.textContent()) ?? '';
+    expect(text.split('Controles de vista')).toHaveLength(2);
+    expect(text).toContain('Marcos');
+    await expect(view.locator('[data-testid="frames-toggle"]')).toHaveCount(1);
+
+    // «Articulaciones» abierto no repite su título dentro del panel.
+    const joints = page.locator('[data-testid="joint-sliders"]');
+    await expect(joints.locator('[data-panel-title]')).toBeHidden();
+    // Las etiquetas legibles de la ficha, con el id URDF como texto auxiliar (#535).
+    await expect(joints.getByText('Articulación 1', { exact: true })).toBeVisible();
+    await expect(joints.getByText('joint1', { exact: true })).toBeVisible();
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+
+  for (const robot of ['planar2dof', 'so101']) {
+    for (const viewport of [null, MOBILE_VIEWPORT]) {
+      const width = viewport === null ? 'escritorio' : '390 px';
+      test(`${robot} a ${width}: el brazo ocupa al menos la mitad del lienzo al abrir (#556)`, async ({
+        page,
+      }) => {
+        if (viewport !== null) await page.setViewportSize(viewport);
+        await openArm(page, robot);
+        // Las mallas del SO-101 llegan después del URDF: se espera a que la medida se asiente.
+        await expect
+          .poll(async () => Math.min(...Object.values(await armFill(page))), {
+            timeout: ISLAND_TIMEOUT_MS,
+          })
+          .toBeGreaterThanOrEqual(0.5);
+        const fill = await armFill(page);
+        // Y cabe entero: no llega a ninguno de los dos bordes.
+        expect(fill.width).toBeLessThan(1);
+        expect(fill.height).toBeLessThan(1);
+      });
+    }
+  }
 
   test('cambiar de brazo en el selector actualiza la URL', async ({ page }) => {
     await openArm(page, 'planar2dof');

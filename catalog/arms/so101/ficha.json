@@ -17,5 +17,23 @@
   },
   "verifiedAt": "2026-09-19",
   "photo": "foto.jpg",
-  "summary": "Brazo articulado de 6 grados de libertad imprimible en 3D, movido por servos STS3215. Es el brazo seguidor del proyecto SO-ARM100 de The Robot Studio, pensado para aprender manipulación con un presupuesto de aficionado."
+  "summary": "Brazo articulado de 6 grados de libertad imprimible en 3D, movido por servos STS3215. Es el brazo seguidor del proyecto SO-ARM100 de The Robot Studio, pensado para aprender manipulación con un presupuesto de aficionado.",
+  "joint_labels": {
+    "shoulder_pan": "Hombro (giro)",
+    "shoulder_lift": "Hombro (elevación)",
+    "elbow_flex": "Codo",
+    "wrist_flex": "Muñeca (flexión)",
+    "wrist_roll": "Muñeca (giro)",
+    "gripper": "Pinza (apertura)"
+  },
+  "link_labels": {
+    "base_link": "Base",
+    "shoulder_link": "Hombro",
+    "upper_arm_link": "Brazo",
+    "lower_arm_link": "Antebrazo",
+    "wrist_link": "Muñeca",
+    "gripper_link": "Pinza",
+    "gripper_frame_link": "Punta de la pinza",
+    "moving_jaw_so101_v1_link": "Mordaza móvil"
+  }
 }

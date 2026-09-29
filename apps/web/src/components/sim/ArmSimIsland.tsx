@@ -1,12 +1,14 @@
-import { Suspense, lazy, useCallback, useState } from 'react';
+import { Suspense, lazy, useCallback, useRef, useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
+import type { Vec3_m } from '@trayectoria/widgets/scene3d';
 
 import { ArmSource, IMPORTED_VALUE, resolveArmId, savedIdOf } from './ArmSource';
 import type { ArmOption } from './ArmSource';
 import { ImportUrdfDialog } from './ImportUrdfDialog';
 import { SimAccordion } from './SimAccordion';
 import { ViewControls } from './ArmViewControls';
+import type { ViewLayers } from './ArmViewControls';
 import type { AccordionGroup, OpenPanelId } from './accordionGroup';
 import { MOBILE_MEDIA_QUERY, useMediaQuery } from './useMediaQuery';
 import { useImportedArm } from './useImportedArm';
@@ -27,20 +29,30 @@ const LazyArmViewer = lazy(async () => {
   return { default: module.ArmViewer };
 });
 
-/** Frames layer, always active; the other two are turned on by the view controls. */
+/** The viewer layers; the page's view group turns each one on (#537). */
 type ShowLayer = 'frames' | 'matrices' | 'workspace';
+
+/** «Marcos» starts on, as it always did; the other two layers start off. */
+const INITIAL_LAYERS: ViewLayers = { workspace: false, matrices: false, frames: true };
+
+/**
+ * On mobile the accordion header already names each panel, so the panel's own title is hidden
+ * inside it (#542). The panels mark that title with `data-panel-title` (literal class, for Tailwind).
+ */
+const HIDE_PANEL_TITLE = '[&_[data-panel-title]]:hidden';
 
 /** Reads `?robot=` from the URL. Runs only on the client: the island is `client:only`. */
 function requestedArmId(): string | null {
   return new URLSearchParams(window.location.search).get('robot');
 }
 
-/** The viewer's layers according to which view controls are on (#135 and #136). */
-function showLayers(matrices: boolean, workspace: boolean): ShowLayer[] {
-  const layers: ShowLayer[] = ['frames'];
-  if (matrices) layers.push('matrices');
-  if (workspace) layers.push('workspace');
-  return layers;
+/** The viewer's layers according to which view controls are on (#135, #136 and #537). */
+function showLayers(layers: ViewLayers): ShowLayer[] {
+  const show: ShowLayer[] = [];
+  if (layers.frames) show.push('frames');
+  if (layers.matrices) show.push('matrices');
+  if (layers.workspace) show.push('workspace');
+  return show;
 }
 
 /** The panel `ArmViewer` hands to `renderPanel` (`ArmViewerPanel` of `@trayectoria/sims`). */
@@ -72,7 +84,7 @@ function usePanelWrapper(
             setOpenId(open ? panel.id : null);
           }}
         >
-          {panel.content}
+          <div className={HIDE_PANEL_TITLE}>{panel.content}</div>
         </SimAccordion>
       ) : (
         panel.content
@@ -82,20 +94,43 @@ function usePanelWrapper(
 }
 
 /**
+ * The camera offset the user left (#556). It lives in a ref, not in state: the orbit reports it on every
+ * frame and the island must not re-render for that. The viewer reads it when it remounts for
+ * another arm, so the zoom is kept; until the user moves it, each arm is framed at rest.
+ */
+function useKeptCamera(): {
+  camera: { readonly current: Vec3_m | undefined };
+  onCameraChange: (offset_m: Vec3_m) => void;
+} {
+  const camera = useRef<Vec3_m | undefined>(undefined);
+  const onCameraChange = useCallback((offset_m: Vec3_m): void => {
+    camera.current = offset_m;
+  }, []);
+  return { camera, onCameraChange };
+}
+
+/** What `Viewer` passes to every `ArmViewer`, whichever the source. */
+interface ViewerOptions {
+  show: ShowLayer[];
+  renderPanel: (panel: ArmViewerPanel) => ReactNode;
+  cameraOffset_m: Vec3_m | undefined;
+  onCameraChange: (offset_m: Vec3_m) => void;
+}
+
+/**
  * The lazy viewer. Switching arms remounts it with `key`, so `q` goes back to `initialQ` or to
  * zeros (ticket criterion) without this island touching the state of `useArmSim`. An imported
- * arm arrives as `source` with its zip in memory (#137, decision 2).
+ * arm arrives as `source` with its zip in memory (#137, decision 2). «Marcos» is the page's
+ * (#537), so the viewer draws no button of its own.
  */
 function Viewer({
   armId,
   memoryArm,
-  show,
-  renderPanel,
+  options,
 }: {
   armId: string;
   memoryArm: MemoryArm | null;
-  show: ShowLayer[];
-  renderPanel: (panel: ArmViewerPanel) => ReactNode;
+  options: ViewerOptions;
 }): JSX.Element {
   const t = useT();
   const imported = memoryArm !== null;
@@ -112,11 +147,11 @@ function Viewer({
         <LazyArmViewer
           key={`imported:${memoryArm.urdfPath}`}
           source={{ kind: 'zip', bytes: memoryArm.bytes, urdfPath: memoryArm.urdfPath }}
-          show={show}
-          renderPanel={renderPanel}
+          framesToggle={false}
+          {...options}
         />
       ) : (
-        <LazyArmViewer key={armId} catalogId={armId} show={show} renderPanel={renderPanel} />
+        <LazyArmViewer key={armId} catalogId={armId} framesToggle={false} {...options} />
       )}
     </Suspense>
   );
@@ -263,8 +298,11 @@ export function ArmSimIsland({ arms }: ArmSimIslandProps): JSX.Element {
   const group: AccordionGroup = { openId, setOpenId };
   const renderPanel = usePanelWrapper(mobile, group);
   // The controls turn on the viewer's layers; their state does not go in the URL (#135 and #136).
-  const [matrices, setMatrices] = useState(false);
-  const [workspace, setWorkspace] = useState(false);
+  const [layers, setLayers] = useState<ViewLayers>(INITIAL_LAYERS);
+  const onLayer = useCallback((id: keyof ViewLayers, on: boolean): void => {
+    setLayers((current) => ({ ...current, [id]: on }));
+  }, []);
+  const { camera, onCameraChange } = useKeptCamera();
 
   // F7-02b (#444): keeps the loaded height (≥ 758 px) while `three` or the arm loads.
   const loading = 'has-[[data-arm-loading],[data-testid=arm-viewer-status]]:min-h-[740px]';
@@ -278,21 +316,18 @@ export function ArmSimIsland({ arms }: ArmSimIslandProps): JSX.Element {
         onSelect={onSelect}
       />
 
-      <ViewControls
-        mobile={mobile}
-        group={group}
-        matrices={matrices}
-        onMatrices={setMatrices}
-        workspace={workspace}
-        onWorkspace={setWorkspace}
-      />
+      <ViewControls mobile={mobile} group={group} layers={layers} onLayer={onLayer} />
       <Viewer
         armId={armId}
         memoryArm={selected === IMPORTED_VALUE || savedIdOf(selected) !== null
           ? importing.memoryArm
           : null}
-        show={showLayers(matrices, workspace)}
-        renderPanel={renderPanel}
+        options={{
+          show: showLayers(layers),
+          renderPanel,
+          cameraOffset_m: camera.current,
+          onCameraChange,
+        }}
       />
     </div>
   );
