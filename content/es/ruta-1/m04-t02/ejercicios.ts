@@ -24,6 +24,11 @@ interface Range {
 
 /** Ceiling for the speed of your robot in these exercises (#274). */
 export const MAX_SPEED_MPS = 1.5;
+/**
+ * e3 draws again while v is below this: with relative 2 %, a correct response rounded to the
+ * thousandth (up to 0.0005 m/s off) is only accepted from 0.025 m/s on (#568).
+ */
+export const MIN_RELATIVE_ANSWER = 0.025;
 
 /** Generation ranges of the spec, in the units the statements announce. */
 export const E1_OMEGA_RADPS: Range = { min: 5, max: 60 };
@@ -101,7 +106,7 @@ function robotSpeed_mps({ motorSpeed_rpm, gearRatio, wheelRadius_m }: Drive): nu
   return (motorSpeed_rpm / gearRatio) * RPM_TO_RADPS * wheelRadius_m;
 }
 
-/** n_motor, i and r of e3 and e4, drawn again while `v > 1.5 m/s` (#301). */
+/** n_motor, i and r of e3 and e4, drawn again while `v > 1.5 m/s` (#301) or `v < 0.025 m/s` (#568). */
 function drawDrive(rng: SeededRng): Drive {
   let drive: Drive;
   do {
@@ -110,7 +115,7 @@ function drawDrive(rng: SeededRng): Drive {
       gearRatio: drawOnGrid(rng, E3_GEAR_RATIO, UNITS),
       wheelRadius_m: drawOnGrid(rng, E3_WHEEL_RADIUS_M, THOUSANDTHS),
     };
-  } while (robotSpeed_mps(drive) > MAX_SPEED_MPS);
+  } while (robotSpeed_mps(drive) > MAX_SPEED_MPS || robotSpeed_mps(drive) < MIN_RELATIVE_ANSWER);
   return drive;
 }
 

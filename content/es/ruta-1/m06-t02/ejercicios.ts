@@ -7,7 +7,8 @@ import type { SeededRng } from '@trayectoria/sim-core';
 // Values are drawn on a grid the statement shows exactly: Kp in tenths and ω_base in halves, the
 // steps of the widget's sliders; e in hundredths, as in T-6.1. The commands of e2 land on
 // thousandths, which the statement only shows below 10 rad/s, so e2 draws again until both are
-// shown exactly (#461). Answers graded relative to 2 % are 0 or at least 0.01 rad/s (#451, #461).
+// shown exactly (#461). Answers graded relative to 2 % are 0 or at least 0.025 rad/s, where 2 %
+// covers the rounding to the thousandth (#451, #461, #568).
 
 const TOPIC_ID = 'ruta-1/m06-t02';
 const RELATIVE_2_PERCENT = { type: 'relative', value: 0.02 } as const;
@@ -32,10 +33,10 @@ export const E1_OMEGA_BASE_RADPS: Range = { min: 5, max: 18 };
 /** e1 redraws when ω_base + Kp·|e| exceeds this value (#396). */
 export const E1_SATURATION_RADPS = 20.94;
 export const E3_OMEGA_BASE_RADPS: Range = { min: 5, max: 18 };
-/** e1 draws again when a nonzero wheel command is below this value (#451, #461). */
-export const E1_MIN_NONZERO_OMEGA_RADPS = 0.01;
-/** e2 draws again when the nonzero ω of the robot is below this value (#451, #461). */
-export const E2_MIN_NONZERO_OMEGA_RADPS = 0.01;
+/** e1 draws again when u or a wheel command is nonzero and below this value (#451, #461, #568). */
+export const E1_MIN_NONZERO_OMEGA_RADPS = 0.025;
+/** e2 draws again when the nonzero ω of the robot is below this value (#451, #461, #568). */
+export const E2_MIN_NONZERO_OMEGA_RADPS = 0.025;
 
 /** Reference robot (docs/CURRICULUM.md, header): r = 0.032 m, L = 0.15 m, 6000 rpm, i = 30. */
 export const R_M = 0.032;
@@ -43,7 +44,8 @@ export const L_M = 0.15;
 const REFERENCE_MOTOR_SPEED_RPM = 6000;
 const REFERENCE_GEAR_RATIO = 30;
 /** ω_max = 6000 · 2π/60 / 30 = 20.944 rad/s; the statement shows 20.94. */
-export const OMEGA_MAX_RADPS = (REFERENCE_MOTOR_SPEED_RPM * 2 * Math.PI) / 60 / REFERENCE_GEAR_RATIO;
+export const OMEGA_MAX_RADPS =
+  (REFERENCE_MOTOR_SPEED_RPM * 2 * Math.PI) / 60 / REFERENCE_GEAR_RATIO;
 /** |e|_max: p ranges over [−1, 1]. */
 export const MAX_ERROR = 1;
 
@@ -95,8 +97,8 @@ function wheelCommands({ kp, error, omegaBase_radps }: ProportionalCase): WheelC
 
 /**
  * Kp, e and ω_base of e1, redrawn until the faster wheel stays within 20.94 rad/s (#396), no
- * wheel command is negative (V-51, #474) and none is nonzero below 0.01 rad/s (#451, #461). e2
- * draws its commands here too.
+ * wheel command is negative (V-51, #474) and neither u nor a command is nonzero below
+ * 0.025 rad/s (#451, #461, #568). e2 draws its commands here too.
  */
 function drawProportionalCase(rng: SeededRng): ProportionalCase {
   for (;;) {
@@ -104,11 +106,12 @@ function drawProportionalCase(rng: SeededRng): ProportionalCase {
     const error = drawOnGrid(rng, E1_ERROR, HUNDREDTHS);
     const omegaBase_radps = drawOnGrid(rng, E1_OMEGA_BASE_RADPS, HALVES);
     const values = { kp, error, omegaBase_radps };
-    const { omegaL_radps, omegaR_radps } = wheelCommands(values);
+    const { u_radps, omegaL_radps, omegaR_radps } = wheelCommands(values);
     if (
       omegaBase_radps + kp * Math.abs(error) <= E1_SATURATION_RADPS &&
       omegaL_radps >= 0 &&
       omegaR_radps >= 0 &&
+      !isSmallNonzero(u_radps, E1_MIN_NONZERO_OMEGA_RADPS) &&
       !isSmallNonzero(omegaL_radps, E1_MIN_NONZERO_OMEGA_RADPS) &&
       !isSmallNonzero(omegaR_radps, E1_MIN_NONZERO_OMEGA_RADPS)
     ) {
@@ -136,7 +139,7 @@ interface Commands {
 
 /**
  * The commands of the e1 generator, drawn again until the statement shows both exactly and the
- * nonzero ω of the robot is at least 0.01 rad/s (#461).
+ * nonzero ω of the robot is at least 0.025 rad/s (#461, #568).
  */
 function drawCommands(rng: SeededRng): { commands: Commands; omega_radps: number } {
   for (;;) {

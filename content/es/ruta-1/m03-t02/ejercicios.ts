@@ -37,6 +37,11 @@ export const E2_EFFICIENCY: Range = { min: 0.5, max: 0.9 };
 export const E3_BATTERY_WH: Range = { min: 3, max: 40 };
 export const E4_FORCE_N: Range = { min: 0.1, max: 3 };
 export const E4_V_MPS: Range = { min: 0.1, max: 1.5 };
+/**
+ * e4 draws again while P is below this: with relative 2 %, a correct response rounded to the
+ * thousandth (up to 0.0005 W off) is only accepted from 0.025 W on (#568).
+ */
+export const MIN_RELATIVE_ANSWER = 0.025;
 
 /** A value on the grid of step 1/`perUnit`, in [min, max]. */
 function drawOnGrid(rng: SeededRng, range: Range, perUnit: number): number {
@@ -136,13 +141,18 @@ interface Push {
   readonly v_mps: number;
 }
 
-/** e4 (optional): `P = F·v`. */
+/** e4 (optional): `P = F·v`, drawn again while P < 0.025 W (#568). */
 const e4 = defineExercise<Push>({
   id: 'e4',
   generate: (rng) => {
-    const force_N = drawOnGrid(rng, E4_FORCE_N, HUNDREDTHS);
-    const v_mps = drawOnGrid(rng, E4_V_MPS, HUNDREDTHS);
-    return { values: { force_N, v_mps }, answer: force_N * v_mps, unit: 'W' };
+    for (;;) {
+      const force_N = drawOnGrid(rng, E4_FORCE_N, HUNDREDTHS);
+      const v_mps = drawOnGrid(rng, E4_V_MPS, HUNDREDTHS);
+      const power_W = force_N * v_mps;
+      if (power_W >= MIN_RELATIVE_ANSWER) {
+        return { values: { force_N, v_mps }, answer: power_W, unit: 'W' };
+      }
+    }
   },
   statement: () => statementKey('e4'),
   tolerance: RELATIVE_2_PERCENT,

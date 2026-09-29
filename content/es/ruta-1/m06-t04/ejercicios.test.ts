@@ -16,6 +16,7 @@ import {
   E4_TURN_RADIUS_M,
   E4_WHEEL_BASE_M,
   exercises,
+  stepDistance_m,
 } from './ejercicios';
 
 // Golden values of docs/CURRICULUM.md § T-6.4, Verifica. Each one runs through the exercise's own
@@ -144,21 +145,21 @@ describe('e1 · desplazamiento al que se pierde la línea', () => {
 });
 
 describe('e2 · avance por ciclo', () => {
-  it('draws v and Δt_c again while Δs_ciclo is below 1 cm (#461)', () => {
-    // First draw: v = 0.99 m/s, Δt_c = 0.01 s → 0.0099 m, redrawn; then the golden draw.
-    const { values } = exercise('e2').generate(scriptedRng([99, 1, 50, 2]));
-    expect(values).toEqual({ v_mps: 0.5, controlPeriod_s: 0.02 });
-  });
-
-  it('v = 0.5 m/s, Δt_c = 0.02 s → 0.01 m', () => {
-    const { values, answer, unit } = exercise('e2').generate(scriptedRng([50, 2]));
-
-    expect(values).toEqual({ v_mps: 0.5, controlPeriod_s: 0.02 });
-    expect(answer).toBeCloseTo(0.01, 10);
+  it('draws v and Δt_c again while Δs_ciclo is below 2.5 cm (#461, #568)', () => {
+    // First draw: v = 0.99 m/s, Δt_c = 0.01 s → 0.0099 m; second, the golden draw: 0.01 m. Both
+    // are redrawn; v = 0.5 m/s, Δt_c = 0.05 s → 0.025 m is kept.
+    const { values, answer, unit } = exercise('e2').generate(scriptedRng([99, 1, 50, 2, 50, 3]));
+    expect(values).toEqual({ v_mps: 0.5, controlPeriod_s: 0.05 });
+    expect(answer).toBeCloseTo(0.025, 10);
     expect(unit).toBe('m');
   });
 
-  it('draws v ∈ [0.2, 1.5] m/s in hundredths and Δt_c ∈ {0.005, 0.01, 0.02, 0.05} s, v·Δt_c ≥ 1 cm', () => {
+  it('v = 0.5 m/s, Δt_c = 0.02 s → 0.01 m', () => {
+    // Fixed without a draw: 0.01 m is below 0.025 m, so e2 draws it again (#568).
+    expect(stepDistance_m({ v_mps: 0.5, controlPeriod_s: 0.02 })).toBeCloseTo(0.01, 10);
+  });
+
+  it('draws v ∈ [0.2, 1.5] m/s in hundredths and Δt_c ∈ {0.005, 0.01, 0.02, 0.05} s, v·Δt_c ≥ 2.5 cm', () => {
     expect(E2_V_MPS).toEqual({ min: 0.2, max: 1.5 });
     expect(E2_CONTROL_PERIODS_S).toEqual([0.005, 0.01, 0.02, 0.05]);
     const periods = new Set<number>();
@@ -174,8 +175,10 @@ describe('e2 · avance por ciclo', () => {
       );
       expect(v_mps! * controlPeriod_s!).toBeGreaterThanOrEqual(E2_MIN_STEP_M);
     }
-    // With Δt_c = 0.005 s, Δs_ciclo stays below 1 cm up to v = 1.5 m/s, so it is always redrawn (#461).
-    expect([...periods].sort((a, b) => a - b)).toEqual([0.01, 0.02, 0.05]);
+    // With Δt_c = 0.005 s or 0.01 s, Δs_ciclo stays below 2.5 cm up to v = 1.5 m/s, so both are
+    // always redrawn (#461, #568).
+    expect(E2_MIN_STEP_M).toBe(0.025);
+    expect([...periods].sort((a, b) => a - b)).toEqual([0.02, 0.05]);
   });
 });
 
@@ -183,7 +186,11 @@ describe('e3 · p para dos distancias d', () => {
   it('d₁ = 0.09 m, d₂ = 0.05 m, Δθ = 0.1 rad → 0.375; 0.2083', () => {
     const { values, answer, unit } = exercise('e3').generate(scriptedRng([9, 5, 10]));
 
-    expect(values).toEqual({ forwardOffset1_m: 0.09, forwardOffset2_m: 0.05, headingError_rad: 0.1 });
+    expect(values).toEqual({
+      forwardOffset1_m: 0.09,
+      forwardOffset2_m: 0.05,
+      headingError_rad: 0.1,
+    });
     const [p1, p2] = answer as number[];
     expect(p1).toBeCloseTo(0.375, 10);
     expect(p2).toBeCloseTo(0.2083, 4);
@@ -200,13 +207,21 @@ describe('e3 · p para dos distancias d', () => {
 
   it('draws d₂ again when it equals d₁', () => {
     const { values } = exercise('e3').generate(scriptedRng([9, 9, 5, 10]));
-    expect(values).toEqual({ forwardOffset1_m: 0.09, forwardOffset2_m: 0.05, headingError_rad: 0.1 });
+    expect(values).toEqual({
+      forwardOffset1_m: 0.09,
+      forwardOffset2_m: 0.05,
+      headingError_rad: 0.1,
+    });
   });
 
   it('draws everything again when a p is above 1', () => {
     // d₁ = 0.2 m, Δθ = 0.3 rad: p₁ = 0.06/0.024 = 2.5, so the next three draws are used.
     const { values } = exercise('e3').generate(scriptedRng([20, 5, 30, 9, 5, 10]));
-    expect(values).toEqual({ forwardOffset1_m: 0.09, forwardOffset2_m: 0.05, headingError_rad: 0.1 });
+    expect(values).toEqual({
+      forwardOffset1_m: 0.09,
+      forwardOffset2_m: 0.05,
+      headingError_rad: 0.1,
+    });
   });
 
   it('fixes N = 5 and e_s = 0.012 m, draws d₁ ≠ d₂ ∈ [0.03, 0.2] m and Δθ ∈ [0.02, 0.3] rad', () => {
@@ -259,11 +274,15 @@ describe('e4 · relación v_int/v_ext en una curva', () => {
   });
 });
 
-describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94; #451; #461)', () => {
+describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94; #451; #461; #568)', () => {
   const SWEEP_SEEDS = Array.from({ length: 5000 }, (_, seed) => seed + 1);
   const STATEMENT_SIG_FIGS = 4;
-  /** #451: an answer graded with a relative tolerance is exactly 0 or at least 0.01 in its unit. */
-  const MIN_NONZERO_ANSWER = 0.01;
+  /**
+   * #451, #568: an answer graded with a relative tolerance is exactly 0 or at least 0.025. The
+   * smallest p of e3 is 0.025 exactly (d = 0.03 m, Δθ = 0.02 rad), which floating point leaves at
+   * 0.024999999999999998, so the comparison allows EPSILON.
+   */
+  const MIN_NONZERO_ANSWER = 0.025;
   const shown = (value: number): number => Number(format(value, '', STATEMENT_SIG_FIGS));
   const isShownExactly = (value: number): boolean =>
     Math.abs(shown(value) - value) <= EPSILON * Math.max(1, Math.abs(value));
@@ -283,7 +302,7 @@ describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94
     expect(failures.slice(0, 5)).toEqual([]);
   });
 
-  it('keeps every answer graded with a relative tolerance at 0 or at least 0.01', () => {
+  it('keeps every answer graded with a relative tolerance at 0 or at least 0.025', () => {
     const failures: string[] = [];
     for (const { id, generate, tolerance } of exercises as readonly Exercise<unknown>[]) {
       for (const seed of SWEEP_SEEDS) {
@@ -292,7 +311,7 @@ describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94
         const tolerances = [tolerance].flat();
         components.forEach((value, index) => {
           const isRelative = (tolerances[index] ?? tolerances[0])?.type === 'relative';
-          if (isRelative && value !== 0 && Math.abs(value) < MIN_NONZERO_ANSWER) {
+          if (isRelative && value !== 0 && Math.abs(value) < MIN_NONZERO_ANSWER - EPSILON) {
             failures.push(`${id} seed ${seed}: component ${index} = ${value}`);
           }
         });

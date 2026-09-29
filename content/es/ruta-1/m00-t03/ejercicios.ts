@@ -25,6 +25,11 @@ export const MAX_SPEED_MPS = 1.5;
 /** Generation ranges of the spec, in the units the statements announce. */
 export const E1_DX_M: Range = { min: 0.01, max: 0.5 };
 export const E1_DT_S: Range = { min: 0.1, max: 2 };
+/**
+ * e1 draws again while v̄ is below this: with relative 2 %, a correct response rounded to the
+ * thousandth (up to 0.0005 m/s off) is only accepted from 0.025 m/s on (#568).
+ */
+export const E1_MIN_SPEED_MPS = 0.025;
 export const E2_COEF_C_MPS2: Range = { min: 0.05, max: 0.2 };
 export const E2_T_S: Range = { min: 1, max: 3.5 };
 export const E3_V_MPS: Range = { min: 0, max: 1 };
@@ -56,18 +61,21 @@ interface AverageVelocity {
   readonly dt_s: number;
 }
 
-/** e1: v̄ = Δx / Δt, drawn again while v̄ > 1.5 m/s. */
+/** e1: v̄ = Δx / Δt, drawn again while v̄ > 1.5 m/s or v̄ < 0.025 m/s. */
 const e1 = defineExercise<AverageVelocity>({
   id: 'e1',
   generate: (rng) => {
-    // Compared on the integer indices, so the 1.5 m/s boundary is exact: Δx/Δt ≤ 1.5 m/s is
-    // dx_cm / (10·dt_ds) ≤ 1.5, that is dx_cm ≤ 15·dt_ds.
+    // Compared on the integer indices, so both boundaries are exact: v̄ = dx_cm / (10·dt_ds), so
+    // v̄ ≤ 1.5 m/s is dx_cm ≤ 15·dt_ds and v̄ ≥ 0.025 m/s is dx_cm ≥ 0.25·dt_ds.
     let dx_cm = 0;
     let dt_ds = 0;
     do {
       dx_cm = drawIndex(rng, E1_DX_M, HUNDREDTHS);
       dt_ds = drawIndex(rng, E1_DT_S, TENTHS);
-    } while (dx_cm * TENTHS > MAX_SPEED_MPS * HUNDREDTHS * dt_ds);
+    } while (
+      dx_cm * TENTHS > MAX_SPEED_MPS * HUNDREDTHS * dt_ds ||
+      dx_cm * TENTHS < E1_MIN_SPEED_MPS * HUNDREDTHS * dt_ds
+    );
     const dx_m = dx_cm / HUNDREDTHS;
     const dt_s = dt_ds / TENTHS;
     return { values: { dx_m, dt_s }, answer: dx_m / dt_s, unit: 'm/s' };

@@ -81,9 +81,10 @@ describe('T-6.1 exercises', () => {
     }
   });
 
-  it('grades e1 and e3 with the absolute tolerances of the spec, e2 and e4 relative 2 %', () => {
+  it('grades p in e1 and e2 with absolute 0.01, e3 with the absolute of the spec, e4 relative 2 %', () => {
+    // e2 asks for the same p as e1, so it takes the same tolerance (#568).
     expect(exercise('e1').tolerance).toEqual({ type: 'absolute', value: 0.01 });
-    expect(exercise('e2').tolerance).toEqual(RELATIVE_2_PERCENT);
+    expect(exercise('e2').tolerance).toEqual({ type: 'absolute', value: 0.01 });
     expect(exercise('e3').tolerance).toEqual({ type: 'absolute', value: 0.0002 });
     expect(exercise('e4').tolerance).toEqual(RELATIVE_2_PERCENT);
   });
@@ -141,11 +142,11 @@ describe('e2 · lecturas con la línea a la izquierda: p', () => {
     }
   });
 
-  it('accepts a response 1.9 % off and rejects one 2.1 % off', () => {
+  it('accepts 0.009 off and rejects 0.011 off, like e1 (#568)', () => {
     for (const seed of MANY_SEEDS.slice(0, 20)) {
       const answer = exercise('e2').generate(createRng(seed)).answer as number;
-      expect(check(exercise('e2'), seed, answer * 1.019).correct).toBe(true);
-      expect(check(exercise('e2'), seed, answer * 1.021).correct).toBe(false);
+      expect(check(exercise('e2'), seed, answer + 0.009).correct).toBe(true);
+      expect(check(exercise('e2'), seed, answer - 0.011).correct).toBe(false);
     }
   });
 });
@@ -202,11 +203,11 @@ describe('e4 · umbral u: sensores en 1', () => {
   });
 });
 
-describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94; #451; #461)', () => {
+describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94; #451; #461; #568)', () => {
   const SWEEP_SEEDS = Array.from({ length: 5000 }, (_, seed) => seed + 1);
   const STATEMENT_SIG_FIGS = 4;
-  /** #451: an answer graded with a relative tolerance is exactly 0 or at least 0.01 in its unit. */
-  const MIN_NONZERO_ANSWER = 0.01;
+  /** #451, #568: an answer graded with a relative tolerance is exactly 0 or at least 0.025. */
+  const MIN_NONZERO_ANSWER = 0.025;
   const shown = (value: number): number => Number(format(value, '', STATEMENT_SIG_FIGS));
   const isShownExactly = (value: number): boolean =>
     Math.abs(shown(value) - value) <= EPSILON * Math.max(1, Math.abs(value));
@@ -226,7 +227,7 @@ describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94
     expect(failures.slice(0, 5)).toEqual([]);
   });
 
-  it('keeps every answer graded with a relative tolerance at 0 or at least 0.01', () => {
+  it('keeps every answer graded with a relative tolerance at 0 or at least 0.025', () => {
     const failures: string[] = [];
     for (const { id, generate, tolerance } of exercises as readonly Exercise<unknown>[]) {
       for (const seed of SWEEP_SEEDS) {

@@ -2,7 +2,15 @@ import { check, createRng } from '@trayectoria/sim-core';
 import type { Exercise } from '@trayectoria/sim-core';
 import { describe, expect, it } from 'vitest';
 
-import { E5_H_M, E5_V_MPS, H_M, LAUNCH_ANGLE_DEG, V0_MPS, exercises } from './ejercicios';
+import {
+  E5_H_M,
+  E5_V_MPS,
+  H_M,
+  LAUNCH_ANGLE_DEG,
+  V0_MPS,
+  MIN_RELATIVE_ANSWER,
+  exercises,
+} from './ejercicios';
 
 // Golden values of docs/CURRICULUM.md § T-1.4, Verifica. Each one runs through the exercise's own
 // `generate`, driven by an rng that lands on the grid indices the spec's values give:
@@ -226,5 +234,33 @@ describe('e5 · adelanto de la pieza soltada desde el robot', () => {
       expect(answer).toBeCloseTo(0.1355, 4);
       expect(unit).toBe('m');
     }
+  });
+});
+
+describe('answers graded relative to 2 % (#568)', () => {
+  // Below 0.025 (in its unit), relative 2 % is tighter than the rounding to the thousandth, so a
+  // correct rounded response would be rejected. Every such answer is drawn again.
+  it('e2 draws again below 0.025: v₀ = 1 m/s, α = 15°, h = 0 give 0.003414 m', () => {
+    const { values } = exercise('e2').generate(scriptedRng([10, 15, 0, 40, 40, 30]));
+    expect(values).toEqual({ v0_mps: 4, launchAngle_deg: 40, h_m: 0.3 });
+  });
+
+  it('never answers a component graded relative 2 % in (0, 0.025) over 5000 seeds', () => {
+    expect(MIN_RELATIVE_ANSWER).toBe(0.025);
+    const failures: string[] = [];
+    for (const { id, generate, tolerance } of exercises as readonly Exercise<unknown>[]) {
+      for (let seed = 1; seed <= 5000; seed += 1) {
+        const { answer } = generate(createRng(seed));
+        const components = Array.isArray(answer) ? (answer as number[]) : [answer as number];
+        const tolerances = [tolerance].flat();
+        components.forEach((value, index) => {
+          const isRelative = (tolerances[index] ?? tolerances[0])?.type === 'relative';
+          if (isRelative && value !== 0 && Math.abs(value) < MIN_RELATIVE_ANSWER) {
+            failures.push(`${id} seed ${seed}: component ${index} = ${value}`);
+          }
+        });
+      }
+    }
+    expect(failures.slice(0, 5)).toEqual([]);
   });
 });

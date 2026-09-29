@@ -12,6 +12,7 @@ import {
   E3_WHEEL_RADIUS_M,
   E4_DISTANCE_M,
   MAX_SPEED_MPS,
+  MIN_RELATIVE_ANSWER,
   exercises,
 } from './ejercicios';
 
@@ -69,8 +70,12 @@ function expectOnGrid(value: number, perUnit: number): void {
 }
 
 /** `v = 2π r n_motor / (60 i)`. */
-function robotSpeed_mps({ motorSpeed_rpm, gearRatio, wheelRadius_m }: Record<string, number>): number {
-  return ((motorSpeed_rpm! / gearRatio!) * RPM_TO_RADPS) * wheelRadius_m!;
+function robotSpeed_mps({
+  motorSpeed_rpm,
+  gearRatio,
+  wheelRadius_m,
+}: Record<string, number>): number {
+  return (motorSpeed_rpm! / gearRatio!) * RPM_TO_RADPS * wheelRadius_m!;
 }
 
 describe('T-4.2 exercises', () => {
@@ -95,7 +100,9 @@ describe('T-4.2 exercises', () => {
       for (const seed of MANY_SEEDS.slice(0, 20)) {
         const { answer } = candidate.generate(createRng(seed));
         const scaled = (factor: number) =>
-          Array.isArray(answer) ? answer.map((value: number) => value * factor) : (answer as number) * factor;
+          Array.isArray(answer)
+            ? answer.map((value: number) => value * factor)
+            : (answer as number) * factor;
         expect(check(candidate, seed, scaled(1.019)).correct).toBe(true);
         expect(check(candidate, seed, scaled(1.021)).correct).toBe(false);
       }
@@ -154,7 +161,8 @@ describe('e2 · v y r: ω necesaria y rpm de rueda', () => {
 
   it('grades each component on its own', () => {
     const seed = 7;
-    const [omega_radps, wheelSpeed_rpm] = exercise('e2').generate(createRng(seed)).answer as number[];
+    const [omega_radps, wheelSpeed_rpm] = exercise('e2').generate(createRng(seed))
+      .answer as number[];
     expect(check(exercise('e2'), seed, [omega_radps!, wheelSpeed_rpm!]).correct).toBe(true);
     expect(check(exercise('e2'), seed, [omega_radps!, wheelSpeed_rpm! * 1.05]).correct).toBe(false);
     expect(check(exercise('e2'), seed, [omega_radps! * 1.05, wheelSpeed_rpm!]).correct).toBe(false);
@@ -169,7 +177,8 @@ describe('e2 · v y r: ω necesaria y rpm de rueda', () => {
       expectWithin(wheelRadius_m!, E2_WHEEL_RADIUS_M);
       expectOnGrid(v_mps!, 100);
       expectOnGrid(wheelRadius_m!, 1000);
-      const [omega_radps, wheelSpeed_rpm] = exercise('e2').generate(createRng(seed)).answer as number[];
+      const [omega_radps, wheelSpeed_rpm] = exercise('e2').generate(createRng(seed))
+        .answer as number[];
       expect(omega_radps).toBeCloseTo(v_mps! / wheelRadius_m!, 12);
       expect(wheelSpeed_rpm).toBeCloseTo(omega_radps! / RPM_TO_RADPS, 9);
     }
@@ -234,5 +243,33 @@ describe('e4 · tiempo para una pista de 4 m', () => {
         9,
       );
     }
+  });
+});
+
+describe('answers graded relative to 2 % (#568)', () => {
+  // Below 0.025 (in its unit), relative 2 % is tighter than the rounding to the thousandth, so a
+  // correct rounded response would be rejected. Every such answer is drawn again.
+  it('e3 draws again below 0.025: 1000 rpm, i = 100, r = 0.015 m give 0.01571 m/s', () => {
+    const { values } = exercise('e3').generate(scriptedRng([1000, 100, 15, 6000, 30, 32]));
+    expect(values).toEqual({ motorSpeed_rpm: 6000, gearRatio: 30, wheelRadius_m: 0.032 });
+  });
+
+  it('never answers a component graded relative 2 % in (0, 0.025) over 5000 seeds', () => {
+    expect(MIN_RELATIVE_ANSWER).toBe(0.025);
+    const failures: string[] = [];
+    for (const { id, generate, tolerance } of exercises as readonly Exercise<unknown>[]) {
+      for (let seed = 1; seed <= 5000; seed += 1) {
+        const { answer } = generate(createRng(seed));
+        const components = Array.isArray(answer) ? (answer as number[]) : [answer as number];
+        const tolerances = [tolerance].flat();
+        components.forEach((value, index) => {
+          const isRelative = (tolerances[index] ?? tolerances[0])?.type === 'relative';
+          if (isRelative && value !== 0 && Math.abs(value) < MIN_RELATIVE_ANSWER) {
+            failures.push(`${id} seed ${seed}: component ${index} = ${value}`);
+          }
+        });
+      }
+    }
+    expect(failures.slice(0, 5)).toEqual([]);
   });
 });
