@@ -10,6 +10,7 @@ import {
   TopicStatus,
 } from '../../../components/progress/RouteProgress';
 import Base from '../../../layouts/Base.astro';
+import { followerOf, routeTopics, topicUrl } from '../../../lib/routes';
 
 export const getStaticPaths = (async () => {
   const routes = await getCollection('routes');
@@ -18,19 +19,36 @@ export const getStaticPaths = (async () => {
 
 const { route } = Astro.props;
 const topics = await getCollection('topics');
-const publishedIds = new Set(topics.map((topic) => topic.id));
+// Only a published topic is linked (§3.2, «Filtro por status»); the rest are listed without one.
+const publishedIds = new Set(
+  topics.filter((topic) => topic.data.status === 'published').map((topic) => topic.id),
+);
+const routes = (await getCollection('routes')).map((entry) => ({ ...entry.data, id: entry.id }));
 
 // The route schema validates data.id as ruta-N; route.id (from the directory) is only for URLs.
 const routeNumber = route.data.id.slice('ruta-'.length);
-const topicCount = route.data.modules.reduce((total, module) => total + module.topics.length, 0);
+const ordered = routeTopics({ ...route.data, id: route.id }, publishedIds);
+const topicCount = ordered.length;
 // Ids of every topic of the route, in the order of ruta.json: what RouteProgress counts, what
 // RouteCompleted checks (ARCHITECTURE §3.2) and what each TopicStatus island reads from
 // `$progress` (#120, decision 4).
-const topicIds = route.data.modules.flatMap((module) =>
-  module.topics.map((topic) => `${route.id}/${topic.id}`),
-);
-const topicHref = (moduleId: string, topicId: string): string =>
-  `/ruta/${route.id}/${moduleId}/${topicId.slice(moduleId.length + 1)}`;
+const topicIds = ordered.map((topic) => topic.id);
+
+// Link to the other route under the header (§3.2): the route that continues this one, or the
+// one this route follows.
+const follower = followerOf(route.id, routes);
+const followed = routes.find((entry) => entry.id === route.data.follows);
+const continueLink =
+  follower === undefined
+    ? undefined
+    : {
+        href: `/ruta/${follower.id}`,
+        label: t('route.continue', { title: follower.shortTitle }),
+      };
+const usesLink =
+  followed === undefined
+    ? undefined
+    : { href: `/ruta/${followed.id}`, label: t('route.uses', { title: followed.shortTitle }) };
 ---
 
 <Base title={route.data.title}>
@@ -45,7 +63,17 @@ const topicHref = (moduleId: string, topicId: string): string =>
       <span class="font-mono">{topicCount}</span>
       {` ${t('route.topics')}`}
     </p>
-    <RouteCompleted client:load topicIds={topicIds} />
+    {continueLink !== undefined && (
+      <p class="mt-3" data-testid="route-continue">
+        <a href={continueLink.href}>{continueLink.label}</a>
+      </p>
+    )}
+    {usesLink !== undefined && (
+      <p class="mt-3" data-testid="route-uses">
+        <a href={usesLink.href}>{usesLink.label}</a>
+      </p>
+    )}
+    <RouteCompleted client:load topicIds={topicIds} continueLink={continueLink} />
 
     <ProgressSession client:load />
     <RouteProgress client:load topicIds={topicIds} />
@@ -66,7 +94,7 @@ const topicHref = (moduleId: string, topicId: string): string =>
                   {module.number}.{index + 1}
                 </span>
                 {publishedIds.has(`${route.id}/${topic.id}`) ? (
-                  <a href={topicHref(module.id, topic.id)}>{topic.title}</a>
+                  <a href={topicUrl(`${route.id}/${topic.id}`)}>{topic.title}</a>
                 ) : (
                   <span class="text-fg-muted">{topic.title}</span>
                 )}

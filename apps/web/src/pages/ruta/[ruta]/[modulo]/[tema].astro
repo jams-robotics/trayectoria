@@ -5,10 +5,14 @@ import { t } from '@trayectoria/i18n';
 
 import { temaComponents } from '../../../../components/tema';
 import Tema from '../../../../layouts/Tema.astro';
-import type { TopicLink } from '../../../../layouts/Tema.astro';
+import { resolvePrerequisites, routeTopics } from '../../../../lib/routes';
 
 export const getStaticPaths = (async () => {
-  const topics = await getCollection('topics');
+  // Only a published topic has a page (docs/ARCHITECTURE.md §3.2, «Filtro por status»), and the
+  // filter goes before the directory checks.
+  const topics = (await getCollection('topics')).filter(
+    (topic) => topic.data.status === 'published',
+  );
   return topics.map((topic) => {
     const [ruta, slug] = topic.id.split('/');
     const [modulo, tema] = slug?.split('-') ?? [];
@@ -40,35 +44,24 @@ if (route === undefined) {
   throw new Error(`content/es/${ruta}/ruta.json is missing for topic ${topic.id}`);
 }
 
-const published = new Set((await getCollection('topics')).map((entry) => entry.id));
-
-// Flat topic order across modules, from ruta.json. Neighbours that do not exist yet are shown
-// without a link, like in the route index.
-const ordered = route.data.modules.flatMap((module) =>
-  module.topics.map((entry) => {
-    const id = `${route.id}/${entry.id}`;
-    return {
-      id,
-      title: entry.title,
-      href: published.has(id)
-        ? `/ruta/${route.id}/${module.id}/${entry.id.slice(module.id.length + 1)}`
-        : undefined,
-    };
-  }),
+const published = new Set(
+  (await getCollection('topics'))
+    .filter((entry) => entry.data.status === 'published')
+    .map((entry) => entry.id),
 );
+const routes = (await getCollection('routes')).map((entry) => ({ ...entry.data, id: entry.id }));
+
+// Flat topic order of this route, from ruta.json. Neighbours that are not published are shown
+// without a link, like in the route index; previous and next stay inside the route (§3.2).
+const ordered = routeTopics({ ...route.data, id: route.id }, published);
 const position = ordered.findIndex((entry) => entry.id === topic.id);
 if (position === -1) {
   throw new Error(`content/es/${ruta}/ruta.json does not list topic ${topic.id}`);
 }
 
-/** A prerequisite is shown by its title from ruta.json; unpublished ones carry no link. */
-const prerequisites: TopicLink[] = topic.data.prerequisites.map((id) => {
-  const entry = ordered.find((item) => item.id === id);
-  if (entry === undefined) {
-    throw new Error(`content/es/${topic.id}/index.mdx: prerequisite ${id} is not in ${ruta}`);
-  }
-  return { title: entry.title, href: entry.href };
-});
+// Prerequisites resolved against every route; the build fails on one that is in no route, comes
+// after the topic or is in a route this one does not follow (§3.2, «Prerrequisitos entre rutas»).
+const prerequisites = resolvePrerequisites(topic.id, topic.data.prerequisites, routes, published);
 
 const { Content } = await render(topic);
 const { title, seoTitle, seoDescription, estimatedMinutes, module, order } = topic.data;
@@ -84,7 +77,8 @@ const DONE_TOPICS = 0;
   route={{ title: route.data.title, href: `/ruta/${route.id}` }}
   eyebrow={t('topic.number', { module, order })}
   estimatedMinutes={estimatedMinutes}
-  prerequisites={prerequisites}
+  prerequisites={prerequisites.sameRoute}
+  prerequisitesFromRoutes={prerequisites.otherRoutes}
   done={DONE_TOPICS}
   total={ordered.length}
   previous={ordered[position - 1]}
