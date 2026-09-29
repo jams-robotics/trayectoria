@@ -30,17 +30,16 @@
     "e4": "Tu robot recorre una pista recta de 4 m: arranca desde el reposo, acelera con a = 0.4 m/s² hasta v = 0.6 m/s y sigue a velocidad constante. ¿Cuánto tarda en total, en s?"
   },
   "ruta-1/m01-t03": {
-    "e1": "La pinza de tu robot suelta una pieza desde el reposo a h = {{h_m}} m sobre la banda. Sin resistencia del aire, ¿cuánto tarda en caer, en s? Usa g = 9.81 m/s².",
-    "e2": "La pinza de tu robot suelta una pieza desde el reposo a h = {{h_m}} m sobre la banda. Sin resistencia del aire, ¿con qué rapidez llega a la banda, en m/s? Usa g = 9.81 m/s².",
-    "e3": "Una pieza soltada desde el reposo tarda t = {{t_s}} s en caer hasta la banda. Sin resistencia del aire, ¿desde qué altura cayó, en m? Usa g = 9.81 m/s².",
-    "e4": "Tu robot avanza a v = {{v_mps}} m/s y su pinza suelta una pieza a 0.25 m sobre el suelo. Sin resistencia del aire, ¿a qué distancia horizontal de donde la soltó cae la pieza, en m? Usa g = 9.81 m/s²."
+    "e1": "El eje de salida de tu motorreductor gira a n = {{speed_rpm}} rpm. ¿Cuál es su velocidad angular ω, en rad/s?",
+    "e2": "La rueda de tu robot gira a n = {{speed_rpm}} rpm. ¿Cuánto dura una vuelta, es decir, su período T, en s?",
+    "e3": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s. ¿Cuántas vueltas da?",
+    "e4": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s, desde θ₀ = 0 rad. ¿Qué ángulo θ gira, en rad?"
   },
   "ruta-1/m01-t04": {
-    "e1": "Lanzas una pelota desde el suelo (h = 0) a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal. ¿Cuál es su alcance R, en m?",
-    "e2": "Lanzas una pelota a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal, desde una altura h = {{h_m}} m. ¿Cuál es la altura máxima H sobre el suelo, en m?",
-    "e3": "Lanzas una pelota a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal, desde una altura h = {{h_m}} m. ¿Cuál es su tiempo de vuelo t_v hasta tocar el suelo, en s?",
-    "e4": "Lanzas una pelota a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal, desde una altura h = {{h_m}} m. ¿Cuál es su alcance R hasta tocar el suelo, en m?",
-    "e5": "Tu robot avanza a 0.6 m/s y suelta una pieza desde su pinza, a 0.25 m del suelo. ¿Cuánto más adelante del punto de suelta cae la pieza, en m?"
+    "e1": "La rueda de tu robot gira a ω = {{omega_radps}} rad/s y mide r = {{wheelRadius_m}} m de radio. Sin deslizamiento, ¿a qué velocidad avanza tu robot, en m/s?",
+    "e2": "Quieres que tu robot avance a v = {{v_mps}} m/s con ruedas de r = {{wheelRadius_m}} m de radio. ¿Qué velocidad angular ω necesita cada rueda, en rad/s, y cuál es su velocidad de giro n_rueda, en rpm?",
+    "e3": "El motor de tu robot gira a n_motor = {{motorSpeed_rpm}} rpm, la reducción es i = {{gearRatio}} y la rueda mide r = {{wheelRadius_m}} m de radio. Sin deslizamiento, ¿a qué velocidad avanza tu robot, en m/s?",
+    "e4": "El motor de tu robot gira a n_motor = {{motorSpeed_rpm}} rpm, la reducción es i = {{gearRatio}} y la rueda mide r = {{wheelRadius_m}} m de radio. A esa velocidad constante, ¿cuánto tarda en recorrer una pista recta de 4 m, en s?"
   },
   "ruta-1/m02-t01": {
     "e1": "Tu robot tiene una masa m = {{mass_kg}} kg y debe acelerar a a = {{a_mps2}} m/s². ¿Qué fuerza neta necesita, en N?",
@@ -55,10 +54,16 @@
     "e4": "Tu robot va a v = {{v_mps}} m/s y frena con las ruedas bloqueadas, deslizando sobre un suelo con μₖ = {{mu_k}}. ¿Qué distancia recorre hasta detenerse, en m? Usa g = 9.81 m/s²."
   },
   "ruta-1/m02-t03": {
+    "e1": "La rueda de tu robot pasa del reposo a n = {{speed_rpm}} rpm en t = {{t_s}} s con aceleración angular constante. ¿Cuál es su aceleración angular α, en rad/s²?",
+    "e2": "Tu robot toma una curva de radio R = {{turnRadius_m}} m a v = {{v_mps}} m/s. ¿Cuál es su aceleración centrípeta a_c, en m/s²?",
+    "e3": "La rueda de tu robot, de radio r = {{wheelRadius_m}} m, acelera con α = {{alpha_radps2}} rad/s². ¿Cuál es la aceleración tangencial a_t de un punto del borde, en m/s²?",
+    "e4": "Un vehículo con todas sus ruedas motrices tiene un coeficiente de fricción estática μₛ = {{mu_s}} con el suelo. ¿Cuál es su rapidez máxima sin patinar v_max,curva en una curva de radio R = {{turnRadius_m}} m, en m/s? Usa g = 9.81 m/s²."
+  },
+  "ruta-1/m02-t04": {
     "e1": "El motor de tu robot entrega τ_motor = {{motorTorque_Nm}} N·m, la reducción es i = {{gearRatio}} y la eficiencia de la caja es η = {{efficiency}}. ¿Qué torque llega a la rueda, en N·m?",
-    "e2": "Una rueda de radio r = {{wheelRadius_m}} m recibe un torque τ_rueda = {{wheelTorque_Nm}} N·m. ¿Qué fuerza de tracción empuja contra el suelo, en N?",
+    "e2": "Un tren de dos etapas tiene una primera etapa z₁:z₂ = {{z1}}:{{z2}} y una segunda z₃:z₄ = {{z3}}:{{z4}}. ¿Cuál es la relación total i_total, sin unidad?",
     "e3": "Tu robot de m = {{mass_kg}} kg sube a velocidad constante una rampa de φ = {{slope_deg}}° con dos ruedas motrices de radio r = {{wheelRadius_m}} m. ¿Qué torque necesita cada rueda, en N·m? Usa g = 9.81 m/s².",
-    "e4": "Un brazo horizontal de ℓ = {{leverArm_m}} m sostiene una masa de m = {{mass_kg}} kg en la punta. Sin contar la masa del brazo, ¿qué torque hace la articulación, en N·m? Usa g = 9.81 m/s²."
+    "e4": "Una rueda de radio r = {{wheelRadius_m}} m recibe un torque τ_rueda = {{wheelTorque_Nm}} N·m. ¿Qué fuerza de tracción empuja contra el suelo, en N?"
   },
   "ruta-1/m03-t01": {
     "e1": "Tu robot de m = {{mass_kg}} kg avanza a v = {{v_mps}} m/s. ¿Cuál es su energía cinética, en J?",
@@ -78,91 +83,80 @@
     "e3": "Un motor consume I₀ = {{noLoadCurrent_A}} A sin carga e I_s = {{stallCurrent_A}} A en bloqueo, y su torque de bloqueo es τ_s = {{stallTorque_Nm}} N·m. ¿Qué corriente I consume, en A, cuando entrega un torque τ = {{torque_Nm}} N·m?",
     "e4": "Tu robot tiene una batería de C = {{batteryCapacity_Wh}} Wh y dos motores a V = {{voltage_V}} V que consumen I = {{current_A}} A cada uno en su punto de trabajo. ¿Cuál es su autonomía, en min?"
   },
-  "ruta-1/m04-t01": {
-    "e1": "El eje de salida de tu motorreductor gira a n = {{speed_rpm}} rpm. ¿Cuál es su velocidad angular ω, en rad/s?",
-    "e2": "La rueda de tu robot gira a n = {{speed_rpm}} rpm. ¿Cuánto dura una vuelta, es decir, su período T, en s?",
-    "e3": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s. ¿Cuántas vueltas da?",
-    "e4": "La rueda de tu robot gira a n = {{speed_rpm}} rpm durante t = {{t_s}} s, desde θ₀ = 0 rad. ¿Qué ángulo θ gira, en rad?"
-  },
-  "ruta-1/m04-t02": {
-    "e1": "La rueda de tu robot gira a ω = {{omega_radps}} rad/s y mide r = {{wheelRadius_m}} m de radio. Sin deslizamiento, ¿a qué velocidad avanza tu robot, en m/s?",
-    "e2": "Quieres que tu robot avance a v = {{v_mps}} m/s con ruedas de r = {{wheelRadius_m}} m de radio. ¿Qué velocidad angular ω necesita cada rueda, en rad/s, y cuál es su velocidad de giro n_rueda, en rpm?",
-    "e3": "El motor de tu robot gira a n_motor = {{motorSpeed_rpm}} rpm, la reducción es i = {{gearRatio}} y la rueda mide r = {{wheelRadius_m}} m de radio. Sin deslizamiento, ¿a qué velocidad avanza tu robot, en m/s?",
-    "e4": "El motor de tu robot gira a n_motor = {{motorSpeed_rpm}} rpm, la reducción es i = {{gearRatio}} y la rueda mide r = {{wheelRadius_m}} m de radio. A esa velocidad constante, ¿cuánto tarda en recorrer una pista recta de 4 m, en s?"
-  },
-  "ruta-1/m04-t03": {
-    "e1": "La rueda de tu robot pasa del reposo a n = {{speed_rpm}} rpm en t = {{t_s}} s con aceleración angular constante. ¿Cuál es su aceleración angular α, en rad/s²?",
-    "e2": "Tu robot toma una curva de radio R = {{turnRadius_m}} m a v = {{v_mps}} m/s. ¿Cuál es su aceleración centrípeta a_c, en m/s²?",
-    "e3": "La rueda de tu robot, de radio r = {{wheelRadius_m}} m, acelera con α = {{alpha_radps2}} rad/s². ¿Cuál es la aceleración tangencial a_t de un punto del borde, en m/s²?",
-    "e4": "Un vehículo con todas sus ruedas motrices tiene un coeficiente de fricción estática μₛ = {{mu_s}} con el suelo. ¿Cuál es su rapidez máxima sin patinar v_max,curva en una curva de radio R = {{turnRadius_m}} m, en m/s? Usa g = 9.81 m/s²."
-  },
-  "ruta-1/m04-t04": {
-    "e1": "El motor de tu robot gira a n_motor = {{motorSpeed_rpm}} rpm y la rueda, a n_rueda = {{wheelSpeed_rpm}} rpm. ¿Cuál es la relación de reducción i del motorreductor, sin unidad?",
-    "e2": "Un motor entrega τ₁ = {{motorTorque_Nm}} N·m a una reducción de i = {{gearRatio}} con eficiencia η = {{efficiency}}. ¿Qué torque τ₂ hay en el eje de salida, en N·m?",
-    "e3": "Un tren de dos etapas tiene una primera etapa z₁:z₂ = {{z1}}:{{z2}} y una segunda z₃:z₄ = {{z3}}:{{z4}}. ¿Cuál es la relación total i_total, sin unidad?",
-    "e4": "Tu robot tiene un motorreductor de i = 25, con el motor a 6000 rpm y ruedas de r = 0.032 m. ¿A qué velocidad v avanza, en m/s?"
-  },
-  "ruta-1/m04-t05": {
+  "ruta-2/m00-t01": {
     "e1": "El encoder de tu robot da N_e = {{encoderTicksPerRev}} ticks por vuelta de rueda y la rueda tiene r = {{wheelRadius_m}} m. ¿Cuál es su resolución lineal res, en mm?",
     "e2": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. En Δt = {{dt_s}} s cuentas Δticks = {{deltaTicks}}. ¿Cuál es la velocidad angular ω de la rueda, en rad/s, y la velocidad lineal v del robot, en m/s?",
     "e3": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. ¿Cuántos ticks cuentas mientras el robot recorre D = {{distance_m}} m en línea recta?",
     "e4": "El encoder de tu robot da N_e = 360 ticks por vuelta de rueda y la rueda tiene r = 0.032 m. Cuentas ticks = {{ticks}}. ¿Qué distancia s recorre la rueda, en m?"
   },
-  "ruta-1/m05-t01": {
+  "ruta-2/m00-t02": {
     "e1": "Tu robot está en la pose (x, y, θ) = ({{x_m}} m, {{y_m}} m, {{theta_deg}}°). Un punto está en (d, 0) de {R}, con d = {{forwardOffset_m}} m. ¿Cuáles son sus coordenadas (x, y) en {G}, en m?",
     "e2": "Tu robot está en la pose (x, y, θ) = ({{x_m}} m, {{y_m}} m, {{theta_deg}}°). Su sensor izquierdo extremo está en (0.09, 0.024) m de {R}. ¿Cuáles son sus coordenadas (x, y) en {G}, en m?",
     "e3": "Tu robot está en (0, 0) m y el objetivo en (x_o, y_o) = ({{xo_m}} m, {{yo_m}} m). ¿Cuál es el rumbo θ_objetivo hacia el objetivo, en ° y en (−180°, 180°]?",
     "e4": "Tu robot está en la pose (x, y, θ) = (1.2 m, 0.5 m, 30°). ¿Cuáles son las coordenadas en {R} del punto global (1.5, 0.9) m, en m?"
   },
-  "ruta-1/m05-t03": {
-    "e1": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. Quieres que avance a v = {{v_mps}} m/s girando a ω = {{omega_radps}} rad/s. ¿Qué velocidad angular necesita cada rueda, ω_L y ω_R, en rad/s?",
-    "e2": "Tu robot tiene las ruedas separadas L = 0.15 m. Quieres que recorra un círculo de radio R = {{turnRadius_m}} m a v = {{v_mps}} m/s, girando a la izquierda. ¿Qué velocidad lineal necesita cada rueda, v_L y v_R, en m/s?",
-    "e3": "Tu robot tiene las ruedas separadas L = 0.15 m. Detienes la rueda izquierda (v_L = 0) y la derecha va a v_R = {{vR_mps}} m/s: el robot pivota sobre la rueda izquierda. ¿Cuál es su velocidad angular ω, en rad/s, y su radio de giro R, en m?",
-    "e4": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m, con ω_max = 20.94 rad/s. ¿Es realizable el comando v = 0.6 m/s, ω = 2 rad/s? Para decidirlo, da la velocidad lineal v_R que necesita la rueda derecha, en m/s."
-  },
-  "ruta-1/m05-t02": {
+  "ruta-2/m01-t01": {
     "e1": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda izquierda gira a ω_L = {{omegaL_radps}} rad/s y la derecha a ω_R = {{omegaR_radps}} rad/s. ¿Cuál es la velocidad lineal v del robot, en m/s, y su velocidad angular ω, en rad/s?",
     "e2": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda izquierda gira a ω_L = {{omegaL_radps}} rad/s y la derecha a ω_R = {{omegaR_radps}} rad/s. ¿Cuál es su radio de giro R, en m, con signo: positivo si el CIR queda a la izquierda del robot y negativo si queda a la derecha?",
     "e3": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda derecha gira a ω_R = {{omegaR_radps}} rad/s y la izquierda a ω_L = {{omegaL_radps}} rad/s, así que gira en el lugar. ¿Cuál es su velocidad angular ω, en rad/s?",
     "e4": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda derecha gira a ω_R = {{omegaR_radps}} rad/s y la izquierda a ω_L = {{omegaL_radps}} rad/s durante t = {{t_s}} s, así que gira en el lugar. ¿Qué ángulo gira el robot en ese tiempo, en rad?"
   },
-  "ruta-1/m05-t04": {
+  "ruta-2/m01-t02": {
+    "e1": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. Quieres que avance a v = {{v_mps}} m/s girando a ω = {{omega_radps}} rad/s. ¿Qué velocidad angular necesita cada rueda, ω_L y ω_R, en rad/s?",
+    "e2": "Tu robot tiene las ruedas separadas L = 0.15 m. Quieres que recorra un círculo de radio R = {{turnRadius_m}} m a v = {{v_mps}} m/s, girando a la izquierda. ¿Qué velocidad lineal necesita cada rueda, v_L y v_R, en m/s?",
+    "e3": "Tu robot tiene las ruedas separadas L = 0.15 m. Detienes la rueda izquierda (v_L = 0) y la derecha va a v_R = {{vR_mps}} m/s: el robot pivota sobre la rueda izquierda. ¿Cuál es su velocidad angular ω, en rad/s, y su radio de giro R, en m?",
+    "e4": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m, con ω_max = 20.94 rad/s. ¿Es realizable el comando v = 0.6 m/s, ω = 2 rad/s? Para decidirlo, da la velocidad lineal v_R que necesita la rueda derecha, en m/s."
+  },
+  "ruta-2/m01-t03": {
     "e1": "En un paso de odometría, el encoder izquierdo de tu robot cuenta Δticks_L = {{deltaTicksL}} y el derecho Δticks_R = {{deltaTicksR}}. Con r = 0.032 m, N_e = 360 y L = 0.15 m, ¿cuánto avanza el robot, Δs en m, y cuánto gira, Δθ en rad?",
     "e2": "En un paso de odometría, el encoder izquierdo de tu robot cuenta Δticks_L = {{deltaTicksL}} y el derecho Δticks_R = {{deltaTicksR}}, con r = 0.032 m, N_e = 360 y L = 0.15 m. Si parte de la pose (0, 0, 0), ¿cuál es su nueva posición (x, y), en m? Usa el ángulo medio del paso.",
     "e3": "La odometría de tu robot usa un radio de rueda de 0.032 m, pero la rueda real mide r = {{wheelRadius_m}} m. Tras D = 10 m según la odometría, ¿cuánto vale la distancia real menos la estimada, en m?",
     "e4": "La distancia entre ruedas real de tu robot es L = 0.150 m, pero su odometría usa 0.155 m. El robot gira 360° reales en el lugar. ¿Cuál es el error de rumbo, estimado menos real, en °?"
   },
-  "ruta-1/m05-t05": {
+  "ruta-2/m01-t04": {
     "e1": "Tu robot tiene rumbo θ = {{theta_deg}}° y le pides la velocidad (ẋ, ẏ) = ({{vx_mps}}, {{vy_mps}}) m/s. ¿Es admisible? Para decidirlo, da el valor de la restricción ẋ·sinθ − ẏ·cosθ, en m/s: si es 0, la velocidad es admisible.",
     "e2": "Tu robot tiene rumbo θ = {{theta_deg}}° y le pides la velocidad (ẋ, ẏ) = ({{vx_mps}}, {{vy_mps}}) m/s. ¿Cuánto vale la restricción ẋ·sinθ − ẏ·cosθ, en m/s? Si no es 0, esa velocidad no es admisible.",
     "e3": "Tu robot se desplaza D = {{distance_m}} m hacia su izquierda con una maniobra en tres movimientos: gira 90° en el lugar a ω = {{omega_radps}} rad/s, avanza D a v = {{v_mps}} m/s y gira −90° en el lugar a ω. ¿Cuánto dura la maniobra completa, en s?"
   },
-  "ruta-1/m06-t01": {
+  "ruta-2/m02-t01": {
     "e1": "Los 5 sensores de tu robot, con el índice 0 a la izquierda, leen v_0 = {{v0}}, v_1 = {{v1}}, v_2 = {{v2}}, v_3 = {{v3}} y v_4 = {{v4}}. ¿Cuál es la posición p de la línea, adimensional y en [−1, 1]?",
     "e2": "La línea está a la izquierda de tu arreglo de 5 sensores, que leen v_0 = {{v0}}, v_1 = {{v1}}, v_2 = {{v2}}, v_3 = {{v3}} y v_4 = {{v4}}, con el índice 0 a la izquierda. ¿Cuál es la posición p de la línea, adimensional y en [−1, 1]?",
     "e3": "El arreglo de tu robot tiene N = 5 sensores separados e_s = 12 mm y la posición de la línea es p = {{p}}. ¿Cuál es su desplazamiento físico y_línea respecto al centro del arreglo, en m y positivo a la derecha?",
     "e4": "Los 5 sensores de tu robot, con el índice 0 a la izquierda, leen v_0 = {{v0}}, v_1 = {{v1}}, v_2 = {{v2}}, v_3 = {{v3}} y v_4 = {{v4}}. Con el umbral u = {{u}}, ¿cuántos sensores dan b_k = 1? Responde con un número entero de sensores."
   },
-  "ruta-1/m06-t03": {
+  "ruta-2/m02-t02": {
+    "e1": "Tu robot sigue la línea con control proporcional: K_p = {{kp}} rad/s, error e = {{error}} y velocidad base ω_base = {{omegaBase_radps}} rad/s. ¿Cuánto valen la acción de control u y las velocidades de rueda ω_L y ω_R, en rad/s?",
+    "e2": "Tu controlador manda ω_L = {{omegaL_radps}} rad/s a la rueda izquierda y ω_R = {{omegaR_radps}} rad/s a la derecha. Con r = 0.032 m y L = 0.15 m, ¿cuál es la velocidad angular ω del robot, en rad/s?",
+    "e3": "Tu robot tiene ω_max = 20.94 rad/s y sigue la línea con ω_base = {{omegaBase_radps}} rad/s. Con |e|_max = 1, ¿cuál es la K_p máxima, en rad/s, para que ninguna rueda sature?"
+  },
+  "ruta-2/m02-t03": {
     "e1": "Un controlador PID tiene K_p = {{kp_radps}} rad/s, K_i = {{ki_radps2}} rad/s², K_d = {{kd_rad}} rad y período Δt_c = {{dt_s}} s. En el paso k el error es e_k = {{error}}, en el paso anterior e_{k−1} = {{previousError}}, y la suma Σe_j·Δt_c vale {{errorSum_s}} s. ¿Cuál es la acción de control u_k, en rad/s?",
     "e2": "Tu seguidor tiene K_i = {{ki_radps2}} rad/s² y mantiene un error constante e = {{error}} durante t = {{t_s}} s. La suma del error parte de 0 y no llega a I_max = 1 s. ¿Cuánto vale el término I, en rad/s?",
     "e3": "Tu seguidor tiene K_d = {{kd_rad}} rad. El error pasa de e_{k−1} = {{previousError}} a e_k = {{error}} en un paso Δt_c = {{dt_s}} s. ¿Cuánto vale el término D, en rad/s?",
     "e4": "Tu robot tiene v_max = 0.670 m/s, r = 0.032 m y L = 0.15 m. Entra en una curva de radio R = {{turnRadius_m}} m. ¿Cuál es la ω_base máxima con la que la rueda exterior no supera v_max, en rad/s?"
   },
-  "ruta-1/m06-t04": {
+  "ruta-2/m02-t04": {
     "e1": "El arreglo de sensores de tu robot tiene N = {{count}} sensores separados e_s = {{spacing_m}} m, y la línea mide w = {{lineWidth_m}} m de ancho. ¿A qué desplazamiento lateral y_perdida de la línea, medido desde el centro del arreglo, pierde el robot la línea, en m?",
     "e2": "Tu robot avanza a v = {{v_mps}} m/s y su lazo de control se ejecuta cada Δt_c = {{controlPeriod_s}} s. ¿Cuánto avanza entre dos ciclos de control, Δs_ciclo en m?",
     "e3": "Tu robot tiene N = 5 sensores separados e_s = 0.012 m y un error de rumbo Δθ = {{headingError_rad}} rad. ¿Qué posición de la línea p mide el arreglo si está a d₁ = {{forwardOffset1_m}} m del eje de ruedas, y qué p mide si está a d₂ = {{forwardOffset2_m}} m? Da p₁ y p₂, sin unidad.",
     "e4": "Tu robot, con distancia entre ruedas L = {{wheelBase_m}} m, toma una curva de radio de giro R = {{turnRadius_m}} m. ¿Cuánto vale la relación v_int/v_ext entre la velocidad de la rueda interior y la exterior, sin unidad?"
   },
-  "ruta-1/m06-t02": {
-    "e1": "Tu robot sigue la línea con control proporcional: K_p = {{kp}} rad/s, error e = {{error}} y velocidad base ω_base = {{omegaBase_radps}} rad/s. ¿Cuánto valen la acción de control u y las velocidades de rueda ω_L y ω_R, en rad/s?",
-    "e2": "Tu controlador manda ω_L = {{omegaL_radps}} rad/s a la rueda izquierda y ω_R = {{omegaR_radps}} rad/s a la derecha. Con r = 0.032 m y L = 0.15 m, ¿cuál es la velocidad angular ω del robot, en rad/s?",
-    "e3": "Tu robot tiene ω_max = 20.94 rad/s y sigue la línea con ω_base = {{omegaBase_radps}} rad/s. Con |e|_max = 1, ¿cuál es la K_p máxima, en rad/s, para que ninguna rueda sature?"
-  },
-  "ruta-1/m06-t05": {
+  "ruta-2/m02-t05": {
     "e1": "Tu robot sigue la línea con una velocidad base ω_base = {{omegaBase_radps}} rad/s y sus ruedas tienen radio r = {{wheelRadius_m}} m. ¿Cuál es su velocidad predicha v_pred, en m/s?",
     "e2": "Una pista mide D = {{distance_m}} m y predices que tu robot la recorre a v_pred = {{predictedSpeed_mps}} m/s. ¿Cuál es el tiempo de vuelta predicho t_pred, en s?",
     "e3": "En la pista Óvalo, de D = 2.771 m, predijiste v_pred = 0.48 m/s y mides un tiempo de vuelta t_vuelta = {{lapTime_s}} s. ¿Cuánto valen la velocidad media medida v_med, en m/s, y la diferencia Δ% = 100·(v_pred − v_med)/v_pred, en %?"
+  },
+  "reserva/caida-libre": {
+    "e1": "La pinza de tu robot suelta una pieza desde el reposo a h = {{h_m}} m sobre la banda. Sin resistencia del aire, ¿cuánto tarda en caer, en s? Usa g = 9.81 m/s².",
+    "e2": "La pinza de tu robot suelta una pieza desde el reposo a h = {{h_m}} m sobre la banda. Sin resistencia del aire, ¿con qué rapidez llega a la banda, en m/s? Usa g = 9.81 m/s².",
+    "e3": "Una pieza soltada desde el reposo tarda t = {{t_s}} s en caer hasta la banda. Sin resistencia del aire, ¿desde qué altura cayó, en m? Usa g = 9.81 m/s².",
+    "e4": "Tu robot avanza a v = {{v_mps}} m/s y su pinza suelta una pieza a 0.25 m sobre el suelo. Sin resistencia del aire, ¿a qué distancia horizontal de donde la soltó cae la pieza, en m? Usa g = 9.81 m/s²."
+  },
+  "reserva/tiro-parabolico": {
+    "e1": "Lanzas una pelota desde el suelo (h = 0) a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal. ¿Cuál es su alcance R, en m?",
+    "e2": "Lanzas una pelota a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal, desde una altura h = {{h_m}} m. ¿Cuál es la altura máxima H sobre el suelo, en m?",
+    "e3": "Lanzas una pelota a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal, desde una altura h = {{h_m}} m. ¿Cuál es su tiempo de vuelo t_v hasta tocar el suelo, en s?",
+    "e4": "Lanzas una pelota a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal, desde una altura h = {{h_m}} m. ¿Cuál es su alcance R hasta tocar el suelo, en m?",
+    "e5": "Tu robot avanza a 0.6 m/s y suelta una pieza desde su pinza, a 0.25 m del suelo. ¿Cuánto más adelante del punto de suelta cae la pieza, en m?"
   }
 }

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { kineticEnergy, maxHeight, robotCalcs } from './alrobot';
 
-// Golden values of docs/CURRICULUM.md § T-3.1 (Al robot), with the reference robot:
+// Golden values of docs/CURRICULUM.md § T1-3.1 (Al robot), with the reference robot:
 // E_k = 0.5·0.9·0.670² = 0.202 J, h_max = 0.670²/(2·9.81) = 0.0229 m (#300).
 // `content` takes robot-spec for its types only (#246), so the reference robot of
 // docs/ROBOT-SPEC.md §3 is written out here.
@@ -54,7 +54,7 @@ function withoutWheels(): RobotSpec {
   return { ...rest, kind: 'arm-serial' };
 }
 
-describe('T-3.1 «Al robot» calcs', () => {
+describe('T1-3.1 «Al robot» calcs', () => {
   it('are kinetic-energy and max-height', () => {
     expect(robotCalcs.map((calc) => calc.id)).toEqual(['kinetic-energy', 'max-height']);
   });

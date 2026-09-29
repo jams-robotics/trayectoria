@@ -3,7 +3,7 @@ import { defineExercise } from '@trayectoria/sim-core';
 import type { TopicExercise } from '../../../index';
 
 /**
- * Exercises of T-0.1 «Unidades y magnitudes» (docs/CURRICULUM.md § T-0.1, Verifica). Each
+ * Exercises of T1-0.1 «Unidades y magnitudes» (docs/CURRICULUM.md § T1-0.1, Verifica). Each
  * statement is the i18n key `content.ruta-1/m00-t01.<id>` of packages/i18n/locales/es/content.json.
  *
  * Values are drawn on a grid the statement shows exactly (integer rpm, x to the cm, t to the

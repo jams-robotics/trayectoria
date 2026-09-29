@@ -4,7 +4,7 @@ title: 'El motor y la batería'
 module: 3
 order: 3
 estimatedMinutes: 30
-prerequisites: [ruta-1/m03-t02, ruta-1/m02-t03]
+prerequisites: [ruta-1/m03-t02, ruta-1/m02-t04]
 objectives:
   - Leer la recta torque–velocidad de un motor de corriente continua y ubicar su punto de trabajo
   - Calcular la potencia mecánica máxima y la velocidad a la que se da
@@ -30,9 +30,9 @@ línea recta con la velocidad: τ(ω) = τ_s·(1 − ω/ω₀).
 
 El **punto de trabajo** es donde el torque que pide la carga corta esa recta. De ahí sale la
 velocidad: ω = ω₀·(1 − τ/τ_s). Por eso el robot va más despacio cuesta arriba. La rampa de 20° de
-[Torque](/ruta/ruta-1/m02/t03) pide 0.0483 N·m por rueda. Con la reducción i = 30 y **η_caja** = 0.6,
+[Torque](/ruta/ruta-1/m02/t04) pide 0.0483 N·m por rueda. Con la reducción i = 30 y **η_caja** = 0.6,
 su eficiencia, son 0.002683 N·m en el motor, y la recta da 4658 rpm: 155.3 rpm en la rueda,
-0.520 m/s frente a los 0.670 m/s de la velocidad sin carga. [Transmisión y reducción](/ruta/ruta-1/m04/t04)
+0.520 m/s frente a los 0.670 m/s de la velocidad sin carga. [Transmisión y reducción](/ruta/ruta-1/m02/t04)
 explica de dónde sale i.
 
 La potencia mecánica P = τ·ω es cero en los dos extremos y máxima en el medio: P_max = τ_s·ω₀/4,
@@ -46,7 +46,7 @@ eléctrica es calor.
 El comando de velocidad del simulador es una fracción de la tensión (PWM): ω₀ y τ_s se escalan
 con ella y la recta se desplaza. La velocidad tampoco se establece al instante:
 ω(t) = ω_f·(1 − e^(−t/τ_m)), con τ_m = 0.185 s en el simulador. Esa demora es la que hace oscilar
-al control proporcional de [Control on/off y proporcional](/ruta/ruta-1/m06/t02).
+al control proporcional de [Control on/off y proporcional](/ruta/ruta-2/m02/t02).
 
 La autonomía se calcula con la corriente del punto de trabajo, no con la de bloqueo: la de
 [Potencia](/ruta/ruta-1/m03/t02) era la cota inferior.
