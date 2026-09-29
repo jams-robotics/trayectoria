@@ -10,7 +10,10 @@ import type { SeededRng } from '@trayectoria/sim-core';
 
 const TOPIC_ID = 'ruta-1/m06-t01';
 const RELATIVE_2_PERCENT = { type: 'relative', value: 0.02 } as const;
-/** e1: absolute tolerance of 0.01 on p (docs/CURRICULUM.md § T-6.1). */
+/**
+ * e1: absolute tolerance of 0.01 on p (docs/CURRICULUM.md § T-6.1); e2 asks for the same p and is
+ * graded the same way (#568).
+ */
 const ABSOLUTE_P = { type: 'absolute', value: 0.01 } as const;
 /** e3: absolute tolerance of 0.0002 m on y_línea (docs/CURRICULUM.md § T-6.1). */
 const ABSOLUTE_0_2_MM = { type: 'absolute', value: 0.0002 } as const;
@@ -119,7 +122,7 @@ const e2 = defineExercise<Readings>({
     return { values: readingValues(readings), answer: linePosition(readings), unit: '' };
   },
   statement: () => statementKey('e2'),
-  tolerance: RELATIVE_2_PERCENT,
+  tolerance: ABSOLUTE_P,
 });
 
 interface Position {
