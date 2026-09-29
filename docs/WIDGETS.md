@@ -40,9 +40,10 @@ interface PlotProps {
   live?: { buffer: RingBuffer; windowSeconds: number };
   refLines?: Array<{ y: number; label: string }>;
   height?: number;
-  marker?: { x: number; onDrag?(x: number): void };
+  marker?: { x: number; onDrag?(x: number): void; label?: string };   // label: aria-label del marcador; por defecto «Marcador de tiempo» (#609)
 }
 ```
+Los valores de los ejes se escriben sin separador de miles (`6000`, no `6,000`), como el resto del contenido. La etiqueta de una `refLines` que cae en el borde superior del área de dibujo se escribe por debajo de la línea para que no se recorte (#609).
 
 ### Scene2D
 Canvas 2D en coordenadas físicas (m, Y hacia arriba). Hijos declarativos: `Grid`, `Axes`, `Vector`, `Trace`, `Circle`, `Rect`, `RobotBody` (desde `RobotSpec`), `Label`, `TrackLayer`.
