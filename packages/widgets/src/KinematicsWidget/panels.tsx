@@ -12,8 +12,11 @@ import type { Motion } from './compute';
 import { Particle } from './Particle';
 import type { KinematicsEditable, Timeline } from './timeline';
 
-/** Width over height of the scene: a wide strip, since the motion is one-dimensional. */
-const SCENE_ASPECT = 6;
+/**
+ * Width over height of the scene: the 16/9 of every viewer, so the particle gets at least 200 px
+ * of height at 390 px and the «0.5 m» scale sits in its corner, away from the axis (#544).
+ */
+const SCENE_ASPECT = 16 / 9;
 
 /** Sliders of the editable values, with the ranges of T-1.1 and T-1.2 (docs/CURRICULUM.md). */
 const RANGES: Readonly<Record<KinematicsEditable, { min: number; max: number; step: number }>> = {
