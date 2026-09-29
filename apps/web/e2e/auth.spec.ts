@@ -75,6 +75,23 @@ test('logout empties the session and /cuenta shows the sign-up CTA', async ({ pa
   await expect(page.getByRole('link', { name: auth.gate.register })).toBeVisible();
 });
 
+// #520: an address that already has an account gets the same answer as a new sign-up waiting for
+// its confirmation, so the form never tells whether the address is registered.
+test('sign-up with a taken email answers like a new one and does not sign in', async ({ page }) => {
+  const email = uniqueEmail();
+  await signUpAsTeacher(page, email);
+  await signOut(page);
+
+  await openHydrated(page, '/auth/registro');
+  await page.getByLabel(auth.fields.displayName, { exact: true }).fill('Otra persona');
+  await page.getByLabel(auth.fields.email, { exact: true }).fill(email);
+  await page.getByLabel(auth.fields.password, { exact: true }).fill(`${PASSWORD}-otra`);
+  await page.getByRole('button', { name: auth.register.submit }).click();
+  await expect(page.getByText(auth.register.confirmEmail, { exact: true })).toBeVisible();
+  await expect(page.getByText(auth.errors.signUpFailed)).toHaveCount(0);
+  expect(new URL(page.url()).pathname).toBe('/auth/registro');
+});
+
 // #523: the name is required on the form, so the database never has to fall back to one.
 test('sign-up without a name shows its own message and creates nothing', async ({ page }) => {
   await openHydrated(page, '/auth/registro');

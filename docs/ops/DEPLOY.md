@@ -17,7 +17,7 @@ El documento no contiene secretos: todo lo que aparece entre `<...>` lo defines 
 |---|---|
 | `apps/web/wrangler.jsonc` | Worker `trayectoria` sin script: sirve `apps/web/dist` y responde con `404.html` a las rutas que no existen. Sin `routes`: el dominio se asocia desde el panel (paso 4). |
 | `.github/workflows/deploy.yml` | En cada push a `main`: build y `wrangler deploy` (producción). En cada PR: build, `wrangler versions upload` (versión sin publicar con URL propia) y un comentario en el PR con la URL de vista previa. |
-| `supabase/templates/*.html` | Correos de auth en español: `confirmation.html` (registro), `magic_link.html` (entrar con enlace) y `recovery.html` (recuperar contraseña). `supabase/config.toml` los usa en local; en el proyecto alojado se pegan en el panel (paso 1.5). |
+| `supabase/templates/*.html` | Correos de auth en español: `confirmation.html` (registro), `magic_link.html` (entrar con enlace), `recovery.html` (recuperar contraseña) y `reauthentication.html` (código para eliminar la cuenta o cambiar la contraseña). `supabase/config.toml` los usa en local; en el proyecto alojado se pegan en el panel (paso 1.5). |
 
 El workflow necesita un secreto y dos variables en GitHub (paso 3). Mientras falte alguno, el job `gate` deja un aviso y los jobs `deploy` y `preview` se omiten sin fallar. Los PR que vienen de forks no reciben secretos, así que tampoco generan vista previa.
 
@@ -59,7 +59,11 @@ En *Authentication → URL Configuration*:
 
 Los correos llevan al usuario a `/cuenta` o `/auth/recuperar`; si la URL de destino no está en esta lista, Supabase lo envía a la Site URL.
 
-En *Authentication → Sign In / Providers → Email* deja activado **Confirm email**: el registro exige confirmar el correo.
+En *Authentication → Sign In / Providers → Email*:
+
+- Deja activado **Confirm email**: el registro exige confirmar el correo. Con esta opción, registrarse con un correo que ya tiene cuenta recibe la misma respuesta que un registro nuevo, así que el formulario no revela qué correos están registrados (#520).
+- Activa **Secure password change**: cambiar la contraseña desde una sesión de más de 24 horas exige el código de reautenticación (#521). Es el `secure_password_change = true` de `supabase/config.toml`.
+- Deja **Email OTP Expiration** en `3600` segundos. La migración `0011_reauthentication.sql` acepta el código de reautenticación durante una hora: si cambias este valor, el panel y la base de datos dejan de coincidir.
 
 ### 1.5 Plantillas de correo en español
 
@@ -70,6 +74,7 @@ En *Authentication → Emails → Templates*, pega en cada plantilla el asunto y
 | Confirm signup | `Confirma tu cuenta en Trayectoria` | `supabase/templates/confirmation.html` |
 | Magic Link | `Tu enlace para entrar en Trayectoria` | `supabase/templates/magic_link.html` |
 | Reset Password | `Restablece tu contraseña de Trayectoria` | `supabase/templates/recovery.html` |
+| Reauthentication | `Tu código de confirmación de Trayectoria` | `supabase/templates/reauthentication.html` |
 
 Los asuntos son los mismos que declara `supabase/config.toml`. Si una plantilla cambia en el repositorio, vuelve a pegarla.
 
@@ -167,13 +172,14 @@ Sin `<version-id>`, `rollback` vuelve a la versión anterior a la actual. Cada d
 
 - [ ] Supabase en plan Pro; `db push --dry-run` no lista migraciones pendientes.
 - [ ] SMTP externo configurado, dominio del remitente verificado y límite de envío ajustado.
-- [ ] Las tres plantillas en español pegadas en el panel.
-- [ ] Site URL y Redirect URLs de Supabase con el dominio definitivo; **Confirm email** activado.
+- [ ] Las cuatro plantillas en español pegadas en el panel.
+- [ ] Site URL y Redirect URLs de Supabase con el dominio definitivo; **Confirm email** y **Secure password change** activados; **Email OTP Expiration** en 3600 s.
 - [ ] Secreto `CLOUDFLARE_API_TOKEN` y variables `PUBLIC_SUPABASE_URL` y `PUBLIC_SUPABASE_ANON_KEY` en GitHub.
 - [ ] Un push a `main` despliega en menos de 5 minutos (duración del run *Deploy* en *Actions*).
 - [ ] Un PR recibe el comentario con la URL de vista previa y esa URL carga el sitio.
 - [ ] `https://<dominio>` carga con candado válido; `http://<dominio>` y `https://www.<dominio>` redirigen a `https://<dominio>`.
 - [ ] Una ruta inexistente muestra la página 404 del sitio.
+- [ ] `https://<dominio>/dev/widgets` también muestra la 404: las páginas `/dev/*` solo existen en `astro dev` y en los builds con `DEV_PAGES=1` de los e2e (#519).
 - [ ] Prueba de registro real superada (sección siguiente).
 - [ ] Rollback probado: opción A a la versión anterior, comprobación en el navegador y vuelta a la última versión con otro rollback.
 
@@ -183,8 +189,9 @@ Sin `<version-id>`, `rollback` vuelve a la versión anterior a la actual. Cada d
 2. El correo **Confirma tu cuenta** llega en menos de un minuto, en español y desde el remitente de `<dominio>`. Si no llega, mira la carpeta de spam y *Supabase → Logs → Auth*.
 3. El botón del correo abre `https://<dominio>/cuenta` con la sesión iniciada.
 4. Cierra sesión y pide un enlace desde `/auth/login` (entrar con enlace): llega **Tu enlace para entrar** y abre la sesión.
-5. Desde `/auth/recuperar` pide recuperar la contraseña: llega **Restablece tu contraseña**, el enlace permite elegir una nueva y con ella se entra.
-6. Borra la cuenta de prueba desde `/cuenta`.
+5. Desde `/auth/recuperar` pide recuperar la contraseña: llega **Restablece tu contraseña** y el enlace permite elegir una nueva tras pedir el código, que llega en **Tu código de confirmación**; con la nueva contraseña se entra.
+6. Vuelve a `/auth/registro` con el mismo correo: el formulario responde lo mismo que en el paso 1 («Revisa tu correo…») y no llega ningún correo de confirmación nuevo a una cuenta ya confirmada.
+7. Borra la cuenta de prueba desde `/cuenta`: pide el código, llega **Tu código de confirmación** y, con el código y `ELIMINAR`, la cuenta se elimina.
 
 ## Solución de problemas
 

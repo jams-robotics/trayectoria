@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 import auth from '../../../packages/i18n/locales/es/auth.json' with { type: 'json' };
 import aula from '../../../packages/i18n/locales/es/aula.json' with { type: 'json' };
+import { typeEmailedCode } from './helpers/mail';
 import { E2E_PASSWORD, anonClient, signUp } from './helpers/supabase';
 
 // F3-03 acceptance criteria. Runs against the local Supabase stack, where email confirmations
@@ -66,14 +67,18 @@ test('a student joins with the code, sees the group in /cuenta and leaves it', a
   await expect(page).toHaveURL(/\/unirse$/);
 
   // The valid code, typed with the spaces a student would copy, lands on /cuenta with the group.
-  await page.getByLabel(aula.join.code, { exact: true }).fill(` ${code.slice(0, 4)} ${code.slice(4)} `);
+  await page
+    .getByLabel(aula.join.code, { exact: true })
+    .fill(` ${code.slice(0, 4)} ${code.slice(4)} `);
   await page.getByRole('button', { name: aula.join.submit, exact: true }).click();
   await page.waitForURL('**/cuenta');
   await expect(page.getByTestId('my-group-row')).toHaveCount(1);
   await expect(page.getByTestId('my-group-list')).toContainText(GROUP_NAME);
 
   // "Salir" takes the group out of the list without a reload.
-  await page.getByRole('button', { name: auth.groups.leave.replace('{{name}}', GROUP_NAME) }).click();
+  await page
+    .getByRole('button', { name: auth.groups.leave.replace('{{name}}', GROUP_NAME) })
+    .click();
   await page.getByRole('button', { name: auth.groups.leaveYes, exact: true }).click();
   await expect(page.getByTestId('my-groups-empty')).toBeVisible();
   await expect(page.getByTestId('my-group-row')).toHaveCount(0);
@@ -108,13 +113,15 @@ test('deleting the account ends the session and the same credentials no longer w
   await signUp('student', 'Estudiante que se va', studentEmail);
   await signInOnPage(page, studentEmail);
 
-  // The button only enables once ELIMINAR is typed exactly.
+  // The button only enables once ELIMINAR is typed exactly and the emailed code is in (#521).
   await openHydrated(page, '/cuenta');
   await page.getByTestId('delete-account-start').click();
   await expect(page.getByTestId('delete-account-submit')).toBeDisabled();
   await page.getByLabel(auth.deleteAccount.confirmLabel, { exact: true }).fill('eliminar');
   await expect(page.getByTestId('delete-account-submit')).toBeDisabled();
   await page.getByLabel(auth.deleteAccount.confirmLabel, { exact: true }).fill('ELIMINAR');
+  await expect(page.getByTestId('delete-account-submit')).toBeDisabled();
+  await typeEmailedCode(page, studentEmail, auth.reauth.codeLabel);
   await expect(page.getByTestId('delete-account-submit')).toBeEnabled();
 
   await page.getByTestId('delete-account-submit').click();

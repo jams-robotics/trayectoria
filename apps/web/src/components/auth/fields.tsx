@@ -251,6 +251,10 @@ export function errorMessage(t: Translate, code: AuthErrorCode): string {
       return t('auth.errors.rateLimited');
     case 'sign-up-failed':
       return t('auth.errors.signUpFailed');
+    case 'reauthentication-needed':
+      return t('auth.reauth.needed');
+    case 'reauthentication-invalid':
+      return t('auth.reauth.invalid');
     case 'unknown':
       return t('auth.errors.generic');
   }
