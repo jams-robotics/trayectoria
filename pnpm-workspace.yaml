@@ -7,3 +7,6 @@ allowBuilds:
   esbuild: false
   # unrs-resolver ships prebuilt binaries; its postinstall is only a download fallback.
   unrs-resolver: false
+  # workerd (from wrangler, #511) gets its binary from the @cloudflare/workerd-<platform> optional
+  # dependency; its postinstall only checks it or downloads it as a fallback.
+  workerd: false

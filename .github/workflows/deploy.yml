@@ -23,10 +23,6 @@ concurrency:
   # Superseded PR previews are cancelled; a production deploy in progress is never interrupted.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
-env:
-  # Wrangler is not a monorepo dependency: it is installed on the runner at this fixed version.
-  WRANGLER_VERSION: 4.141.0
-
 jobs:
   gate:
     name: gate
@@ -80,16 +76,13 @@ jobs:
           PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY }}
         run: pnpm build
 
-      # Installed globally so wrangler-action finds it and does not `pnpm add` it to the workspace.
-      - name: Install Wrangler
-        run: npm install --global "wrangler@${WRANGLER_VERSION}"
-
+      # Wrangler is an exact devDependency of apps/web (#511): it comes from pnpm-lock.yaml with the
+      # rest of the install, and wrangler-action runs that copy through pnpm instead of installing one.
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          wranglerVersion: ${{ env.WRANGLER_VERSION }}
-          packageManager: npm
+          packageManager: pnpm
           workingDirectory: apps/web
           command: deploy --message "${{ github.sha }}"
 
@@ -126,17 +119,13 @@ jobs:
           PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY }}
         run: pnpm build
 
-      - name: Install Wrangler
-        run: npm install --global "wrangler@${WRANGLER_VERSION}"
-
       # Uploads a version without promoting it to production; Cloudflare gives it a preview URL.
       - name: Upload preview version
         id: upload
         uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          wranglerVersion: ${{ env.WRANGLER_VERSION }}
-          packageManager: npm
+          packageManager: pnpm
           workingDirectory: apps/web
           command: versions upload --tag "pr-${{ github.event.pull_request.number }}" --message "${{ github.event.pull_request.head.sha }}"
 

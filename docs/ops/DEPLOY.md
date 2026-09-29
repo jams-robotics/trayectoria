@@ -21,7 +21,7 @@ El documento no contiene secretos: todo lo que aparece entre `<...>` lo defines 
 
 El workflow necesita un secreto y dos variables en GitHub (paso 3). Mientras falte alguno, el job `gate` deja un aviso y los jobs `deploy` y `preview` se omiten sin fallar. Los PR que vienen de forks no reciben secretos, así que tampoco generan vista previa.
 
-Wrangler no es dependencia del monorepo: el workflow lo instala en el runner en la versión fijada en `WRANGLER_VERSION` (4.141.0). En local se ejecuta con `npx wrangler@4.141.0 ... --config apps/web/wrangler.jsonc`.
+Wrangler es una devDependency exacta de `apps/web` (4.141.0, #511): se instala con el resto del monorepo desde `pnpm-lock.yaml`, con su `integrity`, y el workflow usa esa copia a través de pnpm. En local se ejecuta desde `apps/web` con `pnpm exec wrangler ...`, que lee `wrangler.jsonc` de esa carpeta.
 
 ## 1. Supabase
 
@@ -157,11 +157,12 @@ Un rollback cambia el código del sitio, **no** la base de datos: si el desplieg
 
 **A. Panel de Cloudflare (lo más rápido).** *Workers & Pages → trayectoria → Deployments*: en la versión buena, menú de la fila → *Rollback*, escribe el motivo y confirma. El cambio es inmediato.
 
-**B. CLI.** Con un token válido en la variable de entorno `CLOUDFLARE_API_TOKEN` de tu terminal (o tras `npx wrangler@4.141.0 login`):
+**B. CLI.** Desde `apps/web`, con un token válido en la variable de entorno `CLOUDFLARE_API_TOKEN` de tu terminal (o tras `pnpm exec wrangler login`):
 
 ```bash
-npx wrangler@4.141.0 deployments list --config apps/web/wrangler.jsonc
-npx wrangler@4.141.0 rollback <version-id> --config apps/web/wrangler.jsonc --message "<motivo>"
+cd apps/web
+pnpm exec wrangler deployments list
+pnpm exec wrangler rollback <version-id> --message "<motivo>"
 ```
 
 Sin `<version-id>`, `rollback` vuelve a la versión anterior a la actual. Cada despliegue lleva como mensaje el commit que lo generó, lo que permite localizar la versión buena en la lista.
