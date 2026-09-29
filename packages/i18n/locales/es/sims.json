@@ -2,6 +2,8 @@
   "trackEditor": {
     "scene": "Lienzo del editor de pista: la pista dibujada y la previsualización de la herramienta activa.",
     "tools": "Herramienta",
+    "historyGroup": "Historial",
+    "fileGroup": "Archivo",
     "tool": {
       "select": "Seleccionar",
       "line": "Recta",

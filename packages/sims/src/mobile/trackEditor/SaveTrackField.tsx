@@ -13,11 +13,12 @@ import { useT } from '@trayectoria/i18n';
 /** Longest name a track can have; the same bound as the `check` of `tracks.name` (§5.1). */
 export const MAX_NAME_LENGTH = 80;
 
-// docs/DESIGN.md §5 (Botón, Campo) and §8: 44 px targets, visible focus, tokens only.
+// docs/DESIGN.md §5 (Botón, Campo) and §8: 44 px targets, visible focus, tokens only. The height
+// is `min-h-[44px]`: `min-h-11` is 80 px on the D-01 scale (#552).
 const BUTTON =
-  'border-border bg-bg-raised text-fg rounded-md focus-visible:outline-focus min-h-11 shrink-0 cursor-pointer border font-semibold hover:border-fg-muted focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-default disabled:opacity-45';
+  'border-border bg-bg-raised text-fg rounded-md focus-visible:outline-focus min-h-[44px] shrink-0 cursor-pointer border font-semibold hover:border-fg-muted focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-default disabled:opacity-45';
 const FIELD =
-  'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus min-h-11 w-full shrink border px-2 focus-visible:outline-2 focus-visible:outline-offset-2';
+  'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus min-h-[44px] w-full shrink border px-2 focus-visible:outline-2 focus-visible:outline-offset-2';
 
 export interface SaveTrackFieldProps {
   /** Saves the track under `name`; the page decides where and reports the outcome with a toast. */

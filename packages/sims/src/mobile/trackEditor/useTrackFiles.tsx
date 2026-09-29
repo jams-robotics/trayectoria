@@ -6,11 +6,12 @@ import type { PresetName } from '@trayectoria/sim-core';
 import { downloadJson, readFileText } from './io-browser';
 import type { TrackEditorApi } from './useTrackEditor';
 
-// docs/DESIGN.md §5 (Botón) and §8: a primary and a secondary button, both 44 px tall.
+// docs/DESIGN.md §5 (Botón) and §8: a primary and a secondary button, both 44 px tall
+// (`min-h-[44px]`: `min-h-11` is 80 px on the D-01 scale, #552).
 const PRIMARY =
-  'bg-primary text-primary-fg rounded-md focus-visible:outline-focus min-h-11 cursor-pointer px-4 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2';
+  'bg-primary text-primary-fg rounded-md focus-visible:outline-focus min-h-[44px] cursor-pointer px-4 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2';
 const SECONDARY =
-  'border-border bg-bg-raised text-fg rounded-md focus-visible:outline-focus min-h-11 cursor-pointer border px-4 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2';
+  'border-border bg-bg-raised text-fg rounded-md focus-visible:outline-focus min-h-[44px] cursor-pointer border px-4 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2';
 
 /**
  * What is waiting for the learner to confirm before it replaces the track: a preset by its name,
