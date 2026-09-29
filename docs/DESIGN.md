@@ -122,7 +122,7 @@ Pista: 4 px, `border`; tramo activo `primary`; thumb 20 px, fondo `bg-raised`, b
 Enlace "Usar los valores de Mi robot" al pie del panel cuando aplica.
 
 ### Campo numérico
-Mono, `tabular-nums`, unidad como sufijo muted no editable. Borde `border`; foco `focus`; error `error` con mensaje `sm` debajo; éxito `success`. Altura 40.
+Mono, `tabular-nums`, unidad como sufijo muted no editable. Borde `border`; foco `focus`; error `error` con mensaje `sm` debajo; éxito `success`. Altura 40; en el ejercicio, 44, la de su botón «Comprobar» (#540).
 
 ### Tarjeta
 `bg-raised`, borde 1 px `border`, radio `lg`, padding 20–24. Título `base`/600 o `lg`/600 con acción secundaria a la derecha (enlace `sm`). Sin sombra.
@@ -143,7 +143,7 @@ Tarjeta con cabecera: título `sm`/600 a la izquierda, leyenda a la derecha (rec
 Tarjeta; fórmula centrada 28 px serif-math itálica; debajo, separada por línea `border`, tabla de variables en grid `auto 1fr auto`: símbolo mono itálico · nombre muted · unidad mono muted.
 
 ### Ejercicio
-Tarjeta con enunciado precedido de `E1`, `E2` en mono muted. Fila: campo numérico con unidad · botón Comprobar · estado.
+Tarjeta con enunciado precedido de `E1`, `E2` en mono muted. Una sola fila: campo numérico con unidad (44 px) · botón Comprobar (primario, 44 px) · estado · «Nuevos valores» al final, alineado a la derecha, como botón terciario (fantasma sin borde, texto `fg-muted`, subrayado al pasar el ratón), para que no pese lo mismo que Comprobar (#540). En móvil la fila se parte donde no quepa y «Nuevos valores» sigue a la derecha.
 Estados: **pendiente** (campo `border`, Comprobar primario) · **verificando** (Comprobar deshabilitado, texto "Verificando…") · **correcto** (campo borde `success`, ✓ en círculo `success` + "Correcto"; Comprobar pasa a fantasma) · **incorrecto** (campo borde `error`, ✕ en círculo `error` + "Incorrecto", línea `sm` muted con la pista "Revisa el cálculo y las unidades." e "Intento n"; no hay límite de intentos; el error relativo no se muestra al estudiante (#533)). Cada envío sustituye al resultado anterior: nunca se ven a la vez "Incorrecto" y "Escribe un número.". Nunca confeti, nunca exclamaciones.
 
 ### Toast
