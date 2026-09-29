@@ -30,7 +30,10 @@ export const MobileSpec = z.object({
       stallTorque_Nm: z.number().positive(),
       nominalVoltage_V: z.number().positive(),
       efficiency: z.number().min(0).max(1),
+      noLoadCurrent_A: z.number().positive().optional(), // I0 (#609)
+      stallCurrent_A: z.number().positive().optional(), // Is; must exceed noLoadCurrent_A (#609)
     })
+    .superRefine(checkMotorCurrents)
     .optional(),
   battery: z.object({ capacity_Wh: z.number().positive() }).optional(),
 });
@@ -84,6 +87,19 @@ type ArmSpecData = z.infer<typeof ArmSpecObject>;
 
 function addIssue(ctx: z.RefinementCtx, path: PropertyKey[], key: string, message: string): void {
   ctx.addIssue({ code: 'custom', path, message, params: { key } });
+}
+
+// Both currents are optional; when both are present, the stall current (rotor locked) must
+// exceed the no-load current (docs/ROBOT-SPEC.md §1.1, #609).
+function checkMotorCurrents(
+  motor: { noLoadCurrent_A?: number | undefined; stallCurrent_A?: number | undefined },
+  ctx: z.RefinementCtx,
+): void {
+  const { noLoadCurrent_A, stallCurrent_A } = motor;
+  if (noLoadCurrent_A === undefined || stallCurrent_A === undefined) return;
+  if (stallCurrent_A > noLoadCurrent_A) return;
+  const message = 'La corriente de bloqueo debe ser mayor que la corriente sin carga';
+  addIssue(ctx, ['stallCurrent_A'], 'robotSpec.motor.stallCurrentTooLow', message);
 }
 
 function checkUniqueNames(

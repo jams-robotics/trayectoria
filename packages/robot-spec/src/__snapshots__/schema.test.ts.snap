@@ -418,7 +418,15 @@ exports[`F1-01 RobotSpec schema > exports the JSON Schema of the parsed spec (sn
               "minimum": 0,
               "type": "number",
             },
+            "noLoadCurrent_A": {
+              "exclusiveMinimum": 0,
+              "type": "number",
+            },
             "nominalVoltage_V": {
+              "exclusiveMinimum": 0,
+              "type": "number",
+            },
+            "stallCurrent_A": {
               "exclusiveMinimum": 0,
               "type": "number",
             },

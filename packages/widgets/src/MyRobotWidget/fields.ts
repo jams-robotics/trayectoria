@@ -59,6 +59,8 @@ export const FIELD_GROUPS: readonly RobotFieldGroup[] = [
       { key: 'motor.stallTorque_Nm', unit: 'N·m', optional: true },
       { key: 'motor.nominalVoltage_V', unit: 'V', optional: true },
       { key: 'motor.efficiency', unit: '', optional: true },
+      { key: 'motor.noLoadCurrent_A', unit: 'A', optional: true },
+      { key: 'motor.stallCurrent_A', unit: 'A', optional: true },
       { key: 'battery.capacity_Wh', unit: 'Wh', optional: true },
     ],
   },
