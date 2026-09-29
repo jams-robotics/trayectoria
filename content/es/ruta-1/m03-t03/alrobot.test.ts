@@ -150,7 +150,7 @@ describe('T-3.3 «Al robot» calcs', () => {
     );
     expect(substituted).toBe(
       String.raw`\begin{aligned}` +
-        String.raw` I &= 0.1\ \text{A} + (1.2\ \text{A} - 0.1\ \text{A}) \cdot \dfrac{0.006}{0.012} \\` +
+        String.raw` I &= 0.1\ \text{A} + (1.2\ \text{A} - 0.1\ \text{A}) \cdot \dfrac{0.006${NM}}{0.012${NM}} \\` +
         String.raw` &= 0.65\ \text{A} \\` +
         String.raw` \eta_{motor} &= \dfrac{1.885\ \text{W}}{6\ \text{V} \cdot 0.65\ \text{A}} = 0.483` +
         String.raw` \end{aligned}`,
@@ -185,7 +185,7 @@ describe('T-3.3 «Al robot» calcs', () => {
     expect(point).toContain(String.raw`\cdot 0.05\ \text{m} \\ &= 0.419\ \text{m/s}`);
     const current = currentEfficiency.compute(robot).substituted;
     expect(current).toContain(
-      String.raw`0.2\ \text{A} + (2\ \text{A} - 0.2\ \text{A}) \cdot \dfrac{0.01}{0.02}`,
+      String.raw`0.2\ \text{A} + (2\ \text{A} - 0.2\ \text{A}) \cdot \dfrac{0.01${NM}}{0.02${NM}}`,
     );
     expect(current).toContain(String.raw`&= 1.1\ \text{A}`);
     expect(current).toContain(String.raw`\dfrac{4.19\ \text{W}}{7.4\ \text{V} \cdot 1.1\ \text{A}} = 0.515`);
@@ -225,7 +225,7 @@ describe('T-3.3 «Al robot» calcs', () => {
     expect(maxPowerPoint.compute(robot)).toEqual(maxPowerPoint.compute(customRobot()));
     const current = currentEfficiency.compute(robot).substituted;
     expect(current).toContain(
-      String.raw`0.1\ \text{A} + (1.2\ \text{A} - 0.1\ \text{A}) \cdot \dfrac{0.01}{0.02}`,
+      String.raw`0.1\ \text{A} + (1.2\ \text{A} - 0.1\ \text{A}) \cdot \dfrac{0.01${NM}}{0.02${NM}}`,
     );
     expect(current).toContain(String.raw`\dfrac{4.19\ \text{W}}{7.4\ \text{V} \cdot 0.65\ \text{A}} = 0.871`);
     const time = autonomy.compute(robot).substituted;

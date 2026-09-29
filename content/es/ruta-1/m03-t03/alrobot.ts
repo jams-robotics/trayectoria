@@ -80,8 +80,8 @@ function noLoadSpeed_radps({ noLoadSpeed_rpm }: Drive): number {
 }
 
 /** `P_max = τ_s ω₀ / 4`. */
-function maxPower_W(current: Drive): number {
-  return (current.stallTorque_Nm * noLoadSpeed_radps(current)) / 4;
+function maxPower_W(motorData: Drive): number {
+  return (motorData.stallTorque_Nm * noLoadSpeed_radps(motorData)) / 4;
 }
 
 /** Current at the maximum power point, where `τ = τ_s/2`: `I = I₀ + (I_s − I₀)/2`. */
@@ -116,14 +116,14 @@ function aligned(...lines: readonly string[]): string {
 export const maxPower: RobotCalc = {
   id: 'max-power',
   compute(robot) {
-    const current = drive(robot);
-    const omega0 = format(noLoadSpeed_radps(current));
+    const motorData = drive(robot);
+    const omega0 = format(noLoadSpeed_radps(motorData));
     return {
       latex: String.raw`P_{max} = \dfrac{\tau_s\,\omega_0}{4}`,
       substituted: aligned(
-        String.raw`\omega_0 &= ${current.noLoadSpeed_rpm}${RPM} \cdot \dfrac{2\pi}{60} = ${omega0}${RADPS}`,
-        String.raw`P_{max} &= \dfrac{${current.stallTorque_Nm}${NM} \cdot ${omega0}${RADPS}}{4}`,
-        String.raw`&= ${format(maxPower_W(current))}${W}`,
+        String.raw`\omega_0 &= ${motorData.noLoadSpeed_rpm}${RPM} \cdot \dfrac{2\pi}{60} = ${omega0}${RADPS}`,
+        String.raw`P_{max} &= \dfrac{${motorData.stallTorque_Nm}${NM} \cdot ${omega0}${RADPS}}{4}`,
+        String.raw`&= ${format(maxPower_W(motorData))}${W}`,
       ),
     };
   },
@@ -133,9 +133,9 @@ export const maxPower: RobotCalc = {
 export const maxPowerPoint: RobotCalc = {
   id: 'max-power-point',
   compute(robot) {
-    const current = drive(robot);
+    const motorData = drive(robot);
     const { noLoadSpeed_rpm, stallTorque_Nm, gearRatio, gearboxEfficiency, wheelRadius_m } =
-      current;
+      motorData;
     const motorSpeed_rpm = noLoadSpeed_rpm / 2;
     const motorTorque_Nm = stallTorque_Nm / 2;
     const wheelSpeed_rpm = motorSpeed_rpm / gearRatio;
@@ -164,17 +164,17 @@ export const maxPowerPoint: RobotCalc = {
 export const currentEfficiency: RobotCalc = {
   id: 'current-efficiency',
   compute(robot) {
-    const current = drive(robot);
-    const { noLoadCurrent_A, stallCurrent_A, stallTorque_Nm, voltage_V } = current;
-    const current_A = currentAtMaxPower_A(current);
-    const power_W = maxPower_W(current);
+    const motorData = drive(robot);
+    const { noLoadCurrent_A, stallCurrent_A, stallTorque_Nm, voltage_V } = motorData;
+    const current_A = currentAtMaxPower_A(motorData);
+    const power_W = maxPower_W(motorData);
     return {
       latex: aligned(
         String.raw`I &= I_0 + (I_s - I_0)\,\dfrac{\tau_{motor}}{\tau_s}`,
         String.raw`\eta_{motor} &= \dfrac{P_{max}}{V I}`,
       ),
       substituted: aligned(
-        String.raw`I &= ${noLoadCurrent_A}${A} + (${stallCurrent_A}${A} - ${noLoadCurrent_A}${A}) \cdot \dfrac{${format(stallTorque_Nm / 2)}}{${stallTorque_Nm}}`,
+        String.raw`I &= ${noLoadCurrent_A}${A} + (${stallCurrent_A}${A} - ${noLoadCurrent_A}${A}) \cdot \dfrac{${format(stallTorque_Nm / 2)}${NM}}{${stallTorque_Nm}${NM}}`,
         String.raw`&= ${format(current_A)}${A}`,
         String.raw`\eta_{motor} &= \dfrac{${format(power_W)}${W}}{${voltage_V}${V} \cdot ${format(current_A)}${A}} = ${format(power_W / (voltage_V * current_A))}`,
       ),
@@ -186,9 +186,9 @@ export const currentEfficiency: RobotCalc = {
 export const autonomy: RobotCalc = {
   id: 'autonomy',
   compute(robot) {
-    const current = drive(robot);
-    const { batteryCapacity_Wh, voltage_V, stallCurrent_A } = current;
-    const current_A = currentAtMaxPower_A(current);
+    const motorData = drive(robot);
+    const { batteryCapacity_Wh, voltage_V, stallCurrent_A } = motorData;
+    const current_A = currentAtMaxPower_A(motorData);
     const electricalPower_W = MOTORS * voltage_V * current_A;
     const autonomy_h = batteryCapacity_Wh / electricalPower_W;
     const stallAutonomy_min = (batteryCapacity_Wh / (MOTORS * voltage_V * stallCurrent_A)) * MIN_PER_H;
