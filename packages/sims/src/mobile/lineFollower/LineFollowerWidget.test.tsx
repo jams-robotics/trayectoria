@@ -15,7 +15,7 @@ import type { RobotSpec } from '@trayectoria/robot-spec';
 
 import { LineFollowerWidget } from './LineFollowerWidget';
 import { resolveTrack } from './tracks';
-import { viewOf } from './LineFollowerView';
+import { SCALE_BAND_FRACTION, viewOf } from './LineFollowerView';
 
 const ROBOT = referenceMobile as RobotSpec;
 const PARAMS = { ...REFERENCE_PID_PARAMS };
@@ -39,25 +39,45 @@ describe('LineFollowerWidget (F4-02a)', () => {
   it('encuadra la pista con margen y respeta el ancho mínimo en compacto', () => {
     const wide = viewOf(presets.oval, false);
     // The oval spans x ∈ [-0.25, 0.85] and y ∈ [0, 0.5]: with margin, 1.3 m wide versus the
-    // 0.7 · 16/9 = 1.244 m its height asks for, so the width wins and the golden value does not change.
-    expect(wide.worldWidth_m).toBeCloseTo(1.3, 3);
+    // 0.7 / 0.84 · 16/9 = 1.481 m its height asks for once the scale band is kept clear (#536).
+    expect(wide.worldWidth_m).toBeCloseTo(1.4815, 3);
     expect(wide.center_m[0]).toBeCloseTo(0.3, 3);
+    // The view drops by half the band: 0.25 − (1.4815 / (16/9) · 0.16) / 2 = 0.1833 m.
+    expect(wide.center_m[1]).toBeCloseTo(0.1833, 3);
     const tiny = viewOf({ segments: [{ type: 'line', from: [0, 0], to: [0.1, 0] }], lineWidth_m: 0.02 }, true);
     expect(tiny.worldWidth_m).toBe(1);
     const empty = viewOf({ segments: [], lineWidth_m: 0.02 }, false);
-    expect(empty.center_m).toEqual([0, 0]);
+    // Centred on the origin, lowered by half the scale band like any other track (#536).
+    expect(empty.center_m[0]).toBe(0);
+    expect(empty.center_m[1]).toBeCloseTo(-0.019, 3);
   });
 
   it('ensancha la vista cuando la pista es más alta que ancha (#157)', () => {
     // The crossing spans x ∈ [-0.2, 0.6] and y ∈ [-0.4, 0.4]: 1 m wide with margin, but its height
-    // of 1 m asks for 1 · 16/9 = 1.778 m so that the whole track fits in the viewer.
-    expect(viewOf(presets.crossing, false).worldWidth_m).toBeCloseTo(1.7778, 3);
-    // The S spans x ∈ [-0.2, 1.2] and y ∈ [-0.4, 0.4]: 1.6 m wide, 1.778 m because of the height.
-    expect(viewOf(presets.sCurve, false).worldWidth_m).toBeCloseTo(1.7778, 3);
-    // The tight curves span x ∈ [-0.15, 0.35] and y ∈ [0, 0.5]: 0.7 m wide, 1.244 m
+    // of 1 m asks for 1 / 0.84 · 16/9 = 2.116 m so that the whole track fits above the scale band.
+    expect(viewOf(presets.crossing, false).worldWidth_m).toBeCloseTo(2.1164, 3);
+    // The S spans x ∈ [-0.2, 1.2] and y ∈ [-0.4, 0.4]: 1.6 m wide, 2.116 m because of the height.
+    expect(viewOf(presets.sCurve, false).worldWidth_m).toBeCloseTo(2.1164, 3);
+    // The tight curves span x ∈ [-0.15, 0.35] and y ∈ [0, 0.5]: 0.7 m wide, 1.481 m
     // because of the height; in compact mode the 1 m minimum no longer wins.
-    expect(viewOf(presets.tightCurves, false).worldWidth_m).toBeCloseTo(1.2444, 3);
-    expect(viewOf(presets.tightCurves, true).worldWidth_m).toBeCloseTo(1.2444, 3);
+    expect(viewOf(presets.tightCurves, false).worldWidth_m).toBeCloseTo(1.4815, 3);
+    expect(viewOf(presets.tightCurves, true).worldWidth_m).toBeCloseTo(1.4815, 3);
+  });
+
+  it('deja libre la franja inferior de la escala en los presets (#536)', () => {
+    const aspect = 16 / 9;
+    for (const track of Object.values(presets)) {
+      for (const compact of [false, true]) {
+        const view = viewOf(track, compact);
+        const height_m = view.worldWidth_m / aspect;
+        const bandTop_m = view.center_m[1] - height_m / 2 + height_m * SCALE_BAND_FRACTION;
+        const count = Math.ceil(trackLength_m(track) / 0.01);
+        for (let k = 0; k < count; k += 1) {
+          // The margin of 0.1 m around the centerline is what holds the robot sitting on it.
+          expect(pointAt(track, k * 0.01)[1] - 0.1).toBeGreaterThanOrEqual(bandTop_m - 1e-9);
+        }
+      }
+    }
   });
 
   it('deja toda la línea central dentro del visor en los presets y en una pista alta (#157)', () => {
