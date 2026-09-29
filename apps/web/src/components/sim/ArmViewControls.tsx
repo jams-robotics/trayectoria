@@ -14,8 +14,11 @@ import type { AccordionGroup } from './accordionGroup';
 // row (docs/DESIGN.md §5 and §6), all with the same active style, and on mobile the three go
 // inside the «Controles de vista» accordion, whose header shows which layers are on.
 
-/** A segment of the group: 36 px on desktop (§6), 44 px touch target on mobile (§9.3). */
-const SEGMENT = 'px-3 text-sm transition-colors duration-[120ms]';
+/**
+ * A segment of the group: 36 px on desktop (§6), 44 px touch target on mobile (§9.3). The focus
+ * ring goes inside the segment: the group's `overflow-hidden` would clip the outer one.
+ */
+const SEGMENT = 'px-3 text-sm transition-colors duration-[120ms] focus-visible:-outline-offset-2';
 const SEGMENT_ON = 'bg-primary text-primary-fg font-semibold';
 const SEGMENT_OFF = 'bg-bg-raised text-fg-muted hover:text-fg';
 
