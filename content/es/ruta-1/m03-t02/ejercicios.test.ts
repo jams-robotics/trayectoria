@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   CURRENT_A,
+  E1_MAX_POWER_W,
   E1_SPEED_RPM,
   E1_TORQUE_NM,
   E2_EFFICIENCY,
@@ -12,6 +13,7 @@ import {
   E4_V_MPS,
   VOLTAGES_V,
   exercises,
+  shaftPower_W,
 } from './ejercicios';
 
 // Golden values of docs/CURRICULUM.md § T-3.2, Verifica. Each one runs through the exercise's own
@@ -108,23 +110,36 @@ describe('T-3.2 exercises', () => {
 
 describe('e1 · τ a n rpm: potencia mecánica', () => {
   it('τ = 0.03 N·m at n = 5000 rpm → 15.71 W', () => {
-    const { values, answer, unit } = exercise('e1').generate(scriptedRng([30, 5000]));
+    // The golden pair lies above the 10 W cap of the generator (#609), so the formula is checked
+    // directly, without a draw, as docs/CURRICULUM.md § T-3.2 says.
+    const power_W = shaftPower_W({ torque_Nm: 0.03, speed_rpm: 5000 });
 
-    expect(values).toEqual({ torque_Nm: 0.03, speed_rpm: 5000 });
-    expect(answer).toBeCloseTo(15.71, 2);
+    expect(power_W).toBeCloseTo(15.71, 2);
+    expect(power_W).toBeGreaterThan(E1_MAX_POWER_W);
+  });
+
+  it('redraws when τ·ω > 10 W (#609)', () => {
+    // First draw: τ = 0.03 N·m at 5000 rpm → 15.71 W, redrawn; then τ = 0.01 N·m at 3000 rpm.
+    const { values, answer, unit } = exercise('e1').generate(scriptedRng([30, 5000, 10, 3000]));
+
+    expect(values).toEqual({ torque_Nm: 0.01, speed_rpm: 3000 });
+    expect(answer).toBeCloseTo(3.142, 3);
     expect(unit).toBe('W');
   });
 
-  it('draws τ ∈ [0.005, 0.1] N·m in thousandths and n ∈ [500, 8000] rpm in whole rpm', () => {
+  it('draws τ ∈ [0.005, 0.1] N·m in thousandths and n ∈ [500, 8000] rpm in whole rpm, under 10 W', () => {
     expect(E1_TORQUE_NM).toEqual({ min: 0.005, max: 0.1 });
     expect(E1_SPEED_RPM).toEqual({ min: 500, max: 8000 });
+    expect(E1_MAX_POWER_W).toBe(10);
     for (const seed of MANY_SEEDS) {
       const { torque_Nm, speed_rpm } = valuesOf('e1', seed);
       expectWithin(torque_Nm!, E1_TORQUE_NM);
       expectWithin(speed_rpm!, E1_SPEED_RPM);
       expectOnGrid(torque_Nm!, 1000);
       expectOnGrid(speed_rpm!, 1);
-      expect(answerOf('e1', seed)).toBeCloseTo(torque_Nm! * speed_rpm! * RPM_TO_RADPS, 12);
+      const answer = answerOf('e1', seed);
+      expect(answer).toBeCloseTo(torque_Nm! * speed_rpm! * RPM_TO_RADPS, 12);
+      expect(answer).toBeLessThanOrEqual(E1_MAX_POWER_W);
     }
   });
 });

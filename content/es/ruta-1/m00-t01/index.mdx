@@ -42,11 +42,14 @@ El **análisis dimensional** es la prueba rápida de una fórmula: las unidades 
 tienen que coincidir. Si divides metros entre segundos obtienes m/s, que es una velocidad. Si
 una velocidad te sale en m·s, la fórmula está mal antes de meter ningún número.
 
-La hoja de datos de un motor trae cuatro números que usarás en toda la ruta. La velocidad sin
-carga, en rpm, es la del eje cuando nada lo frena. El torque de bloqueo, en N·m, es el máximo,
-con el eje detenido. El voltaje nominal, en V, es el de funcionamiento. La corriente, en A, es
-la que consume a ese voltaje. De los cuatro, solo la velocidad necesita conversión: N·m, V y A
-ya son unidades SI. A 6 V y 1.2 A, el motor consume P = 6·1.2 = 7.2 W.
+La hoja de datos de un motor trae cinco números que usarás en toda la ruta. La velocidad sin
+carga, en rpm, es la del eje libre. El torque de bloqueo, en N·m, es el máximo, con el eje
+detenido. No se dan a la vez: con el eje libre el torque es cero, y con el eje detenido la
+velocidad es cero. El voltaje nominal, en V, es el de funcionamiento. La corriente sin carga,
+0.1 A, es la del eje libre; la de bloqueo, 1.2 A, es la máxima, con el eje detenido, y tampoco se
+dan a la vez. Solo la velocidad necesita conversión: N·m, V y A ya son SI. A 6 V y 1.2 A,
+P = 6·1.2 = 7.2 W es lo que consume parado a plena tensión; qué da en marcha lo explica
+[El motor y la batería](/ruta/ruta-1/m03/t03).
 </Concepto>
 
 <Formulas>

@@ -42,7 +42,7 @@
       "tools": "Herramientas",
       "particleKinematics": "Cinemática de la partícula",
       "dynamics": "Dinámica",
-      "energy": "Energía",
+      "energy": "Energía y motor",
       "rotation": "Rotación",
       "differentialRobot": "Robot diferencial",
       "lineFollower": "Seguidor de línea"

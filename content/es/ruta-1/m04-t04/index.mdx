@@ -35,7 +35,7 @@ un par tienen el mismo tamaño. Por eso el engranaje con más dientes gira más 
 
 Lo que se pierde en velocidad se gana en torque. En un par ideal la potencia se conserva, y como
 P = τ·ω, el torque de salida es τ₂ = τ₁·i. Un par real pierde parte de la potencia en fricción:
-P₂ = P₁·η, y el torque de salida queda en τ₂ = τ₁·i·η, con η la eficiencia.
+P₂ = P₁·η, y el torque de salida queda en τ₂ = τ₁·i·η, con η la eficiencia de la caja.
 
 Cada par invierte el sentido de giro. Si el engranaje 1 gira en sentido antihorario, el 2 gira
 en sentido horario. Con dos pares en serie, la salida vuelve a girar como la entrada.
@@ -44,8 +44,9 @@ Un tren de dos etapas encadena dos pares: la salida del primero mueve la entrada
 velocidad se divide dos veces, así que las relaciones se multiplican: i_total = i₁·i₂.
 
 El motorreductor de tu robot es exactamente esto: un motor rápido y débil seguido de un tren de
-engranajes dentro de la misma carcasa. Con los datos del gancho, i = 6000/200 = 30. Con η = 0.6,
-un torque de 0.012 N·m en el motor da τ₂ = 0.012·30·0.6 = 0.216 N·m en la rueda.
+engranajes dentro de la misma carcasa. Con los datos del gancho, i = 6000/200 = 30. Con la
+eficiencia de la caja η = 0.6, el torque de bloqueo de 0.012 N·m en el motor da
+τ₂ = 0.012·30·0.6 = 0.216 N·m en la rueda, también en bloqueo.
 
 </Concepto>
 
@@ -61,7 +62,7 @@ un torque de 0.012 N·m en el motor da τ₂ = 0.012·30·0.6 = 0.216 N·m en la
 
 - `τ₁`, `τ₂` · torque de entrada y de salida · N·m
 - `i` · relación de reducción · —
-- `η` · eficiencia · —
+- `η` · eficiencia de la caja · —
 
 <Formula latex="i_{total} = i_1 i_2" />
 
@@ -71,17 +72,20 @@ un torque de 0.012 N·m en el motor da τ₂ = 0.012·30·0.6 = 0.216 N·m en la
 <Formula latex="P_2 = P_1\,\eta" />
 
 - `P₁`, `P₂` · potencia de entrada y de salida · W
-- `η` · eficiencia · —
+- `η` · eficiencia de la caja · —
 </Formulas>
 
 <Explora>
-El widget muestra un tren de dos etapas: 12:60 y 10:50, con el motor a 6000 rpm y 0.012 N·m en
-la entrada y η = 0.6. El panel muestra la relación de cada etapa, la relación total, la velocidad
-y el torque de salida y el sentido de giro de cada eje.
+El widget muestra un tren de dos etapas: 12:60 y 10:50, con η = 0.6 y, en la entrada, el motor del
+gancho en su punto de trabajo de potencia máxima, 3000 rpm y 0.006 N·m: la mitad de su velocidad
+sin carga y la mitad de su torque de bloqueo, que no se dan a la vez; por qué ese punto lo explica
+[El motor y la batería](/ruta/ruta-1/m03/t03). El panel muestra la relación de cada etapa, la
+relación total, la velocidad y el torque de salida, 120 rpm y 0.09 N·m, la potencia de entrada y
+de salida, 1.885 W y 1.131 W, y el sentido de giro de cada eje.
 
 <GearWidget
   stages={2}
-  initial={{ z1: 12, z2: 60, z3: 10, z4: 50, nIn_rpm: 6000, torqueIn_Nm: 0.012, efficiency: 0.6 }}
+  initial={{ z1: 12, z2: 60, z3: 10, z4: 50, nIn_rpm: 3000, torqueIn_Nm: 0.006, efficiency: 0.6 }}
 />
 
 <Experimento
@@ -90,7 +94,8 @@ y el torque de salida y el sentido de giro de cada eje.
   porque="¿Por qué baja de 25 a 12.5 si solo cambiaste la primera etapa?"
 >
   La relación total es el producto de las dos etapas. i₁ pasa de 60/12 = 5 a 30/12 = 2.5, y i_total
-  = 2.5·5 = 12.5. Cambiar una sola etapa cambia el producto entero.
+  = 2.5·5 = 12.5: la salida pasa de 120 rpm y 0.09 N·m a 240 rpm y 0.045 N·m. Cambiar una sola
+  etapa cambia el producto entero.
 </Experimento>
 
 <Experimento
@@ -114,28 +119,31 @@ la segunda etapa lo invierte otra vez. Dos inversiones devuelven el sentido de l
 
 <AlRobot>
 El motorreductor de tu robot tiene la relación de reducción i de «Mi robot». Con el torque de
-bloqueo τ_motor y la eficiencia η del motor de tu perfil, el torque máximo que llega a la rueda
-es:
+bloqueo τ_motor y la eficiencia de la caja η de tu perfil, el torque máximo que llega a la rueda,
+con el eje detenido, es:
 
 <RobotFormula calc="ruta-1/m04-t04/wheel-torque" />
 
 Si tu perfil no incluye los datos del motor, el cálculo usa el motor del robot de referencia. Si
 no es un robot móvil, usa el robot de referencia completo.
 
-Con el robot de referencia, i = 30 lleva 0.012 N·m del motor a 0.216 N·m en la rueda. Es el
-torque que empuja al robot contra la fricción y las rampas de
-[Leyes de Newton y diagrama de cuerpo libre](/ruta/ruta-1/m02/t01).
+Con el robot de referencia, i = 30 lleva los 0.012 N·m de bloqueo del motor a 0.216 N·m en la
+rueda. Es el torque máximo que empuja al robot contra la fricción y las rampas de
+[Leyes de Newton y diagrama de cuerpo libre](/ruta/ruta-1/m02/t01), y solo se da con la rueda
+detenida.
 
-La reducción también fija la velocidad. Si cambias el motorreductor por uno de i = 25, la rueda
-gira más rápido y el robot avanza más rápido. Con la velocidad del motor y el radio de rueda de
-tu perfil:
+La reducción también fija la velocidad sin carga, el otro extremo del motor, con torque cero. Si
+cambias el motorreductor por uno de i = 25, la rueda gira más rápido y el robot avanza más
+rápido. Con la velocidad sin carga del motor y el radio de rueda de tu perfil:
 
 <RobotFormula calc="ruta-1/m04-t04/speed-other-ratio" />
 
-Con el robot de referencia, 6000/25 = 240 rpm en la rueda y v = 0.804 m/s, frente a los
-200 rpm y 0.670 m/s con i = 30. El precio es el torque: con i = 25 la rueda recibe
-0.012·25·0.6 = 0.18 N·m. Elegir la reducción es repartir la potencia del motor entre velocidad
-y torque.
+Con el robot de referencia, 6000/25 = 240 rpm en la rueda y v = 0.804 m/s sin carga, frente a
+los 200 rpm y 0.670 m/s con i = 30. El precio es el torque: con i = 25 la rueda recibe
+0.012·25·0.6 = 0.18 N·m en bloqueo. Son dos límites del mismo motorreductor que no se dan a la
+vez: con la rueda detenida el torque es máximo y la velocidad cero, y a la velocidad sin carga el
+torque es cero; en medio está la recta de [El motor y la batería](/ruta/ruta-1/m03/t03). Elegir
+la reducción es repartir la potencia del motor entre velocidad y torque.
 
 </AlRobot>
 
