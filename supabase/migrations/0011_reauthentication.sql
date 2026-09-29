@@ -16,7 +16,8 @@
 -- Both functions return `false` for a wrong code instead of raising: a raise would roll back the
 -- burning of the pending code, and burning it is what makes the six digits unguessable by calling
 -- the function in a loop with the same session (the caller has to ask GoTrue for a new email,
--- which is rate limited). They raise only when there is no session at all.
+-- which is rate limited). The row lock below makes that one attempt per code hold for concurrent
+-- calls too. They raise only when there is no session at all.
 --
 -- `verify_reauthentication(nonce)` lets the client check the code *before* it empties
 -- `urdf/{uid}/` (docs/ARCHITECTURE.md §6: the files go through the Storage API first, then the
@@ -28,6 +29,10 @@
 -- `secure_password_change` GoTrue checks the nonce itself only for sessions older than 24 h.
 
 -- `true` when `nonce` is the caller's pending code; `false` (and the code is burnt) otherwise.
+-- The row is read `for update`: two concurrent calls (one per PostgREST connection) are
+-- serialised on it, so the second one waits for the first to commit and reads the code already
+-- burnt. Without the lock both would see the pending code and several guesses would share a
+-- single email.
 create function public.verify_reauthentication(nonce text)
 returns boolean
 language plpgsql
@@ -36,18 +41,21 @@ set search_path = ''
 as $$
 declare
   caller_id uuid := auth.uid();
+  caller_email text;
+  pending_token text;
+  pending_sent_at timestamptz;
 begin
   if caller_id is null then
     raise exception 'not authenticated' using errcode = 'P0001';
   end if;
-  if exists (
-    select 1
-      from auth.users u
-     where u.id = caller_id
-       and coalesce(u.reauthentication_token, '') <> ''
-       and u.reauthentication_sent_at > now() - interval '1 hour'
-       and u.reauthentication_token = encode(extensions.digest(u.email || nonce, 'sha224'), 'hex')
-  ) then
+  select u.email, u.reauthentication_token, u.reauthentication_sent_at
+    into caller_email, pending_token, pending_sent_at
+    from auth.users u
+   where u.id = caller_id
+     for update;
+  if coalesce(pending_token, '') <> ''
+     and pending_sent_at > now() - interval '1 hour'
+     and pending_token = encode(extensions.digest(caller_email || nonce, 'sha224'), 'hex') then
     return true;
   end if;
   -- A wrong code forgets the pending one, as GoTrue does once a code has been used.
