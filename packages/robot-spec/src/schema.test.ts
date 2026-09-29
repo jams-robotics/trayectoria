@@ -85,3 +85,42 @@ describe('F1-01 RobotSpec schema', () => {
     expect(customKeys(ArmSpec.safeParse(orphan))).toEqual(['robotSpec.arm.notTree']);
   });
 });
+
+describe('SPEC-MOTOR motor no-load and stall currents (docs/ROBOT-SPEC.md §1.1)', () => {
+  test('the reference robot, with both currents (I0 = 0.1 A, Is = 1.2 A), validates', () => {
+    const result = RobotSpec.safeParse(referenceMobile);
+    expect(result.success).toBe(true);
+  });
+
+  test('a motor without either current still validates (both are optional)', () => {
+    const input = clone(referenceMobile);
+    if (input.mobile?.motor === undefined) throw new Error('example has no motor section');
+    delete (input.mobile.motor as Record<string, unknown>).noLoadCurrent_A;
+    delete (input.mobile.motor as Record<string, unknown>).stallCurrent_A;
+    expect(RobotSpec.safeParse(input).success).toBe(true);
+  });
+
+  test('only noLoadCurrent_A present validates', () => {
+    const input = clone(referenceMobile);
+    if (input.mobile?.motor === undefined) throw new Error('example has no motor section');
+    delete (input.mobile.motor as Record<string, unknown>).stallCurrent_A;
+    expect(RobotSpec.safeParse(input).success).toBe(true);
+  });
+
+  test('only stallCurrent_A present validates', () => {
+    const input = clone(referenceMobile);
+    if (input.mobile?.motor === undefined) throw new Error('example has no motor section');
+    delete (input.mobile.motor as Record<string, unknown>).noLoadCurrent_A;
+    expect(RobotSpec.safeParse(input).success).toBe(true);
+  });
+
+  test('stallCurrent_A <= noLoadCurrent_A fails', () => {
+    const input = clone(referenceMobile);
+    if (input.mobile?.motor === undefined) throw new Error('example has no motor section');
+    input.mobile.motor.noLoadCurrent_A = 1.2;
+    input.mobile.motor.stallCurrent_A = 1.2;
+    const result = RobotSpec.safeParse(input);
+    expect(result.success).toBe(false);
+    expect(customKeys(result)).toEqual(['robotSpec.motor.stallCurrentTooLow']);
+  });
+});

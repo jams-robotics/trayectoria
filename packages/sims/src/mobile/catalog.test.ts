@@ -97,7 +97,13 @@ describe('catálogo de robots móviles', () => {
       length_m: 0.18,
       width_m: 0.16,
       lineSensors: { count: 5, spacing_m: 0.012, forwardOffset_m: 0.09, footprint_m: 0.004 },
-      motor: { stallTorque_Nm: 0.012, nominalVoltage_V: 6, efficiency: 0.6 },
+      motor: {
+        stallTorque_Nm: 0.012,
+        nominalVoltage_V: 6,
+        efficiency: 0.6,
+        noLoadCurrent_A: 0.1,
+        stallCurrent_A: 1.2,
+      },
       battery: { capacity_Wh: 11.1 },
     });
   });

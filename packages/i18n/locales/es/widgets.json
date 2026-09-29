@@ -477,7 +477,9 @@
       "lineSensors_footprint_m": "Huella del sensor",
       "motor_stallTorque_Nm": "Par de bloqueo del motor",
       "motor_nominalVoltage_V": "Tensión nominal",
-      "motor_efficiency": "Rendimiento",
+      "motor_efficiency": "Eficiencia de la caja",
+      "motor_noLoadCurrent_A": "Corriente sin carga",
+      "motor_stallCurrent_A": "Corriente de bloqueo",
       "battery_capacity_Wh": "Capacidad de la batería"
     },
     "errors": {
