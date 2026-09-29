@@ -2,7 +2,15 @@ import { check, createRng } from '@trayectoria/sim-core';
 import type { Exercise } from '@trayectoria/sim-core';
 import { describe, expect, it } from 'vitest';
 
-import { E1_H_M, E2_H_M, E3_T_S, E4_H_M, E4_V_MPS, exercises } from './ejercicios';
+import {
+  E1_H_M,
+  E2_H_M,
+  E3_T_S,
+  E4_H_M,
+  E4_V_MPS,
+  MIN_RELATIVE_ANSWER,
+  exercises,
+} from './ejercicios';
 
 // Golden values of docs/CURRICULUM.md § T-1.3, Verifica. Each one runs through the exercise's own
 // `generate`, driven by an rng that lands on the grid indices the spec's values give.
@@ -178,5 +186,33 @@ describe('e4 · pieza soltada desde el robot en marcha: distancia horizontal', (
       expectOnHundredths(v_mps!);
       expect(answerOf('e4', seed)).toBeCloseTo(v_mps! * Math.sqrt((2 * 0.25) / G_MPS2), 12);
     }
+  });
+});
+
+describe('answers graded relative to 2 % (#568)', () => {
+  // Below 0.025 (in its unit), relative 2 % is tighter than the rounding to the thousandth, so a
+  // correct rounded response would be rejected. Every such answer is drawn again.
+  it('e4 draws again below 0.025: v = 0.1 m/s gives 0.02258 m', () => {
+    const { values } = exercise('e4').generate(scriptedRng([10, 50]));
+    expect(values).toEqual({ v_mps: 0.5 });
+  });
+
+  it('never answers a component graded relative 2 % in (0, 0.025) over 5000 seeds', () => {
+    expect(MIN_RELATIVE_ANSWER).toBe(0.025);
+    const failures: string[] = [];
+    for (const { id, generate, tolerance } of exercises as readonly Exercise<unknown>[]) {
+      for (let seed = 1; seed <= 5000; seed += 1) {
+        const { answer } = generate(createRng(seed));
+        const components = Array.isArray(answer) ? (answer as number[]) : [answer as number];
+        const tolerances = [tolerance].flat();
+        components.forEach((value, index) => {
+          const isRelative = (tolerances[index] ?? tolerances[0])?.type === 'relative';
+          if (isRelative && value !== 0 && Math.abs(value) < MIN_RELATIVE_ANSWER) {
+            failures.push(`${id} seed ${seed}: component ${index} = ${value}`);
+          }
+        });
+      }
+    }
+    expect(failures.slice(0, 5)).toEqual([]);
   });
 });

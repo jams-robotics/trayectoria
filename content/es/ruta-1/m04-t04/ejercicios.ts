@@ -29,6 +29,11 @@ export const MAX_MOTOR_SPEED_RPM = 12000;
 export const MOTOR_TORQUE_MNM: Range = { min: 5, max: 100 };
 export const STAGE_RATIO: Range = { min: 5, max: 100 };
 export const EFFICIENCY_PERCENT: Range = { min: 50, max: 90 };
+/**
+ * e2 draws again while τ_2 is below this: with relative 2 %, a correct response rounded to the
+ * thousandth (up to 0.0005 N·m off) is only accepted from 0.025 N·m on (#568).
+ */
+export const MIN_RELATIVE_ANSWER = 0.025;
 
 /** e3 range: teeth of each of the four gears. */
 export const TEETH: Range = { min: 8, max: 80 };
@@ -80,19 +85,24 @@ const e1 = defineExercise<Speeds>({
   tolerance: RELATIVE_2_PERCENT,
 });
 
-/** e2: `τ_2 = τ_1 · i · η`. */
+/** e2: `τ_2 = τ_1 · i · η`, drawn again while τ_2 < 0.025 N·m (#568). */
 const e2 = defineExercise<TorqueIn>({
   id: 'e2',
   generate: (rng) => {
-    const motorTorque_Nm = rng.nextInt(MOTOR_TORQUE_MNM.min, MOTOR_TORQUE_MNM.max) / MNM_PER_NM;
-    const gearRatio = rng.nextInt(STAGE_RATIO.min, STAGE_RATIO.max);
-    const efficiency =
-      rng.nextInt(EFFICIENCY_PERCENT.min, EFFICIENCY_PERCENT.max) / PERCENT_PER_UNIT;
-    return {
-      values: { motorTorque_Nm, gearRatio, efficiency },
-      answer: motorTorque_Nm * gearRatio * efficiency,
-      unit: 'N·m',
-    };
+    for (;;) {
+      const motorTorque_Nm = rng.nextInt(MOTOR_TORQUE_MNM.min, MOTOR_TORQUE_MNM.max) / MNM_PER_NM;
+      const gearRatio = rng.nextInt(STAGE_RATIO.min, STAGE_RATIO.max);
+      const efficiency =
+        rng.nextInt(EFFICIENCY_PERCENT.min, EFFICIENCY_PERCENT.max) / PERCENT_PER_UNIT;
+      const outputTorque_Nm = motorTorque_Nm * gearRatio * efficiency;
+      if (outputTorque_Nm >= MIN_RELATIVE_ANSWER) {
+        return {
+          values: { motorTorque_Nm, gearRatio, efficiency },
+          answer: outputTorque_Nm,
+          unit: 'N·m',
+        };
+      }
+    }
   },
   statement: () => statementKey('e2'),
   tolerance: RELATIVE_2_PERCENT,

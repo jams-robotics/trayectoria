@@ -11,6 +11,7 @@ import {
   E3_R_M,
   E4_MU_S,
   E4_R_M,
+  MIN_RELATIVE_ANSWER,
   exercises,
 } from './ejercicios';
 
@@ -184,5 +185,33 @@ describe('e4 · μs y R: v máxima en curva', () => {
       const { mu_s, turnRadius_m } = valuesOf('e4', seed);
       expect(answerOf('e4', seed)).toBeCloseTo(Math.sqrt(mu_s! * G_MPS2 * turnRadius_m!), 12);
     }
+  });
+});
+
+describe('answers graded relative to 2 % (#568)', () => {
+  // Below 0.025 (in its unit), relative 2 % is tighter than the rounding to the thousandth, so a
+  // correct rounded response would be rejected. Every such answer is drawn again.
+  it('e2 draws again below 0.025: v = 0.2 m/s on R = 2 m gives 0.02 m/s²', () => {
+    const { values } = exercise('e2').generate(scriptedRng([20, 200, 60, 50]));
+    expect(values).toEqual({ v_mps: 0.6, turnRadius_m: 0.5 });
+  });
+
+  it('never answers a component graded relative 2 % in (0, 0.025) over 5000 seeds', () => {
+    expect(MIN_RELATIVE_ANSWER).toBe(0.025);
+    const failures: string[] = [];
+    for (const { id, generate, tolerance } of exercises as readonly Exercise<unknown>[]) {
+      for (let seed = 1; seed <= 5000; seed += 1) {
+        const { answer } = generate(createRng(seed));
+        const components = Array.isArray(answer) ? (answer as number[]) : [answer as number];
+        const tolerances = [tolerance].flat();
+        components.forEach((value, index) => {
+          const isRelative = (tolerances[index] ?? tolerances[0])?.type === 'relative';
+          if (isRelative && value !== 0 && Math.abs(value) < MIN_RELATIVE_ANSWER) {
+            failures.push(`${id} seed ${seed}: component ${index} = ${value}`);
+          }
+        });
+      }
+    }
+    expect(failures.slice(0, 5)).toEqual([]);
   });
 });

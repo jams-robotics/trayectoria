@@ -13,6 +13,7 @@ import {
   E3_WHEEL_RADIUS_M,
   E4_LEVER_ARM_M,
   E4_MASS_KG,
+  MIN_RELATIVE_ANSWER,
   exercises,
 } from './ejercicios';
 
@@ -200,5 +201,38 @@ describe('e4 · brazo horizontal: torque en la articulación', () => {
       expectOnGrid(mass_kg!, 100);
       expect(answerOf('e4', seed)).toBeCloseTo(mass_kg! * G_MPS2 * leverArm_m!, 12);
     }
+  });
+});
+
+describe('answers graded relative to 2 % (#568)', () => {
+  // Below 0.025 (in its unit), relative 2 % is tighter than the rounding to the thousandth, so a
+  // correct rounded response would be rejected. Every such answer is drawn again.
+  it('e3 draws again below 0.025: φ = 5°, m = 0.2 kg, r = 0.015 m give 0.001282 N·m', () => {
+    const { values } = exercise('e3').generate(scriptedRng([5, 20, 15, 20, 90, 32]));
+    expect(values).toEqual({ slope_deg: 20, mass_kg: 0.9, wheelRadius_m: 0.032 });
+  });
+
+  it('e1 draws again below 0.025: τ = 0.005 N·m, i = 5, η = 0.5 give 0.0125 N·m', () => {
+    const { values } = exercise('e1').generate(scriptedRng([5, 5, 50, 12, 30, 60]));
+    expect(values).toEqual({ motorTorque_Nm: 0.012, gearRatio: 30, efficiency: 0.6 });
+  });
+
+  it('never answers a component graded relative 2 % in (0, 0.025) over 5000 seeds', () => {
+    expect(MIN_RELATIVE_ANSWER).toBe(0.025);
+    const failures: string[] = [];
+    for (const { id, generate, tolerance } of exercises as readonly Exercise<unknown>[]) {
+      for (let seed = 1; seed <= 5000; seed += 1) {
+        const { answer } = generate(createRng(seed));
+        const components = Array.isArray(answer) ? (answer as number[]) : [answer as number];
+        const tolerances = [tolerance].flat();
+        components.forEach((value, index) => {
+          const isRelative = (tolerances[index] ?? tolerances[0])?.type === 'relative';
+          if (isRelative && value !== 0 && Math.abs(value) < MIN_RELATIVE_ANSWER) {
+            failures.push(`${id} seed ${seed}: component ${index} = ${value}`);
+          }
+        });
+      }
+    }
+    expect(failures.slice(0, 5)).toEqual([]);
   });
 });

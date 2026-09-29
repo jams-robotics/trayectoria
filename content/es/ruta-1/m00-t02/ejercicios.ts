@@ -19,10 +19,10 @@ const ABSOLUTE_HALF_DEGREE = { type: 'absolute', value: 0.5 } as const;
 const HUNDREDTHS = 100;
 
 /**
- * e3 draws again while the magnitude is below this: with relative 2 %, a correct response rounded
- * to the millimetre (up to 0.0005 m off) is only accepted from 0.025 m on (#568).
+ * e1 to e3 draw again while an answer graded relative to 2 % is below this: a correct response
+ * rounded to the thousandth (up to 0.0005 off) is only accepted from 0.025 on (#568).
  */
-export const E3_MIN_MAGNITUDE_M = 0.025;
+export const MIN_RELATIVE_ANSWER = 0.025;
 
 /** e4 asks for the angle between two fixed vectors of the spec. */
 const E4_A: readonly [number, number] = [0.3, 0.4];
@@ -81,24 +81,30 @@ interface Displacements {
 export const e1 = defineExercise<Heading>({
   id: 'e1',
   generate: (rng) => {
-    const v_mps = hundredths(rng, 0.1, 1.5);
-    const theta_deg = rng.nextInt(10, 80);
-    return { values: { v_mps, theta_deg }, answer: components_mps(v_mps, theta_deg), unit: 'm/s' };
+    // Drawn again while a component is below MIN_RELATIVE_ANSWER, e.g. 0.1 m/s at 80° (#568).
+    for (;;) {
+      const v_mps = hundredths(rng, 0.1, 1.5);
+      const theta_deg = rng.nextInt(10, 80);
+      const answer = components_mps(v_mps, theta_deg);
+      if (answer.every((component_mps) => component_mps >= MIN_RELATIVE_ANSWER)) {
+        return { values: { v_mps, theta_deg }, answer, unit: 'm/s' };
+      }
+    }
   },
   statement: () => `${STATEMENT_PREFIX}.e1`,
   tolerance: RELATIVE_2_PERCENT,
 });
 
 /**
- * e2 · «Vector (a, b): magnitud y ángulo», a, b ∈ [−1, 1]. The zero vector has no angle, so it is
- * drawn again.
+ * e2 · «Vector (a, b): magnitud y ángulo», a, b ∈ [−1, 1]. The zero vector has no angle, and a
+ * magnitude below MIN_RELATIVE_ANSWER is too tight for relative 2 %, so both are drawn again (#568).
  */
 export const e2 = defineExercise<VelocityVector>({
   id: 'e2',
   generate: (rng) => {
     let a_mps = 0;
     let b_mps = 0;
-    while (a_mps === 0 && b_mps === 0) {
+    while (magnitude(a_mps, b_mps) < MIN_RELATIVE_ANSWER) {
       a_mps = hundredths(rng, -1, 1);
       b_mps = hundredths(rng, -1, 1);
     }
@@ -114,7 +120,7 @@ export const e2 = defineExercise<VelocityVector>({
 
 /**
  * e3 · «Suma de desplazamientos (a) + (b): magnitud», components ∈ [−2, 2]. A zero sum has no
- * relative error to grade, and below `E3_MIN_MAGNITUDE_M` relative 2 % is tighter than the
+ * relative error to grade, and below MIN_RELATIVE_ANSWER relative 2 % is tighter than the
  * rounding to the millimetre, so both are drawn again (#568).
  */
 export const e3 = defineExercise<Displacements>({
@@ -126,7 +132,7 @@ export const e3 = defineExercise<Displacements>({
       const bx_m = hundredths(rng, -2, 2);
       const by_m = hundredths(rng, -2, 2);
       const sum_m = magnitude(ax_m + bx_m, ay_m + by_m);
-      if (sum_m >= E3_MIN_MAGNITUDE_M)
+      if (sum_m >= MIN_RELATIVE_ANSWER)
         return { values: { ax_m, ay_m, bx_m, by_m }, answer: sum_m, unit: 'm' };
     }
   },
