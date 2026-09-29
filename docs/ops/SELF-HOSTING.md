@@ -125,7 +125,7 @@ docker compose -f infra/docker-compose.yml up -d
 docker compose -f infra/docker-compose.yml logs -f web   # Ctrl+C para salir
 ```
 
-La construcción (`infra/web.Dockerfile`) instala las dependencias con `pnpm install --frozen-lockfile`, ejecuta `pnpm build` y copia `apps/web/dist` a una imagen de Caddy (`infra/Caddyfile`). Tarda unos minutos la primera vez. En los registros debe aparecer `certificate obtained successfully` para los dos dominios.
+La construcción (`infra/web.Dockerfile`) instala las dependencias con `pnpm install --frozen-lockfile`, ejecuta `pnpm build` y copia `apps/web/dist` a una imagen de Caddy (`infra/Caddyfile`). Caddy envía en cada página las mismas cabeceras de seguridad que la instancia pública (CSP, HSTS, `X-Frame-Options` y demás, `docs/ops/DEPLOY.md` "Cabeceras de seguridad"); la CSP solo deja conectar con la `PUBLIC_SUPABASE_URL` con la que se construyó la imagen, así que si cambia hay que reconstruir. Tarda unos minutos la primera vez. En los registros debe aparecer `certificate obtained successfully` para los dos dominios.
 
 ### 9. Verificación final
 

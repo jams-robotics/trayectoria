@@ -17,7 +17,7 @@ import type { Database } from '@trayectoria/db';
 const ENV_NAMES = ['PUBLIC_SUPABASE_URL', 'PUBLIC_SUPABASE_ANON_KEY'] as const;
 
 /** The public URL and anon key, from the shell or from the local defaults of `.env.example`. */
-function publicEnv(): Record<string, string> {
+export function publicEnv(): Record<string, string> {
   const file = readFileSync(path.resolve(import.meta.dirname, '../../../../.env.example'), 'utf8');
   const defaults = Object.fromEntries(
     file

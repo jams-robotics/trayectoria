@@ -3,13 +3,29 @@
 # API_ADDRESS: public domain of the Supabase API (automatic HTTPS), or ":8000" in local tests.
 # SUPABASE_UPSTREAM: where the official Supabase compose exposes Kong (default host port 8000).
 
+# Security headers of the site (#507): the same ones as apps/web/public/_headers, where each CSP
+# source is explained, minus the Cloudflare Web Analytics origins. __SUPABASE_ORIGINS__ is replaced
+# with the origins of PUBLIC_SUPABASE_URL when the image is built (infra/csp-origins.sh).
+(security_headers) {
+	header {
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-cCWmCM3DbhiyPyuyhjQnxKJaQ3IqZ6Dm6HE0SMDY5eU=' 'sha256-Ya0pUYrC7nM5Cn/056TyVuEiz6dFGrzmkWzgON0pF0U=' 'sha256-QzWFZi+FLIx23tnm9SBU4aEgx4x8DsuASP07mfqol/c=' 'sha256-Q2BPg90ZMplYY+FSdApNErhpWafg2hcRRbndmvxuL/Q=' 'sha256-eIXWvAmxkr251LJZkjniEK5LcPF3NkapbJepohwYRIc=' 'sha256-o6aOq8++0wzFOhSTe8dqUzau0DkWW5v7GLV76dEfzUs=' 'sha256-7F8hU+p4aOBW3/tjCf1lNaQ+38sKq3Eszy6b7TmMu5s='; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self' data:; connect-src 'self' __SUPABASE_ORIGINS__ blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		X-Frame-Options "DENY"
+	}
+}
+
 {$SITE_ADDRESS} {
+	import security_headers
 	root * /srv
 	encode zstd gzip
 	try_files {path} {path}/ {path}.html
 	file_server
 
 	handle_errors 404 {
+		import security_headers
 		rewrite * /404.html
 		file_server
 	}

@@ -17,6 +17,7 @@ El documento no contiene secretos: todo lo que aparece entre `<...>` lo defines 
 |---|---|
 | `apps/web/wrangler.jsonc` | Worker `trayectoria` sin script: sirve `apps/web/dist` y responde con `404.html` a las rutas que no existen. Sin `routes`: el dominio se asocia desde el panel (paso 4). |
 | `.github/workflows/deploy.yml` | En cada push a `main`: build y `wrangler deploy` (producción). En cada PR: build, `wrangler versions upload` (versión sin publicar con URL propia) y un comentario en el PR con la URL de vista previa. |
+| `apps/web/public/_headers` | Cabeceras de seguridad de todas las respuestas (#507): CSP, HSTS, `X-Frame-Options`, `Referrer-Policy`, `X-Content-Type-Options` y `Permissions-Policy`. Ver "Cabeceras de seguridad". |
 | `supabase/templates/*.html` | Correos de auth en español: `confirmation.html` (registro), `magic_link.html` (entrar con enlace), `recovery.html` (recuperar contraseña) y `reauthentication.html` (código para eliminar la cuenta o cambiar la contraseña). `supabase/config.toml` los usa en local; en el proyecto alojado se pegan en el panel (paso 1.5). |
 
 El workflow necesita un secreto y dos variables en GitHub (paso 3). Mientras falte alguno, el job `gate` deja un aviso y los jobs `deploy` y `preview` se omiten sin fallar. Los PR que vienen de forks no reciben secretos, así que tampoco generan vista previa.
@@ -138,6 +139,40 @@ Las vistas previas de PR suben versiones del mismo Worker, así que necesitan qu
 2. *SSL/TLS → Edge Certificates*: activa **Always Use HTTPS**.
 
 Con el dominio activo, comprueba que la **Site URL** de Supabase es `https://<dominio>` (paso 1.4) y, si el remitente del SMTP usaba otro dominio, pásalo a `<dominio>` (paso 1.6). Si en algún momento añadiste `https://trayectoria.<subdominio>.workers.dev/**` a las Redirect URLs, quítala: esa dirección ya no sirve el sitio (#526).
+
+## Cabeceras de seguridad
+
+`apps/web/public/_headers` fija las cabeceras de todas las respuestas del sitio, incluida la 404 (#507). La CSP solo permite:
+
+| Directiva | Fuentes | Por qué |
+|---|---|---|
+| `default-src` | `'self'` | Todo lo demás sale del propio dominio |
+| `script-src` | `'self'`, siete hashes `sha256`, `https://static.cloudflareinsights.com` | Los scripts en línea del build (tema claro u oscuro de `Base.astro`, runtime de las islas de Astro y sus directivas `client:load`, `client:visible` y `client:only`, y los scripts de `Nav.astro` y `Outline.astro`), y la baliza de Cloudflare Web Analytics. Sin `'unsafe-inline'` ni `'unsafe-eval'` |
+| `style-src` | `'self' 'unsafe-inline'` | KaTeX escribe atributos `style` en cada fórmula y Astro inserta estilos de las islas |
+| `img-src` | `'self'` | Solo imágenes propias |
+| `font-src` | `'self' data:` | KaTeX incrusta sus fuentes más pequeñas como `data:` |
+| `connect-src` | `'self'`, el proyecto de Supabase (`https://` y `wss://`), `blob:`, `https://cloudflareinsights.com` | Datos y sesión; el simulador de brazo lee las mallas de un zip importado desde URL `blob:`; la baliza envía las visitas |
+| `object-src` | `'none'` | Sin plugins |
+| `base-uri`, `form-action` | `'self'` | |
+| `frame-ancestors` | `'none'` | Ninguna web puede enmarcar el sitio (junto con `X-Frame-Options: DENY`) |
+
+El archivo lleva `__SUPABASE_ORIGINS__` en lugar del proyecto: tras el build, el workflow ejecuta `infra/csp-origins.sh`, que lo sustituye por el origen de `PUBLIC_SUPABASE_URL` y su forma `wss://`. Si despliegas a mano, ejecútalo tú antes de `wrangler deploy`:
+
+```bash
+PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co sh infra/csp-origins.sh apps/web/dist/_headers
+```
+
+**Si cambia un script en línea** (un `<script>` de `Base.astro`, `Nav.astro` u `Outline.astro`, o una versión nueva de Astro), su hash cambia y el navegador lo bloquea. El e2e `apps/web/e2e/csp.spec.ts` falla e imprime el hash nuevo: sustitúyelo en `apps/web/public/_headers` y en `infra/Caddyfile`, que llevan la misma política. En local se comprueba con `CI=1 pnpm e2e`, que construye el sitio; `pnpm dev` no sirve `_headers`.
+
+Para probar las cabeceras reales en local, con el build hecho y el Supabase local en marcha:
+
+```bash
+PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 sh infra/csp-origins.sh apps/web/dist/_headers
+cd apps/web
+pnpm exec wrangler dev --port 4399
+```
+
+Sirve el sitio en `http://127.0.0.1:4399` con las cabeceras de `_headers`. Al terminar, borra `apps/web/.wrangler/`, la carpeta temporal que deja `wrangler dev`: git la ignora, pero ESLint la revisaría en `pnpm lint`.
 
 ## Rotar el token de Cloudflare
 

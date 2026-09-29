@@ -76,6 +76,12 @@ jobs:
           PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY }}
         run: pnpm build
 
+      # The CSP of apps/web/public/_headers names the Supabase project of this build (#507).
+      - name: Write the Supabase origins into the CSP
+        env:
+          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
+        run: sh infra/csp-origins.sh apps/web/dist/_headers
+
       # Wrangler is an exact devDependency of apps/web (#511): it comes from pnpm-lock.yaml with the
       # rest of the install, and wrangler-action runs that copy through pnpm instead of installing one.
       - name: Deploy to Cloudflare Workers
@@ -118,6 +124,12 @@ jobs:
           PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
           PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY }}
         run: pnpm build
+
+      # The CSP of apps/web/public/_headers names the Supabase project of this build (#507).
+      - name: Write the Supabase origins into the CSP
+        env:
+          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
+        run: sh infra/csp-origins.sh apps/web/dist/_headers
 
       # Uploads a version without promoting it to production; Cloudflare gives it a preview URL.
       - name: Upload preview version

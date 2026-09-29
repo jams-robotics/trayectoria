@@ -19,5 +19,9 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm build
 
 FROM caddy:2.11.4-alpine
+ARG PUBLIC_SUPABASE_URL
 COPY infra/Caddyfile /etc/caddy/Caddyfile
+# The CSP names the same Supabase the site was built for (#507).
+RUN --mount=type=bind,source=infra/csp-origins.sh,target=/tmp/csp-origins.sh \
+  sh /tmp/csp-origins.sh /etc/caddy/Caddyfile
 COPY --from=build /repo/apps/web/dist /srv

@@ -1,0 +1,22 @@
+# Security headers of the public instance (#507). Workers Static Assets applies them to every
+# response of apps/web/dist; infra/Caddyfile sends the same ones on self-hosted copies.
+#
+# __SUPABASE_ORIGINS__ is replaced when deploying (infra/csp-origins.sh, from deploy.yml) with the
+# Supabase project the build talks to: its https origin and the wss one of Realtime.
+#
+# script-src: the seven hashes are the inline scripts of the build, in this order: the theme
+# script of layouts/Base.astro, Astro's island runtime and its client:load, client:visible and
+# client:only directives, and the scripts of components/Nav.astro and components/tema/Outline.astro
+# (inlined because they are small). e2e/csp.spec.ts fails and prints the new hash whenever one of
+# them changes. https://static.cloudflareinsights.com is the Cloudflare Web Analytics beacon.
+# style-src 'unsafe-inline': KaTeX writes style="" attributes into every formula and Astro inlines
+# the island styles. font-src data:: KaTeX CSS embeds its smallest fonts as data: URLs.
+# connect-src blob:: the arm simulator reads the meshes of an imported URDF zip from object URLs.
+# https://cloudflareinsights.com receives the Web Analytics beacon.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-cCWmCM3DbhiyPyuyhjQnxKJaQ3IqZ6Dm6HE0SMDY5eU=' 'sha256-Ya0pUYrC7nM5Cn/056TyVuEiz6dFGrzmkWzgON0pF0U=' 'sha256-QzWFZi+FLIx23tnm9SBU4aEgx4x8DsuASP07mfqol/c=' 'sha256-Q2BPg90ZMplYY+FSdApNErhpWafg2hcRRbndmvxuL/Q=' 'sha256-eIXWvAmxkr251LJZkjniEK5LcPF3NkapbJepohwYRIc=' 'sha256-o6aOq8++0wzFOhSTe8dqUzau0DkWW5v7GLV76dEfzUs=' 'sha256-7F8hU+p4aOBW3/tjCf1lNaQ+38sKq3Eszy6b7TmMu5s=' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self' data:; connect-src 'self' __SUPABASE_ORIGINS__ blob: https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  X-Frame-Options: DENY
