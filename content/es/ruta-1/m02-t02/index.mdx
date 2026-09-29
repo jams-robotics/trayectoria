@@ -8,7 +8,7 @@ prerequisites: [ruta-1/m02-t01]
 objectives:
   - Distinguir la fricción estática de la cinética
   - Calcular la aceleración máxima sin patinar y la pendiente máxima
-  - Entender que la tracción limita al robot antes que el motor
+  - Comprobar con el torque de bloqueo que la tracción limita al robot antes que el motor
 widgets: [FreeBodyWidget, ExerciseWidget]
 requiredExercises: [e1, e2, e3]
 references: [young-freedman-5, serway-5]
@@ -130,15 +130,15 @@ masa ni el motor.
 </Explora>
 
 <AlRobot>
-El límite de tracción vale para cualquier motor; la pregunta es si tu robot llega a él. Sin
-deslizamiento, la aceleración que piden sus ruedas es a = α·r, la de
-[Movimiento uniformemente acelerado](/ruta/ruta-1/m01/t02), con α la aceleración angular máxima
-de la rueda y r su radio:
+La comparación es motor contra fricción. Al arrancar, con el eje parado, el motor entrega su
+torque de bloqueo τ_s; la reducción i y la eficiencia de la caja η_caja lo llevan a cada rueda, y
+las dos ruedas empujan al robot de masa m. La aceleración que el motor puede pedir a plena tensión
+desde el reposo es:
 
-<RobotFormula calc="ruta-1/m02-t02/acceleration" />
+<RobotFormula calc="ruta-1/m02-t02/motor-acceleration" />
 
-Si tu perfil de «Mi robot» no define α, el cálculo usa la del robot de referencia: α = 40 rad/s².
-Si no es un robot móvil, usa el robot de referencia completo.
+Si tu perfil de «Mi robot» no define el motor, el cálculo usa τ_s = 0.012 N·m y η_caja = 0.6 del
+robot de referencia. Si no es un robot móvil, usa el robot de referencia completo.
 
 El robot de referencia se apoya en dos ruedas motrices y una rueda loca. Con μₛ = 0.6 y la
 fracción β = 0.6 del peso sobre las ruedas motrices, su límite de tracción es:
@@ -148,13 +148,20 @@ fracción β = 0.6 del peso sobre las ruedas motrices, su límite de tracción e
   substituted="a_{max} = 0.6 \cdot 9.81\ \text{m/s}^2 \cdot 0.6 = 3.53\ \text{m/s}^2"
 />
 
-Con α = 40 rad/s² y r = 0.032 m, a = 1.28 m/s², menor que 3.53 m/s²: el robot de referencia no
-patina al arrancar. Compara tu a con 3.53 m/s². Si la supera, las ruedas patinan y el robot
-acelera como mucho a a_max, por mucho torque que tenga el motor.
+Con el robot de referencia, a_motor = 15.0 m/s², mucho mayor que a_max = 3.53 m/s². Manda la
+fricción, no el motor: si se le pide todo de golpe, el robot de referencia patina. Por mucho
+torque que tenga el motor, el robot acelera como mucho a a_max.
 
-El simulador de robot móvil no modela el deslizamiento: supone siempre a = α·r. Este cálculo dice
-hasta dónde es válido. Si tu a queda por encima de a_max, la rampa del simulador es más corta que
-la real.
+El simulador no modela el deslizamiento. Por eso no arranca con todo el torque: acelera las
+ruedas con la rampa α = 40 rad/s² guardada en el perfil, un parámetro de la simulación, no un
+dato del motor. Sin deslizamiento, a = α·r, como en
+[Movimiento uniformemente acelerado](/ruta/ruta-1/m01/t02):
+
+<RobotFormula calc="ruta-1/m02-t02/acceleration" />
+
+Si tu perfil no define α, el cálculo usa la del robot de referencia, 40 rad/s². Con el robot de
+referencia, a = 1.28 m/s², por debajo de a_max = 3.53 m/s²: el modelo sin deslizamiento vale.
+Comprueba que la rampa de tu perfil también queda por debajo de a_max.
 </AlRobot>
 
 <Verifica
