@@ -92,5 +92,7 @@ export async function signIn(email: string, password = E2E_PASSWORD): Promise<Te
 export async function joinGroup(client: TestClient, code: string): Promise<string> {
   const { data, error } = await client.rpc('join_group', { invite_code: code });
   if (error !== null) throw new Error(`join_group failed: ${error.message}`);
-  return typeof data === 'string' ? data : '';
+  // A refused code answers `null` since migration 0013 (#508).
+  if (typeof data !== 'string') throw new Error('join_group refused the code');
+  return data;
 }

@@ -119,13 +119,13 @@ describe('T1-3.2 «Al robot» calcs', () => {
   });
 
   it('take I_s from motor.stallCurrent_A of «Mi robot»', () => {
-    // 2·6·0.8 = 9.6 W; 11.1/9.6 = 1.156 h = 69.4 min.
+    // 2·6·0.8 = 9.60 W (padding zero kept, #653); 11.1/9.6 = 1.156 h = 69.4 min.
     const robot = withSupply(6, 11.1, 0.8);
     expect(electricalPower.compute(robot).substituted).toBe(
-      String.raw`P_{el} = 2 \cdot 6\ \text{V} \cdot 0.8\ \text{A} = 9.6\ \text{W}`,
+      String.raw`P_{el} = 2 \cdot 6\ \text{V} \cdot 0.8\ \text{A} = 9.60\ \text{W}`,
     );
     expect(autonomy.compute(robot).substituted).toBe(
-      String.raw`t_{\text{autonomía}} = \dfrac{11.1\ \text{Wh}}{9.6\ \text{W}}` +
+      String.raw`t_{\text{autonomía}} = \dfrac{11.1\ \text{Wh}}{9.60\ \text{W}}` +
         String.raw` = 1.16\ \text{h} = 69.4\ \text{min}`,
     );
   });

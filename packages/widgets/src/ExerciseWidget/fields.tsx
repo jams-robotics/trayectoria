@@ -4,9 +4,10 @@ import type { Translate } from '@trayectoria/i18n';
 /** Where a response is in its life cycle (docs/DESIGN.md §5, Ejercicio). */
 export type ExerciseStatus = 'pending' | 'checking' | 'correct' | 'incorrect';
 
-// Numeric field of docs/DESIGN.md §5: mono, tabular-nums, 40 px high, unit as a muted suffix.
+// Numeric field of docs/DESIGN.md §5: mono, tabular-nums, unit as a muted suffix; 44 px high, the
+// height of «Comprobar» next to it (#540).
 const FIELD_BASE =
-  'bg-bg text-fg h-10 w-12 rounded-sm border px-2 text-right font-mono text-sm tabular-nums';
+  'bg-bg text-fg h-[44px] w-12 rounded-sm border px-2 text-right font-mono text-sm tabular-nums';
 const FIELD_BORDER: Readonly<Record<ExerciseStatus | 'invalid', string>> = {
   pending: 'border-border',
   checking: 'border-border',
@@ -30,6 +31,9 @@ export interface AnswerFieldProps {
   count: number;
   value: string;
   unit: string;
+  /** i18n key naming what the field asks for (#629); without it a vector field shows its number. */
+  label?: string | undefined;
+  /** This field's own status: `incorrect` only when its component failed the check (#660). */
   status: ExerciseStatus;
   invalid: boolean;
   onChange: (value: string) => void;
@@ -42,28 +46,22 @@ export function AnswerField({
   count,
   value,
   unit,
+  label,
   status,
   invalid,
   onChange,
   t,
 }: AnswerFieldProps): JSX.Element {
-  const label =
-    count === 1
-      ? t('widgets.ExerciseWidget.answer', { unit })
-      : t('widgets.ExerciseWidget.component', { index: index + 1, unit });
+  const name = label === undefined ? undefined : t(label);
   return (
     <span className="flex items-center gap-1">
-      {count === 1 ? null : (
-        <span className="text-fg-muted font-mono text-xs">
-          {t('widgets.ExerciseWidget.componentShort', { index: index + 1 })}
-        </span>
-      )}
+      <FieldPrefix name={name} index={index} count={count} t={t} />
       <input
         type="text"
         inputMode="decimal"
         className={`${FIELD_BASE} ${FIELD_BORDER[invalid ? 'invalid' : status]}`}
         value={value}
-        aria-label={label}
+        aria-label={fieldLabel({ name, index, count, unit, t })}
         aria-invalid={invalid}
         disabled={status === 'checking'}
         onChange={(event) => {
@@ -73,6 +71,49 @@ export function AnswerField({
       {unit === '' ? null : <span className="text-fg-muted font-mono text-xs">{unit}</span>}
     </span>
   );
+}
+
+/** Text before a field: its label (#629), its number in a vector answer, nothing for a scalar. */
+function FieldPrefix({
+  name,
+  index,
+  count,
+  t,
+}: {
+  name: string | undefined;
+  index: number;
+  count: number;
+  t: Translate;
+}): JSX.Element | null {
+  if (name !== undefined) return <span className="text-fg-muted text-xs">{name}</span>;
+  if (count === 1) return null;
+  return (
+    <span className="text-fg-muted font-mono text-xs">
+      {t('widgets.ExerciseWidget.componentShort', { index: index + 1 })}
+    </span>
+  );
+}
+
+/** Accessible name of a field: «Aceleración en m/s²» with a label, else «Componente 1 en m/s». */
+function fieldLabel({
+  name,
+  index,
+  count,
+  unit,
+  t,
+}: {
+  name: string | undefined;
+  index: number;
+  count: number;
+  unit: string;
+  t: Translate;
+}): string {
+  if (name !== undefined) {
+    return unit === '' ? name : t('widgets.ExerciseWidget.labelled', { label: name, unit });
+  }
+  return count === 1
+    ? t('widgets.ExerciseWidget.answer', { unit })
+    : t('widgets.ExerciseWidget.component', { index: index + 1, unit });
 }
 
 /** Round glyph of the result, `success` or `error` (docs/DESIGN.md §5, Ejercicio). */

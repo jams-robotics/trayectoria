@@ -116,25 +116,26 @@ La distancia de frenado es Δx = v₀²/(2·|a|): depende del cuadrado de v₀. 
 </Explora>
 
 <AlRobot>
-Tu robot no arranca de golpe: el simulador acelera sus ruedas con una rampa de aceleración
-angular α (cuánto cambia ω por segundo, en rad/s²) guardada en tu perfil de «Mi robot». Es un
-parámetro de la simulación, no un límite del motor. Sin deslizamiento, la aceleración lineal del
-robot es a = α·r, con r el radio de la rueda:
+Tu robot no arranca de golpe: el simulador lo acelera con una rampa de aceleración
+constante a, guardada en tu perfil de «Mi robot». Es una elección del simulador, no un límite
+del motor. Aquí es un dato de tu perfil; de dónde sale:
+[Aceleración angular y centrípeta](/ruta/ruta-1/m02/t03).
 
 <RobotFormula calc="ruta-1/m01-t02/acceleration" />
 
-Si tu perfil de «Mi robot» no define α, o no es un robot móvil, el cálculo usa la del robot de
-referencia: α = 40 rad/s².
+Si tu perfil de «Mi robot» no guarda la rampa, el cálculo usa la del robot
+de referencia.
 
-Desde el reposo y con esa a, tu robot acelera hasta su velocidad lineal máxima v_max, la que
-calculaste en [Vectores](/ruta/ruta-1/m00/t02). De v = v₀ + a·t con v₀ = 0 sale el tiempo de la
-rampa, y de v² = v₀² + 2·a·Δx, la distancia Δx que avanza en ella:
+Desde el reposo y con esa a, tu robot acelera hasta su velocidad lineal máxima v_max, también
+dato de tu perfil; de dónde sale: [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04). De
+v = v₀ + a·t con v₀ = 0 sale el tiempo de la rampa, y de v² = v₀² + 2·a·Δx, la distancia Δx que
+avanza en ella:
 
 <RobotFormula calc="ruta-1/m01-t02/ramp-time" />
 
 <RobotFormula calc="ruta-1/m01-t02/ramp-distance" />
 
-Con el robot de referencia, a = 40·0.032 = 1.28 m/s². Llega a v_max = 0.670 m/s en 0.524 s y
+Con el robot de referencia, a = 1.28 m/s² y v_max = 0.670 m/s. Llega a v_max en 0.524 s y
 avanza 0.175 m. Frenar desde v_max con la misma |a| le cuesta otros 0.175 m.
 
 En una pista recta de 4 m, la rampa y el frenado ocupan 0.35 m. El resto del trayecto es

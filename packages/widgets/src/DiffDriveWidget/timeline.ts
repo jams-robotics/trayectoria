@@ -13,6 +13,8 @@ import type { FrameClock, SimulationDriver } from '../Scene2D/useSimulationDrive
 import type { Pose } from './compute';
 import { maneuverDuration_s, maneuverModel } from './maneuver';
 import type { ManeuverPlan } from './maneuver';
+import { sampledStart, sampledStep } from './odometry';
+import type { SampledState } from './odometry';
 
 /** Integration step of the simulation, in seconds (#92, decision 3). */
 export const DT_S = 0.01;
@@ -29,7 +31,7 @@ export type Path = ReadonlyArray<readonly [number, number]>;
  * The odometry of F2-09b replays them so the estimated trace opens as long as the real one
  * (#93, decision 4).
  */
-export type Preroll = readonly DiffDriveState[];
+export type Preroll = readonly SampledState[];
 
 /**
  * Pose the robot starts from and returns to on «Reiniciar» (#92, decision 6); its orientation is
@@ -42,9 +44,9 @@ export interface Timeline {
   /** Pose the scene draws: the integrated one, or the one the learner set while paused. */
   pose: Pose;
   t_s: number;
-  driver: SimulationDriver<DiffDriveState>;
+  driver: SimulationDriver<SampledState>;
   /** Playback actions that drop the manual pose before handing the time back to the driver. */
-  controls: Pick<SimulationDriver<DiffDriveState>, 'play' | 'step' | 'reset'>;
+  controls: Pick<SimulationDriver<SampledState>, 'play' | 'step' | 'reset'>;
   /** Path the robot has travelled since the last reset, in world metres. */
   trace_m: Path;
   /** Moves the robot while it is paused; ignored while it is running (#92, decision 6). */
@@ -56,7 +58,7 @@ export interface Timeline {
   /** Pauses and returns to `t = 0` and `(0, 0, θ₀)`: a change of the maneuver (#394). */
   restart: () => void;
   /** State of the model, which the odometry of F2-09b reads the encoder angles from. */
-  state: DiffDriveState;
+  state: SampledState;
   /** States the preroll went through, for an estimator that opens at `initialTime_s`. */
   preroll: Preroll;
 }
@@ -89,15 +91,16 @@ function useTrace(pose: Pose, t_s: number, preroll: Path): Path {
 /**
  * The model of sim-core with its initial state turned to `θ₀`. The orientation is read from the
  * ref on every `init`, so «Reiniciar» starts from the current `θ₀` without rebuilding the
- * simulation (#371).
+ * simulation (#371). Every step also latches the wheel angles at each sampling instant of the
+ * encoder velocity, so that estimate has a fixed `Δt` (#567).
  */
 function startingAt(
   model: Model<DiffDriveState, WheelCommand>,
   theta0: { readonly current: number },
-): Model<DiffDriveState, WheelCommand> {
+): Model<SampledState, WheelCommand> {
   return {
-    init: (seed) => ({ ...model.init(seed), theta_rad: theta0.current }),
-    step: (state, input, dt_s) => model.step(state, input, dt_s),
+    init: (seed) => sampledStart({ ...model.init(seed), theta_rad: theta0.current }),
+    step: (state, input, dt_s) => sampledStep(model.step(state, input, dt_s), state.sample, dt_s),
   };
 }
 
@@ -108,12 +111,12 @@ function useSim(
   command: WheelCommand,
   theta0: { readonly current: number },
   plan: { readonly current: ManeuverPlan | null },
-): { sim: Simulation<DiffDriveState, WheelCommand>; preroll: Path; states: Preroll } {
+): { sim: Simulation<SampledState, WheelCommand>; preroll: Path; states: Preroll } {
   // The preroll runs on the command the widget opens with; later ones arrive through `setInput`,
   // so this ref never makes the simulation rebuild when a slider moves.
   const opening = useRef(command);
   return useMemo(() => {
-    const sim = new Simulation<DiffDriveState, WheelCommand>(
+    const sim = new Simulation<SampledState, WheelCommand>(
       startingAt(maneuverModel(spec, plan), theta0),
       {
         dt_s: DT_S,
@@ -123,7 +126,7 @@ function useSim(
       },
     );
     const preroll: Array<readonly [number, number]> = [];
-    const states: DiffDriveState[] = [sim.state];
+    const states: SampledState[] = [sim.state];
     const steps = Math.round(initialTime_s / DT_S);
     const perSample = Math.round(TRACE_PERIOD_S / DT_S);
     for (let done = 0; done < steps; done += perSample) {
@@ -146,7 +149,7 @@ function poseOf(state: DiffDriveState): Pose {
  */
 function useTheta0(
   theta0: { current: number },
-  driver: SimulationDriver<DiffDriveState>,
+  driver: SimulationDriver<SampledState>,
   setManual: (next: (current: Pose | null) => Pose | null) => void,
 ): Pick<Timeline, 'theta0_rad' | 'setTheta0'> {
   const [theta0_rad, setTheta0_rad] = useState(theta0.current);
@@ -168,7 +171,7 @@ function useTheta0(
  * maneuver, once it ends at `t = T`, whichever comes first (#394).
  */
 function usePauseAt(
-  driver: SimulationDriver<DiffDriveState>,
+  driver: SimulationDriver<SampledState>,
   duration_s: number,
   maneuver: ManeuverPlan | null,
 ): void {
@@ -184,7 +187,7 @@ function usePauseAt(
  * `restart` is the «Reiniciar» a change of the maneuver triggers (#394).
  */
 function liveControls(
-  driver: SimulationDriver<DiffDriveState>,
+  driver: SimulationDriver<SampledState>,
   setManual: (next: Pose | null) => void,
 ): Pick<Timeline, 'controls' | 'restart'> {
   const live = (action: () => void) => () => {

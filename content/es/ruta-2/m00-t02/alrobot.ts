@@ -8,7 +8,10 @@ import type { RobotCalc } from '../../../index';
  * them with `<RobotFormula calc="ruta-2/m00-t02/center-sensor" />` and `…/left-sensor`.
  */
 
-/** Four significant figures, trailing zeros dropped: 1.278, 0.545, 1.266, 0.5658 (the spec). */
+/**
+ * Four significant figures for the global coordinates, those of the golden values 1.278, 1.266 and
+ * 0.5658, padding zeros kept (docs/CONTENT-STANDARDS.md §2.5, #653): 0.545 is written 0.5450.
+ */
 const SIGNIFICANT_FIGURES = 4;
 
 /** Pose of the hook and of the spec's reference values: (1.2 m, 0.5 m, 30°). */
@@ -44,12 +47,23 @@ function toGlobal_m(point_m: readonly [number, number]): [number, number] {
   return [POSE.x_m + c * point_m[0] - s * point_m[1], POSE.y_m + s * point_m[0] + c * point_m[1]];
 }
 
+/** A result: significant figures with their padding zeros, or the whole integer. */
 function format(value: number): string {
-  return String(Number(value.toPrecision(SIGNIFICANT_FIGURES)));
+  return Math.abs(value) < 10 ** SIGNIFICANT_FIGURES
+    ? value.toPrecision(SIGNIFICANT_FIGURES)
+    : Math.round(value).toString();
 }
 
-function column(point: readonly [number, number]): string {
-  return String.raw`\begin{pmatrix}${format(point[0])}\\${format(point[1])}\end{pmatrix}`;
+/**
+ * A datum (the pose of the hook, the point of the profile in {R}): written as it is, without
+ * floating-point noise such as 0.035000000000000003.
+ */
+function datum(value: number): string {
+  return String(Number(value.toPrecision(12)));
+}
+
+function column(point: readonly [number, number], write: (value: number) => string): string {
+  return String.raw`\begin{pmatrix}${write(point[0])}\\${write(point[1])}\end{pmatrix}`;
 }
 
 /** The transform of `point_m`, written with the numbers of the pose and of the point. */
@@ -57,9 +71,9 @@ function transform(point_m: readonly [number, number]) {
   return {
     latex: String.raw`\vec p_G = \vec p_{R,0} + R(\theta)\,\vec p_R`,
     substituted:
-      String.raw`\vec p_G = ${column([POSE.x_m, POSE.y_m])}\ \text{m}` +
-      String.raw` + R(${POSE.theta_deg}^\circ)\,${column(point_m)}\ \text{m}` +
-      String.raw` = ${column(toGlobal_m(point_m))}\ \text{m}`,
+      String.raw`\vec p_G = ${column([POSE.x_m, POSE.y_m], datum)}\ \text{m}` +
+      String.raw` + R(${POSE.theta_deg}^\circ)\,${column(point_m, datum)}\ \text{m}` +
+      String.raw` = ${column(toGlobal_m(point_m), format)}\ \text{m}`,
   };
 }
 

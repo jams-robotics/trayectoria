@@ -15,15 +15,6 @@ function uniqueEmail(prefix: string): string {
   return `${prefix}+${Date.now()}-${test.info().workerIndex}@example.com`;
 }
 
-/** Eight characters of the invite alphabet, unique per run: `invite_code` has a unique index. */
-function uniqueInviteCode(): string {
-  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  return Array.from(
-    { length: 8 },
-    () => alphabet[Math.floor(Math.random() * alphabet.length)] ?? 'A',
-  ).join('');
-}
-
 // Astro removes the `ssr` attribute of an island once React has hydrated it; typing before that
 // would be undone by hydration (controlled inputs start empty).
 async function openHydrated(page: Page, pathname: string): Promise<void> {
@@ -42,15 +33,16 @@ async function signInOnPage(page: Page, email: string): Promise<void> {
   await page.waitForURL('**/cuenta');
 }
 
-/** A teacher with one group; returns its invite code. */
+/** A teacher with one group; returns the invite code the database generated (#508). */
 async function teacherWithGroup(): Promise<string> {
   const teacher = await signUp('teacher', 'Docente E2E', uniqueEmail('unirse-teacher'));
-  const code = uniqueInviteCode();
-  const { error } = await teacher.client
+  const { data, error } = await teacher.client
     .from('groups')
-    .insert({ owner_id: teacher.userId, name: GROUP_NAME, invite_code: code });
+    .insert({ owner_id: teacher.userId, name: GROUP_NAME })
+    .select('invite_code')
+    .single();
   expect(error).toBeNull();
-  return code;
+  return data?.invite_code ?? '';
 }
 
 test('a student joins with the code, sees the group in /cuenta and leaves it', async ({ page }) => {

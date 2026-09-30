@@ -34,6 +34,20 @@ export function components_mps(v_mps: number, theta_deg: number): [number, numbe
   return [v_mps * Math.cos(theta_rad), v_mps * Math.sin(theta_rad)];
 }
 
+/**
+ * `a⃗′`: `a⃗` turned `θ` counterclockwise without changing its magnitude, with θ in degrees like
+ * the other helpers: `a′_x = a_x cosθ − a_y sinθ`, `a′_y = a_x sinθ + a_y cosθ` (box «Rotación
+ * de un vector por componentes», #560).
+ */
+export function rotated(a: readonly [number, number], theta_deg: number): [number, number] {
+  const theta_rad = degToRad(theta_deg);
+  const [ax, ay] = a;
+  return [
+    ax * Math.cos(theta_rad) - ay * Math.sin(theta_rad),
+    ax * Math.sin(theta_rad) + ay * Math.cos(theta_rad),
+  ];
+}
+
 /** `|v⃗| = √(vₓ² + v_y²)`, in the unit of the components. */
 export function magnitude(x: number, y: number): number {
   return Math.hypot(x, y);
@@ -87,7 +101,12 @@ export const e1 = defineExercise<Heading>({
       const theta_deg = rng.nextInt(10, 80);
       const answer = components_mps(v_mps, theta_deg);
       if (answer.every((component_mps) => component_mps >= MIN_RELATIVE_ANSWER)) {
-        return { values: { v_mps, theta_deg }, answer, unit: 'm/s' };
+        return {
+          values: { v_mps, theta_deg },
+          answer,
+          unit: 'm/s',
+          labels: [`${STATEMENT_PREFIX}.labels.e1.0`, `${STATEMENT_PREFIX}.labels.e1.1`],
+        };
       }
     }
   },
@@ -112,6 +131,7 @@ export const e2 = defineExercise<VelocityVector>({
       values: { a_mps, b_mps },
       answer: [magnitude(a_mps, b_mps), heading_deg(a_mps, b_mps)],
       unit: ['m/s', '°'],
+      labels: [`${STATEMENT_PREFIX}.labels.e2.0`, `${STATEMENT_PREFIX}.labels.e2.1`],
     };
   },
   statement: () => `${STATEMENT_PREFIX}.e2`,

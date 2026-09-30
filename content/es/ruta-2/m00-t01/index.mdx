@@ -38,7 +38,8 @@ Para la velocidad necesitas dos lecturas. Cuentas Δticks en un intervalo Δt y 
 v ≈ 2πr·Δticks/(N_e·Δt). Con los datos del gancho, ω ≈ 2π·45/(360·0.1) = 7.854 rad/s y
 v ≈ 7.854·0.032 = 0.2513 m/s.
 
-Esa velocidad es una derivada aproximada, como v = dx/dt estimada con un Δt finito. El encoder
+Esa velocidad es una derivada aproximada: la v = dx/dt de
+[La derivada como razón de cambio](/ruta/ruta-1/m00/t03), estimada con un Δt finito. El encoder
 solo da cuentas enteras, así que la velocidad estimada solo puede valer múltiplos de res/Δt. A
 alta velocidad hay muchos ticks por muestra y el salto de un tick casi no se nota. A baja
 velocidad caen pocos ticks por muestra: la lectura cambia en escalones y oscila alrededor del
@@ -79,8 +80,14 @@ enteros en cada rueda y estima la velocidad con la misma fórmula.
 
 <Explora>
 El robot avanza en línea recta durante 5 s con ω_L = ω_R = 7.85 rad/s, la velocidad del gancho.
+Las dos ruedas giran igual, así que el robot va recto a v = ω·r, como en
+[Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04), y aquí solo lees la velocidad estimada de
+cada rueda; qué hace el robot cuando sus ruedas giran distinto lo verás en
+[Cinemática directa del robot diferencial](/ruta/ruta-2/m01/t01).
 La vista muestra su trayectoria y la velocidad de cada rueda; el panel de odometría muestra los
-ticks de cada rueda y la velocidad estimada por los encoders junto a la real.
+ticks de cada rueda y la velocidad estimada por los encoders junto a la real. La estimada se
+calcula cada Δt = 0.1 s, el intervalo del gancho, que el panel muestra en su fila «Intervalo de
+muestreo».
 
 <DiffDriveWidget
   mode="odometry"
@@ -126,8 +133,8 @@ ruedas. Depende del radio r de la rueda y de los ticks N_e que da tu encoder por
 
 <RobotFormula calc="ruta-2/m00-t01/encoder-resolution" />
 
-Si «Mi robot» no define los pulsos de encoder por vuelta de tu perfil, el cálculo usa los del
-robot de referencia: N_e = 360. Si tu perfil no es un robot móvil, usa el robot de referencia completo.
+Si tu perfil de «Mi robot» no define los pulsos de encoder por vuelta, el cálculo usa los del
+robot de referencia: N_e = 360.
 
 Invirtiendo s = 2πr·ticks/N_e sale cuántos ticks cuenta tu encoder por cada metro que avanza el
 robot, con s = 1 m:

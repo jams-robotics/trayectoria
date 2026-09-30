@@ -11,7 +11,7 @@ objectives:
 - Cuantificar cómo un error de calibración crece con la distancia
 widgets: [DiffDriveWidget, ExerciseWidget]
 requiredExercises: [e1, e2, e3]
-references: [siegwart-3, siegwart-4]
+references: [siegwart-3, siegwart-5]
 status: published
 seoTitle: "Odometría: cómo sabe el robot dónde está con dos encoders"
 seoDescription: "Aprende a estimar la pose de un robot integrando las lecturas de sus encoders, y cómo un error de calibración crece con la distancia."
@@ -45,29 +45,30 @@ Con los ticks del gancho y el robot de referencia, Δs_L = 0.2234 m y Δs_R = 0.
 
 Cuarto, la acumulación. Cada paso se suma al anterior y ningún error se corrige. Si el radio real
 no es el que usa la odometría, cada metro estimado es algo más o algo menos que un metro real, y
-la diferencia crece sin límite con la distancia. Un error en L desvía el rumbo, y un rumbo
-desviado tuerce toda la posición que viene después. Por eso la odometría sola no basta: tarde o
+la diferencia crece sin límite con la distancia. Un error en L solo escala los giros Δθ: en una
+recta no se nota, pero en cuanto el robot gira desvía el rumbo, y un rumbo desviado tuerce toda la
+posición que viene después. Por eso la odometría sola no basta: tarde o
 temprano hace falta un sensor externo que corrija la pose.
 
 El simulador integra a la vez la pose real y la estimada con los ticks, y dibuja las dos.
 </Concepto>
 
 <Formulas>
-<Formula latex="\Delta s_L = \frac{2\pi r\,\Delta\text{ticks}_L}{N_e},\quad \Delta s_R = \frac{2\pi r\,\Delta\text{ticks}_R}{N_e}" />
+<Formula latex="\begin{aligned} \Delta s_L &= \frac{2\pi r\,\Delta\text{ticks}_L}{N_e}\\ \Delta s_R &= \frac{2\pi r\,\Delta\text{ticks}_R}{N_e} \end{aligned}" />
 
 - `Δs_L, Δs_R` · arco recorrido por cada rueda en un paso de odometría · m
 - `r` · radio de rueda · m
 - `Δticks` · ticks contados en un intervalo, por rueda · —
 - `N_e` · ticks del encoder por revolución · —
 
-<Formula latex="\Delta s = \frac{\Delta s_R + \Delta s_L}{2},\quad \Delta\theta = \frac{\Delta s_R - \Delta s_L}{L}" />
+<Formula latex="\begin{aligned} \Delta s &= \frac{\Delta s_R + \Delta s_L}{2}\\ \Delta\theta &= \frac{\Delta s_R - \Delta s_L}{L} \end{aligned}" />
 
 - `Δs` · avance del robot en un paso de odometría · m
 - `Δθ` · giro del robot en un paso de odometría · rad
 - `Δs_L, Δs_R` · arco recorrido por cada rueda en un paso de odometría · m
 - `L` · distancia entre ruedas · m
 
-<Formula latex="x \mathrel{+}= \Delta s\cos(\theta + \tfrac{\Delta\theta}{2}),\quad y \mathrel{+}= \Delta s\sin(\theta + \tfrac{\Delta\theta}{2}),\quad \theta \mathrel{+}= \Delta\theta" />
+<Formula latex="\begin{aligned} x &\mathrel{+}= \Delta s\cos(\theta + \tfrac{\Delta\theta}{2})\\ y &\mathrel{+}= \Delta s\sin(\theta + \tfrac{\Delta\theta}{2})\\ \theta &\mathrel{+}= \Delta\theta \end{aligned}" />
 
 - `(x, y, θ)` · pose del robot en el marco global \{G\} · m, m, rad
 - `Δs` · avance del robot en un paso de odometría · m
@@ -132,8 +133,8 @@ Desde la pose (0, 0, 0), con el ángulo medio del paso:
 
 <RobotFormula calc="ruta-2/m01-t03/pose" />
 
-Si tu perfil no define N_e, el cálculo usa el del robot de referencia, 360 ticks por vuelta; si no
-es un robot móvil, usa el robot de referencia completo. Con él, Δs_L = 0.2234 m, Δs_R = 0.2457 m,
+Si tu perfil no define N_e, el cálculo usa el del robot de referencia, 360 ticks por vuelta. Con
+el robot de referencia, Δs_L = 0.2234 m, Δs_R = 0.2457 m,
 Δs = 0.2346 m y Δθ = 0.1489 rad, y el robot queda en (0.2339 m, 0.01745 m, 0.1489 rad).
 
 Ahora, el error de calibración. La odometría convierte ticks en distancia con el r de tu perfil.
@@ -157,4 +158,4 @@ desviación del radio y a la distancia recorrida: en una pista de 20 m, el doble
   obligatorios={['e1', 'e2', 'e3']}
 />
 
-<Profundiza referencias={['siegwart-3', 'siegwart-4']} topicId="ruta-2/m01-t03" />
+<Profundiza referencias={['siegwart-3', 'siegwart-5']} topicId="ruta-2/m01-t03" />

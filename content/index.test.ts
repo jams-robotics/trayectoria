@@ -17,7 +17,7 @@ import type { RobotCalc } from './index';
  */
 const KEY_SHAPE = /^(?:ruta-\d+\/m\d{2}-t\d{2}|reserva\/[a-z0-9-]+)\/e\d+$/;
 
-/** Shape of every robot calc key: `<topicId>/<calcId>`, e.g. `ruta-1/m00-t01/omega-rueda`. */
+/** Shape of every robot calc key: `<topicId>/<calcId>`, e.g. `ruta-1/m00-t01/omega-motor`. */
 const CALC_KEY_SHAPE = /^(?:ruta-\d+\/m\d{2}-t\d{2}|reserva\/[a-z0-9-]+)\/[a-z0-9-]+$/;
 
 interface Wheel {
@@ -53,6 +53,20 @@ describe('EXERCISES', () => {
 
   it('files each exercise under its own id', () => {
     for (const [key, exercise] of EXERCISES) expect(key.endsWith(`/${exercise.id}`)).toBe(true);
+  });
+
+  it('names each field of a vector answer (#629)', () => {
+    let labelled = 0;
+    for (const [key, exercise] of EXERCISES) {
+      const { answer, labels } = exercise.generate(createRng(1));
+      if (!Array.isArray(answer)) continue;
+      const topicId = key.slice(0, key.lastIndexOf('/'));
+      expect(labels).toEqual(
+        answer.map((_, n) => `content.${topicId}.labels.${exercise.id}.${String(n)}`),
+      );
+      labelled += 1;
+    }
+    expect(labelled).toBe(19);
   });
 });
 
@@ -120,7 +134,7 @@ describe('ROBOT_CALCS', () => {
 
 describe('robotCalcKey', () => {
   it('joins the topic id and the calc id', () => {
-    expect(robotCalcKey('ruta-1/m00-t01', 'omega-rueda')).toBe('ruta-1/m00-t01/omega-rueda');
+    expect(robotCalcKey('ruta-1/m00-t01', 'omega-motor')).toBe('ruta-1/m00-t01/omega-motor');
   });
 });
 

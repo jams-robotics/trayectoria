@@ -11,10 +11,12 @@ import { ConfirmInline } from '../aula/MemberList';
 // docs/STANDARDS.md §4. It does not know where the tracks come from — the account or the
 // browser —: it takes the list and the two callbacks the page resolves in `useSavedTracks.ts`.
 
+// #552: the same cell as the other controls of the «Pista» grid: 44 px tall (`h-11` is 80 px on
+// the D-01 scale), full width of its cell, label centred.
 const BUTTON =
-  'border-border bg-bg-raised text-fg inline-flex h-11 items-center rounded-md border px-3 ' +
-  'text-sm font-semibold hover:border-fg-muted focus-visible:outline-color-focus ' +
-  'focus-visible:outline-2 focus-visible:outline-offset-2';
+  'border-border bg-bg-raised text-fg inline-flex h-[44px] w-full items-center justify-center ' +
+  'rounded-md border px-3 text-sm font-semibold hover:border-fg-muted ' +
+  'focus-visible:outline-color-focus focus-visible:outline-2 focus-visible:outline-offset-2';
 
 export interface MyTracksProps {
   /** The saved tracks, most recently saved first. */

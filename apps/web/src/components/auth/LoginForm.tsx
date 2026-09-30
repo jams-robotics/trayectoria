@@ -1,6 +1,6 @@
 import { signIn, signInWithOtp } from '@trayectoria/auth';
 import { useT } from '@trayectoria/i18n';
-import { useState, type JSX, type SubmitEvent } from 'react';
+import { useId, useState, type JSX, type SubmitEvent } from 'react';
 
 import {
   absoluteUrl,
@@ -35,18 +35,31 @@ interface MagicLinkButtonProps {
   readonly run: ReturnType<typeof useAuthAction>['run'];
 }
 
-/** The alternative to a password: a link sent to `email`, if it names an account. */
-function MagicLinkButton({ email, pending, run }: MagicLinkButtonProps): JSX.Element {
+/**
+ * The alternative to a password: a link sent to `email`, if it names an account. Until there is
+ * an email it is disabled, and a line under the buttons says so (#543).
+ */
+export function MagicLinkButton({ email, pending, run }: MagicLinkButtonProps): JSX.Element {
   const t = useT();
+  const hintId = useId();
+  const needsEmail = email === '';
   return (
-    <button
-      type="button"
-      disabled={pending || email === ''}
-      onClick={() => void run(() => signInWithOtp(email, absoluteUrl('/cuenta')), () => t('auth.login.magicLinkSent'))}
-      className={SECONDARY_BUTTON}
-    >
-      {t('auth.login.magicLink')}
-    </button>
+    <>
+      <button
+        type="button"
+        disabled={pending || needsEmail}
+        {...(needsEmail ? { title: t('auth.login.magicLinkHint'), 'aria-describedby': hintId } : {})}
+        onClick={() => void run(() => signInWithOtp(email, absoluteUrl('/cuenta')), () => t('auth.login.magicLinkSent'))}
+        className={SECONDARY_BUTTON}
+      >
+        {t('auth.login.magicLink')}
+      </button>
+      {needsEmail ? (
+        <p id={hintId} className="text-fg-muted w-full text-sm" data-testid="magic-link-hint">
+          {t('auth.login.magicLinkHint')}
+        </p>
+      ) : null}
+    </>
   );
 }
 

@@ -2,16 +2,17 @@
   "meta": {
     "title": "{{title}} · Trayectoria",
     "siteName": "Trayectoria · De la física al robot",
-    "description": "Trayectoria · De la física al robot. Ruta abierta y en español para estudiantes de ingeniería: cada tema termina en un cálculo con tu robot y en un simulador en el navegador."
+    "description": "Trayectoria · De la física al robot. Dos rutas abiertas y en español para estudiantes de ingeniería: cada tema termina en un cálculo con tu robot y en un simulador en el navegador."
   },
   "nav": {
     "main": "Principal",
     "home": "Inicio",
-    "route": "Ruta",
+    "route": "Rutas",
     "simulators": "Simuladores",
     "arms": "Brazos",
     "account": "Cuenta",
-    "menu": "Menú"
+    "menu": "Menú",
+    "close": "Cerrar"
   },
   "theme": {
     "toggle": "Cambiar entre tema claro y oscuro"
@@ -27,25 +28,14 @@
   },
   "home": {
     "title": "Inicio",
-    "eyebrow": "Física · Matemática · Mecánica → Robótica",
-    "headline": "Aprende la teoría manipulándola, y aplícala a un robot que puedes simular.",
-    "lead": "Una ruta de 7 módulos para ingeniería. Cada tema termina en tu robot: primero un móvil 2D, después un brazo articulado.",
+    "eyebrow": "Trayectoria · De la física al robot",
+    "headline": "La física de tu robot, explicada con tu robot.",
+    "lead": "Ruta abierta y en español para estudiantes de ingeniería que construyen su primer robot móvil. Cada tema termina en un cálculo con tu robot y en un simulador que corre en tu navegador. Sin cuenta para empezar.",
     "startRoute": "Empezar la ruta",
-    "openSimulators": "Abrir simuladores",
+    "tryTopic": "Prueba un tema en 3 minutos",
     "tagline": "Open source · en español · sin cuenta para empezar",
     "route": {
-      "title": "La ruta",
-      "topicCount": "{{topics}} temas",
-      "robot": "Tu robot, simulado y controlado"
-    },
-    "modules": {
-      "tools": "Herramientas",
-      "particleKinematics": "Cinemática de la partícula",
-      "dynamics": "Dinámica",
-      "energy": "Energía y motor",
-      "rotation": "Rotación",
-      "differentialRobot": "Robot diferencial",
-      "lineFollower": "Seguidor de línea"
+      "topicCount": "{{topics}} temas"
     },
     "features": {
       "widgets": {
@@ -58,8 +48,12 @@
       },
       "myRobot": {
         "title": "Mi robot, de principio a fin",
-        "text": "Los parámetros que defines en el módulo 0 (masa, radio de rueda, sensores) acompañan cada ejercicio y simulación."
+        "text": "Los parámetros que defines en el primer tema (masa, radio de rueda, sensores) acompañan cada ejercicio y simulación de las dos rutas."
       }
+    },
+    "rigor": {
+      "text": "Cada tema se contrasta con la bibliografía universitaria y pasa auditorías de física, matemática y robótica.",
+      "link": "Los hallazgos y sus correcciones son públicos."
     },
     "teachers": {
       "eyebrow": "Para docentes",
@@ -70,17 +64,25 @@
     "thread": {
       "eyebrow": "El hilo de la ruta",
       "title": "Cada tema termina en tu robot",
-      "text": "Los 28 temas cierran con la sección «Al robot»: el mismo concepto, calculado con los datos de tu perfil «Mi robot». En el módulo 6 ese perfil es el robot que simulas y controlas.",
-      "moduleLabel": "M{{number}}",
+      "text": "Los 25 temas cierran con la sección «Al robot»: el mismo concepto, calculado con los datos de tu perfil «Mi robot», y cada uno añade un dato nuevo. En Robot móvil ese perfil es el robot que simulas y controlas, y el proyecto final usa un número de cada módulo de las dos rutas.",
+      "moduleLabel": "{{route}} · M{{number}}",
       "ideas": {
-        "tools": "Convertir rpm a rad/s, descomponer vectores y leer la velocidad como la pendiente de una gráfica x–t.",
-        "particleKinematics": "Posición, velocidad y aceleración en recta y en el plano: distancia de frenado, caída libre y tiro parabólico.",
-        "dynamics": "Las fuerzas sobre el robot: diagrama de cuerpo libre, la fricción que limita la tracción y el torque que llega a la rueda.",
-        "energy": "Trabajo, energía y potencia: cuánto pide el motor y cuánta autonomía da la batería.",
-        "rotation": "Del motor al suelo: v = ω·r, la reducción y los encoders que cuentan cuánto gira cada rueda.",
-        "differentialRobot": "De dos ruedas a la pose (x, y, θ): cinemática directa e inversa, odometría y por qué el robot no avanza de lado.",
-        "lineFollower": "El sensor de línea y el control on/off, P y PID, hasta que tu robot completa la pista."
+        "ruta1": {
+          "m00": "Convertir rpm a rad/s, descomponer y girar vectores, y leer la velocidad como la pendiente de una gráfica x–t.",
+          "m01": "Movimiento en recta, con velocidad constante y con aceleración, y en círculo, hasta la velocidad del robot: v = ω·r.",
+          "m02": "Las fuerzas sobre el robot: diagrama de cuerpo libre, la fricción que limita la tracción y la curva, y el torque que la reducción lleva a la rueda.",
+          "m03": "Trabajo, energía y potencia; la recta del motor de corriente continua y cuánta autonomía da la batería."
+        },
+        "ruta2": {
+          "m00": "Los encoders que cuentan cuánto gira cada rueda y los marcos que dicen dónde está el robot y hacia dónde mira.",
+          "m01": "De dos ruedas a la pose (x, y, θ): cinemática directa e inversa, odometría y por qué el robot no avanza de lado.",
+          "m02": "El sensor de línea y el control on/off, P y PID, hasta que tu robot completa la pista con un número de cada módulo."
+        }
       }
+    },
+    "demo": {
+      "label": "Simulador del seguidor de línea en modo demostración",
+      "open": "Abrir el simulador"
     }
   },
   "notFound": {
@@ -88,7 +90,7 @@
     "eyebrow": "Error 404",
     "body": "La dirección no corresponde a ningún tema, simulador ni página de Trayectoria. Puede que el enlace esté mal escrito o que la página todavía no exista.",
     "home": "Ir al inicio",
-    "route": "Ver la ruta"
+    "route": "Ver las rutas"
   },
   "catalog": {
     "title": "Brazos",
@@ -162,13 +164,22 @@
       "why": "¿Por qué?",
       "answer": "Ver la respuesta"
     },
-    "references": "Referencias"
+    "references": "Referencias",
+    "closing": {
+      "title": "Lo que te llevas",
+      "exercises": "Ejercicios: {{correct}} de {{total}} correctos",
+      "next": "Siguiente: {{title}}",
+      "continueRoute": "Continuar con la ruta {{title}}",
+      "routeIndex": "Ver el índice de la ruta {{title}}",
+      "saveHint": "Con una cuenta, tu progreso se guarda.",
+      "register": "Crear una cuenta"
+    }
   },
   "teachersPage": {
     "title": "Trayectoria en clase",
     "description": "Cómo usar Trayectoria en clase: temas, modo aula y catálogo de robots.",
     "eyebrow": "Para docentes",
-    "lead": "28 temas con widgets y dos simuladores que corren en el navegador. Proyectas el tema, el grupo mueve los mismos parámetros y tú ves su avance por tema.",
+    "lead": "25 temas en dos rutas, con widgets y dos simuladores que corren en el navegador. Proyectas el tema, el grupo mueve los mismos parámetros y tú ves su avance por tema.",
     "classroom": {
       "title": "Cómo usarla en clase",
       "steps": {
@@ -177,7 +188,7 @@
         "exercises": "Deja Verifica al grupo. Cada tema tiene de 3 a 5 ejercicios numéricos, con tolerancia del 2 % y sin límite de intentos.",
         "robot": "Cierra en el simulador. Con su perfil «Mi robot», cada estudiante simula su propio robot."
       },
-      "route": "Ver la ruta completa"
+      "route": "Ver las rutas"
     },
     "aula": {
       "title": "Modo aula",
@@ -206,7 +217,7 @@
     "lead": "El código vive en GitHub y todo cambio parte de un issue. La regla número uno: si no está en la documentación del repositorio, no existe.",
     "content": {
       "title": "Contenido",
-      "text": "Los 28 temas siguen una especificación fija y unos estándares de contenido publicados en el repositorio. Si encuentras un error en uno, repórtalo con la plantilla de reporte; no hace falta cuenta de GitHub.",
+      "text": "Los 25 temas siguen una especificación fija y unos estándares de contenido publicados en el repositorio. Si encuentras un error en uno, repórtalo con la plantilla de reporte; no hace falta cuenta de GitHub.",
       "report": "Abrir la plantilla de reporte"
     },
     "robots": {
@@ -260,7 +271,7 @@
     "making": {
       "title": "Cómo se hizo y cómo se revisa",
       "ai": "El contenido y el código se escribieron con ayuda de modelos de IA (Claude, de Anthropic), bajo la dirección y la revisión de Jaime Torres.",
-      "sources": "Cada uno de los 28 temas se contrasta con la bibliografía universitaria que cita en su sección «Profundiza».",
+      "sources": "Cada uno de los 25 temas se contrasta con la bibliografía universitaria que cita en su sección «Profundiza».",
       "audits": "En septiembre de 2026 se auditaron el contenido (física, matemática y robótica), la experiencia de uso y la seguridad. Esas auditorías las hicieron agentes de IA con el rol de revisores, no personas externas.",
       "findings": "Cada hallazgo es un issue público en GitHub y se cierra a la vista de todos.",
       "contentIssues": "Hallazgos de contenido",
@@ -273,7 +284,7 @@
     },
     "scope": {
       "title": "Qué incluye la versión 1",
-      "route": "La ruta 1, De la física al robot móvil: 28 temas en 7 módulos.",
+      "route": "Dos rutas encadenadas: Fundamentos, física y matemática para robots (14 temas en 4 módulos), y Robot móvil, del encoder a la pista (11 temas en 3 módulos).",
       "mobile": "Un simulador móvil 2D: robot diferencial, pista editable con 4 pistas prediseñadas, sensores de línea y controladores on/off, P y PID.",
       "arm": "Un simulador de brazo 3D: carga URDF, cinemática directa, marcos, matrices y espacio de trabajo.",
       "accounts": "Cuentas, progreso, perfil «Mi robot» y robots guardados.",
@@ -299,7 +310,7 @@
     },
     "future": {
       "title": "Qué viene",
-      "text": "La versión 1 cubre la primera ruta. El plan del proyecto deja para versiones posteriores: nuevas rutas (el brazo robot, control, sensores y estimación, electrónica y automatización); cinemática inversa y un motor de física; que el estudiante escriba el código que controla su robot; un asistente que arme el modelo del brazo a partir de sus medidas; y la plataforma en español e inglés."
+      "text": "La versión 1 cubre las dos primeras rutas, Fundamentos y Robot móvil. El plan del proyecto deja para versiones posteriores: nuevas rutas (el brazo robot, control, sensores y estimación, electrónica y automatización); cinemática inversa y un motor de física; que el estudiante escriba el código que controla su robot; un asistente que arme el modelo del brazo a partir de sus medidas; y la plataforma en español e inglés."
     },
     "privacy": {
       "title": "Privacidad",

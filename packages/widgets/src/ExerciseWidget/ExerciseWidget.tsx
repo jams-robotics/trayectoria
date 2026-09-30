@@ -8,11 +8,15 @@ import type { ExerciseStatus } from './fields';
 import { unitAt, useExercise } from './state';
 import type { ExerciseState } from './state';
 
-// Button of docs/DESIGN.md §5: primary while the response is pending, ghost once it is correct.
+// Button of docs/DESIGN.md §5, 44 px like its field: primary while the response is pending, ghost
+// once it is correct (#540).
 const BUTTON =
-  'h-11 rounded-md border px-4 text-sm font-semibold transition-colors duration-[120ms]';
+  'h-[44px] rounded-md border px-4 text-sm font-semibold transition-colors duration-[120ms]';
 const PRIMARY = `${BUTTON} border-primary bg-primary text-primary-fg hover:bg-primary-hover`;
 const GHOST = `${BUTTON} text-fg-muted hover:text-fg border-border bg-transparent`;
+// «Nuevos valores»: tertiary, a borderless ghost at the end of the answer row (#540).
+const TERTIARY =
+  'text-fg-muted hover:text-fg ml-auto h-[44px] rounded-md px-3 text-sm font-semibold underline-offset-4 transition-colors duration-[120ms] hover:underline';
 
 export interface ExerciseWidgetProps<V> {
   exercise: Exercise<V>;
@@ -73,7 +77,24 @@ function PrecisionNote({ t }: { t: Translate }): JSX.Element {
   );
 }
 
-/** One numeric field per answer component, «Comprobar» and the result (docs/DESIGN.md §5). */
+/**
+ * This field's own status: with a per-component verdict, a field marks `incorrect` only when its
+ * own component failed, and the passing ones stay `correct` (#660). Without one — pending,
+ * checking, invalid shape — every field shares the row's status, as before.
+ */
+function fieldStatus(
+  status: ExerciseStatus,
+  componentCorrect: readonly boolean[] | undefined,
+  position: number,
+): ExerciseStatus {
+  if (status !== 'incorrect' || componentCorrect === undefined) return status;
+  return componentCorrect[position] === false ? 'incorrect' : 'correct';
+}
+
+/**
+ * One numeric field per answer component, «Comprobar», the result and, at the end of the same
+ * row, «Nuevos valores» as a tertiary action (docs/DESIGN.md §5, #540).
+ */
 function AnswerRow({ state, t }: { state: ExerciseState; t: Translate }): JSX.Element {
   const status: ExerciseStatus = state.status;
   return (
@@ -85,7 +106,8 @@ function AnswerRow({ state, t }: { state: ExerciseState; t: Translate }): JSX.El
           count={state.values.length}
           value={value}
           unit={unitAt(state.unit, position)}
-          status={status}
+          label={state.labels?.[position]}
+          status={fieldStatus(status, state.componentCorrect, position)}
           invalid={state.invalid}
           t={t}
           onChange={(next) => {
@@ -102,6 +124,9 @@ function AnswerRow({ state, t }: { state: ExerciseState; t: Translate }): JSX.El
         {t('widgets.ExerciseWidget.verify')}
       </button>
       <ResultLine status={status} relativeError={state.relativeError} t={t} />
+      <button type="button" className={TERTIARY} onClick={state.regenerate}>
+        {t('widgets.ExerciseWidget.regenerate')}
+      </button>
     </div>
   );
 }
@@ -145,9 +170,6 @@ export function ExerciseWidget<V>({
           </span>
         </p>
       ) : null}
-      <button type="button" className={`${GHOST} mt-4`} onClick={state.regenerate}>
-        {t('widgets.ExerciseWidget.regenerate')}
-      </button>
       <p className="sr-only" role="status" aria-live="polite">
         {announcement(state, t)}
       </p>

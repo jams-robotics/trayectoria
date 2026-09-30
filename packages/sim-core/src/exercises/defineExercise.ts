@@ -20,6 +20,12 @@ export interface GeneratedExercise<V> {
    * magnitude and an angle); its length is checked against the answer by `check`.
    */
   readonly unit: string | readonly string[];
+  /**
+   * Optional i18n keys, one per component of a vector answer, naming what each field asks for
+   * (`content.<topicId>.labels.<exerciseId>.<n>`, #629). Without them the UI numbers the fields.
+   * Its length is checked against the answer by `check`.
+   */
+  readonly labels?: readonly string[];
 }
 
 /** A pure, seed-driven exercise. The UI and progress persistence live outside `sim-core`. */

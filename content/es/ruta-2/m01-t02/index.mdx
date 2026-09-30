@@ -4,7 +4,7 @@ title: 'Cinemática inversa del robot diferencial'
 module: 1
 order: 2
 estimatedMinutes: 30
-prerequisites: [ruta-2/m01-t01]
+prerequisites: [ruta-2/m01-t01, ruta-1/m01-t03, ruta-1/m01-t04]
 objectives:
   - Obtener las velocidades de rueda para una v y ω deseadas
   - Verificar el comando contra el límite del motor
@@ -119,18 +119,17 @@ Para el comando del gancho, v = 0.4 m/s y ω = 1.5 rad/s, las ruedas de tu robot
 
 <RobotFormula calc="ruta-2/m01-t02/wheel-left" />
 
-Antes de mandar el comando, compáralo con la velocidad angular máxima de tus ruedas, ω_max, que
-sale de las rpm del motor y de la reducción de tu perfil:
+Antes de mandar el comando, compáralo con la velocidad angular máxima de tus ruedas, ω_max, la que
+calculaste en [Movimiento circular y velocidad angular](/ruta/ruta-1/m01/t03):
 
 <RobotFormula calc="ruta-2/m01-t02/feasibility" />
-
-Si tu perfil de «Mi robot» no es un robot móvil, los cálculos usan el robot de referencia.
 
 Con el robot de referencia, ω_R = 16.02 rad/s y ω_L = 8.98 rad/s, las dos por debajo de
 ω_max = 20.94 rad/s: el comando es realizable.
 
 Pide ahora algo más rápido: v = 0.6 m/s y ω = 2 rad/s. La rueda exterior necesita
-v_R = 0.6 + 2·0.15/2 = 0.75 m/s, y ninguna rueda pasa de v_max = ω_max·r:
+v_R = 0.6 + 2·0.15/2 = 0.75 m/s, y ninguna rueda pasa de v_max = ω_max·r, la que calculaste en
+[Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04):
 
 <RobotFormula calc="ruta-2/m01-t02/fast-command" />
 

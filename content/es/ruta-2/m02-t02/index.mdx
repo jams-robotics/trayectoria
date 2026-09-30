@@ -4,7 +4,7 @@ title: 'Control on/off y proporcional'
 module: 2
 order: 2
 estimatedMinutes: 35
-prerequisites: [ruta-2/m02-t01, ruta-2/m01-t02]
+prerequisites: [ruta-2/m02-t01, ruta-2/m01-t02, ruta-1/m03-t03, ruta-1/m01-t03]
 objectives:
   - Cerrar el lazo, de la posición de la línea a los comandos de rueda
   - Entender por qué el control on/off oscila
@@ -144,7 +144,7 @@ u_0 = 4 rad/s). Por eso on/off va al final.
 Vuelve al gancho con tu robot. Con K_p = 8 y e = 0.4, la acción de control es u = 3.2 rad/s, y con
 ω_base = 15 rad/s los comandos de rueda son:
 
-<Formula latex="\omega_L = 15 + 3.2 = 18.2\ \text{rad/s},\quad \omega_R = 15 - 3.2 = 11.8\ \text{rad/s}" />
+<Formula latex="\begin{aligned} \omega_L &= 15 + 3.2 = 18.2\ \text{rad/s}\\ \omega_R &= 15 - 3.2 = 11.8\ \text{rad/s} \end{aligned}" />
 
 Estos comandos no dependen de tu robot. La velocidad angular que producen sí, porque depende del
 radio de rueda r y de la distancia entre ruedas L de tu perfil de «Mi robot»:
@@ -153,14 +153,13 @@ radio de rueda r y de la distancia entre ruedas L de tu perfil de «Mi robot»:
 
 Con el robot de referencia, ω = −1.365 rad/s: gira a la derecha, hacia la línea.
 
-La ganancia máxima sin saturar depende de ω_max, que sale de las rpm del motor y de la reducción
-de tu perfil. Con ω_base = 15 rad/s y |e|_max = 1:
+La ganancia máxima sin saturar depende de ω_max, la que calculaste en
+[Movimiento circular y velocidad angular](/ruta/ruta-1/m01/t03). Con ω_base = 15 rad/s y |e|_max = 1:
 
 <RobotFormula calc="ruta-2/m02-t02/kp-max" />
 
-Si tu perfil no es un robot móvil, los dos cálculos usan el robot de referencia. Si su ω_max no
-supera ω_base = 15 rad/s, ninguna K_p positiva evita saturar y el cálculo de K_p máxima también
-usa el robot de referencia.
+Si el ω_max de tu perfil no supera ω_base = 15 rad/s, ninguna K_p positiva evita saturar y el
+cálculo de K_p máxima usa el robot de referencia.
 
 Con el robot de referencia, K_p ≤ 5.94. El K_p = 8 de Explora la supera: con la línea en el borde
 del arreglo, la rueda rápida pediría 15 + 8 = 23 rad/s, más de los 20.94 rad/s que da. La rueda solo satura

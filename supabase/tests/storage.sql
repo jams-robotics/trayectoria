@@ -21,43 +21,43 @@ insert into auth.users (id, email, raw_user_meta_data) values
 
 -- C already has an object in their folder.
 insert into storage.objects (bucket_id, name)
-values ('urdf', '00000000-0000-4000-8000-00000000000c/arm.urdf');
+values ('urdf', '00000000-0000-4000-8000-00000000000c/00000000-0000-4000-8000-0000000000f1.zip');
 
 set local role authenticated;
 select pg_temp.act_as('00000000-0000-4000-8000-00000000000b');
 
 select lives_ok(
   $$ insert into storage.objects (bucket_id, name)
-     values ('urdf', '00000000-0000-4000-8000-00000000000b/robot.urdf') $$,
+     values ('urdf', '00000000-0000-4000-8000-00000000000b/00000000-0000-4000-8000-0000000000f1.zip') $$,
   'a user uploads into their own folder'
 );
 select throws_ok(
   $$ insert into storage.objects (bucket_id, name)
-     values ('urdf', '00000000-0000-4000-8000-00000000000c/robot.urdf') $$,
+     values ('urdf', '00000000-0000-4000-8000-00000000000c/00000000-0000-4000-8000-0000000000f1.zip') $$,
   '42501',
   null,
   'a user cannot upload into another user''s folder'
 );
 select throws_ok(
-  $$ insert into storage.objects (bucket_id, name) values ('urdf', 'robot.urdf') $$,
+  $$ insert into storage.objects (bucket_id, name) values ('urdf', '00000000-0000-4000-8000-0000000000f1.zip') $$,
   '42501',
   null,
   'a user cannot upload outside a user folder'
 );
 select results_eq(
   $$ select name from storage.objects where bucket_id = 'urdf' $$,
-  $$ values ('00000000-0000-4000-8000-00000000000b/robot.urdf') $$,
+  $$ values ('00000000-0000-4000-8000-00000000000b/00000000-0000-4000-8000-0000000000f1.zip') $$,
   'a user reads only the objects in their own folder'
 );
 select is_empty(
-  $$ select * from storage.objects where name = '00000000-0000-4000-8000-00000000000c/arm.urdf' $$,
+  $$ select * from storage.objects where name = '00000000-0000-4000-8000-00000000000c/00000000-0000-4000-8000-0000000000f1.zip' $$,
   'a user cannot read an object in another user''s folder'
 );
 
 -- The own row passes `using`, so the move is rejected by `with check` instead of filtered out.
 select throws_ok(
-  $$ update storage.objects set name = '00000000-0000-4000-8000-00000000000c/robot.urdf'
-     where name = '00000000-0000-4000-8000-00000000000b/robot.urdf' $$,
+  $$ update storage.objects set name = '00000000-0000-4000-8000-00000000000c/00000000-0000-4000-8000-0000000000f1.zip'
+     where name = '00000000-0000-4000-8000-00000000000b/00000000-0000-4000-8000-0000000000f1.zip' $$,
   '42501',
   null,
   'a user cannot move their object into another user''s folder'
@@ -71,7 +71,7 @@ select is_empty(
   'anon reads no objects'
 );
 select throws_ok(
-  $$ insert into storage.objects (bucket_id, name) values ('urdf', 'anon.urdf') $$,
+  $$ insert into storage.objects (bucket_id, name) values ('urdf', '00000000-0000-4000-8000-0000000000f1.zip') $$,
   '42501',
   null,
   'anon cannot upload'
@@ -80,8 +80,8 @@ select throws_ok(
 reset role;
 select results_eq(
   $$ select name from storage.objects where bucket_id = 'urdf' order by name $$,
-  $$ values ('00000000-0000-4000-8000-00000000000b/robot.urdf'),
-            ('00000000-0000-4000-8000-00000000000c/arm.urdf') $$,
+  $$ values ('00000000-0000-4000-8000-00000000000b/00000000-0000-4000-8000-0000000000f1.zip'),
+            ('00000000-0000-4000-8000-00000000000c/00000000-0000-4000-8000-0000000000f1.zip') $$,
   'the own object was not moved into the other user''s folder'
 );
 select results_eq(

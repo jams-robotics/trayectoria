@@ -11,7 +11,7 @@ objectives:
   - Relacionar la velocidad máxima en curva con la fricción
 widgets: [RotationWidget, ExerciseWidget]
 requiredExercises: [e1, e2, e3]
-references: [young-freedman-9, serway-10]
+references: [young-freedman-9, young-freedman-5, serway-10]
 status: published
 seoTitle: "Aceleración centrípeta: qué tan rápido puede girar tu robot"
 seoDescription: "Aprende a calcular la aceleración angular y centrípeta de un robot en curva, y su relación con la velocidad máxima y la fricción."
@@ -40,19 +40,20 @@ rueda no desliza, es también la aceleración con la que avanza el robot.
 En una curva, aunque la rapidez sea constante, la velocidad cambia de dirección. Ese cambio es
 una aceleración que apunta hacia el centro de la curva: la **aceleración centrípeta**,
 a_c = v²/R, con R el radio de giro. Como el robot recorre la curva con v = ω·R, también
-a_c = ω²·R. Con los datos del gancho, a_c = 0.6²/0.5 = 0.72 m/s².
+a_c = ω²·R. Ojo: esta ω es la velocidad angular del robot alrededor del centro de la curva, no
+la ω_rueda con la que giran sus ruedas. Con los datos del gancho, a_c = 0.6²/0.5 = 0.72 m/s².
 
 Esa aceleración la provee la fricción entre las ruedas y el suelo. Con todo el peso sobre ruedas
 que agarran, la fricción estática tiene un máximo, μₛ·m·g; dividido entre la masa, la mayor
 aceleración centrípeta posible es μₛ·g. Igualando v²/R = μₛ·g sale la rapidez máxima en curva sin
 patinar, v_max,curva = √(μₛ·g·R). Por encima de ella, el robot derrapa hacia fuera de la curva.
 
-Si tu robot lleva una rueda loca, esa rueda no aporta fuerza lateral. Como en
+Si el robot lleva una rueda loca, esa rueda no aporta fuerza lateral. Como en
 [Fricción](/ruta/ruta-1/m02/t02), solo la fracción β del peso sobre las ruedas motrices da
 fricción, y el límite baja a v_max,curva = √(μₛ·β·g·R).
 
-La aceleración angular α con la que tu rueda arranca en el simulador es la rampa guardada en el
-perfil de «Mi robot»: un parámetro de la simulación, no un límite del motor.
+La aceleración angular α con la que las ruedas arrancan en el simulador es la rampa guardada en
+el perfil de «Mi robot»: un parámetro de la simulación, no un límite del motor.
 </Concepto>
 
 <Formulas>
@@ -79,7 +80,7 @@ perfil de «Mi robot»: un parámetro de la simulación, no un límite del motor
 
 - `a_c` · aceleración centrípeta · m/s²
 - `v` · rapidez · m/s
-- `ω` · velocidad angular · rad/s
+- `ω` · velocidad angular del robot en la curva (no la de sus ruedas) · rad/s
 - `R` · radio de giro · m
 
 <Formula latex="v_{max,curva} = \sqrt{\mu_s g R}" />
@@ -136,32 +137,31 @@ su longitud también se duplica.
 </Explora>
 
 <AlRobot>
-Tu robot no alcanza su velocidad de golpe: el simulador acelera las ruedas con la rampa de
-aceleración angular α de tu perfil de «Mi robot», un parámetro de la simulación, no un límite del
-motor. Si tu perfil no la indica, se usa la del robot de referencia, 40 rad/s². Con el radio r de
-tu rueda, el borde, y el robot entero si la rueda no desliza, acelera a:
+Tu robot no alcanza su velocidad de golpe. En
+[Movimiento uniformemente acelerado](/ruta/ruta-1/m01/t02) viste como dato de tu perfil de
+«Mi robot» su rampa de arranque a, la que también usaron
+[Leyes de Newton y diagrama de cuerpo libre](/ruta/ruta-1/m02/t01) y
+[Fricción](/ruta/ruta-1/m02/t02). Ahora sabes de dónde sale: el simulador acelera las ruedas con
+la aceleración angular α de tu perfil, su «Aceleración angular máxima», y sin deslizamiento el
+robot avanza con la aceleración tangencial del borde, a = a_t = α·r. Es una elección del
+simulador, no un límite del motor. Con el robot de referencia, a = 40·0.032 = 1.28 m/s², la
+rampa que ya tienes en «Mi robot».
 
-<RobotFormula calc="ruta-1/m02-t03/tangential-accel" />
-
-Si tu perfil de «Mi robot» no es un robot móvil, los cálculos usan el robot de referencia.
-
-La pista preset tiene una curva cerrada de R = 0.15 m. Con μₛ = 0.6 entre ruedas y suelo y la
+La pista «Curvas cerradas» tiene curvas de R = 0.15 m. Con μₛ = 0.6 entre ruedas y suelo y la
 fracción β = 0.6 del peso sobre las ruedas motrices, las mismas constantes de
-[Fricción](/ruta/ruta-1/m02/t02) y [Torque](/ruta/ruta-1/m02/t04), la rapidez máxima sin patinar
-en esa curva es:
+[Fricción](/ruta/ruta-1/m02/t02), la rapidez máxima sin patinar en esas curvas es:
 
 <RobotFormula calc="ruta-1/m02-t03/max-curve-speed" />
 
-Ese límite no depende de tu motor, solo de la fricción, del reparto del peso y del radio de la
-curva. Compáralo con la velocidad lineal máxima de tu robot, la de sus ruedas a ω_max: si es mayor
-que v_max de tu perfil, no patina. Con los números de tu perfil, v_max = ω_max·r queda así junto al
-límite de la curva:
+Ese límite no depende de tu motor ni de tus ruedas, solo de la fricción, del reparto del peso y
+del radio de la curva: cualquier perfil de «Mi robot» da el mismo número.
 
-<RobotFormula calc="ruta-1/m02-t03/v-max-vs-curve" />
-
-Con el robot de referencia, v_max = 0.670 m/s queda por debajo de 0.728 m/s: no patina, con un
-margen del 9 %. Si tu robot supera v_max,curva, tiene que frenar antes de la curva, y la distancia
-que necesita la calculas como en el movimiento uniformemente acelerado.
+Compáralo con la velocidad lineal máxima de tu robot, la v_max que calculaste en
+[Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04). Si v_max es menor que v_max,curva, tu
+robot toma la curva a fondo sin patinar. Con el robot de referencia, v_max = 0.670 m/s queda por
+debajo de 0.728 m/s, con un margen del 9 %. Si tu robot supera v_max,curva, tiene que frenar
+antes de la curva, y la distancia que necesita la calculas como en el movimiento uniformemente
+acelerado.
 </AlRobot>
 
 <Verifica
@@ -170,4 +170,4 @@ que necesita la calculas como en el movimiento uniformemente acelerado.
   obligatorios={['e1', 'e2', 'e3']}
 />
 
-<Profundiza referencias={['young-freedman-9', 'serway-10']} topicId="ruta-1/m02-t03" />
+<Profundiza referencias={['young-freedman-9', 'young-freedman-5', 'serway-10']} topicId="ruta-1/m02-t03" />

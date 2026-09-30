@@ -194,7 +194,7 @@ function groupActions(
       }, ''),
     regenerate: () =>
       run(async () => {
-        await regenerateInviteCode(ownerId, groupId);
+        await regenerateInviteCode(groupId);
         await onChanged();
       }, ''),
     remove: (userId) =>

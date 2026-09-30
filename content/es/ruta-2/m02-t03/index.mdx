@@ -4,7 +4,7 @@ title: 'Control PID'
 module: 2
 order: 3
 estimatedMinutes: 40
-prerequisites: [ruta-2/m02-t02]
+prerequisites: [ruta-2/m02-t02, ruta-1/m03-t03, ruta-1/m01-t04]
 objectives:
   - Calcular los tres términos del PID discreto
   - Entender qué corrige cada término (I, el error persistente en curvas; D, la oscilación)
@@ -51,7 +51,7 @@ cerrado como pide el controlador. La curva más cerrada de la pista fija el lím
 </Concepto>
 
 <Formulas>
-<Formula latex="u_k = K_p e_k + K_i \sum_{j\le k} e_j\,\Delta t_c + K_d\frac{e_k - e_{k-1}}{\Delta t_c}" />
+<Formula latex="\begin{aligned} u_k = {}& K_p e_k + K_i \sum_{j\le k} e_j\,\Delta t_c\\ &+ K_d\frac{e_k - e_{k-1}}{\Delta t_c} \end{aligned}" />
 
 - `u_k` · acción de control en el paso k · rad/s
 - `K_p` · ganancia proporcional · rad/s
@@ -68,7 +68,7 @@ cerrado como pide el controlador. La curva más cerrada de la pista fija el lím
 - `Δt_c` · período del lazo de control · s
 - `I_max` · límite de la integral del error (anti-windup) · s
 
-<Formula latex="v_{ext} = v\left(1 + \frac{L}{2R}\right) \le v_{max} \;\Rightarrow\; \omega_{base} \le \frac{v_{max}}{r\,(1 + L/2R)}" />
+<Formula latex="\begin{aligned} &v_{ext} = v\left(1 + \frac{L}{2R}\right) \le v_{max}\\ &\Rightarrow\; \omega_{base} \le \frac{v_{max}}{r\,(1 + L/2R)} \end{aligned}" />
 
 - `v_ext` · velocidad de la rueda exterior en curva · m/s
 - `v` · velocidad lineal del robot · m/s
@@ -127,7 +127,8 @@ eso no basta para compensar la curva. Medido en el simulador, el error medio vue
 
 <AlRobot>
 La curva más cerrada de la pista Curvas cerradas tiene R = 0.15 m. En ella, la rueda exterior de tu robot
-va más rápido que su centro, y no puede pasar de v_max. Con la v_max y la distancia entre ruedas L
+va más rápido que su centro, y no puede pasar de v_max, la que calculaste en
+[Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04). Con la v_max y la distancia entre ruedas L
 de tu perfil, la velocidad máxima del robot en esa curva es:
 
 <RobotFormula calc="ruta-2/m02-t03/outer-wheel-speed" />
@@ -135,8 +136,6 @@ de tu perfil, la velocidad máxima del robot en esa curva es:
 La ω_base máxima es la que lleva la rueda exterior justo a v_max en esa curva:
 
 <RobotFormula calc="ruta-2/m02-t03/omega-base" />
-
-Si tu perfil de «Mi robot» no es un robot móvil, el cálculo usa el robot de referencia.
 
 Con el robot de referencia, v ≤ 0.670/(1 + 0.15/0.3) = 0.447 m/s y ω_base ≤ 13.96 rad/s. El
 Explora usa ω_base = 13 rad/s, por debajo de ese límite. Con una ω_base mayor, la rueda exterior

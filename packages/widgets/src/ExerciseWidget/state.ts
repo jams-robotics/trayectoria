@@ -14,14 +14,19 @@ const STATEMENT_SIG_FIGS = 4;
 /** Typographic minus sign of the statements (V-05, #475). */
 const MINUS_SIGN = '−';
 
-/** A statement number rounded to 4 significant figures, negative ones with «−» (V-05). */
+/**
+ * A statement number rounded to 4 significant figures without padding zeros, negative ones with
+ * «−» (V-05): a value drawn as 0.98 m/s reads `0.98`, never `0.9800` (#550).
+ */
 function statementNumber(value: number): string {
-  return format(value, '', STATEMENT_SIG_FIGS).replace(/^-/, MINUS_SIGN);
+  const text = format(value, '', STATEMENT_SIG_FIGS);
+  const trimmed = text.includes('.') && !text.includes('e') ? text.replace(/\.?0+$/, '') : text;
+  return trimmed.replace(/^-/, MINUS_SIGN);
 }
 
 /**
- * Statement values rounded to 4 significant figures, ready to interpolate (#94, decision 4);
- * negative numbers carry the minus sign U+2212 (V-05, #475).
+ * Statement values rounded to 4 significant figures without padding zeros, ready to interpolate
+ * (#94, decision 4; #550); negative numbers carry the minus sign U+2212 (V-05, #475).
  */
 export function statementParams(values: unknown): TParams {
   if (typeof values !== 'object' || values === null) return {};
@@ -37,6 +42,8 @@ export function statementParams(values: unknown): TParams {
 interface Graded {
   correct: boolean;
   relError: number;
+  /** Per-component verdict of the last check, so only the failing fields mark in error (#660). */
+  componentCorrect: readonly boolean[] | undefined;
 }
 
 /** Drafts, validity and outcome of the response row. */
@@ -63,9 +70,14 @@ export interface ExerciseState {
   relativeError: number | null;
   attempt: number;
   invalid: boolean;
+  /** Per-component verdict of the last check; `undefined` before grading or with a shape mismatch,
+   * so the whole row falls back to the shared `status` (#660). */
+  componentCorrect: readonly boolean[] | undefined;
   values: readonly string[];
   /** One unit for every field, or one per field (F1-10c). */
   unit: string | readonly string[];
+  /** i18n keys naming each field, one per component (#629); `undefined` numbers the fields. */
+  labels: readonly string[] | undefined;
   edit: (position: number, value: string) => void;
   verify: () => void;
   regenerate: () => void;
@@ -76,14 +88,14 @@ export function unitAt(unit: string | readonly string[], position: number): stri
   return typeof unit === 'string' ? unit : (unit[position] ?? '');
 }
 
-/** The instance drawn for a seed: how many fields to show and in which unit. */
+/** The instance drawn for a seed: how many fields to show, in which unit and with which labels. */
 function useInstance<V>(
   exercise: Exercise<V>,
   seed: number,
-): { count: number; unit: string | readonly string[] } {
+): { count: number; unit: string | readonly string[]; labels: readonly string[] | undefined } {
   return useMemo(() => {
-    const { answer, unit } = exercise.generate(createRng(seed));
-    return { count: Array.isArray(answer) ? answer.length : 1, unit };
+    const { answer, unit, labels } = exercise.generate(createRng(seed));
+    return { count: Array.isArray(answer) ? answer.length : 1, unit, labels };
   }, [exercise, seed]);
 }
 
@@ -173,7 +185,11 @@ function grade<V>(context: Grading<V>): void {
   const attempt = responses.attempt + 1;
   const settled: Responses = {
     values,
-    graded: { correct: outcome.correct, relError: outcome.relError },
+    graded: {
+      correct: outcome.correct,
+      relError: outcome.relError,
+      componentCorrect: outcome.componentCorrect,
+    },
     attempt,
     invalid: false,
     checking: false,
@@ -200,6 +216,25 @@ function grade<V>(context: Grading<V>): void {
   void recorded.then(show, show);
 }
 
+/** Assembles the public state from the instance and the response row (kept out of `useExercise`
+ * to stay under the file's line-per-function budget). */
+function buildState<V>(
+  instance: ReturnType<typeof check<V>>,
+  responses: Responses,
+  rest: Pick<ExerciseState, 'values' | 'unit' | 'labels' | 'edit' | 'verify' | 'regenerate'>,
+): ExerciseState {
+  return {
+    statementKey: instance.statementKey,
+    params: statementParams(instance.values),
+    status: statusOf(responses),
+    relativeError: responses.graded?.relError ?? null,
+    attempt: responses.attempt,
+    invalid: responses.invalid,
+    componentCorrect: responses.graded?.componentCorrect,
+    ...rest,
+  };
+}
+
 /**
  * State machine of one exercise instance: which seed is in play, the response drafts and the
  * graded outcome, plus the two actions of docs/DESIGN.md §5 («Comprobar», «Nuevos valores»).
@@ -212,7 +247,7 @@ export function useExercise<V>(
   const adapter = useProgressAdapter();
   const { seed, next } = useSeed(adapter, topicId, exercise.id, fixedSeed);
 
-  const { count, unit } = useInstance(exercise, seed);
+  const { count, unit, labels } = useInstance(exercise, seed);
   const [responses, setResponses] = useState<Responses>(EMPTY);
   const values =
     responses.values.length === count ? responses.values : Array<string>(count).fill('');
@@ -235,17 +270,5 @@ export function useExercise<V>(
     });
   };
 
-  return {
-    statementKey: instance.statementKey,
-    params: statementParams(instance.values),
-    status: statusOf(responses),
-    relativeError: responses.graded?.relError ?? null,
-    attempt: responses.attempt,
-    invalid: responses.invalid,
-    values,
-    unit,
-    edit,
-    verify,
-    regenerate,
-  };
+  return buildState(instance, responses, { values, unit, labels, edit, verify, regenerate });
 }

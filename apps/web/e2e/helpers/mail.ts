@@ -3,7 +3,8 @@ import type { APIRequestContext, Page } from '@playwright/test';
 /**
  * Reads the auth emails of the local stack (#521). `supabase start` runs Mailpit on the port of
  * `[local_smtp]` in supabase/config.toml and nothing leaves the machine; the `e2e` job of CI
- * starts the same stack. Only the reauthentication code is read here.
+ * starts the same stack. The reauthentication code and the `token_hash` of the email links (#518)
+ * are read here.
  */
 const MAIL_API = 'http://127.0.0.1:54324/api/v1';
 
@@ -25,14 +26,35 @@ interface Message {
   readonly Text: string;
 }
 
-/** The code of the newest email to `email`, or `''` when there is none yet. */
-async function newestCode(request: APIRequestContext, email: string): Promise<string> {
+/** The link of the templates `confirmation`, `magic_link` and `recovery` (PKCE flow, #518). */
+const LINK = /token_hash=([^&\s"]+)&(?:amp;)?type=(email|recovery)/;
+
+/** The text of the newest email to `email`, or `''` when there is none yet. */
+async function newestText(request: APIRequestContext, email: string): Promise<string> {
   const search = await request.get(`${MAIL_API}/search`, { params: { query: `to:${email}` } });
   const { messages } = (await search.json()) as SearchResult;
   const newest = messages[0];
   if (newest === undefined) return '';
   const message = (await (await request.get(`${MAIL_API}/message/${newest.ID}`)).json()) as Message;
-  return CODE.exec(message.Text)?.[1] ?? '';
+  return message.Text;
+}
+
+/** The code of the newest email to `email`, or `''` when there is none yet. */
+async function newestCode(request: APIRequestContext, email: string): Promise<string> {
+  return CODE.exec(await newestText(request, email))?.[1] ?? '';
+}
+
+/**
+ * Waits for an email with a link to the site and returns its query, `?token_hash=…&type=…`. The
+ * host of the link is the `site_url` of the stack, so the tests open the query on their own host.
+ */
+export async function emailLinkQuery(request: APIRequestContext, email: string): Promise<string> {
+  for (let attempt = 0; attempt < POLL_ATTEMPTS; attempt += 1) {
+    const link = LINK.exec(await newestText(request, email));
+    if (link !== null) return `?token_hash=${link[1] ?? ''}&type=${link[2] ?? ''}`;
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+  }
+  throw new Error(`no email with a link reached ${email}`);
 }
 
 /**

@@ -10,7 +10,6 @@
  */
 import { getDbClient, type DbClient, type Tables } from '@trayectoria/db';
 
-import { inviteCode, type Rng } from './inviteCode';
 import type { ProgressRow } from './progressMatrix';
 
 /** A group as the classroom list and detail show it. */
@@ -131,14 +130,14 @@ export async function getGroup(
 }
 
 /**
- * Creates a group with a code generated in the browser. The unique index on `invite_code` is
- * the arbiter: on a collision the insert is retried once with a fresh code.
+ * Creates a group. The database generates the invite code (migration 0013, #508): the client
+ * cannot write that column. On a collision with the unique index the insert is retried once, and
+ * the database draws a fresh code.
  */
 export async function createGroup(
   ownerId: string,
   name: string,
   db: DbClient = getDbClient(),
-  rng?: Rng,
 ): Promise<Group> {
   const trimmedName = normalizeGroupName(name);
   if (trimmedName === '') throw new Error('invalid group name');
@@ -146,7 +145,7 @@ export async function createGroup(
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const { data, error }: Result<GroupRow> = await db
       .from('groups')
-      .insert({ ...row, invite_code: inviteCode(rng).toUpperCase() })
+      .insert(row)
       .select(GROUP_COLUMNS)
       .maybeSingle();
     if (error === null && data !== null && data !== undefined) return toGroup(data, 0);
@@ -173,24 +172,17 @@ export async function renameGroup(
   return trimmedName;
 }
 
-/** Replaces the invite code of a group with a new one, retried once on a unique collision. */
+/**
+ * Replaces the invite code of a group with a new one drawn by the database
+ * (`regenerate_invite_code`, migration 0013, #508), which checks that the caller owns the group.
+ */
 export async function regenerateInviteCode(
-  ownerId: string,
   groupId: string,
   db: DbClient = getDbClient(),
-  rng?: Rng,
 ): Promise<string> {
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    const code = inviteCode(rng).toUpperCase();
-    const { error }: Result<unknown> = await db
-      .from('groups')
-      .update({ invite_code: code })
-      .eq('owner_id', ownerId)
-      .eq('id', groupId);
-    if (error === null) return code;
-    if (error.code !== UNIQUE_VIOLATION) fail(error, 'code not regenerated');
-  }
-  throw new Error('invite code collision');
+  const { data, error } = await db.rpc('regenerate_invite_code', { target_group_id: groupId });
+  if (error !== null || typeof data !== 'string') fail(error, 'code not regenerated');
+  return data;
 }
 
 /** Deletes a group of this teacher; its memberships go with it (cascade of migration 0001). */
@@ -247,20 +239,23 @@ export async function removeMember(
 const PROGRESS_COLUMNS = 'user_id, topic_id, status, best_score, attempts, completed_at';
 
 /**
- * Progress of the given members in one query (F3-02b). The "progress: own or taught reads"
- * policy is what authorises it: with the teacher's own session the rows of their own students
- * come back and nothing else, so a user id that is not theirs simply yields no row
- * (`supabase/tests/progress_isolation.sql`). No `service_role`, no policy change.
+ * Progress of the given members in the given topics, in one query (F3-02b). The "progress: own
+ * or taught reads" policy is what authorises it: with the teacher's own session the rows of their
+ * own students come back and nothing else, so a user id that is not theirs simply yields no row
+ * (`supabase/tests/progress_isolation.sql`). The topic filter runs in the query, not after it, so
+ * rows of other ids never travel (#509).
  */
 export async function listProgress(
   memberIds: readonly string[],
+  topicIds: readonly string[],
   db: DbClient = getDbClient(),
 ): Promise<ProgressRow[]> {
-  if (memberIds.length === 0) return [];
+  if (memberIds.length === 0 || topicIds.length === 0) return [];
   const { data, error }: Result<ProgressRow[]> = await db
     .from('progress')
     .select(PROGRESS_COLUMNS)
-    .in('user_id', memberIds);
+    .in('user_id', memberIds)
+    .in('topic_id', topicIds);
   if (error !== null || data === null) fail(error, 'progress unavailable');
   return data;
 }

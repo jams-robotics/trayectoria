@@ -3,12 +3,13 @@ id: ruta-1/m00-t02
 title: 'Vectores'
 module: 0
 order: 2
-estimatedMinutes: 30
+estimatedMinutes: 35
 prerequisites: [ruta-1/m00-t01]
 objectives:
   - Descomponer un vector en componentes y recomponerlo
   - Sumar vectores
   - Usar el producto escalar para el ángulo entre dos vectores
+  - Girar un vector por componentes
 widgets: [VectorWidget, ExerciseWidget]
 requiredExercises: [e1, e2, e3]
 references: [young-freedman-1]
@@ -23,31 +24,35 @@ cuánto en y cada segundo?
 </Gancho>
 
 <Concepto>
-Un **vector** es una magnitud con dirección. Se describe con dos datos: su magnitud (o módulo), que dice
-cuánto mide, y su dirección, el ángulo θ que forma con el eje x, medido en sentido antihorario.
+Un **vector** es una magnitud con dirección: su **módulo** dice cuánto mide, y su
+dirección es el ángulo θ que forma con el eje x, antihorario.
 
-El mismo vector se escribe también con sus **componentes**: cuánto mide a lo largo de x y cuánto
-a lo largo de y. Si una velocidad v⃗ tiene magnitud v y ángulo θ, sus componentes son
-vₓ = v cosθ y v_y = v sinθ. Con los números del gancho, vₓ = 0.5 · cos 30° = 0.433 m/s y
-v_y = 0.5 · sin 30° = 0.25 m/s: cada segundo tu robot avanza 0.433 m en x y 0.25 m en y.
+El mismo vector se escribe con sus **componentes**, cuánto mide en x y en y. Si una velocidad
+v⃗ tiene módulo v y ángulo θ, sus componentes son vₓ = v cosθ y v_y = v sinθ. Del gancho,
+vₓ = 0.5 · cos 30° = 0.433 m/s y v_y = 0.5 · sin 30° = 0.25 m/s.
 
-El camino inverso recompone el vector. La magnitud sale del teorema de Pitágoras,
-|v⃗| = √(vₓ² + v_y²), y el ángulo, de θ = atan2(v_y, vₓ). No uses atan(v_y/vₓ): el cociente
-pierde los signos, y (0.3, 0.4) y (−0.3, −0.4) dan el mismo valor aunque apunten en sentidos
-opuestos. atan2 recibe las dos componentes por separado, mira sus signos y devuelve el ángulo en
-el cuadrante correcto, entre −180° y 180°.
+Para recomponerlo, el módulo sale de Pitágoras, |v⃗| = √(vₓ² + v_y²), y el ángulo, de
+θ = atan2(v_y, vₓ). No uses atan(v_y/vₓ): el cociente pierde los signos y confunde (0.3, 0.4)
+con (−0.3, −0.4). atan2 mira las dos componentes y devuelve el ángulo en el cuadrante correcto.
 
-Para sumar dos vectores se suman sus componentes: a⃗ + b⃗ = (a_x + b_x, a_y + b_y). Las
-magnitudes no se suman: dos desplazamientos de 1 m en sentidos opuestos dan un desplazamiento
-total de 0 m.
+Para sumar dos vectores se suman sus componentes: a⃗ + b⃗ = (a_x + b_x, a_y + b_y); los
+módulos no se suman.
 
 El **producto escalar** combina dos vectores en un número: a⃗ · b⃗ = a_x·b_x + a_y·b_y. También
-vale |a⃗||b⃗| cos φ, con φ el ángulo entre ellos, así que igualando las dos formas se despeja φ.
-Si el producto escalar es cero, los vectores son perpendiculares; si es negativo, forman más de
-90°.
+vale |a⃗||b⃗| cos φ, con φ el ángulo entre ellos; igualando las dos formas se despeja φ. Si vale
+cero, son perpendiculares.
 
-La velocidad de tu robot es un vector. Su magnitud es la rapidez, en m/s; su dirección es el
-rumbo θ. Solo con las dos sabes hacia dónde va y qué tan rápido.
+La velocidad de tu robot es un vector: su módulo es la rapidez, en m/s, y su dirección, el
+rumbo θ.
+
+**Rotación de un vector por componentes.** Girar un vector a⃗ un ángulo θ en sentido antihorario,
+sin cambiar su módulo, da el vector a⃗′ de componentes a′_x = a_x cosθ − a_y sinθ y
+a′_y = a_x sinθ + a_y cosθ. Con el vector del gancho, (0.5, 0) m/s girado 30° da
+(0.5·0.866 − 0·0.5, 0.5·0.5 + 0·0.866) = (0.433, 0.25) m/s: las componentes del gancho. Ese
+vector girado otros 60° da (0.433·0.5 − 0.25·0.866, 0.433·0.866 + 0.25·0.5) = (0.000, 0.5) m/s:
+0.5 m/s a 90°, con el mismo módulo. Girar −θ cambia el signo de los senos.
+[Pose y marcos de referencia](/ruta/ruta-2/m00/t02), en la ruta Robot móvil, usa esta rotación
+para pasar un punto del marco del robot al de la mesa.
 </Concepto>
 
 <Formulas>
@@ -59,7 +64,7 @@ rumbo θ. Solo con las dos sabes hacia dónde va y qué tan rápido.
 
 <Formula latex="|\vec v| = \sqrt{v_x^2+v_y^2}" />
 
-- `|v⃗|` · magnitud de la velocidad como vector · m/s
+- `|v⃗|` · módulo de la velocidad como vector · m/s
 - `vₓ, v_y` · componentes de velocidad · m/s
 
 <Formula latex="\theta = \operatorname{atan2}(v_y, v_x)" />
@@ -75,9 +80,17 @@ rumbo θ. Solo con las dos sabes hacia dónde va y qué tan rápido.
 <Formula latex="\vec a\cdot\vec b = a_xb_x+a_yb_y = |\vec a||\vec b|\cos\varphi" />
 
 - `a⃗ · b⃗` · producto escalar · producto de las unidades de a⃗ y b⃗
-- `|a⃗|, |b⃗|` · magnitudes de a⃗ y de b⃗ · la de la magnitud que representan
+- `|a⃗|, |b⃗|` · módulos de a⃗ y de b⃗ · la de la magnitud que representan
 - `φ` · ángulo entre dos vectores · rad
-El ángulo se da en grados; 180° = π rad. Pon la calculadora en grados.
+
+<Formula latex="\begin{aligned} a'_x &= a_x\cos\theta - a_y\sin\theta \\ a'_y &= a_x\sin\theta + a_y\cos\theta \end{aligned}" />
+
+- `a⃗′` · el vector a⃗ girado un ángulo θ en sentido antihorario · la de a⃗
+- `a′_x, a′_y` · componentes de a⃗′ · la de a⃗
+- `a_x, a_y` · componentes de a⃗ · la de a⃗
+- `θ` · ángulo de giro, antihorario positivo · rad
+
+Los ángulos se dan en grados; 180° = π rad. Pon la calculadora en grados.
 </Formulas>
 
 <Explora>
@@ -97,9 +110,9 @@ velocidad del gancho: 0.5 m/s a 30°.
   observa="las componentes de a"
   porque="¿Por qué una componente crece mientras la otra decrece?"
 >
-La longitud fija la magnitud, y |a⃗|² = a_x² + a_y² no cambia. Si una componente crece, la otra
+La longitud fija el módulo, y |a⃗|² = a_x² + a_y² no cambia. Si una componente crece, la otra
 tiene que decrecer para que la suma de sus cuadrados siga igual. Solo cambia el ángulo, que
-reparte la magnitud entre x e y.
+reparte el módulo entre x e y.
 </Experimento>
 
 <Experimento
@@ -122,12 +135,9 @@ el producto escalar es cero siempre que sean perpendiculares.
 </Explora>
 
 <AlRobot>
-En [Unidades y magnitudes](/ruta/ruta-1/m00/t01) calculaste la velocidad de giro de la rueda con
-el motor sin carga. Es ω_max, la velocidad angular máxima de la rueda. Este tema no pide ningún
-dato nuevo de «Mi robot»: con ω_max y el radio r de la rueda sale v_max, la velocidad lineal
-máxima de tu robot.
-
-<RobotFormula calc="ruta-1/m00-t02/v-max" />
+Este tema no pide ningún dato nuevo de «Mi robot». Toma como dato de tu perfil v_max, la
+velocidad lineal máxima que alcanza tu robot con el motor sin carga; de dónde sale:
+[Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04).
 
 v_max es una rapidez: dice qué tan rápido puede ir tu robot, pero no hacia dónde. Para tener el
 vector velocidad falta el rumbo. Si tu robot avanza a v_max con un rumbo θ = 30° respecto al eje
@@ -137,13 +147,13 @@ x de la mesa, como en el gancho, sus componentes son:
 
 <RobotFormula calc="ruta-1/m00-t02/vy" />
 
-Con el robot de referencia, ω_max = 20.94 rad/s y r = 0.032 m dan v_max = 0.670 m/s. A 30°,
-cada segundo avanza 0.580 m en x y 0.335 m en y. Si cambias el motor, la reducción o el radio
-de la rueda en tu perfil, las tres fórmulas se recalculan con tus datos.
+Con el robot de referencia, v_max = 0.670 m/s. A 30°, cada segundo avanza 0.580 m en x y
+0.335 m en y. Si tu perfil tiene otra v_max, las dos fórmulas se recalculan con tu dato.
 
 Comprueba la recomposición: √(0.580² + 0.335²) = 0.670 m/s. Las componentes reparten la rapidez
 entre los dos ejes, pero no la aumentan: ningún rumbo hace que tu robot vaya más rápido que
-v_max.
+v_max. Y con la rotación por componentes del Concepto, (0.670, 0) m/s girado 30° da esas mismas
+componentes: girar el vector y descomponerlo a 30° es el mismo cálculo.
 </AlRobot>
 
 <Verifica

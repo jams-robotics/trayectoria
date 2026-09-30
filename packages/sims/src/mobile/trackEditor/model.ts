@@ -1,6 +1,7 @@
 import {
   PRESET_LINE_WIDTH_M,
   add2,
+  arcSweep_rad,
   distance2,
   scale2,
   sub2,
@@ -181,4 +182,45 @@ export function setLineWidth(state: EditorState, w_m: number): EditorState {
 export function select(state: EditorState, index: number | null): EditorState {
   const selected = index !== null && state.track.segments[index] !== undefined ? index : null;
   return { track: state.track, selected };
+}
+
+const TWO_PI = 2 * Math.PI;
+
+/** The four angles at which a circle touches its bounding box, in radians. */
+const CARDINAL_ANGLES_RAD: readonly number[] = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
+
+/** True when the direction `theta_rad` lies on the sweep of `segment`. */
+function onSweep(segment: ArcSegment, theta_rad: number): boolean {
+  const delta_rad = segment.ccw
+    ? theta_rad - segment.startAngle_rad
+    : segment.startAngle_rad - theta_rad;
+  const along_rad = delta_rad - TWO_PI * Math.floor(delta_rad / TWO_PI);
+  return along_rad <= arcSweep_rad(segment);
+}
+
+/** The points that bound `segment`: its ends and, for an arc, the cardinal points it sweeps. */
+function boundingPoints(segment: TrackSegment): readonly Vec2[] {
+  const points: Vec2[] = [...segmentEndpoints(segment)];
+  if (segment.type !== 'arc') return points;
+  for (const theta_rad of CARDINAL_ANGLES_RAD) {
+    if (onSweep(segment, theta_rad)) {
+      points.push(
+        add2(segment.center, scale2([Math.cos(theta_rad), Math.sin(theta_rad)], segment.radius_m)),
+      );
+    }
+  }
+  return points;
+}
+
+/**
+ * Centre of the box that bounds `track`, in metres, or `null` when it has no segments (#552): the
+ * canvas frames the track it opens with, instead of leaving a preset in its upper half over the
+ * fixed centre of the presets' combined extent.
+ */
+export function viewCenter_m(track: Track): Vec2 | null {
+  const points = track.segments.flatMap(boundingPoints);
+  if (points.length === 0) return null;
+  const xs = points.map((p) => p[0]);
+  const ys = points.map((p) => p[1]);
+  return [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2];
 }

@@ -4,7 +4,8 @@ import { describe, expect, it } from 'vitest';
 import { omegaWheel, period, robotCalcs } from './alrobot';
 
 // Golden values of docs/CURRICULUM.md § T1-1.3 (Al robot), with the reference robot:
-// ω_rueda = 6000/30 · 2π/60 = 20.94 rad/s, T = 2π/20.94 = 0.3 s.
+// n_rueda = 200 rpm, a datum of the profile (n₀/i; the reduction is taught in T1-1.4, #559) →
+// ω_rueda = 200 · 2π/60 = 20.94 rad/s, T = 2π/20.94 = 0.3 s.
 // `content` takes robot-spec for its types only (#246), so the reference robot of
 // docs/ROBOT-SPEC.md §3 is written out here.
 const REFERENCE: RobotSpec = {
@@ -61,29 +62,37 @@ describe('T1-1.3 «Al robot» calcs', () => {
     expect(robotCalcs.map((calc) => calc.id)).toEqual(['omega-wheel', 'period']);
   });
 
-  it('omega-wheel: 6000/30 · 2π/60 → 20.94 rad/s with the reference robot', () => {
+  it('omega-wheel: n_rueda = 200 rpm (datum) · 2π/60 → 20.94 rad/s with the reference robot', () => {
     const { latex, substituted } = omegaWheel.compute(REFERENCE);
-    expect(latex).toBe(
-      String.raw`\omega_{\text{rueda}} = \dfrac{n_{\text{motor}}}{i} \cdot \dfrac{2\pi}{60}`,
-    );
+    expect(latex).toBe(String.raw`\omega_{rueda} = n_{rueda}\,\dfrac{2\pi}{60}`);
     expect(substituted).toBe(
-      String.raw`\omega_{\text{rueda}} = \dfrac{6000}{30} \cdot \dfrac{2\pi}{60} = 20.94\ \text{rad/s}`,
+      String.raw`\omega_{rueda} = 200\ \text{rpm} \cdot \dfrac{2\pi}{60} = 20.94\ \text{rad/s}`,
     );
+  });
+
+  it('omega-wheel shows n_rueda as a datum, without the motor speed or the reduction', () => {
+    for (const robot of [REFERENCE, withDrive(3000, 50)]) {
+      const { latex, substituted } = omegaWheel.compute(robot);
+      expect(latex).not.toContain('motor');
+      expect(latex).not.toContain('{i}');
+      expect(substituted).not.toMatch(/6000|3000|\{30\}|\{50\}/);
+    }
   });
 
   it('period: 2π/20.94 → 0.3 s with the reference robot', () => {
     const { latex, substituted } = period.compute(REFERENCE);
-    expect(latex).toBe(String.raw`T = \dfrac{2\pi}{\omega_{\text{rueda}}}`);
+    expect(latex).toBe(String.raw`T = \dfrac{2\pi}{\omega_{rueda}}`);
     expect(substituted).toBe(
       String.raw`T = \dfrac{2\pi}{20.94\ \text{rad/s}} = 0.3\ \text{s}`,
     );
   });
 
   it('follow the numbers of «Mi robot»', () => {
-    // 3000 rpm, i = 50: n_rueda = 60 rpm, ω_rueda = 2π = 6.283 rad/s, T = 1 s.
+    // 3000 rpm, i = 50: n_rueda = 60.0 rpm (three figures, padding zero kept, #653),
+    // ω_rueda = 2π = 6.283 rad/s, T = 1 s.
     const robot = withDrive(3000, 50);
     expect(omegaWheel.compute(robot).substituted).toBe(
-      String.raw`\omega_{\text{rueda}} = \dfrac{3000}{50} \cdot \dfrac{2\pi}{60} = 6.283\ \text{rad/s}`,
+      String.raw`\omega_{rueda} = 60.0\ \text{rpm} \cdot \dfrac{2\pi}{60} = 6.283\ \text{rad/s}`,
     );
     expect(period.compute(robot).substituted).toBe(
       String.raw`T = \dfrac{2\pi}{6.283\ \text{rad/s}} = 1\ \text{s}`,

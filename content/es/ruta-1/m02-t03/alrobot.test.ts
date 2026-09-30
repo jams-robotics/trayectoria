@@ -1,12 +1,12 @@
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import { describe, expect, it } from 'vitest';
 
-import { maxCurveSpeed, robotCalcs, tangentialAccel, vMaxVsCurve } from './alrobot';
+import { maxCurveSpeed, robotCalcs } from './alrobot';
 
-// Golden values of docs/CURRICULUM.md § T1-2.3 (Al robot, #609), with the reference robot:
-// a_t = 40 · 0.032 = 1.28 m/s², v_max,curva = √(0.6 · 0.6 · 9.81 · 0.15) = 0.728 m/s with β = 0.6
-// on the driven wheels; and the v_max of the profile next to that limit (V-37):
-// 20.94 · 0.032 = 0.670 m/s < 0.728 m/s.
+// Golden value of docs/CURRICULUM.md § T1-2.3 (Al robot, #609), with the reference robot:
+// v_max,curva = √(0.6 · 0.6 · 9.81 · 0.15) = 0.728 m/s with β = 0.6 on the driven wheels.
+// `tangential-accel` and `v-max-vs-curve` are gone (#565): the ramp a = 1.28 m/s² has its row in
+// T1-1.2 and v_max = 0.670 m/s in T1-1.4; the text cites both.
 // `content` takes robot-spec for its types only (#246), so the reference robot of
 // docs/ROBOT-SPEC.md §3 is written out here.
 const REFERENCE: RobotSpec = {
@@ -37,11 +37,6 @@ function mobileOf(robot: RobotSpec): NonNullable<RobotSpec['mobile']> {
   return robot.mobile;
 }
 
-/** The reference robot with its wheel radius and angular acceleration changed. */
-function withWheel(wheelRadius_m: number, maxAccel_radps2: number): RobotSpec {
-  return { ...REFERENCE, mobile: { ...mobileOf(REFERENCE), wheelRadius_m, maxAccel_radps2 } };
-}
-
 /** The reference robot without any of the optional fields of the mobile spec. */
 function withoutOptionalFields(): RobotSpec {
   const { maxAccel_radps2, encoderTicksPerRev, motor, battery, ...mobile } = mobileOf(REFERENCE);
@@ -59,20 +54,8 @@ function withoutWheels(): RobotSpec {
 }
 
 describe('T1-2.3 «Al robot» calcs', () => {
-  it('are tangential-accel, max-curve-speed and v-max-vs-curve', () => {
-    expect(robotCalcs.map((calc) => calc.id)).toEqual([
-      'tangential-accel',
-      'max-curve-speed',
-      'v-max-vs-curve',
-    ]);
-  });
-
-  it('tangential-accel: 40 · 0.032 → 1.28 m/s² with the reference robot', () => {
-    const { latex, substituted } = tangentialAccel.compute(REFERENCE);
-    expect(latex).toBe(String.raw`a_t = \alpha \cdot r`);
-    expect(substituted).toBe(
-      String.raw`a_t = 40\ \text{rad/s}^2 \cdot 0.032\ \text{m} = 1.28\ \text{m/s}^2`,
-    );
+  it('are max-curve-speed only', () => {
+    expect(robotCalcs.map((calc) => calc.id)).toEqual(['max-curve-speed']);
   });
 
   it('max-curve-speed: √(0.6 · 0.6 · 9.81 · 0.15) → 0.728 m/s with β = 0.6 (#562)', () => {
@@ -83,33 +66,15 @@ describe('T1-2.3 «Al robot» calcs', () => {
     );
   });
 
-  it('v-max-vs-curve: 20.94 · 0.032 → 0.670 m/s, below 0.728 m/s with the reference robot (V-37)', () => {
-    const { latex, substituted } = vMaxVsCurve.compute(REFERENCE);
-    expect(latex).toBe(String.raw`v_{\max} = \omega_{\max} \cdot r`);
-    expect(substituted).toBe(
-      String.raw`v_{\max} = 20.94\ \text{rad/s} \cdot 0.032\ \text{m} = 0.670\ \text{m/s}` +
-        String.raw` < v_{\max,\text{curva}} = 0.728\ \text{m/s}`,
-    );
+  it('max-curve-speed depends only on the friction, β and the curve, not on the motor or wheels', () => {
+    const robot: RobotSpec = {
+      ...REFERENCE,
+      mobile: { ...mobileOf(REFERENCE), gearRatio: 10, wheelRadius_m: 0.05, mass_kg: 2 },
+    };
+    expect(maxCurveSpeed.compute(robot)).toEqual(maxCurveSpeed.compute(REFERENCE));
   });
 
-  it('v-max-vs-curve: a profile faster than the curve limit reads above it', () => {
-    // 6000 rpm, i = 10, r = 0.032 m: ω_max = 62.83 rad/s, v_max = 2.01 m/s > 0.728 m/s.
-    const robot: RobotSpec = { ...REFERENCE, mobile: { ...mobileOf(REFERENCE), gearRatio: 10 } };
-    expect(vMaxVsCurve.compute(robot).substituted).toBe(
-      String.raw`v_{\max} = 62.83\ \text{rad/s} \cdot 0.032\ \text{m} = 2.01\ \text{m/s}` +
-        String.raw` > v_{\max,\text{curva}} = 0.728\ \text{m/s}`,
-    );
-  });
-
-  it('follow the numbers of «Mi robot»', () => {
-    // r = 0.05 m, α = 20 rad/s²: a_t = 1 m/s².
-    const robot = withWheel(0.05, 20);
-    expect(tangentialAccel.compute(robot).substituted).toBe(
-      String.raw`a_t = 20\ \text{rad/s}^2 \cdot 0.05\ \text{m} = 1\ \text{m/s}^2`,
-    );
-  });
-
-  it('take α = 40 rad/s² of the reference robot when the profile has no maxAccel_radps2', () => {
+  it('need no optional field of the profile', () => {
     const robot = withoutOptionalFields();
     for (const calc of robotCalcs) {
       expect(calc.compute(robot)).toEqual(calc.compute(REFERENCE));

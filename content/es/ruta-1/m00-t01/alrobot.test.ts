@@ -1,11 +1,12 @@
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import { describe, expect, it } from 'vitest';
 
-import { omegaMotor, omegaRueda, robotCalcs } from './alrobot';
+import { omegaMotor, robotCalcs } from './alrobot';
 
-// Golden values of docs/CURRICULUM.md § T1-0.1 (Al robot), with the reference robot:
-// 6000·2π/60 = 628.3 rad/s and 628.3/30 = 20.94 rad/s. `content` takes robot-spec for its types
-// only (#246), so the reference robot of docs/ROBOT-SPEC.md §3 is written out here.
+// Golden value of docs/CURRICULUM.md § T1-0.1 (Al robot), with the reference robot:
+// 6000·2π/60 = 628.3 rad/s. `ω_rueda` is no longer computed here: it is the row of T1-1.3
+// (#565, #574). `content` takes robot-spec for its types only (#246), so the reference robot of
+// docs/ROBOT-SPEC.md §3 is written out here.
 const REFERENCE: RobotSpec = {
   specVersion: 1,
   id: '7d2e3b7e-6b2a-4c6e-9a5f-2b1c6a1f0001',
@@ -29,10 +30,10 @@ const REFERENCE: RobotSpec = {
   },
 };
 
-function withMotor(maxMotorSpeed_rpm: number, gearRatio: number): RobotSpec {
+function withMotorSpeed(maxMotorSpeed_rpm: number): RobotSpec {
   const mobile = REFERENCE.mobile;
   if (mobile === undefined) throw new Error('the reference robot has no mobile spec');
-  return { ...REFERENCE, mobile: { ...mobile, maxMotorSpeed_rpm, gearRatio } };
+  return { ...REFERENCE, mobile: { ...mobile, maxMotorSpeed_rpm } };
 }
 
 /** A profile with no wheels: what an arm profile looks like to a mobile calc. */
@@ -43,8 +44,8 @@ function withoutWheels(): RobotSpec {
 }
 
 describe('T1-0.1 «Al robot» calcs', () => {
-  it('are omega-motor and omega-rueda', () => {
-    expect(robotCalcs.map((calc) => calc.id)).toEqual(['omega-motor', 'omega-rueda']);
+  it('is omega-motor only: omega-rueda moved to T1-1.3 (#565, #574)', () => {
+    expect(robotCalcs.map((calc) => calc.id)).toEqual(['omega-motor']);
   });
 
   it('omega-motor: 6000 rpm → 628.3 rad/s with the reference robot', () => {
@@ -55,23 +56,22 @@ describe('T1-0.1 «Al robot» calcs', () => {
     );
   });
 
-  it('omega-rueda: 628.3/30 → 20.94 rad/s with the reference robot', () => {
-    const { latex, substituted } = omegaRueda.compute(REFERENCE);
-    expect(latex).toBe(String.raw`\omega_{\text{rueda}} = \dfrac{\omega_{\text{motor}}}{i}`);
-    expect(substituted).toBe(
-      String.raw`\omega_{\text{rueda}} = \dfrac{628.3\ \text{rad/s}}{30} = 20.94\ \text{rad/s}`,
+  it('follows the motor speed of «Mi robot»', () => {
+    expect(omegaMotor.compute(withMotorSpeed(3000)).substituted).toContain(
+      '= 314.2\\ \\text{rad/s}',
     );
   });
 
-  it('follow the numbers of «Mi robot»', () => {
-    const robot = withMotor(3000, 15);
-    expect(omegaMotor.compute(robot).substituted).toContain('= 314.2\\ \\text{rad/s}');
-    expect(omegaRueda.compute(robot).substituted).toContain('= 20.94\\ \\text{rad/s}');
+  it('keeps padding zeros and writes a value with more integer digits whole (CONTENT-STANDARDS §2.5, #653)', () => {
+    expect(omegaMotor.compute(withMotorSpeed(955)).substituted).toContain(
+      '= 100.0\\ \\text{rad/s}',
+    );
+    expect(omegaMotor.compute(withMotorSpeed(100000)).substituted).toContain(
+      '= 10472\\ \\text{rad/s}',
+    );
   });
 
-  it('fall back to the reference robot for a profile with no wheels', () => {
-    const arm = withoutWheels();
-    expect(omegaMotor.compute(arm)).toEqual(omegaMotor.compute(REFERENCE));
-    expect(omegaRueda.compute(arm)).toEqual(omegaRueda.compute(REFERENCE));
+  it('falls back to the reference robot for a profile with no wheels', () => {
+    expect(omegaMotor.compute(withoutWheels())).toEqual(omegaMotor.compute(REFERENCE));
   });
 });

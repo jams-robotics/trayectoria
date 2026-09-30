@@ -30,10 +30,10 @@ línea recta con la velocidad: τ(ω) = τ_s·(1 − ω/ω₀).
 
 El **punto de trabajo** es donde el torque que pide la carga corta esa recta. De ahí sale la
 velocidad: ω = ω₀·(1 − τ/τ_s). Por eso el robot va más despacio cuesta arriba. La rampa de 20° de
-[Torque](/ruta/ruta-1/m02/t04) pide 0.0483 N·m por rueda. Con la reducción i = 30 y **η_caja** = 0.6,
-su eficiencia, son 0.002683 N·m en el motor, y la recta da 4658 rpm: 155.3 rpm en la rueda,
-0.520 m/s frente a los 0.670 m/s de la velocidad sin carga. [Transmisión y reducción](/ruta/ruta-1/m02/t04)
-explica de dónde sale i.
+[Torque, reducción y transmisión](/ruta/ruta-1/m02/t04) pide 0.0483 N·m por rueda. Con la
+reducción i = 30 y **η_caja** = 0.6, la eficiencia de la caja del mismo tema, son 0.002684 N·m en
+el motor, y la recta da 4658 rpm: 155.3 rpm en la rueda, 0.520 m/s frente a los 0.670 m/s de la
+velocidad sin carga.
 
 La potencia mecánica P = τ·ω es cero en los dos extremos y máxima en el medio: P_max = τ_s·ω₀/4,
 en ω₀/2. Con el motor de referencia, 1.885 W a 3000 rpm.
@@ -46,7 +46,8 @@ eléctrica es calor.
 El comando de velocidad del simulador es una fracción de la tensión (PWM): ω₀ y τ_s se escalan
 con ella y la recta se desplaza. La velocidad tampoco se establece al instante:
 ω(t) = ω_f·(1 − e^(−t/τ_m)), con τ_m = 0.185 s en el simulador. Esa demora es la que hace oscilar
-al control proporcional de [Control on/off y proporcional](/ruta/ruta-2/m02/t02).
+al control proporcional de [Control on/off y proporcional](/ruta/ruta-2/m02/t02), en la ruta
+Robot móvil.
 
 La autonomía se calcula con la corriente del punto de trabajo, no con la de bloqueo: la de
 [Potencia](/ruta/ruta-1/m03/t02) era la cota inferior.
@@ -180,8 +181,7 @@ Con esa corriente, y no con la de bloqueo, la batería C de tu perfil alimenta a
 <RobotFormula calc="ruta-1/m03-t03/autonomy" />
 
 Si tu perfil no define el motor, sus corrientes o la batería, el cálculo usa los del robot de
-referencia: 0.012 N·m, 6 V, η_caja = 0.6, I₀ = 0.1 A, I_s = 1.2 A y 11.1 Wh. Si no es un robot
-móvil, usa el robot de referencia completo.
+referencia: 0.012 N·m, 6 V, η_caja = 0.6, I₀ = 0.1 A, I_s = 1.2 A y 11.1 Wh.
 
 Con el robot de referencia, ω₀ = 628.3 rad/s y P_max = 1.885 W. El motor gira a 3000 rpm con
 0.006 N·m, la rueda a 100 rpm con 0.108 N·m y el robot avanza a 0.335 m/s. La corriente es

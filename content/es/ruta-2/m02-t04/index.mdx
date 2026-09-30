@@ -4,7 +4,7 @@ title: 'Geometría del robot y desempeño'
 module: 2
 order: 4
 estimatedMinutes: 35
-prerequisites: [ruta-2/m02-t03, ruta-2/m01-t01]
+prerequisites: [ruta-2/m02-t03, ruta-2/m01-t01, ruta-1/m02-t04, ruta-1/m01-t04]
 objectives:
   - Relacionar la distancia sensores–eje con la sensibilidad y la anticipación
   - Relacionar el ancho del arreglo con la pérdida de línea
@@ -47,8 +47,9 @@ exterior uno de radio R + L/2, con L la distancia entre ruedas. Sus velocidades 
 relación v_int/v_ext = (R − L/2)/(R + L/2). Con L grande, la misma curva exige más diferencia
 entre las ruedas.
 
-El radio de rueda r completa el reparto: con el mismo motor, más r da más v pero menos torque
-en el suelo, como viste en [Transmisión y reducción](/ruta/ruta-1/m02/t04).
+El radio de rueda r completa el reparto: con el mismo motor, más r da más v pero menos fuerza
+en el suelo, F_rueda = τ_rueda/r, como viste en
+[Torque, reducción y transmisión](/ruta/ruta-1/m02/t04).
 
 d, N, e_s, L y r son parámetros de «Mi robot». Cambiarlos es rediseñar tu robot, y el
 simulador te deja probar cada cambio antes de hacerlo en el taller.
@@ -136,8 +137,9 @@ valor RMS, de 0.46 a 0.50. El robot sigue sin perder la línea.
   observa="la primera curva"
   porque="¿Por qué el robot se sale?"
 >
-Con la misma acción de control u, la velocidad angular del robot es ω = 2ur/L: con L mayor, ω
-es menor. El robot no gira lo bastante rápido para la primera curva y pierde la línea hacia
+Con la misma acción de control u, la velocidad angular del robot es ω = −2ur/L, como en
+[Control on/off y proporcional](/ruta/ruta-2/m02/t02): con L mayor, |ω| es menor. El robot no
+gira lo bastante rápido para la primera curva y pierde la línea hacia
 t ≈ 1 s.
 </Experimento>
 
@@ -145,18 +147,17 @@ Al terminar, vuelve a escribir en el formulario los valores que anotaste y guard
 </Explora>
 
 <AlRobot>
-Los tres cálculos del tema, con tu perfil de «Mi robot». Dos datos no salen del perfil sino de
-este texto: el ancho de la línea, w = 0.02 m, y el período del lazo, Δt_c = 20 ms.
+Tres números del tema con tu perfil de «Mi robot»: uno ya lo calculaste y dos son nuevos. Dos
+datos no salen del perfil sino de este texto: el ancho de la línea, w = 0.02 m, y el período del lazo,
+Δt_c = 20 ms.
 
-Primero, el desplazamiento lateral al que tu robot pierde la línea. Depende de N y e_s:
-
-<RobotFormula calc="ruta-2/m02-t04/loss-offset" />
-
-Con el robot de referencia, 0.024 + 0.010 = 0.034 m. Si la línea se aparta más que eso del
-centro del arreglo, ningún sensor la ve.
+Primero, el desplazamiento lateral al que tu robot pierde la línea. Es el que calculaste en
+[El sensor de línea](/ruta/ruta-2/m02/t01) con N y e_s de tu perfil y w = 0.02 m: con el robot de
+referencia, y_perdida = 0.024 + 0.010 = 0.034 m. Si la línea se aparta más que eso del centro
+del arreglo, ningún sensor la ve.
 
 Después, cuánto avanza tu robot entre dos correcciones si va a su velocidad lineal máxima v_max,
-la que calculaste en [Vectores](/ruta/ruta-1/m00/t02):
+la que calculaste en [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04):
 
 <RobotFormula calc="ruta-2/m02-t04/step-distance" />
 
@@ -170,8 +171,6 @@ tu d:
 
 Con d = 0.09 m, p = 0.375. Si montas el arreglo más lejos del eje, p crece en proporción y el
 robot ve antes el desvío, como en el primer experimento.
-
-Si tu perfil no es un robot móvil, los tres cálculos usan el robot de referencia.
 </AlRobot>
 
 <Verifica

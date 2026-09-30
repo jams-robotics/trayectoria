@@ -76,7 +76,9 @@ P = 6·1.2 = 7.2 W es lo que consume parado a plena tensión; qué da en marcha 
 
 <Explora>
 El disco gira con la velocidad que eliges en rpm y muestra la misma velocidad en rad/s, junto
-con un punto en el borde a la distancia r del centro.
+con un punto en el borde a la distancia r del centro. El control llega a 600 rpm y no alcanza
+las 6000 rpm del gancho, así que el disco empieza en 200 rpm (20.94 rad/s), la velocidad de la
+rueda del robot de referencia, con su radio de 32 mm.
 
 <RotationWidget mode="disc" inputUnit="rpm" initial={{ omega_radps: 20.94, r_m: 0.032 }} />
 
@@ -110,6 +112,8 @@ radio. ω es una propiedad del giro, no del tamaño del disco.
 <AlRobot>
 Aquí creas **Mi robot**, el perfil que usan los temas de la ruta. El formulario empieza con los
 datos del robot de referencia; cambia los que no coincidan con tu robot y guarda.
+«Mi robot» es un robot móvil de dos ruedas. Cuando la plataforma admita otro tipo de perfil,
+como un brazo, los temas de estas dos rutas calcularán con el robot de referencia.
 
 El formulario muestra cada dato de tu robot con su unidad.
 
@@ -120,17 +124,15 @@ la velocidad sin carga en rpm; en SI es ω_motor:
 
 <RobotFormula calc="ruta-1/m00-t01/omega-motor" />
 
-El motor no mueve la rueda directamente: entre los dos está la reducción del motorreductor, de
-relación i. La rueda gira i veces más despacio que el eje del motor:
+Con el robot de referencia, 6000 rpm son 6000 · 2π/60 = 628.3 rad/s en el eje del motor. Si
+cambias la velocidad del motor en el formulario, la fórmula se recalcula con tu dato.
 
-<RobotFormula calc="ruta-1/m00-t01/omega-rueda" />
+El motor no mueve la rueda directamente: entre los dos está la reducción del motorreductor, y la
+rueda gira más despacio que el eje del motor. Cuánto gira la rueda lo calculas en
+[Movimiento circular y velocidad angular](/ruta/ruta-1/m01/t03), y a qué velocidad avanza el
+robot, en [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04).
 
-Con el robot de referencia, 6000 rpm son 6000 · 2π/60 = 628.3 rad/s en el eje del motor, y con
-i = 30 la rueda gira a 628.3/30 = 20.94 rad/s. Es el valor inicial del disco de Explora. Si
-cambias la velocidad del motor o la reducción en el formulario, las dos fórmulas se recalculan
-con tus datos.
-
-Fíjate en las unidades: i no tiene unidad, así que ω_rueda sale en rad/s, igual que ω_motor. Es
+Fíjate en las unidades: n entra en rpm, que no es SI, y el factor 2π/60 la convierte a rad/s. Es
 el análisis dimensional de este tema aplicado a tu robot.
 </AlRobot>
 

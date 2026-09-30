@@ -16,12 +16,13 @@ const cta = {
 ---
 
 <Base title={t('aula.join.title')}>
-  <section class="mx-auto max-w-[1120px] px-5 py-11 md:px-8">
+  <section class="mx-auto flex w-full max-w-[1120px] flex-1 flex-col px-5 py-11 md:px-8">
     <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
       {t('aula.join.eyebrow')}
     </p>
     <h1 class="text-2xl leading-tight mt-4 font-semibold">{t('aula.join.title')}</h1>
-    <div class="mt-7 max-w-[640px]">
+    <!-- #538: the sign-up card is centred in the height the page leaves under the title. -->
+    <div class="mt-7 max-w-form-card flex flex-1 flex-col has-[[data-auth=anonymous]]:justify-center">
       <JoinGroupForm client:load cta={cta} />
     </div>
   </section>

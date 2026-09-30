@@ -35,6 +35,13 @@ describe('LapCard (F4-03)', () => {
     expect(screen.getByTestId('lap-card-best')).toHaveTextContent('10.00 s');
   });
 
+  it('va en el flujo, bajo el visor, y no superpuesta a la escena (#536)', () => {
+    render(<LapCard timer={createLapTimer(3)} />);
+    const card = screen.getByTestId('lap-card');
+    expect(card).not.toHaveClass('absolute');
+    expect(card).not.toHaveClass('shadow-sm');
+  });
+
   it('las etiquetas salen de i18n y no hay literales de UI en el componente', () => {
     render(<LapCard timer={createLapTimer(3)} />);
     expect(screen.getByText('Última vuelta')).toBeInTheDocument();

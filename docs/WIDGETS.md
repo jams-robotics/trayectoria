@@ -65,7 +65,7 @@ UI de un ejercicio de `defineExercise`. Registra intentos si hay sesión.
 ```ts
 interface ExerciseWidgetProps { exercise: Exercise; topicId: string; required?: boolean; index?: number; seed?: number }
 ```
-`index` pinta el prefijo `E1`, `E2`… del ejercicio dentro del tema; `seed` fija la instancia para stories, tests y e2e (si no, la primera instancia es común a todos; desde «Nuevos valores» sale de la sesión, aprobado por el humano en el chat, 2026-09-26).
+`index` pinta el prefijo `E1`, `E2`… del ejercicio dentro del tema; `seed` fija la instancia para stories, tests y e2e (si no, la primera instancia es común a todos; desde «Nuevos valores» sale de la sesión, aprobado por el humano en el chat, 2026-09-26). En una respuesta vectorial, si `generate` devuelve `labels`, cada campo lleva delante el texto de su clave y ese texto en el `aria-label` («Aceleración en m/s²»); sin `labels`, los campos se numeran («1», «2»; `aria-label` «Componente 1 en m/s») (#629).
 
 ### MyRobotWidget
 Formulario del perfil móvil y tarjeta compacta.
@@ -77,7 +77,7 @@ Hook asociado: `useMyRobot(): RobotSpec` (siempre devuelve un spec: el del usuar
 ## Física y matemática
 
 ### VectorWidget
-Dos vectores arrastrables; suma, componentes, magnitud, ángulo, producto escalar.
+Dos vectores arrastrables; suma, componentes, módulo, ángulo, producto escalar.
 ```ts
 interface VectorWidgetProps { initialA: [number, number]; initialB?: [number, number]; show: Array<'sum' | 'components' | 'dot' | 'angle'>; unit: string }
 ```
@@ -178,7 +178,7 @@ interface DiffDriveWidgetProps {
   maneuver?: { turn_deg: number; distance_m: number; omega_radps?: number; v_mps?: number };
 }
 ```
-En `mode="odometry"`, el panel muestra la velocidad estimada por los encoders, por rueda y del robot, junto a la real: `v ≈ 2π·r·Δticks / (N_e·Δt)`, con `Δticks` y `Δt` del último paso de muestreo. Con pocos ticks por vuelta o a baja velocidad salta en escalones (#306). El slider «ticks por vuelta» del propio widget cambia `N_e` en `[16, 4096]` (#301).
+En `mode="odometry"`, el panel muestra la velocidad estimada por los encoders, por rueda y del robot, junto a la real: `v ≈ 2π·r·Δticks / (N_e·Δt)`, con `Δticks` contados entre los dos últimos instantes de muestreo. El muestreo es fijo, `Δt = 0.1 s` (el del gancho de T2-0.1: 45 ticks por muestra a 7.85 rad/s), y el panel lo muestra en la fila «Intervalo de muestreo de la velocidad Δt» justo antes de las velocidades estimadas (#567). Los ángulos de rueda de cada instante `k·Δt` los guarda el propio estado del modelo que avanza `useSimulationDriver` (un envoltorio como el de `θ₀`), así que la estimada solo depende del tiempo simulado y no de los fotogramas del navegador; antes de completar el primer periodo vale 0. Con pocos ticks por vuelta o a baja velocidad salta en escalones de `2π·r / (N_e·Δt)` (#306). Valores dorados (robot de referencia): 45 ticks en 0.1 s → 0.2513 m/s; a 7.85 rad/s la estimada es 44 o 45 ticks por muestra, a un escalón de 0.005585 m/s (2 %) de los 0.2512 m/s reales; a 1 rad/s con `N_e = 20`, escalones de 0.1005 m/s. El slider «ticks por vuelta» del propio widget cambia `N_e` en `[16, 4096]` (#301).
 
 El slider de orientación del panel es la orientación inicial `θ₀` y se etiqueta «Orientación inicial» (#371). Al reproducir, el robot parte de `θ₀`; «Reiniciar» lo devuelve a `θ₀`. Mientras la simulación corre, el slider queda deshabilitado y sigue mostrando `θ₀`; la orientación actual se lee en la lectura «Orientación» del panel de valores. Sin props nuevas.
 

@@ -3,20 +3,20 @@ import type { RobotSpec } from '@trayectoria/robot-spec';
 import type { RobotCalc } from '../../../index';
 
 /**
- * «Al robot» calcs of T1-1.4 (docs/CURRICULUM.md § T1-1.4): `v_max` of «Mi robot» through the whole
- * chain, `n_motor → n_rueda → ω_max → v_max`, and the time for a 4 m track at that speed. The MDX
- * renders them with `<RobotFormula calc="ruta-1/m01-t04/wheel-speed" />`, `…/omega-max`,
- * `…/v-max` and `…/track-time`. They use only required fields of RobotSpec.
+ * «Al robot» calcs of T1-1.4 (docs/CURRICULUM.md § T1-1.4): the chain of «Mi robot» closes here,
+ * `n_rueda = n_motor / i` (the datum of T1-1.3) and `v_max = ω_max · r`, with the `ω_rueda` that
+ * T1-1.3 calculates, cited and not recalculated (#565). The MDX renders them with
+ * `<RobotFormula calc="ruta-1/m01-t04/wheel-speed" />` and `…/v-max`. They use only required
+ * fields of RobotSpec.
  */
 
-/** Four significant figures for n_rueda and ω_max (200 rpm, 20.94 rad/s), as in T1-0.1. */
-const ROTATION_SIGNIFICANT_FIGURES = 4;
-
-/** Three significant figures, keeping trailing zeros: 0.670 m/s, 5.97 s. */
+/**
+ * Significant figures of each value, those of its golden value, padding zeros kept
+ * (docs/CONTENT-STANDARDS.md §2.5, #653): 200 rpm, 20.94 rad/s and 0.670 m/s, as in T1-1.3.
+ */
+const WHEEL_SPEED_SIGNIFICANT_FIGURES = 3;
+const OMEGA_SIGNIFICANT_FIGURES = 4;
 const SIGNIFICANT_FIGURES = 3;
-
-/** Length of the track of the spec: «pista de 4 m». */
-const TRACK_DISTANCE_M = 4;
 
 const RPM_TO_RADPS = (2 * Math.PI) / 60;
 
@@ -54,8 +54,11 @@ function chain(robot: RobotSpec): Chain {
   };
 }
 
-function formatRotation(value: number): string {
-  return String(Number(value.toPrecision(ROTATION_SIGNIFICANT_FIGURES)));
+/** A value with more integer digits than figures is written whole. */
+function formatRotation(value: number, significantFigures: number): string {
+  return Math.abs(value) < 10 ** significantFigures
+    ? value.toPrecision(significantFigures)
+    : Math.round(value).toString();
 }
 
 function format(value: number): string {
@@ -71,26 +74,12 @@ export const wheelSpeed: RobotCalc = {
       latex: String.raw`n_{rueda} = \dfrac{n_{motor}}{i}`,
       substituted:
         String.raw`n_{rueda} = \dfrac{${motorSpeed_rpm}\ \text{rpm}}{${gearRatio}}` +
-        String.raw` = ${formatRotation(wheelSpeed_rpm)}\ \text{rpm}`,
+        String.raw` = ${formatRotation(wheelSpeed_rpm, WHEEL_SPEED_SIGNIFICANT_FIGURES)}\ \text{rpm}`,
     };
   },
 };
 
-/** `ω_max = n_rueda · 2π/60`. */
-export const omegaMax: RobotCalc = {
-  id: 'omega-max',
-  compute(robot) {
-    const { wheelSpeed_rpm, omegaMax_radps } = chain(robot);
-    return {
-      latex: String.raw`\omega_{\max} = n_{rueda}\,\dfrac{2\pi}{60}`,
-      substituted:
-        String.raw`\omega_{\max} = ${formatRotation(wheelSpeed_rpm)}\ \text{rpm} \cdot \dfrac{2\pi}{60}` +
-        String.raw` = ${formatRotation(omegaMax_radps)}\ \text{rad/s}`,
-    };
-  },
-};
-
-/** `v_max = ω_max · r`. */
+/** `v_max = ω_max · r`, with `ω_max` the no-load `ω_rueda` of T1-1.3. */
 export const vMax: RobotCalc = {
   id: 'v-max',
   compute(robot) {
@@ -98,25 +87,11 @@ export const vMax: RobotCalc = {
     return {
       latex: String.raw`v_{\max} = \omega_{\max} \cdot r`,
       substituted:
-        String.raw`v_{\max} = ${formatRotation(omegaMax_radps)}\ \text{rad/s} \cdot ${wheelRadius_m}\ \text{m}` +
+        String.raw`v_{\max} = ${formatRotation(omegaMax_radps, OMEGA_SIGNIFICANT_FIGURES)}\ \text{rad/s} \cdot ${wheelRadius_m}\ \text{m}` +
         String.raw` = ${format(vMax_mps)}\ \text{m/s}`,
     };
   },
 };
 
-/** `t = D / v_max`: the 4 m track at `v_max`. */
-export const trackTime: RobotCalc = {
-  id: 'track-time',
-  compute(robot) {
-    const { vMax_mps } = chain(robot);
-    return {
-      latex: String.raw`t = \dfrac{D}{v_{\max}}`,
-      substituted:
-        String.raw`t = \dfrac{${TRACK_DISTANCE_M}\ \text{m}}{${format(vMax_mps)}\ \text{m/s}}` +
-        String.raw` = ${format(TRACK_DISTANCE_M / vMax_mps)}\ \text{s}`,
-    };
-  },
-};
-
 /** The calcs of the topic; `content/index.ts` registers them. */
-export const robotCalcs: readonly RobotCalc[] = [wheelSpeed, omegaMax, vMax, trackTime];
+export const robotCalcs: readonly RobotCalc[] = [wheelSpeed, vMax];
