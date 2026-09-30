@@ -97,7 +97,12 @@ const e1 = defineExercise<EncoderStep>({
       values = drawTicks(rng);
     }
     const { deltaS_m, deltaTheta_rad } = odometryStep(values);
-    return { values, answer: [deltaS_m, deltaTheta_rad], unit: ['m', 'rad'] };
+    return {
+      values,
+      answer: [deltaS_m, deltaTheta_rad],
+      unit: ['m', 'rad'],
+      labels: [`content.${TOPIC_ID}.labels.e1.0`, `content.${TOPIC_ID}.labels.e1.1`],
+    };
   },
   statement: () => statementKey('e1'),
   tolerance: RELATIVE_2_PERCENT,

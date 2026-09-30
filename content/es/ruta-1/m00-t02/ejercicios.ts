@@ -126,6 +126,7 @@ export const e2 = defineExercise<VelocityVector>({
       values: { a_mps, b_mps },
       answer: [magnitude(a_mps, b_mps), heading_deg(a_mps, b_mps)],
       unit: ['m/s', '°'],
+      labels: [`${STATEMENT_PREFIX}.labels.e2.0`, `${STATEMENT_PREFIX}.labels.e2.1`],
     };
   },
   statement: () => `${STATEMENT_PREFIX}.e2`,
