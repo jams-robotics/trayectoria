@@ -45,6 +45,11 @@ Primera versión pública. Cubre el alcance congelado de la v1 descrito en [`doc
 - Modo aula mínimo: roles docente y estudiante, grupos por código de invitación, tabla tema × estudiante de las dos rutas y exportación a CSV.
 - Unirse a un grupo, salir de él y eliminar la cuenta con sus datos.
 
+### Catálogo
+
+- Brazos de referencia: SO-101 (LeRobot) y brazo plano didáctico de 2 GDL, con sus páginas en `/brazos`.
+- Robots móviles de referencia para el simulador.
+
 ### Seguridad
 
 - Cabeceras de seguridad y política de seguridad de contenido (CSP) aplicada, idénticas en la instancia pública y en el autoalojado.
