@@ -9,8 +9,13 @@ import type { RobotCalc } from '../../../index';
  * `…/angular-velocity`, `…/turn-radius` and `…/spin-angular-velocity`.
  */
 
-/** Four significant figures, without trailing zeros: 0.56 m/s, 1.067 rad/s, 0.525 m. */
-const SIGNIFICANT_FIGURES = 4;
+/**
+ * Significant figures of each value, those of its golden value, padding zeros kept
+ * (docs/CONTENT-STANDARDS.md §2.5, #653): 0.56 m/s, 1.067 rad/s (and 4.267 rad/s), 0.525 m.
+ */
+const SPEED_SIGNIFICANT_FIGURES = 2;
+const OMEGA_SIGNIFICANT_FIGURES = 4;
+const RADIUS_SIGNIFICANT_FIGURES = 3;
 
 /** Wheel commands of the hook and of the spin in place (#394). */
 const HOOK_OMEGA_L_RADPS = 15;
@@ -52,8 +57,11 @@ function omega_radps(
   return ((omegaR_radps - omegaL_radps) * wheelRadius_m) / wheelBase_m;
 }
 
-function format(value: number): string {
-  return String(Number(value.toPrecision(SIGNIFICANT_FIGURES)));
+/** A value with more integer digits than figures is written whole. */
+function format(value: number, significantFigures: number): string {
+  return Math.abs(value) < 10 ** significantFigures
+    ? value.toPrecision(significantFigures)
+    : Math.round(value).toString();
 }
 
 /** A wheel command inside the substituted formula: negative values go in parentheses. */
@@ -68,7 +76,7 @@ function omegaSubstituted(robot: Wheels, omegaL_radps: number, omegaR_radps: num
   return (
     String.raw`\omega = \dfrac{(${formatCommand(omegaR_radps)} - ${formatCommand(omegaL_radps)})` +
     String.raw`\ \text{rad/s} \cdot ${wheelRadius_m}\ \text{m}}{${wheelBase_m}\ \text{m}}` +
-    String.raw` = ${format(omega_radps(robot, omegaL_radps, omegaR_radps))}\ \text{rad/s}`
+    String.raw` = ${format(omega_radps(robot, omegaL_radps, omegaR_radps), OMEGA_SIGNIFICANT_FIGURES)}\ \text{rad/s}`
   );
 }
 
@@ -82,7 +90,7 @@ export const linearVelocity: RobotCalc = {
       substituted:
         String.raw`v = \dfrac{(${HOOK_OMEGA_R_RADPS} + ${HOOK_OMEGA_L_RADPS})\ \text{rad/s}` +
         String.raw` \cdot ${profile.wheelRadius_m}\ \text{m}}{2}` +
-        String.raw` = ${format(linearVelocity_mps(profile))}\ \text{m/s}`,
+        String.raw` = ${format(linearVelocity_mps(profile), SPEED_SIGNIFICANT_FIGURES)}\ \text{m/s}`,
     };
   },
 };
@@ -108,8 +116,9 @@ export const turnRadius: RobotCalc = {
     return {
       latex: String.raw`R = \dfrac{v}{\omega}`,
       substituted:
-        String.raw`R = \dfrac{${format(v_mps)}\ \text{m/s}}{${format(omega)}\ \text{rad/s}}` +
-        String.raw` = ${format(v_mps / omega)}\ \text{m}`,
+        String.raw`R = \dfrac{${format(v_mps, SPEED_SIGNIFICANT_FIGURES)}\ \text{m/s}}` +
+        String.raw`{${format(omega, OMEGA_SIGNIFICANT_FIGURES)}\ \text{rad/s}}` +
+        String.raw` = ${format(v_mps / omega, RADIUS_SIGNIFICANT_FIGURES)}\ \text{m}`,
     };
   },
 };

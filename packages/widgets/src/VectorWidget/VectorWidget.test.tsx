@@ -31,7 +31,7 @@ describe('VectorWidget (F2-03)', () => {
     renderCurriculum();
 
     expect(valueOf('Componentes de a')).toBe('(0.433 m/s, 0.250 m/s)');
-    expect(valueOf('Magnitud de a')).toBe('0.500 m/s');
+    expect(valueOf('Módulo de a')).toBe('0.500 m/s');
     expect(valueOf('Ángulo de a')).toBe('30.00°');
   });
 
@@ -39,7 +39,7 @@ describe('VectorWidget (F2-03)', () => {
     renderCurriculum();
 
     expect(valueOf('Componentes de a + b')).toBe('(0.633 m/s, 0.150 m/s)');
-    expect(valueOf('Magnitud de a + b')).toBe('0.651 m/s');
+    expect(valueOf('Módulo de a + b')).toBe('0.651 m/s');
     expect(valueOf('Producto escalar a · b')).toBe('0.0616 (m/s)²');
     expect(valueOf('Ángulo entre a y b')).toBe('56.57°');
   });
@@ -48,7 +48,7 @@ describe('VectorWidget (F2-03)', () => {
     const user = userEvent.setup();
     render(<VectorWidget initialA={[0.3, 0.4]} show={['components', 'angle']} unit="m" />);
 
-    expect(valueOf('Magnitud de a')).toBe('0.500 m');
+    expect(valueOf('Módulo de a')).toBe('0.500 m');
     expect(valueOf('Ángulo de a')).toBe('53.13°');
 
     await user.tab();
@@ -56,7 +56,7 @@ describe('VectorWidget (F2-03)', () => {
     await user.keyboard('{ArrowRight}');
 
     expect(valueOf('Componentes de a')).toBe('(0.400 m, 0.400 m)');
-    expect(valueOf('Magnitud de a')).toBe('0.566 m');
+    expect(valueOf('Módulo de a')).toBe('0.566 m');
     expect(valueOf('Ángulo de a')).toBe('45.00°');
   });
 
@@ -96,8 +96,8 @@ describe('VectorWidget (F2-03)', () => {
 
     expect(screen.queryByText('Producto escalar a · b')).not.toBeInTheDocument();
     expect(screen.queryByText('Ángulo entre a y b')).not.toBeInTheDocument();
-    expect(screen.queryByText('Magnitud de a + b')).not.toBeInTheDocument();
-    expect(screen.getByText('Magnitud de a')).toBeInTheDocument();
+    expect(screen.queryByText('Módulo de a + b')).not.toBeInTheDocument();
+    expect(screen.getByText('Módulo de a')).toBeInTheDocument();
   });
 
   test('describes its state in an `aria-live` region and names the scene', () => {
@@ -112,8 +112,8 @@ describe('VectorWidget (F2-03)', () => {
   test('b defaults to the zero vector when the topic gives only a', () => {
     render(<VectorWidget initialA={[0.3, 0.4]} show={['sum', 'angle']} unit="m" />);
 
-    expect(valueOf('Magnitud de b')).toBe('0.00 m');
-    expect(valueOf('Magnitud de a + b')).toBe('0.500 m');
+    expect(valueOf('Módulo de b')).toBe('0.00 m');
+    expect(valueOf('Módulo de a + b')).toBe('0.500 m');
     // The zero vector has no direction, so the angle against it is reported as zero, not NaN.
     expect(valueOf('Ángulo entre a y b')).toBe('0.00°');
   });

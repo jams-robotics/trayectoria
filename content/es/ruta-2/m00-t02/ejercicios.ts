@@ -133,7 +133,12 @@ const e1 = defineExercise<PoseAndOffset>({
       forwardOffset_m = drawOnGrid(rng, E1_FORWARD_OFFSET_M, HUNDREDTHS);
       answer = toGlobal_m(pose, [forwardOffset_m, 0]);
     } while (hasSmallCoordinate(answer));
-    return { values: { ...pose, forwardOffset_m }, answer, unit: 'm' };
+    return {
+      values: { ...pose, forwardOffset_m },
+      answer,
+      unit: 'm',
+      labels: [`content.${TOPIC_ID}.labels.e1.0`, `content.${TOPIC_ID}.labels.e1.1`],
+    };
   },
   statement: () => statementKey('e1'),
   tolerance: RELATIVE_2_PERCENT,
@@ -149,7 +154,12 @@ const e2 = defineExercise<PoseDeg>({
       pose = drawPose(rng, E2_XY_M, E2_THETA_DEG);
       answer = toGlobal_m(pose, E2_POINT_M);
     } while (hasSmallCoordinate(answer));
-    return { values: pose, answer, unit: 'm' };
+    return {
+      values: pose,
+      answer,
+      unit: 'm',
+      labels: [`content.${TOPIC_ID}.labels.e2.0`, `content.${TOPIC_ID}.labels.e2.1`],
+    };
   },
   statement: () => statementKey('e2'),
   tolerance: RELATIVE_2_PERCENT,
@@ -186,7 +196,12 @@ const e3 = defineExercise<Target>({
 /** e4 (optional): the inverse transform, fixed point and pose, no generation range. */
 const e4 = defineExercise<Record<string, never>>({
   id: 'e4',
-  generate: () => ({ values: {}, answer: toRobot_m(E4_POSE, E4_POINT_M), unit: 'm' }),
+  generate: () => ({
+    values: {},
+    answer: toRobot_m(E4_POSE, E4_POINT_M),
+    unit: 'm',
+    labels: [`content.${TOPIC_ID}.labels.e4.0`, `content.${TOPIC_ID}.labels.e4.1`],
+  }),
   statement: () => statementKey('e4'),
   tolerance: RELATIVE_2_PERCENT,
 });

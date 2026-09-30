@@ -9,8 +9,11 @@ import type { RobotCalc } from '../../../index';
  * `<RobotFormula calc="ruta-2/m02-t01/half-width" />` and `…/loss-offset`.
  */
 
-/** Four significant figures, trailing zeros dropped: 0.024 and 0.034 (the spec). */
-const SIGNIFICANT_FIGURES = 4;
+/**
+ * Two significant figures, those of the golden values 0.024 m and 0.034 m, padding zeros kept
+ * (docs/CONTENT-STANDARDS.md §2.5, #653). `e_s` of the profile and `w` are data, written as they are.
+ */
+const SIGNIFICANT_FIGURES = 2;
 
 /** Width of the line of the tracks, a constant of the text rather than of the profile (#396). */
 const LINE_WIDTH_M = 0.02;
@@ -36,8 +39,11 @@ function sensors(robot: RobotSpec): SensorArray {
   return { count, spacing_m };
 }
 
+/** A value with more integer digits than figures is written whole. */
 function format(value: number): string {
-  return String(Number(value.toPrecision(SIGNIFICANT_FIGURES)));
+  return Math.abs(value) < 10 ** SIGNIFICANT_FIGURES
+    ? value.toPrecision(SIGNIFICANT_FIGURES)
+    : Math.round(value).toString();
 }
 
 /** `(N − 1)/2 · e_s`, in metres. */
@@ -53,7 +59,7 @@ export const halfWidth: RobotCalc = {
     return {
       latex: String.raw`y_{línea} = p\,\frac{N-1}{2}\,e_s`,
       substituted:
-        String.raw`y_{línea} = 1 \cdot \frac{${array.count}-1}{2} \cdot ${format(array.spacing_m)}\ \text{m}` +
+        String.raw`y_{línea} = 1 \cdot \frac{${array.count}-1}{2} \cdot ${array.spacing_m}\ \text{m}` +
         String.raw` = ${format(halfWidth_m(array))}\ \text{m}`,
     };
   },
@@ -67,7 +73,7 @@ export const lossOffset: RobotCalc = {
     return {
       latex: String.raw`y_{perdida} = \frac{N-1}{2}\,e_s + \frac{w}{2}`,
       substituted:
-        String.raw`y_{perdida} = ${format(half_m)}\ \text{m} + \frac{${format(LINE_WIDTH_M)}\ \text{m}}{2}` +
+        String.raw`y_{perdida} = ${format(half_m)}\ \text{m} + \frac{${LINE_WIDTH_M}\ \text{m}}{2}` +
         String.raw` = ${format(half_m + LINE_WIDTH_M / 2)}\ \text{m}`,
     };
   },

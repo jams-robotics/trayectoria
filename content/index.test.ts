@@ -54,6 +54,20 @@ describe('EXERCISES', () => {
   it('files each exercise under its own id', () => {
     for (const [key, exercise] of EXERCISES) expect(key.endsWith(`/${exercise.id}`)).toBe(true);
   });
+
+  it('names each field of a vector answer (#629)', () => {
+    let labelled = 0;
+    for (const [key, exercise] of EXERCISES) {
+      const { answer, labels } = exercise.generate(createRng(1));
+      if (!Array.isArray(answer)) continue;
+      const topicId = key.slice(0, key.lastIndexOf('/'));
+      expect(labels).toEqual(
+        answer.map((_, n) => `content.${topicId}.labels.${exercise.id}.${String(n)}`),
+      );
+      labelled += 1;
+    }
+    expect(labelled).toBe(19);
+  });
 });
 
 describe('exerciseKey', () => {

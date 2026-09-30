@@ -68,13 +68,13 @@ describe('T2-0.2 «Al robot» calcs', () => {
     expect(robotCalcs.map((calc) => calc.id)).toEqual(['center-sensor', 'left-sensor']);
   });
 
-  it('center-sensor: (0.09, 0) m at (1.2, 0.5, 30°) → (1.278, 0.545) m', () => {
+  it('center-sensor: (0.09, 0) m at (1.2, 0.5, 30°) → (1.278, 0.5450) m, four figures (#653)', () => {
     const { latex, substituted } = centerSensor.compute(REFERENCE);
     expect(latex).toBe(LATEX);
     expect(substituted).toBe(
       String.raw`\vec p_G = \begin{pmatrix}1.2\\0.5\end{pmatrix}\ \text{m}` +
         String.raw` + R(30^\circ)\,\begin{pmatrix}0.09\\0\end{pmatrix}\ \text{m}` +
-        String.raw` = \begin{pmatrix}1.278\\0.545\end{pmatrix}\ \text{m}`,
+        String.raw` = \begin{pmatrix}1.278\\0.5450\end{pmatrix}\ \text{m}`,
     );
   });
 
@@ -90,11 +90,11 @@ describe('T2-0.2 «Al robot» calcs', () => {
 
   it('follow the sensor array of «Mi robot»', () => {
     // 8 sensors at 0.01 m, 0.1 m ahead: leftmost at y = 3.5·0.01 = 0.035 m.
-    // Center: (1.2 + 0.1·cos30°, 0.5 + 0.1·sin30°) = (1.287, 0.55).
+    // Center: (1.2 + 0.1·cos30°, 0.5 + 0.1·sin30°) = (1.287, 0.5500), padding zeros kept (#653).
     // Leftmost: (1.2866 − 0.035·sin30°, 0.55 + 0.035·cos30°) = (1.269, 0.5803).
     const robot = withSensors(8, 0.01, 0.1);
     expect(centerSensor.compute(robot).substituted).toContain(
-      String.raw`\begin{pmatrix}0.1\\0\end{pmatrix}\ \text{m} = \begin{pmatrix}1.287\\0.55\end{pmatrix}`,
+      String.raw`\begin{pmatrix}0.1\\0\end{pmatrix}\ \text{m} = \begin{pmatrix}1.287\\0.5500\end{pmatrix}`,
     );
     expect(leftSensor.compute(robot).substituted).toContain(
       String.raw`\begin{pmatrix}0.1\\0.035\end{pmatrix}\ \text{m} = \begin{pmatrix}1.269\\0.5803\end{pmatrix}`,
@@ -104,7 +104,7 @@ describe('T2-0.2 «Al robot» calcs', () => {
   it('put the leftmost sensor on the center line for a single sensor', () => {
     const robot = withSensors(1, 0.012, 0.09);
     expect(leftSensor.compute(robot).substituted).toContain(
-      String.raw`= \begin{pmatrix}1.278\\0.545\end{pmatrix}`,
+      String.raw`= \begin{pmatrix}1.278\\0.5450\end{pmatrix}`,
     );
   });
 

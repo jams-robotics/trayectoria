@@ -126,7 +126,16 @@ const e1 = defineExercise<ProportionalCase>({
   generate: (rng) => {
     const values = drawProportionalCase(rng);
     const { u_radps, omegaL_radps, omegaR_radps } = wheelCommands(values);
-    return { values, answer: [u_radps, omegaL_radps, omegaR_radps], unit: 'rad/s' };
+    return {
+      values,
+      answer: [u_radps, omegaL_radps, omegaR_radps],
+      unit: 'rad/s',
+      labels: [
+        `content.${TOPIC_ID}.labels.e1.0`,
+        `content.${TOPIC_ID}.labels.e1.1`,
+        `content.${TOPIC_ID}.labels.e1.2`,
+      ],
+    };
   },
   statement: () => statementKey('e1'),
   tolerance: RELATIVE_2_PERCENT,

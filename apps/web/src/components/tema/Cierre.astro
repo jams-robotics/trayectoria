@@ -1,0 +1,64 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import type { NextStep } from '../../lib/closing';
+import { TopicClosingStatus } from '../progress/TopicClosingStatus';
+
+// Closing block of a topic, after «Profundiza» (#546): «Lo que te llevas» with the objectives of
+// the frontmatter (decision 1), the Verifica tally and, without an account, the line about saving
+// progress (decisions 2 and 4), and the primary button to the next step (decision 3). Card of
+// docs/DESIGN.md §5 in the 72ch reading column; the button is the single primary of the view.
+interface Props {
+  topicId: string;
+  /** `objectives` of the topic's frontmatter. */
+  objectives: readonly string[];
+  /** Ids of the topic's Verifica exercises. */
+  exerciseIds: readonly string[];
+  step: NextStep;
+}
+
+const { topicId, objectives, exerciseIds, step } = Astro.props;
+const LABEL_KEY = {
+  topic: 'topic.closing.next',
+  route: 'topic.closing.continueRoute',
+  index: 'topic.closing.routeIndex',
+} as const;
+const label = t(LABEL_KEY[step.kind], { title: step.title });
+---
+
+<section
+  aria-labelledby="cierre-titulo"
+  class="bg-bg-raised border-border rounded-lg mt-12 max-w-[72ch] border p-5 md:p-6"
+  data-testid="topic-closing"
+>
+  <h2 id="cierre-titulo" class="text-lg leading-tight m-0 font-semibold">
+    {t('topic.closing.title')}
+  </h2>
+  <ul class="m-0 mt-3 grid list-disc gap-1 pl-5">
+    {objectives.map((objective) => (
+      <li>{objective}</li>
+    ))}
+  </ul>
+  {/*
+    `client:load`, not `client:visible` (#546, QA on PR #661): until a `client:visible` island is
+    scrolled into view it keeps the server markup, so the tally read «0 de 4» while the exercises
+    above were being answered. Hydrated with the page, it follows the progress store live.
+  */}
+  <TopicClosingStatus client:load topicId={topicId} exerciseIds={exerciseIds} />
+  <div class="mt-5">
+    {step.href === undefined ? (
+      <span class="text-fg-muted" data-testid="closing-next">
+        {label}
+      </span>
+    ) : (
+      <a
+        href={step.href}
+        class="bg-primary text-primary-fg border-primary hover:bg-primary-hover hover:text-primary-fg rounded-md inline-flex min-h-[44px] items-center border px-5 font-semibold no-underline"
+        data-testid="closing-next"
+        data-kind={step.kind}
+      >
+        {label}
+      </a>
+    )}
+  </div>
+</section>

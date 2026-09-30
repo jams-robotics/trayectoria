@@ -78,6 +78,7 @@ const e1 = defineExercise<RobotCommand>({
         values: { v_mps, omega_radps },
         answer: [vL_mps / WHEEL_RADIUS_M, vR_mps / WHEEL_RADIUS_M],
         unit: ['rad/s', 'rad/s'],
+        labels: [`content.${TOPIC_ID}.labels.e1.0`, `content.${TOPIC_ID}.labels.e1.1`],
       };
     }
   },
@@ -99,7 +100,12 @@ const e2 = defineExercise<Circle>({
       const v_mps = drawOnGrid(rng, E2_V_MPS, HUNDREDTHS);
       const wheels_mps = wheelSpeeds_mps(v_mps, v_mps / turnRadius_m);
       if (!isReachable(wheels_mps)) continue;
-      return { values: { turnRadius_m, v_mps }, answer: wheels_mps, unit: ['m/s', 'm/s'] };
+      return {
+        values: { turnRadius_m, v_mps },
+        answer: wheels_mps,
+        unit: ['m/s', 'm/s'],
+        labels: [`content.${TOPIC_ID}.labels.e2.0`, `content.${TOPIC_ID}.labels.e2.1`],
+      };
     }
   },
   statement: () => statementKey('e2'),
@@ -119,6 +125,7 @@ const e3 = defineExercise<Pivot>({
       values: { vR_mps },
       answer: [vR_mps / WHEEL_BASE_M, WHEEL_BASE_M / 2],
       unit: ['rad/s', 'm'],
+      labels: [`content.${TOPIC_ID}.labels.e3.0`, `content.${TOPIC_ID}.labels.e3.1`],
     };
   },
   statement: () => statementKey('e3'),
