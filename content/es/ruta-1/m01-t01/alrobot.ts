@@ -4,8 +4,9 @@ import type { RobotCalc } from '../../../index';
 
 /**
  * «Al robot» calc of T1-1.1 (docs/CURRICULUM.md § T1-1.1): the time of «Mi robot» on the 4 m track
- * of the hook at `v_max`, `t = D / v_max`. The MDX renders it with
- * `<RobotFormula calc="ruta-1/m01-t01/track-time" />`.
+ * of the hook at `v_max`, `t = D / v_max`. `v_max` is a datum of the profile (#559, #574): the
+ * calc obtains it from «Mi robot» without showing its formula, which T1-1.4 teaches. The MDX
+ * renders it with `<RobotFormula calc="ruta-1/m01-t01/track-time" />`.
  */
 
 /** Three significant figures, keeping trailing zeros: 0.670 m/s, 5.97 s. */

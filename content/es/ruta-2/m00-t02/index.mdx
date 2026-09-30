@@ -3,11 +3,11 @@ id: ruta-2/m00-t02
 title: 'Pose y marcos de referencia'
 module: 0
 order: 2
-estimatedMinutes: 35
+estimatedMinutes: 40
 prerequisites: [ruta-1/m00-t02]
 objectives:
   - Describir la pose (x, y, θ) del robot
-  - Transformar puntos del marco del robot al global con la matriz de rotación 2D, y viceversa
+  - Transformar puntos del marco del robot al global por componentes y con la matriz de rotación 2D, y viceversa
   - Calcular el rumbo hacia un punto
 widgets: [DiffDriveWidget, ExerciseWidget]
 requiredExercises: [e1, e2, e3]
@@ -29,29 +29,41 @@ robot** \{R\} viaja con el robot: su origen está en el punto medio del eje de l
 hacia adelante e Y hacia la izquierda. Los ángulos son antihorarios positivos.
 
 La **pose** del robot es (x, y, θ): la posición del origen de \{R\} en \{G\} más su orientación θ, el
-ángulo del eje X de \{R\} medido desde el eje X de \{G\}. Con tres números sabes dónde está el robot
-sobre el plano y hacia dónde mira.
+ángulo del eje X de \{R\} medido desde el eje X de \{G\}.
 
 Un punto fijo al robot, como un sensor, tiene coordenadas constantes en \{R\}: el sensor central
-del gancho está en p⃗_R = (0.09, 0) m. Para pasarlo a \{G\}, primero lo rotas θ con la **matriz de
-rotación** R(θ) y después lo trasladas sumando el origen de \{R\}, p⃗_\{R,0\} = (x, y). Las columnas
-de R(θ) son los ejes de \{R\} vistos desde \{G\}.
+del gancho está en p⃗_R = (0.09, 0) m. Para pasarlo a \{G\} lo rotas θ y lo trasladas. La rotación
+es la del recuadro de [Vectores](/ruta/ruta-1/m00/t02), por componentes, y la traslación suma la
+posición del robot: p_\{G,x\} = x + p_\{R,x\}·cosθ − p_\{R,y\}·sinθ y
+p_\{G,y\} = y + p_\{R,x\}·sinθ + p_\{R,y\}·cosθ.
 
-Con los datos del gancho, cos 30° = 0.866 y sin 30° = 0.5. Rotar (0.09, 0) m da
-(0.0779, 0.045) m, y sumar (1.2, 0.5) m deja el sensor en (1.278, 0.545) m.
+Con cos 30° = 0.866 y sin 30° = 0.5, girar (0.09, 0) m da
+(0.09·0.866 − 0·0.5, 0.09·0.5 + 0·0.866) = (0.0779, 0.045) m. Sumando (1.2, 0.5) m, el sensor
+queda en (1.278, 0.545) m.
 
-La transformación inversa deshace los pasos en orden contrario: primero trasladas, restando
-p⃗_\{R,0\}, y después rotas con −θ. Así sabes dónde queda un punto de la mesa visto desde el robot.
+La **matriz de rotación** R(θ) escribe esas dos ecuaciones de forma compacta:
+p⃗_G = p⃗_\{R,0\} + R(θ)·p⃗_R, con p⃗_\{R,0\} = (x, y). Cada fila multiplica al vector: la
+primera, (0.866, −0.5), da 0.866·0.09 − 0.5·0 = 0.0779, y la segunda, (0.5, 0.866), da
+0.5·0.09 + 0.866·0 = 0.045. Son los mismos números.
 
-Para ir hacia un objetivo (x_o, y_o), el robot necesita el **rumbo** θ_objetivo: el ángulo de la
-recta que va de su posición al objetivo. Se calcula con atan2, que conserva el cuadrante que la
-arcotangente simple pierde.
+La transformación inversa deshace los pasos al revés: restas p⃗_\{R,0\} y rotas con −θ,
+que solo cambia el signo de los senos. Por eso R(−θ) es la traspuesta de R(θ).
 
-La ruta 2 usa este mismo mecanismo en 3D: la posición de la pinza de un brazo se obtiene
-encadenando rotaciones y traslaciones de un marco al siguiente.
+El **rumbo** θ_objetivo hacia un objetivo (x_o, y_o) es el ángulo de la recta que va del robot al
+objetivo. Se calcula con atan2, que conserva el cuadrante que la arcotangente simple pierde.
+
+El simulador de brazo usa este mismo mecanismo en 3D, encadenando rotaciones y traslaciones de un
+marco al siguiente.
 </Concepto>
 
 <Formulas>
+<Formula latex="\begin{aligned} p_{G,x} &= x + p_{R,x}\cos\theta - p_{R,y}\sin\theta\\ p_{G,y} &= y + p_{R,x}\sin\theta + p_{R,y}\cos\theta \end{aligned}" />
+
+- `p_{G,x}`, `p_{G,y}` · componentes del punto en \{G\} · m
+- `p_{R,x}`, `p_{R,y}` · componentes del punto en \{R\} · m
+- `x, y` · posición del robot en \{G\} · m
+- `θ` · orientación del robot · rad
+
 <Formula latex="R(\theta) = \begin{pmatrix}\cos\theta & -\sin\theta\\ \sin\theta & \cos\theta\end{pmatrix}" />
 
 - `R(θ)` · matriz de rotación 2D · —
@@ -136,8 +148,10 @@ Y su sensor izquierdo extremo, en:
 Si tu perfil no es un robot móvil, el cálculo usa el robot de referencia: N = 5 sensores
 separados e_s = 0.012 m, con d = 0.09 m.
 
-Con el robot de referencia, el sensor central queda en (1.278, 0.545) m y el izquierdo extremo en
-(1.266, 0.5658) m. En \{R\} los separan 0.024 m, y en \{G\} también: la rotación y la traslación no
+Con el robot de referencia, el sensor central queda en (1.278, 0.545) m, como en el gancho. El
+izquierdo extremo está en (0.09, 0.024) m en \{R\}. Por componentes, girarlo 30° da
+(0.09·0.866 − 0.024·0.5, 0.09·0.5 + 0.024·0.866) = (0.0659, 0.0658) m, y sumando (1.2, 0.5) m
+queda en (1.266, 0.5658) m. En \{R\} los separan 0.024 m, y en \{G\} también: la rotación y la traslación no
 cambian distancias.
 
 La pista está dibujada sobre la mesa, no sobre el robot. Para saber si un sensor ve la línea hay

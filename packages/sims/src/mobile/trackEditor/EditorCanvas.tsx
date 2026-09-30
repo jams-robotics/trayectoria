@@ -21,12 +21,19 @@ import type { TrackEditorApi } from './useTrackEditor';
 export const WORLD_WIDTH_M = 1.8;
 
 /**
- * World point at the centre of the canvas, in metres. The presets are not laid out around the
- * origin — `oval` spans x ∈ [-0.25, 0.85] and y ∈ [0, 0.5] — so a view centred on (0,0) would
- * push them off the canvas. This is the centre of their combined extent, and being a constant it
- * also keeps the pointer mapping fixed: the view never shifts under the learner mid-stroke.
+ * World point at the centre of an empty canvas, in metres. The presets are not laid out around
+ * the origin — `oval` spans x ∈ [-0.25, 0.85] and y ∈ [0, 0.5] — so a view centred on (0,0) would
+ * push them off the canvas. This is the centre of their combined extent. With a track, the view
+ * is centred on it instead (`viewCenter_m` of the editor, #552); either way the centre only
+ * changes when the whole track is replaced, so the pointer mapping never shifts mid-stroke.
  */
 export const SCENE_CENTER_M: [number, number] = [0.475, 0.05];
+
+/** The centre the canvas paints and maps with: the track's own, or the default over nothing. */
+function centerOf(editor: TrackEditorApi): [number, number] {
+  const center_m = editor.viewCenter_m;
+  return center_m === null ? SCENE_CENTER_M : [center_m[0], center_m[1]];
+}
 
 /** Radius of the marker drawn at the snapped end of the stroke, in metres (spec of #126). */
 const SNAP_MARKER_RADIUS_M = 0.015;
@@ -70,7 +77,11 @@ function useSlotWidth(ref: RefObject<HTMLDivElement | null>, enabled: boolean): 
  * the learner clicks and the pixels the scene drew agree by construction (#126, decision 4); it
  * is not recomputed geometry, it is the same pure function fed the same measurements.
  */
-function worldOf(host: HTMLElement | null, event: ReactPointerEvent<HTMLElement>): Vec2 | null {
+function worldOf(
+  host: HTMLElement | null,
+  event: ReactPointerEvent<HTMLElement>,
+  center_m: Vec2,
+): Vec2 | null {
   const canvas = host?.querySelector('canvas') ?? null;
   if (canvas === null) return null;
   const box = canvas.getBoundingClientRect();
@@ -79,7 +90,7 @@ function worldOf(host: HTMLElement | null, event: ReactPointerEvent<HTMLElement>
     widthPx: box.width,
     heightPx: box.height,
     worldWidth_m: WORLD_WIDTH_M,
-    center_m: SCENE_CENTER_M,
+    center_m,
     dpr: 1,
   });
   return pxToWorld(transform, event.clientX - box.left, event.clientY - box.top);
@@ -152,7 +163,7 @@ function EditorScene({
   return (
     <Scene2D
       worldWidth_m={WORLD_WIDTH_M}
-      center_m={SCENE_CENTER_M}
+      center_m={centerOf(editor)}
       // `exactOptionalPropertyTypes`: with no aspect ratio requested, `Scene2D` uses its own (16/9).
       {...(aspect === undefined ? {} : { aspect })}
       description={t('sims.trackEditor.scene')}
@@ -218,9 +229,10 @@ function useCanvasAspect(
 /** Translates each pointer event to world metres before handing it to the editor. */
 function pointerHandlers(
   hostRef: RefObject<HTMLDivElement | null>,
+  center_m: Vec2,
 ): (handler: (p_m: Vec2) => void) => (event: ReactPointerEvent<HTMLDivElement>) => void {
   return (handler) => (event) => {
-    const p_m = worldOf(hostRef.current, event);
+    const p_m = worldOf(hostRef.current, event, center_m);
     if (p_m !== null) handler(p_m);
   };
 }
@@ -243,7 +255,7 @@ export function CanvasHost({
   const slotRef = useRef<HTMLDivElement | null>(null);
   const aspect = useCanvasAspect(slotRef, height_px);
   const metresPerPx = useMetresPerPx(hostRef);
-  const pointer = pointerHandlers(hostRef);
+  const pointer = pointerHandlers(hostRef, centerOf(editor));
   return (
     <div ref={slotRef} className="relative">
       <div

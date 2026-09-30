@@ -13,6 +13,7 @@ import {
   exercises,
   heading_deg,
   magnitude,
+  rotated,
 } from './ejercicios';
 
 // Golden values of docs/CURRICULUM.md § T1-0.2 (Verifica), each within its tolerance
@@ -71,6 +72,36 @@ describe('T1-0.2 golden values', () => {
     expect(e2.tolerance).toEqual([RELATIVE_2_PERCENT, ABSOLUTE_HALF_DEGREE]);
     expect(e3.tolerance).toEqual(RELATIVE_2_PERCENT);
     expect(e4.tolerance).toEqual(ABSOLUTE_HALF_DEGREE);
+  });
+});
+
+// Worked example of the box «Rotación de un vector por componentes» of docs/CURRICULUM.md
+// § T1-0.2 (#560): the vector of the hook, (0.5, 0) m/s, turned 30° and then another 60°.
+describe('T1-0.2 rotation box (#560)', () => {
+  it('(0.5, 0) m/s turned 30° gives (0.433, 0.25) m/s, the components of the hook', () => {
+    const [ax_mps, ay_mps] = rotated([0.5, 0], 30);
+    expect(ax_mps).toBeCloseTo(0.433, 3);
+    expect(ay_mps).toBeCloseTo(0.25, 3);
+  });
+
+  it('(0.433, 0.25) m/s turned another 60° gives (0.000, 0.5) m/s: 0.5 m/s at 90°', () => {
+    const [ax_mps, ay_mps] = rotated([0.433, 0.25], 60);
+    expect(ax_mps).toBeCloseTo(0, 3);
+    expect(ay_mps).toBeCloseTo(0.5, 3);
+    expect(magnitude(ax_mps, ay_mps)).toBeCloseTo(0.5, 3);
+  });
+
+  it('keeps the magnitude and adds the angles: 30° then 60° is the hook vector at 90°', () => {
+    const [ax_mps, ay_mps] = rotated(rotated([0.5, 0], 30), 60);
+    expect(ax_mps).toBeCloseTo(0, 10);
+    expect(ay_mps).toBeCloseTo(0.5, 10);
+    expect(heading_deg(ax_mps, ay_mps)).toBeCloseTo(90, 10);
+  });
+
+  it('turning −θ changes the sign of the sines and undoes the turn', () => {
+    const [ax_mps, ay_mps] = rotated(rotated([0.433, 0.25], 60), -60);
+    expect(ax_mps).toBeCloseTo(0.433, 10);
+    expect(ay_mps).toBeCloseTo(0.25, 10);
   });
 });
 

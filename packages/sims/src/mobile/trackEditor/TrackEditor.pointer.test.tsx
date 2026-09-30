@@ -18,9 +18,10 @@ const LINE_TRACK: Track = {
 describe('TrackEditor con el puntero (F4-01b)', () => {
   // jsdom gives every element a zero-sized box, so `createTransform` would map nothing: the
   // canvas is given a 720 × 405 box, which over `worldWidth_m = 1.8` makes 1 m exactly 400 px.
-  // `SCENE_CENTER_M` = (0.475, 0.05) sits at the centre of that box, (360, 202.5), and every
-  // metre is 400 px from there. The drawing itself is exercised end to end against a real
-  // browser in apps/web/e2e/track-editor.spec.ts.
+  // Over an empty track `SCENE_CENTER_M` = (0.475, 0.05) sits at the centre of that box,
+  // (360, 202.5), and every metre is 400 px from there; over `LINE_TRACK` the editor frames the
+  // straight, so its centre (0.15, 0) is what sits there (#552). The drawing itself is
+  // exercised end to end against a real browser in apps/web/e2e/track-editor.spec.ts.
   const CANVAS_BOX = {
     x: 0,
     y: 0,
@@ -32,11 +33,18 @@ describe('TrackEditor con el puntero (F4-01b)', () => {
     height: 405,
   };
 
-  /** Canvas pixels of the point `p_m`, with the same mapping the editor uses. */
-  function px(p_m: readonly [number, number]): { clientX: number; clientY: number } {
+  /** The view centre over an empty track and over `LINE_TRACK`, in metres. */
+  const EMPTY_CENTER_M = [0.475, 0.05] as const;
+  const LINE_CENTER_M = [0.15, 0] as const;
+
+  /** Canvas pixels of the point `p_m`, with the same mapping the editor uses over `center_m`. */
+  function px(
+    p_m: readonly [number, number],
+    center_m: readonly [number, number] = EMPTY_CENTER_M,
+  ): { clientX: number; clientY: number } {
     return {
-      clientX: 360 + (p_m[0] - 0.475) * 400,
-      clientY: 202.5 - (p_m[1] - 0.05) * 400,
+      clientX: 360 + (p_m[0] - center_m[0]) * 400,
+      clientY: 202.5 - (p_m[1] - center_m[1]) * 400,
     };
   }
 
@@ -105,13 +113,13 @@ describe('TrackEditor con el puntero (F4-01b)', () => {
     expect(segment).not.toHaveAttribute('data-selected');
 
     // The straight goes from (0,0) to (0.3,0): a click on it selects it.
-    fireEvent.pointerDown(host, { pointerId: 1, ...px([0.15, 0]) });
-    fireEvent.pointerUp(host, { pointerId: 1, ...px([0.15, 0]) });
+    fireEvent.pointerDown(host, { pointerId: 1, ...px([0.15, 0], LINE_CENTER_M) });
+    fireEvent.pointerUp(host, { pointerId: 1, ...px([0.15, 0], LINE_CENTER_M) });
     expect(segment).toHaveAttribute('data-selected', 'true');
 
     // A click far from the track deselects it.
-    fireEvent.pointerDown(host, { pointerId: 1, ...px([0.15, 0.4]) });
-    fireEvent.pointerUp(host, { pointerId: 1, ...px([0.15, 0.4]) });
+    fireEvent.pointerDown(host, { pointerId: 1, ...px([0.15, 0.4], LINE_CENTER_M) });
+    fireEvent.pointerUp(host, { pointerId: 1, ...px([0.15, 0.4], LINE_CENTER_M) });
     expect(segment).not.toHaveAttribute('data-selected');
   });
 
@@ -120,8 +128,8 @@ describe('TrackEditor con el puntero (F4-01b)', () => {
     const host = layOutCanvas();
     const panel = screen.getByTestId('track-editor-panel');
     expect(within(panel).getByRole('heading')).toHaveTextContent(t('sims.trackEditor.segment'));
-    fireEvent.pointerDown(host, { pointerId: 1, ...px([0.15, 0]) });
-    fireEvent.pointerUp(host, { pointerId: 1, ...px([0.15, 0]) });
+    fireEvent.pointerDown(host, { pointerId: 1, ...px([0.15, 0], LINE_CENTER_M) });
+    fireEvent.pointerUp(host, { pointerId: 1, ...px([0.15, 0], LINE_CENTER_M) });
     expect(within(panel).getByRole('heading')).toHaveTextContent(
       t('sims.trackEditor.segmentTitle.line', { index: 1 }),
     );
