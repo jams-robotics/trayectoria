@@ -15,7 +15,14 @@ export {
   signOut,
   signUp,
   updatePassword,
+  verifyEmailLink,
 } from './stores/session';
-export type { AuthErrorCode, AuthResult, SignUpInput, UserRole } from './stores/session';
+export type {
+  AuthErrorCode,
+  AuthResult,
+  EmailLinkType,
+  SignUpInput,
+  UserRole,
+} from './stores/session';
 export { useSession } from './useSession';
 export type { SessionSnapshot } from './useSession';

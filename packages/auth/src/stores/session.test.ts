@@ -14,11 +14,13 @@ const auth = {
   updateUser: vi.fn(),
   reauthenticate: vi.fn(),
   signOut: vi.fn(),
+  verifyOtp: vi.fn(),
 };
 
 vi.mock('@trayectoria/db', () => ({ getDbClient: () => ({ auth }) }));
 
 const {
+  $passwordRecovery,
   $session,
   reauthenticate,
   resetPassword,
@@ -27,6 +29,7 @@ const {
   signOut,
   signUp,
   updatePassword,
+  verifyEmailLink,
 } = await import('./session');
 
 // Only the fields the store touches; the cast is confined to this test.
@@ -210,5 +213,35 @@ describe('$session store', () => {
     auth.signOut.mockResolvedValueOnce({ error: null });
     await expect(signOut()).resolves.toEqual({ ok: true, session: null });
     expect($session.get()).toBeNull();
+  });
+
+  it('verifyEmailLink redeems the token_hash of an email link and stores the session (#518)', async () => {
+    const session = fakeSession('u9');
+    auth.verifyOtp.mockResolvedValueOnce({ data: { session, user: session.user }, error: null });
+    await expect(verifyEmailLink('pkce_abc', 'email')).resolves.toEqual({ ok: true, session });
+    expect(auth.verifyOtp).toHaveBeenCalledWith({ token_hash: 'pkce_abc', type: 'email' });
+    expect($session.get()).toBe(session);
+  });
+
+  it('verifyEmailLink of a recovery link opens the new-password form', async () => {
+    $passwordRecovery.set(false);
+    const session = fakeSession('u10');
+    auth.verifyOtp.mockResolvedValueOnce({ data: { session, user: session.user }, error: null });
+    await verifyEmailLink('pkce_def', 'recovery');
+    expect($passwordRecovery.get()).toBe(true);
+  });
+
+  it('verifyEmailLink reports an expired or used link as a generic failure', async () => {
+    $passwordRecovery.set(false);
+    auth.verifyOtp.mockResolvedValueOnce({
+      data: { session: null, user: null },
+      error: apiError('otp_expired', 403),
+    });
+    await expect(verifyEmailLink('pkce_old', 'recovery')).resolves.toEqual({
+      ok: false,
+      code: 'unknown',
+    });
+    expect($session.get()).toBeNull();
+    expect($passwordRecovery.get()).toBe(false);
   });
 });
