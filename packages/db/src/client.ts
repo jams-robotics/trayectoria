@@ -19,12 +19,14 @@ let client: DbClient | undefined;
 /**
  * The typed Supabase client for the browser, built lazily from the public URL and anon key so
  * that importing this package never requires the environment at build time. RLS is the only
- * access control: this client never holds the service_role key.
+ * access control: this client never holds the service_role key. Auth uses the PKCE flow (#518):
+ * no email link carries an access or refresh token in the URL.
  */
 export function getDbClient(): DbClient {
   client ??= createClient<Database>(
     readPublicEnv('PUBLIC_SUPABASE_URL'),
     readPublicEnv('PUBLIC_SUPABASE_ANON_KEY'),
+    { auth: { flowType: 'pkce' } },
   );
   return client;
 }

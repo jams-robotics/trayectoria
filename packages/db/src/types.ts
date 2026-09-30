@@ -147,6 +147,29 @@ export type Database = {
           },
         ]
       }
+      join_attempts: {
+        Row: {
+          attempted_at: string
+          user_id: string
+        }
+        Insert: {
+          attempted_at?: string
+          user_id: string
+        }
+        Update: {
+          attempted_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "join_attempts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -295,37 +318,32 @@ export type Database = {
           created_at: string | null
           id: string | null
           name: string | null
-          owner_id: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string | null
           name?: string | null
-          owner_id?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string | null
           name?: string | null
-          owner_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "groups_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Functions: {
       delete_account: { Args: { nonce: string }; Returns: boolean }
+      generate_invite_code: { Args: never; Returns: string }
       is_group_member: { Args: { target_group_id: string }; Returns: boolean }
       is_teacher: { Args: never; Returns: boolean }
       join_group: { Args: { invite_code: string }; Returns: string }
+      migrate_progress_to_two_routes: { Args: never; Returns: undefined }
       owns_group: { Args: { target_group_id: string }; Returns: boolean }
+      regenerate_invite_code: {
+        Args: { target_group_id: string }
+        Returns: string
+      }
       teaches_user: { Args: { target_user_id: string }; Returns: boolean }
       verify_reauthentication: { Args: { nonce: string }; Returns: boolean }
     }

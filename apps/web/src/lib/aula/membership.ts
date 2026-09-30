@@ -43,14 +43,15 @@ export function normalizeCode(code: string): string {
 
 /**
  * Joins the group of `code` through `join_group`. Every failure — unknown code, own group,
- * already a member — is the same rejection here, so the caller cannot tell them apart and the
- * UI shows the single `aula.join.invalid` message.
+ * already a member, which the function answers with `null` since migration 0013, or too many
+ * failed attempts, which it raises (#508) — is the same rejection here, so the caller cannot tell
+ * them apart and the UI shows the single `aula.join.invalid` message.
  */
 export async function joinGroup(db: DbClient, code: string): Promise<void> {
   const inviteCode = normalizeCode(code);
   if (inviteCode === '') throw new Error('invalid invite code');
-  const { error } = await db.rpc('join_group', { invite_code: inviteCode });
-  if (error !== null) throw new Error('invalid invite code');
+  const { data, error } = await db.rpc('join_group', { invite_code: inviteCode });
+  if (error !== null || data === null) throw new Error('invalid invite code');
 }
 
 /** The groups this student belongs to, with the names of `groups_visible`. */

@@ -69,8 +69,9 @@ test('the new password form asks for the emailed code even with a session open',
   await signInOnPage(page, email);
   const newPassword = `${E2E_PASSWORD}-nueva`;
 
-  // A session and the recovery fragment reach the form, but no code: the password stays.
-  await openHydrated(page, '/auth/recuperar#type=recovery');
+  // A session and the `type=recovery` of the recovery link (#518) reach the form, but no code:
+  // the password stays.
+  await openHydrated(page, '/auth/recuperar?type=recovery');
   await page.getByLabel(auth.fields.newPassword, { exact: true }).fill(newPassword);
   await page.getByRole('button', { name: auth.recover.update, exact: true }).click();
   await expect(page.getByRole('alert')).toHaveText(auth.reauth.needed);

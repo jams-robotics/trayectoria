@@ -142,6 +142,23 @@ export async function resetPassword(email: string, redirectTo: string): Promise<
   return { ok: true, session: null };
 }
 
+/** The `type` of the links in the email templates (`supabase/templates/`, #518). */
+export type EmailLinkType = 'email' | 'recovery';
+
+/**
+ * Redeems the `token_hash` of an email link (#518). With the PKCE flow the templates link to the
+ * site with `?token_hash=…&type=…` instead of carrying tokens in the URL, and the hash is traded
+ * for a session here, in whatever browser opens the email. A recovery link also opens the
+ * new-password form, without waiting for the `PASSWORD_RECOVERY` event.
+ */
+export async function verifyEmailLink(tokenHash: string, type: EmailLinkType): Promise<AuthResult> {
+  const { data, error } = await getAuthClient().verifyOtp({ token_hash: tokenHash, type });
+  if (error) return failure(error);
+  $session.set(data.session);
+  if (type === 'recovery') $passwordRecovery.set(true);
+  return { ok: true, session: data.session };
+}
+
 /**
  * Emails the signed-in user a one-time code (template `reauthentication`) that proves they still
  * read the address, whatever way they signed in: `updatePassword` and `delete_account` take it
