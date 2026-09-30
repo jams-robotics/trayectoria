@@ -101,6 +101,7 @@ const e3 = defineExercise<MeasuredLap>({
       values: { lapTime_s },
       answer: [measuredSpeed_mps, speedDiff_pct],
       unit: ['m/s', '%'],
+      labels: [`content.${TOPIC_ID}.labels.e3.0`, `content.${TOPIC_ID}.labels.e3.1`],
     };
   },
   statement: () => statementKey('e3'),

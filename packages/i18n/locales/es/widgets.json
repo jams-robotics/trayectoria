@@ -454,6 +454,7 @@
     "answer": "Respuesta en {{unit}}",
     "component": "Componente {{index}} en {{unit}}",
     "componentShort": "{{index}}",
+    "labelled": "{{label}} en {{unit}}",
     "verify": "Comprobar",
     "checking": "Verificando…",
     "correct": "Correcto",

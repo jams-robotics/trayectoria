@@ -119,6 +119,7 @@ const e3 = defineExercise<Meeting>({
       values: { vA_mps, vB_mps, distance_m },
       answer: [t_s, vA_mps * t_s],
       unit: ['s', 'm'],
+      labels: [`content.${TOPIC_ID}.labels.e3.0`, `content.${TOPIC_ID}.labels.e3.1`],
     };
   },
   statement: () => statementKey('e3'),

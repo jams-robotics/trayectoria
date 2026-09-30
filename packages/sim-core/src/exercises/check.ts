@@ -12,6 +12,11 @@ export interface CheckResult<V> {
    * `Infinity` when the response has the wrong shape.
    */
   readonly relError: number;
+  /**
+   * Whether each answer component passed its own tolerance, in answer order. `undefined` when the
+   * response has the wrong shape, so no per-component verdict exists (#660).
+   */
+  readonly componentCorrect?: readonly boolean[];
   /** The values the seed generated, for interpolating the statement. */
   readonly values: V;
   /** The generated unit: one for every component, or one per component. */
@@ -25,7 +30,7 @@ export interface CheckResult<V> {
  *
  * Pure: the same exercise, seed and response always give the same result, because the generator
  * only sees a fresh `createRng(seed)`. With a tolerance list, each component is graded against its
- * own entry; a tolerance or unit list whose length differs from the answer is a definition error
+ * own entry; a tolerance, unit or label list whose length differs from the answer is a definition error
  * and throws.
  */
 export function check<V>(
@@ -33,11 +38,14 @@ export function check<V>(
   seed: number,
   response: number | readonly number[],
 ): CheckResult<V> {
-  const { values, answer, unit } = exercise.generate(createRng(seed));
+  const { values, answer, unit, labels } = exercise.generate(createRng(seed));
   const expectedComponents = toComponents(answer);
   const responseComponents = toComponents(response);
   const tolerances = tolerancePerComponent(exercise, expectedComponents.length);
   assertUnitPerComponent(exercise.id, unit, expectedComponents.length);
+  if (labels !== undefined) {
+    assertComponentCount(exercise.id, labels.length, expectedComponents.length, 'labels');
+  }
 
   const shapeMatches =
     Array.isArray(answer) === Array.isArray(response) &&
@@ -51,6 +59,7 @@ export function check<V>(
 
   let worstRelError = 0;
   let correct = true;
+  const componentCorrect: boolean[] = [];
 
   for (const [index, expected] of expectedComponents.entries()) {
     const actual = responseComponents[index] ?? Number.NaN;
@@ -67,10 +76,11 @@ export function check<V>(
     const passes =
       tolerance !== undefined &&
       (tolerance.type === 'relative' ? relError <= tolerance.value : absError <= tolerance.value);
+    componentCorrect.push(passes);
     correct = correct && passes;
   }
 
-  return { ...base, correct, relError: worstRelError };
+  return { ...base, correct, relError: worstRelError, componentCorrect };
 }
 
 /** A per-component list (tolerances, units, ...) must have one entry per answer component. */

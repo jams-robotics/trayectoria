@@ -62,6 +62,7 @@ const e1 = defineExercise<RampFromRest>({
       values: { v_mps, t_s },
       answer: [a_mps2, (a_mps2 * t_s ** 2) / 2],
       unit: ['m/s²', 'm'],
+      labels: [`content.${TOPIC_ID}.labels.e1.0`, `content.${TOPIC_ID}.labels.e1.1`],
     };
   },
   statement: () => statementKey('e1'),
