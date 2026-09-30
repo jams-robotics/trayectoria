@@ -13,7 +13,7 @@ select plan(
     where n.nspname = 'public' and c.relkind in ('r', 'p', 'v', 'm'))
   + (select count(*)::int from pg_class c join pg_namespace n on n.oid = c.relnamespace
     where n.nspname = 'public' and c.relkind in ('r', 'p'))
-  + 12
+  + 14
 );
 
 create function pg_temp.act_as(target_user_id uuid) returns void language sql as $$
@@ -63,9 +63,15 @@ select is(
 
 -- 3. invite_code: a member student and another teacher cannot rewrite it.
 select pg_temp.act_as('00000000-0000-4000-8000-00000000000b');
-update public.groups set invite_code = 'stolen000000' where id = '00000000-0000-4000-8000-0000000000a1';
+select throws_ok(
+  $$ update public.groups set invite_code = 'STOLEN000000' where id = '00000000-0000-4000-8000-0000000000a1' $$,
+  '42501', null, 'a member cannot update invite_code (no column grant since 0013)'
+);
 select pg_temp.act_as('00000000-0000-4000-8000-00000000000d');
-update public.groups set invite_code = 'stolen000001' where id = '00000000-0000-4000-8000-0000000000a1';
+select throws_ok(
+  $$ update public.groups set invite_code = 'STOLEN000001' where id = '00000000-0000-4000-8000-0000000000a1' $$,
+  '42501', null, 'another teacher cannot update invite_code (no column grant since 0013)'
+);
 reset role;
 select is(
   (select invite_code from public.groups where id = '00000000-0000-4000-8000-0000000000a1'),
