@@ -5,6 +5,12 @@ import { expect, test } from '@playwright/test';
 
 const DEMO_TIMEOUT_MS = 30_000;
 
+/**
+ * Pixels allowed to differ: the text of the scale bar is drawn on the canvas and its
+ * antialiasing varies between runs on the same machine (13 px seen in CI).
+ */
+const CANVAS_TEXT_MAX_DIFF_PIXELS = 50;
+
 const SHOTS = [
   { shot: 'inicio', viewport: { width: 1280, height: 900 } },
   { shot: 'inicio-390', viewport: { width: 390, height: 844 } },
@@ -24,6 +30,9 @@ for (const { shot, viewport } of SHOTS) {
       timeout: DEMO_TIMEOUT_MS,
     });
     await page.evaluate(() => document.fonts.ready);
-    await expect(page).toHaveScreenshot(`${shot}.png`, { fullPage: true });
+    await expect(page).toHaveScreenshot(`${shot}.png`, {
+      fullPage: true,
+      maxDiffPixels: CANVAS_TEXT_MAX_DIFF_PIXELS,
+    });
   });
 }
