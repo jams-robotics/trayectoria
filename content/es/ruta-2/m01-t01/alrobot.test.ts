@@ -107,12 +107,13 @@ describe('T2-1.1 «Al robot» calcs', () => {
 
   it('follow the wheels of «Mi robot»', () => {
     // r = 0.05 m, L = 0.2 m: v = 35·0.05/2 = 0.875 m/s; ω = 5·0.05/0.2 = 1.25 rad/s;
-    // R = 0.7 m; spin ω = 20·0.05/0.2 = 5 rad/s.
+    // R = 0.7 m; spin ω = 20·0.05/0.2 = 5 rad/s. Written with the figures of each golden value,
+    // padding zeros kept (#653): 0.88 (two, as 0.56), 1.250 and 5.000 (four), 0.700 (three).
     const robot = withWheels(0.05, 0.2);
-    expect(linearVelocity.compute(robot).substituted).toContain('= 0.875\\ \\text{m/s}');
-    expect(angularVelocity.compute(robot).substituted).toContain('= 1.25\\ \\text{rad/s}');
-    expect(turnRadius.compute(robot).substituted).toContain('= 0.7\\ \\text{m}');
-    expect(spinAngularVelocity.compute(robot).substituted).toContain('= 5\\ \\text{rad/s}');
+    expect(linearVelocity.compute(robot).substituted).toContain('= 0.88\\ \\text{m/s}');
+    expect(angularVelocity.compute(robot).substituted).toContain('= 1.250\\ \\text{rad/s}');
+    expect(turnRadius.compute(robot).substituted).toContain('= 0.700\\ \\text{m}');
+    expect(spinAngularVelocity.compute(robot).substituted).toContain('= 5.000\\ \\text{rad/s}');
   });
 
   it('need none of the optional fields of the profile', () => {
