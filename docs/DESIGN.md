@@ -99,7 +99,7 @@ Radios: `--radius-sm` 4 (inputs, botones de simulación, chips de estado en tabl
 
 Sombras: `--shadow-sm` para thumbs de slider y tarjetas flotantes dentro de un visor; `--shadow-md` solo para toasts y popovers. Las tarjetas en flujo **no** llevan sombra.
 
-Anchos: contenido 1120 px (Inicio, Ruta), 1200 px (Tema), 1240 px (Aula); simuladores a ancho completo con padding 32. Panel lateral de simulador 340–360 px, token `--size-panel-side` = 352 px (utilidad `w-panel`); índice de secciones 200 px; lateral de Ruta 300 px.
+Anchos: contenido 1120 px (Inicio, Ruta), 1200 px (Tema), 1240 px (Aula); simuladores a ancho completo con padding 32. Panel lateral de simulador 340–360 px, token `--size-panel-side` = 352 px (utilidad `w-panel`); índice de secciones 200 px; lateral de Ruta 300 px. Tarjeta de formulario (CTA de registro, Aula, Unirse, Robots), token `--size-form-card` = 640 px (utilidad `max-w-form-card`).
 
 Página de tema (#302): texto corrido, tarjetas `Formula` y `RobotFormula`, tarjetas `Experimento`, `MyRobotWidget` y ejercicios de Verifica comparten una sola columna de lectura de 72ch, con los mismos bordes izquierdo y derecho. Solo los widgets grandes de Explora (simuladores con visor) usan todo el ancho de la columna de contenido. En móvil no cambia nada (§9).
 
