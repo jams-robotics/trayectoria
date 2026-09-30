@@ -56,6 +56,37 @@ function write(map: ProgressMap): void {
   storage()?.setItem(PROGRESS_STORAGE_KEY, serialiseProgress(userId, map));
 }
 
+/**
+ * The freshest copy of one topic: what a sibling tab already wrote to disk, joined with what this
+ * tab still holds in memory.
+ *
+ * `hydrateProgress()` only ever reads storage once per tab (`hydrated`), so two tabs open on the
+ * same topic each keep their own in-memory snapshot from whenever they loaded. Writing straight
+ * from that snapshot (`$progress.get()`) would stomp whatever a sibling tab wrote meanwhile: the
+ * read-modify-write of the tab that saves last always wins, discarding the attempts recorded in
+ * between (#546, QA finding: the closing tally reading «0 de 4» right after answering, surviving
+ * a reload). Unlike `mergeProgress` (a local copy joining an independent remote history, where
+ * both sides' `attempts` genuinely add up), the on-disk copy here is the *same* browser's own
+ * history a moment further along, so attempts are not summed: the higher count wins, same as
+ * `bestScore`, and the exercise ids simply union.
+ */
+function latestTopicProgress(topicId: string, map: ProgressMap): TopicProgress {
+  const onDisk = readStoredProgress(storage()?.getItem(PROGRESS_STORAGE_KEY) ?? null, userId).topics[
+    topicId
+  ];
+  const inMemory = map[topicId];
+  if (onDisk === undefined) return inMemory ?? emptyProgress();
+  if (inMemory === undefined) return onDisk;
+  return {
+    status: inMemory.status === 'completed' || onDisk.status === 'completed' ? 'completed' : 'in_progress',
+    bestScore: Math.max(inMemory.bestScore, onDisk.bestScore),
+    attempts: Math.max(inMemory.attempts, onDisk.attempts),
+    completedAt: inMemory.completedAt ?? onDisk.completedAt,
+    correctIds: [...new Set([...inMemory.correctIds, ...onDisk.correctIds])],
+    firstTryCorrectIds: [...new Set([...inMemory.firstTryCorrectIds, ...onDisk.firstTryCorrectIds])],
+  };
+}
+
 /** Progress of one topic, or `undefined` when nothing was ever recorded for it. */
 export function getProgress(topicId: string): TopicProgress | undefined {
   return $progress.get()[topicId];
@@ -95,7 +126,7 @@ export async function recordAttempt(
 ): Promise<void> {
   hydrateProgress();
   const map = $progress.get();
-  const current = map[attempt.topicId] ?? emptyProgress();
+  const current = latestTopicProgress(attempt.topicId, map);
   write({ ...map, [attempt.topicId]: applyAttempt(current, attempt, requiredExerciseIds) });
   const owner = userId;
   if (owner === null) return;
@@ -111,7 +142,7 @@ export async function recordAttempt(
 export async function markCompleted(topicId: string): Promise<void> {
   hydrateProgress();
   const map = $progress.get();
-  write({ ...map, [topicId]: completeProgress(map[topicId] ?? emptyProgress()) });
+  write({ ...map, [topicId]: completeProgress(latestTopicProgress(topicId, map)) });
   await push([topicId]);
 }
 

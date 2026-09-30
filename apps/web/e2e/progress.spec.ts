@@ -77,6 +77,91 @@ function topicStatus(page: Page) {
   return page.locator(`[data-testid="topic-status"][data-topic="${TOPIC_ID}"]`);
 }
 
+// Real content topic with 4 Verifica exercises (e1-e4, «Unidades y magnitudes»), unlike the
+// /dev/tema fixture's single demo exercise, where 0/1 and 1/1 are indistinguishable from a
+// failure of the tally itself (#546, QA finding on PR #661). Every statement here is «Convierte
+// n rpm a rad/s», so the answer is always n · 2π/60.
+const MULTI_EXERCISE_TOPIC_PATH = '/ruta/ruta-1/m00/t01';
+const RPM_TO_RADPS = (2 * Math.PI) / 60;
+
+/**
+ * Answers the exercise at `index` (0-based) of a topic with several Verifica exercises. Each is
+ * its own `client:visible` island (docs/audits F2-01a): only the one at `index` is awaited, not
+ * every exercise of the topic, since the later ones stay on the server markup until scrolled to.
+ *
+ * `answer` computes the right response from the statement's numbers, in order (e1/e2: rpm to
+ * rad/s, `n · 2π/60`; e3: a distance in x m covered in t s, to cm/s, `x/t · 100`).
+ */
+async function answerExerciseCorrectly(
+  page: Page,
+  index: number,
+  answer: (numbers: readonly number[]) => number,
+): Promise<void> {
+  const exercise = page.getByTestId('exercise').nth(index);
+  await exercise.scrollIntoViewIfNeeded();
+  await expect(exercise).toBeVisible();
+  await page.waitForFunction(
+    (at) =>
+      [...document.querySelectorAll('astro-island[component-url*="VerificaExercise"]')][at]
+        ?.hasAttribute('ssr') === false,
+    index,
+  );
+  const statement = (await exercise.getByTestId('exercise-statement').textContent()) ?? '';
+  const numbers = [...statement.matchAll(/\d+(?:[.,]\d+)?/g)].map((match) =>
+    Number(match[0].replace(',', '.')),
+  );
+  await exercise.getByRole('textbox', { name: /respuesta/i }).fill(answer(numbers).toFixed(4));
+  await exercise.getByRole('button', { name: 'Comprobar' }).click();
+  await expect(exercise).toHaveAttribute('data-status', 'correct');
+}
+
+const rpmToRadps = (numbers: readonly number[]): number => (numbers[0] ?? 0) * RPM_TO_RADPS;
+const speedCmps = (numbers: readonly number[]): number =>
+  ((numbers[0] ?? 0) / (numbers[1] ?? 1)) * 100;
+
+test('anonymous: the closing tally counts exactly the exercises answered right, live and after a reload', async ({
+  page,
+}) => {
+  await openHydrated(page, MULTI_EXERCISE_TOPIC_PATH, false);
+
+  await answerExerciseCorrectly(page, 0, rpmToRadps);
+  await answerExerciseCorrectly(page, 1, rpmToRadps);
+
+  await page.getByTestId('topic-closing').scrollIntoViewIfNeeded();
+  await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 2 de 4 correctos');
+
+  await page.reload();
+  await waitForIslands(page, false);
+  await page.getByTestId('topic-closing').scrollIntoViewIfNeeded();
+  await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 2 de 4 correctos');
+});
+
+test('anonymous: a second tab answering the topic does not erase the first tab\'s tally', async ({
+  page,
+  context,
+}) => {
+  // Tab B loads the topic first, before anything is recorded, and hydrates its own empty
+  // in-memory progress — the stale snapshot a sibling tab keeps once it stops re-reading storage.
+  const tabB = await context.newPage();
+  await openHydrated(tabB, MULTI_EXERCISE_TOPIC_PATH, false);
+
+  // Tab A answers e1 and e2 and saves them.
+  await openHydrated(page, MULTI_EXERCISE_TOPIC_PATH, false);
+  await answerExerciseCorrectly(page, 0, rpmToRadps);
+  await answerExerciseCorrectly(page, 1, rpmToRadps);
+  await page.getByTestId('topic-closing').scrollIntoViewIfNeeded();
+  await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 2 de 4 correctos');
+
+  // Back in tab B, still holding its stale snapshot, the learner answers e3. Writing it must not
+  // stomp e1/e2 on disk with tab B's own outdated copy (#546).
+  await answerExerciseCorrectly(tabB, 2, speedCmps);
+
+  await page.reload();
+  await waitForIslands(page, false);
+  await page.getByTestId('topic-closing').scrollIntoViewIfNeeded();
+  await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 3 de 4 correctos');
+});
+
 async function signUp(page: Page, email: string): Promise<void> {
   await openHydrated(page, '/auth/registro');
   await page.getByLabel(auth.fields.displayName, { exact: true }).fill(DISPLAY_NAME);
