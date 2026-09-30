@@ -85,7 +85,9 @@ Las dos ruedas giran igual, así que el robot va recto a v = ω·r, como en
 cada rueda; qué hace el robot cuando sus ruedas giran distinto lo verás en
 [Cinemática directa del robot diferencial](/ruta/ruta-2/m01/t01).
 La vista muestra su trayectoria y la velocidad de cada rueda; el panel de odometría muestra los
-ticks de cada rueda y la velocidad estimada por los encoders junto a la real.
+ticks de cada rueda y la velocidad estimada por los encoders junto a la real. La estimada se
+calcula cada Δt = 0.1 s, el intervalo del gancho, que el panel muestra en su fila «Intervalo de
+muestreo».
 
 <DiffDriveWidget
   mode="odometry"
@@ -131,8 +133,8 @@ ruedas. Depende del radio r de la rueda y de los ticks N_e que da tu encoder por
 
 <RobotFormula calc="ruta-2/m00-t01/encoder-resolution" />
 
-Si «Mi robot» no define los pulsos de encoder por vuelta de tu perfil, el cálculo usa los del
-robot de referencia: N_e = 360. Si tu perfil no es un robot móvil, usa el robot de referencia completo.
+Si tu perfil de «Mi robot» no define los pulsos de encoder por vuelta, el cálculo usa los del
+robot de referencia: N_e = 360.
 
 Invirtiendo s = 2πr·ticks/N_e sale cuántos ticks cuenta tu encoder por cada metro que avanza el
 robot, con s = 1 m:

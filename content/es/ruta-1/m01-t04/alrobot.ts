@@ -10,10 +10,12 @@ import type { RobotCalc } from '../../../index';
  * fields of RobotSpec.
  */
 
-/** Four significant figures for n_rueda and ω_max (200 rpm, 20.94 rad/s), as in T1-1.3. */
-const ROTATION_SIGNIFICANT_FIGURES = 4;
-
-/** Three significant figures, keeping trailing zeros: 0.670 m/s. */
+/**
+ * Significant figures of each value, those of its golden value, padding zeros kept
+ * (docs/CONTENT-STANDARDS.md §2.5, #653): 200 rpm, 20.94 rad/s and 0.670 m/s, as in T1-1.3.
+ */
+const WHEEL_SPEED_SIGNIFICANT_FIGURES = 3;
+const OMEGA_SIGNIFICANT_FIGURES = 4;
 const SIGNIFICANT_FIGURES = 3;
 
 const RPM_TO_RADPS = (2 * Math.PI) / 60;
@@ -52,8 +54,11 @@ function chain(robot: RobotSpec): Chain {
   };
 }
 
-function formatRotation(value: number): string {
-  return String(Number(value.toPrecision(ROTATION_SIGNIFICANT_FIGURES)));
+/** A value with more integer digits than figures is written whole. */
+function formatRotation(value: number, significantFigures: number): string {
+  return Math.abs(value) < 10 ** significantFigures
+    ? value.toPrecision(significantFigures)
+    : Math.round(value).toString();
 }
 
 function format(value: number): string {
@@ -69,7 +74,7 @@ export const wheelSpeed: RobotCalc = {
       latex: String.raw`n_{rueda} = \dfrac{n_{motor}}{i}`,
       substituted:
         String.raw`n_{rueda} = \dfrac{${motorSpeed_rpm}\ \text{rpm}}{${gearRatio}}` +
-        String.raw` = ${formatRotation(wheelSpeed_rpm)}\ \text{rpm}`,
+        String.raw` = ${formatRotation(wheelSpeed_rpm, WHEEL_SPEED_SIGNIFICANT_FIGURES)}\ \text{rpm}`,
     };
   },
 };
@@ -82,7 +87,7 @@ export const vMax: RobotCalc = {
     return {
       latex: String.raw`v_{\max} = \omega_{\max} \cdot r`,
       substituted:
-        String.raw`v_{\max} = ${formatRotation(omegaMax_radps)}\ \text{rad/s} \cdot ${wheelRadius_m}\ \text{m}` +
+        String.raw`v_{\max} = ${formatRotation(omegaMax_radps, OMEGA_SIGNIFICANT_FIGURES)}\ \text{rad/s} \cdot ${wheelRadius_m}\ \text{m}` +
         String.raw` = ${format(vMax_mps)}\ \text{m/s}`,
     };
   },

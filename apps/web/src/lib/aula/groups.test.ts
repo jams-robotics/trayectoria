@@ -8,12 +8,12 @@ import {
   getGroup,
   listGroups,
   listMembers,
+  listProgress,
   normalizeGroupName,
   regenerateInviteCode,
   removeMember,
   renameGroup,
 } from './groups';
-import type { Rng } from './inviteCode';
 
 const OWNER = '11111111-1111-4111-8111-111111111111';
 const GROUP = '22222222-2222-4222-8222-222222222222';
@@ -37,6 +37,7 @@ interface Answer {
 interface Mock {
   db: DbClient;
   calls: Call[];
+  rpcs: { name: string; args: unknown }[];
 }
 
 /**
@@ -46,6 +47,7 @@ interface Mock {
  */
 function mockDb(...answers: readonly Answer[]): Mock {
   const calls: Call[] = [];
+  const rpcs: Mock['rpcs'] = [];
   const queue = [...answers];
   const next = (): Answer => queue.shift() ?? {};
 
@@ -93,18 +95,12 @@ function mockDb(...answers: readonly Answer[]): Mock {
       delete: () => record('delete', null),
     };
   };
-  return { db: { from } as unknown as DbClient, calls };
-}
-
-/** The golden RNG of the ticket: 0, 0.5, 0.999… cycling, which yields AS9AS9AS. */
-function goldenRng(): Rng {
-  const draws = [0, 0.5, 0.9999999];
-  let index = 0;
-  return () => {
-    const draw = draws[index % draws.length] ?? 0;
-    index += 1;
-    return draw;
+  const rpc = (name: string, args: unknown): Promise<unknown> => {
+    rpcs.push({ name, args });
+    const answer = next();
+    return Promise.resolve({ data: answer.row ?? null, error: answer.error ?? null });
   };
+  return { db: { from, rpc } as unknown as DbClient, calls, rpcs };
 }
 
 const GROUP_ROW = {
@@ -115,19 +111,19 @@ const GROUP_ROW = {
 };
 
 describe('createGroup (F3-02a)', () => {
-  it('sends the owner_id of the session and an upper-case invite code', async () => {
+  it('sends the owner_id of the session and no invite code: the database generates it', async () => {
     const { db, calls } = mockDb({ row: GROUP_ROW });
 
-    const group = await createGroup(OWNER, 'Mecatrónica 2026-2 · A', db, goldenRng());
+    const group = await createGroup(OWNER, 'Mecatrónica 2026-2 · A', db);
 
     const insert = calls[0];
     expect(insert?.table).toBe('groups');
     expect(insert?.verb).toBe('insert');
-    const payload = insert?.payload as { owner_id: string; name: string; invite_code: string };
-    expect(payload.owner_id).toBe(OWNER);
-    expect(payload.name).toBe('Mecatrónica 2026-2 · A');
-    expect(payload.invite_code).toBe('AS9AS9AS');
-    expect(payload.invite_code).toBe(payload.invite_code.toUpperCase());
+    expect(insert?.payload).toEqual({
+      owner_id: OWNER,
+      name: 'Mecatrónica 2026-2 · A',
+      returning: 'id, name, invite_code, created_at',
+    });
     expect(group.inviteCode).toBe('AS9AS9AS');
     expect(group.memberCount).toBe(0);
   });
@@ -135,7 +131,7 @@ describe('createGroup (F3-02a)', () => {
   it('trims the name before sending it', async () => {
     const { db, calls } = mockDb({ row: GROUP_ROW });
 
-    await createGroup(OWNER, '   Física II   ', db, goldenRng());
+    await createGroup(OWNER, '   Física II   ', db);
 
     expect((calls[0]?.payload as { name: string }).name).toBe('Física II');
   });
@@ -146,7 +142,7 @@ describe('createGroup (F3-02a)', () => {
       { row: GROUP_ROW },
     );
 
-    const group = await createGroup(OWNER, 'Grupo A', db, goldenRng());
+    const group = await createGroup(OWNER, 'Grupo A', db);
 
     expect(calls).toHaveLength(2);
     expect(calls[1]?.verb).toBe('insert');
@@ -159,13 +155,13 @@ describe('createGroup (F3-02a)', () => {
       { error: { message: 'duplicate key', code: '23505' } },
     );
 
-    await expect(createGroup(OWNER, 'Grupo A', db, goldenRng())).rejects.toThrow('collision');
+    await expect(createGroup(OWNER, 'Grupo A', db)).rejects.toThrow('collision');
   });
 
   it('rethrows any other error without retrying', async () => {
     const { db, calls } = mockDb({ error: { message: 'new row violates row-level security' } });
 
-    await expect(createGroup(OWNER, 'Grupo A', db, goldenRng())).rejects.toThrow('row-level');
+    await expect(createGroup(OWNER, 'Grupo A', db)).rejects.toThrow('row-level');
     expect(calls).toHaveLength(1);
   });
 
@@ -255,35 +251,21 @@ describe('renameGroup (F3-02a)', () => {
   });
 });
 
-describe('regenerateInviteCode (F3-02a)', () => {
-  it('writes a new upper-case code scoped to the owner', async () => {
-    const { db, calls } = mockDb({});
-
-    const code = await regenerateInviteCode(OWNER, GROUP, db, goldenRng());
-
-    expect(code).toBe('AS9AS9AS');
-    expect(calls[0]?.payload).toEqual({ invite_code: 'AS9AS9AS' });
-    expect(calls[0]?.filters).toEqual({ owner_id: OWNER, id: GROUP });
+describe('regenerateInviteCode (#508)', () => {
+  it('asks the database for a new code through regenerate_invite_code', async () => {
+    const { db, calls, rpcs } = mockDb({ row: 'K7M2P9QX' });
+    expect(await regenerateInviteCode(GROUP, db)).toBe('K7M2P9QX');
+    expect(rpcs).toEqual([{ name: 'regenerate_invite_code', args: { target_group_id: GROUP } }]);
+    expect(calls).toHaveLength(0);
   });
 
-  it('retries once on a unique collision and gives up on the second', async () => {
-    const collision = { error: { message: 'duplicate key', code: '23505' } };
-    const { db, calls } = mockDb(collision, {});
-
-    // The retry draws eight fresh characters, so the stored code is not the one that collided.
-    expect(await regenerateInviteCode(OWNER, GROUP, db, goldenRng())).toBe('9AS9AS9A');
-    expect(calls).toHaveLength(2);
-    expect(calls[1]?.payload).toEqual({ invite_code: '9AS9AS9A' });
-
+  it('throws when the call fails or returns no code', async () => {
     await expect(
-      regenerateInviteCode(OWNER, GROUP, mockDb(collision, collision).db, goldenRng()),
-    ).rejects.toThrow('collision');
-  });
-
-  it('rethrows any other error', async () => {
-    const { db } = mockDb({ error: { message: 'denied' } });
-
-    await expect(regenerateInviteCode(OWNER, GROUP, db, goldenRng())).rejects.toThrow('denied');
+      regenerateInviteCode(GROUP, mockDb({ error: { message: 'group not found' } }).db),
+    ).rejects.toThrow('group not found');
+    await expect(regenerateInviteCode(GROUP, mockDb({ row: null }).db)).rejects.toThrow(
+      'code not regenerated',
+    );
   });
 });
 
@@ -348,6 +330,28 @@ describe('removeMember (F3-02a)', () => {
     await expect(
       removeMember(GROUP, STUDENT, mockDb({ error: { message: 'denied' } }).db),
     ).rejects.toThrow('denied');
+  });
+});
+
+describe('listProgress (F3-02b, #509)', () => {
+  it('filters by the members and by the topics of the routes', async () => {
+    const rows = [{ user_id: STUDENT, topic_id: 'ruta-1/m00-t01', status: 'completed' }];
+    const { db, calls } = mockDb({ rows });
+
+    const topics = ['ruta-1/m00-t01', 'ruta-2/m00-t01'];
+
+    const result = await listProgress([STUDENT], topics, db);
+
+    expect(calls[0]?.table).toBe('progress');
+    expect(calls[0]?.filters).toEqual({ user_id: [STUDENT], topic_id: topics });
+    expect(result).toEqual(rows);
+  });
+
+  it('skips the query without members or without topics', async () => {
+    const { db, calls } = mockDb();
+    expect(await listProgress([], ['ruta-1/m00-t01'], db)).toEqual([]);
+    expect(await listProgress([STUDENT], [], db)).toEqual([]);
+    expect(calls).toHaveLength(0);
   });
 });
 

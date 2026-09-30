@@ -30,14 +30,14 @@ select pg_temp.act_as('00000000-0000-4000-8000-000000000020');
 -- urdf: 20 objects per owner
 select lives_ok(
   $$ insert into storage.objects (bucket_id, name, owner)
-     select 'urdf', '00000000-0000-4000-8000-000000000020/' || i || '.zip',
+     select 'urdf', '00000000-0000-4000-8000-000000000020/00000000-0000-4000-8000-' || lpad(i::text, 12, '0') || '.zip',
             '00000000-0000-4000-8000-000000000020'
      from generate_series(1, 20) as i $$,
   'an owner can insert up to 20 objects in the urdf bucket'
 );
 select throws_ok(
   $$ insert into storage.objects (bucket_id, name, owner)
-     values ('urdf', '00000000-0000-4000-8000-000000000020/21.zip',
+     values ('urdf', '00000000-0000-4000-8000-000000000020/00000000-0000-4000-8000-000000000021.zip',
              '00000000-0000-4000-8000-000000000020') $$,
   '23514',
   'new row for relation "objects" violates check constraint "urdf_owner_object_limit"',
@@ -50,7 +50,7 @@ reset role;
 -- even past 20 objects under the same owner prefix.
 select lives_ok(
   $$ insert into storage.objects (bucket_id, name, owner)
-     values ('other', '00000000-0000-4000-8000-000000000020/1.zip',
+     values ('other', '00000000-0000-4000-8000-000000000020/00000000-0000-4000-8000-000000000001.zip',
              '00000000-0000-4000-8000-000000000020') $$,
   'a bucket other than urdf is not counted against the limit'
 );
@@ -61,7 +61,7 @@ select pg_temp.act_as('00000000-0000-4000-8000-000000000020');
 select pg_temp.act_as('00000000-0000-4000-8000-000000000021');
 select lives_ok(
   $$ insert into storage.objects (bucket_id, name, owner)
-     values ('urdf', '00000000-0000-4000-8000-000000000021/1.zip',
+     values ('urdf', '00000000-0000-4000-8000-000000000021/00000000-0000-4000-8000-000000000001.zip',
              '00000000-0000-4000-8000-000000000021') $$,
   'another owner can still insert urdf objects'
 );

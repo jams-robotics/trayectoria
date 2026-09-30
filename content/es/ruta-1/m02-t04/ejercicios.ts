@@ -1,4 +1,4 @@
-import { defineExercise, G_MPS2 } from '@trayectoria/sim-core';
+import { defineExercise, degToRad, G_MPS2 } from '@trayectoria/sim-core';
 import type { SeededRng } from '@trayectoria/sim-core';
 
 // Verifica of T1-2.4 (docs/CURRICULUM.md § T1-2.4). Each exercise returns only the key of its
@@ -16,7 +16,6 @@ const RELATIVE_2_PERCENT = { type: 'relative', value: 0.02 } as const;
 const THOUSANDTHS = 1000;
 const HUNDREDTHS = 100;
 const UNITS = 1;
-const DEG_TO_RAD = Math.PI / 180;
 
 /** Driven wheels that share the climb in e3. */
 const DRIVEN_WHEELS = 2;
@@ -132,7 +131,7 @@ const e3 = defineExercise<Climb>({
       const slope_deg = drawOnGrid(rng, E3_SLOPE_DEG, UNITS);
       const mass_kg = drawOnGrid(rng, E3_MASS_KG, HUNDREDTHS);
       const wheelRadius_m = drawOnGrid(rng, E3_WHEEL_RADIUS_M, THOUSANDTHS);
-      const weightAlong_N = mass_kg * G_MPS2 * Math.sin(slope_deg * DEG_TO_RAD);
+      const weightAlong_N = mass_kg * G_MPS2 * Math.sin(degToRad(slope_deg));
       const wheelTorque_Nm = (weightAlong_N / DRIVEN_WHEELS) * wheelRadius_m;
       if (wheelTorque_Nm >= MIN_RELATIVE_ANSWER) {
         return {

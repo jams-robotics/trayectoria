@@ -80,13 +80,22 @@ describe('T1-1.4 «Al robot» calcs', () => {
   });
 
   it('follow the numbers of «Mi robot»', () => {
-    // 5000 rpm, i = 48, r = 0.05 m: n_rueda = 104.2 rpm; ω_max = 10.91 rad/s; v_max = 0.545 m/s.
+    // 5000 rpm, i = 48, r = 0.05 m: n_rueda = 104 rpm; ω_max = 10.91 rad/s; v_max = 0.545 m/s.
     const robot = withDrive(5000, 48, 0.05);
     expect(wheelSpeed.compute(robot).substituted).toBe(
-      String.raw`n_{rueda} = \dfrac{5000\ \text{rpm}}{48} = 104.2\ \text{rpm}`,
+      String.raw`n_{rueda} = \dfrac{5000\ \text{rpm}}{48} = 104\ \text{rpm}`,
     );
     expect(vMax.compute(robot).substituted).toBe(
       String.raw`v_{\max} = 10.91\ \text{rad/s} \cdot 0.05\ \text{m} = 0.545\ \text{m/s}`,
+    );
+  });
+
+  it('keep the padding zeros of each value (CONTENT-STANDARDS §2.5, #653)', () => {
+    // 955 rpm, i = 10, r = 0.05 m: n_rueda = 95.5 rpm; ω_max = 10.00 rad/s; v_max = 0.500 m/s.
+    const robot = withDrive(955, 10, 0.05);
+    expect(wheelSpeed.compute(robot).substituted).toContain(String.raw`= 95.5\ \text{rpm}`);
+    expect(vMax.compute(robot).substituted).toBe(
+      String.raw`v_{\max} = 10.00\ \text{rad/s} \cdot 0.05\ \text{m} = 0.500\ \text{m/s}`,
     );
   });
 

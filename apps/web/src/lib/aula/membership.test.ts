@@ -15,6 +15,8 @@ interface Call {
 
 interface Answer {
   readonly rows?: unknown[] | null;
+  /** What an `rpc()` resolves to. */
+  readonly data?: unknown;
   readonly error?: { message: string };
 }
 
@@ -59,7 +61,7 @@ function mockDb(...answers: readonly Answer[]): Mock {
   const rpc = (name: string, args: unknown): Promise<unknown> => {
     const answer = next();
     calls.push({ op: `rpc.${name}`, payload: args, filters: {} });
-    return Promise.resolve({ data: null, error: answer.error ?? null });
+    return Promise.resolve({ data: answer.data ?? null, error: answer.error ?? null });
   };
 
   return { db: { from, rpc } as unknown as DbClient, calls };
@@ -83,7 +85,7 @@ describe('normalizeCode (F3-03)', () => {
 
 describe('joinGroup (F3-03)', () => {
   it('sends the normalized code to join_group', async () => {
-    const { db, calls } = mockDb({});
+    const { db, calls } = mockDb({ data: GROUP });
 
     await joinGroup(db, ' ab3 4xyz9 ');
 
@@ -97,6 +99,12 @@ describe('joinGroup (F3-03)', () => {
 
     await expect(joinGroup(db, '  ')).rejects.toThrow();
     expect(calls).toHaveLength(0);
+  });
+
+  it('throws when the function answers null: unknown code, own group or already a member (#508)', async () => {
+    const { db } = mockDb({ data: null });
+
+    await expect(joinGroup(db, 'AB34XYZ9')).rejects.toThrow('invalid invite code');
   });
 
   it('throws when the function refuses the code', async () => {

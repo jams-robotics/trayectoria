@@ -11,6 +11,8 @@ import { useEffect, useState, type JSX, type SubmitEvent } from 'react';
 
 import { verifyReauthentication } from '../../lib/account/reauthentication';
 
+import { useEmailLink } from './emailLink';
+
 import {
   absoluteUrl,
   emailValidationError,
@@ -27,14 +29,14 @@ import { ReauthCodeField, useReauthCode, type ReauthCodeState } from './ReauthCo
 
 const MIN_PASSWORD_LENGTH = 6;
 
-// The recovery link comes back to this page with `#access_token=…&type=recovery`; supabase-js
-// turns it into a session, clears the fragment and emits PASSWORD_RECOVERY, which sets
-// $passwordRecovery. The hash is read once after hydration as a fallback for the case where the
-// client had already consumed the fragment before the store subscribed.
+// The recovery link comes back to this page with `?token_hash=…&type=recovery` (PKCE flow,
+// #518); `useEmailLink` trades it for a session and sets $passwordRecovery. The query is read
+// here once after hydration, before `useEmailLink` removes it, so the new-password form shows
+// right away.
 function useArrivedFromRecoveryLink(): boolean {
   const [fromLink, setFromLink] = useState(false);
   useEffect(() => {
-    if (window.location.hash.includes('type=recovery')) setFromLink(true);
+    if (window.location.search.includes('type=recovery')) setFromLink(true);
   }, []);
   return fromLink;
 }
@@ -166,13 +168,27 @@ function NewPasswordForm(): JSX.Element {
 }
 
 // Mounted with client:load: it must process the recovery token in the URL as soon as the page
-// opens, before the user scrolls to it. Subscribing to the session mounts the store, which
-// initialises the Supabase client: it consumes the token, clears it from the URL fragment and
-// emits PASSWORD_RECOVERY right away instead of waiting for the first form submit. Server and
-// first client render both show the request form, so hydration never mismatches.
+// opens, before the user scrolls to it. `useEmailLink` removes the token from the URL and trades
+// it for a session right away instead of waiting for the first form submit. Server and first
+// client render both show the request form, so hydration never mismatches. A link that GoTrue
+// rejects as expired or already used (`otp_expired`, `otp_disabled` reused) never fires
+// `PASSWORD_RECOVERY`: without this, the page fell back to the request form with no notice that
+// the link that got them here did not work.
 export function RecoverForm(): JSX.Element {
+  const t = useT();
   useSession();
   const recovering = useStore($passwordRecovery);
   const fromLink = useArrivedFromRecoveryLink();
+  const linkStatus = useEmailLink();
+  if (linkStatus === 'expired') {
+    // The request form stays available right below the notice (SEC-DB): asking for a new link
+    // needs no reload.
+    return (
+      <div className="flex flex-col gap-6">
+        <FormStatus pending={false} error={t('auth.recover.linkExpired')} message="" />
+        <RequestLinkForm />
+      </div>
+    );
+  }
   return recovering || fromLink ? <NewPasswordForm /> : <RequestLinkForm />;
 }

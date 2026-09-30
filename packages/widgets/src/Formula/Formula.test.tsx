@@ -2,7 +2,7 @@ import '@testing-library/jest-dom/vitest';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, test } from 'vitest';
 
-import { Formula, HIGHLIGHT_CLASS } from './Formula';
+import { Formula, HIGHLIGHT_CLASS, SCROLL_CLASS } from './Formula';
 
 // F2-01a: the only wrapper around katex (docs/ARCHITECTURE.md §3.4).
 const V = 'v = \\omega \\cdot r';
@@ -64,5 +64,21 @@ describe('F2-01a Formula', () => {
   test('invalid latex renders the error instead of throwing (throwOnError: false)', () => {
     const { container } = render(<Formula latex={'\\frac{1}'} />);
     expect(container.querySelector('.katex-error')).not.toBeNull();
+  });
+
+  // #646: a block formula wider than its card scrolls inside it instead of overflowing it.
+  test('each formula of a block sits in its own horizontal scroll box', () => {
+    const { container } = render(<Formula latex={V} block substituted="v = 20.9 \cdot 0.033" />);
+    const maths = container.querySelectorAll('[role="math"]');
+    expect(maths).toHaveLength(2);
+    for (const math of maths) {
+      const box = math.parentElement;
+      expect(box).toHaveClass(SCROLL_CLASS, 'max-w-full', 'overflow-x-auto');
+    }
+  });
+
+  test('an inline formula has no scroll box', () => {
+    const { container } = render(<Formula latex={V} />);
+    expect(container.querySelector(`.${SCROLL_CLASS}`)).toBeNull();
   });
 });

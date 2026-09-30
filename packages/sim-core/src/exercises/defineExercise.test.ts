@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
+import { createRng } from '../random/SeededRng';
 import { defineExercise } from './defineExercise';
 
 describe('F1-10 defineExercise', () => {
@@ -20,6 +21,23 @@ describe('F1-10 defineExercise', () => {
     expect(exercise.tolerance).toEqual({ type: 'relative', value: 0.02 });
     expect(Object.isFrozen(exercise)).toBe(true);
     expect(Object.isFrozen(exercise.tolerance)).toBe(true);
+  });
+
+  test('generate may return one label key per component; without labels nothing changes (#629)', () => {
+    const labelled = defineExercise({
+      ...base,
+      generate: () => ({
+        values: { radius_m: 0.02 },
+        answer: [1, 2],
+        unit: ['m/s²', 'm'],
+        labels: ['content.t.labels.e1.0', 'content.t.labels.e1.1'],
+      }),
+    });
+    expect(labelled.generate(createRng(1)).labels).toEqual([
+      'content.t.labels.e1.0',
+      'content.t.labels.e1.1',
+    ]);
+    expect(defineExercise(base).generate(createRng(1))).not.toHaveProperty('labels');
   });
 
   test('statement returns the i18n key, not interpolated text', () => {

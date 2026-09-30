@@ -66,7 +66,7 @@ UI de un ejercicio de `defineExercise`. Registra intentos si hay sesión.
 ```ts
 interface ExerciseWidgetProps { exercise: Exercise; topicId: string; required?: boolean; index?: number; seed?: number }
 ```
-`index` pinta el prefijo `E1`, `E2`… del ejercicio dentro del tema; `seed` fija la instancia para stories, tests y e2e (si no, la primera instancia es común a todos; desde «Nuevos valores» sale de la sesión, aprobado por el humano en el chat, 2026-09-26).
+`index` pinta el prefijo `E1`, `E2`… del ejercicio dentro del tema; `seed` fija la instancia para stories, tests y e2e (si no, la primera instancia es común a todos; desde «Nuevos valores» sale de la sesión, aprobado por el humano en el chat, 2026-09-26). En una respuesta vectorial, si `generate` devuelve `labels`, cada campo lleva delante el texto de su clave y ese texto en el `aria-label` («Aceleración en m/s²»); sin `labels`, los campos se numeran («1», «2»; `aria-label` «Componente 1 en m/s») (#629).
 
 ### MyRobotWidget
 Formulario del perfil móvil y tarjeta compacta.
@@ -78,7 +78,7 @@ Hook asociado: `useMyRobot(): RobotSpec` (siempre devuelve un spec: el del usuar
 ## Física y matemática
 
 ### VectorWidget
-Dos vectores arrastrables; suma, componentes, magnitud, ángulo, producto escalar.
+Dos vectores arrastrables; suma, componentes, módulo, ángulo, producto escalar.
 ```ts
 interface VectorWidgetProps { initialA: [number, number]; initialB?: [number, number]; show: Array<'sum' | 'components' | 'dot' | 'angle'>; unit: string }
 ```

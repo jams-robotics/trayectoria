@@ -37,4 +37,17 @@ describe('getDbClient', () => {
     expect(getDbClient()).toBe(client);
     expect(client.storage.from('urdf')).toBeDefined();
   });
+
+  it('uses the PKCE flow for auth (#518)', async () => {
+    vi.stubEnv('PUBLIC_SUPABASE_URL', LOCAL_URL);
+    vi.stubEnv('PUBLIC_SUPABASE_ANON_KEY', LOCAL_ANON_KEY);
+    const createClient = vi.fn(() => ({}));
+    vi.doMock('@supabase/supabase-js', () => ({ createClient }));
+    const getDbClient = await freshGetDbClient();
+    getDbClient();
+    vi.doUnmock('@supabase/supabase-js');
+    expect(createClient).toHaveBeenCalledWith(LOCAL_URL, LOCAL_ANON_KEY, {
+      auth: { flowType: 'pkce' },
+    });
+  });
 });

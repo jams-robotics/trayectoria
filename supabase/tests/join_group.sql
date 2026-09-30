@@ -1,10 +1,10 @@
 -- F0-07 · criterion 4: join_group with a valid code creates the membership; an invalid code,
--- the caller's own group and a repeated join all fail with the same error, so the caller
--- cannot tell whether a group exists.
--- Users: teacher A owns group G (code 'abc123abc123'); students B and C.
+-- the caller's own group and a repeated join all fail with the same answer (`null` since
+-- migration 0013), so the caller cannot tell whether a group exists.
+-- Users: teacher A owns group G (code 'ABC123ABC123'); students B and C.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(13);
+select plan(16);
 
 create function pg_temp.act_as(target_user_id uuid) returns void language sql as $$
   select set_config(
@@ -20,7 +20,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-4000-8000-00000000000c', 'c@test.local', '{"display_name":"Carla"}');
 insert into public.groups (id, owner_id, name, invite_code)
 values ('00000000-0000-4000-8000-0000000000a1', '00000000-0000-4000-8000-00000000000a', 'Aula 1',
-        'abc123abc123');
+        'ABC123ABC123');
 
 set local role authenticated;
 
@@ -37,7 +37,7 @@ select throws_ok(
 -- B joins with the valid code.
 select pg_temp.act_as('00000000-0000-4000-8000-00000000000b');
 select results_eq(
-  $$ select public.join_group('abc123abc123') $$,
+  $$ select public.join_group('ABC123ABC123') $$,
   $$ values ('00000000-0000-4000-8000-0000000000a1'::uuid) $$,
   'join_group with a valid code returns the group id'
 );
@@ -46,25 +46,22 @@ select results_eq(
   $$ values ('00000000-0000-4000-8000-0000000000a1'::uuid, '00000000-0000-4000-8000-00000000000b'::uuid) $$,
   'join_group creates the membership'
 );
-select throws_ok(
-  $$ select public.join_group('abc123abc123') $$,
-  'P0001',
-  'invalid invite code',
-  'joining twice fails with the generic error'
+select is(
+  public.join_group('ABC123ABC123'),
+  null,
+  'joining twice fails with the generic answer (null, migration 0013)'
 );
 
 -- Wrong code (group does not exist).
 select pg_temp.act_as('00000000-0000-4000-8000-00000000000c');
-select throws_ok(
-  $$ select public.join_group('zzzzzzzzzzzz') $$,
-  'P0001',
-  'invalid invite code',
-  'an unknown code fails with the generic error'
+select is(
+  public.join_group('ZZZZZZZZZZZZ'),
+  null,
+  'an unknown code fails with the generic answer'
 );
-select throws_ok(
-  $$ select public.join_group('ABC123ABC123') $$,
-  'P0001',
-  'invalid invite code',
+select is(
+  public.join_group('abc123abc123'),
+  null,
   'codes are matched exactly'
 );
 select is_empty(
@@ -74,11 +71,10 @@ select is_empty(
 
 -- The owner cannot join their own group, and gets the same error.
 select pg_temp.act_as('00000000-0000-4000-8000-00000000000a');
-select throws_ok(
-  $$ select public.join_group('abc123abc123') $$,
-  'P0001',
-  'invalid invite code',
-  'the owner joining their own group fails with the generic error'
+select is(
+  public.join_group('ABC123ABC123'),
+  null,
+  'the owner joining their own group fails with the generic answer'
 );
 
 -- A member only ever removes their own row (F3-03, migration 0005); the owner removes any row
@@ -111,11 +107,37 @@ select is_empty(
   'the membership is gone'
 );
 
+-- SEC-DB media 1: a deleted account with a still-valid token cannot tell a valid code from an
+-- invalid one, or prove the code is valid, by joining. D's auth user stays (the token is still
+-- valid) but its profile is gone, as `delete_account` would leave it mid-cascade; `join_group`
+-- must reject before ever looking at the code.
+reset role;
+insert into auth.users (id, email, raw_user_meta_data)
+values ('00000000-0000-4000-8000-00000000000d', 'd@test.local', '{"display_name":"Dana"}');
+delete from public.profiles where id = '00000000-0000-4000-8000-00000000000d';
+set local role authenticated;
+select pg_temp.act_as('00000000-0000-4000-8000-00000000000d');
+select is(
+  public.join_group('ABC123ABC123'),
+  null,
+  'a deleted account gets the generic answer even with a valid code'
+);
+select is(
+  public.join_group('ZZZZZZZZZZZZ'),
+  null,
+  'a deleted account gets the same generic answer with an invalid code'
+);
+select is_empty(
+  $$ select * from public.group_members
+     where user_id = '00000000-0000-4000-8000-00000000000d' $$,
+  'a deleted account never creates a membership'
+);
+
 -- anon cannot even call the function.
 reset role;
 set local role anon;
 select throws_ok(
-  $$ select public.join_group('abc123abc123') $$,
+  $$ select public.join_group('ABC123ABC123') $$,
   '42501',
   null,
   'anon cannot call join_group'

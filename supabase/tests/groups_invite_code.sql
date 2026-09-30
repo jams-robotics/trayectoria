@@ -27,9 +27,10 @@ select lives_ok(
   'a teacher creates their own group'
 );
 select results_eq(
-  $$ select length(invite_code) from public.groups where id = '00000000-0000-4000-8000-0000000000a1' $$,
-  $$ values (12) $$,
-  'the owner reads the generated invite_code'
+  $$ select invite_code ~ '^[A-HJ-NP-Z2-9]{8}$' from public.groups
+     where id = '00000000-0000-4000-8000-0000000000a1' $$,
+  $$ values (true) $$,
+  'the owner reads the invite_code the database generated (migration 0013)'
 );
 
 -- B (student) cannot create groups and joins G with the code.

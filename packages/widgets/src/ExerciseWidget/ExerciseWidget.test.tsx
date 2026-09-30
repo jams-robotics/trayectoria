@@ -271,6 +271,9 @@ describe('ExerciseWidget (F2-10)', () => {
     await user.type(second, String(1.1 * VECTOR_VY_MPS));
     await user.click(verifyButton());
     expect(result()).toHaveTextContent('Incorrecto');
+    // With one wrong component, only its field marks in error; the right one stays correct (#660).
+    expect(first).toHaveClass('border-success');
+    expect(second).toHaveClass('border-error');
 
     await user.clear(second);
     await user.type(second, String(VECTOR_VY_MPS));

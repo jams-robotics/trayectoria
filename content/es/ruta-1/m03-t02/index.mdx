@@ -11,7 +11,7 @@ objectives:
   - Estimar la autonomía desde la capacidad de la batería
 widgets: [PowerWidget, ExerciseWidget]
 requiredExercises: [e1, e2, e3]
-references: [young-freedman-6]
+references: [young-freedman-6, young-freedman-25]
 status: published
 seoTitle: "Cuánta autonomía da la batería de tu robot: potencia"
 seoDescription: "Aprende a calcular la potencia mecánica y eléctrica de un motor con τ·ω y F·v, y a estimar cuántos minutos corre tu robot con su batería."
@@ -148,8 +148,7 @@ Con esa potencia, la capacidad C de tu batería da la autonomía, en horas y en 
 <RobotFormula calc="ruta-1/m03-t02/autonomy" />
 
 Si tu perfil no define el voltaje del motor, su corriente de bloqueo o la capacidad de la
-batería, o no es un robot móvil, el cálculo usa los del robot de referencia: 6 V, 1.2 A y
-11.1 Wh.
+batería, el cálculo usa los del robot de referencia: 6 V, 1.2 A y 11.1 Wh.
 
 Con el robot de referencia, P_el = 2·6·1.2 = 14.4 W y t_autonomía = 11.1/14.4 = 0.771 h, unos
 46.3 min. Es una cota inferior de la autonomía: la corriente de bloqueo es la máxima que el motor
@@ -168,4 +167,4 @@ pide, así que en marcha la corriente es menor y la batería dura más. Cuánto 
   obligatorios={['e1', 'e2', 'e3']}
 />
 
-<Profundiza referencias={['young-freedman-6']} topicId="ruta-1/m03-t02" />
+<Profundiza referencias={['young-freedman-6', 'young-freedman-25']} topicId="ruta-1/m03-t02" />
