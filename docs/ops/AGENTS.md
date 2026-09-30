@@ -13,7 +13,7 @@ Cómo se reparte el trabajo entre agentes de IA en este repositorio. Vale para c
 | Seguridad (`seguridad`) | Claude Opus 5.5 | high | Todo PR que toque RLS, auth, migraciones, subidas, dependencias o cabeceras. |
 | QA (`qa`) | Claude Sonnet 5.5 | medium | Verifica cada criterio contra la spec, con evidencia. No lee el código antes de probar ni arregla. |
 | Auditor de código (`auditor`) | Claude Sonnet 5.5 | medium | Revisa el PR contra `STANDARDS.md` y `DEFINITION-OF-DONE.md`. |
-| Auditor de coherencia (`auditor-coherencia`) | Claude Fable 5.1 | high | Al cerrar un módulo o una ruta, o en un PR de spec grande: física, orden, notación, dorados. |
+| Auditor de coherencia (`auditor-coherencia`) | Claude Fable 5.1 | medium | Al cerrar un módulo o una ruta, o en un PR de spec grande: física, orden, notación, dorados. |
 | Rondas de ajustes (`fix`) | Claude Sonnet 5.5 | medium | Corrige hallazgos concretos de QA o auditoría en la misma rama. |
 
 ## Reglas de orquestación
