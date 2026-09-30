@@ -4,7 +4,7 @@
 -- Users: teacher A owns group G (code 'ABC123ABC123'); students B and C.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(13);
+select plan(16);
 
 create function pg_temp.act_as(target_user_id uuid) returns void language sql as $$
   select set_config(
@@ -105,6 +105,32 @@ select lives_ok(
 select is_empty(
   $$ select * from public.group_members $$,
   'the membership is gone'
+);
+
+-- SEC-DB media 1: a deleted account with a still-valid token cannot tell a valid code from an
+-- invalid one, or prove the code is valid, by joining. D's auth user stays (the token is still
+-- valid) but its profile is gone, as `delete_account` would leave it mid-cascade; `join_group`
+-- must reject before ever looking at the code.
+reset role;
+insert into auth.users (id, email, raw_user_meta_data)
+values ('00000000-0000-4000-8000-00000000000d', 'd@test.local', '{"display_name":"Dana"}');
+delete from public.profiles where id = '00000000-0000-4000-8000-00000000000d';
+set local role authenticated;
+select pg_temp.act_as('00000000-0000-4000-8000-00000000000d');
+select is(
+  public.join_group('ABC123ABC123'),
+  null,
+  'a deleted account gets the generic answer even with a valid code'
+);
+select is(
+  public.join_group('ZZZZZZZZZZZZ'),
+  null,
+  'a deleted account gets the same generic answer with an invalid code'
+);
+select is_empty(
+  $$ select * from public.group_members
+     where user_id = '00000000-0000-4000-8000-00000000000d' $$,
+  'a deleted account never creates a membership'
 );
 
 -- anon cannot even call the function.

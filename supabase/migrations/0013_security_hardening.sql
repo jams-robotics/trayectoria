@@ -112,6 +112,14 @@ begin
     raise exception 'invalid invite code' using errcode = 'P0001';
   end if;
 
+  -- A deleted account keeps a valid token until it expires (`delete_account` removes the row of
+  -- `public.profiles`, not the session). It gets the same generic answer as an invalid code,
+  -- never the `too many join attempts` message, which would let it tell the two apart, or a row
+  -- in `join_attempts` (its `user_id` foreign key would reject it anyway).
+  if not exists (select 1 from public.profiles where id = caller_id) then
+    return null;
+  end if;
+
   -- Concurrent calls of the same user count one after the other.
   perform pg_advisory_xact_lock(hashtextextended('join_group:' || caller_id::text, 0));
   delete from public.join_attempts

@@ -170,11 +170,18 @@ function NewPasswordForm(): JSX.Element {
 // Mounted with client:load: it must process the recovery token in the URL as soon as the page
 // opens, before the user scrolls to it. `useEmailLink` removes the token from the URL and trades
 // it for a session right away instead of waiting for the first form submit. Server and first
-// client render both show the request form, so hydration never mismatches.
+// client render both show the request form, so hydration never mismatches. A link that GoTrue
+// rejects as expired or already used (`otp_expired`, `otp_disabled` reused) never fires
+// `PASSWORD_RECOVERY`: without this, the page fell back to the request form with no notice that
+// the link that got them here did not work.
 export function RecoverForm(): JSX.Element {
+  const t = useT();
   useSession();
   const recovering = useStore($passwordRecovery);
   const fromLink = useArrivedFromRecoveryLink();
-  useEmailLink();
+  const linkStatus = useEmailLink();
+  if (linkStatus === 'expired') {
+    return <FormStatus pending={false} error={t('auth.recover.linkExpired')} message="" />;
+  }
   return recovering || fromLink ? <NewPasswordForm /> : <RequestLinkForm />;
 }

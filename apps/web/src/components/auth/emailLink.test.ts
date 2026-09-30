@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@trayectoria/auth', () => ({ verifyEmailLink: vi.fn() }));
 
-const { emailLinkFrom, withoutEmailLink } = await import('./emailLink');
+const { emailLinkFrom, withoutEmailLink, statusFromResult } = await import('./emailLink');
 
 describe('emailLinkFrom (#518)', () => {
   it('reads the token_hash and the type of the links of the templates', () => {
@@ -33,5 +33,12 @@ describe('withoutEmailLink (#518)', () => {
     expect(
       withoutEmailLink('https://trayectoria.org/auth/recuperar?a=1&token_hash=x&type=recovery#top'),
     ).toBe('https://trayectoria.org/auth/recuperar?a=1#top');
+  });
+});
+
+describe('statusFromResult (SEC-DB)', () => {
+  it('reports an expired or already-used link so the page can show a clear notice', () => {
+    expect(statusFromResult({ ok: true })).toBe('ok');
+    expect(statusFromResult({ ok: false })).toBe('expired');
   });
 });
