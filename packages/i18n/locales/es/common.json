@@ -11,7 +11,8 @@
     "simulators": "Simuladores",
     "arms": "Brazos",
     "account": "Cuenta",
-    "menu": "Menú"
+    "menu": "Menú",
+    "close": "Cerrar"
   },
   "theme": {
     "toggle": "Cambiar entre tema claro y oscuro"

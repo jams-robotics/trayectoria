@@ -109,6 +109,11 @@
   width: var(--size-panel-side);
 }
 
+/* Form card width (DESIGN.md §4, Anchos): `max-w-form-card`, sign-up CTA and forms (#548). */
+@utility max-w-form-card {
+  max-width: var(--size-form-card);
+}
+
 /* Latin and Greek subsets (DESIGN.md §3); each file is downloaded only if the page uses its range. */
 
 @font-face {

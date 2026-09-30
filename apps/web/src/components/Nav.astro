@@ -18,7 +18,9 @@ const isActive = (section: string): boolean =>
   section === '/' ? pathname === '/' : pathname === section || pathname.startsWith(`${section}/`);
 ---
 
-<header class="bg-bg-raised border-border border-b">
+<!-- #545: on mobile the links drop down right under the header, over a veil that closes them. The
+  header is positioned so the list can hang from its bottom edge and sit above the veil. -->
+<header id="site-header" class="bg-bg-raised border-border relative z-40 border-b">
   <div class="mx-auto flex h-[56px] max-w-[1120px] items-center gap-7 px-5 md:px-8">
     <a href="/" class="text-fg flex items-center gap-2 text-lg font-semibold no-underline">
       <ChassisIcon />
@@ -28,7 +30,7 @@ const isActive = (section: string): boolean =>
     <nav aria-label={t('nav.main')} class="contents">
       <ul
         id="nav-links"
-        class="bg-bg-raised border-border fixed inset-x-0 bottom-0 z-10 m-0 hidden list-none flex-col gap-1 border-t p-5 md:static md:flex md:h-full md:flex-row md:gap-6 md:border-0 md:p-0"
+        class="bg-bg-raised border-border absolute inset-x-0 top-full m-0 hidden list-none flex-col gap-1 border-b px-5 pt-2 pb-5 shadow-md md:static md:flex md:h-full md:flex-row md:gap-6 md:border-0 md:p-0 md:shadow-none"
       >
         {links.map(({ href, label, section }) => (
           <li class="md:h-full">
@@ -57,32 +59,52 @@ const isActive = (section: string): boolean =>
         class="text-fg-muted hover:text-fg border-border rounded-md inline-flex h-[44px] items-center border px-3 font-medium md:hidden"
         aria-expanded="false"
         aria-controls="nav-links"
+        data-label-open={t('nav.menu')}
+        data-label-close={t('nav.close')}
       >
         {t('nav.menu')}
       </button>
     </div>
   </div>
 </header>
+<div id="nav-scrim" class="bg-bg/80 fixed inset-0 z-30 hidden md:hidden" aria-hidden="true"></div>
 
 <script>
+  // #545: the menu opens under the header; Esc, a tap on the veil or tabbing out of the header
+  // close it, and the button reads «Cerrar» while it is open.
+  const header = document.getElementById('site-header');
   const button = document.getElementById('nav-menu');
   const list = document.getElementById('nav-links');
-  if (button && list) {
+  const scrim = document.getElementById('nav-scrim');
+  if (header && button && list && scrim) {
+    const openLabel = button.dataset.labelOpen ?? '';
+    const closeLabel = button.dataset.labelClose ?? '';
+    const isOpen = (): boolean => button.getAttribute('aria-expanded') === 'true';
     const setOpen = (open: boolean): void => {
       button.setAttribute('aria-expanded', String(open));
+      button.textContent = open ? closeLabel : openLabel;
       list.classList.toggle('hidden', !open);
       list.classList.toggle('flex', open);
+      scrim.classList.toggle('hidden', !open);
     };
     button.addEventListener('click', () => {
-      const open = button.getAttribute('aria-expanded') !== 'true';
+      const open = !isOpen();
       setOpen(open);
       if (open) list.querySelector('a')?.focus();
     });
-    list.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && button.getAttribute('aria-expanded') === 'true') {
+    scrim.addEventListener('click', () => {
+      setOpen(false);
+      button.focus();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && isOpen()) {
         setOpen(false);
         button.focus();
       }
+    });
+    header.addEventListener('focusout', (event) => {
+      const next = event.relatedTarget;
+      if (isOpen() && next instanceof Node && !header.contains(next)) setOpen(false);
     });
   }
 </script>

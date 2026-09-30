@@ -16,7 +16,7 @@ import {
   wheelSpeed_mps,
 } from './compute';
 import type { Pose, Twist, WheelCommand } from './compute';
-import { headingError_deg, positionError_m } from './odometry';
+import { VELOCITY_SAMPLE_S, headingError_deg, positionError_m } from './odometry';
 import type { EstimatedVelocity, Step, Ticks } from './odometry';
 import type { ManeuverPhase } from './maneuver';
 
@@ -161,14 +161,18 @@ export interface OdometryReadout {
   ticks: Ticks;
   /** Advance and turn of the last step the estimator took. */
   step: Step;
-  /** Velocity the encoders estimate from that step, per wheel and for the robot (T-4.5). */
+  /** Velocity the encoders estimate over the last sampling period, per wheel and robot (#567). */
   velocity: EstimatedVelocity;
 }
 
+/** Significant figures of the sampling period: `0.1 s`, as the hook of T2-0.1 writes it. */
+const SAMPLE_SIG_FIGS = 1;
+
 /**
- * The lines of the odometry panel: `Δs` and `Δθ` of the last step, the velocity the encoders
- * estimate from it, the estimated pose and the two errors against the real one (#93, decision 3;
- * T-4.5). The real pose and the real velocity already have their own panel.
+ * The lines of the odometry panel: `Δs` and `Δθ` of the last step, the fixed `Δt` of the velocity
+ * estimate and the velocity the encoders estimate over it (#567), the estimated pose and the two
+ * errors against the real one (#93, decision 3; T-4.5). The real pose and the real velocity
+ * already have their own panel.
  */
 export function odometryRows(
   odometry: OdometryReadout,
@@ -182,6 +186,7 @@ export function odometryRows(
   return [
     [key('deltaS'), format(step.deltaS_m, unitM)],
     [key('deltaTheta'), format(step.deltaTheta_rad, key('unitRad'))],
+    [key('sampleDt'), format(VELOCITY_SAMPLE_S, key('unitS'), SAMPLE_SIG_FIGS)],
     [key('estimatedVL'), format(velocity.left_mps, unitMps)],
     [key('estimatedVR'), format(velocity.right_mps, unitMps)],
     [key('estimatedV'), format(velocity.robot_mps, unitMps)],

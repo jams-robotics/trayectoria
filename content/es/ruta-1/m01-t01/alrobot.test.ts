@@ -69,6 +69,13 @@ describe('T1-1.1 «Al robot» calcs', () => {
     expect(trackTime.compute(withDrive(0.032, 60)).substituted).toContain('= 11.9\\ \\text{s}');
   });
 
+  it('takes v_max as a datum: never shows ω_max · r, taught in T1-1.4 (#559)', () => {
+    const { latex, substituted } = trackTime.compute(withDrive(0.05, 30));
+    expect(latex).not.toContain('omega');
+    expect(substituted).not.toContain('omega');
+    expect(substituted).not.toContain('rad/s');
+  });
+
   it('falls back to the reference robot for a profile with no wheels', () => {
     const arm = withoutWheels();
     for (const calc of robotCalcs) {
