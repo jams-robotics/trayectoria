@@ -144,6 +144,7 @@ const e3 = defineExercise<Sensitivity>({
           values: { forwardOffset1_m, forwardOffset2_m, headingError_rad },
           answer,
           unit: '',
+          labels: [`content.${TOPIC_ID}.labels.e3.0`, `content.${TOPIC_ID}.labels.e3.1`],
         };
       }
     }

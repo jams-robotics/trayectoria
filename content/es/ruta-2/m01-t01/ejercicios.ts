@@ -95,6 +95,7 @@ const e1 = defineExercise<Wheels>({
       values: wheels,
       answer: [robotVelocity_mps(wheels), robotOmega_radps(wheels)],
       unit: ['m/s', 'rad/s'],
+      labels: [`content.${TOPIC_ID}.labels.e1.0`, `content.${TOPIC_ID}.labels.e1.1`],
     };
   },
   statement: () => statementKey('e1'),

@@ -30,7 +30,7 @@ Si la fuerza neta no es cero, el robot acelera. La **segunda ley de Newton** lo 
 ΣF⃗ = m·a⃗. Es una ecuación entre vectores y se cumple componente a componente.
 
 La **tercera ley de Newton** dice que las fuerzas vienen en pares: si un cuerpo empuja a otro, el
-otro lo empuja con la misma magnitud y en sentido contrario. La rueda empuja el suelo hacia
+otro lo empuja con el mismo módulo y en sentido contrario. La rueda empuja el suelo hacia
 atrás y el suelo empuja la rueda hacia adelante. Esa fuerza del suelo, la **tracción**, acelera
 al robot. Es una fricción estática; su límite lo ves en [Fricción](/ruta/ruta-1/m02/t02).
 
@@ -77,9 +77,11 @@ de rodadura.
 </Formulas>
 
 <Explora>
-Un robot de 0.9 kg sobre un suelo horizontal, el del gancho, con una tracción de 1.5 N hacia
-adelante y una fricción de rodadura de 0.4 N hacia atrás. El diagrama muestra el peso, la
-normal, las dos fuerzas y la resultante; el panel da sus valores y la aceleración.
+Un robot de 0.9 kg, la masa del gancho, sobre un suelo horizontal, con una tracción de 1.5 N
+hacia adelante y una fricción de rodadura de 0.4 N hacia atrás. Las fuerzas no son las del
+gancho: su resultante, 1.1 N, es mayor que los 0.72 N que pedía, y el robot acelera a
+1.22 m/s² en vez de 0.8 m/s². El diagrama muestra el peso, la normal, las dos fuerzas y la
+resultante; el panel da sus valores y la aceleración.
 
 <FreeBodyWidget
   mass_kg={0.9}
@@ -142,8 +144,8 @@ que ejercer sobre tu robot, de masa m, para seguir esa rampa:
 
 <RobotFormula calc="ruta-1/m02-t01/net-force" />
 
-Si tu perfil de «Mi robot» no guarda la rampa, el cálculo usa la del robot de referencia. Si no
-es un robot móvil, usa el robot de referencia completo.
+Si tu perfil de «Mi robot» no guarda la rampa, el cálculo usa la del robot
+de referencia.
 
 En un suelo horizontal, la normal equilibra el peso:
 

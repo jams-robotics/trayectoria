@@ -83,9 +83,9 @@ Convenciones de marcos: marco global `{G}` con X a la derecha, Y hacia arriba (2
 
 | Símbolo | Nombre | Unidad | Código |
 |---|---|---|---|
-| v⃗ | velocidad como vector, con magnitud \|v⃗\| = v y componentes vₓ, v_y | m/s | `[vx_mps, vy_mps]` |
+| v⃗ | velocidad como vector, con módulo \|v⃗\| = v y componentes vₓ, v_y | m/s | `[vx_mps, vy_mps]` |
 | F⃗, a⃗ (en dinámica) | fuerza y aceleración como vectores | N, m/s² | `[fx_N, fy_N]`, `[ax_mps2, ay_mps2]` |
-| a⃗, b⃗ (en vectores) | vector genérico, con componentes a_x, a_y, b_x, b_y y magnitud \|a⃗\|, \|b⃗\| | la de la magnitud que representa | `a: [number, number]`, `b: [number, number]` |
+| a⃗, b⃗ (en vectores) | vector genérico, con componentes a_x, a_y, b_x, b_y y módulo \|a⃗\|, \|b⃗\| | la de la magnitud que representa | `a: [number, number]`, `b: [number, number]` |
 | (a, b) (en enunciados de vectores) | vector dado por sus componentes x e y | la de la magnitud que representa | `[number, number]` |
 | a⃗ · b⃗ | producto escalar (a_x·b_x + a_y·b_y) | producto de las unidades de a⃗ y b⃗ | `dot` |
 | φ (entre vectores) | ángulo entre dos vectores | rad | `angleBetween_rad` |
@@ -212,6 +212,8 @@ Símbolos del módulo Seguidor de línea de Robot móvil (antes Módulo 6, #396)
 
 | Término | Definición usada en la plataforma |
 |---|---|
+| Magnitud | Cantidad física: un número por una unidad (T1-0.1). Es también la palabra de «la magnitud que representa» en las unidades de este glosario. Nunca nombra el tamaño de un vector (#571.5, #653). |
+| Módulo | Tamaño de un vector, \|v⃗\| = √(vₓ² + v_y²) (T1-0.2). En texto, enunciados y etiquetas de widgets siempre «módulo»; ni «magnitud» ni «norma» (#571.5, #653). |
 | Robot diferencial | Dos ruedas motrices independientes en un mismo eje, más apoyos pasivos. |
 | Sin deslizamiento | La rueda no patina: el punto de contacto tiene velocidad cero respecto al suelo, de modo que `v = ω·r`. |
 | Cinemática directa | De las velocidades de las ruedas (o los ángulos de articulación) al movimiento del robot (o la pose del efector). |

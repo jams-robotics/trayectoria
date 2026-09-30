@@ -89,6 +89,7 @@ const e2 = defineExercise<TargetSpeed>({
       values: { v_mps, wheelRadius_m },
       answer: [omega_radps, omega_radps / RPM_TO_RADPS],
       unit: ['rad/s', 'rpm'],
+      labels: [`content.${TOPIC_ID}.labels.e2.0`, `content.${TOPIC_ID}.labels.e2.1`],
     };
   },
   statement: () => statementKey('e2'),

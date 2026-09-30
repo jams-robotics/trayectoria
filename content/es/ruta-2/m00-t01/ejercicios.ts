@@ -104,6 +104,7 @@ const e2 = defineExercise<TickSample>({
           values: { deltaTicks, dt_s },
           answer: [omega_radps, v_mps],
           unit: ['rad/s', 'm/s'],
+          labels: [`content.${TOPIC_ID}.labels.e2.0`, `content.${TOPIC_ID}.labels.e2.1`],
         };
       }
     }

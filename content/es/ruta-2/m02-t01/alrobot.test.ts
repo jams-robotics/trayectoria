@@ -88,6 +88,14 @@ describe('T2-2.1 «Al robot» calcs', () => {
     expect(lossOffset.compute(robot).substituted).toContain(String.raw`= 0.045\ \text{m}`);
   });
 
+  it('keep the padding zeros of the two figures (CONTENT-STANDARDS §2.5, #653)', () => {
+    // N = 5, e_s = 0.01 m: semi-width 2 · 0.01 = 0.020 m; lost from 0.030 m.
+    const robot = withSensors(5, 0.01);
+    expect(lossOffset.compute(robot).substituted).toBe(
+      String.raw`y_{perdida} = 0.020\ \text{m} + \frac{0.02\ \text{m}}{2} = 0.030\ \text{m}`,
+    );
+  });
+
   it('fall back to the reference robot for a profile with no sensor array', () => {
     const arm = withoutMobile();
     for (const calc of robotCalcs) {
