@@ -9,7 +9,7 @@ Plataforma web open source, en español, donde estudiantes de ingeniería aprend
 
 La v1.0.0 incluye dos rutas encadenadas completas, Fundamentos (física y matemática para robots, 14 temas en 4 módulos) y Robot móvil (del encoder a la pista, 11 temas en 3 módulos), el simulador móvil 2D, el simulador de brazo 3D, el perfil «Mi robot» y el modo aula. El alcance está en [`docs/PLAN.md`](docs/PLAN.md) y el detalle de la versión en [`CHANGELOG.md`](CHANGELOG.md).
 
-- **Instancia pública:** `https://<dominio>`
+- **Instancia pública:** `https://trayectoria.org`
 - **Cómo probarla:** abre la instancia pública o arráncala en local con [los 5 comandos](#arrancar-en-5-comandos).
 - **Cómo contribuir:** [`CONTRIBUTING.md`](CONTRIBUTING.md).
 - **Cómo autoalojarla:** [`docs/ops/SELF-HOSTING.md`](docs/ops/SELF-HOSTING.md).
@@ -26,7 +26,7 @@ pnpm test
 pnpm dev
 ```
 
-`pnpm dev` levanta `apps/web` (disponible a partir de F0-04).
+`pnpm dev` levanta `apps/web`.
 
 Si `corepack enable` falla por permisos sobre el directorio de Node, usa `corepack enable --install-directory <carpeta-en-tu-PATH>` o `npm install -g pnpm@12.4.1` (la versión fijada en `package.json`).
 
