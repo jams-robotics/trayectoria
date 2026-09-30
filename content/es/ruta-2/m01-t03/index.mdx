@@ -53,21 +53,21 @@ El simulador integra a la vez la pose real y la estimada con los ticks, y dibuja
 </Concepto>
 
 <Formulas>
-<Formula latex="\Delta s_L = \frac{2\pi r\,\Delta\text{ticks}_L}{N_e},\quad \Delta s_R = \frac{2\pi r\,\Delta\text{ticks}_R}{N_e}" />
+<Formula latex="\begin{aligned} \Delta s_L &= \frac{2\pi r\,\Delta\text{ticks}_L}{N_e}\\ \Delta s_R &= \frac{2\pi r\,\Delta\text{ticks}_R}{N_e} \end{aligned}" />
 
 - `Δs_L, Δs_R` · arco recorrido por cada rueda en un paso de odometría · m
 - `r` · radio de rueda · m
 - `Δticks` · ticks contados en un intervalo, por rueda · —
 - `N_e` · ticks del encoder por revolución · —
 
-<Formula latex="\Delta s = \frac{\Delta s_R + \Delta s_L}{2},\quad \Delta\theta = \frac{\Delta s_R - \Delta s_L}{L}" />
+<Formula latex="\begin{aligned} \Delta s &= \frac{\Delta s_R + \Delta s_L}{2}\\ \Delta\theta &= \frac{\Delta s_R - \Delta s_L}{L} \end{aligned}" />
 
 - `Δs` · avance del robot en un paso de odometría · m
 - `Δθ` · giro del robot en un paso de odometría · rad
 - `Δs_L, Δs_R` · arco recorrido por cada rueda en un paso de odometría · m
 - `L` · distancia entre ruedas · m
 
-<Formula latex="x \mathrel{+}= \Delta s\cos(\theta + \tfrac{\Delta\theta}{2}),\quad y \mathrel{+}= \Delta s\sin(\theta + \tfrac{\Delta\theta}{2}),\quad \theta \mathrel{+}= \Delta\theta" />
+<Formula latex="\begin{aligned} x &\mathrel{+}= \Delta s\cos(\theta + \tfrac{\Delta\theta}{2})\\ y &\mathrel{+}= \Delta s\sin(\theta + \tfrac{\Delta\theta}{2})\\ \theta &\mathrel{+}= \Delta\theta \end{aligned}" />
 
 - `(x, y, θ)` · pose del robot en el marco global \{G\} · m, m, rad
 - `Δs` · avance del robot en un paso de odometría · m
