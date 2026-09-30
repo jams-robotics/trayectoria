@@ -89,6 +89,7 @@ const e3 = defineExercise<Ramp>({
       values: { mass_kg, slope_deg },
       answer: [weight_N * Math.sin(slope_rad), weight_N * Math.cos(slope_rad)],
       unit: 'N',
+      labels: [`content.${TOPIC_ID}.labels.e3.0`, `content.${TOPIC_ID}.labels.e3.1`],
     };
   },
   statement: () => statementKey('e3'),

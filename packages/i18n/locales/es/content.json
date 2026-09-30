@@ -11,6 +11,10 @@
     "e3": "Tu robot hace dos desplazamientos seguidos: a⃗ = ({{ax_m}}, {{ay_m}}) m y b⃗ = ({{bx_m}}, {{by_m}}) m. ¿Cuál es la magnitud del desplazamiento total a⃗ + b⃗, en m?",
     "e4": "¿Qué ángulo φ forman los vectores (0.3, 0.4) y (0.5, 0)? Responde en grados.",
     "labels": {
+      "e1": [
+        "Componente vₓ",
+        "Componente v_y"
+      ],
       "e2": [
         "Módulo",
         "Ángulo"
@@ -69,7 +73,13 @@
     "e1": "Tu robot tiene una masa m = {{mass_kg}} kg y debe acelerar a a = {{a_mps2}} m/s². ¿Qué fuerza neta necesita, en N?",
     "e2": "Tu robot de m = {{mass_kg}} kg está sobre un suelo horizontal. ¿Cuánto vale la fuerza normal que el suelo ejerce sobre él, en N? Usa g = 9.81 m/s².",
     "e3": "Tu robot de m = {{mass_kg}} kg está sobre una rampa de φ = {{slope_deg}}°. ¿Cuánto vale la componente del peso a lo largo de la rampa, F_∥, en N, y la fuerza normal N, en N? Usa g = 9.81 m/s².",
-    "e4": "Las ruedas de tu robot de m = 0.9 kg dan una tracción de 1.5 N hacia adelante y la fricción de rodadura vale 0.4 N hacia atrás. ¿Cuál es su aceleración, en m/s²?"
+    "e4": "Las ruedas de tu robot de m = 0.9 kg dan una tracción de 1.5 N hacia adelante y la fricción de rodadura vale 0.4 N hacia atrás. ¿Cuál es su aceleración, en m/s²?",
+    "labels": {
+      "e3": [
+        "Componente del peso F_∥",
+        "Fuerza normal N"
+      ]
+    }
   },
   "ruta-1/m02-t02": {
     "e1": "Las ruedas motrices de tu robot tienen μₛ = {{mu_s}} con el suelo y cargan todo su peso. ¿Cuál es la aceleración máxima que puede lograr en plano sin patinar, en m/s²? Usa g = 9.81 m/s².",
@@ -123,7 +133,21 @@
     "e1": "Tu robot está en la pose (x, y, θ) = ({{x_m}} m, {{y_m}} m, {{theta_deg}}°). Un punto está en (d, 0) de {R}, con d = {{forwardOffset_m}} m. ¿Cuáles son sus coordenadas (x, y) en {G}, en m?",
     "e2": "Tu robot está en la pose (x, y, θ) = ({{x_m}} m, {{y_m}} m, {{theta_deg}}°). Su sensor izquierdo extremo está en (0.09, 0.024) m de {R}. ¿Cuáles son sus coordenadas (x, y) en {G}, en m?",
     "e3": "Tu robot está en (0, 0) m y el objetivo en (x_o, y_o) = ({{xo_m}} m, {{yo_m}} m). ¿Cuál es el rumbo θ_objetivo hacia el objetivo, en ° y en (−180°, 180°]?",
-    "e4": "Tu robot está en la pose (x, y, θ) = (1.2 m, 0.5 m, 30°). ¿Cuáles son las coordenadas en {R} del punto global (1.5, 0.9) m, en m?"
+    "e4": "Tu robot está en la pose (x, y, θ) = (1.2 m, 0.5 m, 30°). ¿Cuáles son las coordenadas en {R} del punto global (1.5, 0.9) m, en m?",
+    "labels": {
+      "e1": [
+        "Coordenada x",
+        "Coordenada y"
+      ],
+      "e2": [
+        "Coordenada x",
+        "Coordenada y"
+      ],
+      "e4": [
+        "Coordenada x",
+        "Coordenada y"
+      ]
+    }
   },
   "ruta-2/m01-t01": {
     "e1": "Tu robot tiene ruedas de r = 0.032 m separadas L = 0.15 m. La rueda izquierda gira a ω_L = {{omegaL_radps}} rad/s y la derecha a ω_R = {{omegaR_radps}} rad/s. ¿Cuál es la velocidad lineal v del robot, en m/s, y su velocidad angular ω, en rad/s?",
@@ -166,6 +190,10 @@
       "e1": [
         "Avance Δs",
         "Giro Δθ"
+      ],
+      "e2": [
+        "Posición x",
+        "Posición y"
       ]
     }
   },
@@ -183,7 +211,14 @@
   "ruta-2/m02-t02": {
     "e1": "Tu robot sigue la línea con control proporcional: K_p = {{kp}} rad/s, error e = {{error}} y velocidad base ω_base = {{omegaBase_radps}} rad/s. ¿Cuánto valen la acción de control u y las velocidades de rueda ω_L y ω_R, en rad/s?",
     "e2": "Tu controlador manda ω_L = {{omegaL_radps}} rad/s a la rueda izquierda y ω_R = {{omegaR_radps}} rad/s a la derecha. Con r = 0.032 m y L = 0.15 m, ¿cuál es la velocidad angular ω del robot, en rad/s?",
-    "e3": "Tu robot tiene ω_max = 20.94 rad/s y sigue la línea con ω_base = {{omegaBase_radps}} rad/s. Con |e|_max = 1, ¿cuál es la K_p máxima, en rad/s, para que ninguna rueda sature?"
+    "e3": "Tu robot tiene ω_max = 20.94 rad/s y sigue la línea con ω_base = {{omegaBase_radps}} rad/s. Con |e|_max = 1, ¿cuál es la K_p máxima, en rad/s, para que ninguna rueda sature?",
+    "labels": {
+      "e1": [
+        "Acción de control u",
+        "Rueda izquierda ω_L",
+        "Rueda derecha ω_R"
+      ]
+    }
   },
   "ruta-2/m02-t03": {
     "e1": "Un controlador PID tiene K_p = {{kp_radps}} rad/s, K_i = {{ki_radps2}} rad/s², K_d = {{kd_rad}} rad y período Δt_c = {{dt_s}} s. En el paso k el error es e_k = {{error}}, en el paso anterior e_{k−1} = {{previousError}}, y la suma Σe_j·Δt_c vale {{errorSum_s}} s. ¿Cuál es la acción de control u_k, en rad/s?",
@@ -195,7 +230,13 @@
     "e1": "El arreglo de sensores de tu robot tiene N = {{count}} sensores separados e_s = {{spacing_m}} m, y la línea mide w = {{lineWidth_m}} m de ancho. ¿A qué desplazamiento lateral y_perdida de la línea, medido desde el centro del arreglo, pierde el robot la línea, en m?",
     "e2": "Tu robot avanza a v = {{v_mps}} m/s y su lazo de control se ejecuta cada Δt_c = {{controlPeriod_s}} s. ¿Cuánto avanza entre dos ciclos de control, Δs_ciclo en m?",
     "e3": "Tu robot tiene N = 5 sensores separados e_s = 0.012 m y un error de rumbo Δθ = {{headingError_rad}} rad. ¿Qué posición de la línea p mide el arreglo si está a d₁ = {{forwardOffset1_m}} m del eje de ruedas, y qué p mide si está a d₂ = {{forwardOffset2_m}} m? Da p₁ y p₂, sin unidad.",
-    "e4": "Tu robot, con distancia entre ruedas L = {{wheelBase_m}} m, toma una curva de radio de giro R = {{turnRadius_m}} m. ¿Cuánto vale la relación v_int/v_ext entre la velocidad de la rueda interior y la exterior, sin unidad?"
+    "e4": "Tu robot, con distancia entre ruedas L = {{wheelBase_m}} m, toma una curva de radio de giro R = {{turnRadius_m}} m. ¿Cuánto vale la relación v_int/v_ext entre la velocidad de la rueda interior y la exterior, sin unidad?",
+    "labels": {
+      "e3": [
+        "Posición p₁",
+        "Posición p₂"
+      ]
+    }
   },
   "ruta-2/m02-t05": {
     "e1": "Tu robot sigue la línea con una velocidad base ω_base = {{omegaBase_radps}} rad/s y sus ruedas tienen radio r = {{wheelRadius_m}} m. ¿Cuál es su velocidad predicha v_pred, en m/s?",
