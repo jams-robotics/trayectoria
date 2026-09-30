@@ -211,4 +211,15 @@ describe('presupuesto de bundle (ARCHITECTURE §8)', () => {
     );
     expect(catalog).toEqual([]);
   });
+
+  // #648 (decision 2): the hero of the home page is the line follower in demonstration mode,
+  // loaded with `import()` once the page is idle so it does not weigh on the first paint. The
+  // page may reach its chunk dynamically, but must not download it on load.
+  test('la portada carga el simulador de la demostración solo con import() (#648)', () => {
+    const assets = assetNames();
+    const isWidget = (chunk: string): boolean => /^LineFollowerWidget\./.test(chunk);
+    expect([...reachableChunks('index.html', assets)].filter(isWidget).length).toBeGreaterThan(0);
+    const graph = staticImportGraph(assets);
+    expect([...downloadedChunks('index.html', graph)].filter(isWidget)).toEqual([]);
+  });
 });
