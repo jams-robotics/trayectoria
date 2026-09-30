@@ -1,29 +1,47 @@
 ---
 import { t } from '@trayectoria/i18n';
 
+import { getCollection } from 'astro:content';
+
 import ChassisIcon from '../components/ChassisIcon.astro';
 import { AccountDeletedNotice } from '../components/auth/AccountDeletedNotice';
+import { HomeDemo } from '../components/home/HomeDemo';
 import Base from '../layouts/Base.astro';
+import { homeModuleGroups } from '../lib/homeModules';
 
-// Route 1 as specified in docs/PLAN.md §2 (7 modules, 28 topics).
-// Each idea condenses the objectives of the module's topics in docs/CURRICULUM.md (F7-05).
-const modules = [
-  { name: t('home.modules.tools'), topics: 3, idea: t('home.thread.ideas.tools') },
-  {
-    name: t('home.modules.particleKinematics'),
-    topics: 4,
-    idea: t('home.thread.ideas.particleKinematics'),
-  },
-  { name: t('home.modules.dynamics'), topics: 3, idea: t('home.thread.ideas.dynamics') },
-  { name: t('home.modules.energy'), topics: 3, idea: t('home.thread.ideas.energy') },
-  { name: t('home.modules.rotation'), topics: 5, idea: t('home.thread.ideas.rotation') },
-  {
-    name: t('home.modules.differentialRobot'),
-    topics: 5,
-    idea: t('home.thread.ideas.differentialRobot'),
-  },
-  { name: t('home.modules.lineFollower'), topics: 5, idea: t('home.thread.ideas.lineFollower') },
-] as const;
+// The modules come from the `routes` collection, grouped by route (docs/ARCHITECTURE.md §3.5);
+// each card links to the first published topic of its module (#539).
+const routes = (await getCollection('routes')).map((entry) => ({ ...entry.data, id: entry.id }));
+const publishedIds = new Set(
+  (await getCollection('topics'))
+    .filter((topic) => topic.data.status === 'published')
+    .map((topic) => topic.id),
+);
+const groups = homeModuleGroups(routes, publishedIds);
+
+// Idea of each module (§3.5): one literal key per module, so the i18n key check sees them all.
+const IDEAS: Readonly<Record<string, string>> = {
+  'ruta-1/m00': t('home.thread.ideas.ruta1.m00'),
+  'ruta-1/m01': t('home.thread.ideas.ruta1.m01'),
+  'ruta-1/m02': t('home.thread.ideas.ruta1.m02'),
+  'ruta-1/m03': t('home.thread.ideas.ruta1.m03'),
+  'ruta-2/m00': t('home.thread.ideas.ruta2.m00'),
+  'ruta-2/m01': t('home.thread.ideas.ruta2.m01'),
+  'ruta-2/m02': t('home.thread.ideas.ruta2.m02'),
+};
+
+/** The idea of a module; a module without one fails the build instead of showing a gap. */
+function ideaOf(key: string): string {
+  const idea = IDEAS[key];
+  if (idea === undefined) throw new Error(`index.astro: falta home.thread.ideas para ${key}`);
+  return idea;
+}
+
+/** Secondary call to action: a short topic, Rodadura (#648, decision 3). */
+const TRY_TOPIC_HREF = '/ruta/ruta-1/m01/t04';
+
+/** Issues labelled `contenido`: the findings of the reviews and their fixes (#648, decision 4). */
+const CONTENT_ISSUES = 'https://github.com/jams-robotics/trayectoria/issues?q=is%3Aissue+label%3Acontenido';
 
 const features = [
   {
@@ -53,7 +71,9 @@ const features = [
         <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
           {t('home.eyebrow')}
         </p>
-        <h1 class="text-3xl leading-tight mt-4 max-w-[72ch] font-semibold">{t('home.headline')}</h1>
+        <h1 class="text-xl leading-tight mt-4 max-w-[72ch] font-semibold md:text-3xl">
+          {t('home.headline')}
+        </h1>
         <p class="text-fg-muted text-lg leading-body mt-6 max-w-[72ch]">{t('home.lead')}</p>
         <div class="mt-7 flex flex-wrap gap-3">
           <a
@@ -63,45 +83,17 @@ const features = [
             {t('home.startRoute')}
           </a>
           <a
-            href="/simuladores/movil"
+            href={TRY_TOPIC_HREF}
             class="bg-bg-raised text-fg border-border hover:border-fg-muted rounded-md inline-flex h-[44px] items-center border px-5 font-semibold no-underline"
           >
-            {t('home.openSimulators')}
+            {t('home.tryTopic')}
           </a>
         </div>
-        <p class="text-fg-muted mt-5 text-sm">{t('home.tagline')}</p>
+        <p class="text-fg-muted mt-4 text-base">{t('home.tagline')}</p>
       </div>
 
-      <aside class="bg-bg-raised border-border rounded-lg border p-6" aria-labelledby="ruta-titulo">
-        <h2
-          id="ruta-titulo"
-          class="text-fg-muted m-0 font-mono text-xs font-normal tracking-[0.06em] uppercase"
-        >
-          {t('home.route.title')}
-        </h2>
-        <ol class="border-border mt-5 ml-2 list-none border-l-2 p-0">
-          {modules.map(({ name, topics }) => (
-            <li class="relative flex items-center justify-between py-2 pl-6">
-              <span
-                class="bg-primary absolute top-1/2 -left-[7px] h-3 w-3 -translate-y-1/2 rounded-full"
-                aria-hidden="true"
-              />
-              <span>{name}</span>
-              <span class="text-fg-muted font-mono text-xs">
-                {t('home.route.topicCount', { topics })}
-              </span>
-            </li>
-          ))}
-          <li class="relative flex items-center gap-3 py-2 pl-6 font-semibold">
-            <span
-              class="bg-physical rounded-sm absolute top-1/2 -left-[7px] h-3 w-3 -translate-y-1/2"
-              aria-hidden="true"
-            ></span>
-            <ChassisIcon />
-            {t('home.route.robot')}
-          </li>
-        </ol>
-      </aside>
+      <!-- Hero: the line follower in demonstration mode, hydrated when the page is idle (#648). -->
+      <HomeDemo client:idle />
     </div>
 
     <ul class="mt-9 grid list-none gap-5 p-0 md:grid-cols-3">
@@ -136,6 +128,12 @@ const features = [
         </li>
       ))}
     </ul>
+
+    <!-- Rigor strip (#582 point 7, wording of #648 decision 4). -->
+    <p class="text-fg-muted mt-7 max-w-[72ch]">
+      {t('home.rigor.text')}{' '}
+      <a href={CONTENT_ISSUES} rel="noopener">{t('home.rigor.link')}</a>
+    </p>
   </section>
 
   <section class="mx-auto max-w-[1120px] px-5 pb-10 md:px-8" aria-labelledby="hilo-titulo">
@@ -146,25 +144,45 @@ const features = [
       {t('home.thread.title')}
     </h2>
     <p class="text-fg-muted leading-body mt-4 max-w-[72ch]">{t('home.thread.text')}</p>
-    <ol class="mt-7 grid list-none gap-5 p-0 md:grid-cols-2 lg:grid-cols-3">
-      {modules.map(({ name, topics, idea }, index) => (
-        <li
-          class="bg-bg-raised border-border rounded-lg border p-6"
-          class:list={{ 'md:col-span-2 lg:col-span-3': index === modules.length - 1 }}
-        >
-          <h3 class="text-base leading-tight m-0 font-semibold">
-            <span class="text-fg-muted mr-2 font-mono text-xs font-normal">
-              {t('home.thread.moduleLabel', { number: index })}
-            </span>
-            {name}
-          </h3>
-          <p class="text-fg-muted mt-3 mb-0">{idea}</p>
-          <p class="text-fg-muted mt-3 mb-0 font-mono text-xs">
-            {t('home.route.topicCount', { topics })}
-          </p>
-        </li>
-      ))}
-    </ol>
+    {groups.map(({ routeId, shortTitle, modules }) => (
+      <section class="mt-7" aria-labelledby={`hilo-${routeId}`}>
+        <h3 id={`hilo-${routeId}`} class="text-lg leading-tight m-0 font-semibold">
+          {shortTitle}
+        </h3>
+        <ol class="mt-4 grid list-none gap-5 p-0 md:grid-cols-2 lg:grid-cols-3">
+          {modules.map(({ key, number, title, topicCount, href }) => {
+            const body = (
+              <>
+                <h4 class="text-base leading-tight m-0 font-semibold">
+                  <span class="text-fg-muted mr-2 font-mono text-xs font-normal">
+                    {t('home.thread.moduleLabel', { route: shortTitle, number })}
+                  </span>
+                  {title}
+                </h4>
+                <p class="text-fg-muted mt-3 mb-0">{ideaOf(key)}</p>
+                <p class="text-fg-muted mt-3 mb-0 font-mono text-xs">
+                  {t('home.route.topicCount', { topics: topicCount })}
+                </p>
+              </>
+            );
+            return (
+              <li class="flex">
+                {href === undefined ? (
+                  <div class="bg-bg-raised border-border rounded-lg w-full border p-6">{body}</div>
+                ) : (
+                  <a
+                    href={href}
+                    class="bg-bg-raised border-border rounded-lg hover:border-primary text-fg block w-full border p-6 no-underline"
+                  >
+                    {body}
+                  </a>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+    ))}
   </section>
 
   <section class="bg-bg-raised border-border border-y">
