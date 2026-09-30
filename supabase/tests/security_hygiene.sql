@@ -45,7 +45,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-4000-8000-00000000000d', 'd@test.local', '{"display_name":"Dora","role":"teacher"}');
 insert into public.groups (id, owner_id, name, invite_code)
 values ('00000000-0000-4000-8000-0000000000a1', '00000000-0000-4000-8000-00000000000a', 'Aula 1',
-        'hyg527hyg527');
+        'HYG527HYG527');
 insert into public.group_members (group_id, user_id) values
   ('00000000-0000-4000-8000-0000000000a1', '00000000-0000-4000-8000-00000000000b'),
   ('00000000-0000-4000-8000-0000000000a1', '00000000-0000-4000-8000-00000000000c');
@@ -69,7 +69,7 @@ update public.groups set invite_code = 'stolen000001' where id = '00000000-0000-
 reset role;
 select is(
   (select invite_code from public.groups where id = '00000000-0000-4000-8000-0000000000a1'),
-  'hyg527hyg527',
+  'HYG527HYG527',
   'neither a member nor another teacher rewrites the invite_code'
 );
 
