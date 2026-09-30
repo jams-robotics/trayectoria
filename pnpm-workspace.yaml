@@ -7,3 +7,8 @@ allowBuilds:
   esbuild: false
   # unrs-resolver ships prebuilt binaries; its postinstall is only a download fallback.
   unrs-resolver: false
+overrides:
+  # GHSA-qhr7-859c-m2p7 and GHSA-6j4f-fj2g-mc7p (#642): brace-expansion arrives only through dev tooling
+  # (eslint, typescript-eslint, minimatch). Remove once eslint and typescript-eslint ship the patched versions.
+  brace-expansion@<1.1.20: 1.1.20
+  brace-expansion@>=4.0.0 <5.0.11: 5.0.11
