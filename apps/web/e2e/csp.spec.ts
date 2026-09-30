@@ -132,14 +132,16 @@ async function withCsp(page: Page): Promise<string[]> {
 /**
  * Waits until every island has hydrated. The `client:visible` ones hydrate when they intersect the
  * viewport, so each poll brings the first pending island into view: a single scroll through the
- * page misses the ones that the `client:only` widgets push further down as they render.
+ * page misses the ones that the `client:only` widgets push further down as they render. An island
+ * is `display: contents` (no box of its own), so the scroll targets its first child.
  */
 async function settle(page: Page): Promise<void> {
   await page.waitForLoadState('networkidle');
   await page.waitForFunction(
     () => {
       const pending = document.querySelectorAll('astro-island[ssr]');
-      pending[0]?.scrollIntoView();
+      const first = pending[0];
+      (first?.firstElementChild ?? first)?.scrollIntoView();
       return pending.length === 0;
     },
     undefined,
