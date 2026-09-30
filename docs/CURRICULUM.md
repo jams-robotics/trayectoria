@@ -390,7 +390,7 @@ Sigue a Fundamentos. Los módulos 5 y 6 anteriores pasan casi intactos; cambian 
 
 ### T2-1.4 · Restricción no holonómica
 - Id: `ruta-2/m01-t04` (antes `ruta-1/m05-t05`, T-5.5). Cambia: solo id y referencias.
-- Tiempo: 25 min · Prerrequisitos: `ruta-2/m01-t01`, `ruta-2/m01-t02`, `ruta-1/m01-t03` · Referencias: `siegwart-3`, `corke-4` · Widgets: DiffDriveWidget, ExerciseWidget · Depende de: F2-09, F2-10 y el ticket de widget de la maniobra en tres movimientos de `DiffDriveWidget` (#394)
+- Tiempo: 25 min · Prerrequisitos: `ruta-2/m01-t01`, `ruta-2/m01-t02`, `ruta-1/m01-t03`, `ruta-1/m00-t03` · Referencias: `siegwart-3`, `corke-4` · Widgets: DiffDriveWidget, ExerciseWidget · Depende de: F2-09, F2-10 y el ticket de widget de la maniobra en tres movimientos de `DiffDriveWidget` (#394)
 - Objetivos: enunciar la restricción de rodadura sin deslizamiento lateral; comprobar si una velocidad es admisible; planificar maniobras en tres movimientos.
 - Gancho: "¿Por qué tu robot no puede estacionarse de lado como un cangrejo, si sus dos ruedas pueden girar en cualquier sentido?"
 - Concepto (guion): la velocidad del robot siempre apunta a lo largo de su rumbo; la restricción como ecuación en velocidades que no se integra a una restricción de posición (por eso "no holonómica": puede llegar a cualquier pose, pero no por cualquier camino); consecuencia práctica: para moverse lateralmente hay que girar, avanzar, girar; comparación breve con ruedas omnidireccionales (v2).
