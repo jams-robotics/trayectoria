@@ -12,7 +12,7 @@ const ARMS_BASE = '../../catalog/arms';
 
 const topicId = z
   .string()
-  .regex(/^ruta-\d+\/m\d{2}-t\d{2}$/, 'Debe tener la forma ruta-N/mNN-tNN (p. ej. ruta-1/m04-t02)');
+  .regex(/^ruta-\d+\/m\d{2}-t\d{2}$/, 'Debe tener la forma ruta-N/mNN-tNN (p. ej. ruta-1/m01-t04)');
 
 // Frontmatter of a topic (docs/CONTENT-STANDARDS.md §3).
 const topicSchema = z
@@ -36,10 +36,15 @@ const topicSchema = z
   .strict();
 
 // ruta.json: order and grouping of modules and topics (docs/ARCHITECTURE.md §3.3).
+// Two chained routes since #574 (§3.2, «Rutas múltiples»): `shortTitle` names the route in the
+// links between routes and in the classroom selector; `follows` is the id of the route it continues.
+const routeId = z.string().regex(/^ruta-\d+$/);
 const routeSchema = z
   .object({
-    id: z.string().regex(/^ruta-\d+$/),
+    id: routeId,
     title: z.string().min(1),
+    shortTitle: z.string().min(1),
+    follows: routeId.optional(),
     modules: z
       .array(
         z.object({
@@ -80,9 +85,11 @@ const routeSchema = z
     });
   });
 
+// Only the routes: the reserve (`content/es/reserva/<slug>/`, status draft) stays out of the
+// collection (docs/ARCHITECTURE.md §3.3).
 const topics = defineCollection({
   loader: glob({
-    pattern: '*/m*-t*/index.mdx',
+    pattern: 'ruta-*/m*-t*/index.mdx',
     base: CONTENT_BASE,
     generateId: ({ entry }) => entry.replace(/\/index\.mdx$/, ''),
   }),
@@ -91,7 +98,7 @@ const topics = defineCollection({
 
 const routes = defineCollection({
   loader: glob({
-    pattern: '*/ruta.json',
+    pattern: 'ruta-*/ruta.json',
     base: CONTENT_BASE,
     generateId: ({ entry }) => entry.replace(/\/ruta\.json$/, ''),
   }),

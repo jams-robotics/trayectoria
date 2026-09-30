@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { acceleration, rampDistance, rampTime, robotCalcs } from './alrobot';
 
-// Golden values of docs/CURRICULUM.md § T-1.2 (Al robot), with the reference robot:
+// Golden values of docs/CURRICULUM.md § T1-1.2 (Al robot), with the reference robot:
 // a = 40·0.032 = 1.28 m/s², t = 0.670/1.28 = 0.524 s, x = 0.670²/(2·1.28) = 0.175 m.
 // `content` takes robot-spec for its types only (#246), so the reference robot of
 // docs/ROBOT-SPEC.md §3 is written out here.
@@ -54,7 +54,7 @@ function withoutWheels(): RobotSpec {
   return { ...rest, kind: 'arm-serial' };
 }
 
-describe('T-1.2 «Al robot» calcs', () => {
+describe('T1-1.2 «Al robot» calcs', () => {
   it('are acceleration, ramp-time and ramp-distance', () => {
     expect(robotCalcs.map((calc) => calc.id)).toEqual([
       'acceleration',

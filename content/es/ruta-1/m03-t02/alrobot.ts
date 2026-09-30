@@ -3,7 +3,7 @@ import type { RobotSpec } from '@trayectoria/robot-spec';
 import type { RobotCalc } from '../../../index';
 
 /**
- * «Al robot» calcs of T-3.2 (docs/CURRICULUM.md § T-3.2): the electrical power of the two motors
+ * «Al robot» calcs of T1-3.2 (docs/CURRICULUM.md § T1-3.2): the electrical power of the two motors
  * of «Mi robot» stalled at full voltage, `P_el = 2·V·I_s`, and the worst-case autonomy
  * `t = C / P_el` (#609). The MDX renders them with
  * `<RobotFormula calc="ruta-1/m03-t02/electrical-power" />` and `…/autonomy`.

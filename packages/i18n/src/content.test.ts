@@ -6,7 +6,8 @@ import { i18n, resources, t } from './t';
 // F6-01: the statements of the topic exercises live in content.json under the root key `content`,
 // keyed `content.<topicId>.<exerciseId>` (#243, decision 2). The topic id carries a `/`
 // (`ruta-1/m00-t01`), which is not an i18next separator, so it stays one level of the key.
-const TOPIC_ID = /^ruta-\d+\/m\d{2}-t\d{2}$/;
+// A topic in the reserve is keyed `reserva/<slug>` (docs/ARCHITECTURE.md §3.3).
+const TOPIC_ID = /^(?:ruta-\d+\/m\d{2}-t\d{2}|reserva\/[a-z0-9-]+)$/;
 const EXERCISE_ID = /^e\d+$/;
 
 /** content.json as the map it is: topic id → exercise id → statement. */

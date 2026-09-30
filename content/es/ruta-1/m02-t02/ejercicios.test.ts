@@ -13,7 +13,7 @@ import {
   exercises,
 } from './ejercicios';
 
-// Golden values of docs/CURRICULUM.md § T-2.2, Verifica. Each one runs through the exercise's own
+// Golden values of docs/CURRICULUM.md § T1-2.2, Verifica. Each one runs through the exercise's own
 // `generate`, driven by an rng that lands on the grid indices the spec's values give.
 
 const TOPIC_ID = 'ruta-1/m02-t02';
@@ -71,7 +71,7 @@ function expectOnGrid(value: number, perUnit: number): void {
   expect(Math.abs(value * perUnit - Math.round(value * perUnit))).toBeLessThan(EPSILON);
 }
 
-describe('T-2.2 exercises', () => {
+describe('T1-2.2 exercises', () => {
   it('declares e1 to e4, in order', () => {
     expect(exercises.map(({ id }) => id)).toEqual(['e1', 'e2', 'e3', 'e4']);
   });

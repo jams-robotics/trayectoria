@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { e1, e2, e3, e4, exercises, power_W, rpmToRadps, speed_cmps } from './ejercicios';
 
-// Golden values of docs/CURRICULUM.md § T-0.1 (Verifica), each within its tolerance
+// Golden values of docs/CURRICULUM.md § T1-0.1 (Verifica), each within its tolerance
 // (docs/CONTENT-STANDARDS.md §5: relative 2 %).
 const SEEDS = Array.from({ length: 200 }, (_, seed) => seed);
 
@@ -25,7 +25,7 @@ function toleranceValue(tolerance: Tolerance | readonly Tolerance[]): number {
   return first.value;
 }
 
-describe('T-0.1 golden values', () => {
+describe('T1-0.1 golden values', () => {
   it('e1: n = 6000 rpm → 628.3 rad/s', () => {
     expect(relativeError(rpmToRadps(6000), 628.3)).toBeLessThanOrEqual(toleranceValue(e1.tolerance));
   });
@@ -49,7 +49,7 @@ describe('T-0.1 golden values', () => {
   });
 });
 
-describe('T-0.1 exercises', () => {
+describe('T1-0.1 exercises', () => {
   it('are e1…e4, in order', () => {
     expect(exercises.map((exercise) => exercise.id)).toEqual(['e1', 'e2', 'e3', 'e4']);
   });

@@ -1,110 +1,88 @@
-import { G_MPS2, defineExercise, freeFallTime } from '@trayectoria/sim-core';
+import { defineExercise } from '@trayectoria/sim-core';
 import type { SeededRng } from '@trayectoria/sim-core';
 
-// Verifica of T-1.3 (docs/CURRICULUM.md § T-1.3). Each exercise returns only the key of its
+// Verifica of T1-1.3 (docs/CURRICULUM.md § T1-1.3). Each exercise returns only the key of its
 // statement; the text lives in packages/i18n/locales/es/content.json (ARCHITECTURE §3.3).
 //
-// Values are drawn on a grid the statement shows exactly (heights, times and speeds to the
-// hundredth), as in T-0.3 (#273).
+// Values are drawn as integers (rpm and seconds), so the statement shows them exactly.
 
 const TOPIC_ID = 'ruta-1/m01-t03';
 const RELATIVE_2_PERCENT = { type: 'relative', value: 0.02 } as const;
-/** A fall time is a short time: absolute 0.01 s (docs/CONTENT-STANDARDS.md §5). */
-const ABSOLUTE_10_MS = { type: 'absolute', value: 0.01 } as const;
 
-const HUNDREDTHS = 100;
+const SECONDS_PER_MINUTE = 60;
+const RPM_TO_RADPS = (2 * Math.PI) / SECONDS_PER_MINUTE;
 
 interface Range {
   readonly min: number;
   readonly max: number;
 }
 
-/** Generation ranges of the spec, in the units the statements announce. */
-export const E1_H_M: Range = { min: 0.05, max: 2 };
-/** e2 reuses the range of e1: the spec gives only the golden value. */
-export const E2_H_M: Range = E1_H_M;
-export const E3_T_S: Range = { min: 0.1, max: 1 };
-/** e4: speeds up to `v_max` of the reference robot, from the gripper height of the hook (#287). */
-export const E4_V_MPS: Range = { min: 0.1, max: 0.67 };
-export const E4_H_M = 0.25;
-/**
- * e4 draws again while Δx is below this: with relative 2 %, a correct response rounded to the
- * millimetre (up to 0.0005 m off) is only accepted from 0.025 m on (#568).
- */
-export const MIN_RELATIVE_ANSWER = 0.025;
-
-/** A value on the grid of step 1/`perUnit`, in [min, max]. */
-function drawOnGrid(rng: SeededRng, range: Range, perUnit: number): number {
-  const index = rng.nextInt(Math.round(range.min * perUnit), Math.round(range.max * perUnit));
-  return index / perUnit;
-}
+/** Generation ranges of the spec (#301): n for e1–e4, t for e3 and e4. */
+export const SPEED_RPM: Range = { min: 30, max: 600 };
+export const T_S: Range = { min: 1, max: 60 };
 
 function statementKey(exerciseId: string): string {
   return `content.${TOPIC_ID}.${exerciseId}`;
 }
 
-interface Height {
-  readonly h_m: number;
+interface Speed {
+  readonly speed_rpm: number;
 }
 
-/** e1: dropped from rest at h, `t_caída = √(2h/g)`. */
-const e1 = defineExercise<Height>({
+interface SpeedDuring {
+  readonly speed_rpm: number;
+  readonly t_s: number;
+}
+
+/** e1: `ω = n · 2π/60`. */
+const e1 = defineExercise<Speed>({
   id: 'e1',
   generate: (rng) => {
-    const h_m = drawOnGrid(rng, E1_H_M, HUNDREDTHS);
-    return { values: { h_m }, answer: freeFallTime(h_m), unit: 's' };
+    const speed_rpm = rng.nextInt(SPEED_RPM.min, SPEED_RPM.max);
+    return { values: { speed_rpm }, answer: speed_rpm * RPM_TO_RADPS, unit: 'rad/s' };
   },
   statement: () => statementKey('e1'),
-  tolerance: ABSOLUTE_10_MS,
+  tolerance: RELATIVE_2_PERCENT,
 });
 
-/** e2: dropped from rest at h, `v_impacto = √(2gh)`. */
-const e2 = defineExercise<Height>({
+/** e2: one turn takes `T = 60/n` s. */
+const e2 = defineExercise<Speed>({
   id: 'e2',
   generate: (rng) => {
-    const h_m = drawOnGrid(rng, E2_H_M, HUNDREDTHS);
-    return { values: { h_m }, answer: Math.sqrt(2 * G_MPS2 * h_m), unit: 'm/s' };
+    const speed_rpm = rng.nextInt(SPEED_RPM.min, SPEED_RPM.max);
+    return { values: { speed_rpm }, answer: SECONDS_PER_MINUTE / speed_rpm, unit: 's' };
   },
   statement: () => statementKey('e2'),
   tolerance: RELATIVE_2_PERCENT,
 });
 
-interface FallTime {
-  readonly t_s: number;
+function drawSpeedDuring(rng: SeededRng): SpeedDuring {
+  const speed_rpm = rng.nextInt(SPEED_RPM.min, SPEED_RPM.max);
+  const t_s = rng.nextInt(T_S.min, T_S.max);
+  return { speed_rpm, t_s };
 }
 
-/** e3: it took t to fall from rest, so `h = ½·g·t²`. */
-const e3 = defineExercise<FallTime>({
+/** e3: turns in t, `n · t/60`; a count, so no unit. */
+const e3 = defineExercise<SpeedDuring>({
   id: 'e3',
   generate: (rng) => {
-    const t_s = drawOnGrid(rng, E3_T_S, HUNDREDTHS);
-    return { values: { t_s }, answer: (G_MPS2 * t_s ** 2) / 2, unit: 'm' };
+    const values = drawSpeedDuring(rng);
+    return { values, answer: (values.speed_rpm * values.t_s) / SECONDS_PER_MINUTE, unit: '' };
   },
   statement: () => statementKey('e3'),
   tolerance: RELATIVE_2_PERCENT,
 });
 
-interface RobotSpeed {
-  readonly v_mps: number;
-}
-
-/**
- * e4 (optional, preview of T-1.4): the piece keeps the robot's v while it falls from 0.25 m, so
- * it lands `Δx = v·t_caída` ahead of where it was released. Drawn again while Δx < 0.025 m, that
- * is v ≤ 0.11 m/s (#568).
- */
-const e4 = defineExercise<RobotSpeed>({
+/** e4 (optional): angle turned from θ₀ = 0, `θ = ω · t`. */
+const e4 = defineExercise<SpeedDuring>({
   id: 'e4',
   generate: (rng) => {
-    for (;;) {
-      const v_mps = drawOnGrid(rng, E4_V_MPS, HUNDREDTHS);
-      const lead_m = v_mps * freeFallTime(E4_H_M);
-      if (lead_m >= MIN_RELATIVE_ANSWER) return { values: { v_mps }, answer: lead_m, unit: 'm' };
-    }
+    const values = drawSpeedDuring(rng);
+    return { values, answer: values.speed_rpm * RPM_TO_RADPS * values.t_s, unit: 'rad' };
   },
   statement: () => statementKey('e4'),
   tolerance: RELATIVE_2_PERCENT,
 });
 
-/** The exercises of T-1.3, in the order of Verifica; e1–e3 are required. */
+/** The exercises of T1-1.3, in the order of Verifica; e1–e3 are required. */
 export const exercises = [e1, e2, e3, e4] as const;

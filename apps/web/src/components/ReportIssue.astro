@@ -4,7 +4,7 @@ import { reportEmailHref, reportIssueUrl } from '../lib/contact';
 // Shared "did you spot an error?" pair (#591): a prefilled GitHub issue plus its no-GitHub-account
 // mailto: alternative, both built with URLSearchParams (never by concatenating unencoded text).
 interface Props {
-  /** Prefilled issue title, e.g. `[Tema m04-t02] `. */
+  /** Prefilled issue title, e.g. `[Tema ruta-1/m01-t04] `. */
   title: string;
   /** `contenido` for topics, `bug` for simulators and the arm catalog. */
   label: 'contenido' | 'bug';

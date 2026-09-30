@@ -3,6 +3,7 @@ import { t } from '@trayectoria/i18n';
 
 import ReportIssue from '../components/ReportIssue.astro';
 import TopicOutline from '../components/tema/Outline.astro';
+import type { PrerequisitesFromRoute } from '../lib/routes';
 import Base from './Base.astro';
 
 // Layout of a topic page (#97, decision 5): header with title, time and prerequisites,
@@ -18,7 +19,7 @@ export interface TopicLink {
 
 interface Props {
   title: string;
-  /** Topic id (`ruta-1/m04-t02`), filled into the report-an-error link (#591). */
+  /** Topic id (`ruta-1/m01-t04`), filled into the report-an-error link (#591). */
   topicId: string;
   /** `<title>` and Open Graph title; falls back to `title` when missing (#579). */
   seoTitle?: string | undefined;
@@ -29,7 +30,10 @@ interface Props {
   /** Mono line above the title: «Ruta … · Tema 4.2». */
   eyebrow: string;
   estimatedMinutes: number;
-  prerequisites: TopicLink[];
+  /** Prerequisites of the topic's own route. */
+  prerequisites: readonly TopicLink[];
+  /** Prerequisites of the routes this one follows, one line per route (§3.2, #574). */
+  prerequisitesFromRoutes: readonly PrerequisitesFromRoute[];
   /** Completed topics of the route; 0 until F3-01. */
   done: number;
   /** Topics of the route. */
@@ -47,13 +51,14 @@ const {
   eyebrow,
   estimatedMinutes,
   prerequisites,
+  prerequisitesFromRoutes,
   done,
   total,
   previous,
   next,
 } = Astro.props;
 const percent = total === 0 ? 0 : Math.round((done / total) * 100);
-const topicSlug = topicId.split('/')[1] ?? topicId;
+const noPrerequisites = prerequisites.length === 0 && prerequisitesFromRoutes.length === 0;
 ---
 
 <Base title={seoTitle ?? title} description={description}>
@@ -79,8 +84,8 @@ const topicSlug = topicId.split('/')[1] ?? topicId;
           </div>
           <div class="flex flex-wrap gap-2">
             <dt>{t('topic.prerequisites')}</dt>
-            <dd class="m-0 flex flex-wrap gap-2">
-              {prerequisites.length === 0 ? <span>{t('topic.noPrerequisites')}</span> : null}
+            <dd class="m-0 flex flex-wrap gap-2" data-testid="topic-prerequisites">
+              {noPrerequisites ? <span>{t('topic.noPrerequisites')}</span> : null}
               {prerequisites.map((item) =>
                 item.href === undefined ? (
                   <span>{item.title}</span>
@@ -88,6 +93,22 @@ const topicSlug = topicId.split('/')[1] ?? topicId;
                   <a href={item.href}>{item.title}</a>
                 ),
               )}
+              {prerequisitesFromRoutes.map((group) => (
+                <span
+                  class="flex basis-full flex-wrap gap-2"
+                  data-testid="topic-prerequisites-route"
+                  data-route={group.routeId}
+                >
+                  <span>{t('topic.prerequisitesFromRoute', { route: group.shortTitle })}</span>
+                  {group.topics.map((item) =>
+                    item.href === undefined ? (
+                      <span>{item.title}</span>
+                    ) : (
+                      <a href={item.href}>{item.title}</a>
+                    ),
+                  )}
+                </span>
+              ))}
             </dd>
           </div>
         </dl>
@@ -115,7 +136,7 @@ const topicSlug = topicId.split('/')[1] ?? topicId;
         </article>
 
         <ReportIssue
-          title={`[Tema ${topicSlug}] `}
+          title={`[Tema ${topicId}] `}
           label="contenido"
           place={topicId}
           issueLabel={t('topic.report.issue')}
