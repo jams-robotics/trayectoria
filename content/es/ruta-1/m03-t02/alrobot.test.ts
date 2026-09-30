@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { autonomy, electricalPower, robotCalcs } from './alrobot';
 
-// Golden values of docs/CURRICULUM.md § T-3.2 (Al robot), with the reference robot:
+// Golden values of docs/CURRICULUM.md § T1-3.2 (Al robot), with the reference robot:
 // P_el = 2·6·1.2 = 14.4 W, t = 11.1/14.4 = 0.771 h = 46.3 min. I_s = 1.2 A is the stall current,
 // `motor.stallCurrent_A` of the profile or the reference value when it is missing (#609). `content`
 // takes robot-spec for its types only (#246), so the reference robot of docs/ROBOT-SPEC.md §3 is
@@ -84,7 +84,7 @@ function withoutWheels(): RobotSpec {
   return { ...rest, kind: 'arm-serial' };
 }
 
-describe('T-3.2 «Al robot» calcs', () => {
+describe('T1-3.2 «Al robot» calcs', () => {
   it('are electrical-power and autonomy', () => {
     expect(robotCalcs.map((calc) => calc.id)).toEqual(['electrical-power', 'autonomy']);
   });

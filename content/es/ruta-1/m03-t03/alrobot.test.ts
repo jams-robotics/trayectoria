@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { autonomy, currentEfficiency, maxPower, maxPowerPoint, robotCalcs } from './alrobot';
 
-// Golden values of docs/CURRICULUM.md § T-3.3 (Al robot) and docs/ROBOT-SPEC.md §3, «Derivados
+// Golden values of docs/CURRICULUM.md § T1-3.3 (Al robot) and docs/ROBOT-SPEC.md §3, «Derivados
 // del motor», with the reference robot: ω₀ = 628.3 rad/s, P_max = 1.885 W; 3000 rpm and
 // 0.006 N·m in the motor, 100 rpm, 0.108 N·m and 0.335 m/s in the wheel; I = 0.65 A,
 // η_motor = 0.483; P_el = 7.8 W, 1.423 h = 85.4 min, against 46.3 min in stall. `content` takes
@@ -96,7 +96,7 @@ function withoutWheels(): RobotSpec {
   return { ...rest, kind: 'arm-serial' };
 }
 
-describe('T-3.3 «Al robot» calcs', () => {
+describe('T1-3.3 «Al robot» calcs', () => {
   it('are max-power, max-power-point, current-efficiency and autonomy', () => {
     expect(robotCalcs.map((calc) => calc.id)).toEqual([
       'max-power',

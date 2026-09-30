@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { robotCalcs, vMax, vx, vy } from './alrobot';
 
-// Golden values of docs/CURRICULUM.md § T-0.2 (Al robot), with the reference robot:
+// Golden values of docs/CURRICULUM.md § T1-0.2 (Al robot), with the reference robot:
 // v_max = ω_max·r = 20.94 rad/s · 0.032 m = 0.670 m/s, and at θ = 30°
 // vₓ = 0.670·cos 30° = 0.580 m/s and v_y = 0.670·sin 30° = 0.335 m/s. `content` takes robot-spec
 // for its types only (#246), so the reference robot of docs/ROBOT-SPEC.md §3 is written out here.
@@ -43,7 +43,7 @@ function withoutWheels(): RobotSpec {
   return { ...rest, kind: 'arm-serial' };
 }
 
-describe('T-0.2 «Al robot» calcs', () => {
+describe('T1-0.2 «Al robot» calcs', () => {
   it('are v-max, vx and vy', () => {
     expect(robotCalcs.map((calc) => calc.id)).toEqual(['v-max', 'vx', 'vy']);
   });

@@ -4,7 +4,7 @@ import { useT } from '@trayectoria/i18n';
 import { useCallback, useEffect, useState, type JSX } from 'react';
 
 import { createGroup, listGroups, type Group } from '../../lib/aula/groups';
-import type { MatrixTopic } from '../../lib/aula/progressMatrix';
+import type { MatrixRoute } from '../../lib/aula/progressMatrix';
 import { SECONDARY_BUTTON } from '../auth/fields';
 import { CreateGroupForm } from './CreateGroupForm';
 import { GroupDetail } from './GroupDetail';
@@ -12,8 +12,8 @@ import { GroupList } from './GroupList';
 
 export interface AulaIslandProps {
   readonly cta: AuthGateCta;
-  /** Topics of the route, in the order of `ruta.json`, resolved at build time (F3-02b). */
-  readonly topics: readonly MatrixTopic[];
+  /** The routes and their topics, in route order, resolved at build time (F3-02b, #574). */
+  readonly routes: readonly MatrixRoute[];
 }
 
 /** Query-string parameter that turns the list into the detail: `/aula?grupo=<uuid>`. */
@@ -89,12 +89,12 @@ function NotFound({ onBack }: BackButtonProps): JSX.Element {
 interface DetailPaneProps {
   readonly ownerId: string;
   readonly group: Group;
-  readonly topics: readonly MatrixTopic[];
+  readonly routes: readonly MatrixRoute[];
   readonly onChanged: () => Promise<void>;
   readonly onBack: () => void;
 }
 
-function DetailPane({ ownerId, group, topics, onChanged, onBack }: DetailPaneProps): JSX.Element {
+function DetailPane({ ownerId, group, routes, onChanged, onBack }: DetailPaneProps): JSX.Element {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -106,7 +106,7 @@ function DetailPane({ ownerId, group, topics, onChanged, onBack }: DetailPanePro
       <GroupDetail
         ownerId={ownerId}
         group={group}
-        topics={topics}
+        routes={routes}
         onChanged={onChanged}
         onDeleted={onBack}
       />
@@ -154,7 +154,7 @@ function Phasing({ phase }: { readonly phase: Phase }): JSX.Element {
 }
 
 interface PanelProps {
-  readonly topics: readonly MatrixTopic[];
+  readonly routes: readonly MatrixRoute[];
 }
 
 interface ClassroomProps extends PanelProps {
@@ -182,7 +182,7 @@ function Pane(props: PaneProps): JSX.Element {
         <DetailPane
           ownerId={props.ownerId}
           group={selected}
-          topics={props.topics}
+          routes={props.routes}
           onChanged={props.onChanged}
           onBack={onBack}
         />
@@ -191,7 +191,7 @@ function Pane(props: PaneProps): JSX.Element {
   );
 }
 
-function Classroom({ ownerId, topics }: ClassroomProps): JSX.Element {
+function Classroom({ ownerId, routes }: ClassroomProps): JSX.Element {
   const { groups, phase, refresh } = useGroups(ownerId);
   const [creating, setCreating] = useState(false);
   const [groupId, navigate] = useGroupParam();
@@ -220,7 +220,7 @@ function Classroom({ ownerId, topics }: ClassroomProps): JSX.Element {
       />
       <Pane
         ownerId={ownerId}
-        topics={topics}
+        routes={routes}
         selected={selected}
         missing={groupId !== '' && selected === null}
         creating={creating}
@@ -234,7 +234,7 @@ function Classroom({ ownerId, topics }: ClassroomProps): JSX.Element {
 }
 
 /** Role guard: only a `teacher` profile sees the classroom (ticket F3-02a, decision 3). */
-function AulaPanel({ topics }: PanelProps): JSX.Element {
+function AulaPanel({ routes }: PanelProps): JSX.Element {
   const t = useT();
   const { session } = useSession();
   const userId = session?.user.id ?? '';
@@ -272,7 +272,7 @@ function AulaPanel({ topics }: PanelProps): JSX.Element {
       </section>
     );
   }
-  return <Classroom ownerId={userId} topics={topics} />;
+  return <Classroom ownerId={userId} routes={routes} />;
 }
 
 /**
@@ -280,10 +280,10 @@ function AulaPanel({ topics }: PanelProps): JSX.Element {
  * `Account`, the panel is a plain child of `AuthGate` and not a nested island, which would be
  * server-rendered without a session and hydrated with one.
  */
-export function AulaIsland({ cta, topics }: AulaIslandProps): JSX.Element {
+export function AulaIsland({ cta, routes }: AulaIslandProps): JSX.Element {
   return (
     <AuthGate cta={cta}>
-      <AulaPanel topics={topics} />
+      <AulaPanel routes={routes} />
     </AuthGate>
   );
 }

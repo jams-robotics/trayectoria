@@ -3,10 +3,10 @@ import type { RobotSpec } from '@trayectoria/robot-spec';
 import type { RobotCalc } from '../../../index';
 
 /**
- * «Al robot» calcs of T-3.3 (docs/CURRICULUM.md § T-3.3): the motor of «Mi robot» at its maximum
+ * «Al robot» calcs of T1-3.3 (docs/CURRICULUM.md § T1-3.3): the motor of «Mi robot» at its maximum
  * power point. (1) `P_max = τ_s ω₀ / 4`; (2) that point in the motor and in the wheel; (3) the
  * current there and the motor efficiency `η_motor = P_max / (V I)`; (4) the autonomy of two motors
- * at that current, next to the worst case of T-3.2 (stall current). The MDX renders them with
+ * at that current, next to the worst case of T1-3.2 (stall current). The MDX renders them with
  * `<RobotFormula calc="ruta-1/m03-t03/max-power" />`, `…/max-power-point`,
  * `…/current-efficiency` and `…/autonomy`.
  */

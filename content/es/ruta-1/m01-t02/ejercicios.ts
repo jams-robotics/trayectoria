@@ -1,11 +1,11 @@
 import { defineExercise } from '@trayectoria/sim-core';
 import type { SeededRng } from '@trayectoria/sim-core';
 
-// Verifica of T-1.2 (docs/CURRICULUM.md § T-1.2). Each exercise returns only the key of its
+// Verifica of T1-1.2 (docs/CURRICULUM.md § T1-1.2). Each exercise returns only the key of its
 // statement; the text lives in packages/i18n/locales/es/content.json (ARCHITECTURE §3.3).
 //
 // Values are drawn on a grid the statement shows exactly (speeds, accelerations and lengths to the
-// hundredth, times to the tenth), as in T-0.3 (#273).
+// hundredth, times to the tenth), as in T1-0.3 (#273).
 
 const TOPIC_ID = 'ruta-1/m01-t02';
 const RELATIVE_2_PERCENT = { type: 'relative', value: 0.02 } as const;
@@ -129,5 +129,5 @@ const e4 = defineExercise<Record<string, never>>({
   tolerance: RELATIVE_2_PERCENT,
 });
 
-/** The exercises of T-1.2, in the order of Verifica; e1–e3 are required. */
+/** The exercises of T1-1.2, in the order of Verifica; e1–e3 are required. */
 export const exercises = [e1, e2, e3, e4] as const;

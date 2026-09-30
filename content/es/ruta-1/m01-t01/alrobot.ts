@@ -3,7 +3,7 @@ import type { RobotSpec } from '@trayectoria/robot-spec';
 import type { RobotCalc } from '../../../index';
 
 /**
- * «Al robot» calc of T-1.1 (docs/CURRICULUM.md § T-1.1): the time of «Mi robot» on the 4 m track
+ * «Al robot» calc of T1-1.1 (docs/CURRICULUM.md § T1-1.1): the time of «Mi robot» on the 4 m track
  * of the hook at `v_max`, `t = D / v_max`. The MDX renders it with
  * `<RobotFormula calc="ruta-1/m01-t01/track-time" />`.
  */

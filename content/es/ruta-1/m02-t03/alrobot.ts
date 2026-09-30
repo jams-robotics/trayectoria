@@ -4,114 +4,131 @@ import { G_MPS2 } from '@trayectoria/sim-core';
 import type { RobotCalc } from '../../../index';
 
 /**
- * «Al robot» calcs of T-2.3 (docs/CURRICULUM.md § T-2.3): the torque that reaches each wheel of
- * «Mi robot», `τ_rueda = τ_motor · i · η`, the traction it pushes, `F_rueda = τ_rueda / r`, and the
- * friction limit of T-2.2, `f_max = μ_s · β · m · g`. The MDX renders them with
- * `<RobotFormula calc="ruta-1/m02-t03/wheel-torque" />`, `…/wheel-force` and `…/max-friction`.
+ * «Al robot» calcs of T1-2.3 (docs/CURRICULUM.md § T1-2.3): the tangential acceleration of the
+ * wheel rim of «Mi robot», `a_t = α · r` with `α = maxAccel_radps2` (the simulator ramp, #609),
+ * and the top speed on the tight curve of the preset track with only the driven wheels gripping,
+ * `v_max,curva = √(μs · β · g · R)` (#562). The MDX renders them with
+ * `<RobotFormula calc="ruta-1/m02-t03/tangential-accel" />` and `…/max-curve-speed`; `…/v-max-vs-curve`
+ * sets the `v_max` of «Mi robot» next to that limit (V-37).
  */
 
-/** Three significant figures, keeping trailing zeros: 0.216 N·m, 6.75 N, 3.18 N. */
+/** Three significant figures: 1.28 m/s²; speeds keep trailing zeros, 0.670 and 0.728 m/s. */
 const SIGNIFICANT_FIGURES = 3;
 
 /**
- * Wheel rubber with a caster wheel, constants of the text (T-2.2 and § T-2.3): μ_s = 0.6 and
- * β = 0.6 of the weight on the driven wheels.
+ * Reference robot (docs/CURRICULUM.md, header: r = 0.032 m, 6000 rpm, i = 30; § T1-2.3 and #301:
+ * α = 40 rad/s²). `content` takes robot-spec for its types only (#246), so the numbers are here.
  */
-const MU_S = 0.6;
-const DRIVEN_WEIGHT_FRACTION = 0.6;
+const REFERENCE_ALPHA_RADPS2 = 40;
+const REFERENCE_WHEEL_RADIUS_M = 0.032;
 
 /**
- * Reference robot (docs/CURRICULUM.md, header: r = 0.032 m, i = 30, m = 0.9 kg,
- * τ_bloqueo = 0.012 N·m, η = 0.6). `content` takes robot-spec for its types only (#246), so the
- * numbers are here.
+ * Tight curve of the preset track, its static friction and the fraction β of the weight on the
+ * driven wheels, the constants of T1-2.2 and T1-2.4 (docs/CURRICULUM.md § T1-2.3, #609).
  */
-const REFERENCE_MOTOR = { motorTorque_Nm: 0.012, efficiency: 0.6 } as const;
-const REFERENCE_DRIVE = { gearRatio: 30, wheelRadius_m: 0.032, mass_kg: 0.9 } as const;
+const TIGHT_CURVE_RADIUS_M = 0.15;
+const TRACK_MU_S = 0.6;
+const DRIVEN_WEIGHT_FRACTION = 0.6;
 
 interface Drive {
-  readonly motorTorque_Nm: number;
-  readonly efficiency: number;
-  readonly gearRatio: number;
   readonly wheelRadius_m: number;
-  readonly mass_kg: number;
+  readonly alpha_radps2: number;
 }
 
 /**
- * Motor, reduction, wheel and mass of the profile. `motor` is optional in RobotSpec: a profile
- * without it takes the reference stall torque and efficiency (#299); an arm profile has no wheels
- * and takes the whole reference robot (docs/CONTENT-STANDARDS.md §2.5).
+ * Wheel radius and angular acceleration of the profile. `maxAccel_radps2` is optional in
+ * RobotSpec: a profile without it takes the reference α; an arm profile has no wheels and takes
+ * the whole reference robot (docs/CONTENT-STANDARDS.md §2.5).
  */
 function drive(robot: RobotSpec): Drive {
-  const { mobile } = robot;
-  if (mobile === undefined) return { ...REFERENCE_MOTOR, ...REFERENCE_DRIVE };
-  const motor =
-    mobile.motor === undefined
-      ? REFERENCE_MOTOR
-      : { motorTorque_Nm: mobile.motor.stallTorque_Nm, efficiency: mobile.motor.efficiency };
+  if (robot.mobile === undefined) {
+    return { wheelRadius_m: REFERENCE_WHEEL_RADIUS_M, alpha_radps2: REFERENCE_ALPHA_RADPS2 };
+  }
   return {
-    ...motor,
-    gearRatio: mobile.gearRatio,
-    wheelRadius_m: mobile.wheelRadius_m,
-    mass_kg: mobile.mass_kg,
+    wheelRadius_m: robot.mobile.wheelRadius_m,
+    alpha_radps2: robot.mobile.maxAccel_radps2 ?? REFERENCE_ALPHA_RADPS2,
   };
 }
 
-/** `τ_rueda = τ_motor · i · η`. */
-function wheelTorqueOf({ motorTorque_Nm, gearRatio, efficiency }: Drive): number {
-  return motorTorque_Nm * gearRatio * efficiency;
+function format(value: number, significantFigures = SIGNIFICANT_FIGURES): string {
+  return String(Number(value.toPrecision(significantFigures)));
 }
 
-function format(value: number): string {
-  return value.toPrecision(SIGNIFICANT_FIGURES);
+/** Speeds keep their trailing zeros, as the spec writes 0.670 m/s. */
+function formatSpeed(speed_mps: number): string {
+  return speed_mps.toPrecision(SIGNIFICANT_FIGURES);
 }
 
-const NEWTON_METRE = String.raw`\ \text{N}\cdot\text{m}`;
+/** `v_max,curva = √(μs · β · g · R)` on the tight curve of the preset track. */
+function maxCurveSpeedOf(): number {
+  return Math.sqrt(TRACK_MU_S * DRIVEN_WEIGHT_FRACTION * G_MPS2 * TIGHT_CURVE_RADIUS_M);
+}
 
-/** `τ_rueda = τ_motor · i · η`: the stall torque of the motor, through the reduction. */
-export const wheelTorque: RobotCalc = {
-  id: 'wheel-torque',
+/** `a_t = α · r`. */
+export const tangentialAccel: RobotCalc = {
+  id: 'tangential-accel',
   compute(robot) {
-    const current = drive(robot);
-    const { motorTorque_Nm, gearRatio, efficiency } = current;
+    const { alpha_radps2, wheelRadius_m } = drive(robot);
     return {
-      latex: String.raw`\tau_{rueda} = \tau_{motor}\,i\,\eta`,
+      latex: String.raw`a_t = \alpha \cdot r`,
       substituted:
-        String.raw`\tau_{rueda} = ${motorTorque_Nm}${NEWTON_METRE} \cdot ${gearRatio} \cdot ${efficiency}` +
-        String.raw` = ${format(wheelTorqueOf(current))}${NEWTON_METRE}`,
+        String.raw`a_t = ${format(alpha_radps2)}\ \text{rad/s}^2 \cdot ${wheelRadius_m}\ \text{m}` +
+        String.raw` = ${format(alpha_radps2 * wheelRadius_m)}\ \text{m/s}^2`,
     };
   },
 };
 
-/** `F_rueda = τ_rueda / r`: the traction of one wheel against the ground. */
-export const wheelForce: RobotCalc = {
-  id: 'wheel-force',
-  compute(robot) {
-    const current = drive(robot);
-    const wheelTorque_Nm = wheelTorqueOf(current);
-    const { wheelRadius_m } = current;
+/**
+ * `v_max,curva = √(μs · β · g · R)` on the tight curve of the preset track, with only the driven
+ * wheels gripping (a caster wheel gives no lateral force); no profile field.
+ */
+export const maxCurveSpeed: RobotCalc = {
+  id: 'max-curve-speed',
+  compute() {
     return {
-      latex: String.raw`F_{rueda} = \frac{\tau_{rueda}}{r}`,
+      latex: String.raw`v_{\max,\text{curva}} = \sqrt{\mu_s \, \beta \, g \, R}`,
       substituted:
-        String.raw`F_{rueda} = \frac{${format(wheelTorque_Nm)}${NEWTON_METRE}}{${wheelRadius_m}\ \text{m}}` +
-        String.raw` = ${format(wheelTorque_Nm / wheelRadius_m)}\ \text{N}`,
+        String.raw`v_{\max,\text{curva}} = \sqrt{${TRACK_MU_S} \cdot ${DRIVEN_WEIGHT_FRACTION} \cdot ${G_MPS2}\ \text{m/s}^2 \cdot ${TIGHT_CURVE_RADIUS_M}\ \text{m}}` +
+        String.raw` = ${formatSpeed(maxCurveSpeedOf())}\ \text{m/s}`,
     };
   },
 };
 
-/** `f_max = μ_s · β · m · g`: the most traction the ground gives before the wheels slip. */
-export const maxFriction: RobotCalc = {
-  id: 'max-friction',
+/** Four significant figures for ω_max (20.94 rad/s), as in T1-1.4. */
+const ROTATION_SIGNIFICANT_FIGURES = 4;
+
+const RPM_TO_RADPS = (2 * Math.PI) / 60;
+
+/** Motor and reduction of the reference robot (docs/CURRICULUM.md, header: 6000 rpm, i = 30). */
+const REFERENCE_MAX_MOTOR_SPEED_RPM = 6000;
+const REFERENCE_GEAR_RATIO = 30;
+
+/**
+ * `v_max = ω_max · r` of the profile, with `ω_max = n_motor / i · 2π/60` as in T1-1.4, next to
+ * the limit of the tight curve, so the comparison reads on the same page (V-37). An arm profile
+ * takes the reference robot.
+ */
+export const vMaxVsCurve: RobotCalc = {
+  id: 'v-max-vs-curve',
   compute(robot) {
-    const { mass_kg } = drive(robot);
-    const maxFriction_N = MU_S * DRIVEN_WEIGHT_FRACTION * mass_kg * G_MPS2;
+    const { maxMotorSpeed_rpm, gearRatio, wheelRadius_m } = robot.mobile ?? {
+      maxMotorSpeed_rpm: REFERENCE_MAX_MOTOR_SPEED_RPM,
+      gearRatio: REFERENCE_GEAR_RATIO,
+      wheelRadius_m: REFERENCE_WHEEL_RADIUS_M,
+    };
+    const omegaMax_radps = (maxMotorSpeed_rpm / gearRatio) * RPM_TO_RADPS;
+    const vMax = formatSpeed(omegaMax_radps * wheelRadius_m);
+    const maxCurve = formatSpeed(maxCurveSpeedOf());
+    const relation =
+      Number(vMax) < Number(maxCurve) ? '<' : Number(vMax) > Number(maxCurve) ? '>' : '=';
     return {
-      latex: String.raw`f_{max} = \mu_s\,\beta\,m\,g`,
+      latex: String.raw`v_{\max} = \omega_{\max} \cdot r`,
       substituted:
-        String.raw`f_{max} = ${MU_S} \cdot ${DRIVEN_WEIGHT_FRACTION} \cdot ${mass_kg}\ \text{kg}` +
-        String.raw` \cdot ${G_MPS2}\ \text{m/s}^2 = ${format(maxFriction_N)}\ \text{N}`,
+        String.raw`v_{\max} = ${format(omegaMax_radps, ROTATION_SIGNIFICANT_FIGURES)}\ \text{rad/s} \cdot ${wheelRadius_m}\ \text{m}` +
+        String.raw` = ${vMax}\ \text{m/s} ${relation} v_{\max,\text{curva}} = ${maxCurve}\ \text{m/s}`,
     };
   },
 };
 
 /** The calcs of the topic; `content/index.ts` registers them. */
-export const robotCalcs: readonly RobotCalc[] = [wheelTorque, wheelForce, maxFriction];
+export const robotCalcs: readonly RobotCalc[] = [tangentialAccel, maxCurveSpeed, vMaxVsCurve];

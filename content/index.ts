@@ -1,61 +1,59 @@
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import type { Exercise } from '@trayectoria/sim-core';
 
-import { robotCalcs as m00t01RobotCalcs } from './es/ruta-1/m00-t01/alrobot';
-import { exercises as m00t01Exercises } from './es/ruta-1/m00-t01/ejercicios';
-import { robotCalcs as m00t02RobotCalcs } from './es/ruta-1/m00-t02/alrobot';
-import { exercises as m00t02Exercises } from './es/ruta-1/m00-t02/ejercicios';
-import { exercises as m00t03Exercises } from './es/ruta-1/m00-t03/ejercicios';
-import { robotCalcs as m01t01RobotCalcs } from './es/ruta-1/m01-t01/alrobot';
-import { exercises as m01t01Exercises } from './es/ruta-1/m01-t01/ejercicios';
-import { robotCalcs as m01t02RobotCalcs } from './es/ruta-1/m01-t02/alrobot';
-import { exercises as m01t02Exercises } from './es/ruta-1/m01-t02/ejercicios';
-import { robotCalcs as m01t03RobotCalcs } from './es/ruta-1/m01-t03/alrobot';
-import { exercises as m01t03Exercises } from './es/ruta-1/m01-t03/ejercicios';
-import { robotCalcs as m01t04RobotCalcs } from './es/ruta-1/m01-t04/alrobot';
-import { exercises as m01t04Exercises } from './es/ruta-1/m01-t04/ejercicios';
-import { robotCalcs as m02t01RobotCalcs } from './es/ruta-1/m02-t01/alrobot';
-import { exercises as m02t01Exercises } from './es/ruta-1/m02-t01/ejercicios';
-import { robotCalcs as m02t02RobotCalcs } from './es/ruta-1/m02-t02/alrobot';
-import { exercises as m02t02Exercises } from './es/ruta-1/m02-t02/ejercicios';
-import { robotCalcs as m02t03RobotCalcs } from './es/ruta-1/m02-t03/alrobot';
-import { exercises as m02t03Exercises } from './es/ruta-1/m02-t03/ejercicios';
-import { robotCalcs as m03t01RobotCalcs } from './es/ruta-1/m03-t01/alrobot';
-import { exercises as m03t01Exercises } from './es/ruta-1/m03-t01/ejercicios';
-import { robotCalcs as m03t02RobotCalcs } from './es/ruta-1/m03-t02/alrobot';
-import { exercises as m03t02Exercises } from './es/ruta-1/m03-t02/ejercicios';
-import { robotCalcs as m03t03RobotCalcs } from './es/ruta-1/m03-t03/alrobot';
-import { exercises as m03t03Exercises } from './es/ruta-1/m03-t03/ejercicios';
-import { robotCalcs as m04t01RobotCalcs } from './es/ruta-1/m04-t01/alrobot';
-import { exercises as m04t01Exercises } from './es/ruta-1/m04-t01/ejercicios';
-import { robotCalcs as m04t02RobotCalcs } from './es/ruta-1/m04-t02/alrobot';
-import { exercises as m04t02Exercises } from './es/ruta-1/m04-t02/ejercicios';
-import { robotCalcs as m04t03RobotCalcs } from './es/ruta-1/m04-t03/alrobot';
-import { exercises as m04t03Exercises } from './es/ruta-1/m04-t03/ejercicios';
-import { robotCalcs as m04t04RobotCalcs } from './es/ruta-1/m04-t04/alrobot';
-import { exercises as m04t04Exercises } from './es/ruta-1/m04-t04/ejercicios';
-import { robotCalcs as m04t05RobotCalcs } from './es/ruta-1/m04-t05/alrobot';
-import { exercises as m04t05Exercises } from './es/ruta-1/m04-t05/ejercicios';
-import { robotCalcs as m05t01RobotCalcs } from './es/ruta-1/m05-t01/alrobot';
-import { exercises as m05t01Exercises } from './es/ruta-1/m05-t01/ejercicios';
-import { robotCalcs as m05t03RobotCalcs } from './es/ruta-1/m05-t03/alrobot';
-import { exercises as m05t03Exercises } from './es/ruta-1/m05-t03/ejercicios';
-import { robotCalcs as m05t02RobotCalcs } from './es/ruta-1/m05-t02/alrobot';
-import { exercises as m05t02Exercises } from './es/ruta-1/m05-t02/ejercicios';
-import { robotCalcs as m05t04RobotCalcs } from './es/ruta-1/m05-t04/alrobot';
-import { exercises as m05t04Exercises } from './es/ruta-1/m05-t04/ejercicios';
-import { robotCalcs as m05t05RobotCalcs } from './es/ruta-1/m05-t05/alrobot';
-import { exercises as m05t05Exercises } from './es/ruta-1/m05-t05/ejercicios';
-import { robotCalcs as m06t01RobotCalcs } from './es/ruta-1/m06-t01/alrobot';
-import { exercises as m06t01Exercises } from './es/ruta-1/m06-t01/ejercicios';
-import { robotCalcs as m06t03RobotCalcs } from './es/ruta-1/m06-t03/alrobot';
-import { exercises as m06t03Exercises } from './es/ruta-1/m06-t03/ejercicios';
-import { robotCalcs as m06t04RobotCalcs } from './es/ruta-1/m06-t04/alrobot';
-import { exercises as m06t04Exercises } from './es/ruta-1/m06-t04/ejercicios';
-import { robotCalcs as m06t02RobotCalcs } from './es/ruta-1/m06-t02/alrobot';
-import { exercises as m06t02Exercises } from './es/ruta-1/m06-t02/ejercicios';
-import { robotCalcs as m06t05RobotCalcs } from './es/ruta-1/m06-t05/alrobot';
-import { exercises as m06t05Exercises } from './es/ruta-1/m06-t05/ejercicios';
+import { robotCalcs as ruta1M00T01RobotCalcs } from './es/ruta-1/m00-t01/alrobot';
+import { exercises as ruta1M00T01Exercises } from './es/ruta-1/m00-t01/ejercicios';
+import { robotCalcs as ruta1M00T02RobotCalcs } from './es/ruta-1/m00-t02/alrobot';
+import { exercises as ruta1M00T02Exercises } from './es/ruta-1/m00-t02/ejercicios';
+import { exercises as ruta1M00T03Exercises } from './es/ruta-1/m00-t03/ejercicios';
+import { robotCalcs as ruta1M01T01RobotCalcs } from './es/ruta-1/m01-t01/alrobot';
+import { exercises as ruta1M01T01Exercises } from './es/ruta-1/m01-t01/ejercicios';
+import { robotCalcs as ruta1M01T02RobotCalcs } from './es/ruta-1/m01-t02/alrobot';
+import { exercises as ruta1M01T02Exercises } from './es/ruta-1/m01-t02/ejercicios';
+import { robotCalcs as ruta1M01T03RobotCalcs } from './es/ruta-1/m01-t03/alrobot';
+import { exercises as ruta1M01T03Exercises } from './es/ruta-1/m01-t03/ejercicios';
+import { robotCalcs as ruta1M01T04RobotCalcs } from './es/ruta-1/m01-t04/alrobot';
+import { exercises as ruta1M01T04Exercises } from './es/ruta-1/m01-t04/ejercicios';
+import { robotCalcs as ruta1M02T01RobotCalcs } from './es/ruta-1/m02-t01/alrobot';
+import { exercises as ruta1M02T01Exercises } from './es/ruta-1/m02-t01/ejercicios';
+import { robotCalcs as ruta1M02T02RobotCalcs } from './es/ruta-1/m02-t02/alrobot';
+import { exercises as ruta1M02T02Exercises } from './es/ruta-1/m02-t02/ejercicios';
+import { robotCalcs as ruta1M02T03RobotCalcs } from './es/ruta-1/m02-t03/alrobot';
+import { exercises as ruta1M02T03Exercises } from './es/ruta-1/m02-t03/ejercicios';
+import { robotCalcs as ruta1M02T04RobotCalcs } from './es/ruta-1/m02-t04/alrobot';
+import { exercises as ruta1M02T04Exercises } from './es/ruta-1/m02-t04/ejercicios';
+import { robotCalcs as ruta1M03T01RobotCalcs } from './es/ruta-1/m03-t01/alrobot';
+import { exercises as ruta1M03T01Exercises } from './es/ruta-1/m03-t01/ejercicios';
+import { robotCalcs as ruta1M03T02RobotCalcs } from './es/ruta-1/m03-t02/alrobot';
+import { exercises as ruta1M03T02Exercises } from './es/ruta-1/m03-t02/ejercicios';
+import { robotCalcs as ruta1M03T03RobotCalcs } from './es/ruta-1/m03-t03/alrobot';
+import { exercises as ruta1M03T03Exercises } from './es/ruta-1/m03-t03/ejercicios';
+import { robotCalcs as ruta2M00T01RobotCalcs } from './es/ruta-2/m00-t01/alrobot';
+import { exercises as ruta2M00T01Exercises } from './es/ruta-2/m00-t01/ejercicios';
+import { robotCalcs as ruta2M00T02RobotCalcs } from './es/ruta-2/m00-t02/alrobot';
+import { exercises as ruta2M00T02Exercises } from './es/ruta-2/m00-t02/ejercicios';
+import { robotCalcs as ruta2M01T01RobotCalcs } from './es/ruta-2/m01-t01/alrobot';
+import { exercises as ruta2M01T01Exercises } from './es/ruta-2/m01-t01/ejercicios';
+import { robotCalcs as ruta2M01T02RobotCalcs } from './es/ruta-2/m01-t02/alrobot';
+import { exercises as ruta2M01T02Exercises } from './es/ruta-2/m01-t02/ejercicios';
+import { robotCalcs as ruta2M01T03RobotCalcs } from './es/ruta-2/m01-t03/alrobot';
+import { exercises as ruta2M01T03Exercises } from './es/ruta-2/m01-t03/ejercicios';
+import { robotCalcs as ruta2M01T04RobotCalcs } from './es/ruta-2/m01-t04/alrobot';
+import { exercises as ruta2M01T04Exercises } from './es/ruta-2/m01-t04/ejercicios';
+import { robotCalcs as ruta2M02T01RobotCalcs } from './es/ruta-2/m02-t01/alrobot';
+import { exercises as ruta2M02T01Exercises } from './es/ruta-2/m02-t01/ejercicios';
+import { robotCalcs as ruta2M02T02RobotCalcs } from './es/ruta-2/m02-t02/alrobot';
+import { exercises as ruta2M02T02Exercises } from './es/ruta-2/m02-t02/ejercicios';
+import { robotCalcs as ruta2M02T03RobotCalcs } from './es/ruta-2/m02-t03/alrobot';
+import { exercises as ruta2M02T03Exercises } from './es/ruta-2/m02-t03/ejercicios';
+import { robotCalcs as ruta2M02T04RobotCalcs } from './es/ruta-2/m02-t04/alrobot';
+import { exercises as ruta2M02T04Exercises } from './es/ruta-2/m02-t04/ejercicios';
+import { robotCalcs as ruta2M02T05RobotCalcs } from './es/ruta-2/m02-t05/alrobot';
+import { exercises as ruta2M02T05Exercises } from './es/ruta-2/m02-t05/ejercicios';
+import { robotCalcs as caidaLibreRobotCalcs } from './es/reserva/caida-libre/alrobot';
+import { exercises as caidaLibreExercises } from './es/reserva/caida-libre/ejercicios';
+import { robotCalcs as tiroParabolicoRobotCalcs } from './es/reserva/tiro-parabolico/alrobot';
+import { exercises as tiroParabolicoExercises } from './es/reserva/tiro-parabolico/ejercicios';
 
 /**
  * A topic exercise with its value type erased, so exercises of different topics share one map.
@@ -133,69 +131,68 @@ function registerById<T extends { readonly id: string }>(
 
 /**
  * Every topic exercise, keyed `<topicId>/<exerciseId>`. Each topic adds one entry here with the
- * exercises of its `content/es/<ruta>/<mNN-tNN>/ejercicios.ts`.
+ * exercises of its `content/es/<ruta>/<mNN-tNN>/ejercicios.ts`, or `content/es/reserva/<slug>/` for
+ * a topic in the reserve (docs/ARCHITECTURE.md §3.3).
  */
 export const EXERCISES: ReadonlyMap<string, TopicExercise> = registerTopics({
-  'ruta-1/m00-t01': m00t01Exercises,
-  'ruta-1/m00-t02': m00t02Exercises,
-  'ruta-1/m00-t03': m00t03Exercises,
-  'ruta-1/m01-t01': m01t01Exercises,
-  'ruta-1/m01-t02': m01t02Exercises,
-  'ruta-1/m01-t03': m01t03Exercises,
-  'ruta-1/m01-t04': m01t04Exercises,
-  'ruta-1/m02-t01': m02t01Exercises,
-  'ruta-1/m02-t02': m02t02Exercises,
-  'ruta-1/m02-t03': m02t03Exercises,
-  'ruta-1/m03-t01': m03t01Exercises,
-  'ruta-1/m03-t02': m03t02Exercises,
-  'ruta-1/m03-t03': m03t03Exercises,
-  'ruta-1/m04-t01': m04t01Exercises,
-  'ruta-1/m04-t02': m04t02Exercises,
-  'ruta-1/m04-t03': m04t03Exercises,
-  'ruta-1/m04-t04': m04t04Exercises,
-  'ruta-1/m04-t05': m04t05Exercises,
-  'ruta-1/m05-t01': m05t01Exercises,
-  'ruta-1/m05-t03': m05t03Exercises,
-  'ruta-1/m05-t02': m05t02Exercises,
-  'ruta-1/m05-t04': m05t04Exercises,
-  'ruta-1/m05-t05': m05t05Exercises,
-  'ruta-1/m06-t01': m06t01Exercises,
-  'ruta-1/m06-t03': m06t03Exercises,
-  'ruta-1/m06-t04': m06t04Exercises,
-  'ruta-1/m06-t02': m06t02Exercises,
-  'ruta-1/m06-t05': m06t05Exercises,
+  'ruta-1/m00-t01': ruta1M00T01Exercises,
+  'ruta-1/m00-t02': ruta1M00T02Exercises,
+  'ruta-1/m00-t03': ruta1M00T03Exercises,
+  'ruta-1/m01-t01': ruta1M01T01Exercises,
+  'ruta-1/m01-t02': ruta1M01T02Exercises,
+  'ruta-1/m01-t03': ruta1M01T03Exercises,
+  'ruta-1/m01-t04': ruta1M01T04Exercises,
+  'ruta-1/m02-t01': ruta1M02T01Exercises,
+  'ruta-1/m02-t02': ruta1M02T02Exercises,
+  'ruta-1/m02-t03': ruta1M02T03Exercises,
+  'ruta-1/m02-t04': ruta1M02T04Exercises,
+  'ruta-1/m03-t01': ruta1M03T01Exercises,
+  'ruta-1/m03-t02': ruta1M03T02Exercises,
+  'ruta-1/m03-t03': ruta1M03T03Exercises,
+  'ruta-2/m00-t01': ruta2M00T01Exercises,
+  'ruta-2/m00-t02': ruta2M00T02Exercises,
+  'ruta-2/m01-t01': ruta2M01T01Exercises,
+  'ruta-2/m01-t02': ruta2M01T02Exercises,
+  'ruta-2/m01-t03': ruta2M01T03Exercises,
+  'ruta-2/m01-t04': ruta2M01T04Exercises,
+  'ruta-2/m02-t01': ruta2M02T01Exercises,
+  'ruta-2/m02-t02': ruta2M02T02Exercises,
+  'ruta-2/m02-t03': ruta2M02T03Exercises,
+  'ruta-2/m02-t04': ruta2M02T04Exercises,
+  'ruta-2/m02-t05': ruta2M02T05Exercises,
+  'reserva/caida-libre': caidaLibreExercises,
+  'reserva/tiro-parabolico': tiroParabolicoExercises,
 });
 
 /**
  * Every «Al robot» calc, keyed `<topicId>/<calcId>`. Each topic adds one entry here with the
- * calcs of its `content/es/<ruta>/<mNN-tNN>/alrobot.ts`.
+ * calcs of its `content/es/<ruta>/<mNN-tNN>/alrobot.ts`, or of the reserve, like `EXERCISES`.
  */
 export const ROBOT_CALCS: ReadonlyMap<string, RobotCalc> = registerRobotCalcs({
-  'ruta-1/m00-t01': m00t01RobotCalcs,
-  'ruta-1/m00-t02': m00t02RobotCalcs,
-  'ruta-1/m01-t01': m01t01RobotCalcs,
-  'ruta-1/m01-t02': m01t02RobotCalcs,
-  'ruta-1/m01-t03': m01t03RobotCalcs,
-  'ruta-1/m01-t04': m01t04RobotCalcs,
-  'ruta-1/m02-t01': m02t01RobotCalcs,
-  'ruta-1/m02-t02': m02t02RobotCalcs,
-  'ruta-1/m02-t03': m02t03RobotCalcs,
-  'ruta-1/m03-t01': m03t01RobotCalcs,
-  'ruta-1/m03-t02': m03t02RobotCalcs,
-  'ruta-1/m03-t03': m03t03RobotCalcs,
-  'ruta-1/m04-t01': m04t01RobotCalcs,
-  'ruta-1/m04-t02': m04t02RobotCalcs,
-  'ruta-1/m04-t03': m04t03RobotCalcs,
-  'ruta-1/m04-t04': m04t04RobotCalcs,
-  'ruta-1/m04-t05': m04t05RobotCalcs,
-  'ruta-1/m05-t01': m05t01RobotCalcs,
-  'ruta-1/m05-t03': m05t03RobotCalcs,
-  'ruta-1/m05-t02': m05t02RobotCalcs,
-  'ruta-1/m05-t04': m05t04RobotCalcs,
-  'ruta-1/m05-t05': m05t05RobotCalcs,
-  'ruta-1/m06-t01': m06t01RobotCalcs,
-  'ruta-1/m06-t03': m06t03RobotCalcs,
-  'ruta-1/m06-t04': m06t04RobotCalcs,
-  'ruta-1/m06-t02': m06t02RobotCalcs,
-  'ruta-1/m06-t05': m06t05RobotCalcs,
+  'ruta-1/m00-t01': ruta1M00T01RobotCalcs,
+  'ruta-1/m00-t02': ruta1M00T02RobotCalcs,
+  'ruta-1/m01-t01': ruta1M01T01RobotCalcs,
+  'ruta-1/m01-t02': ruta1M01T02RobotCalcs,
+  'ruta-1/m01-t03': ruta1M01T03RobotCalcs,
+  'ruta-1/m01-t04': ruta1M01T04RobotCalcs,
+  'ruta-1/m02-t01': ruta1M02T01RobotCalcs,
+  'ruta-1/m02-t02': ruta1M02T02RobotCalcs,
+  'ruta-1/m02-t03': ruta1M02T03RobotCalcs,
+  'ruta-1/m02-t04': ruta1M02T04RobotCalcs,
+  'ruta-1/m03-t01': ruta1M03T01RobotCalcs,
+  'ruta-1/m03-t02': ruta1M03T02RobotCalcs,
+  'ruta-1/m03-t03': ruta1M03T03RobotCalcs,
+  'ruta-2/m00-t01': ruta2M00T01RobotCalcs,
+  'ruta-2/m00-t02': ruta2M00T02RobotCalcs,
+  'ruta-2/m01-t01': ruta2M01T01RobotCalcs,
+  'ruta-2/m01-t02': ruta2M01T02RobotCalcs,
+  'ruta-2/m01-t03': ruta2M01T03RobotCalcs,
+  'ruta-2/m01-t04': ruta2M01T04RobotCalcs,
+  'ruta-2/m02-t01': ruta2M02T01RobotCalcs,
+  'ruta-2/m02-t02': ruta2M02T02RobotCalcs,
+  'ruta-2/m02-t03': ruta2M02T03RobotCalcs,
+  'ruta-2/m02-t04': ruta2M02T04RobotCalcs,
+  'ruta-2/m02-t05': ruta2M02T05RobotCalcs,
+  'reserva/caida-libre': caidaLibreRobotCalcs,
+  'reserva/tiro-parabolico': tiroParabolicoRobotCalcs,
 });

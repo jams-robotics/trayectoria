@@ -15,7 +15,7 @@ import {
   magnitude,
 } from './ejercicios';
 
-// Golden values of docs/CURRICULUM.md § T-0.2 (Verifica), each within its tolerance
+// Golden values of docs/CURRICULUM.md § T1-0.2 (Verifica), each within its tolerance
 // (docs/CONTENT-STANDARDS.md §5: relative 2 % by default, absolute 0.5° for angles).
 const SEEDS = Array.from({ length: 200 }, (_, seed) => seed);
 const RELATIVE_2_PERCENT: Tolerance = { type: 'relative', value: 0.02 };
@@ -44,7 +44,7 @@ function toleranceAt(tolerance: Tolerance | readonly Tolerance[], index: number)
   return entry;
 }
 
-describe('T-0.2 golden values', () => {
+describe('T1-0.2 golden values', () => {
   it('e1: v = 0.5 m/s, θ = 30° → vₓ = 0.433, v_y = 0.25 m/s', () => {
     const [vx_mps, vy_mps] = components_mps(0.5, 30);
     expect(within(vx_mps, 0.433, toleranceAt(e1.tolerance, 0))).toBe(true);
@@ -74,7 +74,7 @@ describe('T-0.2 golden values', () => {
   });
 });
 
-describe('T-0.2 vector helpers', () => {
+describe('T1-0.2 vector helpers', () => {
   it('heading_deg uses atan2: the quadrant follows the signs of both components', () => {
     expect(heading_deg(1, 1)).toBeCloseTo(45, 10);
     expect(heading_deg(-1, 1)).toBeCloseTo(135, 10);
@@ -90,7 +90,7 @@ describe('T-0.2 vector helpers', () => {
   });
 });
 
-describe('T-0.2 exercises', () => {
+describe('T1-0.2 exercises', () => {
   it('are e1…e4, in order', () => {
     expect(exercises.map((exercise) => exercise.id)).toEqual(['e1', 'e2', 'e3', 'e4']);
   });
