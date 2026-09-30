@@ -4,11 +4,12 @@ import type { RobotCalc } from '../../../index';
 
 /**
  * «Al robot» calcs of T1-1.3 (docs/CURRICULUM.md § T1-1.3): `ω_rueda` of «Mi robot» and its
- * period `T = 2π/ω_rueda`. The MDX renders them with
- * `<RobotFormula calc="ruta-1/m01-t03/omega-wheel" />` and `…/period`.
+ * period `T = 2π/ω_rueda`. The no-load wheel speed `n_rueda` is a datum of the profile (#559,
+ * #574): the calc obtains it as `n₀/i` without showing the reduction, which T1-1.4 teaches. The
+ * MDX renders them with `<RobotFormula calc="ruta-1/m01-t03/omega-wheel" />` and `…/period`.
  */
 
-/** Four significant figures: 20.94 rad/s and 0.3 s in the golden values. */
+/** Four significant figures: 200 rpm, 20.94 rad/s and 0.3 s in the golden values. */
 const SIGNIFICANT_FIGURES = 4;
 
 const RPM_TO_RADPS = (2 * Math.PI) / 60;
@@ -24,29 +25,31 @@ function format(value: number): string {
 }
 
 /**
- * Motor speed and gear ratio of the profile, both required in the mobile spec. An arm profile
- * has no wheels, so it falls back to the reference robot (docs/CONTENT-STANDARDS.md §2.5).
+ * No-load wheel speed of the profile, `n_rueda = n₀ / i`, from two fields required in the mobile
+ * spec. An arm profile has no wheels, so it falls back to the reference robot
+ * (docs/CONTENT-STANDARDS.md §2.5).
  */
-function motor(robot: RobotSpec): { speed_rpm: number; gearRatio: number } {
-  if (robot.mobile === undefined) return REFERENCE_MOTOR;
-  return { speed_rpm: robot.mobile.maxMotorSpeed_rpm, gearRatio: robot.mobile.gearRatio };
+function wheelSpeed_rpm(robot: RobotSpec): number {
+  const { speed_rpm, gearRatio } =
+    robot.mobile === undefined
+      ? REFERENCE_MOTOR
+      : { speed_rpm: robot.mobile.maxMotorSpeed_rpm, gearRatio: robot.mobile.gearRatio };
+  return speed_rpm / gearRatio;
 }
 
-/** `ω_rueda = n_motor / i · 2π/60`. */
+/** `ω_rueda = n_rueda · 2π/60`. */
 function omegaWheel_radps(robot: RobotSpec): number {
-  const { speed_rpm, gearRatio } = motor(robot);
-  return (speed_rpm / gearRatio) * RPM_TO_RADPS;
+  return wheelSpeed_rpm(robot) * RPM_TO_RADPS;
 }
 
-/** `ω_rueda = n_motor / i · 2π/60`. */
+/** `ω_rueda = n_rueda · 2π/60`, with `n_rueda` shown as a datum. */
 export const omegaWheel: RobotCalc = {
   id: 'omega-wheel',
   compute(robot) {
-    const { speed_rpm, gearRatio } = motor(robot);
     return {
-      latex: String.raw`\omega_{\text{rueda}} = \dfrac{n_{\text{motor}}}{i} \cdot \dfrac{2\pi}{60}`,
+      latex: String.raw`\omega_{rueda} = n_{rueda}\,\dfrac{2\pi}{60}`,
       substituted:
-        String.raw`\omega_{\text{rueda}} = \dfrac{${speed_rpm}}{${gearRatio}} \cdot \dfrac{2\pi}{60}` +
+        String.raw`\omega_{rueda} = ${format(wheelSpeed_rpm(robot))}\ \text{rpm} \cdot \dfrac{2\pi}{60}` +
         String.raw` = ${format(omegaWheel_radps(robot))}\ \text{rad/s}`,
     };
   },
@@ -58,7 +61,7 @@ export const period: RobotCalc = {
   compute(robot) {
     const omega_radps = omegaWheel_radps(robot);
     return {
-      latex: String.raw`T = \dfrac{2\pi}{\omega_{\text{rueda}}}`,
+      latex: String.raw`T = \dfrac{2\pi}{\omega_{rueda}}`,
       substituted:
         String.raw`T = \dfrac{2\pi}{${format(omega_radps)}\ \text{rad/s}}` +
         String.raw` = ${format((2 * Math.PI) / omega_radps)}\ \text{s}`,

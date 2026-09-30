@@ -4,7 +4,8 @@ import { describe, expect, it } from 'vitest';
 import { netForce, normal, robotCalcs } from './alrobot';
 
 // Golden values of docs/CURRICULUM.md § T1-2.1 (Al robot), with the reference robot:
-// a = 40·0.032 = 1.28 m/s², F = 0.9·1.28 = 1.152 N, N = 0.9·9.81 = 8.83 N.
+// the ramp a = 1.28 m/s² of T1-1.2 (a datum there; α·r stays inside the calc, #559),
+// F = 0.9·1.28 = 1.152 N, N = 0.9·9.81 = 8.83 N.
 // `content` takes robot-spec for its types only (#246), so the reference robot of
 // docs/ROBOT-SPEC.md §3 is written out here.
 const REFERENCE: RobotSpec = {
@@ -68,6 +69,13 @@ describe('T1-2.1 «Al robot» calcs', () => {
     expect(substituted).toBe(
       String.raw`F = 0.9\ \text{kg} \cdot 1.280\ \text{m/s}^2 = 1.152\ \text{N}`,
     );
+  });
+
+  it('net-force takes the ramp a as a datum: no α and no a = α·r (#559)', () => {
+    for (const robot of [REFERENCE, withBody(1.5, 0.05, 20)]) {
+      const { latex, substituted } = netForce.compute(robot);
+      expect(`${latex} ${substituted}`).not.toMatch(/alpha|rad/);
+    }
   });
 
   it('normal: 0.9·9.81 → 8.83 N with the reference robot', () => {

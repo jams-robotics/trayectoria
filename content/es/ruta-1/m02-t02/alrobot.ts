@@ -3,49 +3,27 @@ import type { RobotSpec } from '@trayectoria/robot-spec';
 import type { RobotCalc } from '../../../index';
 
 /**
- * «Al robot» calcs of T1-2.2 (docs/CURRICULUM.md § T1-2.2, #609): the acceleration the motor of
- * «Mi robot» can ask for at full voltage from rest, with its stall torque through the reduction on
- * both wheels, `a_motor = 2 τ_s i η_caja / (r m)`, to compare with the traction limit
- * `a_max = μs·g·β`; and the ramp the simulator applies to the wheels, `a = α · r`, to check it
- * stays below that limit. `a_max` uses constants of the text (μs = 0.6, β = 0.6), so the MDX writes
- * it as a static `Formula`; the profile calcs render with
- * `<RobotFormula calc="ruta-1/m02-t02/motor-acceleration" />` and `…/acceleration`.
+ * «Al robot» calc of T1-2.2 (docs/CURRICULUM.md § T1-2.2, #609, #559): the acceleration the motor
+ * of «Mi robot» can ask for at full voltage from rest, with the stall force of both wheels,
+ * `a_motor = 2 F_rueda / m`, to compare with the traction limit `a_max = μs·g·β`. `F_rueda` is a
+ * datum of the profile: the calc obtains it as `τ_s i η_caja / r` without showing the torque,
+ * which T1-2.4 teaches. `a_max` uses constants of the text (μs = 0.6, β = 0.6), so the MDX writes
+ * it as a static `Formula`; the simulator ramp is the one of T1-1.2, cited in the text (#565). The
+ * MDX renders the calc with `<RobotFormula calc="ruta-1/m02-t02/motor-acceleration" />`.
  */
 
-/** Three significant figures, keeping trailing zeros: 15.0 m/s², 1.28 m/s², 2.00 m/s². */
+/** Three significant figures, keeping trailing zeros: 15.0 m/s². */
 const SIGNIFICANT_FIGURES = 3;
 
-/** Four significant figures for α, as in T1-1.2. */
-const ALPHA_SIGNIFICANT_FIGURES = 4;
+/** Four significant figures for the datum `F_rueda` (6.75 N), trailing zeros dropped. */
+const FORCE_SIGNIFICANT_FIGURES = 4;
 
 /**
  * Reference robot (docs/CURRICULUM.md, header: r = 0.032 m, i = 30, m = 0.9 kg, τ_s = 0.012 N·m,
- * η_caja = 0.6; § T1-2.2 and #288: α = 40 rad/s²). `content` takes robot-spec for its types only
- * (#246), so the numbers are here.
+ * η_caja = 0.6). `content` takes robot-spec for its types only (#246), so the numbers are here.
  */
-const REFERENCE_ALPHA_RADPS2 = 40;
 const REFERENCE_MOTOR = { stallTorque_Nm: 0.012, gearboxEfficiency: 0.6 } as const;
 const REFERENCE_DRIVE = { gearRatio: 30, wheelRadius_m: 0.032, mass_kg: 0.9 } as const;
-
-interface Wheel {
-  readonly wheelRadius_m: number;
-  readonly alpha_radps2: number;
-}
-
-/**
- * Wheel radius and angular acceleration of the profile. `maxAccel_radps2` is optional in
- * RobotSpec: a profile without it takes the reference α; an arm profile has no wheels and takes
- * the reference robot (docs/CONTENT-STANDARDS.md §2.5, decision of #288).
- */
-function wheel(robot: RobotSpec): Wheel {
-  if (robot.mobile === undefined) {
-    return { wheelRadius_m: REFERENCE_DRIVE.wheelRadius_m, alpha_radps2: REFERENCE_ALPHA_RADPS2 };
-  }
-  return {
-    wheelRadius_m: robot.mobile.wheelRadius_m,
-    alpha_radps2: robot.mobile.maxAccel_radps2 ?? REFERENCE_ALPHA_RADPS2,
-  };
-}
 
 interface Drive {
   readonly stallTorque_Nm: number;
@@ -75,46 +53,26 @@ function drive(robot: RobotSpec): Drive {
   };
 }
 
-function format(value: number): string {
-  return value.toPrecision(SIGNIFICANT_FIGURES);
+/** Stall force of one wheel on the ground, `F_rueda = τ_s i η_caja / r`: the datum. */
+function wheelForce_N({ stallTorque_Nm, gearRatio, gearboxEfficiency, wheelRadius_m }: Drive): number {
+  return (stallTorque_Nm * gearRatio * gearboxEfficiency) / wheelRadius_m;
 }
 
-function formatAlpha(alpha_radps2: number): string {
-  return String(Number(alpha_radps2.toPrecision(ALPHA_SIGNIFICANT_FIGURES)));
-}
-
-const NEWTON_METRE = String.raw`\ \text{N}\cdot\text{m}`;
-
-/** `a_motor = 2 τ_s i η_caja / (r m)`: what the stall torque of both wheels would give from rest. */
+/** `a_motor = 2 F_rueda / m`: what the stall force of both wheels would give from rest. */
 export const motorAcceleration: RobotCalc = {
   id: 'motor-acceleration',
   compute(robot) {
-    const { stallTorque_Nm, gearboxEfficiency, gearRatio, wheelRadius_m, mass_kg } = drive(robot);
-    const motorAccel_mps2 =
-      (2 * stallTorque_Nm * gearRatio * gearboxEfficiency) / (wheelRadius_m * mass_kg);
+    const profile = drive(robot);
+    const force_N = Number(wheelForce_N(profile).toPrecision(FORCE_SIGNIFICANT_FIGURES));
+    const motorAccel_mps2 = (2 * wheelForce_N(profile)) / profile.mass_kg;
     return {
-      latex: String.raw`a_{motor} = \dfrac{2\,\tau_s\,i\,\eta_{caja}}{r\,m}`,
+      latex: String.raw`a_{motor} = \dfrac{2\,F_{rueda}}{m}`,
       substituted:
-        String.raw`a_{motor} = \dfrac{2 \cdot ${stallTorque_Nm}${NEWTON_METRE} \cdot ${gearRatio} \cdot ${gearboxEfficiency}}` +
-        String.raw`{${wheelRadius_m}\ \text{m} \cdot ${mass_kg}\ \text{kg}} = ${format(motorAccel_mps2)}\ \text{m/s}^2`,
-    };
-  },
-};
-
-/** `a = α · r`: the ramp the simulator applies to the wheels, without slipping. */
-export const acceleration: RobotCalc = {
-  id: 'acceleration',
-  compute(robot) {
-    const { wheelRadius_m, alpha_radps2 } = wheel(robot);
-    const a_mps2 = alpha_radps2 * wheelRadius_m;
-    return {
-      latex: String.raw`a = \alpha \cdot r`,
-      substituted:
-        String.raw`a = ${formatAlpha(alpha_radps2)}\ \text{rad/s}^2 \cdot ${wheelRadius_m}\ \text{m}` +
-        String.raw` = ${format(a_mps2)}\ \text{m/s}^2`,
+        String.raw`a_{motor} = \dfrac{2 \cdot ${force_N}\ \text{N}}{${profile.mass_kg}\ \text{kg}}` +
+        String.raw` = ${motorAccel_mps2.toPrecision(SIGNIFICANT_FIGURES)}\ \text{m/s}^2`,
     };
   },
 };
 
 /** The calcs of the topic; `content/index.ts` registers them. */
-export const robotCalcs: readonly RobotCalc[] = [motorAcceleration, acceleration];
+export const robotCalcs: readonly RobotCalc[] = [motorAcceleration];
