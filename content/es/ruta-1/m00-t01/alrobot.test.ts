@@ -62,6 +62,15 @@ describe('T1-0.1 «Al robot» calcs', () => {
     );
   });
 
+  it('keeps padding zeros and writes a value with more integer digits whole (CONTENT-STANDARDS §2.5, #653)', () => {
+    expect(omegaMotor.compute(withMotorSpeed(955)).substituted).toContain(
+      '= 100.0\\ \\text{rad/s}',
+    );
+    expect(omegaMotor.compute(withMotorSpeed(100000)).substituted).toContain(
+      '= 10472\\ \\text{rad/s}',
+    );
+  });
+
   it('falls back to the reference robot for a profile with no wheels', () => {
     expect(omegaMotor.compute(withoutWheels())).toEqual(omegaMotor.compute(REFERENCE));
   });

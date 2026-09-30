@@ -85,6 +85,13 @@ describe('T2-2.5 «Al robot» calcs', () => {
     expect(predictedLapTime.compute(robot).substituted).toContain('= 3.695\\ \\text{s}');
   });
 
+  it('write the lap time with four significant figures, not three decimals (#653)', () => {
+    // r = 0.01 m: v_pred = 0.150 m/s; t_pred = 2.771/0.15 = 18.47 s (toFixed would give 18.473).
+    expect(predictedLapTime.compute(withWheelRadius(0.01)).substituted).toContain(
+      '= 18.47\\ \\text{s}',
+    );
+  });
+
   it('need none of the optional fields of the profile', () => {
     const complete = withWheelRadius(0.04);
     const bare = withoutOptionalFields(0.04);

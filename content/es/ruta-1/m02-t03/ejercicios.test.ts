@@ -3,8 +3,11 @@ import type { Exercise } from '@trayectoria/sim-core';
 import { describe, expect, it } from 'vitest';
 
 import {
+  E1_MAX_WHEEL_SPEED_RPM,
   E1_SPEED_RPM,
   E1_T_S,
+  E2_MAX_CENTRIPETAL_MPS2,
+  E2_MAX_V_MPS,
   E2_R_M,
   E2_V_MPS,
   E3_ALPHA_RADPS2,
@@ -184,6 +187,40 @@ describe('e4 · μs y R: v máxima en curva', () => {
     for (const seed of MANY_SEEDS) {
       const { mu_s, turnRadius_m } = valuesOf('e4', seed);
       expect(answerOf('e4', seed)).toBeCloseTo(Math.sqrt(mu_s! * G_MPS2 * turnRadius_m!), 12);
+    }
+  });
+});
+
+describe('«tu robot» stays within the reference robot (#570.1b)', () => {
+  // e1 and e2 say «tu robot»: the reference robot bounds them. Its wheel turns at most at the
+  // no-load 6000/30 = 200 rpm, its top speed is v_max = 0.670 m/s and it takes a curve without
+  // skidding while a_c ≤ μs·β·g = 0.6·0.6·9.81 = 3.53 m/s² (T1-2.2). The ranges of the spec stay;
+  // a draw beyond a bound is drawn again.
+  it('bounds with the reference robot: 200 rpm, 0.670 m/s and 3.53 m/s²', () => {
+    expect(E1_MAX_WHEEL_SPEED_RPM).toBe(200);
+    expect(E2_MAX_V_MPS).toBe(0.67);
+    expect(E2_MAX_CENTRIPETAL_MPS2).toBeCloseTo(3.5316, 4);
+  });
+
+  it('e1 draws again above 200 rpm: 600 rpm is beyond the wheel of the reference robot', () => {
+    const { values } = exercise('e1').generate(scriptedRng([600, 1, 200, 5]));
+    expect(values).toEqual({ speed_rpm: 200, t_s: 0.5 });
+  });
+
+  it('e2 draws again above 0.670 m/s and above 3.53 m/s²', () => {
+    // 1.5 m/s is faster than v_max; 0.67 m/s on R = 0.1 m gives 4.49 m/s², it would skid.
+    const { values } = exercise('e2').generate(scriptedRng([150, 50, 67, 10, 60, 50]));
+    expect(values).toEqual({ v_mps: 0.6, turnRadius_m: 0.5 });
+  });
+
+  it('never draws beyond those bounds over 2000 seeds; α stays under 210 rad/s²', () => {
+    for (const seed of MANY_SEEDS) {
+      const e1 = valuesOf('e1', seed);
+      expect(e1.speed_rpm).toBeLessThanOrEqual(200);
+      expect(answerOf('e1', seed)).toBeLessThan(210);
+      const e2 = valuesOf('e2', seed);
+      expect(e2.v_mps).toBeLessThanOrEqual(0.67);
+      expect(answerOf('e2', seed)).toBeLessThanOrEqual(E2_MAX_CENTRIPETAL_MPS2);
     }
   });
 });

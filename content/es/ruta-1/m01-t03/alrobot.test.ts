@@ -88,10 +88,11 @@ describe('T1-1.3 «Al robot» calcs', () => {
   });
 
   it('follow the numbers of «Mi robot»', () => {
-    // 3000 rpm, i = 50: n_rueda = 60 rpm, ω_rueda = 2π = 6.283 rad/s, T = 1 s.
+    // 3000 rpm, i = 50: n_rueda = 60.0 rpm (three figures, padding zero kept, #653),
+    // ω_rueda = 2π = 6.283 rad/s, T = 1 s.
     const robot = withDrive(3000, 50);
     expect(omegaWheel.compute(robot).substituted).toBe(
-      String.raw`\omega_{rueda} = 60\ \text{rpm} \cdot \dfrac{2\pi}{60} = 6.283\ \text{rad/s}`,
+      String.raw`\omega_{rueda} = 60.0\ \text{rpm} \cdot \dfrac{2\pi}{60} = 6.283\ \text{rad/s}`,
     );
     expect(period.compute(robot).substituted).toBe(
       String.raw`T = \dfrac{2\pi}{6.283\ \text{rad/s}} = 1\ \text{s}`,

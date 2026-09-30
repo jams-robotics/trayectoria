@@ -24,35 +24,35 @@ cuánto en y cada segundo?
 </Gancho>
 
 <Concepto>
-Un **vector** es una magnitud con dirección: su magnitud (o módulo) dice cuánto mide, y su
+Un **vector** es una magnitud con dirección: su **módulo** dice cuánto mide, y su
 dirección es el ángulo θ que forma con el eje x, antihorario.
 
 El mismo vector se escribe con sus **componentes**, cuánto mide en x y en y. Si una velocidad
-v⃗ tiene magnitud v y ángulo θ, sus componentes son vₓ = v cosθ y v_y = v sinθ. Del gancho,
+v⃗ tiene módulo v y ángulo θ, sus componentes son vₓ = v cosθ y v_y = v sinθ. Del gancho,
 vₓ = 0.5 · cos 30° = 0.433 m/s y v_y = 0.5 · sin 30° = 0.25 m/s.
 
-Para recomponerlo, la magnitud sale de Pitágoras, |v⃗| = √(vₓ² + v_y²), y el ángulo, de
+Para recomponerlo, el módulo sale de Pitágoras, |v⃗| = √(vₓ² + v_y²), y el ángulo, de
 θ = atan2(v_y, vₓ). No uses atan(v_y/vₓ): el cociente pierde los signos y confunde (0.3, 0.4)
 con (−0.3, −0.4). atan2 mira las dos componentes y devuelve el ángulo en el cuadrante correcto.
 
-Para sumar dos vectores se suman sus componentes: a⃗ + b⃗ = (a_x + b_x, a_y + b_y); las
-magnitudes no se suman.
+Para sumar dos vectores se suman sus componentes: a⃗ + b⃗ = (a_x + b_x, a_y + b_y); los
+módulos no se suman.
 
 El **producto escalar** combina dos vectores en un número: a⃗ · b⃗ = a_x·b_x + a_y·b_y. También
 vale |a⃗||b⃗| cos φ, con φ el ángulo entre ellos; igualando las dos formas se despeja φ. Si vale
 cero, son perpendiculares.
 
-La velocidad de tu robot es un vector: su magnitud es la rapidez, en m/s, y su dirección, el
+La velocidad de tu robot es un vector: su módulo es la rapidez, en m/s, y su dirección, el
 rumbo θ.
 
 **Rotación de un vector por componentes.** Girar un vector a⃗ un ángulo θ en sentido antihorario,
-sin cambiar su magnitud, da el vector a⃗′ de componentes a′_x = a_x cosθ − a_y sinθ y
+sin cambiar su módulo, da el vector a⃗′ de componentes a′_x = a_x cosθ − a_y sinθ y
 a′_y = a_x sinθ + a_y cosθ. Con el vector del gancho, (0.5, 0) m/s girado 30° da
 (0.5·0.866 − 0·0.5, 0.5·0.5 + 0·0.866) = (0.433, 0.25) m/s: las componentes del gancho. Ese
 vector girado otros 60° da (0.433·0.5 − 0.25·0.866, 0.433·0.866 + 0.25·0.5) = (0.000, 0.5) m/s:
-0.5 m/s a 90°, con la misma magnitud. Girar −θ cambia el signo de los senos.
-[Pose y marcos de referencia](/ruta/ruta-2/m00/t02) usa esta rotación para pasar un punto del
-marco del robot al de la mesa.
+0.5 m/s a 90°, con el mismo módulo. Girar −θ cambia el signo de los senos.
+[Pose y marcos de referencia](/ruta/ruta-2/m00/t02), en la ruta Robot móvil, usa esta rotación
+para pasar un punto del marco del robot al de la mesa.
 </Concepto>
 
 <Formulas>
@@ -64,7 +64,7 @@ marco del robot al de la mesa.
 
 <Formula latex="|\vec v| = \sqrt{v_x^2+v_y^2}" />
 
-- `|v⃗|` · magnitud de la velocidad como vector · m/s
+- `|v⃗|` · módulo de la velocidad como vector · m/s
 - `vₓ, v_y` · componentes de velocidad · m/s
 
 <Formula latex="\theta = \operatorname{atan2}(v_y, v_x)" />
@@ -80,7 +80,7 @@ marco del robot al de la mesa.
 <Formula latex="\vec a\cdot\vec b = a_xb_x+a_yb_y = |\vec a||\vec b|\cos\varphi" />
 
 - `a⃗ · b⃗` · producto escalar · producto de las unidades de a⃗ y b⃗
-- `|a⃗|, |b⃗|` · magnitudes de a⃗ y de b⃗ · la de la magnitud que representan
+- `|a⃗|, |b⃗|` · módulos de a⃗ y de b⃗ · la de la magnitud que representan
 - `φ` · ángulo entre dos vectores · rad
 
 <Formula latex="\begin{aligned} a'_x &= a_x\cos\theta - a_y\sin\theta \\ a'_y &= a_x\sin\theta + a_y\cos\theta \end{aligned}" />
@@ -110,9 +110,9 @@ velocidad del gancho: 0.5 m/s a 30°.
   observa="las componentes de a"
   porque="¿Por qué una componente crece mientras la otra decrece?"
 >
-La longitud fija la magnitud, y |a⃗|² = a_x² + a_y² no cambia. Si una componente crece, la otra
+La longitud fija el módulo, y |a⃗|² = a_x² + a_y² no cambia. Si una componente crece, la otra
 tiene que decrecer para que la suma de sus cuadrados siga igual. Solo cambia el ángulo, que
-reparte la magnitud entre x e y.
+reparte el módulo entre x e y.
 </Experimento>
 
 <Experimento

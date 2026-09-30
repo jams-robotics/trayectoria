@@ -32,6 +32,15 @@ export const E3_R_M: Range = { min: 0.015, max: 0.05 };
 export const E4_MU_S: Range = { min: 0.2, max: 1 };
 export const E4_R_M: Range = { min: 0.1, max: 2 };
 /**
+ * e1 and e2 say «tu robot», so the reference robot bounds them (#570.1b): its wheel turns at most
+ * at the no-load 6000/30 = 200 rpm (T1-1.4), its top speed is v_max = 0.670 m/s and it takes a
+ * curve without skidding while a_c ≤ μs·β·g, with μs = 0.6 and β = 0.6 (T1-2.2). The ranges of the
+ * spec stay; a draw beyond a bound is drawn again, and the golden values lie within all three.
+ */
+export const E1_MAX_WHEEL_SPEED_RPM = 200;
+export const E2_MAX_V_MPS = 0.67;
+export const E2_MAX_CENTRIPETAL_MPS2 = 0.6 * 0.6 * G_MPS2;
+/**
  * e2 draws again while a_c is below this: with relative 2 %, a correct response rounded to the
  * thousandth (up to 0.0005 m/s² off) is only accepted from 0.025 m/s² on (#568).
  */
@@ -52,13 +61,24 @@ interface SpinUp {
   readonly t_s: number;
 }
 
-/** e1: from rest to n rpm in t, `α = Δω/Δt = (n · 2π/60) / t`. */
+/**
+ * e1: from rest to n rpm in t, `α = Δω/Δt = (n · 2π/60) / t`; n drawn again above the 200 rpm of
+ * the reference robot's wheel (#570.1b).
+ */
 const e1 = defineExercise<SpinUp>({
   id: 'e1',
   generate: (rng) => {
-    const speed_rpm = drawOnGrid(rng, E1_SPEED_RPM, UNITS);
-    const t_s = drawOnGrid(rng, E1_T_S, TENTHS);
-    return { values: { speed_rpm, t_s }, answer: (speed_rpm * RPM_TO_RADPS) / t_s, unit: 'rad/s²' };
+    for (;;) {
+      const speed_rpm = drawOnGrid(rng, E1_SPEED_RPM, UNITS);
+      const t_s = drawOnGrid(rng, E1_T_S, TENTHS);
+      if (speed_rpm <= E1_MAX_WHEEL_SPEED_RPM) {
+        return {
+          values: { speed_rpm, t_s },
+          answer: (speed_rpm * RPM_TO_RADPS) / t_s,
+          unit: 'rad/s²',
+        };
+      }
+    }
   },
   statement: () => statementKey('e1'),
   tolerance: RELATIVE_2_PERCENT,
@@ -69,7 +89,10 @@ interface Curve {
   readonly turnRadius_m: number;
 }
 
-/** e2: `a_c = v²/R`, drawn again while a_c < 0.025 m/s² (#568). */
+/**
+ * e2: `a_c = v²/R`, drawn again while a_c < 0.025 m/s² (#568), and beyond the reference robot:
+ * v above 0.670 m/s or a_c above μs·β·g (#570.1b).
+ */
 const e2 = defineExercise<Curve>({
   id: 'e2',
   generate: (rng) => {
@@ -77,7 +100,8 @@ const e2 = defineExercise<Curve>({
       const v_mps = drawOnGrid(rng, E2_V_MPS, HUNDREDTHS);
       const turnRadius_m = drawOnGrid(rng, E2_R_M, HUNDREDTHS);
       const centripetal_mps2 = v_mps ** 2 / turnRadius_m;
-      if (centripetal_mps2 >= MIN_RELATIVE_ANSWER) {
+      const withinRobot = v_mps <= E2_MAX_V_MPS && centripetal_mps2 <= E2_MAX_CENTRIPETAL_MPS2;
+      if (withinRobot && centripetal_mps2 >= MIN_RELATIVE_ANSWER) {
         return { values: { v_mps, turnRadius_m }, answer: centripetal_mps2, unit: 'm/s²' };
       }
     }

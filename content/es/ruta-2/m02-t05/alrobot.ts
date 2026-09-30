@@ -24,8 +24,11 @@ const REFERENCE_WHEEL_RADIUS_M = 0.032;
 /** Three significant figures for speeds, keeping trailing zeros: 0.480 m/s. */
 const SPEED_SIGNIFICANT_FIGURES = 3;
 
-/** Lap times to the millisecond, as in the spec: 5.773 s. */
-const TIME_DECIMALS = 3;
+/**
+ * Four significant figures for lap times, those of the golden value 5.773 s, padding zeros kept
+ * (docs/CONTENT-STANDARDS.md §2.5, #653).
+ */
+const TIME_SIGNIFICANT_FIGURES = 4;
 
 const RPM_TO_RADPS = (2 * Math.PI) / 60;
 
@@ -50,6 +53,13 @@ function formatSpeed(speed_mps: number): string {
   return speed_mps.toPrecision(SPEED_SIGNIFICANT_FIGURES);
 }
 
+/** A lap time with more integer digits than figures is written whole. */
+function formatTime(time_s: number): string {
+  return Math.abs(time_s) < 10 ** TIME_SIGNIFICANT_FIGURES
+    ? time_s.toPrecision(TIME_SIGNIFICANT_FIGURES)
+    : Math.round(time_s).toString();
+}
+
 /** `v_pred = ω_base · r`. */
 export const predictedSpeed: RobotCalc = {
   id: 'predicted-speed',
@@ -72,7 +82,7 @@ export const predictedLapTime: RobotCalc = {
       latex: String.raw`t_{pred} = \frac{D}{v_{pred}}`,
       substituted:
         String.raw`t_{pred} = \frac{${OVAL_LENGTH_M}\ \text{m}}{${formatSpeed(speed_mps)}\ \text{m/s}}` +
-        String.raw` = ${(OVAL_LENGTH_M / speed_mps).toFixed(TIME_DECIMALS)}\ \text{s}`,
+        String.raw` = ${formatTime(OVAL_LENGTH_M / speed_mps)}\ \text{s}`,
     };
   },
 };
