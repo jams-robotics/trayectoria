@@ -39,7 +39,12 @@ const label = t(LABEL_KEY[step.kind], { title: step.title });
       <li>{objective}</li>
     ))}
   </ul>
-  <TopicClosingStatus client:visible topicId={topicId} exerciseIds={exerciseIds} />
+  {/*
+    `client:load`, not `client:visible` (#546, QA on PR #661): until a `client:visible` island is
+    scrolled into view it keeps the server markup, so the tally read «0 de 4» while the exercises
+    above were being answered. Hydrated with the page, it follows the progress store live.
+  */}
+  <TopicClosingStatus client:load topicId={topicId} exerciseIds={exerciseIds} />
   <div class="mt-5">
     {step.href === undefined ? (
       <span class="text-fg-muted" data-testid="closing-next">

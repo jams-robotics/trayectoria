@@ -18,8 +18,9 @@ export interface TopicClosingStatusProps {
  * once the session has been read and there is none, a line saying an account keeps the
  * progress. The line waits for `ready`, like `ProgressNotice`, so it never flashes.
  *
- * The island is `client:visible`, so by the time it hydrates another island may already have
- * filled the store; the tally therefore reads it only after mount, and the first client render
+ * The island is `client:load` and subscribes to the store, so it follows every attempt the
+ * Verifica islands record, without a reload. Another island may already have filled the store
+ * when it hydrates; the tally therefore reads it only after mount, and the first client render
  * matches the server markup (docs/audits F2-01a).
  */
 export function TopicClosingStatus({ topicId, exerciseIds }: TopicClosingStatusProps): JSX.Element {

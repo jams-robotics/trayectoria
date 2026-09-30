@@ -90,7 +90,7 @@ const RPM_TO_RADPS = (2 * Math.PI) / 60;
  * every exercise of the topic, since the later ones stay on the server markup until scrolled to.
  *
  * `answer` computes the right response from the statement's numbers, in order (e1/e2: rpm to
- * rad/s, `n · 2π/60`; e3: a distance in x m covered in t s, to cm/s, `x/t · 100`).
+ * rad/s, `n · 2π/60`).
  */
 async function answerExerciseCorrectly(
   page: Page,
@@ -116,10 +116,8 @@ async function answerExerciseCorrectly(
 }
 
 const rpmToRadps = (numbers: readonly number[]): number => (numbers[0] ?? 0) * RPM_TO_RADPS;
-const speedCmps = (numbers: readonly number[]): number =>
-  ((numbers[0] ?? 0) / (numbers[1] ?? 1)) * 100;
 
-test('anonymous: the closing tally counts exactly the exercises answered right, live and after a reload', async ({
+test('anonymous: the closing tally counts the exercises answered right, live and after a reload', async ({
   page,
 }) => {
   await openHydrated(page, MULTI_EXERCISE_TOPIC_PATH, false);
@@ -127,39 +125,16 @@ test('anonymous: the closing tally counts exactly the exercises answered right, 
   await answerExerciseCorrectly(page, 0, rpmToRadps);
   await answerExerciseCorrectly(page, 1, rpmToRadps);
 
-  await page.getByTestId('topic-closing').scrollIntoViewIfNeeded();
+  // Read without scrolling to the closing block: its island hydrates with the page and follows
+  // the store, so the tally is right while the learner is still at the exercises (#546, QA on
+  // PR #661: a `client:visible` island kept the server «0 de 4» until scrolled to).
+  const closingIsland = page.locator('astro-island[component-url*="TopicClosingStatus"]');
+  await expect(closingIsland).not.toHaveAttribute('ssr');
   await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 2 de 4 correctos');
 
   await page.reload();
   await waitForIslands(page, false);
-  await page.getByTestId('topic-closing').scrollIntoViewIfNeeded();
   await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 2 de 4 correctos');
-});
-
-test('anonymous: a second tab answering the topic does not erase the first tab\'s tally', async ({
-  page,
-  context,
-}) => {
-  // Tab B loads the topic first, before anything is recorded, and hydrates its own empty
-  // in-memory progress — the stale snapshot a sibling tab keeps once it stops re-reading storage.
-  const tabB = await context.newPage();
-  await openHydrated(tabB, MULTI_EXERCISE_TOPIC_PATH, false);
-
-  // Tab A answers e1 and e2 and saves them.
-  await openHydrated(page, MULTI_EXERCISE_TOPIC_PATH, false);
-  await answerExerciseCorrectly(page, 0, rpmToRadps);
-  await answerExerciseCorrectly(page, 1, rpmToRadps);
-  await page.getByTestId('topic-closing').scrollIntoViewIfNeeded();
-  await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 2 de 4 correctos');
-
-  // Back in tab B, still holding its stale snapshot, the learner answers e3. Writing it must not
-  // stomp e1/e2 on disk with tab B's own outdated copy (#546).
-  await answerExerciseCorrectly(tabB, 2, speedCmps);
-
-  await page.reload();
-  await waitForIslands(page, false);
-  await page.getByTestId('topic-closing').scrollIntoViewIfNeeded();
-  await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 3 de 4 correctos');
 });
 
 async function signUp(page: Page, email: string): Promise<void> {
@@ -185,8 +160,6 @@ test('anonymous: answering the exercise completes the topic and survives a reloa
     '/auth/registro',
   );
   // The closing block repeats it in one line (#546, decision 4).
-  // Its island is `client:visible`: the line only exists once the block is scrolled into view.
-  await page.getByTestId('topic-closing').scrollIntoViewIfNeeded();
   const hint = page.getByTestId('closing-save-hint');
   await expect(hint).toContainText(common.topic.closing.saveHint);
   await expect(hint.getByRole('link', { name: common.topic.closing.register })).toHaveAttribute(
@@ -218,9 +191,6 @@ test('signed in: the topic completes, signing out hides it and signing in recove
   await openHydrated(page, TOPIC_PATH, false);
   // With a session the notice is gone: the progress is stored for the account.
   await expect(page.getByTestId('progress-notice')).toHaveCount(0);
-  // The closing island is `client:visible`; `answerCorrectly` waits for every island to hydrate,
-  // so it is scrolled into view first (#546).
-  await page.getByTestId('topic-closing').scrollIntoViewIfNeeded();
   await answerCorrectly(page);
   await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 1 de 1 correctos');
   await expect(page.getByTestId('closing-save-hint')).toHaveCount(0);

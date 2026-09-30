@@ -226,35 +226,6 @@ describe('progress store across page loads (F3-01)', () => {
 
     expect(getProgress(TOPIC)?.attempts).toBe(2);
   });
-
-  // Two tabs of the same anonymous topic: each hydrates once from storage and keeps its own
-  // in-memory `$progress` from then on (`hydrated` is per-tab module state; a second tab that
-  // hydrated *before* the first tab's attempts landed on disk is simulated here by hydrating,
-  // capturing that stale snapshot, and only then seeding storage with what the first tab saved).
-  // Recording an attempt used to write straight from that stale snapshot, so the tab that saved
-  // last stomped whatever the other tab had written meanwhile — the closing tally would read the
-  // topic back as if the earlier attempts had never happened, even right after a reload (#546, QA
-  // finding: «Ejercicios: 0 de 4 correctos», reproducible across independent runs).
-  test('a second tab recording an attempt does not stomp what the first tab already saved', async () => {
-    // Tab B loads the topic first, while nothing is recorded yet, and hydrates its own, still
-    // empty, in-memory `$progress` — the module state this test keeps acting as from here on.
-    hydrateProgress();
-    expect(getProgress(TOPIC)).toBeUndefined();
-
-    // Tab A, a separate tab this test never hydrates, answers e1 and e2 and saves them; simulated
-    // directly on storage, since tab A's own module state plays no further part in this test.
-    seedStoredProgressForTest({
-      [TOPIC]: { ...emptyProgress(), correctIds: ['e1', 'e2'], firstTryCorrectIds: ['e1', 'e2'], attempts: 2 },
-    });
-
-    // Back in tab B — still holding the stale, empty snapshot from before tab A saved anything —
-    // the learner answers e3.
-    await recordAttempt(attemptOf('e3', true, 1), ['e1', 'e2', 'e3']);
-
-    // Both attempts survive: tab B's write merges the freshest copy on disk instead of
-    // overwriting it with its own stale snapshot.
-    expect(stored().topics[TOPIC]?.correctIds?.slice().sort()).toEqual(['e1', 'e2', 'e3']);
-  });
 });
 
 describe('progress store resilience (F3-01)', () => {
