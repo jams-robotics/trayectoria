@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { acceleration, motorAcceleration, robotCalcs } from './alrobot';
 
-// Golden values of docs/CURRICULUM.md § T-2.2 (Al robot, #609), with the reference robot:
+// Golden values of docs/CURRICULUM.md § T1-2.2 (Al robot, #609), with the reference robot:
 // a_motor = 2·0.012·30·0.6/(0.032·0.9) = 15.0 m/s², far above a_max = 0.6·9.81·0.6 = 3.53 m/s²
 // (static Formula in the MDX); the simulator ramp a = 40·0.032 = 1.28 m/s² stays below a_max.
 // `content` takes robot-spec for its types only (#246), so the reference robot of
@@ -62,7 +62,7 @@ function withoutWheels(): RobotSpec {
   return { ...rest, kind: 'arm-serial' };
 }
 
-describe('T-2.2 «Al robot» calcs', () => {
+describe('T1-2.2 «Al robot» calcs', () => {
   it('are motor-acceleration and acceleration', () => {
     expect(robotCalcs.map((calc) => calc.id)).toEqual(['motor-acceleration', 'acceleration']);
   });

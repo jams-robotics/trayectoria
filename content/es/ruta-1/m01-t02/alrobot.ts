@@ -3,7 +3,7 @@ import type { RobotSpec } from '@trayectoria/robot-spec';
 import type { RobotCalc } from '../../../index';
 
 /**
- * «Al robot» calcs of T-1.2 (docs/CURRICULUM.md § T-1.2): the ramp of «Mi robot» from rest to
+ * «Al robot» calcs of T1-1.2 (docs/CURRICULUM.md § T1-1.2): the ramp of «Mi robot» from rest to
  * `v_max`, with `a = α · r`, `t = v_max / a` and `Δx = v_max² / (2a)`. The MDX renders them with
  * `<RobotFormula calc="ruta-1/m01-t02/acceleration" />`, `…/ramp-time` and `…/ramp-distance`.
  */
@@ -11,13 +11,13 @@ import type { RobotCalc } from '../../../index';
 /** Three significant figures, keeping trailing zeros: 1.28 m/s², 0.670 m/s, 0.524 s, 0.175 m. */
 const SIGNIFICANT_FIGURES = 3;
 
-/** Four significant figures for α, as for the angular velocities of T-0.1. */
+/** Four significant figures for α, as for the angular velocities of T1-0.1. */
 const ALPHA_SIGNIFICANT_FIGURES = 4;
 
 const RPM_TO_RADPS = (2 * Math.PI) / 60;
 
 /**
- * Reference robot (docs/CURRICULUM.md, header: r = 0.032 m, 6000 rpm, i = 30; § T-1.2 and #288:
+ * Reference robot (docs/CURRICULUM.md, header: r = 0.032 m, 6000 rpm, i = 30; § T1-1.2 and #288:
  * α = 40 rad/s²). `content` takes robot-spec for its types only (#246), so the numbers are here.
  */
 const REFERENCE_ALPHA_RADPS2 = 40;

@@ -80,6 +80,29 @@ describe('progress store without a session (F3-01)', () => {
     expect(getProgress(TOPIC)).toEqual(saved);
   });
 
+  test('a copy from before the two routes is converted once and written back (#574, §5.4)', () => {
+    const circular: TopicProgress = { ...emptyProgress(), attempts: 2, bestScore: 0.5 };
+    localStorage.setItem(
+      'trayectoria.progress',
+      JSON.stringify({ owner: null, topics: { 'ruta-1/m04-t01': circular } }),
+    );
+
+    hydrateProgress();
+    expect(getProgress('ruta-1/m01-t03')).toEqual(circular);
+    expect(getProgress('ruta-1/m04-t01')).toBeUndefined();
+    expect(JSON.parse(storedProgressJson() ?? '{}')).toEqual({
+      owner: null,
+      topics: { 'ruta-1/m01-t03': circular },
+      routesVersion: 2,
+    });
+
+    // A reload reads the converted copy as it is: Circular motion does not move to the reserve.
+    resetProgressForTest(false);
+    hydrateProgress();
+    expect(getProgress('ruta-1/m01-t03')).toEqual(circular);
+    expect(getProgress('reserva/caida-libre')).toBeUndefined();
+  });
+
   test('markCompleted completes a topic that has no attempt', async () => {
     await markCompleted(TOPIC);
 
@@ -261,7 +284,7 @@ describe('session switch while the remote rows load (#218)', () => {
     await loadingA;
 
     expect($progress.get()).toEqual({ [OTHER_TOPIC]: ROW_B });
-    expect(stored()).toEqual({ owner: OTHER, topics: { [OTHER_TOPIC]: ROW_B } });
+    expect(stored()).toEqual({ owner: OTHER, topics: { [OTHER_TOPIC]: ROW_B }, routesVersion: 2 });
     expect(currentUserId()).toBe(OTHER);
     expect(remote.upsertProgress).not.toHaveBeenCalled();
   });
@@ -276,7 +299,7 @@ describe('session switch while the remote rows load (#218)', () => {
     await loadingA;
 
     expect($progress.get()).toEqual({});
-    expect(stored()).toEqual({ owner: null, topics: {} });
+    expect(stored()).toEqual({ owner: null, topics: {}, routesVersion: 2 });
     expect(currentUserId()).toBeNull();
     expect(remote.upsertProgress).not.toHaveBeenCalled();
   });

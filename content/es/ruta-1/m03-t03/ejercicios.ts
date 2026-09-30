@@ -1,11 +1,11 @@
 import { defineExercise } from '@trayectoria/sim-core';
 import type { SeededRng } from '@trayectoria/sim-core';
 
-// Verifica of T-3.3 (docs/CURRICULUM.md § T-3.3). Each exercise returns only the key of its
+// Verifica of T1-3.3 (docs/CURRICULUM.md § T1-3.3). Each exercise returns only the key of its
 // statement; the text lives in packages/i18n/locales/es/content.json (ARCHITECTURE §3.3).
 //
 // Values are drawn on a grid the statement shows exactly (stall torques to the thousandth,
-// currents to the hundredth, capacities to the tenth, rpm whole), as in T-4.3. The load torque of
+// currents to the hundredth, capacities to the tenth, rpm whole), as in T1-2.3. The load torque of
 // e1 and e3 is `τ = k·τ_s` with `k` drawn to the hundredth, so the statement shows τ_s, n₀ and τ
 // and the answer keeps the share `τ/τ_s` on a grid (#617).
 
@@ -169,5 +169,5 @@ const e4 = defineExercise<Supply>({
   tolerance: RELATIVE_2_PERCENT,
 });
 
-/** The exercises of T-3.3, in the order of Verifica; e1–e3 are required. */
+/** The exercises of T1-3.3, in the order of Verifica; e1–e3 are required. */
 export const exercises = [e1, e2, e3, e4] as const;

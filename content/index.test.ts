@@ -11,11 +11,14 @@ import {
 } from './index';
 import type { RobotCalc } from './index';
 
-/** Shape of every registry key: `<topicId>/<exerciseId>`, e.g. `ruta-1/m00-t01/e1`. */
-const KEY_SHAPE = /^ruta-\d+\/m\d{2}-t\d{2}\/e\d+$/;
+/**
+ * Shape of every registry key: `<topicId>/<exerciseId>`, e.g. `ruta-1/m00-t01/e1`. A topic in the
+ * reserve has the id `reserva/<slug>` (docs/ARCHITECTURE.md §3.3), e.g. `reserva/caida-libre/e1`.
+ */
+const KEY_SHAPE = /^(?:ruta-\d+\/m\d{2}-t\d{2}|reserva\/[a-z0-9-]+)\/e\d+$/;
 
 /** Shape of every robot calc key: `<topicId>/<calcId>`, e.g. `ruta-1/m00-t01/omega-rueda`. */
-const CALC_KEY_SHAPE = /^ruta-\d+\/m\d{2}-t\d{2}\/[a-z0-9-]+$/;
+const CALC_KEY_SHAPE = /^(?:ruta-\d+\/m\d{2}-t\d{2}|reserva\/[a-z0-9-]+)\/[a-z0-9-]+$/;
 
 interface Wheel {
   readonly radius_m: number;

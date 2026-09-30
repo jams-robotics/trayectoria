@@ -1,10 +1,10 @@
 ---
-import { getEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 import { t } from '@trayectoria/i18n';
 
 import { AulaIsland } from '../../components/aula/AulaIsland';
 import Base from '../../layouts/Base.astro';
-import type { MatrixTopic } from '../../lib/aula/progressMatrix';
+import { matrixRoutes } from '../../lib/aula/progressMatrix';
 
 // One island with client:load, like /cuenta (docs/ARCHITECTURE.md §3.1). The CTA texts are
 // resolved here because packages/auth only imports db (§2). The group detail lives on this same
@@ -16,17 +16,11 @@ const cta = {
   login: t('auth.gate.login'),
 };
 
-// Topics of ruta-1 in the order of `content/es/ruta-1/ruta.json`, read at build time through the
-// `routes` collection, as the route index does. They travel to the island as plain props, which
-// is what the classroom table paints as rows (F3-02b). One route for now.
-const route = await getEntry('routes', 'ruta-1');
-const topics: MatrixTopic[] = (route?.data.modules ?? []).flatMap((module) =>
-  module.topics.map((topic) => ({
-    id: `ruta-1/${topic.id}`,
-    moduleId: module.id,
-    moduleTitle: module.title,
-    title: topic.title,
-  })),
+// Topics of both routes, in route order and in the order of each `ruta.json`, read at build time
+// through the `routes` collection, as the route index does. They travel to the island as plain
+// props; the classroom table paints the route chosen in its selector (F3-02b, #574, §3.2).
+const routes = matrixRoutes(
+  (await getCollection('routes')).map((entry) => ({ ...entry.data, id: entry.id })),
 );
 ---
 
@@ -36,7 +30,7 @@ const topics: MatrixTopic[] = (route?.data.modules ?? []).flatMap((module) =>
     <h1 class="text-2xl leading-tight mt-4 font-semibold">{t('aula.title')}</h1>
     <!-- #538: the sign-up card is centred in the height the page leaves under the title. -->
     <div class="mt-7 flex flex-1 flex-col has-[[data-auth=anonymous]]:justify-center">
-      <AulaIsland client:load cta={cta} topics={topics} />
+      <AulaIsland client:load cta={cta} routes={routes} />
     </div>
   </section>
 </Base>

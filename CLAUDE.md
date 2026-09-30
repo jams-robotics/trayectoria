@@ -4,7 +4,7 @@ Este repositorio es **Trayectoria**, una plataforma open source para aprender in
 
 ## Tu rol
 
-Tu ticket indica tu rol. Si no lo indica, eres **desarrollador**.
+Tu ticket indica tu rol. Si no lo indica, eres **desarrollador**. El modelo y el esfuerzo de cada rol, y las reglas para orquestar agentes (máximo 3 a la vez), están en [`docs/ops/AGENTS.md`](docs/ops/AGENTS.md): si orquestas, léelo antes de lanzar ningún agente.
 
 | Rol | Qué haces | Qué no haces |
 |---|---|---|

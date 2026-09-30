@@ -4,7 +4,7 @@ import type { RobotCalc } from '../../../index';
 import { rpmToRadps } from './ejercicios';
 
 /**
- * «Al robot» calcs of T-0.1 (docs/CURRICULUM.md § T-0.1): `ω_motor` from the no-load speed of
+ * «Al robot» calcs of T1-0.1 (docs/CURRICULUM.md § T1-0.1): `ω_motor` from the no-load speed of
  * «Mi robot» and `ω_rueda = ω_motor / i`. The MDX renders them with
  * `<RobotFormula calc="ruta-1/m00-t01/omega-motor" />` and `…/omega-rueda`.
  */

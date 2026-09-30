@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { robotCalcs, trackTime } from './alrobot';
 
-// Golden value of docs/CURRICULUM.md § T-1.1 (Al robot), with the reference robot:
+// Golden value of docs/CURRICULUM.md § T1-1.1 (Al robot), with the reference robot:
 // v_max = 6000·2π/60/30·0.032 = 0.670 m/s, t = 4/0.670 = 5.97 s.
 // `content` takes robot-spec for its types only (#246), so the reference robot of
 // docs/ROBOT-SPEC.md §3 is written out here.
@@ -47,7 +47,7 @@ function withoutWheels(): RobotSpec {
   return { ...rest, kind: 'arm-serial' };
 }
 
-describe('T-1.1 «Al robot» calcs', () => {
+describe('T1-1.1 «Al robot» calcs', () => {
   it('are track-time', () => {
     expect(robotCalcs.map((calc) => calc.id)).toEqual(['track-time']);
   });

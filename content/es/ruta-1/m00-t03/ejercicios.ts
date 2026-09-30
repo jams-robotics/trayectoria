@@ -1,7 +1,7 @@
 import { defineExercise } from '@trayectoria/sim-core';
 import type { SeededRng } from '@trayectoria/sim-core';
 
-// Verifica of T-0.3 (docs/CURRICULUM.md § T-0.3). Each exercise returns only the key of its
+// Verifica of T1-0.3 (docs/CURRICULUM.md § T1-0.3). Each exercise returns only the key of its
 // statement; the text lives in packages/i18n/locales/es/content.json (ARCHITECTURE §3.3).
 //
 // Values are drawn on a grid the statement shows exactly (lengths, speeds and coefficients to the
@@ -152,5 +152,5 @@ const e4 = defineExercise<PolynomialPosition>({
   tolerance: RELATIVE_2_PERCENT,
 });
 
-/** The exercises of T-0.3, in the order of Verifica; e1–e3 are required. */
+/** The exercises of T1-0.3, in the order of Verifica; e1–e3 are required. */
 export const exercises = [e1, e2, e3, e4] as const;

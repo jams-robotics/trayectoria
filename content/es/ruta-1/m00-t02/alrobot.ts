@@ -4,15 +4,15 @@ import type { RobotCalc } from '../../../index';
 import { components_mps } from './ejercicios';
 
 /**
- * «Al robot» calcs of T-0.2 (docs/CURRICULUM.md § T-0.2): `v_max = ω_max · r` from the profile of
- * «Mi robot» (ω_max as computed in T-0.1) and its components at θ = 30°. The MDX renders them
+ * «Al robot» calcs of T1-0.2 (docs/CURRICULUM.md § T1-0.2): `v_max = ω_max · r` from the profile of
+ * «Mi robot» (ω_max as computed in T1-0.1) and its components at θ = 30°. The MDX renders them
  * with `<RobotFormula calc="ruta-1/m00-t02/v-max" />`, `…/vx` and `…/vy`.
  */
 
 /** Heading of the spec: the components are shown at 30° from the x axis of the table. */
 const HEADING_DEG = 30;
 
-/** Four significant figures for ω_max (20.94 rad/s), as in T-0.1. */
+/** Four significant figures for ω_max (20.94 rad/s), as in T1-0.1. */
 const OMEGA_SIGNIFICANT_FIGURES = 4;
 
 /** Three significant figures for speeds, keeping trailing zeros: 0.670, 0.580 and 0.335 m/s. */

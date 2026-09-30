@@ -8,7 +8,7 @@
  */
 import { atom } from 'nanostores';
 
-import { PROGRESS_STORAGE_KEY, readProgressJson, serialiseProgress } from '../local';
+import { PROGRESS_STORAGE_KEY, readStoredProgress, serialiseProgress } from '../local';
 import { applyAttempt, completeProgress, emptyProgress, mergeProgress } from '../model';
 import type { ExerciseAttempt, ProgressMap, TopicProgress } from '../model';
 import { fetchProgress, insertAttempt, upsertProgress } from '../remote';
@@ -38,13 +38,17 @@ function storage(): Storage | null {
 /**
  * Adopts the map stored in this browser for the current learner. Idempotent per learner: it
  * reads storage once, and again after `configureProgressSession` changes who is signed in, so a
- * copy left by another learner is never adopted.
+ * copy left by another learner is never adopted. A copy written before the two routes is
+ * converted once and written back with `routesVersion` (docs/ARCHITECTURE.md §5.4).
  */
 export function hydrateProgress(): void {
   if (hydrated || typeof document === 'undefined') return;
   hydrated = true;
-  const stored = readProgressJson(storage()?.getItem(PROGRESS_STORAGE_KEY) ?? null, userId);
-  $progress.set(stored);
+  const stored = readStoredProgress(storage()?.getItem(PROGRESS_STORAGE_KEY) ?? null, userId);
+  $progress.set(stored.topics);
+  if (stored.converted) {
+    storage()?.setItem(PROGRESS_STORAGE_KEY, serialiseProgress(userId, stored.topics));
+  }
 }
 
 function write(map: ProgressMap): void {

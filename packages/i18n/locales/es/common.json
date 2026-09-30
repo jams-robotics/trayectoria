@@ -124,7 +124,9 @@
     "topics": "temas",
     "moduleNumber": "M{{number}}",
     "pending": "Pendiente",
-    "completed": "Ruta completada"
+    "completed": "Ruta completada",
+    "continue": "Sigue con la ruta {{title}}",
+    "uses": "Esta ruta usa temas de {{title}}; cada tema dice cuáles necesita."
   },
   "topic": {
     "number": "Tema {{module}}.{{order}}",
@@ -132,6 +134,7 @@
     "minutes": "{{minutes}} min",
     "prerequisites": "Prerrequisitos",
     "noPrerequisites": "ninguno",
+    "prerequisitesFromRoute": "Necesitas de {{route}}:",
     "pagination": "Temas anterior y siguiente",
     "previous": "Anterior",
     "next": "Siguiente",

@@ -1,189 +1,164 @@
 ---
 id: ruta-1/m01-t04
-title: 'Tiro parabólico'
+title: 'v = ω·r: la velocidad del robot'
 module: 1
 order: 4
-estimatedMinutes: 40
-prerequisites: [ruta-1/m00-t02, ruta-1/m01-t03]
+estimatedMinutes: 25
+prerequisites: [ruta-1/m01-t03, ruta-1/m00-t01]
 objectives:
-  - Separar el movimiento en x (MRU) e y (MRUA)
-  - Calcular alcance, altura máxima y tiempo de vuelo con altura inicial
-  - Aplicarlo al lanzador y al objeto soltado desde un robot en movimiento
-widgets: [ProjectileWidget, ExerciseWidget]
-requiredExercises: [e1, e2, e3, e4]
-references: [young-freedman-3, serway-4]
+  - Convertir la velocidad angular de la rueda en velocidad lineal del robot
+  - Invertir la relación para obtener las rpm necesarias para una velocidad
+  - Componer la cadena motor → reducción → rueda → robot
+widgets: [RotationWidget, ExerciseWidget, MyRobotWidget]
+requiredExercises: [e1, e2, e3]
+references: [young-freedman-9, siegwart-3]
 status: published
-seoTitle: "Tiro parabólico: alcance y altura máxima de un proyectil"
-seoDescription: "Aprende a separar el movimiento en x e y para calcular el alcance, la altura máxima y el punto de caída de un objeto lanzado con ángulo."
+seoTitle: "Cómo calcular la velocidad de un robot con las rpm del motor"
+seoDescription: "Aprende a convertir las rpm del motor en la velocidad de avance de tu robot pasando por la reducción y el radio de la rueda."
 ---
 
 <Gancho>
-Un robot lanzador dispara una pelota a 4 m/s con 40° desde 0.3 m de altura: ¿dónde cae? Y si el
-robot avanza mientras suelta una pieza, ¿dónde cae la pieza?
+Tu motor gira a 6000 rpm, la reducción es 30:1 y la rueda mide 32 mm de radio. ¿A qué velocidad
+avanza tu robot? Aquí cierras la cadena completa: del motor a la v_max que ya conociste en
+Vectores.
 </Gancho>
 
 <Concepto>
-Una pelota lanzada se mueve en x y en y a la vez, pero cada componente va por su cuenta. En
-horizontal no hay aceleración: vₓ = v₀·cosα no cambia en todo el vuelo y x avanza como en un MRU.
-En vertical la aceleración es −g: v_y = v₀·sinα − g·t, y la altura sigue un MRUA.
+Una rueda que rueda **sin deslizamiento** no resbala sobre el suelo: el punto que toca el suelo
+está, en ese instante, en reposo respecto a él. La rueda gira alrededor de ese punto, y su
+centro, a la distancia r, avanza con velocidad v = ω·r.
 
-Las dos componentes comparten el tiempo t. x(t) e y(t) son las **ecuaciones paramétricas** de la
-trayectoria: a cada instante le corresponde un punto (x, y), y la curva que dibujan es una
-parábola.
+En cada vuelta, la rueda apoya en el suelo todo su perímetro. Sin deslizar, el robot avanza
+exactamente 2π·r por vuelta. Con r = 0.032 m, son 0.201 m.
 
-La pelota toca el suelo cuando y = 0. Si sale desde una altura h, esa condición es una ecuación
-cuadrática en t: h + v₀·sinα·t − ½·g·t² = 0. Tiene dos raíces. La negativa es un instante
-anterior al lanzamiento y no tiene sentido físico. La positiva es el **tiempo de vuelo** t_v.
+Si la rueda da n_rueda vueltas por minuto, el robot avanza n_rueda perímetros por minuto. Entre
+60 s: v = 2π·r·n_rueda/60. Es la misma v = ω·r, con ω = n_rueda·2π/60 de
+[Movimiento circular y velocidad angular](/ruta/ruta-1/m01/t03).
 
-Con t_v sale el **alcance** R = vₓ·t_v, la distancia horizontal hasta el impacto. La **altura
-máxima** H se alcanza cuando v_y = 0, en t = v₀·sinα/g, y vale h más lo que sube la pelota. Con
-h = 0, el alcance se reduce a R = v₀²·sin2α/g: crece con el cuadrado de v₀ y es máximo a 45°.
+La rueda no gira a la velocidad del motor. El motorreductor divide la velocidad de giro del
+motor entre su relación de reducción i: n_rueda = n_motor/i. La cadena completa va del dato de
+la hoja del motor a la velocidad del robot: n_motor → n_rueda = n_motor/i →
+ω = n_rueda·2π/60 → v = ω·r.
 
-Con los datos del gancho, vₓ = 4·cos40° = 3.06 m/s y v_y empieza en 4·sin40° = 2.57 m/s. La
-pelota sube hasta H = 0.637 m, vuela t_v = 0.622 s y cae a R = 1.91 m del punto de lanzamiento.
+Con los datos del gancho, la rueda gira a 6000/30 = 200 rpm. Eso son 200·2π/60 = 20.94 rad/s,
+y el robot avanza a 20.94·0.032 = 0.670 m/s.
 
-Un objeto soltado desde un robot en movimiento no cae en vertical. Mientras lo sujeta la pinza,
-va a la velocidad del robot. Al soltarlo conserva esa vₓ, y v_y empieza en cero: es un tiro con
-α = 0, y el objeto cae por delante del punto donde se soltó.
+La cadena también se recorre al revés. Para que tu robot avance a una velocidad v, cada rueda
+necesita ω = v/r, y de ahí salen sus rpm: n_rueda = ω·60/(2π). Para 1 m/s con r = 0.032 m,
+ω = 31.25 rad/s, unas 298 rpm.
 
-La energía de este movimiento se estudia en el Módulo 3.
+Todo lo anterior supone que la rueda no patina. Si patina, por ejemplo al arrancar sobre una
+superficie lisa, el punto de contacto resbala hacia atrás y el robot avanza menos de un
+perímetro por vuelta: v < ω·r. La rueda gira igual, pero el robot va más lento de lo que da la
+fórmula.
 </Concepto>
 
 <Formulas>
-<Formula latex="x = v_0\cos\alpha\ t" />
+<Formula latex="v = \omega\,r" />
 
-- `x` · posición · m
-- `v₀` · velocidad inicial · m/s
-- `α` · ángulo de lanzamiento · rad
-- `t` · tiempo · s
+- `v` · velocidad lineal · m/s
+- `ω` · velocidad angular · rad/s
+- `r` · radio de rueda · m
 
-<Formula latex="y = h + v_0\sin\alpha\ t - \tfrac12 g t^2" />
+<Formula latex="v = \frac{2\pi r\,n_{rueda}}{60}" />
 
-- `y` · posición · m
-- `h` · altura inicial · m
-- `v₀` · velocidad inicial · m/s
-- `α` · ángulo de lanzamiento · rad
-- `g` · aceleración gravitatoria · m/s²
-- `t` · tiempo · s
+- `v` · velocidad lineal · m/s
+- `r` · radio de rueda · m
+- `n_rueda` · velocidad de giro de la rueda · rpm (dato de entrada, no SI)
 
-<Formula latex="t_v = \frac{v_0\sin\alpha + \sqrt{(v_0\sin\alpha)^2 + 2gh}}{g}" />
+<Formula latex="n_{rueda} = \frac{n_{motor}}{i}" />
 
-- `t_v` · tiempo de vuelo · s
-- `v₀` · velocidad inicial · m/s
-- `α` · ángulo de lanzamiento · rad
-- `g` · aceleración gravitatoria · m/s²
-- `h` · altura inicial · m
+- `n_rueda` · velocidad de giro de la rueda · rpm (dato de entrada, no SI)
+- `n_motor` · velocidad de giro del motor · rpm (dato de entrada, no SI)
+- `i` · relación de reducción · —
 
-<Formula latex="R = v_0\cos\alpha\ t_v" />
+<Formula latex="v = \frac{2\pi r\,n_{motor}}{60\,i}" />
 
-- `R` · alcance horizontal · m
-- `v₀` · velocidad inicial · m/s
-- `α` · ángulo de lanzamiento · rad
-- `t_v` · tiempo de vuelo · s
+- `v` · velocidad lineal · m/s
+- `r` · radio de rueda · m
+- `n_motor` · velocidad de giro del motor · rpm (dato de entrada, no SI)
+- `i` · relación de reducción · —
 
-<Formula latex="H = h + \frac{(v_0\sin\alpha)^2}{2g}" />
+<Formula latex="\omega = \frac{v}{r}" />
 
-- `H` · altura máxima · m
-- `h` · altura inicial · m
-- `v₀` · velocidad inicial · m/s
-- `α` · ángulo de lanzamiento · rad
-- `g` · aceleración gravitatoria · m/s²
-
-Con h = 0:
-
-<Formula latex="R = \frac{v_0^2\sin 2\alpha}{g}" />
-
-- `R` · alcance horizontal · m
-- `v₀` · velocidad inicial · m/s
-- `α` · ángulo de lanzamiento · rad
-- `g` · aceleración gravitatoria · m/s²
-El ángulo se da en grados; 180° = π rad. Pon la calculadora en grados.
+- `ω` · velocidad angular · rad/s
+- `v` · velocidad lineal · m/s
+- `r` · radio de rueda · m
 </Formulas>
 
 <Explora>
-La vista lateral muestra la pelota del gancho, con v₀ = 4 m/s, α = 40° y h = 0.3 m: la
-trayectoria, una marca cada 0.1 s y los vectores v, vₓ y v_y. Hay dos lanzamientos, A y B, que
-empiezan iguales y tienen sus propios controles. El selector de situación cambia a una pieza
-soltada desde un robot que avanza a 0.6 m/s.
+Una rueda de radio r = 0.032 m rueda sin deslizar a 200 rpm: la rueda del robot de referencia.
+La traza marca el camino del centro. El panel muestra el avance del centro, las vueltas, ω en
+rad/s y en rpm y la velocidad del borde, que al rodar sin deslizar es la v del robot.
 
-<ProjectileWidget
-  mode="launch"
-  modes={['launch', 'dropFromRobot']}
-  initial={{ v0_mps: 4, launchAngle_rad: 0.698, h_m: 0.3, vRobot_mps: 0.6 }}
-  showVectors={['v', 'vx', 'vy']}
-  overlay
-/>
+<RotationWidget mode="rolling" inputUnit="rpm" initial={{ omega_radps: 20.94, r_m: 0.032 }} />
 
 <Experimento
-  cambia="h de A a 0 m y después v₀ de A de 4 a 8 m/s"
-  observa="el alcance de A"
-  porque="¿Por qué se multiplica por 4 al duplicar v₀?"
+  cambia="el tiempo: reinicia y reproduce una vuelta completa, 0.3 s a 200 rpm"
+  observa="el avance del centro"
+  porque="¿Por qué avanza 0.201 m?"
 >
-Con h = 0, el alcance es R = v₀²·sin2α/g: depende del cuadrado de v₀. Duplicar v₀ multiplica R
-por 2² = 4. Con α = 40°, pasa de 1.61 m a 6.42 m.
+Sin deslizar, cada punto del perímetro toca el suelo una vez por vuelta. El centro avanza lo
+mismo que el perímetro apoyado: 2π·r = 2π·0.032 = 0.201 m.
 </Experimento>
 
 <Experimento
-  cambia="h a 0 m en A y en B, el ángulo de A a 30° y el de B a 60°"
-  observa="el alcance de A y el de B"
-  porque="¿Por qué caen en el mismo punto?"
+  cambia="r al doble, de 0.032 a 0.064 m, con la misma velocidad de giro"
+  observa="la velocidad v del robot"
+  porque="¿Por qué v se duplica?"
 >
-Con h = 0, R depende de sin2α, y sin60° = sin120°: dos ángulos que suman 90° dan el mismo
-alcance, 1.41 m con v₀ = 4 m/s. El lanzamiento a 60° sube más y vuela más tiempo, pero avanza más
-despacio en horizontal.
+Con ω fija, v = ω·r es proporcional a r. En el mismo tiempo la rueda da las mismas vueltas, pero
+cada una apoya el doble de perímetro. v pasa de 0.670 m/s a 1.34 m/s.
 </Experimento>
 
 <Experimento
-  cambia="el tiempo, del lanzamiento al impacto"
-  observa="el vector vₓ durante todo el vuelo"
-  porque="¿Por qué vₓ nunca cambia?"
+  cambia="r de vuelta a 0.032 m y fija v = 1 m/s con el control v"
+  observa="ω en rad/s y en rpm"
+  porque="¿Por qué la rueda necesita 31.25 rad/s?"
 >
-En horizontal no hay aceleración: la gravedad solo cambia v_y. Por eso vₓ = v₀·cosα = 3.06 m/s
-en todo el vuelo, mientras v_y pasa de positiva a negativa.
-</Experimento>
-
-<Experimento
-  cambia="la situación a «Soltar desde robot» en el selector, con h = 0.3 m"
-  observa="dónde cae la pieza respecto al punto de suelta"
-  porque="¿Por qué cae por delante y no justo debajo de ese punto?"
->
-Al soltarla, la pieza conserva la vₓ = 0.6 m/s del robot, y v_y empieza en cero. Mientras cae,
-√(2·0.3/9.81) = 0.247 s, avanza 0.6·0.247 = 0.148 m. El robot avanza lo mismo, así que la pieza
-toca el suelo justo debajo de la pinza.
+El control v fija ω = v/r. Con r = 0.032 m, ω = 1/0.032 = 31.25 rad/s, que son
+31.25·60/(2π) = 298 rpm.
 </Experimento>
 </Explora>
 
 <AlRobot>
-Tu robot lleva una pieza en la pinza, a h = 0.25 m del suelo, y avanza a su velocidad lineal
-máxima v_max, la que calculaste en [Vectores](/ruta/ruta-1/m00/t02). Si abre la pinza justo
-encima del objetivo, la pieza no cae ahí.
+Aquí cierras la cadena completa: del motor a la v_max que ya conociste en Vectores. La
+tarjeta resume tu perfil de «Mi robot», del que salen la velocidad sin carga del motor n_motor,
+la relación de reducción i y el radio r de la rueda.
 
-Al soltarla, la pieza conserva la vₓ del robot y cae como un tiro con α = 0. Tarda
-t_caída = √(2h/g) en llegar al suelo, y en ese tiempo avanza en horizontal Δx = v_max·t_caída:
+<MyRobotWidget mode="card" />
 
-<RobotFormula calc="ruta-1/m01-t04/drop-lead" />
+Si tu perfil de «Mi robot» no es un robot móvil, el cálculo usa el robot de referencia.
 
-v_max sale de la velocidad del motor, la reducción y el radio de rueda de tu perfil de «Mi
-robot». Si tu perfil no es un robot móvil, el cálculo usa el robot de referencia.
+Primero, el motorreductor reduce la velocidad de giro del motor:
 
-Con el robot de referencia, v_max = 0.670 m/s y la pieza tarda 0.2258 s en caer. Aterriza
-0.670·0.2258 = 0.151 m por delante del punto de suelta. Para que caiga sobre el objetivo, tu robot
-tiene que abrir la pinza 0.151 m antes de llegar a él.
+<RobotFormula calc="ruta-1/m01-t04/wheel-speed" />
 
-El adelanto no depende de la masa de la pieza. Crece con v_max y con la raíz de h: con la pinza a
-0.0625 m, la cuarta parte de la altura, Δx baja a la mitad, 0.0757 m.
+Después, la velocidad de giro de la rueda pasa a rad/s. Con el motor sin carga es ω_max, la
+velocidad angular máxima de la rueda:
+
+<RobotFormula calc="ruta-1/m01-t04/omega-max" />
+
+Por último, sin deslizamiento, la rueda convierte ω_max en v_max, la velocidad lineal máxima del
+robot:
+
+<RobotFormula calc="ruta-1/m01-t04/v-max" />
+
+Con el robot de referencia, 6000 rpm con i = 30 dejan la rueda a 200 rpm, es decir,
+20.94 rad/s, y el robot avanza a v_max = 0.670 m/s. A esa velocidad, una pista recta de 4 m le
+lleva:
+
+<RobotFormula calc="ruta-1/m01-t04/track-time" />
+
+Es el tiempo mínimo: supone todo el trayecto a v_max, sin la rampa de arranque ni el frenado de
+[Movimiento uniformemente acelerado](/ruta/ruta-1/m01/t02). Si cambias el motor, la reducción o
+el radio de la rueda en tu perfil, las cuatro fórmulas se recalculan con tus datos.
 </AlRobot>
 
 <Verifica
-  ejercicios={[
-    'ruta-1/m01-t04/e1',
-    'ruta-1/m01-t04/e2',
-    'ruta-1/m01-t04/e3',
-    'ruta-1/m01-t04/e4',
-    'ruta-1/m01-t04/e5',
-  ]}
+  ejercicios={['ruta-1/m01-t04/e1', 'ruta-1/m01-t04/e2', 'ruta-1/m01-t04/e3', 'ruta-1/m01-t04/e4']}
   topicId="ruta-1/m01-t04"
-  obligatorios={['e1', 'e2', 'e3', 'e4']}
+  obligatorios={['e1', 'e2', 'e3']}
 />
 
-<Profundiza referencias={['young-freedman-3', 'serway-4']} topicId="ruta-1/m01-t04" />
+<Profundiza referencias={['young-freedman-9', 'siegwart-3']} topicId="ruta-1/m01-t04" />

@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import ruta1 from '../../../../../content/es/ruta-1/ruta.json' with { type: 'json' };
+import ruta2 from '../../../../../content/es/ruta-2/ruta.json' with { type: 'json' };
 import {
   cellOf,
+  matrixRoutes,
   progressMatrix,
   type MatrixMember,
   type MatrixTopic,
@@ -9,8 +12,8 @@ import {
 } from './progressMatrix';
 
 const TOPICS: readonly MatrixTopic[] = [
-  { id: 'ruta-1/m00-t01', moduleId: 'm00', moduleTitle: 'Herramientas', title: 'Unidades' },
-  { id: 'ruta-1/m00-t02', moduleId: 'm00', moduleTitle: 'Herramientas', title: 'Vectores' },
+  { id: 'ruta-1/m00-t01', moduleId: 'ruta-1/m00', moduleTitle: 'Herramientas', title: 'Unidades' },
+  { id: 'ruta-1/m00-t02', moduleId: 'ruta-1/m00', moduleTitle: 'Herramientas', title: 'Vectores' },
 ];
 
 const MEMBERS: readonly MatrixMember[] = [
@@ -111,5 +114,50 @@ describe('progressMatrix (F3-02b)', () => {
       { userId: 'ana', completed: 0, total: 0 },
       { userId: 'luis', completed: 0, total: 0 },
     ]);
+  });
+});
+
+// docs/ARCHITECTURE.md §3.2, «Aula con dos rutas»: the classroom reads both routes and the table,
+// the summary and the CSV are those of the route chosen in the selector.
+describe('matrixRoutes and the progress of each route (#574)', () => {
+  const routes = matrixRoutes([ruta2, ruta1]);
+
+  it('lists Fundamentos first and Robot móvil second, with 14 and 11 topics', () => {
+    expect(routes.map(({ id, shortTitle, topics }) => [id, shortTitle, topics.length])).toEqual([
+      ['ruta-1', 'Fundamentos', 14],
+      ['ruta-2', 'Robot móvil', 11],
+    ]);
+  });
+
+  it('keeps the order of ruta.json and prefixes the module with its route', () => {
+    const [fundamentos, movil] = routes;
+    expect(fundamentos?.topics[0]).toEqual({
+      id: 'ruta-1/m00-t01',
+      moduleId: 'ruta-1/m00',
+      moduleTitle: 'Herramientas',
+      title: 'Unidades y magnitudes',
+    });
+    expect(movil?.topics[0]).toEqual({
+      id: 'ruta-2/m00-t01',
+      moduleId: 'ruta-2/m00',
+      moduleTitle: 'Medir y ubicar',
+      title: 'Encoders',
+    });
+  });
+
+  it('counts a student over the chosen route only: 1/14 in Fundamentos, 1/11 in Robot móvil', () => {
+    const rows: ProgressRow[] = [
+      COMPLETED_ROW,
+      { ...COMPLETED_ROW, topic_id: 'ruta-2/m00-t01' },
+      { ...COMPLETED_ROW, topic_id: 'ruta-2/m00-t02', status: 'in_progress' },
+    ];
+    const [fundamentos, movil] = routes;
+    const first = progressMatrix(fundamentos?.topics ?? [], MEMBERS, rows);
+    const second = progressMatrix(movil?.topics ?? [], MEMBERS, rows);
+
+    expect(first.summary[0]).toEqual({ userId: 'ana', completed: 1, total: 14 });
+    expect(first.cells.has('ruta-2/m00-t01')).toBe(false);
+    expect(second.summary[0]).toEqual({ userId: 'ana', completed: 1, total: 11 });
+    expect(cellOf(second, 'ruta-2/m00-t02', 'ana').status).toBe('in_progress');
   });
 });

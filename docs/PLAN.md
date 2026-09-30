@@ -143,7 +143,7 @@ Detalle en `STANDARDS.md`, `DEFINITION-OF-DONE.md`, `CLAUDE.md`, `templates/`.
 - Regla número uno: **si no está en `docs/`, no existe.** Un agente no inventa alcance ni arquitectura. Ante un vacío, abre un issue "spec gap" y se detiene.
 - Un ticket = un PR. `main` protegida. Conventional Commits. Squash merge.
 - Tablero: Backlog → Ready → En progreso → QA → Auditoría → Done.
-- Roles: orquestador (modelo fuerte, nunca codifica), desarrollador (económico), QA (económico, verifica contra la spec, no arregla), auditor de código (medio), auditor de coherencia (fuerte, por módulo), seguridad (medio, todo PR que toque auth, base o subidas), humano (gate de infra, config, secretos, migraciones y docs; califica cada PR).
+- Roles: orquestador (nunca codifica), especificación, desarrollador de código y de contenido, QA (verifica contra la spec, no arregla), auditor de código, auditor de coherencia, seguridad (todo PR que toque auth, base o subidas), humano (gate de infra, config, secretos, migraciones y docs; califica cada PR). Modelo y esfuerzo de cada rol en [`docs/ops/AGENTS.md`](ops/AGENTS.md).
 - El humano mergea solo PRs críticos: infra, auth, base, docs. El resto lo mergea el orquestador tras QA y auditoría aprobadas.
 - Idiomas: código, identificadores y commits en inglés; documentación del proyecto y contenido en español.
 

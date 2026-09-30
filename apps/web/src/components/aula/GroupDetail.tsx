@@ -11,7 +11,7 @@ import {
   type Group,
   type Member,
 } from '../../lib/aula/groups';
-import type { MatrixTopic } from '../../lib/aula/progressMatrix';
+import type { MatrixRoute } from '../../lib/aula/progressMatrix';
 import { INPUT_CLASS, SECONDARY_BUTTON } from '../auth/fields';
 import { InviteCode } from './InviteCode';
 import { ConfirmInline, GHOST_BUTTON, MemberList } from './MemberList';
@@ -20,8 +20,8 @@ import { ProgressTable } from './ProgressTable';
 export interface GroupDetailProps {
   readonly ownerId: string;
   readonly group: Group;
-  /** Topics of the route, in the order of `ruta.json`, for the progress table (F3-02b). */
-  readonly topics: readonly MatrixTopic[];
+  /** The routes and their topics, for the progress table and its route selector (#574). */
+  readonly routes: readonly MatrixRoute[];
   /** Re-reads the groups after a rename or a new code, so the list stays in step. */
   readonly onChanged: () => Promise<void>;
   /** Called after the group is deleted; the island goes back to the list. */
@@ -209,7 +209,7 @@ function groupActions(
 /** Detail of one group: editable name, invite code, members and progress (F3-02a, F3-02b). */
 export function GroupDetail(props: GroupDetailProps): JSX.Element {
   const t = useT();
-  const { group, topics } = props;
+  const { group, routes } = props;
   const state = useGroupDetail(group.id);
   const { members, error, status } = state;
   const { rename, drop, regenerate, remove } = groupActions(props, state, t('aula.detail.renamed'));
@@ -219,7 +219,7 @@ export function GroupDetail(props: GroupDetailProps): JSX.Element {
       <NameForm initialName={group.name} onRename={rename} onDelete={drop} />
       <InviteCode code={group.inviteCode} onRegenerate={regenerate} />
       <MemberList members={members} onRemove={remove} />
-      <ProgressTable groupName={group.name} members={members} topics={topics} />
+      <ProgressTable groupName={group.name} members={members} routes={routes} />
       <StatusLine error={error} status={status} />
     </div>
   );

@@ -4,7 +4,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 // representative pages. The axe run of the same acceptance criterion waits for #434.
 const PAGES = [
   { url: '/', ready: (page: Page) => page.getByRole('heading', { level: 1 }) },
-  { url: '/ruta/ruta-1/m05/t02', ready: (page: Page) => page.getByTestId('scene2d') },
+  { url: '/ruta/ruta-2/m01/t01', ready: (page: Page) => page.getByTestId('scene2d') },
   { url: '/simuladores/movil', ready: (page: Page) => page.getByTestId('line-follower-view') },
   { url: '/simuladores/brazo', ready: (page: Page) => page.getByTestId('scene3d') },
   { url: '/cuenta', ready: (page: Page) => page.getByRole('heading', { level: 1 }) },
@@ -110,7 +110,7 @@ test('/simuladores/movil: play, a slider and a toggle work from the keyboard', a
   await expect(pid).toHaveAttribute('aria-pressed', 'true');
 });
 
-test('/ruta/ruta-1/m05/t02: the robot handle moves with the arrows', async ({ page }) => {
+test('/ruta/ruta-2/m01/t01: the robot handle moves with the arrows', async ({ page }) => {
   await open(page, PAGES[1]);
   const handle = page.getByTestId('scene-overlay').getByRole('button');
   const summary = page.getByRole('status').filter({ hasText: /El robot está en/ });
