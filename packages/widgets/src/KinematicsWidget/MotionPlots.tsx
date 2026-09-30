@@ -5,7 +5,7 @@ import { Plot } from '../Plot/Plot';
 import type { PlotAxis, PlotMarker, PlotSegment, PlotSeries } from '../Plot/types';
 import type { MotionSamples, TangentSegment } from './compute';
 
-/** Height of each of the three stacked charts, in CSS pixels (docs/DESIGN.md §5: 200). */
+/** Height of each of the three charts, in CSS pixels (docs/DESIGN.md §5: 200). */
 const PLOT_HEIGHT_PX = 200;
 /** Decimals of the slope shown next to the tangent. */
 const SLOPE_DECIMALS = 2;
@@ -40,7 +40,7 @@ function tangentSegments(
   ];
 }
 
-/** The single series of each chart, in the order they are stacked: `x`, `v`, `a`. */
+/** The single series of each chart, in reading order: `x`, `v`, `a`. */
 function seriesOf(samples: MotionSamples, t: Translate): readonly PlotSeries[] {
   return [
     {
@@ -67,9 +67,9 @@ function seriesOf(samples: MotionSamples, t: Translate): readonly PlotSeries[] {
 }
 
 /**
- * The three charts of the widget — `x–t`, `v–t` and `a–t` — stacked and sharing one time
- * marker, so moving it moves all three at once (docs/WIDGETS.md, KinematicsWidget). Only the
- * first one carries the tangent segment.
+ * The three charts of the widget — `x–t`, `v–t` and `a–t` — sharing one time marker, so moving it
+ * moves all three at once (docs/WIDGETS.md, KinematicsWidget); the caller lays them out in a row
+ * or a column (#544). Only the first one carries the tangent segment.
  */
 export function MotionPlots({
   samples,

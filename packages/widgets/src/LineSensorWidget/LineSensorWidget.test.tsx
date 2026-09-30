@@ -118,4 +118,10 @@ describe('LineSensorWidget (T-6.1)', () => {
     const sentences = screen.getAllByRole('status').map((node) => node.textContent);
     expect(sentences).toContain('La línea está en p = 0.000, a 0.0000 m del centro del arreglo');
   });
+  test('la descripción de la escena da el desplazamiento y el giro redondeados (#550)', () => {
+    render(<LineSensorWidget initialOffset_m={0.1 + 0.2 - 0.29} initialAngle_rad={0.1 + 0.2} />);
+    const scene = screen.getByRole('img', { name: /^Vista cenital/ });
+    expect(scene).toHaveAccessibleName(expect.stringContaining('desplazada 0.0100 m'));
+    expect(scene).toHaveAccessibleName(expect.stringContaining('girada 0.300 rad'));
+  });
 });

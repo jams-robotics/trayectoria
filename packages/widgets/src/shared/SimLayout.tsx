@@ -36,8 +36,10 @@ interface LayoutClasses {
  * with the values capped at 50vh (the viewer's max height) and scrolling inside only beyond that
  * cap (#386). The parameters form a 2 column grid: an A/B `ParamGrid`
  * dissolves into it, and a lone panel with 4 or more sliders spans both columns and lays its
- * sliders out in 2 columns. Focusable controls below the row keep a scroll margin so the
- * keyboard focus is not hidden under it (§8).
+ * sliders out in 2 columns. Focusable controls below the row (inputs, selects, buttons and the
+ * `role="slider"` markers of the charts) keep a scroll margin so the keyboard focus, or a
+ * scroll into view, is not hidden under it (§8; the markers since #544, whose 16/9 viewer
+ * makes the row taller than the old strip).
  *
  * Below the breakpoint every wrapper dissolves (`contents`) and the orders rebuild the single
  * column: viewer (with the playback controls right under it), values, parameters, and only then
@@ -52,9 +54,9 @@ const CLASSES: Readonly<Record<SimLayoutBreakpoint, LayoutClasses>> = {
     values: 'max-md:order-3 md:w-panel',
     valuesScroll: 'flex flex-col gap-4 md:max-h-[50vh] md:overflow-y-auto',
     params:
-      'flex min-w-0 flex-col gap-4 max-md:order-4 md:grid md:grid-cols-2 md:items-start md:[&>[data-param-grid]]:contents md:[&>[data-layout=stack]:only-child:has(>div>:nth-child(4))]:col-span-2 md:[&>:only-child:not([data-param-grid]):has([data-layout=stack]>div>:nth-child(4))]:col-span-2 md:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid md:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid-cols-2 md:[@media(min-height:640px)]:[&_:is(input,select,button)]:scroll-mt-[calc(50vh+64px)]',
+      'flex min-w-0 flex-col gap-4 max-md:order-4 md:grid md:grid-cols-2 md:items-start md:[&>[data-param-grid]]:contents md:[&>[data-layout=stack]:only-child:has(>div>:nth-child(4))]:col-span-2 md:[&>:only-child:not([data-param-grid]):has([data-layout=stack]>div>:nth-child(4))]:col-span-2 md:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid md:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid-cols-2 md:[@media(min-height:640px)]:[&_:is(input,select,button,[role=slider])]:scroll-mt-[calc(50vh+64px)]',
     extras:
-      'flex min-w-0 flex-col gap-4 max-md:contents md:[@media(min-height:640px)]:[&_:is(input,select,button)]:scroll-mt-[calc(50vh+64px)]',
+      'flex min-w-0 flex-col gap-4 max-md:contents md:[@media(min-height:640px)]:[&_:is(input,select,button,[role=slider])]:scroll-mt-[calc(50vh+64px)]',
     anchor: {
       afterViewerFirst: 'max-md:order-1',
       afterViewer: 'max-md:order-5',
@@ -68,9 +70,9 @@ const CLASSES: Readonly<Record<SimLayoutBreakpoint, LayoutClasses>> = {
     values: 'max-lg:order-3 lg:w-panel',
     valuesScroll: 'flex flex-col gap-4 lg:max-h-[50vh] lg:overflow-y-auto',
     params:
-      'flex min-w-0 flex-col gap-4 max-lg:order-4 lg:grid lg:grid-cols-2 lg:items-start lg:[&>[data-param-grid]]:contents lg:[&>[data-layout=stack]:only-child:has(>div>:nth-child(4))]:col-span-2 lg:[&>:only-child:not([data-param-grid]):has([data-layout=stack]>div>:nth-child(4))]:col-span-2 lg:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid lg:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid-cols-2 lg:[@media(min-height:640px)]:[&_:is(input,select,button)]:scroll-mt-[calc(50vh+64px)]',
+      'flex min-w-0 flex-col gap-4 max-lg:order-4 lg:grid lg:grid-cols-2 lg:items-start lg:[&>[data-param-grid]]:contents lg:[&>[data-layout=stack]:only-child:has(>div>:nth-child(4))]:col-span-2 lg:[&>:only-child:not([data-param-grid]):has([data-layout=stack]>div>:nth-child(4))]:col-span-2 lg:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid lg:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid-cols-2 lg:[@media(min-height:640px)]:[&_:is(input,select,button,[role=slider])]:scroll-mt-[calc(50vh+64px)]',
     extras:
-      'flex min-w-0 flex-col gap-4 max-lg:contents lg:[@media(min-height:640px)]:[&_:is(input,select,button)]:scroll-mt-[calc(50vh+64px)]',
+      'flex min-w-0 flex-col gap-4 max-lg:contents lg:[@media(min-height:640px)]:[&_:is(input,select,button,[role=slider])]:scroll-mt-[calc(50vh+64px)]',
     anchor: {
       afterViewerFirst: 'max-lg:order-1',
       afterViewer: 'max-lg:order-5',

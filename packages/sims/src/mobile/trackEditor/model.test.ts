@@ -19,6 +19,7 @@ import {
   setArcDirection,
   setLineWidth,
   setRadius,
+  viewCenter_m,
 } from './model';
 import { continuity } from './continuity';
 
@@ -97,7 +98,10 @@ describe('track editor model (F4-01a)', () => {
     const line = moveEndpoint(addLine(emptyEditor(), ORIGIN, RIGHT), 0, 'to', [0.3, 0.1]);
     expect(line.track.segments[0]).toEqual({ type: 'line', from: ORIGIN, to: [0.3, 0.1] });
 
-    const arc = arcAt(moveEndpoint(addArc(emptyEditor(), ORIGIN, RIGHT, 0.1, true), 0, 'from', [0, 0.1]), 0);
+    const arc = arcAt(
+      moveEndpoint(addArc(emptyEditor(), ORIGIN, RIGHT, 0.1, true), 0, 'from', [0, 0.1]),
+      0,
+    );
     const [from, to] = segmentEndpoints(arc);
     expect(from[0]).toBeCloseTo(0, 9);
     expect(from[1]).toBeCloseTo(0.1, 9);
@@ -171,5 +175,48 @@ describe('setArcDirection (#159)', () => {
     const state = addLine(emptyEditor(), ORIGIN, RIGHT);
     expect(setArcDirection(state, 0, true)).toBe(state);
     expect(setArcDirection(state, 7, true)).toBe(state);
+  });
+});
+
+// #552: the canvas frames the track it opens with; the centre is that of its bounding box.
+describe('viewCenter_m (#552)', () => {
+  it('is null for a track with no segments', () => {
+    expect(viewCenter_m(emptyEditor().track)).toBeNull();
+  });
+
+  it('golden: the oval spans x ∈ [-0.25, 0.85] and y ∈ [0, 0.5], so its centre is (0.3, 0.25)', () => {
+    const center = viewCenter_m(oval);
+    expect(center?.[0]).toBeCloseTo(0.3, 12);
+    expect(center?.[1]).toBeCloseTo(0.25, 12);
+  });
+
+  it('a straight is bounded by its two ends', () => {
+    const center = viewCenter_m(addLine(emptyEditor(), ORIGIN, RIGHT).track);
+    expect(center?.[0]).toBeCloseTo(0.1, 12);
+    expect(center?.[1]).toBeCloseTo(0, 12);
+  });
+
+  it('an arc counts the cardinal point it sweeps through, not only its ends', () => {
+    // The right arc of the oval: from (0.6, 0) to (0.6, 0.5) through (0.85, 0.25).
+    const arc = oval.segments[1];
+    if (arc === undefined) throw new Error('the oval has four segments');
+    const center = viewCenter_m({ segments: [arc], lineWidth_m: PRESET_LINE_WIDTH_M });
+    expect(center?.[0]).toBeCloseTo(0.725, 12);
+    expect(center?.[1]).toBeCloseTo(0.25, 12);
+  });
+
+  it('a clockwise arc that stops at a cardinal point does not reach past it', () => {
+    // A quarter turn clockwise from π/2 to 0 around (0.3, -0.2): it never passes through π.
+    const arc: ArcSegment = {
+      type: 'arc',
+      center: [0.3, -0.2],
+      radius_m: 0.2,
+      startAngle_rad: Math.PI / 2,
+      endAngle_rad: 0,
+      ccw: false,
+    };
+    const center = viewCenter_m({ segments: [arc], lineWidth_m: PRESET_LINE_WIDTH_M });
+    expect(center?.[0]).toBeCloseTo(0.4, 12);
+    expect(center?.[1]).toBeCloseTo(-0.1, 12);
   });
 });

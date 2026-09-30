@@ -4,9 +4,10 @@ import type { Translate } from '@trayectoria/i18n';
 /** Where a response is in its life cycle (docs/DESIGN.md §5, Ejercicio). */
 export type ExerciseStatus = 'pending' | 'checking' | 'correct' | 'incorrect';
 
-// Numeric field of docs/DESIGN.md §5: mono, tabular-nums, 40 px high, unit as a muted suffix.
+// Numeric field of docs/DESIGN.md §5: mono, tabular-nums, unit as a muted suffix; 44 px high, the
+// height of «Comprobar» next to it (#540).
 const FIELD_BASE =
-  'bg-bg text-fg h-10 w-12 rounded-sm border px-2 text-right font-mono text-sm tabular-nums';
+  'bg-bg text-fg h-[44px] w-12 rounded-sm border px-2 text-right font-mono text-sm tabular-nums';
 const FIELD_BORDER: Readonly<Record<ExerciseStatus | 'invalid', string>> = {
   pending: 'border-border',
   checking: 'border-border',

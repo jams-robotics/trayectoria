@@ -25,7 +25,7 @@ export interface KinematicsWidgetProps {
   initialTime_s?: number;
 }
 
-/** The stacked charts of the motion, with the shared marker and the optional tangent. */
+/** The three charts of the motion, with the shared marker and the optional tangent. */
 function Charts({
   motion,
   timeline,
@@ -56,14 +56,22 @@ function Charts({
   );
 }
 
-/** The charts as an extra of the layout: full width under the sliders (docs/DESIGN.md §6). */
+/**
+ * The charts as an extra of the layout: full width under the sliders and, from the breakpoint,
+ * the three in one row; stacked in the mobile column (docs/DESIGN.md §6, #544).
+ */
 function ChartsExtra(props: Parameters<typeof Charts>[0]): JSX.Element {
   return (
-    <div className="flex min-w-0 flex-col gap-3 overflow-hidden">
+    <div className="grid min-w-0 gap-3 overflow-hidden lg:grid-cols-3" data-kinematics-charts="">
       <Charts {...props} />
     </div>
   );
 }
+
+// From the breakpoint the single panel spans both columns of the parameters and lays its sliders
+// out in one row, so every block of the widget shares the same width (docs/DESIGN.md §6, #544).
+const PARAMS_FULL_WIDTH =
+  'min-w-0 lg:col-span-2 lg:[&_[data-layout=stack]>div]:flex-row lg:[&_[data-layout=stack]>div]:gap-6';
 
 /** The viewer: the scene and, under it, the playback controls (docs/DESIGN.md §6). */
 function Viewer({
@@ -109,12 +117,14 @@ export function KinematicsWidget({
       values={<Values timeline={timeline} motion={motion} showTangent={showTangent} t={t} />}
       params={
         editable.length === 0 ? null : (
-          <ParamPanel
-            params={paramsOf(motion, editable, t)}
-            onChange={(key, value) => {
-              setMotion((current) => applyChange(current, key, value));
-            }}
-          />
+          <div className={PARAMS_FULL_WIDTH}>
+            <ParamPanel
+              params={paramsOf(motion, editable, t)}
+              onChange={(key, value) => {
+                setMotion((current) => applyChange(current, key, value));
+              }}
+            />
+          </div>
         )
       }
       extras={[
