@@ -163,7 +163,16 @@
       "why": "¿Por qué?",
       "answer": "Ver la respuesta"
     },
-    "references": "Referencias"
+    "references": "Referencias",
+    "closing": {
+      "title": "Lo que te llevas",
+      "exercises": "Ejercicios: {{correct}} de {{total}} correctos",
+      "next": "Siguiente: {{title}}",
+      "continueRoute": "Continuar con la ruta {{title}}",
+      "routeIndex": "Ver el índice de la ruta {{title}}",
+      "saveHint": "Con una cuenta, tu progreso se guarda.",
+      "register": "Crear una cuenta"
+    }
   },
   "teachersPage": {
     "title": "Trayectoria en clase",

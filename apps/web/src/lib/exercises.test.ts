@@ -2,7 +2,7 @@ import type * as Content from '@trayectoria/content';
 import { componentsExercise, trackTimeExercise } from '@trayectoria/widgets/ExerciseWidget';
 import { describe, expect, it, vi } from 'vitest';
 
-import { exerciseKeys, findExercise } from './exercises';
+import { exerciseKeys, findExercise, topicExerciseIds } from './exercises';
 
 // The real map of `@trayectoria/content` is empty until T-0.1: it is replaced by one built
 // with the real `registerTopics` and a test topic, outside `content/es/`.
@@ -27,5 +27,13 @@ describe('exercises registry', () => {
 
   it('returns undefined for an unknown key', () => {
     expect(findExercise('ruta-9/m99-t99/e2')).toBeUndefined();
+  });
+
+  it('lists the exercise ids of one topic, for its closing tally (#546)', () => {
+    expect(topicExerciseIds('ruta-9/m99-t99')).toEqual(['e1']);
+  });
+
+  it('lists no exercise ids for a topic outside the registry', () => {
+    expect(topicExerciseIds('ruta-9/m99-t98')).toEqual([]);
   });
 });

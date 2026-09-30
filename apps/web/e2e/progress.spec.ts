@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import common from '../../../packages/i18n/locales/es/common.json' with { type: 'json' };
 import auth from '../../../packages/i18n/locales/es/auth.json' with { type: 'json' };
 import progress from '../../../packages/i18n/locales/es/progress.json' with { type: 'json' };
 
@@ -98,8 +99,19 @@ test('anonymous: answering the exercise completes the topic and survives a reloa
     'href',
     '/auth/registro',
   );
+  // The closing block repeats it in one line (#546, decision 4).
+  // Its island is `client:visible`: the line only exists once the block is scrolled into view.
+  await page.getByTestId('topic-closing').scrollIntoViewIfNeeded();
+  const hint = page.getByTestId('closing-save-hint');
+  await expect(hint).toContainText(common.topic.closing.saveHint);
+  await expect(hint.getByRole('link', { name: common.topic.closing.register })).toHaveAttribute(
+    'href',
+    '/auth/registro',
+  );
 
   await answerCorrectly(page);
+  // The closing tally reads the same progress the exercise just recorded (#546, decision 2).
+  await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 1 de 1 correctos');
 
   await openHydrated(page, ROUTE_PATH);
   await expect(topicStatus(page)).toHaveAttribute('data-state', 'completed');
@@ -122,6 +134,9 @@ test('signed in: the topic completes, signing out hides it and signing in recove
   // With a session the notice is gone: the progress is stored for the account.
   await expect(page.getByTestId('progress-notice')).toHaveCount(0);
   await answerCorrectly(page);
+  await page.getByTestId('topic-closing').scrollIntoViewIfNeeded();
+  await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 1 de 1 correctos');
+  await expect(page.getByTestId('closing-save-hint')).toHaveCount(0);
 
   await openHydrated(page, ROUTE_PATH);
   await expect(topicStatus(page)).toHaveAttribute('data-state', 'completed');

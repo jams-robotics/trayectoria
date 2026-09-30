@@ -68,4 +68,18 @@ describe('Verifica exercise keys', () => {
       }
     }
   });
+
+  it('declares exactly the registered exercises of each topic, the closing tally total (#546)', () => {
+    for (const file of collectTopics()) {
+      const topicId = relative(contentDir, file)
+        .replace(/[\\/]index\.mdx$/, '')
+        .split('\\')
+        .join('/');
+      const declared = verificaKeys(readFileSync(file, 'utf8')).filter(
+        (key) => !key.startsWith(DEMO_KEY_PREFIX),
+      );
+      const registered = [...EXERCISES.keys()].filter((key) => key.startsWith(`${topicId}/`));
+      expect([...declared].sort(), topicId).toEqual(registered.sort());
+    }
+  });
 });

@@ -5,6 +5,8 @@ import { t } from '@trayectoria/i18n';
 
 import { temaComponents } from '../../../../components/tema';
 import Tema from '../../../../layouts/Tema.astro';
+import { nextStep } from '../../../../lib/closing';
+import { topicExerciseIds } from '../../../../lib/exercises';
 import { resolvePrerequisites, routeTopics } from '../../../../lib/routes';
 
 export const getStaticPaths = (async () => {
@@ -64,7 +66,7 @@ if (position === -1) {
 const prerequisites = resolvePrerequisites(topic.id, topic.data.prerequisites, routes, published);
 
 const { Content } = await render(topic);
-const { title, seoTitle, seoDescription, estimatedMinutes, module, order } = topic.data;
+const { title, seoTitle, seoDescription, estimatedMinutes, module, order, objectives } = topic.data;
 // Real progress arrives with F3-01; until then every topic of the route counts as pending.
 const DONE_TOPICS = 0;
 ---
@@ -83,6 +85,9 @@ const DONE_TOPICS = 0;
   total={ordered.length}
   previous={ordered[position - 1]}
   next={ordered[position + 1]}
+  objectives={objectives}
+  exerciseIds={topicExerciseIds(topic.id)}
+  nextStep={nextStep(ordered[position + 1], { ...route.data, id: route.id }, routes)}
 >
   <Content components={temaComponents} />
 </Tema>
