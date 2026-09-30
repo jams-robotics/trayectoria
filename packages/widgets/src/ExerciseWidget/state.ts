@@ -71,6 +71,8 @@ export interface ExerciseState {
   values: readonly string[];
   /** One unit for every field, or one per field (F1-10c). */
   unit: string | readonly string[];
+  /** i18n keys naming each field, one per component (#629); `undefined` numbers the fields. */
+  labels: readonly string[] | undefined;
   edit: (position: number, value: string) => void;
   verify: () => void;
   regenerate: () => void;
@@ -81,14 +83,14 @@ export function unitAt(unit: string | readonly string[], position: number): stri
   return typeof unit === 'string' ? unit : (unit[position] ?? '');
 }
 
-/** The instance drawn for a seed: how many fields to show and in which unit. */
+/** The instance drawn for a seed: how many fields to show, in which unit and with which labels. */
 function useInstance<V>(
   exercise: Exercise<V>,
   seed: number,
-): { count: number; unit: string | readonly string[] } {
+): { count: number; unit: string | readonly string[]; labels: readonly string[] | undefined } {
   return useMemo(() => {
-    const { answer, unit } = exercise.generate(createRng(seed));
-    return { count: Array.isArray(answer) ? answer.length : 1, unit };
+    const { answer, unit, labels } = exercise.generate(createRng(seed));
+    return { count: Array.isArray(answer) ? answer.length : 1, unit, labels };
   }, [exercise, seed]);
 }
 
@@ -217,7 +219,7 @@ export function useExercise<V>(
   const adapter = useProgressAdapter();
   const { seed, next } = useSeed(adapter, topicId, exercise.id, fixedSeed);
 
-  const { count, unit } = useInstance(exercise, seed);
+  const { count, unit, labels } = useInstance(exercise, seed);
   const [responses, setResponses] = useState<Responses>(EMPTY);
   const values =
     responses.values.length === count ? responses.values : Array<string>(count).fill('');
@@ -249,6 +251,7 @@ export function useExercise<V>(
     invalid: responses.invalid,
     values,
     unit,
+    labels,
     edit,
     verify,
     regenerate,

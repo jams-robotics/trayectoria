@@ -92,6 +92,7 @@ function AnswerRow({ state, t }: { state: ExerciseState; t: Translate }): JSX.El
           count={state.values.length}
           value={value}
           unit={unitAt(state.unit, position)}
+          label={state.labels?.[position]}
           status={status}
           invalid={state.invalid}
           t={t}
