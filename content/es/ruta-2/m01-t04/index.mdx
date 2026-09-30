@@ -4,7 +4,7 @@ title: 'Restricción no holonómica'
 module: 1
 order: 4
 estimatedMinutes: 25
-prerequisites: [ruta-2/m01-t01, ruta-2/m01-t02, ruta-1/m01-t03]
+prerequisites: [ruta-2/m01-t01, ruta-2/m01-t02, ruta-1/m01-t03, ruta-1/m00-t03]
 objectives:
   - Enunciar la restricción de rodadura sin deslizamiento lateral
   - Comprobar si una velocidad es admisible
@@ -127,8 +127,6 @@ La maniobra es realizable si los dos comandos quedan por debajo de la velocidad 
 tus ruedas, ω_max, la que calculaste en [Movimiento circular y velocidad angular](/ruta/ruta-1/m01/t03):
 
 <RobotFormula calc="ruta-2/m01-t04/feasibility" />
-
-Si tu perfil no es un robot móvil, los cálculos usan el robot de referencia.
 
 Con el robot de referencia, el giro pide ±9.375 rad/s y el avance 15.63 rad/s, los dos por debajo
 de ω_max = 20.94 rad/s: la maniobra es realizable y dura 1.185 s. El avance es el comando más

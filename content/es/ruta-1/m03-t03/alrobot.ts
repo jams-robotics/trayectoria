@@ -90,15 +90,37 @@ function currentAtMaxPower_A({ noLoadCurrent_A, stallCurrent_A }: Drive): number
 }
 
 /**
- * The rounding of the spec's golden values: one decimal from 10 up (628.3 rad/s, 85.4 min),
- * three significant figures below (0.335 m/s, 0.483) and four when the first digit is 1
- * (1.885 W, 1.423 h, 0.108 N·m). Trailing zeros are dropped (0.65 A, 7.8 W).
+ * Significant figures of each value, those of its golden value in the spec
+ * (docs/CONTENT-STANDARDS.md §2.5, #653): ω₀ 628.3 rad/s, P_max 1.885 W, τ_motor 0.006 N·m,
+ * τ_rueda 0.108 N·m, v 0.335 m/s, I 0.65 A, η_motor 0.483, P_el 7.8 W, 1.423 h, 85.4 min and
+ * 46.3 min. The speeds of the point (3000 rpm, 100 rpm) are written as whole numbers.
  */
-function format(value: number): string {
-  const magnitude = Math.abs(value);
-  if (magnitude >= 10) return String(Number(value.toFixed(1)));
-  const leadingDigit = Math.floor(magnitude / 10 ** Math.floor(Math.log10(magnitude)));
-  return String(Number(value.toPrecision(leadingDigit === 1 ? 4 : 3)));
+const FIGURES = {
+  omega: 4,
+  maxPower: 4,
+  motorTorque: 1,
+  wheelTorque: 3,
+  speed: 3,
+  current: 2,
+  efficiency: 3,
+  electricalPower: 2,
+  hours: 4,
+  minutes: 3,
+} as const;
+
+/**
+ * Padding zeros kept (0.400 N·m, never 0.4); a value with more integer digits than figures is
+ * written whole.
+ */
+function format(value: number, significantFigures: number): string {
+  return Math.abs(value) < 10 ** significantFigures
+    ? value.toPrecision(significantFigures)
+    : Math.round(value).toString();
+}
+
+/** A speed in rpm of the maximum power point, as a whole number (3000 rpm, 100 rpm). */
+function formatRpm(value: number): string {
+  return Math.round(value).toString();
 }
 
 const NM = String.raw`\ \text{N}\cdot\text{m}`;
@@ -117,13 +139,13 @@ export const maxPower: RobotCalc = {
   id: 'max-power',
   compute(robot) {
     const motorData = drive(robot);
-    const omega0 = format(noLoadSpeed_radps(motorData));
+    const omega0 = format(noLoadSpeed_radps(motorData), FIGURES.omega);
     return {
       latex: String.raw`P_{max} = \dfrac{\tau_s\,\omega_0}{4}`,
       substituted: aligned(
         String.raw`\omega_0 &= ${motorData.noLoadSpeed_rpm}${RPM} \cdot \dfrac{2\pi}{60} = ${omega0}${RADPS}`,
         String.raw`P_{max} &= \dfrac{${motorData.stallTorque_Nm}${NM} \cdot ${omega0}${RADPS}}{4}`,
-        String.raw`&= ${format(maxPower_W(motorData))}${W}`,
+        String.raw`&= ${format(maxPower_W(motorData), FIGURES.maxPower)}${W}`,
       ),
     };
   },
@@ -148,13 +170,13 @@ export const maxPowerPoint: RobotCalc = {
         String.raw`v &= \omega_{rueda}\,r`,
       ),
       substituted: aligned(
-        String.raw`n_{motor} &= \dfrac{${noLoadSpeed_rpm}${RPM}}{2} = ${format(motorSpeed_rpm)}${RPM}`,
-        String.raw`\tau_{motor} &= \dfrac{${stallTorque_Nm}${NM}}{2} = ${format(motorTorque_Nm)}${NM}`,
-        String.raw`n_{rueda} &= \dfrac{${format(motorSpeed_rpm)}${RPM}}{${gearRatio}} = ${format(wheelSpeed_rpm)}${RPM}`,
-        String.raw`\tau_{rueda} &= ${format(motorTorque_Nm)}${NM} \cdot ${gearRatio} \cdot ${gearboxEfficiency}`,
-        String.raw`&= ${format(wheelTorque_Nm)}${NM}`,
-        String.raw`v &= ${format(wheelSpeed_rpm)}${RPM} \cdot \dfrac{2\pi}{60} \cdot ${wheelRadius_m}\ \text{m}`,
-        String.raw`&= ${format(v_mps)}\ \text{m/s}`,
+        String.raw`n_{motor} &= \dfrac{${noLoadSpeed_rpm}${RPM}}{2} = ${formatRpm(motorSpeed_rpm)}${RPM}`,
+        String.raw`\tau_{motor} &= \dfrac{${stallTorque_Nm}${NM}}{2} = ${format(motorTorque_Nm, FIGURES.motorTorque)}${NM}`,
+        String.raw`n_{rueda} &= \dfrac{${formatRpm(motorSpeed_rpm)}${RPM}}{${gearRatio}} = ${formatRpm(wheelSpeed_rpm)}${RPM}`,
+        String.raw`\tau_{rueda} &= ${format(motorTorque_Nm, FIGURES.motorTorque)}${NM} \cdot ${gearRatio} \cdot ${gearboxEfficiency}`,
+        String.raw`&= ${format(wheelTorque_Nm, FIGURES.wheelTorque)}${NM}`,
+        String.raw`v &= ${formatRpm(wheelSpeed_rpm)}${RPM} \cdot \dfrac{2\pi}{60} \cdot ${wheelRadius_m}\ \text{m}`,
+        String.raw`&= ${format(v_mps, FIGURES.speed)}\ \text{m/s}`,
       ),
     };
   },
@@ -174,9 +196,9 @@ export const currentEfficiency: RobotCalc = {
         String.raw`\eta_{motor} &= \dfrac{P_{max}}{V I}`,
       ),
       substituted: aligned(
-        String.raw`I &= ${noLoadCurrent_A}${A} + (${stallCurrent_A}${A} - ${noLoadCurrent_A}${A}) \cdot \dfrac{${format(stallTorque_Nm / 2)}${NM}}{${stallTorque_Nm}${NM}}`,
-        String.raw`&= ${format(current_A)}${A}`,
-        String.raw`\eta_{motor} &= \dfrac{${format(power_W)}${W}}{${voltage_V}${V} \cdot ${format(current_A)}${A}} = ${format(power_W / (voltage_V * current_A))}`,
+        String.raw`I &= ${noLoadCurrent_A}${A} + (${stallCurrent_A}${A} - ${noLoadCurrent_A}${A}) \cdot \dfrac{${format(stallTorque_Nm / 2, FIGURES.motorTorque)}${NM}}{${stallTorque_Nm}${NM}}`,
+        String.raw`&= ${format(current_A, FIGURES.current)}${A}`,
+        String.raw`\eta_{motor} &= \dfrac{${format(power_W, FIGURES.maxPower)}${W}}{${voltage_V}${V} \cdot ${format(current_A, FIGURES.current)}${A}} = ${format(power_W / (voltage_V * current_A), FIGURES.efficiency)}`,
       ),
     };
   },
@@ -195,9 +217,9 @@ export const autonomy: RobotCalc = {
     return {
       latex: String.raw`t_{\text{autonomía}} = \dfrac{C}{2\,V I}`,
       substituted: aligned(
-        String.raw`t_{\text{autonomía}} &= \dfrac{${batteryCapacity_Wh}\ \text{Wh}}{2 \cdot ${voltage_V}${V} \cdot ${format(current_A)}${A}} = \dfrac{${batteryCapacity_Wh}\ \text{Wh}}{${format(electricalPower_W)}${W}}`,
-        String.raw`&= ${format(autonomy_h)}\ \text{h} = ${format(autonomy_h * MIN_PER_H)}\ \text{min}`,
-        String.raw`&\text{en bloqueo, } I_s = ${stallCurrent_A}${A}\text{: } ${format(stallAutonomy_min)}\ \text{min}`,
+        String.raw`t_{\text{autonomía}} &= \dfrac{${batteryCapacity_Wh}\ \text{Wh}}{2 \cdot ${voltage_V}${V} \cdot ${format(current_A, FIGURES.current)}${A}} = \dfrac{${batteryCapacity_Wh}\ \text{Wh}}{${format(electricalPower_W, FIGURES.electricalPower)}${W}}`,
+        String.raw`&= ${format(autonomy_h, FIGURES.hours)}\ \text{h} = ${format(autonomy_h * MIN_PER_H, FIGURES.minutes)}\ \text{min}`,
+        String.raw`&\text{en bloqueo, } I_s = ${stallCurrent_A}${A}\text{: } ${format(stallAutonomy_min, FIGURES.minutes)}\ \text{min}`,
       ),
     };
   },

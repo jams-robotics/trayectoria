@@ -135,7 +135,8 @@ y_perdida, es el semiancho más medio ancho de línea:
 
 <RobotFormula calc="ruta-2/m02-t01/loss-offset" />
 
-Si tu perfil no es un robot móvil, el cálculo usa el robot de referencia: 5 sensores a 12 mm.
+Si tu perfil no guarda los sensores, el cálculo usa los del robot de referencia: 5 sensores a
+12 mm.
 
 Con el robot de referencia, el semiancho es 2·0.012 = 0.024 m y la línea se pierde a partir de
 0.024 + 0.010 = 0.034 m. En el widget se pierde un poco después, a 0.036 m, porque cada sensor mira
@@ -150,4 +151,7 @@ sensores o más separación entre ellos.
   obligatorios={['e1', 'e2', 'e3']}
 />
 
-<Profundiza referencias={['siegwart-4']} topicId="ruta-2/m02-t01" />
+<Profundiza referencias={['siegwart-4']} topicId="ruta-2/m02-t01">
+El capítulo 4 de Siegwart no trata los arreglos de sensores de reflectancia; su §4.1 sirve por la
+clasificación de los sensores.
+</Profundiza>

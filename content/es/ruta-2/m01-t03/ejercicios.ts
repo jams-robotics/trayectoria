@@ -97,7 +97,12 @@ const e1 = defineExercise<EncoderStep>({
       values = drawTicks(rng);
     }
     const { deltaS_m, deltaTheta_rad } = odometryStep(values);
-    return { values, answer: [deltaS_m, deltaTheta_rad], unit: ['m', 'rad'] };
+    return {
+      values,
+      answer: [deltaS_m, deltaTheta_rad],
+      unit: ['m', 'rad'],
+      labels: [`content.${TOPIC_ID}.labels.e1.0`, `content.${TOPIC_ID}.labels.e1.1`],
+    };
   },
   statement: () => statementKey('e1'),
   tolerance: RELATIVE_2_PERCENT,
@@ -123,7 +128,12 @@ const e2 = defineExercise<EncoderStep>({
       values = drawTicks(rng);
       answer = positionAfterStep_m(values);
     } while (answer.some((value_m) => isSmallNonzero(value_m, E2_MIN_NONZERO_COORDINATE_M)));
-    return { values, answer, unit: 'm' };
+    return {
+      values,
+      answer,
+      unit: 'm',
+      labels: [`content.${TOPIC_ID}.labels.e2.0`, `content.${TOPIC_ID}.labels.e2.1`],
+    };
   },
   statement: () => statementKey('e2'),
   tolerance: RELATIVE_2_PERCENT,

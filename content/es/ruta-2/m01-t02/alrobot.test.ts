@@ -118,10 +118,10 @@ describe('T2-1.2 «Al robot» calcs', () => {
   });
 
   it('flag the hook command as not realizable when ω_max is too low', () => {
-    // 2400 rpm, i = 30: ω_max = 8.38 rad/s < ω_R = 16.02 rad/s.
+    // 2400 rpm, i = 30: ω_max = 8.378 rad/s (four figures, as 20.94, #653) < ω_R = 16.02 rad/s.
     const robot = withDrive({ maxMotorSpeed_rpm: 2400 });
     expect(feasibility.compute(robot).substituted).toBe(
-      String.raw`\max(8.98,\ 16.02)\ \text{rad/s} = 16.02\ \text{rad/s} > 8.38\ \text{rad/s}\ \Rightarrow\ \text{no realizable}`,
+      String.raw`\max(8.98,\ 16.02)\ \text{rad/s} = 16.02\ \text{rad/s} > 8.378\ \text{rad/s}\ \Rightarrow\ \text{no realizable}`,
     );
   });
 

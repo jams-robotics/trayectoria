@@ -46,17 +46,58 @@ function renderToHtml(latex: string, displayMode: boolean): string {
   return katex.renderToString(latex, { ...OPTIONS, displayMode });
 }
 
+/**
+ * Class of the horizontal scroll box around each formula of a block (#646). A formula that fits
+ * stays centred; one wider than the card starts at its left edge and scrolls inside the card,
+ * with a shade on the side where more of it is hidden. Styled in `FORMULA_CSS`.
+ */
+export const SCROLL_CLASS = 'trayectoria-formula-scroll';
+
+// Scroll shades: the two `local` layers move with the content and cover the two `scroll` ones
+// while that edge of the formula is in view, so a formula that fits shows none of them.
+const FORMULA_CSS = `
+.${HIGHLIGHT_CLASS} { color: var(--color-primary); }
+.${SCROLL_CLASS} {
+  background:
+    linear-gradient(to right, var(--color-bg-raised) 40%, transparent) left / 24px 100% no-repeat local,
+    linear-gradient(to left, var(--color-bg-raised) 40%, transparent) right / 24px 100% no-repeat local,
+    linear-gradient(to right, var(--color-border), transparent) left / 10px 100% no-repeat scroll,
+    linear-gradient(to left, var(--color-border), transparent) right / 10px 100% no-repeat scroll;
+}`;
+
 /** KaTeX output; `trust` is limited to \htmlClass, so no other markup can enter here. */
-function Rendered({ html, label }: { html: string; label: string }): JSX.Element {
-  return <span role="math" aria-label={label} dangerouslySetInnerHTML={{ __html: html }} />;
+function Rendered({
+  html,
+  label,
+  scroll,
+}: {
+  html: string;
+  label: string;
+  scroll: boolean;
+}): JSX.Element {
+  const math = <span role="math" aria-label={label} dangerouslySetInnerHTML={{ __html: html }} />;
+  if (!scroll) return math;
+  return (
+    <span className={`${SCROLL_CLASS} block max-w-full overflow-x-auto overflow-y-hidden`}>
+      {math}
+    </span>
+  );
 }
 
 /** The substituted version under a divider (docs/DESIGN.md §5, formula block). */
-function Substituted({ html, label }: { html: string; label: string }): JSX.Element {
+function Substituted({
+  html,
+  label,
+  scroll,
+}: {
+  html: string;
+  label: string;
+  scroll: boolean;
+}): JSX.Element {
   return (
-    <span className="border-border mt-4 flex flex-col items-center gap-2 border-t pt-4">
+    <span className="border-border mt-4 flex max-w-full flex-col items-center gap-2 border-t pt-4">
       <span className="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">{label}</span>
-      <Rendered html={html} label={label} />
+      <Rendered html={html} label={label} scroll={scroll} />
     </span>
   );
 }
@@ -84,10 +125,14 @@ export function Formula({
   );
   const body = (
     <>
-      <style>{`.${HIGHLIGHT_CLASS} { color: var(--color-primary); }`}</style>
-      <Rendered html={html} label={t('widgets.Formula.label')} />
+      <style>{FORMULA_CSS}</style>
+      <Rendered html={html} label={t('widgets.Formula.label')} scroll={block} />
       {substitutedHtml === null ? null : (
-        <Substituted html={substitutedHtml} label={t('widgets.Formula.substituted')} />
+        <Substituted
+          html={substitutedHtml}
+          label={t('widgets.Formula.substituted')}
+          scroll={block}
+        />
       )}
     </>
   );

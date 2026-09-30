@@ -314,7 +314,7 @@ Orden de fases: F0 → F1 → F2 → (F3 ∥ F4 ∥ F5) → F6 → F7. Los temas
 - Depende de: F1-02
 - Lee: `CONTENT-STANDARDS.md` §ejercicios
 - Entregables: `packages/sim-core/src/exercises/defineExercise.ts`, `src/exercises/check.ts`, `src/exercises/format.ts`, tests.
-- Spec: `defineExercise({ id, generate(rng) → { values, answer, unit }, statement: (values) → string con claves i18n e interpolación, tolerance: { type: 'relative' | 'absolute', value } })`; `check(exercise, seed, response) → { correct, expected, relError }`; formato de números con cifras significativas (3 por defecto) y unidad; respuestas vectoriales (`number[]`).
+- Spec: `defineExercise({ id, generate(rng) → { values, answer, unit, labels? }, statement: (values) → string con claves i18n e interpolación, tolerance: { type: 'relative' | 'absolute', value } })`; `check(exercise, seed, response) → { correct, expected, relError }`; formato de números con cifras significativas (3 por defecto) y unidad; respuestas vectoriales (`number[]`). `labels` es opcional: una clave i18n por componente de una respuesta vectorial, `content.<topicId>.labels.<exerciseId>.<n>`, que nombra lo que pide cada campo; `check` rechaza una lista de otra longitud que la respuesta (#629).
 - Aceptación: la misma semilla produce los mismos valores; tolerancia relativa 2 % acepta 1.019·x y rechaza 1.021·x.
 
 ### Fase 2 — Widgets
