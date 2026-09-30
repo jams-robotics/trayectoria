@@ -133,8 +133,10 @@ test('signed in: the topic completes, signing out hides it and signing in recove
   await openHydrated(page, TOPIC_PATH, false);
   // With a session the notice is gone: the progress is stored for the account.
   await expect(page.getByTestId('progress-notice')).toHaveCount(0);
-  await answerCorrectly(page);
+  // The closing island is `client:visible`; `answerCorrectly` waits for every island to hydrate,
+  // so it is scrolled into view first (#546).
   await page.getByTestId('topic-closing').scrollIntoViewIfNeeded();
+  await answerCorrectly(page);
   await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 1 de 1 correctos');
   await expect(page.getByTestId('closing-save-hint')).toHaveCount(0);
 
