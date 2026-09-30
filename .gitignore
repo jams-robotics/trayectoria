@@ -22,6 +22,12 @@ supabase/.branches/
 
 .claude/
 
+# local tooling (#527): the pnpm shim of Windows agents, session hand-off notes and the state of
+# `wrangler dev`
+.pnpm-shim/
+*HANDOFF*.md
+.wrangler/
+
 # editors and OS
 .vscode/*
 !.vscode/extensions.json

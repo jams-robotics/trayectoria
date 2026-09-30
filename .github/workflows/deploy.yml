@@ -4,11 +4,12 @@ name: Deploy
 # Setup, token rotation and rollback: docs/ops/DEPLOY.md.
 #
 # Needs, under Settings → Secrets and variables → Actions:
-#   - secret   CLOUDFLARE_API_TOKEN
 #   - variable PUBLIC_SUPABASE_URL
 #   - variable PUBLIC_SUPABASE_ANON_KEY
-# While any of them is missing (or on pull requests from forks, which get no secrets) the `gate`
-# job reports it and `deploy`/`preview` are skipped instead of failing.
+# and the secret CLOUDFLARE_API_TOKEN in the `production` and `preview` environments (#517;
+# Settings → Environments), which the `deploy` and `preview` jobs use.
+# While any of them is missing (or on pull requests from forks, which get no secrets) the job
+# reports it and skips its steps instead of failing.
 
 on:
   push:
@@ -23,10 +24,6 @@ concurrency:
   # Superseded PR previews are cancelled; a production deploy in progress is never interrupted.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
-env:
-  # Wrangler is not a monorepo dependency: it is installed on the runner at this fixed version.
-  WRANGLER_VERSION: 4.141.0
-
 jobs:
   gate:
     name: gate
@@ -35,19 +32,19 @@ jobs:
     outputs:
       enabled: ${{ steps.check.outputs.enabled }}
     steps:
-      # Secrets cannot be read in a job-level `if`, so their presence is exported as an output.
+      # The token lives in the environments, which only their own jobs can read; `deploy` and
+      # `preview` check it themselves.
       - name: Check deploy configuration
         id: check
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
           PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY }}
         run: |
-          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$PUBLIC_SUPABASE_URL" ] && [ -n "$PUBLIC_SUPABASE_ANON_KEY" ]; then
+          if [ -n "$PUBLIC_SUPABASE_URL" ] && [ -n "$PUBLIC_SUPABASE_ANON_KEY" ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Deploy skipped: CLOUDFLARE_API_TOKEN, PUBLIC_SUPABASE_URL or PUBLIC_SUPABASE_ANON_KEY is not available (docs/ops/DEPLOY.md)."
+            echo "::notice::Deploy skipped: PUBLIC_SUPABASE_URL or PUBLIC_SUPABASE_ANON_KEY is not set (docs/ops/DEPLOY.md)."
           fi
 
   deploy:
@@ -56,40 +53,64 @@ jobs:
     if: github.event_name == 'push' && needs.gate.outputs.enabled == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment: production
     steps:
+      # Secrets cannot be read in an `if`, so the token's presence is exported as an output.
+      - name: Check the Cloudflare token
+        id: token
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -n "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Deploy skipped: CLOUDFLARE_API_TOKEN is not available in the production environment (docs/ops/DEPLOY.md)."
+          fi
+
       - name: Checkout
+        if: steps.token.outputs.ready == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Set up pnpm
+        if: steps.token.outputs.ready == 'true'
         uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
       - name: Set up Node
+        if: steps.token.outputs.ready == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
 
       - name: Install
+        if: steps.token.outputs.ready == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Build
+        if: steps.token.outputs.ready == 'true'
         env:
           PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
           PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY }}
         run: pnpm build
 
-      # Installed globally so wrangler-action finds it and does not `pnpm add` it to the workspace.
-      - name: Install Wrangler
-        run: npm install --global "wrangler@${WRANGLER_VERSION}"
+      # The CSP of apps/web/public/_headers names the Supabase project of this build (#507).
+      - name: Write the Supabase origins into the CSP
+        if: steps.token.outputs.ready == 'true'
+        env:
+          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
+        run: sh infra/csp-origins.sh apps/web/dist/_headers
 
+      # Wrangler is an exact devDependency of apps/web (#511): it comes from pnpm-lock.yaml with the
+      # rest of the install, and wrangler-action runs that copy through pnpm instead of installing one.
       - name: Deploy to Cloudflare Workers
+        if: steps.token.outputs.ready == 'true'
         uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          wranglerVersion: ${{ env.WRANGLER_VERSION }}
-          packageManager: npm
+          packageManager: pnpm
           workingDirectory: apps/web
           command: deploy --message "${{ github.sha }}"
 
@@ -99,48 +120,72 @@ jobs:
     if: github.event_name == 'pull_request' && needs.gate.outputs.enabled == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment: preview
     permissions:
       contents: read
       pull-requests: write
     steps:
+      # Secrets cannot be read in an `if`, so the token's presence is exported as an output.
+      - name: Check the Cloudflare token
+        id: token
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -n "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Deploy skipped: CLOUDFLARE_API_TOKEN is not available in the preview environment (docs/ops/DEPLOY.md)."
+          fi
+
       - name: Checkout
+        if: steps.token.outputs.ready == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Set up pnpm
+        if: steps.token.outputs.ready == 'true'
         uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
       - name: Set up Node
+        if: steps.token.outputs.ready == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
 
       - name: Install
+        if: steps.token.outputs.ready == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Build
+        if: steps.token.outputs.ready == 'true'
         env:
           PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
           PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY }}
         run: pnpm build
 
-      - name: Install Wrangler
-        run: npm install --global "wrangler@${WRANGLER_VERSION}"
+      # The CSP of apps/web/public/_headers names the Supabase project of this build (#507).
+      - name: Write the Supabase origins into the CSP
+        if: steps.token.outputs.ready == 'true'
+        env:
+          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
+        run: sh infra/csp-origins.sh apps/web/dist/_headers
 
       # Uploads a version without promoting it to production; Cloudflare gives it a preview URL.
       - name: Upload preview version
+        if: steps.token.outputs.ready == 'true'
         id: upload
         uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          wranglerVersion: ${{ env.WRANGLER_VERSION }}
-          packageManager: npm
+          packageManager: pnpm
           workingDirectory: apps/web
           command: versions upload --tag "pr-${{ github.event.pull_request.number }}" --message "${{ github.event.pull_request.head.sha }}"
 
       - name: Comment preview URL
+        if: steps.token.outputs.ready == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}

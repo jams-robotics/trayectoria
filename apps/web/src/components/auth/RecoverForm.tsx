@@ -18,7 +18,8 @@ import {
   emailValidationError,
   FormFooter,
   FormStatus,
-  passwordValidationError,
+  MIN_PASSWORD_LENGTH,
+  newPasswordValidationError,
   SubmitButton,
   TextField,
   useAuthAction,
@@ -26,8 +27,6 @@ import {
 } from './fields';
 import type { FieldValidation } from './fields';
 import { ReauthCodeField, useReauthCode, type ReauthCodeState } from './ReauthCode';
-
-const MIN_PASSWORD_LENGTH = 6;
 
 // The recovery link comes back to this page with `?token_hash=…&type=recovery` (PKCE flow,
 // #518); `useEmailLink` trades it for a session and sets $passwordRecovery. The query is read
@@ -144,7 +143,7 @@ function NewPasswordForm(): JSX.Element {
 
   function submit(event: SubmitEvent<HTMLFormElement>): void {
     event.preventDefault();
-    if (!validation.validate(password, passwordValidationError)) return;
+    if (!validation.validate(password, newPasswordValidationError)) return;
     void run(
       () => changePassword(password, reauth),
       () => t('auth.recover.updated'),

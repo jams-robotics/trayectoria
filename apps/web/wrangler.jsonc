@@ -8,9 +8,9 @@
     "directory": "./dist",
     "not_found_handling": "404-page",
   },
-  // No routes yet: the custom domain is attached from the Cloudflare dashboard (DEPLOY.md).
-  // Until then the site is served at trayectoria.<account>.workers.dev.
-  "workers_dev": true,
+  // No routes: the custom domain is attached from the Cloudflare dashboard (DEPLOY.md, step 4.2).
+  // The site is served only there; the trayectoria.<account>.workers.dev copy is off (#526).
+  "workers_dev": false,
   // Pull requests upload a version (`wrangler versions upload`) that gets its own preview URL.
   "preview_urls": true,
 }

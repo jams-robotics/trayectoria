@@ -68,6 +68,8 @@ Las dependencias permitidas entre paquetes están en [`docs/ARCHITECTURE.md`](do
 
 Todo el trabajo entra por tickets derivados de `docs/PLAN.md`: un ticket, una rama, un PR. Lee [`CONTRIBUTING.md`](CONTRIBUTING.md) y, si eres un agente, [`CLAUDE.md`](CLAUDE.md).
 
+¿Encontraste un problema de seguridad? No abras un issue público: sigue [`SECURITY.md`](SECURITY.md).
+
 ## Documentación
 
 | Documento                                      | Contenido                               |

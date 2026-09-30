@@ -3,7 +3,7 @@
 Guía para que el equipo técnico de una universidad instale su propia copia de Trayectoria (`ARCHITECTURE.md` §5.3). La instalación tiene dos piezas en la misma máquina:
 
 - **Supabase** (base de datos, autenticación y almacenamiento) con el `docker compose` oficial de Supabase. Este repositorio no lo duplica.
-- **El sitio**: archivos estáticos de `apps/web` servidos por Caddy con `infra/docker-compose.yml`. Caddy obtiene los certificados HTTPS automáticamente y también publica la API de Supabase por HTTPS en un segundo dominio.
+- **El sitio**: archivos estáticos de `apps/web` servidos por Caddy con `infra/docker-compose.yml`. Caddy obtiene los certificados HTTPS automáticamente y también publica la API de Supabase por HTTPS en un segundo dominio. Solo la API: el Studio de Supabase no se publica en Internet (#510).
 
 El documento no contiene secretos reales: todo lo que aparece entre `<...>` lo defines tú.
 
@@ -18,7 +18,7 @@ El documento no contiene secretos reales: todo lo que aparece entre `<...>` lo d
 - Puertos 80 y 443 (TCP) y 443 (UDP) abiertos desde Internet hacia la VM. Caddy los necesita para emitir los certificados.
 - Recomendado: un servidor SMTP institucional para los correos de registro y recuperación de contraseña.
 
-**Cortafuegos.** El compose de Supabase publica en la VM el puerto de la API (8000), el del pooler de Postgres (5432) y otros. Los puertos publicados por Docker **no** los filtra `ufw`: limita el acceso en el cortafuegos perimetral (grupo de seguridad de la nube o cortafuegos de la universidad) a 22, 80 y 443.
+**Cortafuegos.** El compose de Supabase publica en la VM el puerto de Kong (8000, que sirve la API **y el Studio**), el del pooler de Postgres (5432) y otros. Los puertos publicados por Docker **no** los filtra `ufw`: limita el acceso en el cortafuegos perimetral (grupo de seguridad de la nube o cortafuegos de la universidad) a 22, 80 y 443. Desde Internet, la API solo se alcanza a través de Caddy, que no publica el Studio (#510).
 
 ## Variables de entorno
 
@@ -29,7 +29,7 @@ Viven en `infra/.env`, que no se versiona (`.gitignore` excluye `.env`).
 | `PUBLIC_SUPABASE_URL` | Argumento de build de `infra/web.Dockerfile`; queda incrustada en el sitio y el navegador la usa para hablar con Supabase | `https://api.trayectoria.<universidad>.edu` |
 | `PUBLIC_SUPABASE_ANON_KEY` | Argumento de build de `infra/web.Dockerfile`; clave `anon` de tu Supabase (pública por diseño, el acceso pasa por RLS) | valor de `ANON_KEY` del `.env` de Supabase |
 | `SITE_ADDRESS` | `infra/Caddyfile`: dominio del sitio; Caddy obtiene su certificado | `trayectoria.<universidad>.edu` |
-| `API_ADDRESS` | `infra/Caddyfile`: dominio de la API; Caddy lo reenvía a Supabase | `api.trayectoria.<universidad>.edu` |
+| `API_ADDRESS` | `infra/Caddyfile`: dominio de la API; Caddy reenvía a Supabase solo `/auth/v1/`, `/rest/v1/`, `/storage/v1/`, `/realtime/v1/` y `/functions/v1/`, y responde `403` a todo lo demás (el Studio y `pg-meta`, #510) | `api.trayectoria.<universidad>.edu` |
 | `SUPABASE_UPSTREAM` | `infra/Caddyfile`: dónde escucha la API del compose de Supabase, vista desde el contenedor (opcional) | `host.docker.internal:8000` (valor por defecto) |
 
 Las dos variables `PUBLIC_*` se fijan **al construir** la imagen: si cambian, hay que reconstruir (paso 8). Nunca pongas la clave `service_role` en `infra/.env` ni en el sitio.
@@ -72,8 +72,28 @@ Edita `/opt/supabase-project/.env` siguiendo la guía oficial (<https://supabase
   SUPABASE_PUBLIC_URL=https://api.trayectoria.<universidad>.edu
   ```
 
-- Correo: rellena `SMTP_ADMIN_EMAIL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` y `SMTP_SENDER_NAME` con tu servidor SMTP. Si todavía no tienes SMTP, `ENABLE_EMAIL_AUTOCONFIRM=true` permite registrarse sin confirmar el correo (es la configuración del entorno local, `supabase/config.toml`); vuelve a `false` cuando el SMTP funcione.
+- Correo: rellena `SMTP_ADMIN_EMAIL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` y `SMTP_SENDER_NAME` con tu servidor SMTP. Deja `ENABLE_EMAIL_AUTOCONFIRM=false`: el registro exige confirmar el correo. Solo si todavía no tienes SMTP puedes ponerla en `true` **para la verificación inicial** (paso 9) y nada más; el paso 9.7 la devuelve a `false` (#512).
 - Deja `KONG_HTTP_PORT=8000` salvo que cambies también `SUPABASE_UPSTREAM`.
+
+Después, en `/opt/supabase-project/docker-compose.yml`, añade al bloque `environment:` del servicio `auth` las reglas de contraseña, reautenticación y sesión de `supabase/config.toml` (#512). El `.env` no las lleva porque el compose oficial no las lee de ahí:
+
+```yaml
+      GOTRUE_PASSWORD_MIN_LENGTH: 10
+      GOTRUE_PASSWORD_REQUIRED_CHARACTERS: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789'
+      GOTRUE_SECURITY_UPDATE_PASSWORD_REQUIRE_REAUTHENTICATION: 'true'
+      GOTRUE_SESSIONS_TIMEBOX: 24h
+      GOTRUE_SESSIONS_INACTIVITY_TIMEOUT: 8h
+```
+
+| Variable | Qué hace | Equivale en `supabase/config.toml` |
+|---|---|---|
+| `GOTRUE_PASSWORD_MIN_LENGTH` | Contraseña de al menos 10 caracteres (el formulario de registro pide lo mismo) | `minimum_password_length = 10` |
+| `GOTRUE_PASSWORD_REQUIRED_CHARACTERS` | Al menos una letra y un dígito | `password_requirements = "letters_digits"` |
+| `GOTRUE_SECURITY_UPDATE_PASSWORD_REQUIRE_REAUTHENTICATION` | Cambiar la contraseña desde una sesión antigua pide el código de reautenticación | `secure_password_change = true` |
+| `GOTRUE_SESSIONS_TIMEBOX` | La sesión caduca a las 24 h aunque se renueve | `[auth.sessions] timebox = "24h"` |
+| `GOTRUE_SESSIONS_INACTIVITY_TIMEOUT` | La sesión caduca tras 8 h sin uso | `[auth.sessions] inactivity_timeout = "8h"` |
+
+El captcha del registro queda para v2.
 
 ### 4. Arrancar Supabase
 
@@ -86,16 +106,20 @@ docker compose ps        # todos los servicios en "running (healthy)" tras uno o
 
 ### 5. Aplicar el esquema de Trayectoria
 
-Las tablas, políticas RLS, funciones y el bucket están en `supabase/migrations/` del repositorio (`docs/ops/SUPABASE.md`). Se aplican con la CLI de Supabase en la versión fijada (2.117.0), ejecutada dentro de un contenedor de Node para no instalar nada en la VM. `db push` se conecta al pooler de Postgres del compose de Supabase (puerto 5432, usuario `postgres.<POOLER_TENANT_ID>`); `<POOLER_TENANT_ID>` y `<POSTGRES_PASSWORD>` son los de `/opt/supabase-project/.env`:
+Las tablas, políticas RLS, funciones y el bucket están en `supabase/migrations/` del repositorio (`docs/ops/SUPABASE.md`). Se aplican con la CLI de Supabase en la versión fijada (2.117.0), ejecutada dentro de un contenedor de Node para no instalar nada en la VM. `db push` se conecta al pooler de Postgres del compose de Supabase (puerto 5432, usuario `postgres.<POOLER_TENANT_ID>`); `<POOLER_TENANT_ID>` es el de `/opt/supabase-project/.env`.
+
+La contraseña de Postgres **no** se escribe en el comando (#525): quedaría en el historial de la shell, en `ps` y en los registros de Docker. El comando la lee de `/opt/supabase-project/.env` a la variable `PGPASSWORD`, y el contenedor la hereda con `-e PGPASSWORD`, sin el valor en la línea de comandos:
 
 ```bash
 cd /opt/trayectoria
-docker run --rm --network host -v "$PWD":/repo -w /repo -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
-  node:24.18.0-alpine sh -c 'corepack enable && pnpm dlx supabase@2.117.0 db push --yes \
-  --db-url "postgresql://postgres.<POOLER_TENANT_ID>:<POSTGRES_PASSWORD>@127.0.0.1:5432/postgres?sslmode=disable"'
+PGPASSWORD="$(grep '^POSTGRES_PASSWORD=' /opt/supabase-project/.env | cut -d= -f2-)" \
+docker run --rm --network host -v "$PWD":/repo -w /repo -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 -e PGPASSWORD \
+  node:24.18.0-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd \
+  sh -c 'corepack enable && pnpm dlx supabase@2.117.0 db push --yes \
+  --db-url "postgresql://postgres.<POOLER_TENANT_ID>@127.0.0.1:5432/postgres?sslmode=disable"'
 ```
 
-La salida lista las migraciones `0001_schema.sql` … aplicadas. Si la contraseña contiene caracteres especiales (`@`, `:`, `/`, `#`), escríbelos codificados para URL (por ejemplo `@` como `%40`). Añade `--dry-run` antes de `--yes` para ver qué se aplicaría sin tocar la base.
+La salida lista las migraciones `0001_schema.sql` … aplicadas. Añade `--dry-run` antes de `--yes` para ver qué se aplicaría sin tocar la base. La imagen de Node va fijada por etiqueta y digest, la misma que usa `infra/web.Dockerfile`.
 
 ### 6. Obtener la clave `anon`
 
@@ -125,16 +149,17 @@ docker compose -f infra/docker-compose.yml up -d
 docker compose -f infra/docker-compose.yml logs -f web   # Ctrl+C para salir
 ```
 
-La construcción (`infra/web.Dockerfile`) instala las dependencias con `pnpm install --frozen-lockfile`, ejecuta `pnpm build` y copia `apps/web/dist` a una imagen de Caddy (`infra/Caddyfile`). Tarda unos minutos la primera vez. En los registros debe aparecer `certificate obtained successfully` para los dos dominios.
+La construcción (`infra/web.Dockerfile`, con las imágenes base fijadas por digest) instala las dependencias con `pnpm install --frozen-lockfile`, ejecuta `pnpm build` y copia `apps/web/dist` a una imagen de Caddy (`infra/Caddyfile`). Caddy envía en cada página las mismas cabeceras de seguridad que la instancia pública (CSP, HSTS, `X-Frame-Options` y demás, `docs/ops/DEPLOY.md` "Cabeceras de seguridad"); la CSP solo deja conectar con la `PUBLIC_SUPABASE_URL` con la que se construyó la imagen, así que si cambia hay que reconstruir. Tarda unos minutos la primera vez. En los registros debe aparecer `certificate obtained successfully` para los dos dominios.
 
 ### 9. Verificación final
 
 1. `https://trayectoria.<universidad>.edu/` muestra la página de inicio con candado válido.
 2. `https://trayectoria.<universidad>.edu/ruta/ruta-1/m00/t01/` muestra el primer tema.
 3. Una ruta inexistente (`/no-existe/`) muestra la página «Página no encontrada».
-4. Registra un usuario de prueba desde «Entrar» en el sitio. Con SMTP, llega el correo de confirmación; con `ENABLE_EMAIL_AUTOCONFIRM=true`, la sesión se abre directamente.
-5. En el Studio de Supabase (`https://api.trayectoria.<universidad>.edu`, usuario y contraseña del dashboard) aparece el usuario en _Authentication_ y su fila en la tabla `profiles`.
+4. Registra un usuario de prueba desde «Entrar» en el sitio, con una contraseña de al menos 10 caracteres con letras y números. Con SMTP, llega el correo de confirmación; con `ENABLE_EMAIL_AUTOCONFIRM=true`, la sesión se abre directamente.
+5. En el Studio de Supabase aparece el usuario en _Authentication_ y su fila en la tabla `profiles`. El Studio **no** está en `https://api.trayectoria.<universidad>.edu` (esa dirección responde `403` fuera de las rutas de la API, #510): se abre desde tu equipo con un túnel SSH a la VM, `ssh -L 8000:127.0.0.1:8000 <usuario>@<vm>`, y después `http://localhost:8000` en el navegador, con el usuario y la contraseña del dashboard (`DASHBOARD_USERNAME` y `DASHBOARD_PASSWORD` del `.env` de Supabase). Cierra el túnel al terminar.
 6. Borra el usuario de prueba desde la página de cuenta del sitio o desde el Studio.
+7. Si pusiste `ENABLE_EMAIL_AUTOCONFIRM=true` en el paso 3, vuelve a `false` en `/opt/supabase-project/.env` y aplica el cambio con `docker compose up -d` en `/opt/supabase-project`. Sin SMTP funcionando, nadie más puede registrarse: configúralo antes de abrir el sitio a los estudiantes (#512).
 
 ## Prueba local
 
@@ -147,7 +172,7 @@ docker compose -f infra/docker-compose.yml -f infra/docker-compose.override.exam
 docker compose -f infra/docker-compose.yml -f infra/docker-compose.override.example.yml up -d
 ```
 
-`infra/docker-compose.override.example.yml` sirve el sitio por HTTP en `http://localhost:8080` en lugar de los puertos 80/443. Se puede copiar como `infra/docker-compose.override.yml` y adaptarlo. Para parar y limpiar:
+`infra/docker-compose.override.example.yml` sirve el sitio por HTTP en `http://localhost:8080` en lugar de los puertos 80/443, solo en la interfaz local del equipo: nadie más en la red alcanza la prueba (#525). Se puede copiar como `infra/docker-compose.override.yml` y adaptarlo. Para parar y limpiar:
 
 ```bash
 docker compose -f infra/docker-compose.yml -f infra/docker-compose.override.example.yml down -v --rmi all
@@ -203,9 +228,10 @@ docker compose exec -T db pg_restore -U supabase_admin -d postgres --clean --if-
 | Error `bind: address already in use` en 80/443 | Otro servidor web (Apache, nginx) ocupa los puertos | Detén ese servicio |
 | El sitio carga pero no se puede entrar ni registrarse; la consola del navegador muestra errores de red o CORS | `PUBLIC_SUPABASE_URL` incorrecta, o la imagen se construyó antes de cambiarla | Corrige `infra/.env` y reconstruye (paso 8) |
 | `https://api...` responde `502 Bad Gateway` | Supabase no está arrancado o Kong no escucha en `SUPABASE_UPSTREAM` | `docker compose ps` en `/opt/supabase-project`; revisa `KONG_HTTP_PORT` |
+| `https://api...` responde `403 Forbidden` en el navegador | Es lo esperado: Caddy solo publica las rutas de la API (#510) | Para el Studio usa el túnel SSH del paso 9.5 |
 | `Invalid API key` al registrarse | `PUBLIC_SUPABASE_ANON_KEY` no corresponde al `JWT_SECRET` de Supabase | Vuelve a copiar `ANON_KEY` (paso 6) y reconstruye |
 | El correo de confirmación no llega | SMTP sin configurar o rechazado | Revisa `SMTP_*` en el `.env` de Supabase y `docker compose logs auth` |
 | El enlace del correo lleva a otra dirección | `SITE_URL` o `ADDITIONAL_REDIRECT_URLS` sin actualizar | Corrígelos y ejecuta `docker compose up -d` en `/opt/supabase-project` |
 | `db push` falla con `tls error` | Falta `?sslmode=disable` en la URL | Copia el comando del paso 5 tal cual |
-| `db push` falla con `password authentication failed` o `tenant not found` | Usuario sin el sufijo `.<POOLER_TENANT_ID>` o contraseña sin codificar | Revisa el formato del paso 5 |
+| `db push` falla con `password authentication failed` o `tenant not found` | Usuario sin el sufijo `.<POOLER_TENANT_ID>`, o `PGPASSWORD` vacía porque el `grep` no encontró `POSTGRES_PASSWORD` | Revisa el formato del paso 5 y el `.env` de Supabase |
 | Tras actualizar, el sitio muestra la versión anterior | La imagen no se reconstruyó | Ejecuta `build` antes de `up -d` |
