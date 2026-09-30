@@ -67,7 +67,22 @@ Cualquier otra importación es un error de arquitectura (regla de ESLint `import
 ### 3.1 Astro e islas
 
 - Astro renderiza páginas y MDX de forma estática en build (`output: 'static'`).
-- Todo componente interactivo es una isla React. Directiva por defecto: `client:visible`. `client:load` solo para `AuthGate`, el store de sesión, `RobotSession`, `ProgressSession` (en `Verifica.astro` y en `pages/ruta/[ruta]/index.astro`) y `ProgressNotice` (en `Verifica.astro`) (F3-01, #120). `client:only="react"` para escenas 3D y para `Formula.astro`: su widget llega por `import()`, así que el servidor pintaría el `fallback` vacío del `Suspense` y el cliente el widget resuelto, y ese desajuste rompe la hidratación de React (#207).
+- Todo componente interactivo es una isla React. Directiva por defecto: `client:visible`. `client:load` solo para (F3-01, #120, ampliado según el uso real en el código):
+  - `AuthGate` y el store de sesión: la sesión debe estar lista antes de decidir qué pintar, no al hacer scroll.
+  - `RobotSession` (`layouts/Base.astro`): sin UI, arranca `startRobotPersistence()` en toda página, no solo al hacer scroll hasta él.
+  - `ProgressSession` (`Verifica.astro` y `pages/ruta/[ruta]/index.astro`): sin UI, sincroniza `$progress` con la sesión tan pronto carga la página.
+  - `ProgressNotice` (`Verifica.astro`): debe reflejar `$progress` desde el primer render, antes de que el usuario haga scroll.
+  - `RouteProgress` y `RouteCompleted` (`pages/ruta/[ruta]/index.astro`): el servidor renderiza `0/N` o nada; la isla debe hidratar desde `$progress` de inmediato para mostrar el estado real, no tras un scroll.
+  - `TopicStatus` (`pages/ruta/[ruta]/index.astro`): mismo motivo, uno por tema listado en la ruta.
+  - `TopicClosingStatus` (PR #661): mismo motivo que `TopicStatus`, en el cierre de tema.
+  - `Account` (`pages/cuenta/index.astro`) y `RobotsIsland` (`pages/cuenta/robots.astro`): la página depende de la sesión para decidir qué mostrar.
+  - `MyRobotIsland` (`pages/cuenta/index.astro`): depende de `$myRobot`, que debe estar listo sin esperar scroll.
+  - `JoinGroupForm` (`pages/unirse.astro`) y `RecoverForm` (`pages/auth/recuperar.astro`): procesan un token de la URL en cuanto carga la página.
+  - `AulaIsland` (`pages/aula/index.astro`): depende de la sesión, igual que `/cuenta`.
+  - `AccountDeletedNotice` (`pages/index.astro`): debe leerse en el primer render tras el borrado, no tras scroll.
+  - `ThemeToggle` (`Nav.astro`): evita el parpadeo de tema visible al cargar.
+
+  `client:only="react"` para escenas 3D y para `Formula.astro`: su widget llega por `import()`, así que el servidor pintaría el `fallback` vacío del `Suspense` y el cliente el widget resuelto, y ese desajuste rompe la hidratación de React (#207).
 - Regla para agentes: **no hay estado compartido entre islas excepto a través de nanostores** (`packages/*/src/stores/`). Prohibido prop drilling entre islas, eventos DOM globales o `window.*`.
 - Stores existentes: `$session` (auth), `$myRobot` (perfil activo), `$theme`, `$progress`.
 - Persistencia de «Mi robot» (#238, PR #250): `RobotSession` (`apps/web/src/components/robot/RobotSession.tsx`), sin UI, se monta con `client:load` en el layout base (`apps/web/src/layouts/Base.astro`) y es el único punto que arranca `startRobotPersistence()`, así que la persistencia del robot funciona en todas las páginas y no solo en `/cuenta`. La copia local del robot (`packages/widgets/src/stores/myRobot.ts`) guarda su propietario (`{ owner, spec }`): al cerrar sesión, o si la copia es de otro usuario, se descarta y se vuelve al robot de referencia; una copia sin propietario se trata como anónima.
