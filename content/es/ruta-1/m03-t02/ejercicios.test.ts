@@ -17,7 +17,7 @@ import {
   shaftPower_W,
 } from './ejercicios';
 
-// Golden values of docs/CURRICULUM.md § T-3.2, Verifica. Each one runs through the exercise's own
+// Golden values of docs/CURRICULUM.md § T1-3.2, Verifica. Each one runs through the exercise's own
 // `generate`, driven by an rng that lands on the grid indices the spec's values give.
 
 const TOPIC_ID = 'ruta-1/m03-t02';
@@ -76,7 +76,7 @@ function expectOnGrid(value: number, perUnit: number): void {
   expect(Math.abs(value * perUnit - Math.round(value * perUnit))).toBeLessThan(EPSILON);
 }
 
-describe('T-3.2 exercises', () => {
+describe('T1-3.2 exercises', () => {
   it('declares e1 to e4, in order', () => {
     expect(exercises.map(({ id }) => id)).toEqual(['e1', 'e2', 'e3', 'e4']);
   });
@@ -112,7 +112,7 @@ describe('T-3.2 exercises', () => {
 describe('e1 · τ a n rpm: potencia mecánica', () => {
   it('τ = 0.03 N·m at n = 5000 rpm → 15.71 W', () => {
     // The golden pair lies above the 10 W cap of the generator (#609), so the formula is checked
-    // directly, without a draw, as docs/CURRICULUM.md § T-3.2 says.
+    // directly, without a draw, as docs/CURRICULUM.md § T1-3.2 says.
     const power_W = shaftPower_W({ torque_Nm: 0.03, speed_rpm: 5000 });
 
     expect(power_W).toBeCloseTo(15.71, 2);

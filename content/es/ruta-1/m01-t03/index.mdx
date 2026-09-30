@@ -1,147 +1,149 @@
 ---
 id: ruta-1/m01-t03
-title: 'Caída libre'
+title: 'Movimiento circular y velocidad angular'
 module: 1
 order: 3
-estimatedMinutes: 20
-prerequisites: [ruta-1/m01-t02]
+estimatedMinutes: 25
+prerequisites: [ruta-1/m00-t01]
 objectives:
-  - Aplicar el MRUA con a = −g
-  - Calcular el tiempo de caída y la velocidad de impacto
-  - Entender que la masa no importa
-widgets: [ProjectileWidget, ExerciseWidget]
+  - Medir ángulos en radianes
+  - Relacionar ω, período, frecuencia y rpm
+  - Calcular el ángulo girado y el número de vueltas
+widgets: [RotationWidget, ExerciseWidget]
 requiredExercises: [e1, e2, e3]
-references: [young-freedman-2]
+references: [young-freedman-9, serway-10]
 status: published
-seoTitle: "Caída libre: tiempo de caída y velocidad de impacto"
-seoDescription: "Aprende a calcular el tiempo de caída y la velocidad de impacto de un objeto en caída libre, y por qué su masa no cambia el resultado."
+seoTitle: "Movimiento circular: cómo pasar de rpm a rad/s"
+seoDescription: "Aprende a medir ángulos en radianes y a relacionar velocidad angular, período, frecuencia y rpm en el eje de un motorreductor."
 ---
 
 <Gancho>
-La pinza de tu robot suelta una pieza a 0.25 m sobre la banda. ¿Cuánto tarda en caer y a qué
-velocidad llega?
+Tu motorreductor gira a 200 rpm. ¿Cuántos radianes por segundo son, cuánto dura una vuelta y
+cuántas vueltas da en 10 s?
 </Gancho>
 
 <Concepto>
-Soltar una pieza es dejarla caer desde el reposo. Si el aire no la frena, su única aceleración es
-la gravitatoria, g = 9.81 m/s², hacia abajo. Esa es la **caída libre**: un MRUA vertical con
-a = −g, con el eje y hacia arriba.
+Un ángulo mide cuánto arco abarca respecto al radio. Si un punto a la distancia r del centro
+recorre un arco s, el ángulo girado es θ = s/r. Es un cociente de dos longitudes: el **radián**
+(rad) es el ángulo cuyo arco mide lo mismo que el radio.
 
-Esa aceleración no depende de la masa. Sin aire, una pieza de 0.01 kg y otra de 0.5 kg soltadas a
-la vez desde la misma altura llegan juntas. Por eso m no aparece en ninguna fórmula de este tema.
+Una vuelta completa recorre el perímetro, 2π·r. Por eso una vuelta son 2π rad, unos 6.28 rad.
 
-La pieza parte de la altura y = h con v₀ = 0. La ecuación de la posición del MRUA queda
-y = h − ½·g·t², y la rapidez crece al mismo ritmo en cada segundo: v = g·t.
+La **velocidad angular** ω es la razón de cambio del ángulo, ω = dθ/dt, igual que la velocidad
+lineal es la razón de cambio de la posición en
+[La derivada como razón de cambio](/ruta/ruta-1/m00/t03). Se mide en rad/s.
 
-La pieza llega abajo cuando y = 0. Despejando t sale el tiempo de caída, t_caída = √(2h/g).
-Depende de la raíz cuadrada de h: para tardar el doble, la pieza tiene que caer desde cuatro
-veces más alto.
+Con ω constante, cada vuelta tarda lo mismo. Ese tiempo es el **período** T, en s. La
+**frecuencia** f = 1/T cuenta las vueltas por segundo, en Hz. En una vuelta el ángulo avanza
+2π rad en T segundos, así que ω = 2π/T = 2π·f.
 
-Sustituyendo t_caída en v = g·t sale la rapidez de impacto, v_impacto = √(2gh). También crece
-con √h. Es la misma que da v² = v₀² + 2·a·Δx con v₀ = 0 y |Δx| = h.
+Las hojas de datos de los motores dan la velocidad de giro n en rpm, revoluciones por minuto.
+Para pasarla a rad/s, cada vuelta son 2π rad y cada minuto son 60 s: ω = n·2π/60.
 
-Con los datos del gancho, h = 0.25 m. La pieza tarda t_caída = √(2·0.25/9.81) = 0.2258 s y llega
-a v_impacto = √(2·9.81·0.25) = 2.215 m/s.
+Con ω constante, el ángulo acumulado crece lo mismo en cada segundo: θ = θ₀ + ω·t, con θ₀ el
+ángulo inicial. El ángulo girado dividido entre 2π da el número de vueltas.
 
-En un robot, ese tiempo cuenta. La pieza no aparece abajo al instante: si la banda avanza
-mientras cae, la pinza tiene que abrirse antes de que el punto de destino pase por debajo. Si
-cae en un contenedor, v_impacto dice con qué rapidez golpea el fondo.
+Todos los puntos del disco giran el mismo ángulo en el mismo tiempo. ω es la misma para un punto
+cerca del centro y para uno del borde. Lo que cambia con la distancia al centro es el arco que
+recorre cada punto.
+
+Con los datos del gancho, n = 200 rpm da ω = 200·2π/60 = 20.94 rad/s. Una vuelta dura
+T = 60/200 = 0.3 s, y en 10 s el eje da 200·10/60 = 33.33 vueltas.
 </Concepto>
 
 <Formulas>
-<Formula latex="y = h - \tfrac12 g t^2" />
+<Formula latex="\theta = \frac{s}{r}" />
 
-- `y` · posición · m
-- `h` · altura inicial · m
-- `g` · aceleración gravitatoria · m/s²
+- `θ` · ángulo · rad
+- `s` · distancia recorrida (arco) · m
+- `r` · radio de rueda · m
+
+<Formula latex="\omega = \frac{d\theta}{dt}" />
+
+- `ω` · velocidad angular · rad/s
+- `θ` · ángulo · rad
 - `t` · tiempo · s
 
-<Formula latex="v = g\,t" />
+<Formula latex="\omega = \frac{2\pi}{T} = 2\pi f" />
 
-- `v` · rapidez · m/s
-- `g` · aceleración gravitatoria · m/s²
+- `ω` · velocidad angular · rad/s
+- `T` · período · s
+- `f` · frecuencia · Hz
+
+<Formula latex="\omega = n\frac{2\pi}{60}" />
+
+- `ω` · velocidad angular · rad/s
+- `n` · velocidad de giro · rpm (dato de entrada, no SI)
+
+<Formula latex="\theta = \theta_0 + \omega t" />
+
+- `θ` · ángulo · rad
+- `θ₀` · ángulo inicial · rad
+- `ω` · velocidad angular · rad/s
 - `t` · tiempo · s
-
-<Formula latex="t_{caída} = \sqrt{2h/g}" />
-
-- `t_caída` · tiempo de caída · s
-- `h` · altura inicial · m
-- `g` · aceleración gravitatoria · m/s²
-
-<Formula latex="v_{impacto} = \sqrt{2gh}" />
-
-- `v_impacto` · rapidez de impacto · m/s
-- `g` · aceleración gravitatoria · m/s²
-- `h` · altura inicial · m
 </Formulas>
 
 <Explora>
-Dos piezas caen desde el reposo, superpuestas: A desde h = 0.25 m, la altura de la pinza del
-gancho, y B desde cuatro veces más alto, 1 m. La vista lateral marca la posición de cada pieza
-cada 0.1 s y dibuja su vector velocidad; el panel da el tiempo de vuelo y la velocidad de las dos.
+El disco gira a la velocidad que eliges en rpm, con un punto marcado en el borde a la distancia r
+del centro. El panel muestra ω en rad/s, el período, la frecuencia, el ángulo girado y las
+vueltas.
 
-<ProjectileWidget mode="drop" initial={{ h_m: 0.25 }} showVectors={['v']} overlay />
+<RotationWidget mode="disc" inputUnit="rpm" initial={{ omega_radps: 20.94, r_m: 0.032 }} />
 
 <Experimento
-  cambia="h de la caída A al cuádruple, de 0.25 m a 1 m"
-  observa="el tiempo de vuelo de A en el panel, que en una caída es t_caída"
-  porque="¿Por qué el tiempo solo se duplica?"
+  cambia="el tiempo: reinicia y reproduce 1 s a 200 rpm"
+  observa="el contador de vueltas"
+  porque="¿Por qué marca 3.33 vueltas?"
 >
-El tiempo de caída es t_caída = √(2h/g): depende de la raíz cuadrada de h. Multiplicar h por 4
-multiplica t_caída por √4 = 2. Pasa de 0.2258 s a 0.452 s.
+200 rpm son 200 vueltas en 60 s, es decir, 200/60 = 3.33 vueltas por segundo. En 1 s el ángulo
+girado es θ = 20.94 rad, y 20.94/2π = 3.33 vueltas.
 </Experimento>
 
 <Experimento
-  cambia="h de A de vuelta a 0.25 m, con B en 1 m: las dos caídas superpuestas, h y 4h"
-  observa="la velocidad vy de cada pieza al final de su caída"
-  porque="¿Por qué B llega con el doble de rapidez y no con el cuádruple?"
+  cambia="n de 200 rpm a 60 rpm"
+  observa="el período T"
+  porque="¿Por qué T vale exactamente 1 s?"
 >
-La rapidez de impacto es v_impacto = √(2gh): crece con √h, así que cuatro veces la altura da
-√4 = 2 veces la rapidez. vy sale negativa porque la pieza baja, y su valor pasa de 2.215 m/s
-desde 0.25 m a 4.43 m/s desde 1 m. B cae el doble de tiempo con la misma g, y v = g·t.
+60 rpm son 60 vueltas en 60 s: una vuelta por segundo. Por eso T = 60/60 = 1 s, y
+ω = 2π/T = 6.28 rad/s.
 </Experimento>
 
 <Experimento
-  cambia="busca en el panel un control de masa"
-  observa="los controles del widget: ninguno es de masa"
-  porque="¿Por qué el widget no tiene control de masa?"
+  cambia="el radio r, sin tocar la velocidad de giro"
+  observa="ω y el período T"
+  porque="¿Por qué no cambian?"
 >
-Sin aire, la única aceleración de la pieza es g, la misma para cualquier masa. Ninguna fórmula de
-la caída libre contiene m, así que cambiarla no movería ninguna trayectoria. Por eso el widget no
-la expone.
+Todos los puntos del disco giran el mismo ángulo en el mismo tiempo, así que ω y T no dependen de
+r. Solo cambia la rapidez del punto del borde, que recorre más arco en cada vuelta cuanto mayor
+es r. Esa rapidez es el tema de [v = ω·r: la velocidad del robot](/ruta/ruta-1/m01/t04).
 </Experimento>
 </Explora>
 
 <AlRobot>
-Cuando la pinza de tu robot se abre, la pieza no llega a la banda al instante: tarda t_caída en
-caer, y durante ese tiempo la banda sigue avanzando. Para que la pieza caiga en su sitio, la
-pinza tiene que abrirse t_caída antes de que ese sitio pase por debajo.
+La rueda de tu robot no gira a la velocidad del motor: el motorreductor la divide entre su
+relación de reducción i. Con la velocidad sin carga n_motor de «Mi robot», en rpm, la velocidad
+angular de la rueda es:
 
-La altura de la pinza sobre la banda no es un dato de tu perfil de «Mi robot», así que este
-cálculo usa la del gancho, h = 0.25 m, sea cual sea tu perfil:
+<RobotFormula calc="ruta-1/m01-t03/omega-wheel" />
 
-<RobotFormula calc="ruta-1/m01-t03/fall-time" />
+Si tu perfil de «Mi robot» no es un robot móvil, el cálculo usa el robot de referencia.
 
-La pieza tarda 0.2258 s en caer. Con la misma h, la rapidez con la que golpea la banda es:
+Con ω_rueda sale el período, el tiempo que tarda la rueda en dar una vuelta completa:
 
-<RobotFormula calc="ruta-1/m01-t03/impact-speed" />
+<RobotFormula calc="ruta-1/m01-t03/period" />
 
-Llega a 2.215 m/s. La masa de la pieza no aparece en ninguno de los dos cálculos: una pieza más
-pesada tarda lo mismo en caer y llega con la misma rapidez.
+Con el robot de referencia, 6000 rpm con i = 30 dejan la rueda a 200 rpm: ω_rueda = 20.94 rad/s
+y T = 0.3 s. Es el disco de Explora con los datos del gancho.
 
-Si es tu robot el que avanza mientras suelta la pieza, esta conserva la velocidad del robot y cae
-por delante del punto donde la soltó. Ese caso es tiro parabólico, el tema siguiente.
+A esa velocidad, en una prueba de 10 s la rueda gira θ = 20.94·10 = 209.4 rad, es decir,
+33.33 vueltas. En cada vuelta sin deslizar, el robot avanza un perímetro de rueda, 2π·r. Cuánto
+recorre en total, y a qué velocidad, lo calculas en el tema siguiente.
 </AlRobot>
 
 <Verifica
-  ejercicios={[
-    'ruta-1/m01-t03/e1',
-    'ruta-1/m01-t03/e2',
-    'ruta-1/m01-t03/e3',
-    'ruta-1/m01-t03/e4',
-  ]}
+  ejercicios={['ruta-1/m01-t03/e1', 'ruta-1/m01-t03/e2', 'ruta-1/m01-t03/e3', 'ruta-1/m01-t03/e4']}
   topicId="ruta-1/m01-t03"
   obligatorios={['e1', 'e2', 'e3']}
 />
 
-<Profundiza referencias={['young-freedman-2']} topicId="ruta-1/m01-t03" />
+<Profundiza referencias={['young-freedman-9', 'serway-10']} topicId="ruta-1/m01-t03" />

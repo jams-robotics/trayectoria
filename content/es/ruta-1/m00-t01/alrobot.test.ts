@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { omegaMotor, omegaRueda, robotCalcs } from './alrobot';
 
-// Golden values of docs/CURRICULUM.md § T-0.1 (Al robot), with the reference robot:
+// Golden values of docs/CURRICULUM.md § T1-0.1 (Al robot), with the reference robot:
 // 6000·2π/60 = 628.3 rad/s and 628.3/30 = 20.94 rad/s. `content` takes robot-spec for its types
 // only (#246), so the reference robot of docs/ROBOT-SPEC.md §3 is written out here.
 const REFERENCE: RobotSpec = {
@@ -42,7 +42,7 @@ function withoutWheels(): RobotSpec {
   return { ...rest, kind: 'arm-serial' };
 }
 
-describe('T-0.1 «Al robot» calcs', () => {
+describe('T1-0.1 «Al robot» calcs', () => {
   it('are omega-motor and omega-rueda', () => {
     expect(robotCalcs.map((calc) => calc.id)).toEqual(['omega-motor', 'omega-rueda']);
   });

@@ -36,18 +36,18 @@ select pg_temp.act_as('00000000-0000-4000-8000-00000000000b');
 
 select lives_ok(
   $$ insert into public.progress (user_id, topic_id, status, best_score, attempts)
-     values ('00000000-0000-4000-8000-00000000000b', 'ruta-1/m04-t02', 'in_progress', 0.5, 1) $$,
+     values ('00000000-0000-4000-8000-00000000000b', 'ruta-1/m01-t04', 'in_progress', 0.5, 1) $$,
   'a student inserts their own progress'
 );
 select lives_ok(
   $$ insert into public.attempts (user_id, topic_id, exercise_id, seed, response, correct)
-     values ('00000000-0000-4000-8000-00000000000b', 'ruta-1/m04-t02', 'ruta-1/m04-t02/e1', 7,
+     values ('00000000-0000-4000-8000-00000000000b', 'ruta-1/m01-t04', 'e1', 7,
              '{"answer": 3}', true) $$,
   'a student inserts their own attempt'
 );
 select throws_ok(
   $$ insert into public.progress (user_id, topic_id, status)
-     values ('00000000-0000-4000-8000-00000000000c', 'ruta-1/m04-t02', 'in_progress') $$,
+     values ('00000000-0000-4000-8000-00000000000c', 'ruta-1/m01-t04', 'in_progress') $$,
   '42501',
   null,
   'a student cannot insert progress for someone else'
@@ -70,7 +70,7 @@ select is_empty(
 -- C (not a member of any of A's groups) has progress of their own (F0-07b).
 select lives_ok(
   $$ insert into public.progress (user_id, topic_id, status, best_score, attempts)
-     values ('00000000-0000-4000-8000-00000000000c', 'ruta-1/m04-t02', 'completed', 1, 2) $$,
+     values ('00000000-0000-4000-8000-00000000000c', 'ruta-1/m01-t04', 'completed', 1, 2) $$,
   'a student outside the group inserts their own progress'
 );
 
@@ -78,7 +78,7 @@ select lives_ok(
 select pg_temp.act_as('00000000-0000-4000-8000-00000000000a');
 select results_eq(
   $$ select user_id, topic_id from public.progress $$,
-  $$ values ('00000000-0000-4000-8000-00000000000b'::uuid, 'ruta-1/m04-t02') $$,
+  $$ values ('00000000-0000-4000-8000-00000000000b'::uuid, 'ruta-1/m01-t04') $$,
   'a teacher reads the progress of the members of their groups'
 );
 select is_empty(

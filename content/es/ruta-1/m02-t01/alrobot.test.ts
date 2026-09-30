@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { netForce, normal, robotCalcs } from './alrobot';
 
-// Golden values of docs/CURRICULUM.md § T-2.1 (Al robot), with the reference robot:
+// Golden values of docs/CURRICULUM.md § T1-2.1 (Al robot), with the reference robot:
 // a = 40·0.032 = 1.28 m/s², F = 0.9·1.28 = 1.152 N, N = 0.9·9.81 = 8.83 N.
 // `content` takes robot-spec for its types only (#246), so the reference robot of
 // docs/ROBOT-SPEC.md §3 is written out here.
@@ -57,7 +57,7 @@ function withoutWheels(): RobotSpec {
   return { ...rest, kind: 'arm-serial' };
 }
 
-describe('T-2.1 «Al robot» calcs', () => {
+describe('T1-2.1 «Al robot» calcs', () => {
   it('are net-force and normal', () => {
     expect(robotCalcs.map((calc) => calc.id)).toEqual(['net-force', 'normal']);
   });

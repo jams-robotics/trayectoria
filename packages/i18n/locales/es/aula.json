@@ -62,6 +62,7 @@
   },
   "progress": {
     "title": "Progreso por tema",
+    "route": "Ruta",
     "empty": "Nadie se ha unido todavía. Comparte el código de invitación.",
     "failed": "No se pudo cargar el progreso. Inténtalo de nuevo.",
     "caption": "Progreso por tema y estudiante del grupo {{group}}",

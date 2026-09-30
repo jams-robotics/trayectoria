@@ -1,6 +1,7 @@
 export { progressAdapter, progressAdapterFor } from './adapter';
 export type { ProgressAdapter } from './adapter';
 export { PROGRESS_STORAGE_KEY } from './local';
+export { MERGED_EXERCISE_MAP, ROUTES_VERSION, TOPIC_ID_MAP } from './routeMap';
 export { applyAttempt, completeProgress, emptyProgress, mergeProgress } from './model';
 export type { ExerciseAttempt, ProgressMap, TopicProgress } from './model';
 export {

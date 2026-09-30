@@ -3,16 +3,18 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import auth from '../../../packages/i18n/locales/es/auth.json' with { type: 'json' };
 import aula from '../../../packages/i18n/locales/es/aula.json' with { type: 'json' };
 import widgets from '../../../packages/i18n/locales/es/widgets.json' with { type: 'json' };
-import ruta from '../../../content/es/ruta-1/ruta.json' with { type: 'json' };
+import ruta1 from '../../../content/es/ruta-1/ruta.json' with { type: 'json' };
+import ruta2 from '../../../content/es/ruta-2/ruta.json' with { type: 'json' };
 import { E2E_PASSWORD, joinGroup, signUp, type TestUser } from './helpers/supabase';
 import { openMobileSim, readout } from './sim-movil.helpers';
 
 /**
  * F7-04 acceptance criterion 1: the full route, end to end, against the local Supabase stack.
  *
- * A single registered student walks the 28 topics of `content/es/ruta-1/ruta.json` and answers a
- * scalar `Verifica` exercise of each one, then opens the mobile simulator with «Mi robot», and
- * finally a teacher who shares a group with the student sees their progress in `/aula`.
+ * A single registered student walks the 25 topics of the two routes (`content/es/ruta-1/ruta.json`,
+ * then `content/es/ruta-2/ruta.json`, #574) and answers a scalar `Verifica` exercise of each one,
+ * then opens the mobile simulator with «Mi robot», and finally a teacher who shares a group with
+ * the student sees their progress in `/aula`, route by route.
  *
  * `apps/web` (this package, e2e included) may only import from `sims`, `widgets`, `progress`,
  * `auth`, `db`, `i18n`, `robot-spec` and `content` (docs/ARCHITECTURE.md §2, enforced by
@@ -31,8 +33,11 @@ const TEACHER_NAME = 'Docente ruta completa';
 const STUDENT_NAME = 'Estudiante ruta completa';
 const GROUP_NAME = 'Ruta completa E2E';
 
-const TOPICS = ruta.modules.flatMap((module) =>
-  module.topics.map((topic) => ({ moduleId: module.id, topicId: topic.id, title: topic.title })),
+const ROUTES = [ruta1, ruta2];
+const TOPICS = ROUTES.flatMap((route) =>
+  route.modules.flatMap((module) =>
+    module.topics.map((topic) => ({ topicId: `${route.id}/${topic.id}`, title: topic.title })),
+  ),
 );
 
 function uniqueEmail(prefix: string): string {
@@ -75,7 +80,7 @@ async function checkOnce(exercise: Locator): Promise<string | null> {
   // window blocks on Playwright's own actionability wait for the button to re-enable instead of
   // failing outright. Re-clicking on every poll iteration (as this used to) could therefore stack
   // that actionability wait for a slow `recordAttempt` write (packages/db writes under load, e.g.
-  // the local Supabase stack across this spec's 28 topics) inside a single iteration and burn the
+  // the local Supabase stack across this spec's 25 topics) inside a single iteration and burn the
   // whole 15 s budget in one `click()` call before ever reading back a settled status. One click
   // starts the attempt; the poll below only reads `data-status` afterwards, waiting past
   // `checking` (a real, non-terminal status while the write settles) to `correct`/`incorrect`.
@@ -168,7 +173,8 @@ async function solveATopicExercise(
   topicId: string,
   hydrationMismatches: string[],
 ): Promise<string | null> {
-  const [moduleId, topicNumber] = topicId.split('-');
+  const [routeId, slug = ''] = topicId.split('/');
+  const [moduleId, topicNumber] = slug.split('-');
   // A topic page mixes `client:load` and `client:visible` islands (Explora's simulators, each
   // Verifica exercise): the `client:visible` ones only hydrate once scrolled into view, so
   // `openHydrated`'s "every astro-island lost its ssr attribute" wait never resolves here
@@ -178,7 +184,7 @@ async function solveATopicExercise(
   const onPageError = (error: Error): void => void pageErrors.push(error.message);
   page.on('pageerror', onPageError);
   try {
-    await page.goto(`/ruta/ruta-1/${moduleId}/${topicNumber}`);
+    await page.goto(`/ruta/${routeId}/${moduleId}/${topicNumber}`);
     const index = await firstScalarExerciseIndex(page);
     if (index === null) return `${topicId}: no scalar ExerciseWidget found in Verifica`;
     const exercise = page.getByTestId('exercise').nth(index);
@@ -304,21 +310,21 @@ async function solveVisibleExercise(exercise: Locator, topicId: string): Promise
 }
 
 test.describe('F7-04 · ruta completa', () => {
-  test('registro, 28 temas con un ejercicio cada uno, simulador móvil con «Mi robot» y progreso docente', async ({
+  test('registro, 25 temas de las dos rutas con un ejercicio cada uno, simulador móvil con «Mi robot» y progreso docente por ruta', async ({
     page,
     browser,
   }) => {
     test.setTimeout(20 * 60 * 1000);
-    expect(TOPICS).toHaveLength(28);
+    expect(TOPICS).toHaveLength(25);
 
     // 1. Registro de un estudiante nuevo.
     const studentEmail = uniqueEmail('ruta-completa-estudiante');
     const student = await signUp('student', STUDENT_NAME, studentEmail);
     await signInOnPage(page, studentEmail);
 
-    // 2. Los 28 temas, un ejercicio cada uno. Un tema roto se anota y no detiene la ruta. Los
+    // 2. Los 25 temas de las dos rutas, un ejercicio cada uno. Un tema roto se anota y no detiene la ruta. Los
     // hydration mismatches conocidos (ver `waitForStableStatement`) se cuentan aparte: son un
-    // defecto único que se repite por tema, no 28 defectos distintos.
+    // defecto único que se repite por tema, no 25 defectos distintos.
     const defects: string[] = [];
     const hydrationMismatches: string[] = [];
     for (const { topicId, title } of TOPICS) {
@@ -374,23 +380,35 @@ test.describe('F7-04 · ruta completa', () => {
     await openHydrated(teacherPage, teacherPage.url().slice(teacherPage.url().indexOf('/aula')));
     await expect(teacherPage.getByTestId('progress-table')).toBeVisible();
     await expect(teacherPage.getByTestId('progress-column').first()).toHaveText(STUDENT_NAME);
-    // A topic only turns `completed` (and only then counts in `progress-summary`'s "N/28") once
+    // A topic only turns `completed` (and only then counts in `progress-summary`'s "N/14") once
     // every one of its required exercises is answered correctly (packages/progress/src/model.ts
-    // `isCompleted`), and this spec answers just one exercise per topic — so "N/28" can stay
-    // "0/28" even though every topic was genuinely attempted. What the teacher's aula must show
-    // instead is at least one cell no longer `pending` (`data-state`, ProgressGrid.tsx), unless
-    // every topic in fact failed to grade above.
-    if (defects.length < TOPICS.length) {
-      const attempted = teacherPage.locator(
-        '[data-testid="progress-cell"]:not([data-state="pending"])',
-      );
-      await expect(attempted.first()).toBeVisible();
-      expect(await attempted.count()).toBeGreaterThan(0);
+    // `isCompleted`), and this spec answers just one exercise per topic — so "N/14" can stay
+    // "0/14" even though every topic was genuinely attempted. What the teacher's aula must show
+    // instead is at least one cell no longer `pending` (`data-state`, ProgressGrid.tsx) in each
+    // route, chosen in the «Ruta» selector (ARCHITECTURE §3.2), unless every topic of that route
+    // in fact failed to grade above.
+    const selector = teacherPage.getByTestId('progress-route-selector');
+    for (const route of ROUTES) {
+      const chip = selector.getByRole('button', { name: route.shortTitle, exact: true });
+      await chip.click();
+      await expect(chip).toHaveAttribute('aria-pressed', 'true');
+      const topicCount = TOPICS.filter(({ topicId }) => topicId.startsWith(`${route.id}/`)).length;
+      const rows = teacherPage.getByTestId('progress-row');
+      await expect(rows).toHaveCount(topicCount);
+      await expect(rows.first()).toHaveAttribute('data-topic', `${route.id}/m00-t01`);
+      const routeDefects = defects.filter((defect) => defect.startsWith(`${route.id}/`));
+      if (routeDefects.length < topicCount) {
+        const attempted = teacherPage.locator(
+          '[data-testid="progress-cell"]:not([data-state="pending"])',
+        );
+        await expect(attempted.first()).toBeVisible();
+        expect(await attempted.count()).toBeGreaterThan(0);
+      }
     }
     await teacher.client.auth.signOut();
     await teacherContext.close();
 
-    // Report every topic that could not be solved, so a single failing topic still shows all 28
+    // Report every topic that could not be solved, so a single failing topic still shows all 25
     // outcomes above (console log) instead of stopping at the first one.
     expect(defects, defects.join('\n')).toEqual([]);
   });

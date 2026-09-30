@@ -3,25 +3,27 @@ import type { Exercise } from '@trayectoria/sim-core';
 import { describe, expect, it } from 'vitest';
 
 import {
-  E5_H_M,
-  E5_V_MPS,
-  H_M,
-  LAUNCH_ANGLE_DEG,
-  V0_MPS,
+  E1_OMEGA_RADPS,
+  E1_WHEEL_RADIUS_M,
+  E2_V_MPS,
+  E2_WHEEL_RADIUS_M,
+  E3_GEAR_RATIO,
+  E3_MOTOR_SPEED_RPM,
+  E3_WHEEL_RADIUS_M,
+  E4_DISTANCE_M,
+  MAX_SPEED_MPS,
   MIN_RELATIVE_ANSWER,
   exercises,
 } from './ejercicios';
 
-// Golden values of docs/CURRICULUM.md § T-1.4, Verifica. Each one runs through the exercise's own
-// `generate`, driven by an rng that lands on the grid indices the spec's values give:
-// v₀ = 4 m/s (tenths: 40), α = 40° (whole degrees: 40), h = 0.3 m (hundredths: 30).
+// Golden values of docs/CURRICULUM.md § T1-1.4, Verifica. Each one runs through the exercise's own
+// `generate`, driven by an rng that lands on the grid indices the spec's values give.
 
 const TOPIC_ID = 'ruta-1/m01-t04';
 const RELATIVE_2_PERCENT = { type: 'relative', value: 0.02 } as const;
-const ABSOLUTE_10_MS = { type: 'absolute', value: 0.01 } as const;
 const MANY_SEEDS = Array.from({ length: 2000 }, (_, seed) => seed + 1);
 const EPSILON = 1e-9;
-const G_MPS2 = 9.81;
+const RPM_TO_RADPS = (2 * Math.PI) / 60;
 
 interface Range {
   readonly min: number;
@@ -57,40 +59,28 @@ function valuesOf(id: string, seed: number): Record<string, number> {
   return exercise(id).generate(createRng(seed)).values as Record<string, number>;
 }
 
-function answerOf(id: string, seed: number): number {
-  return exercise(id).generate(createRng(seed)).answer as number;
-}
-
 function expectWithin(value: number, range: Range): void {
   expect(value).toBeGreaterThanOrEqual(range.min);
   expect(value).toBeLessThanOrEqual(range.max);
 }
 
-/** The value sits on the grid of step 1/`perUnit` (hundredths: 100, tenths: 10, whole: 1). */
+/** The value sits on the grid of step 1/`perUnit` (thousandths: 1000, units: 1). */
 function expectOnGrid(value: number, perUnit: number): void {
   expect(Math.abs(value * perUnit - Math.round(value * perUnit))).toBeLessThan(EPSILON);
 }
 
-/** v₀ ∈ [1, 8] m/s in tenths and α ∈ [15°, 75°] in whole degrees, as every launch draws them. */
-function expectLaunchDraw(values: Record<string, number>): void {
-  expectWithin(values.v0_mps!, V0_MPS);
-  expectWithin(values.launchAngle_deg!, LAUNCH_ANGLE_DEG);
-  expectOnGrid(values.v0_mps!, 10);
-  expectOnGrid(values.launchAngle_deg!, 1);
+/** `v = 2π r n_motor / (60 i)`. */
+function robotSpeed_mps({
+  motorSpeed_rpm,
+  gearRatio,
+  wheelRadius_m,
+}: Record<string, number>): number {
+  return (motorSpeed_rpm! / gearRatio!) * RPM_TO_RADPS * wheelRadius_m!;
 }
 
-/** Hand formulas of the spec, independent of sim-core. */
-function vy0_mps(v0_mps: number, alpha_deg: number): number {
-  return v0_mps * Math.sin((alpha_deg * Math.PI) / 180);
-}
-function flightTime_s(v0_mps: number, alpha_deg: number, h_m: number): number {
-  const vy = vy0_mps(v0_mps, alpha_deg);
-  return (vy + Math.sqrt(vy ** 2 + 2 * G_MPS2 * h_m)) / G_MPS2;
-}
-
-describe('T-1.4 exercises', () => {
-  it('declares e1 to e5, in order', () => {
-    expect(exercises.map(({ id }) => id)).toEqual(['e1', 'e2', 'e3', 'e4', 'e5']);
+describe('T1-1.4 exercises', () => {
+  it('declares e1 to e4, in order', () => {
+    expect(exercises.map(({ id }) => id)).toEqual(['e1', 'e2', 'e3', 'e4']);
   });
 
   it('points each statement at content.<topicId>.<exerciseId>', () => {
@@ -99,140 +89,159 @@ describe('T-1.4 exercises', () => {
     }
   });
 
-  it('grades e3 with an absolute 0.01 s and the rest with the default relative 2 %', () => {
-    for (const { id, tolerance } of exercises) {
-      expect(tolerance).toEqual(id === 'e3' ? ABSOLUTE_10_MS : RELATIVE_2_PERCENT);
+  it('grades every exercise with the default tolerance: relative 2 %', () => {
+    for (const { tolerance } of exercises) {
+      expect(tolerance).toEqual(RELATIVE_2_PERCENT);
     }
   });
 
-  it('accepts a response 1.9 % off and rejects one 2.1 % off, except e3', () => {
-    for (const candidate of exercises.filter(({ id }) => id !== 'e3') as Exercise<unknown>[]) {
+  it('accepts a response 1.9 % off and rejects one 2.1 % off', () => {
+    for (const candidate of exercises as readonly Exercise<unknown>[]) {
       for (const seed of MANY_SEEDS.slice(0, 20)) {
-        const answer = candidate.generate(createRng(seed)).answer as number;
-        expect(check(candidate, seed, answer * 1.019).correct).toBe(true);
-        expect(check(candidate, seed, answer * 1.021).correct).toBe(false);
+        const { answer } = candidate.generate(createRng(seed));
+        const scaled = (factor: number) =>
+          Array.isArray(answer)
+            ? answer.map((value: number) => value * factor)
+            : (answer as number) * factor;
+        expect(check(candidate, seed, scaled(1.019)).correct).toBe(true);
+        expect(check(candidate, seed, scaled(1.021)).correct).toBe(false);
       }
     }
   });
+
+  it('caps the speed of your robot at 1.5 m/s (#274)', () => {
+    expect(MAX_SPEED_MPS).toBe(1.5);
+  });
 });
 
-describe('e1 · alcance con h = 0', () => {
-  it('v₀ = 4 m/s, α = 40° → 1.606 m', () => {
-    const { values, answer, unit } = exercise('e1').generate(scriptedRng([40, 40]));
+describe('e1 · ω y r: velocidad', () => {
+  it('ω = 20.94 rad/s, r = 0.032 m → 0.6702 m/s', () => {
+    const { values, answer, unit } = exercise('e1').generate(scriptedRng([2094, 32]));
 
-    expect(values).toEqual({ v0_mps: 4, launchAngle_deg: 40 });
-    expect(answer).toBeCloseTo(1.606, 3);
-    expect(unit).toBe('m');
+    expect(values).toEqual({ omega_radps: 20.94, wheelRadius_m: 0.032 });
+    // 20.94·0.032 = 0.67008 m/s; the spec's 0.6702 m/s comes from ω unrounded (20.944 rad/s).
+    expect(answer).toBeCloseTo(0.6702, 3);
+    expect(unit).toBe('m/s');
   });
 
-  it('draws v₀ ∈ [1, 8] m/s in tenths and α ∈ [15°, 75°] in whole degrees', () => {
-    expect(V0_MPS).toEqual({ min: 1, max: 8 });
-    expect(LAUNCH_ANGLE_DEG).toEqual({ min: 15, max: 75 });
+  it('draws again when v > 1.5 m/s, as e3 (V-34)', () => {
+    // ω = 60 rad/s, r = 0.05 m is 3 m/s: redrawn. The golden values are kept.
+    const { values, answer } = exercise('e1').generate(scriptedRng([6000, 50, 2094, 32]));
+
+    expect(values).toEqual({ omega_radps: 20.94, wheelRadius_m: 0.032 });
+    expect(answer).toBeCloseTo(0.6702, 3);
+  });
+
+  it('draws ω ∈ [5, 60] rad/s in hundredths and r ∈ [0.015, 0.05] m in thousandths, v ≤ 1.5 m/s', () => {
+    expect(E1_OMEGA_RADPS).toEqual({ min: 5, max: 60 });
+    expect(E1_WHEEL_RADIUS_M).toEqual({ min: 0.015, max: 0.05 });
     for (const seed of MANY_SEEDS) {
-      const values = valuesOf('e1', seed);
-      expectLaunchDraw(values);
-      const { v0_mps, launchAngle_deg } = values;
-      expect(answerOf('e1', seed)).toBeCloseTo(
-        (v0_mps! ** 2 * Math.sin((2 * launchAngle_deg! * Math.PI) / 180)) / G_MPS2,
-        12,
-      );
+      const { omega_radps, wheelRadius_m } = valuesOf('e1', seed);
+      expectWithin(omega_radps!, E1_OMEGA_RADPS);
+      expectWithin(wheelRadius_m!, E1_WHEEL_RADIUS_M);
+      expectOnGrid(omega_radps!, 100);
+      expectOnGrid(wheelRadius_m!, 1000);
+      const answer_mps = exercise('e1').generate(createRng(seed)).answer as number;
+      expect(answer_mps).toBeCloseTo(omega_radps! * wheelRadius_m!, 12);
+      expect(answer_mps).toBeLessThanOrEqual(MAX_SPEED_MPS);
     }
   });
 });
 
-describe('e2 · altura máxima', () => {
-  it('v₀ = 4 m/s, α = 40°, h = 0.3 m → 0.6369 m', () => {
-    const { values, answer, unit } = exercise('e2').generate(scriptedRng([40, 40, 30]));
+describe('e2 · v y r: ω necesaria y rpm de rueda', () => {
+  it('v = 1 m/s, r = 0.032 m → 31.25 rad/s; 298.4 rpm', () => {
+    const { values, answer, unit } = exercise('e2').generate(scriptedRng([100, 32]));
 
-    expect(values).toEqual({ v0_mps: 4, launchAngle_deg: 40, h_m: 0.3 });
-    expect(answer).toBeCloseTo(0.6369, 4);
-    expect(unit).toBe('m');
+    expect(values).toEqual({ v_mps: 1, wheelRadius_m: 0.032 });
+    const [omega_radps, wheelSpeed_rpm] = answer as number[];
+    expect(omega_radps).toBeCloseTo(31.25, 10);
+    expect(wheelSpeed_rpm).toBeCloseTo(298.4, 1);
+    expect(unit).toEqual(['rad/s', 'rpm']);
   });
 
-  it('draws h ∈ [0, 1] m in hundredths, with the launch of e1', () => {
-    expect(H_M).toEqual({ min: 0, max: 1 });
+  it('grades each component on its own', () => {
+    const seed = 7;
+    const [omega_radps, wheelSpeed_rpm] = exercise('e2').generate(createRng(seed))
+      .answer as number[];
+    expect(check(exercise('e2'), seed, [omega_radps!, wheelSpeed_rpm!]).correct).toBe(true);
+    expect(check(exercise('e2'), seed, [omega_radps!, wheelSpeed_rpm! * 1.05]).correct).toBe(false);
+    expect(check(exercise('e2'), seed, [omega_radps! * 1.05, wheelSpeed_rpm!]).correct).toBe(false);
+  });
+
+  it('draws v ∈ [0.2, 1.5] m/s in hundredths and r ∈ [0.015, 0.05] m in thousandths', () => {
+    expect(E2_V_MPS).toEqual({ min: 0.2, max: 1.5 });
+    expect(E2_WHEEL_RADIUS_M).toEqual({ min: 0.015, max: 0.05 });
     for (const seed of MANY_SEEDS) {
-      const values = valuesOf('e2', seed);
-      expectLaunchDraw(values);
-      expectWithin(values.h_m!, H_M);
-      expectOnGrid(values.h_m!, 100);
-      const { v0_mps, launchAngle_deg, h_m } = values;
-      expect(answerOf('e2', seed)).toBeCloseTo(
-        h_m! + vy0_mps(v0_mps!, launchAngle_deg!) ** 2 / (2 * G_MPS2),
-        12,
-      );
+      const { v_mps, wheelRadius_m } = valuesOf('e2', seed);
+      expectWithin(v_mps!, E2_V_MPS);
+      expectWithin(wheelRadius_m!, E2_WHEEL_RADIUS_M);
+      expectOnGrid(v_mps!, 100);
+      expectOnGrid(wheelRadius_m!, 1000);
+      const [omega_radps, wheelSpeed_rpm] = exercise('e2').generate(createRng(seed))
+        .answer as number[];
+      expect(omega_radps).toBeCloseTo(v_mps! / wheelRadius_m!, 12);
+      expect(wheelSpeed_rpm).toBeCloseTo(omega_radps! / RPM_TO_RADPS, 9);
     }
   });
 });
 
-describe('e3 · tiempo de vuelo', () => {
-  it('v₀ = 4 m/s, α = 40°, h = 0.3 m → 0.6224 s', () => {
-    const { values, answer, unit } = exercise('e3').generate(scriptedRng([40, 40, 30]));
+describe('e3 · n_motor, i y r: velocidad del robot', () => {
+  it('n_motor = 6000 rpm, i = 30, r = 0.032 m → 0.6702 m/s', () => {
+    const { values, answer, unit } = exercise('e3').generate(scriptedRng([6000, 30, 32]));
 
-    expect(values).toEqual({ v0_mps: 4, launchAngle_deg: 40, h_m: 0.3 });
-    expect(answer).toBeCloseTo(0.6224, 3);
+    expect(values).toEqual({ motorSpeed_rpm: 6000, gearRatio: 30, wheelRadius_m: 0.032 });
+    expect(answer).toBeCloseTo(0.6702, 4);
+    expect(unit).toBe('m/s');
+  });
+
+  it('draws again when v > 1.5 m/s (#274, #301)', () => {
+    // 12000 rpm, i = 10, r = 0.05 m is 6.28 m/s: redrawn. The golden values are kept.
+    const { values, answer } = exercise('e3').generate(scriptedRng([12000, 10, 50, 6000, 30, 32]));
+
+    expect(values).toEqual({ motorSpeed_rpm: 6000, gearRatio: 30, wheelRadius_m: 0.032 });
+    expect(answer).toBeCloseTo(0.6702, 4);
+  });
+
+  it('draws n_motor ∈ [1000, 12000] rpm and i ∈ [10, 100] in units, r ∈ [0.015, 0.05] m in thousandths, v ≤ 1.5 m/s', () => {
+    expect(E3_MOTOR_SPEED_RPM).toEqual({ min: 1000, max: 12000 });
+    expect(E3_GEAR_RATIO).toEqual({ min: 10, max: 100 });
+    expect(E3_WHEEL_RADIUS_M).toEqual({ min: 0.015, max: 0.05 });
+    for (const seed of MANY_SEEDS) {
+      const values = valuesOf('e3', seed);
+      expectWithin(values.motorSpeed_rpm!, E3_MOTOR_SPEED_RPM);
+      expectWithin(values.gearRatio!, E3_GEAR_RATIO);
+      expectWithin(values.wheelRadius_m!, E3_WHEEL_RADIUS_M);
+      expectOnGrid(values.motorSpeed_rpm!, 1);
+      expectOnGrid(values.gearRatio!, 1);
+      expectOnGrid(values.wheelRadius_m!, 1000);
+      const answer_mps = exercise('e3').generate(createRng(seed)).answer as number;
+      expect(answer_mps).toBeCloseTo(robotSpeed_mps(values), 12);
+      expect(answer_mps).toBeLessThanOrEqual(MAX_SPEED_MPS);
+    }
+  });
+});
+
+describe('e4 · tiempo para una pista de 4 m', () => {
+  it('D = 4 m with 6000 rpm, i = 30, r = 0.032 m → 5.968 s', () => {
+    expect(E4_DISTANCE_M).toBe(4);
+    const { values, answer, unit } = exercise('e4').generate(scriptedRng([6000, 30, 32]));
+
+    expect(values).toEqual({ motorSpeed_rpm: 6000, gearRatio: 30, wheelRadius_m: 0.032 });
+    expect(answer).toBeCloseTo(5.968, 3);
     expect(unit).toBe('s');
   });
 
-  it('accepts a response 0.009 s off and rejects one 0.011 s off', () => {
-    for (const seed of MANY_SEEDS.slice(0, 20)) {
-      const answer = answerOf('e3', seed);
-      expect(check(exercise('e3'), seed, answer + 0.009).correct).toBe(true);
-      expect(check(exercise('e3'), seed, answer - 0.009).correct).toBe(true);
-      expect(check(exercise('e3'), seed, answer + 0.011).correct).toBe(false);
-      expect(check(exercise('e3'), seed, answer - 0.011).correct).toBe(false);
-    }
-  });
+  it('draws n_motor, i and r as e3, again when v > 1.5 m/s', () => {
+    const { values } = exercise('e4').generate(scriptedRng([12000, 10, 50, 6000, 30, 32]));
+    expect(values).toEqual({ motorSpeed_rpm: 6000, gearRatio: 30, wheelRadius_m: 0.032 });
 
-  it('draws v₀, α and h as e2 and takes the positive root', () => {
     for (const seed of MANY_SEEDS) {
-      const values = valuesOf('e3', seed);
-      expectLaunchDraw(values);
-      expectWithin(values.h_m!, H_M);
-      expectOnGrid(values.h_m!, 100);
-      const { v0_mps, launchAngle_deg, h_m } = values;
-      const t_s = answerOf('e3', seed);
-      expect(t_s).toBeGreaterThan(0);
-      expect(t_s).toBeCloseTo(flightTime_s(v0_mps!, launchAngle_deg!, h_m!), 12);
-    }
-  });
-});
-
-describe('e4 · alcance con h ≠ 0', () => {
-  it('v₀ = 4 m/s, α = 40°, h = 0.3 m → 1.907 m', () => {
-    const { values, answer, unit } = exercise('e4').generate(scriptedRng([40, 40, 30]));
-
-    expect(values).toEqual({ v0_mps: 4, launchAngle_deg: 40, h_m: 0.3 });
-    expect(answer).toBeCloseTo(1.907, 3);
-    expect(unit).toBe('m');
-  });
-
-  it('draws v₀, α and h as e2 and gives R = v₀ cosα · t_v', () => {
-    for (const seed of MANY_SEEDS) {
-      const values = valuesOf('e4', seed);
-      expectLaunchDraw(values);
-      expectWithin(values.h_m!, H_M);
-      expectOnGrid(values.h_m!, 100);
-      const { v0_mps, launchAngle_deg, h_m } = values;
-      expect(answerOf('e4', seed)).toBeCloseTo(
-        v0_mps! *
-          Math.cos((launchAngle_deg! * Math.PI) / 180) *
-          flightTime_s(v0_mps!, launchAngle_deg!, h_m!),
-        12,
+      const e3Values = valuesOf('e3', seed);
+      expect(valuesOf('e4', seed)).toEqual(e3Values);
+      expect(exercise('e4').generate(createRng(seed)).answer).toBeCloseTo(
+        E4_DISTANCE_M / robotSpeed_mps(e3Values),
+        9,
       );
-    }
-  });
-});
-
-describe('e5 · adelanto de la pieza soltada desde el robot', () => {
-  it('0.6 m/s, 0.25 m → 0.1355 m, whatever the seed', () => {
-    expect(E5_V_MPS).toBe(0.6);
-    expect(E5_H_M).toBe(0.25);
-    for (const seed of MANY_SEEDS.slice(0, 20)) {
-      const { values, answer, unit } = exercise('e5').generate(createRng(seed));
-      expect(values).toEqual({});
-      expect(answer).toBeCloseTo(0.1355, 4);
-      expect(unit).toBe('m');
     }
   });
 });
@@ -240,9 +249,9 @@ describe('e5 · adelanto de la pieza soltada desde el robot', () => {
 describe('answers graded relative to 2 % (#568)', () => {
   // Below 0.025 (in its unit), relative 2 % is tighter than the rounding to the thousandth, so a
   // correct rounded response would be rejected. Every such answer is drawn again.
-  it('e2 draws again below 0.025: v₀ = 1 m/s, α = 15°, h = 0 give 0.003414 m', () => {
-    const { values } = exercise('e2').generate(scriptedRng([10, 15, 0, 40, 40, 30]));
-    expect(values).toEqual({ v0_mps: 4, launchAngle_deg: 40, h_m: 0.3 });
+  it('e3 draws again below 0.025: 1000 rpm, i = 100, r = 0.015 m give 0.01571 m/s', () => {
+    const { values } = exercise('e3').generate(scriptedRng([1000, 100, 15, 6000, 30, 32]));
+    expect(values).toEqual({ motorSpeed_rpm: 6000, gearRatio: 30, wheelRadius_m: 0.032 });
   });
 
   it('never answers a component graded relative 2 % in (0, 0.025) over 5000 seeds', () => {

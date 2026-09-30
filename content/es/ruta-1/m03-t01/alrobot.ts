@@ -4,7 +4,7 @@ import { G_MPS2 } from '@trayectoria/sim-core';
 import type { RobotCalc } from '../../../index';
 
 /**
- * «Al robot» calcs of T-3.1 (docs/CURRICULUM.md § T-3.1, #300): the kinetic energy of «Mi robot»
+ * «Al robot» calcs of T1-3.1 (docs/CURRICULUM.md § T1-3.1, #300): the kinetic energy of «Mi robot»
  * at `v_max`, `E_k = ½·m·v_max²`, and the height it would climb by inertia, `h_max = v_max²/(2g)`.
  * They read only required fields of RobotSpec. The MDX renders them with
  * `<RobotFormula calc="ruta-1/m03-t01/kinetic-energy" />` and `…/max-height`.

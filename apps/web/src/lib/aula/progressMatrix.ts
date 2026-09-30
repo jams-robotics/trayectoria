@@ -1,11 +1,13 @@
 /**
- * Topic × student matrix of the teacher's classroom (F3-02b). Pure: it takes the topics of the
- * route (read at build time from `content/es/ruta-1/ruta.json`), the members of the group
+ * Topic × student matrix of the teacher's classroom (F3-02b). Pure: it takes the topics of one
+ * route (read at build time from its `content/es/ruta-N/ruta.json`), the members of the group
  * (F3-02a) and the `progress` rows the teacher may read under the "progress: own or taught
  * reads" policy, and returns the cells the table paints plus the per-student summary.
  *
  * No `window`, no Supabase and no clock here: the caller owns the query and the rendering.
  */
+
+import { sortRoutes, type RouteData } from '../routes';
 
 /** Status of one cell; mirrors `TopicState` of the route index (#120). */
 export type CellStatus = 'pending' | 'in_progress' | 'completed';
@@ -14,9 +16,36 @@ export type CellStatus = 'pending' | 'in_progress' | 'completed';
 export interface MatrixTopic {
   /** Full topic id, `ruta-1/m00-t01`. */
   readonly id: string;
+  /** Module id with its route, `ruta-1/m00`: `m00` repeats in both routes (§3.2). */
   readonly moduleId: string;
   readonly moduleTitle: string;
   readonly title: string;
+}
+
+/** One route of the classroom selector: its short title and its topics (§3.2, #574). */
+export interface MatrixRoute {
+  readonly id: string;
+  readonly shortTitle: string;
+  readonly topics: readonly MatrixTopic[];
+}
+
+/**
+ * The routes the classroom shows, in route order, each with its topics in the order of its
+ * `ruta.json` (docs/ARCHITECTURE.md §3.2, «Aula con dos rutas»).
+ */
+export function matrixRoutes(routes: readonly RouteData[]): MatrixRoute[] {
+  return sortRoutes(routes).map((route) => ({
+    id: route.id,
+    shortTitle: route.shortTitle,
+    topics: route.modules.flatMap((module) =>
+      module.topics.map((topic) => ({
+        id: `${route.id}/${topic.id}`,
+        moduleId: `${route.id}/${module.id}`,
+        moduleTitle: module.title,
+        title: topic.title,
+      })),
+    ),
+  }));
 }
 
 /** One student of the group; the display name comes from the members list of F3-02a. */

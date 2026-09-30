@@ -4,7 +4,7 @@ import { G_MPS2 } from '@trayectoria/sim-core';
 import type { RobotCalc } from '../../../index';
 
 /**
- * «Al robot» calcs of T-2.1 (docs/CURRICULUM.md § T-2.1): the net force «Mi robot» needs for its
+ * «Al robot» calcs of T1-2.1 (docs/CURRICULUM.md § T1-2.1): the net force «Mi robot» needs for its
  * maximum acceleration, `F = m · a` with `a = α · r`, and its normal on flat ground, `N = m · g`.
  * The MDX renders them with `<RobotFormula calc="ruta-1/m02-t01/net-force" />` and `…/normal`.
  */
@@ -19,7 +19,7 @@ const SIGNIFICANT_FIGURES = 3;
 const FORCE_SIGNIFICANT_FIGURES = 4;
 
 /**
- * Reference robot (docs/CURRICULUM.md, header: m = 0.9 kg, r = 0.032 m; § T-2.1 and #299:
+ * Reference robot (docs/CURRICULUM.md, header: m = 0.9 kg, r = 0.032 m; § T1-2.1 and #299:
  * α = 40 rad/s²). `content` takes robot-spec for its types only (#246), so the numbers are here.
  */
 const REFERENCE_ALPHA_RADPS2 = 40;

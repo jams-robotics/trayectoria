@@ -3,7 +3,7 @@ import type { RobotSpec } from '@trayectoria/robot-spec';
 import type { RobotCalc } from '../../../index';
 
 /**
- * «Al robot» calcs of T-2.2 (docs/CURRICULUM.md § T-2.2, #609): the acceleration the motor of
+ * «Al robot» calcs of T1-2.2 (docs/CURRICULUM.md § T1-2.2, #609): the acceleration the motor of
  * «Mi robot» can ask for at full voltage from rest, with its stall torque through the reduction on
  * both wheels, `a_motor = 2 τ_s i η_caja / (r m)`, to compare with the traction limit
  * `a_max = μs·g·β`; and the ramp the simulator applies to the wheels, `a = α · r`, to check it
@@ -15,12 +15,12 @@ import type { RobotCalc } from '../../../index';
 /** Three significant figures, keeping trailing zeros: 15.0 m/s², 1.28 m/s², 2.00 m/s². */
 const SIGNIFICANT_FIGURES = 3;
 
-/** Four significant figures for α, as in T-1.2. */
+/** Four significant figures for α, as in T1-1.2. */
 const ALPHA_SIGNIFICANT_FIGURES = 4;
 
 /**
  * Reference robot (docs/CURRICULUM.md, header: r = 0.032 m, i = 30, m = 0.9 kg, τ_s = 0.012 N·m,
- * η_caja = 0.6; § T-2.2 and #288: α = 40 rad/s²). `content` takes robot-spec for its types only
+ * η_caja = 0.6; § T1-2.2 and #288: α = 40 rad/s²). `content` takes robot-spec for its types only
  * (#246), so the numbers are here.
  */
 const REFERENCE_ALPHA_RADPS2 = 40;

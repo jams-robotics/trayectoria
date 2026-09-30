@@ -18,20 +18,20 @@ describe('contact', () => {
   });
 
   it('builds the mailto alternative to report an error in a place', () => {
-    expect(reportEmailHref('m04-t02')).toBe(
-      `mailto:${CONTACT_EMAIL}?subject=%5BTrayectoria%5D+Error+en+m04-t02`,
+    expect(reportEmailHref('ruta-1/m01-t04')).toBe(
+      `mailto:${CONTACT_EMAIL}?subject=%5BTrayectoria%5D+Error+en+ruta-1%2Fm01-t04`,
     );
   });
 
   it('builds the prefilled issue URL for the reporte-tema template', () => {
     const url = reportIssueUrl({
-      title: '[Tema m04-t02] ',
+      title: '[Tema ruta-1/m01-t04] ',
       label: 'contenido',
-      tema: 'ruta-1/m04-t02',
+      tema: 'ruta-1/m01-t04',
     });
     expect(url).toBe(
       'https://github.com/jams-robotics/trayectoria/issues/new?' +
-        'template=reporte-tema.yml&title=%5BTema+m04-t02%5D+&labels=contenido&tema=ruta-1%2Fm04-t02',
+        'template=reporte-tema.yml&title=%5BTema+ruta-1%2Fm01-t04%5D+&labels=contenido&tema=ruta-1%2Fm01-t04',
     );
   });
 

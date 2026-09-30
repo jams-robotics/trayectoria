@@ -1,0 +1,40 @@
+{
+  "id": "ruta-2",
+  "title": "Robot móvil: del encoder a la pista",
+  "shortTitle": "Robot móvil",
+  "follows": "ruta-1",
+  "modules": [
+    {
+      "id": "m00",
+      "number": 0,
+      "title": "Medir y ubicar",
+      "topics": [
+        { "id": "m00-t01", "title": "Encoders" },
+        { "id": "m00-t02", "title": "Pose y marcos de referencia" }
+      ]
+    },
+    {
+      "id": "m01",
+      "number": 1,
+      "title": "Cinemática del diferencial",
+      "topics": [
+        { "id": "m01-t01", "title": "Cinemática directa del robot diferencial" },
+        { "id": "m01-t02", "title": "Cinemática inversa del robot diferencial" },
+        { "id": "m01-t03", "title": "Odometría" },
+        { "id": "m01-t04", "title": "Restricción no holonómica" }
+      ]
+    },
+    {
+      "id": "m02",
+      "number": 2,
+      "title": "Seguidor de línea",
+      "topics": [
+        { "id": "m02-t01", "title": "El sensor de línea" },
+        { "id": "m02-t02", "title": "Control on/off y proporcional" },
+        { "id": "m02-t03", "title": "Control PID" },
+        { "id": "m02-t04", "title": "Geometría del robot y desempeño" },
+        { "id": "m02-t05", "title": "Proyecto final: tu robot completa la pista" }
+      ]
+    }
+  ]
+}

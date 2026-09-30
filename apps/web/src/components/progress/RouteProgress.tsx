@@ -94,23 +94,44 @@ export function RouteProgress({ topicIds }: RouteProgressProps): JSX.Element {
   );
 }
 
+/** A link to another route: its URL and the text already translated by the page. */
+export interface RouteLink {
+  readonly href: string;
+  readonly label: string;
+}
+
+export interface RouteCompletedProps extends RouteProgressProps {
+  /**
+   * `route.continue` towards the route that continues this one, shown beside the notice (§3.2);
+   * `undefined` for a route nothing follows.
+   */
+  readonly continueLink?: RouteLink | undefined;
+}
+
 /**
  * «Ruta completada» notice under the route header (ARCHITECTURE §3.2): shown only once every
- * topic of the route is completed, from the same `$progress` as the per-topic states. Success
- * colour, no animation: feedback is never celebratory (DESIGN-BRIEF §5). The server renders
- * nothing; the island hydrates from `$progress`.
+ * topic of the route is completed, from the same `$progress` as the per-topic states. Each route
+ * has its own; in a route that another one continues it carries the `route.continue` link beside
+ * it. Success colour, no animation: feedback is never celebratory (DESIGN-BRIEF §5). The server
+ * renders nothing; the island hydrates from `$progress`.
  */
-export function RouteCompleted({ topicIds }: RouteProgressProps): JSX.Element | null {
+export function RouteCompleted({
+  topicIds,
+  continueLink,
+}: RouteCompletedProps): JSX.Element | null {
   const t = useT();
   const progress = useProgress();
   if (!isRouteCompleted(topicIds, progress)) return null;
   return (
-    <p
-      className="text-success mt-3 text-sm font-semibold"
-      role="status"
-      data-testid="route-completed"
-    >
-      {t('route.completed')}
+    <p className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm">
+      <span className="text-success font-semibold" role="status" data-testid="route-completed">
+        {t('route.completed')}
+      </span>
+      {continueLink !== undefined && (
+        <a href={continueLink.href} data-testid="route-completed-continue">
+          {continueLink.label}
+        </a>
+      )}
     </p>
   );
 }

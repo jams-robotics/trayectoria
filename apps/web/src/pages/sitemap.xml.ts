@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 
+import { topicUrl } from '../lib/routes';
+
 // Lists every public page for search engines (#579). Excludes /dev/, /cuenta, /auth and /aula,
 // which robots.txt also disallows. No new dependency: a static endpoint instead of
 // @astrojs/sitemap, per the orchestrator's decision.
@@ -19,15 +21,15 @@ export const GET: APIRoute = async ({ site }) => {
   const base = site ?? new URL('https://trayectoria.org');
 
   const routes = await getCollection('routes');
-  const topics = await getCollection('topics');
+  // Only published topics have a page (docs/ARCHITECTURE.md §3.2, «Filtro por status»); the
+  // redirects of the old topic URLs are not listed either.
+  const topics = (await getCollection('topics')).filter(
+    (topic) => topic.data.status === 'published',
+  );
   const arms = await getCollection('arms');
 
   const routePaths = routes.map((route) => `/ruta/${route.id}`);
-  const topicPaths = topics.map((topic) => {
-    const [ruta, slug] = topic.id.split('/');
-    const [modulo, tema] = slug?.split('-') ?? [];
-    return `/ruta/${ruta}/${modulo}/${tema}`;
-  });
+  const topicPaths = topics.map((topic) => topicUrl(topic.id));
   const armPaths = arms.map((arm) => `/brazos/${arm.id}`);
 
   const paths = [...STATIC_PATHS, ...routePaths, ...topicPaths, ...armPaths];
