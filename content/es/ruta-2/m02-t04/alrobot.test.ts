@@ -1,11 +1,12 @@
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import { describe, expect, it } from 'vitest';
 
-import { linePosition, lossOffset, robotCalcs, stepDistance } from './alrobot';
+import { linePosition, robotCalcs, stepDistance } from './alrobot';
 
 // Golden values of docs/CURRICULUM.md § T2-2.4 (Al robot), with the reference robot and the
-// constants of the text (w = 0.02 m, Δt_c = 20 ms, Δθ = 0.1 rad): y_perdida = 0.024 + 0.010 =
-// 0.034 m, Δs_ciclo = 0.670·0.02 = 0.0134 m, p = 0.09·0.1/0.024 = 0.375.
+// constants of the text (Δt_c = 20 ms, Δθ = 0.1 rad): Δs_ciclo = 0.670·0.02 = 0.0134 m and
+// p = 0.09·0.1/0.024 = 0.375. The line-loss offset, 0.034 m, is the row of T2-2.1
+// (`ruta-2/m02-t01/loss-offset`), which this topic cites without a calc of its own (#565).
 // `content` takes robot-spec for its types only (#246), so the reference robot of
 // docs/ROBOT-SPEC.md §3 is written out here.
 const REFERENCE: RobotSpec = {
@@ -60,21 +61,8 @@ function withoutMobile(): RobotSpec {
 }
 
 describe('T2-2.4 «Al robot» calcs', () => {
-  it('are loss-offset, step-distance and line-position', () => {
-    expect(robotCalcs.map((calc) => calc.id)).toEqual([
-      'loss-offset',
-      'step-distance',
-      'line-position',
-    ]);
-  });
-
-  it('loss-offset: 0.024 + 0.010 → 0.034 m with the reference robot', () => {
-    const { latex, substituted } = lossOffset.compute(REFERENCE);
-    expect(latex).toBe(String.raw`y_{perdida} = \frac{N-1}{2}\,e_s + \frac{w}{2}`);
-    expect(substituted).toBe(
-      String.raw`y_{perdida} = \frac{5-1}{2} \cdot 0.012\ \text{m} + \frac{0.02\ \text{m}}{2}` +
-        String.raw` = 0.024\ \text{m} + 0.010\ \text{m} = 0.034\ \text{m}`,
-    );
+  it('are step-distance and line-position, without loss-offset (cited from T2-2.1)', () => {
+    expect(robotCalcs.map((calc) => calc.id)).toEqual(['step-distance', 'line-position']);
   });
 
   it('step-distance: 0.670·0.02 → 0.0134 m with the reference robot', () => {
@@ -95,11 +83,8 @@ describe('T2-2.4 «Al robot» calcs', () => {
   });
 
   it('follow the sensor array of «Mi robot»', () => {
-    // N = 7, e_s = 0.01 m, d = 0.15 m: y_perdida = 0.030 + 0.010 = 0.040 m; p = 0.015/0.03 = 0.5.
+    // N = 7, e_s = 0.01 m, d = 0.15 m: p = 0.15·0.1/0.03 = 0.5.
     const robot = withSensors(7, 0.01, 0.15);
-    expect(lossOffset.compute(robot).substituted).toContain(
-      String.raw`= 0.030\ \text{m} + 0.010\ \text{m} = 0.040\ \text{m}`,
-    );
     expect(linePosition.compute(robot).substituted).toContain(String.raw`{\frac{7-1}{2}`);
     expect(linePosition.compute(robot).substituted).toMatch(/= 0\.500$/);
   });

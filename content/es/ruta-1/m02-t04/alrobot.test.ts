@@ -1,12 +1,13 @@
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import { describe, expect, it } from 'vitest';
 
-import { maxFriction, robotCalcs, wheelForce, wheelTorque } from './alrobot';
+import { robotCalcs, wheelForce, wheelTorque } from './alrobot';
 
 // Golden values of docs/CURRICULUM.md § T1-2.4 (Al robot), with the reference robot:
-// τ_rueda = 0.012·30·0.6 = 0.216 N·m, F_rueda = 0.216/0.032 = 6.75 N per wheel, and
-// f_max = μ_s β m g = 0.6·0.6·0.9·9.81 = 3.18 N. `content` takes robot-spec for its types only
-// (#246), so the reference robot of docs/ROBOT-SPEC.md §3 is written out here.
+// τ_rueda = 0.012·30·0.6 = 0.216 N·m in stall and F_rueda = 0.216/0.032 = 6.75 N per wheel. The
+// friction limit is cited from T1-2.2, not recomputed (#565), so there is no `max-friction`.
+// `content` takes robot-spec for its types only (#246), so the reference robot of
+// docs/ROBOT-SPEC.md §3 is written out here.
 const REFERENCE: RobotSpec = {
   specVersion: 1,
   id: '7d2e3b7e-6b2a-4c6e-9a5f-2b1c6a1f0001',
@@ -35,7 +36,7 @@ function mobileOf(robot: RobotSpec): NonNullable<RobotSpec['mobile']> {
   return robot.mobile;
 }
 
-/** A profile with its own motor, reduction, wheel and mass. */
+/** A profile with its own motor, reduction and wheel. */
 function customRobot(): RobotSpec {
   return {
     ...REFERENCE,
@@ -43,7 +44,6 @@ function customRobot(): RobotSpec {
       ...mobileOf(REFERENCE),
       gearRatio: 50,
       wheelRadius_m: 0.04,
-      mass_kg: 1.5,
       motor: { stallTorque_Nm: 0.02, nominalVoltage_V: 6, efficiency: 0.8 },
     },
   };
@@ -64,17 +64,13 @@ function withoutWheels(): RobotSpec {
 }
 
 describe('T1-2.4 «Al robot» calcs', () => {
-  it('are wheel-torque, wheel-force and max-friction', () => {
-    expect(robotCalcs.map((calc) => calc.id)).toEqual([
-      'wheel-torque',
-      'wheel-force',
-      'max-friction',
-    ]);
+  it('are wheel-torque and wheel-force, without the max-friction of T1-2.2', () => {
+    expect(robotCalcs.map((calc) => calc.id)).toEqual(['wheel-torque', 'wheel-force']);
   });
 
-  it('wheel-torque: 0.012·30·0.6 → 0.216 N·m with the reference robot', () => {
+  it('wheel-torque: τ_s i η_caja = 0.012·30·0.6 → 0.216 N·m with the reference robot', () => {
     const { latex, substituted } = wheelTorque.compute(REFERENCE);
-    expect(latex).toBe(String.raw`\tau_{rueda} = \tau_{motor}\,i\,\eta`);
+    expect(latex).toBe(String.raw`\tau_{rueda} = \tau_s\,i\,\eta_{caja}`);
     expect(substituted).toBe(
       String.raw`\tau_{rueda} = 0.012\ \text{N}\cdot\text{m} \cdot 30 \cdot 0.6` +
         String.raw` = 0.216\ \text{N}\cdot\text{m}`,
@@ -89,17 +85,8 @@ describe('T1-2.4 «Al robot» calcs', () => {
     );
   });
 
-  it('max-friction: 0.6·0.6·0.9·9.81 → 3.18 N with the reference robot', () => {
-    const { latex, substituted } = maxFriction.compute(REFERENCE);
-    expect(latex).toBe(String.raw`f_{max} = \mu_s\,\beta\,m\,g`);
-    expect(substituted).toBe(
-      String.raw`f_{max} = 0.6 \cdot 0.6 \cdot 0.9\ \text{kg} \cdot 9.81\ \text{m/s}^2` +
-        String.raw` = 3.18\ \text{N}`,
-    );
-  });
-
   it('follow the numbers of «Mi robot»', () => {
-    // τ = 0.02·50·0.8 = 0.8 N·m; F = 0.8/0.04 = 20 N; f_max = 0.36·1.5·9.81 = 5.30 N.
+    // τ = 0.02·50·0.8 = 0.8 N·m; F = 0.8/0.04 = 20 N.
     const robot = customRobot();
     expect(wheelTorque.compute(robot).substituted).toBe(
       String.raw`\tau_{rueda} = 0.02\ \text{N}\cdot\text{m} \cdot 50 \cdot 0.8` +
@@ -108,25 +95,22 @@ describe('T1-2.4 «Al robot» calcs', () => {
     expect(wheelForce.compute(robot).substituted).toBe(
       String.raw`F_{rueda} = \frac{0.800\ \text{N}\cdot\text{m}}{0.04\ \text{m}} = 20.0\ \text{N}`,
     );
-    expect(maxFriction.compute(robot).substituted).toContain(String.raw`1.5\ \text{kg}`);
-    expect(maxFriction.compute(robot).substituted).toContain(String.raw`= 5.30\ \text{N}`);
   });
 
-  it('use the reference motor, 0.012 N·m and η = 0.6, for a profile without motor', () => {
+  it('use the reference motor, 0.012 N·m and η_caja = 0.6, for a profile without motor', () => {
     for (const calc of robotCalcs) {
       expect(calc.compute(withoutMotor(REFERENCE))).toEqual(calc.compute(REFERENCE));
     }
   });
 
-  it('keep the reduction, wheel and mass of the profile when only motor is missing', () => {
-    // τ = 0.012·50·0.6 = 0.36 N·m; F = 0.36/0.04 = 9 N; f_max unchanged: 5.30 N.
+  it('keep the reduction and the wheel of the profile when only motor is missing', () => {
+    // τ = 0.012·50·0.6 = 0.36 N·m; F = 0.36/0.04 = 9 N.
     const robot = withoutMotor(customRobot());
     expect(wheelTorque.compute(robot).substituted).toBe(
       String.raw`\tau_{rueda} = 0.012\ \text{N}\cdot\text{m} \cdot 50 \cdot 0.6` +
         String.raw` = 0.360\ \text{N}\cdot\text{m}`,
     );
     expect(wheelForce.compute(robot).substituted).toContain(String.raw`= 9.00\ \text{N}`);
-    expect(maxFriction.compute(robot)).toEqual(maxFriction.compute(customRobot()));
   });
 
   it('fall back to the reference robot for a profile with no wheels', () => {

@@ -5,6 +5,7 @@ import type { Translate } from '@trayectoria/i18n';
 import type { SavedTrack, TrackJson, TrackPreset } from '@trayectoria/sims';
 
 import { MyTracks, MyTracksGroup, savedIdOf, savedOptionValue } from './MyTracks';
+import type { MyTracksProps } from './MyTracks';
 
 // F4-02b (#128, decision 2): the track source. The page reimplements nothing: the presets
 // are the names `LineFollowerWidget` already resolves and the editor is the `TrackEditor` of F4-01b
@@ -26,13 +27,18 @@ const PRESET_KEY: Readonly<Record<TrackPreset, string>> = {
   cross: 'sims.trackEditor.presetName.crossing',
 };
 
+// #552: the four controls of the panel share one 2 × 2 grid of equal cells, all 44 px tall
+// (`h-[44px]`: `h-11` is 80 px on the D-01 scale) and as wide as their cell.
 const SELECT =
-  'border-border bg-bg-raised text-fg h-11 rounded-md border px-3 text-sm ' +
+  'border-border bg-bg-raised text-fg h-[44px] w-full rounded-md border px-3 text-sm ' +
   'focus-visible:outline-color-focus focus-visible:outline-2 focus-visible:outline-offset-2';
 const BUTTON =
-  'border-border bg-bg-raised text-fg inline-flex h-11 items-center rounded-md border px-3 ' +
-  'text-sm font-semibold hover:border-fg-muted focus-visible:outline-color-focus ' +
-  'focus-visible:outline-2 focus-visible:outline-offset-2';
+  'border-border bg-bg-raised text-fg inline-flex h-[44px] w-full items-center justify-center ' +
+  'rounded-md border px-3 text-sm font-semibold hover:border-fg-muted ' +
+  'focus-visible:outline-color-focus focus-visible:outline-2 focus-visible:outline-offset-2';
+// The grid itself: the buttons align with the bottom of the select's cell, which also holds its
+// label. «Borrar» only exists with a saved track picked and takes a full row under the picker.
+const GRID = 'grid grid-cols-2 items-end gap-3';
 
 export interface TrackSourceProps {
   /** Selected preset; the effective track may come from the editor or from a loaded JSON. */
@@ -117,13 +123,7 @@ function PresetSelect({
 }
 
 /** The «Cargar JSON» button and its hidden file input. */
-function LoadButton({
-  onFile,
-  t,
-}: {
-  onFile: (file: File) => void;
-  t: Translate;
-}): JSX.Element {
+function LoadButton({ onFile, t }: { onFile: (file: File) => void; t: Translate }): JSX.Element {
   const fileRef = useRef<HTMLInputElement | null>(null);
   return (
     <>
@@ -202,6 +202,15 @@ function useJsonLoad(
   return { error, load };
 }
 
+/** «Borrar» in a full row of the grid; the row disappears with it when no saved track is picked. */
+function DeleteRow(props: MyTracksProps): JSX.Element {
+  return (
+    <div className="col-span-2 empty:hidden">
+      <MyTracks {...props} />
+    </div>
+  );
+}
+
 /**
  * The track picker — presets and «Mis pistas» (#191, decision 4) —, the two editor buttons and
  * loading a JSON file.
@@ -222,7 +231,7 @@ export function TrackSource({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-end gap-3">
+      <div className={GRID}>
         <PresetSelect
           preset={preset}
           saved={saved}
@@ -234,9 +243,9 @@ export function TrackSource({
           onSaved={onSaved}
           t={t}
         />
-        <MyTracks saved={saved} selectedId={savedId} onDelete={onDeleteSaved} />
-        <EditButtons onEdit={onEdit} onNew={onNew} t={t} />
         <LoadButton onFile={load} t={t} />
+        <EditButtons onEdit={onEdit} onNew={onNew} t={t} />
+        <DeleteRow saved={saved} selectedId={savedId} onDelete={onDeleteSaved} />
       </div>
       {error === null ? null : (
         <p className="text-error text-sm" role="alert" data-testid="track-source-error">

@@ -178,7 +178,8 @@ function BoxHeader({ onBack }: { onBack: () => void }): JSX.Element {
       <button
         type="button"
         className={
-          'border-border bg-bg-raised text-fg inline-flex h-11 items-center rounded-md border ' +
+          // `h-[44px]`: `h-11` is 80 px on the D-01 scale (#552).
+          'border-border bg-bg-raised text-fg inline-flex h-[44px] items-center rounded-md border ' +
           'px-3 text-sm font-semibold hover:border-fg-muted focus-visible:outline-color-focus ' +
           'focus-visible:outline-2 focus-visible:outline-offset-2'
         }

@@ -4,9 +4,11 @@ import { G_MPS2 } from '@trayectoria/sim-core';
 import type { RobotCalc } from '../../../index';
 
 /**
- * «Al robot» calcs of T1-2.1 (docs/CURRICULUM.md § T1-2.1): the net force «Mi robot» needs for its
- * maximum acceleration, `F = m · a` with `a = α · r`, and its normal on flat ground, `N = m · g`.
- * The MDX renders them with `<RobotFormula calc="ruta-1/m02-t01/net-force" />` and `…/normal`.
+ * «Al robot» calcs of T1-2.1 (docs/CURRICULUM.md § T1-2.1): the net force «Mi robot» needs to
+ * follow the start ramp `a` of the simulator, `F = m · a`, and its normal on flat ground,
+ * `N = m · g`. The ramp is the datum of T1-1.2 (#559, #574): the calc obtains it from the profile
+ * as `α · r`, like T1-1.2, without showing that formula, which T1-2.3 teaches. The MDX renders them
+ * with `<RobotFormula calc="ruta-1/m02-t01/net-force" />` and `…/normal`.
  */
 
 /** Three significant figures for `N`, as the spec writes 8.83 N. */
@@ -31,7 +33,7 @@ interface Body {
 }
 
 /**
- * Mass and maximum linear acceleration `a = α · r` of the profile. `maxAccel_radps2` is optional
+ * Mass and start ramp `a = α · r` of the profile. `maxAccel_radps2` is optional
  * in RobotSpec: a profile without it takes the reference α; an arm profile has no wheels and takes
  * the whole reference robot (docs/CONTENT-STANDARDS.md §2.5, decision of #299).
  */
@@ -46,7 +48,7 @@ function body(robot: RobotSpec): Body {
   return { mass_kg: robot.mobile.mass_kg, a_mps2: alpha_radps2 * robot.mobile.wheelRadius_m };
 }
 
-/** `F = m · a`: net force for the maximum acceleration of the profile. */
+/** `F = m · a`: net force to follow the start ramp of the profile. */
 export const netForce: RobotCalc = {
   id: 'net-force',
   compute(robot) {

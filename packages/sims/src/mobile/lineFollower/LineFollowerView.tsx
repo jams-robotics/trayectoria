@@ -30,6 +30,14 @@ const BOUNDS_STEP_M = 0.01;
  */
 const VIEW_ASPECT = 16 / 9;
 
+/**
+ * Fraction of the visible height kept clear at the bottom of the view (#536): `Scene2D` draws its
+ * «0.5 m» scale bar in the bottom-left corner, and neither the track nor the robot sitting on it
+ * pass over that band. At 390 px the viewer is ~219 px tall, and 0.16 of it is the ~35 px the bar
+ * and its caption take up.
+ */
+export const SCALE_BAND_FRACTION = 0.16;
+
 /** Decimals of the sensor readings in the legend (#127, decision 6). */
 const READING_DECIMALS = 2;
 
@@ -38,7 +46,8 @@ const READOUT_DECIMALS = 3;
 
 /**
  * The visible world of a track: its extent plus `VIEW_MARGIN_M` on every side, widened so the
- * vertical extent also fits the aspect the scene draws with (#157, decision 1).
+ * vertical extent also fits the aspect the scene draws with (#157, decision 1), plus a band of
+ * `SCALE_BAND_FRACTION` of the height under it for the scale bar (#536).
  */
 export function viewOf(
   track: Track,
@@ -59,13 +68,17 @@ export function viewOf(
     maxY_m = Math.max(maxY_m, y_m);
   }
   if (!Number.isFinite(minX_m)) return { worldWidth_m: COMPACT_MIN_WIDTH_M, center_m: [0, 0] };
+  const contentHeight_m = maxY_m - minY_m + 2 * VIEW_MARGIN_M;
   const width_m = Math.max(
     maxX_m - minX_m + 2 * VIEW_MARGIN_M,
-    (maxY_m - minY_m + 2 * VIEW_MARGIN_M) * aspect,
+    (contentHeight_m / (1 - SCALE_BAND_FRACTION)) * aspect,
   );
+  const worldWidth_m = compact ? Math.max(width_m, COMPACT_MIN_WIDTH_M) : width_m;
+  // The track is centred in what is left above the band, so the view drops by half the band.
+  const band_m = (worldWidth_m / aspect) * SCALE_BAND_FRACTION;
   return {
-    worldWidth_m: compact ? Math.max(width_m, COMPACT_MIN_WIDTH_M) : width_m,
-    center_m: [(minX_m + maxX_m) / 2, (minY_m + maxY_m) / 2],
+    worldWidth_m,
+    center_m: [(minX_m + maxX_m) / 2, (minY_m + maxY_m) / 2 - band_m / 2],
   };
 }
 
@@ -208,27 +221,22 @@ function Viewer({
   t: Translate;
 }): JSX.Element {
   const { robot } = api.state;
-  // F4-03 (#129, decision 5): the lap card goes at the bottom-right of the viewer (docs/DESIGN.md §6),
-  // overlaid on the scene; the `relative` wrapper is what anchors it to that corner.
   return (
-    <div className="relative">
-      <Scene2D
-        worldWidth_m={view.worldWidth_m}
-        center_m={view.center_m}
-        description={t('sims.lineFollower.scene')}
-      >
-        <TrackLayer track={track} />
-        <Trace points_m={api.trace_m} />
-        {marker}
-        <LostMarker pose={instruments?.lostAt} />
-        <RobotBody
-          spec={spec}
-          pose={{ x_m: robot.x_m, y_m: robot.y_m, theta_rad: robot.theta_rad }}
-          sensorStates={sensorStates(api.state)}
-        />
-      </Scene2D>
-      {instruments === undefined ? null : <LapCard timer={instruments.timer} />}
-    </div>
+    <Scene2D
+      worldWidth_m={view.worldWidth_m}
+      center_m={view.center_m}
+      description={t('sims.lineFollower.scene')}
+    >
+      <TrackLayer track={track} />
+      <Trace points_m={api.trace_m} />
+      {marker}
+      <LostMarker pose={instruments?.lostAt} />
+      <RobotBody
+        spec={spec}
+        pose={{ x_m: robot.x_m, y_m: robot.y_m, theta_rad: robot.theta_rad }}
+        sensorStates={sensorStates(api.state)}
+      />
+    </Scene2D>
   );
 }
 
@@ -262,7 +270,11 @@ export function LineFollowerView({
       )}
       {hideControls ? null : <SimControls {...api.driver} compact={compact} />}
       {instruments === undefined ? null : (
-        <LostEventNotice lost={instruments.lostAt !== undefined} t={t} />
+        <>
+          {/* #536: under the viewer, not over the track (docs/DESIGN.md §6). */}
+          <LapCard timer={instruments.timer} />
+          <LostEventNotice lost={instruments.lostAt !== undefined} t={t} />
+        </>
       )}
       <Below state={api.state} compact={compact} t={t} />
     </div>
