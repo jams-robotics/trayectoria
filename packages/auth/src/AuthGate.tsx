@@ -33,8 +33,9 @@ export function AuthGate({ cta, children }: AuthGateProps): JSX.Element {
   return (
     <div data-testid="auth-gate" data-auth={state}>
       {state === 'authenticated' ? children : null}
+      {/* #548: one width for the card on every page that shows it (Cuenta, Aula, Unirse, Robots). */}
       {state === 'anonymous' ? (
-        <section className="border-border bg-bg-raised rounded-md border p-7">
+        <section className="border-border bg-bg-raised max-w-form-card rounded-md border p-7">
           <h2 className="text-xl leading-tight font-semibold">{cta.title}</h2>
           <p className="text-fg-muted mt-3 max-w-[72ch]">{cta.body}</p>
           <div className="mt-6 flex flex-wrap gap-3">
