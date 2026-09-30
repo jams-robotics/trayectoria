@@ -1,10 +1,11 @@
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import { describe, expect, it } from 'vitest';
 
-import { omegaMax, robotCalcs, trackTime, vMax, wheelSpeed } from './alrobot';
+import { robotCalcs, vMax, wheelSpeed } from './alrobot';
 
 // Golden values of docs/CURRICULUM.md § T1-1.4 (Al robot), with the reference robot:
-// 6000/30 = 200 rpm; 200·2π/60 = 20.94 rad/s; 20.94·0.032 = 0.670 m/s; 4 m track in 5.97 s.
+// 6000/30 = 200 rpm; 20.94·0.032 = 0.670 m/s, with ω_rueda = 20.94 rad/s cited from T1-1.3.
+// `omega-max` and `track-time` are gone (#565): T1-1.3 and T1-1.1 already show those rows.
 // `content` takes robot-spec for its types only (#246), so the reference robot of
 // docs/ROBOT-SPEC.md §3 is written out here.
 const REFERENCE: RobotSpec = {
@@ -58,13 +59,8 @@ function withoutWheels(): RobotSpec {
 }
 
 describe('T1-1.4 «Al robot» calcs', () => {
-  it('are wheel-speed, omega-max, v-max and track-time', () => {
-    expect(robotCalcs.map((calc) => calc.id)).toEqual([
-      'wheel-speed',
-      'omega-max',
-      'v-max',
-      'track-time',
-    ]);
+  it('are wheel-speed and v-max', () => {
+    expect(robotCalcs.map((calc) => calc.id)).toEqual(['wheel-speed', 'v-max']);
   });
 
   it('wheel-speed: 6000/30 → 200 rpm with the reference robot', () => {
@@ -72,14 +68,6 @@ describe('T1-1.4 «Al robot» calcs', () => {
     expect(latex).toBe(String.raw`n_{rueda} = \dfrac{n_{motor}}{i}`);
     expect(substituted).toBe(
       String.raw`n_{rueda} = \dfrac{6000\ \text{rpm}}{30} = 200\ \text{rpm}`,
-    );
-  });
-
-  it('omega-max: 200·2π/60 → 20.94 rad/s with the reference robot', () => {
-    const { latex, substituted } = omegaMax.compute(REFERENCE);
-    expect(latex).toBe(String.raw`\omega_{\max} = n_{rueda}\,\dfrac{2\pi}{60}`);
-    expect(substituted).toBe(
-      String.raw`\omega_{\max} = 200\ \text{rpm} \cdot \dfrac{2\pi}{60} = 20.94\ \text{rad/s}`,
     );
   });
 
@@ -91,26 +79,15 @@ describe('T1-1.4 «Al robot» calcs', () => {
     );
   });
 
-  it('track-time: 4/0.670 → 5.97 s with the reference robot', () => {
-    const { latex, substituted } = trackTime.compute(REFERENCE);
-    expect(latex).toBe(String.raw`t = \dfrac{D}{v_{\max}}`);
-    expect(substituted).toBe(
-      String.raw`t = \dfrac{4\ \text{m}}{0.670\ \text{m/s}} = 5.97\ \text{s}`,
-    );
-  });
-
   it('follow the numbers of «Mi robot»', () => {
-    // 5000 rpm, i = 48, r = 0.05 m: n_rueda = 104.2 rpm; ω_max = 10.91 rad/s;
-    // v_max = 0.545 m/s; t = 4/0.5454 = 7.33 s.
+    // 5000 rpm, i = 48, r = 0.05 m: n_rueda = 104.2 rpm; ω_max = 10.91 rad/s; v_max = 0.545 m/s.
     const robot = withDrive(5000, 48, 0.05);
     expect(wheelSpeed.compute(robot).substituted).toBe(
       String.raw`n_{rueda} = \dfrac{5000\ \text{rpm}}{48} = 104.2\ \text{rpm}`,
     );
-    expect(omegaMax.compute(robot).substituted).toContain('= 10.91\\ \\text{rad/s}');
     expect(vMax.compute(robot).substituted).toBe(
       String.raw`v_{\max} = 10.91\ \text{rad/s} \cdot 0.05\ \text{m} = 0.545\ \text{m/s}`,
     );
-    expect(trackTime.compute(robot).substituted).toContain('= 7.33\\ \\text{s}');
   });
 
   it('use only required fields: a profile without the optional ones gives the same numbers', () => {
