@@ -201,7 +201,7 @@ Brazo 3D: base `fg-muted`, eslabones `physical` con grosor decreciente (22/18/14
 - Estados nunca solo por color: letra, glifo o texto además.
 - Sliders exponen `aria-valuenow/min/max` y `aria-valuetext` con unidad ("20.9 radianes por segundo").
 - Animaciones de simulación se pausan con `prefers-reduced-motion`; el usuario avanza con "Paso".
-- Idioma `lang="es"`; comillas y signos en español; unidades SI con espacio fino antes del símbolo.
+- Idioma `lang="es"`; comillas y signos en español; unidades SI con espacio normal (U+0020) antes del símbolo (`CONTENT-STANDARDS.md` §4, #653).
 
 ---
 

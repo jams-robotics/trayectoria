@@ -77,7 +77,7 @@ Hook asociado: `useMyRobot(): RobotSpec` (siempre devuelve un spec: el del usuar
 ## Física y matemática
 
 ### VectorWidget
-Dos vectores arrastrables; suma, componentes, magnitud, ángulo, producto escalar.
+Dos vectores arrastrables; suma, componentes, módulo, ángulo, producto escalar.
 ```ts
 interface VectorWidgetProps { initialA: [number, number]; initialB?: [number, number]; show: Array<'sum' | 'components' | 'dot' | 'angle'>; unit: string }
 ```
