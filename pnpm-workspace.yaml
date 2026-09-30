@@ -17,3 +17,8 @@ minimumReleaseAgeExclude:
   - '@trayectoria/*'
 # `pnpm run` and `pnpm exec` stop when node_modules does not match the lockfile.
 verifyDepsBeforeRun: error
+# miniflare (from wrangler 4.141.0, #511) asks for undici 7.29.0, which carries two high advisories
+# (GHSA-rfgv-xxqx-mfg5, GHSA-w293-vg96-wgc3); 7.29.1 fixes them and wrangler only picks it up from
+# 4.143.1. Remove this override once wrangler is at 4.143.1 or later.
+overrides:
+  'undici@7': '7.29.1'
