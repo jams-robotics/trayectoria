@@ -29,6 +29,7 @@ Fórmula LaTeX con KaTeX; opción de resaltar una variable y de mostrar la versi
 ```ts
 interface FormulaProps { latex: string; block?: boolean; highlight?: string; substituted?: string; }
 ```
+Una fórmula de bloque (la simbólica o la sustituida) que no cabe en el ancho de su tarjeta se desplaza en horizontal dentro de ella, con un sombreado en el lado oculto, sin desbordar la página; si cabe, sigue centrada (#646).
 
 ### Plot
 Gráficas estáticas o en vivo sobre uPlot.
