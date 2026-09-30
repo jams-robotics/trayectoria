@@ -82,6 +82,21 @@ test('anterior y siguiente siguen el orden de ruta.json', async ({ page }) => {
   await expect(pagination.getByRole('link')).toHaveCount(0);
 });
 
+test('el cierre lista los objetivos, el recuento de Verifica y el siguiente tema (#546)', async ({
+  page,
+}) => {
+  await openTopic(page);
+  const closing = page.getByTestId('topic-closing');
+  await expect(closing.getByRole('heading', { name: common.topic.closing.title })).toBeVisible();
+  await expect(closing.getByRole('listitem')).toHaveCount(1);
+  await expect(closing.getByTestId('closing-exercises')).toHaveText('Ejercicios: 0 de 1 correctos');
+  // El siguiente del fixture no está publicado: el paso aparece sin enlace.
+  await expect(closing.getByTestId('closing-next')).toHaveText(
+    `Siguiente: ${ORDERED[1]?.title ?? ''}`,
+  );
+  await expect(closing.getByRole('link', { name: /Siguiente/ })).toHaveCount(0);
+});
+
 test('la cabecera muestra tiempo, prerrequisitos y el progreso 0/N de la ruta', async ({
   page,
 }) => {

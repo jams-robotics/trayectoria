@@ -5,6 +5,7 @@ import { t } from '@trayectoria/i18n';
 import { temaComponents } from '../../components/tema';
 import TemaFixture from '../../components/dev/TemaFixture.mdx';
 import Tema from '../../layouts/Tema.astro';
+import { nextStep } from '../../lib/closing';
 
 // F6-01 test page: an MDX outside content/es/ rendered with the topic MDX map and the topic
 // layout, so e2e can check the layout (7 sections, outline, header, pagination, progress) and
@@ -18,6 +19,9 @@ const route = await getEntry('routes', ROUTE_ID);
 if (route === undefined) throw new Error(`content/es/${ROUTE_ID}/ruta.json is missing`);
 const ordered = route.data.modules.flatMap((module) => module.topics);
 const next = ordered[1];
+const nextTopic = next === undefined ? undefined : { title: next.title, href: undefined };
+// Its only Verifica exercise is the demo one, reported as `e1` (#546: closing tally).
+const EXERCISE_IDS = ['e1'];
 ---
 
 <Tema
@@ -31,7 +35,10 @@ const next = ordered[1];
   done={0}
   total={ordered.length}
   previous={undefined}
-  next={next === undefined ? undefined : { title: next.title, href: undefined }}
+  next={nextTopic}
+  objectives={[t('widgets.playground.topicFixtureObjective')]}
+  exerciseIds={EXERCISE_IDS}
+  nextStep={nextStep(nextTopic, { ...route.data, id: route.id }, [])}
 >
   <TemaFixture components={temaComponents} />
 </Tema>

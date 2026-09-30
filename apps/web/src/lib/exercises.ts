@@ -29,3 +29,14 @@ export function exerciseKeys(): readonly string[] {
 export function findExercise(key: string): TopicExercise | undefined {
   return EXERCISES.get(key);
 }
+
+/**
+ * Ids of the exercises registered for one topic (`e1`, `e2`…), the ones its Verifica declares
+ * (`verifica.test.ts`); the closing block counts them (#546).
+ */
+export function topicExerciseIds(topicId: string): readonly string[] {
+  const prefix = `${topicId}/`;
+  return [...EXERCISES]
+    .filter(([key]) => key.startsWith(prefix))
+    .map(([, exercise]) => exercise.id);
+}

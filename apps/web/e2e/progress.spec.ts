@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import common from '../../../packages/i18n/locales/es/common.json' with { type: 'json' };
 import auth from '../../../packages/i18n/locales/es/auth.json' with { type: 'json' };
 import progress from '../../../packages/i18n/locales/es/progress.json' with { type: 'json' };
 
@@ -76,6 +77,66 @@ function topicStatus(page: Page) {
   return page.locator(`[data-testid="topic-status"][data-topic="${TOPIC_ID}"]`);
 }
 
+// Real content topic with 4 Verifica exercises (e1-e4, «Unidades y magnitudes»), unlike the
+// /dev/tema fixture's single demo exercise, where 0/1 and 1/1 are indistinguishable from a
+// failure of the tally itself (#546, QA finding on PR #661). Every statement here is «Convierte
+// n rpm a rad/s», so the answer is always n · 2π/60.
+const MULTI_EXERCISE_TOPIC_PATH = '/ruta/ruta-1/m00/t01';
+const RPM_TO_RADPS = (2 * Math.PI) / 60;
+
+/**
+ * Answers the exercise at `index` (0-based) of a topic with several Verifica exercises. Each is
+ * its own `client:visible` island (docs/audits F2-01a): only the one at `index` is awaited, not
+ * every exercise of the topic, since the later ones stay on the server markup until scrolled to.
+ *
+ * `answer` computes the right response from the statement's numbers, in order (e1/e2: rpm to
+ * rad/s, `n · 2π/60`).
+ */
+async function answerExerciseCorrectly(
+  page: Page,
+  index: number,
+  answer: (numbers: readonly number[]) => number,
+): Promise<void> {
+  const exercise = page.getByTestId('exercise').nth(index);
+  await exercise.scrollIntoViewIfNeeded();
+  await expect(exercise).toBeVisible();
+  await page.waitForFunction(
+    (at) =>
+      [...document.querySelectorAll('astro-island[component-url*="VerificaExercise"]')][at]
+        ?.hasAttribute('ssr') === false,
+    index,
+  );
+  const statement = (await exercise.getByTestId('exercise-statement').textContent()) ?? '';
+  const numbers = [...statement.matchAll(/\d+(?:[.,]\d+)?/g)].map((match) =>
+    Number(match[0].replace(',', '.')),
+  );
+  await exercise.getByRole('textbox', { name: /respuesta/i }).fill(answer(numbers).toFixed(4));
+  await exercise.getByRole('button', { name: 'Comprobar' }).click();
+  await expect(exercise).toHaveAttribute('data-status', 'correct');
+}
+
+const rpmToRadps = (numbers: readonly number[]): number => (numbers[0] ?? 0) * RPM_TO_RADPS;
+
+test('anonymous: the closing tally counts the exercises answered right, live and after a reload', async ({
+  page,
+}) => {
+  await openHydrated(page, MULTI_EXERCISE_TOPIC_PATH, false);
+
+  await answerExerciseCorrectly(page, 0, rpmToRadps);
+  await answerExerciseCorrectly(page, 1, rpmToRadps);
+
+  // Read without scrolling to the closing block: its island hydrates with the page and follows
+  // the store, so the tally is right while the learner is still at the exercises (#546, QA on
+  // PR #661: a `client:visible` island kept the server «0 de 4» until scrolled to).
+  const closingIsland = page.locator('astro-island[component-url*="TopicClosingStatus"]');
+  await expect(closingIsland).not.toHaveAttribute('ssr');
+  await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 2 de 4 correctos');
+
+  await page.reload();
+  await waitForIslands(page, false);
+  await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 2 de 4 correctos');
+});
+
 async function signUp(page: Page, email: string): Promise<void> {
   await openHydrated(page, '/auth/registro');
   await page.getByLabel(auth.fields.displayName, { exact: true }).fill(DISPLAY_NAME);
@@ -98,8 +159,17 @@ test('anonymous: answering the exercise completes the topic and survives a reloa
     'href',
     '/auth/registro',
   );
+  // The closing block repeats it in one line (#546, decision 4).
+  const hint = page.getByTestId('closing-save-hint');
+  await expect(hint).toContainText(common.topic.closing.saveHint);
+  await expect(hint.getByRole('link', { name: common.topic.closing.register })).toHaveAttribute(
+    'href',
+    '/auth/registro',
+  );
 
   await answerCorrectly(page);
+  // The closing tally reads the same progress the exercise just recorded (#546, decision 2).
+  await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 1 de 1 correctos');
 
   await openHydrated(page, ROUTE_PATH);
   await expect(topicStatus(page)).toHaveAttribute('data-state', 'completed');
@@ -122,6 +192,8 @@ test('signed in: the topic completes, signing out hides it and signing in recove
   // With a session the notice is gone: the progress is stored for the account.
   await expect(page.getByTestId('progress-notice')).toHaveCount(0);
   await answerCorrectly(page);
+  await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 1 de 1 correctos');
+  await expect(page.getByTestId('closing-save-hint')).toHaveCount(0);
 
   await openHydrated(page, ROUTE_PATH);
   await expect(topicStatus(page)).toHaveAttribute('data-state', 'completed');

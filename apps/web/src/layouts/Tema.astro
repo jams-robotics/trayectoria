@@ -2,12 +2,14 @@
 import { t } from '@trayectoria/i18n';
 
 import ReportIssue from '../components/ReportIssue.astro';
+import TopicCierre from '../components/tema/Cierre.astro';
 import TopicOutline from '../components/tema/Outline.astro';
+import type { NextStep } from '../lib/closing';
 import type { PrerequisitesFromRoute } from '../lib/routes';
 import Base from './Base.astro';
 
 // Layout of a topic page (#97, decision 5): header with title, time and prerequisites,
-// route progress bar, sticky side outline and previous/next.
+// route progress bar, sticky side outline, closing block (#546) and previous/next.
 // Visual reference: docs/design/03-tema-claro.png and 07-tema-movil-claro.png.
 
 /** A neighbouring topic or a prerequisite; without `href` while it is not published yet. */
@@ -40,6 +42,12 @@ interface Props {
   total: number;
   previous: TopicLink | undefined;
   next: TopicLink | undefined;
+  /** `objectives` of the frontmatter, listed in the closing block (#546, decision 1). */
+  objectives: readonly string[];
+  /** Ids of the topic's Verifica exercises, for the closing tally (#546, decision 2). */
+  exerciseIds: readonly string[];
+  /** Target of the closing block's primary button (#546, decision 3). */
+  nextStep: NextStep;
 }
 
 const {
@@ -56,6 +64,9 @@ const {
   total,
   previous,
   next,
+  objectives,
+  exerciseIds,
+  nextStep,
 } = Astro.props;
 const percent = total === 0 ? 0 : Math.round((done / total) * 100);
 const noPrerequisites = prerequisites.length === 0 && prerequisitesFromRoutes.length === 0;
@@ -134,6 +145,13 @@ const noPrerequisites = prerequisites.length === 0 && prerequisitesFromRoutes.le
         <article class="mt-8">
           <slot />
         </article>
+
+        <TopicCierre
+          topicId={topicId}
+          objectives={objectives}
+          exerciseIds={exerciseIds}
+          step={nextStep}
+        />
 
         <ReportIssue
           title={`[Tema ${topicId}] `}
