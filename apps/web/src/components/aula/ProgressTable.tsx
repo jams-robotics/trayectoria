@@ -86,15 +86,23 @@ function Phasing({ phase }: { readonly phase: Phase }): JSX.Element {
   );
 }
 
-/** Progress of every member, re-read whenever the member list changes. */
-function useProgressRows(memberIds: readonly string[]): { rows: ProgressRow[]; phase: Phase } {
+/**
+ * Progress of every member in the topics of every route, re-read whenever the member list
+ * changes. The topics of all routes go in the one query, so switching routes reads nothing new.
+ */
+function useProgressRows(
+  members: readonly Member[],
+  routes: readonly MatrixRoute[],
+): { rows: ProgressRow[]; phase: Phase } {
   const [rows, setRows] = useState<ProgressRow[]>([]);
   const [phase, setPhase] = useState<Phase>('loading');
-  const key = memberIds.join(',');
+  const key = members.map((member) => member.userId).join(',');
+  const topicKey = routes.flatMap((route) => route.topics.map((topic) => topic.id)).join(',');
   useEffect(() => {
     let cancelled = false;
     setPhase('loading');
-    void listProgress(key === '' ? [] : key.split(',')).then(
+    const topicIds = topicKey === '' ? [] : topicKey.split(',');
+    void listProgress(key === '' ? [] : key.split(','), topicIds).then(
       (data) => {
         if (cancelled) return;
         setRows(data);
@@ -105,7 +113,7 @@ function useProgressRows(memberIds: readonly string[]): { rows: ProgressRow[]; p
     return () => {
       cancelled = true;
     };
-  }, [key]);
+  }, [key, topicKey]);
   return { rows, phase };
 }
 
@@ -132,7 +140,7 @@ function studentsOf(members: readonly Member[], unknown: string): MatrixMember[]
 export function ProgressTable({ groupName, members, routes }: ProgressTableProps): JSX.Element {
   const t = useT();
   const { selectedId, setSelectedId, topics } = useSelectedRoute(routes);
-  const { rows, phase } = useProgressRows(members.map((member) => member.userId));
+  const { rows, phase } = useProgressRows(members, routes);
   const students = studentsOf(members, t('aula.members.unknown'));
   const matrix = progressMatrix(topics, students, rows);
   const ready = phase === 'ready';
