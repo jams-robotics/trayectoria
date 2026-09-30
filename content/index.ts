@@ -97,7 +97,7 @@ export interface RobotCalc {
   compute(robot: RobotSpec): RobotCalcFormula;
 }
 
-/** Registry key of a robot calc: `<topicId>/<calcId>`, e.g. `ruta-1/m00-t01/omega-rueda`. */
+/** Registry key of a robot calc: `<topicId>/<calcId>`, e.g. `ruta-1/m00-t01/omega-motor`. */
 export function robotCalcKey(topicId: string, calcId: string): string {
   return `${topicId}/${calcId}`;
 }

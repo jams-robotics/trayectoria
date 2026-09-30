@@ -3,7 +3,8 @@ import { expect, test } from '@playwright/test';
 // T-0.1 (#255, point 3): the minimal e2e of the real topic m00-t01. The layout lives in
 // tema.spec.ts on the /dev/tema fixture; this only checks that the topic loads with no page
 // error, mounts the widgets of its spec and has its 4 exercises. With no session «Mi robot» is
-// the reference robot, so the «Al robot» formulas show 628.3 and 20.94 rad/s.
+// the reference robot, so the «Al robot» formula shows 628.3 rad/s; ω_rueda is no longer
+// computed here but in T1-1.3 (#565, #574).
 const TOPIC_URL = '/ruta/ruta-1/m00/t01';
 
 test('m00-t01 loads, mounts its widgets and has 4 exercises', async ({ page }) => {
@@ -22,9 +23,7 @@ test('m00-t01 loads, mounts its widgets and has 4 exercises', async ({ page }) =
   await expect(page.locator('[data-robot-formula="ruta-1/m00-t01/omega-motor"]')).toContainText(
     '628.3',
   );
-  await expect(page.locator('[data-robot-formula="ruta-1/m00-t01/omega-rueda"]')).toContainText(
-    '20.94',
-  );
+  await expect(page.locator('[data-robot-formula="ruta-1/m00-t01/omega-rueda"]')).toHaveCount(0);
 
   await expect(page.getByTestId('exercise')).toHaveCount(4);
 
