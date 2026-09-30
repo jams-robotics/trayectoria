@@ -27,7 +27,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
 -- 4999 attempts of H, seeded without the limit trigger (see the header).
 alter table public.attempts disable trigger attempts_owner_row_limit;
 insert into public.attempts (user_id, topic_id, exercise_id, seed, response, correct)
-  select '00000000-0000-4000-8000-000000000011', 'ruta-1/m00-t01', 'ruta-1/m00-t01/e1', i,
+  select '00000000-0000-4000-8000-000000000011', 'ruta-1/m00-t01', 'e1', i,
          '{"correct": true}', true
   from generate_series(1, 4999) as i;
 alter table public.attempts enable trigger attempts_owner_row_limit;
@@ -38,13 +38,13 @@ select pg_temp.act_as('00000000-0000-4000-8000-000000000010');
 -- attempts.response: 4 KiB
 select lives_ok(
   $$ insert into public.attempts (user_id, topic_id, exercise_id, seed, response, correct)
-     values ('00000000-0000-4000-8000-000000000010', 'ruta-1/m00-t01', 'ruta-1/m00-t01/e1', 1,
+     values ('00000000-0000-4000-8000-000000000010', 'ruta-1/m00-t01', 'e1', 1,
              '{"correct": true, "relError": 0.004, "attempt": 1}', true) $$,
   'a response of normal size is accepted'
 );
 select throws_ok(
   $$ insert into public.attempts (user_id, topic_id, exercise_id, seed, response, correct)
-     values ('00000000-0000-4000-8000-000000000010', 'ruta-1/m00-t01', 'ruta-1/m00-t01/e1', 1,
+     values ('00000000-0000-4000-8000-000000000010', 'ruta-1/m00-t01', 'e1', 1,
              (select jsonb_build_object('values', jsonb_agg(round(i * 0.0001, 4)))
               from generate_series(1, 1000) as i), true) $$,
   '23514',
@@ -99,13 +99,13 @@ select is(
 select pg_temp.act_as('00000000-0000-4000-8000-000000000011');
 select lives_ok(
   $$ insert into public.attempts (user_id, topic_id, exercise_id, seed, response, correct)
-     values ('00000000-0000-4000-8000-000000000011', 'ruta-1/m00-t01', 'ruta-1/m00-t01/e1', 5000,
+     values ('00000000-0000-4000-8000-000000000011', 'ruta-1/m00-t01', 'e1', 5000,
              '{"correct": true}', true) $$,
   'an owner can insert the 5000th attempt'
 );
 select throws_ok(
   $$ insert into public.attempts (user_id, topic_id, exercise_id, seed, response, correct)
-     values ('00000000-0000-4000-8000-000000000011', 'ruta-1/m00-t01', 'ruta-1/m00-t01/e1', 5001,
+     values ('00000000-0000-4000-8000-000000000011', 'ruta-1/m00-t01', 'e1', 5001,
              '{"correct": true}', true) $$,
   '23514',
   'new row for relation "attempts" violates check constraint "attempts_owner_row_limit"',
@@ -116,7 +116,7 @@ select throws_ok(
 select pg_temp.act_as('00000000-0000-4000-8000-000000000010');
 select lives_ok(
   $$ insert into public.attempts (user_id, topic_id, exercise_id, seed, response, correct)
-     values ('00000000-0000-4000-8000-000000000010', 'ruta-1/m00-t01', 'ruta-1/m00-t01/e2', 2,
+     values ('00000000-0000-4000-8000-000000000010', 'ruta-1/m00-t01', 'e2', 2,
              '{"correct": false}', false) $$,
   'another owner can still insert attempts'
 );

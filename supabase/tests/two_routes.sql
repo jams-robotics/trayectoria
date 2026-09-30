@@ -29,7 +29,7 @@ insert into public.progress
    null, '2026-09-04 10:00+00'),
   ('00000000-0000-4000-8000-00000000000b', 'ruta-1/m06-t05', 'in_progress', 0, 1,
    null, '2026-09-06 10:00+00'),
-  ('00000000-0000-4000-8000-00000000000b', 'demo/fuera-de-la-tabla', 'in_progress', 0, 1,
+  ('00000000-0000-4000-8000-00000000000b', 'ruta-9/m00-t01', 'in_progress', 0, 1,
    null, '2026-09-07 10:00+00'),
   ('00000000-0000-4000-8000-00000000000c', 'ruta-1/m04-t04', 'completed', 1, 3,
    '2026-09-08 10:00+00', '2026-09-08 10:00+00');
@@ -53,12 +53,12 @@ select results_eq(
   $$ select topic_id, status from public.progress
      where user_id = '00000000-0000-4000-8000-00000000000b' order by topic_id $$,
   $$ values
-       ('demo/fuera-de-la-tabla', 'in_progress'),
        ('reserva/caida-libre', 'completed'),
        ('ruta-1/m00-t01', 'completed'),
        ('ruta-1/m01-t03', 'in_progress'),
        ('ruta-1/m02-t04', 'completed'),
-       ('ruta-2/m02-t05', 'in_progress') $$,
+       ('ruta-2/m02-t05', 'in_progress'),
+       ('ruta-9/m00-t01', 'in_progress') $$,
   'every old id goes to its new one, the reserve included, and an id outside the table stays'
 );
 

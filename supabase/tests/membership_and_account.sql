@@ -3,7 +3,7 @@
 -- storage objects) without touching anybody else's. anon cannot call the function at all.
 -- Since #521 (migration 0011) the function takes the reauthentication code GoTrue emailed to the
 -- caller; B holds a pending code '123456' (the code checks themselves: reauthentication.sql).
--- Users: teacher A owns group G (code 'def456def456'); students B and C are members.
+-- Users: teacher A owns group G (code 'DEF456DEF456'); students B and C are members.
 begin;
 create extension if not exists pgtap with schema extensions;
 select plan(10);
@@ -28,7 +28,7 @@ update auth.users
  where id = '00000000-0000-4000-8000-00000000000b';
 insert into public.groups (id, owner_id, name, invite_code)
 values ('00000000-0000-4000-8000-0000000000a1', '00000000-0000-4000-8000-00000000000a', 'Aula 1',
-        'def456def456');
+        'DEF456DEF456');
 insert into public.group_members (group_id, user_id) values
   ('00000000-0000-4000-8000-0000000000a1', '00000000-0000-4000-8000-00000000000b'),
   ('00000000-0000-4000-8000-0000000000a1', '00000000-0000-4000-8000-00000000000c');
