@@ -3,20 +3,18 @@ import type { RobotSpec } from '@trayectoria/robot-spec';
 import type { RobotCalc } from '../../../index';
 
 /**
- * «Al robot» calcs of T1-1.4 (docs/CURRICULUM.md § T1-1.4): `v_max` of «Mi robot» through the whole
- * chain, `n_motor → n_rueda → ω_max → v_max`, and the time for a 4 m track at that speed. The MDX
- * renders them with `<RobotFormula calc="ruta-1/m01-t04/wheel-speed" />`, `…/omega-max`,
- * `…/v-max` and `…/track-time`. They use only required fields of RobotSpec.
+ * «Al robot» calcs of T1-1.4 (docs/CURRICULUM.md § T1-1.4): the chain of «Mi robot» closes here,
+ * `n_rueda = n_motor / i` (the datum of T1-1.3) and `v_max = ω_max · r`, with the `ω_rueda` that
+ * T1-1.3 calculates, cited and not recalculated (#565). The MDX renders them with
+ * `<RobotFormula calc="ruta-1/m01-t04/wheel-speed" />` and `…/v-max`. They use only required
+ * fields of RobotSpec.
  */
 
-/** Four significant figures for n_rueda and ω_max (200 rpm, 20.94 rad/s), as in T1-0.1. */
+/** Four significant figures for n_rueda and ω_max (200 rpm, 20.94 rad/s), as in T1-1.3. */
 const ROTATION_SIGNIFICANT_FIGURES = 4;
 
-/** Three significant figures, keeping trailing zeros: 0.670 m/s, 5.97 s. */
+/** Three significant figures, keeping trailing zeros: 0.670 m/s. */
 const SIGNIFICANT_FIGURES = 3;
-
-/** Length of the track of the spec: «pista de 4 m». */
-const TRACK_DISTANCE_M = 4;
 
 const RPM_TO_RADPS = (2 * Math.PI) / 60;
 
@@ -76,21 +74,7 @@ export const wheelSpeed: RobotCalc = {
   },
 };
 
-/** `ω_max = n_rueda · 2π/60`. */
-export const omegaMax: RobotCalc = {
-  id: 'omega-max',
-  compute(robot) {
-    const { wheelSpeed_rpm, omegaMax_radps } = chain(robot);
-    return {
-      latex: String.raw`\omega_{\max} = n_{rueda}\,\dfrac{2\pi}{60}`,
-      substituted:
-        String.raw`\omega_{\max} = ${formatRotation(wheelSpeed_rpm)}\ \text{rpm} \cdot \dfrac{2\pi}{60}` +
-        String.raw` = ${formatRotation(omegaMax_radps)}\ \text{rad/s}`,
-    };
-  },
-};
-
-/** `v_max = ω_max · r`. */
+/** `v_max = ω_max · r`, with `ω_max` the no-load `ω_rueda` of T1-1.3. */
 export const vMax: RobotCalc = {
   id: 'v-max',
   compute(robot) {
@@ -104,19 +88,5 @@ export const vMax: RobotCalc = {
   },
 };
 
-/** `t = D / v_max`: the 4 m track at `v_max`. */
-export const trackTime: RobotCalc = {
-  id: 'track-time',
-  compute(robot) {
-    const { vMax_mps } = chain(robot);
-    return {
-      latex: String.raw`t = \dfrac{D}{v_{\max}}`,
-      substituted:
-        String.raw`t = \dfrac{${TRACK_DISTANCE_M}\ \text{m}}{${format(vMax_mps)}\ \text{m/s}}` +
-        String.raw` = ${format(TRACK_DISTANCE_M / vMax_mps)}\ \text{s}`,
-    };
-  },
-};
-
 /** The calcs of the topic; `content/index.ts` registers them. */
-export const robotCalcs: readonly RobotCalc[] = [wheelSpeed, omegaMax, vMax, trackTime];
+export const robotCalcs: readonly RobotCalc[] = [wheelSpeed, vMax];

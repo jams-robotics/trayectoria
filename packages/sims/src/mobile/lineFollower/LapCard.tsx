@@ -57,9 +57,11 @@ function dataOf(timer: LapTimer): Record<string, string> {
 }
 
 /**
- * The metric card of the viewer (docs/DESIGN.md §6: bottom-right, `bg-raised` and `shadow-sm`):
- * the time of the last lap, the best time, the average speed and the distance the
- * odometer accumulated in that lap.
+ * The metric card of the viewer: the time of the last lap, the best time, the average speed and
+ * the distance the odometer accumulated in that lap.
+ *
+ * It sits under the viewer, in the flow, and not over the scene (#536): overlaid on the canvas it
+ * hid the curve of the oval, which is where the controller works hardest (docs/DESIGN.md §6).
  *
  * The average speed is the track length divided by the lap time (#170), and the
  * distance travelled is shown next to it because the follower cuts the arcs and travels somewhat less
@@ -69,17 +71,18 @@ export function LapCard({ timer }: LapCardProps): JSX.Element {
   const t = useT();
   return (
     <div
-      className="border-border bg-bg-raised pointer-events-none absolute right-3 bottom-3 rounded-lg border p-3 shadow-sm"
+      className="border-border bg-bg-raised rounded-lg border px-4 py-3"
       data-testid="lap-card"
       // The unrounded figures, so that the e2e checks `lapTime · avgSpeed = trackLength`
       // with the criterion's 1e-9 tolerance instead of with the two decimals that are shown.
       {...dataOf(timer)}
     >
-      <dl className="text-fg grid grid-cols-[auto_auto] gap-x-3 gap-y-1 text-xs">
+      {/* Two columns on a phone, the four figures in one row from `sm` (#536). */}
+      <dl className="text-fg grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
         {rowsOf(timer, t).map(({ key, label, value }) => (
-          <div key={key} className="contents">
-            <dt className="text-fg-muted">{label}</dt>
-            <dd className="text-right font-mono tabular-nums" data-testid={`lap-card-${key}`}>
+          <div key={key} className="flex flex-col gap-1">
+            <dt className="text-fg-muted text-xs">{label}</dt>
+            <dd className="font-mono text-sm tabular-nums" data-testid={`lap-card-${key}`}>
               {value}
             </dd>
           </div>

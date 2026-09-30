@@ -1,12 +1,13 @@
 import type { RobotSpec } from '@trayectoria/robot-spec';
 import { describe, expect, it } from 'vitest';
 
-import { robotCalcs, vMax, vx, vy } from './alrobot';
+import { robotCalcs, vx, vy } from './alrobot';
 
 // Golden values of docs/CURRICULUM.md § T1-0.2 (Al robot), with the reference robot:
-// v_max = ω_max·r = 20.94 rad/s · 0.032 m = 0.670 m/s, and at θ = 30°
-// vₓ = 0.670·cos 30° = 0.580 m/s and v_y = 0.670·sin 30° = 0.335 m/s. `content` takes robot-spec
-// for its types only (#246), so the reference robot of docs/ROBOT-SPEC.md §3 is written out here.
+// v_max = 0.670 m/s is a datum of the profile (its formula is taught in T1-1.4, #559), and at
+// θ = 30° vₓ = 0.670·cos 30° = 0.580 m/s and v_y = 0.670·sin 30° = 0.335 m/s. `content` takes
+// robot-spec for its types only (#246), so the reference robot of docs/ROBOT-SPEC.md §3 is
+// written out here.
 const REFERENCE: RobotSpec = {
   specVersion: 1,
   id: '7d2e3b7e-6b2a-4c6e-9a5f-2b1c6a1f0001',
@@ -44,16 +45,8 @@ function withoutWheels(): RobotSpec {
 }
 
 describe('T1-0.2 «Al robot» calcs', () => {
-  it('are v-max, vx and vy', () => {
-    expect(robotCalcs.map((calc) => calc.id)).toEqual(['v-max', 'vx', 'vy']);
-  });
-
-  it('v-max: 20.94 rad/s · 0.032 m → 0.670 m/s with the reference robot', () => {
-    const { latex, substituted } = vMax.compute(REFERENCE);
-    expect(latex).toBe(String.raw`v_{\max} = \omega_{\max} \cdot r`);
-    expect(substituted).toBe(
-      String.raw`v_{\max} = 20.94\ \text{rad/s} \cdot 0.032\ \text{m} = 0.670\ \text{m/s}`,
-    );
+  it('are vx and vy: v-max is a datum whose row belongs to T1-1.4 (#559, #565)', () => {
+    expect(robotCalcs.map((calc) => calc.id)).toEqual(['vx', 'vy']);
   });
 
   it('vx: 0.670 m/s · cos 30° → 0.580 m/s with the reference robot', () => {
@@ -72,13 +65,17 @@ describe('T1-0.2 «Al robot» calcs', () => {
     );
   });
 
-  it('follow the numbers of «Mi robot»', () => {
+  it('take v_max from the profile without showing its formula', () => {
+    // r = 0.05 m: v_max = 20.94·0.05 = 1.05 m/s enters as a number, never as ω_max · r.
     const robot = withWheelRadius(0.05);
-    expect(vMax.compute(robot).substituted).toBe(
-      String.raw`v_{\max} = 20.94\ \text{rad/s} \cdot 0.05\ \text{m} = 1.05\ \text{m/s}`,
+    expect(vx.compute(robot).substituted).toBe(
+      String.raw`v_x = 1.05\ \text{m/s} \cdot \cos 30^\circ = 0.907\ \text{m/s}`,
     );
-    expect(vx.compute(robot).substituted).toContain(String.raw`= 0.907\ \text{m/s}`);
     expect(vy.compute(robot).substituted).toContain(String.raw`= 0.524\ \text{m/s}`);
+    for (const calc of robotCalcs) {
+      expect(calc.compute(robot).latex).not.toContain('omega');
+      expect(calc.compute(robot).substituted).not.toContain('rad/s');
+    }
   });
 
   it('fall back to the reference robot for a profile with no wheels', () => {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
@@ -15,14 +15,20 @@ const TAB_ON = `${TAB} bg-primary text-primary-fg border-primary`;
 const TAB_OFF = `${TAB} bg-bg-raised text-fg border-border hover:border-fg-muted`;
 const TAB_DISABLED = `${TAB} bg-bg-raised text-fg-muted border-border cursor-default opacity-45`;
 
-/** The tab of the student's own controller: v2, shown disabled (docs/DESIGN.md §6). */
-function CustomTab({ t }: { t: Translate }): JSX.Element {
+/**
+ * The tab of the student's own controller: v2, shown disabled (docs/DESIGN.md §6). It says why,
+ * in its `title` and in the line under the tabs it points to (#543): a grey button with no reason
+ * reads as broken.
+ */
+function CustomTab({ t, hintId }: { t: Translate; hintId: string }): JSX.Element {
   return (
     <button
       type="button"
       className={TAB_DISABLED}
       disabled
       aria-disabled="true"
+      title={t('sims.lineFollower.customTitle')}
+      aria-describedby={hintId}
       data-testid="line-follower-custom"
     >
       {t('sims.lineFollower.custom')}
@@ -53,6 +59,7 @@ export function ControllerPanel({
   onParam,
 }: ControllerPanelProps): JSX.Element {
   const t = useT();
+  const hintId = useId();
   return (
     <div className="flex flex-col gap-3" data-testid="line-follower-controller">
       <div role="group" aria-label={t('sims.lineFollower.controllerGroup')} className="flex flex-wrap gap-2">
@@ -69,8 +76,11 @@ export function ControllerPanel({
             {t(CONTROLLERS[id].labelKey)}
           </button>
         ))}
-        <CustomTab t={t} />
+        <CustomTab t={t} hintId={hintId} />
       </div>
+      <p id={hintId} className="text-fg-muted text-sm" data-testid="line-follower-custom-hint">
+        {t('sims.lineFollower.customHint')}
+      </p>
       <ParamPanel params={controllerParams(controller, params, spec, t)} onChange={onParam} />
     </div>
   );

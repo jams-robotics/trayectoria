@@ -113,9 +113,11 @@ vale cero, la tangente a x–t es horizontal. Ahí x deja de crecer y alcanza su
 
 <AlRobot>
 Tu robot no mide su velocidad de forma directa. El encoder de cada rueda cuenta fracciones de
-vuelta, y con esas cuentas el simulador calcula la posición del robot cada Δt. La velocidad que
-el simulador te muestra es la derivada de esa posición, aproximada con dos lecturas
-consecutivas: el desplazamiento Δx entre ellas dividido entre Δt.
+vuelta, y con esas cuentas el simulador calcula la posición del robot cada Δt. Cómo cuenta el
+encoder y cuánto vale cada fracción lo ves en [Encoders](/ruta/ruta-2/m00/t01), en la ruta
+Robot móvil; aquí solo importa que entrega posiciones cada Δt. La velocidad que el simulador te
+muestra es la derivada de esa posición, aproximada con dos lecturas consecutivas: el
+desplazamiento Δx entre ellas dividido entre Δt.
 
 Es una velocidad media, la del último intervalo. Cuanto más corto es Δt, más se parece a la
 velocidad instantánea v = dx/dt.

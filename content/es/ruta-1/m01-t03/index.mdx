@@ -4,7 +4,7 @@ title: 'Movimiento circular y velocidad angular'
 module: 1
 order: 3
 estimatedMinutes: 25
-prerequisites: [ruta-1/m00-t01]
+prerequisites: [ruta-1/m00-t01, ruta-1/m00-t03]
 objectives:
   - Medir ángulos en radianes
   - Relacionar ω, período, frecuencia y rpm
@@ -115,14 +115,15 @@ girado es θ = 20.94 rad, y 20.94/2π = 3.33 vueltas.
 >
 Todos los puntos del disco giran el mismo ángulo en el mismo tiempo, así que ω y T no dependen de
 r. Solo cambia la rapidez del punto del borde, que recorre más arco en cada vuelta cuanto mayor
-es r. Esa rapidez es el tema de [v = ω·r: la velocidad del robot](/ruta/ruta-1/m01/t04).
+es r. Esa rapidez es el tema de [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04).
 </Experimento>
 </Explora>
 
 <AlRobot>
-La rueda de tu robot no gira a la velocidad del motor: el motorreductor la divide entre su
-relación de reducción i. Con la velocidad sin carga n_motor de «Mi robot», en rpm, la velocidad
-angular de la rueda es:
+La rueda de tu robot gira a la velocidad de salida de su motorreductor. Esa velocidad sin carga,
+n_rueda en rpm, es aquí un dato de tu perfil de «Mi robot». Por qué es la del motor dividida por
+la reducción lo ves en [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04). Con
+ω = n·2π/60, la velocidad angular de la rueda es:
 
 <RobotFormula calc="ruta-1/m01-t03/omega-wheel" />
 
@@ -132,12 +133,12 @@ Con ω_rueda sale el período, el tiempo que tarda la rueda en dar una vuelta co
 
 <RobotFormula calc="ruta-1/m01-t03/period" />
 
-Con el robot de referencia, 6000 rpm con i = 30 dejan la rueda a 200 rpm: ω_rueda = 20.94 rad/s
-y T = 0.3 s. Es el disco de Explora con los datos del gancho.
+Con el robot de referencia, n_rueda = 200 rpm: ω_rueda = 20.94 rad/s y T = 0.3 s. Es el disco
+de Explora con los datos del gancho.
 
 A esa velocidad, en una prueba de 10 s la rueda gira θ = 20.94·10 = 209.4 rad, es decir,
-33.33 vueltas. En cada vuelta sin deslizar, el robot avanza un perímetro de rueda, 2π·r. Cuánto
-recorre en total, y a qué velocidad, lo calculas en el tema siguiente.
+33.33 vueltas. Es la primera vez que calculas ω_rueda con tu perfil: Rodadura la usa para
+obtener la velocidad de avance de tu robot, y los temas siguientes la citan sin recalcularla.
 </AlRobot>
 
 <Verifica

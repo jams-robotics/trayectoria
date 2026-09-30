@@ -4,16 +4,15 @@ import type { RobotCalc } from '../../../index';
 import { components_mps } from './ejercicios';
 
 /**
- * «Al robot» calcs of T1-0.2 (docs/CURRICULUM.md § T1-0.2): `v_max = ω_max · r` from the profile of
- * «Mi robot» (ω_max as computed in T1-0.1) and its components at θ = 30°. The MDX renders them
- * with `<RobotFormula calc="ruta-1/m00-t02/v-max" />`, `…/vx` and `…/vy`.
+ * «Al robot» calcs of T1-0.2 (docs/CURRICULUM.md § T1-0.2): the components of `v_max` at θ = 30°.
+ * `v_max` is a datum of the profile (#559, #574): the calc obtains it from «Mi robot» without
+ * showing its formula, which T1-1.4 teaches and whose row of «Mi robot» belongs to T1-1.4
+ * (`ruta-1/m01-t04/v-max`). The MDX renders these with `<RobotFormula calc="ruta-1/m00-t02/vx" />`
+ * and `…/vy`.
  */
 
 /** Heading of the spec: the components are shown at 30° from the x axis of the table. */
 const HEADING_DEG = 30;
-
-/** Four significant figures for ω_max (20.94 rad/s), as in T1-0.1. */
-const OMEGA_SIGNIFICANT_FIGURES = 4;
 
 /** Three significant figures for speeds, keeping trailing zeros: 0.670, 0.580 and 0.335 m/s. */
 const SPEED_SIGNIFICANT_FIGURES = 3;
@@ -45,45 +44,24 @@ function wheels(robot: RobotSpec): Wheels {
   };
 }
 
-/** `ω_max = n · 2π/60 / i`, the no-load angular velocity of the wheel. */
-function omegaMax_radps({ speed_rpm, gearRatio }: Wheels): number {
-  return (speed_rpm * RPM_TO_RADPS) / gearRatio;
-}
-
-function formatOmega(omega_radps: number): string {
-  return String(Number(omega_radps.toPrecision(OMEGA_SIGNIFICANT_FIGURES)));
+/**
+ * `v_max` of the profile, the datum (docs/ROBOT-SPEC.md §3, `vMax_mps`). The chain
+ * `n → n/i → ω → ω·r` stays here, out of the rendered formula: the topic does not teach it.
+ */
+function vMax_mps(robot: RobotSpec): number {
+  const { speed_rpm, gearRatio, wheelRadius_m } = wheels(robot);
+  return ((speed_rpm * RPM_TO_RADPS) / gearRatio) * wheelRadius_m;
 }
 
 function formatSpeed(v_mps: number): string {
   return v_mps.toPrecision(SPEED_SIGNIFICANT_FIGURES);
 }
 
-/** `v_max = ω_max · r`, with the ω_max and the r it comes from. */
-function vMax_mps(robot: RobotSpec): { omega_radps: number; v_mps: number; r_m: number } {
-  const profile = wheels(robot);
-  const omega_radps = omegaMax_radps(profile);
-  return { omega_radps, v_mps: omega_radps * profile.wheelRadius_m, r_m: profile.wheelRadius_m };
-}
-
-/** `v_max = ω_max · r`. */
-export const vMax: RobotCalc = {
-  id: 'v-max',
-  compute(robot) {
-    const { omega_radps, v_mps, r_m } = vMax_mps(robot);
-    return {
-      latex: String.raw`v_{\max} = \omega_{\max} \cdot r`,
-      substituted:
-        String.raw`v_{\max} = ${formatOmega(omega_radps)}\ \text{rad/s} \cdot ${r_m}\ \text{m}` +
-        String.raw` = ${formatSpeed(v_mps)}\ \text{m/s}`,
-    };
-  },
-};
-
 /** `vₓ = v_max cosθ` at θ = 30°. */
 export const vx: RobotCalc = {
   id: 'vx',
   compute(robot) {
-    const { v_mps } = vMax_mps(robot);
+    const v_mps = vMax_mps(robot);
     const [vx_mps] = components_mps(v_mps, HEADING_DEG);
     return {
       latex: String.raw`v_x = v_{\max} \cos\theta`,
@@ -98,7 +76,7 @@ export const vx: RobotCalc = {
 export const vy: RobotCalc = {
   id: 'vy',
   compute(robot) {
-    const { v_mps } = vMax_mps(robot);
+    const v_mps = vMax_mps(robot);
     const [, vy_mps] = components_mps(v_mps, HEADING_DEG);
     return {
       latex: String.raw`v_y = v_{\max} \sin\theta`,
@@ -110,4 +88,4 @@ export const vy: RobotCalc = {
 };
 
 /** The calcs of the topic; `content/index.ts` registers them. */
-export const robotCalcs: readonly RobotCalc[] = [vMax, vx, vy];
+export const robotCalcs: readonly RobotCalc[] = [vx, vy];
