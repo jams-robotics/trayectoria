@@ -171,27 +171,28 @@ describe('T1-3.3 «Al robot» calcs', () => {
   });
 
   it('follow the numbers of «Mi robot»', () => {
-    // ω₀ = 837.8 rad/s, P_max = 0.02·837.8/4 = 4.19 W; 4000 rpm and 0.01 N·m → 80 rpm,
-    // 0.01·50·0.8 = 0.4 N·m, 80·2π/60·0.05 = 0.419 m/s; I = 0.2 + 1.8·0.5 = 1.1 A,
-    // η = 4.19/(7.4·1.1) = 0.515; P_el = 16.3 W, 20/16.28 = 1.229 h = 73.7 min; stall 40.5 min.
+    // Each value with the figures of its golden value, padding zeros kept (#653).
+    // ω₀ = 837.8 rad/s, P_max = 0.02·837.8/4 = 4.189 W; 4000 rpm and 0.01 N·m → 80 rpm,
+    // 0.01·50·0.8 = 0.400 N·m, 80·2π/60·0.05 = 0.419 m/s; I = 0.2 + 1.8·0.5 = 1.1 A,
+    // η = 4.189/(7.4·1.1) = 0.515; P_el = 16 W, 20/16.28 = 1.229 h = 73.7 min; stall 40.5 min.
     const robot = customRobot();
     expect(maxPower.compute(robot).substituted).toContain(String.raw`= 837.8\ \text{rad/s}`);
-    expect(maxPower.compute(robot).substituted).toContain(String.raw`= 4.19\ \text{W}`);
+    expect(maxPower.compute(robot).substituted).toContain(String.raw`= 4.189\ \text{W}`);
     const point = maxPowerPoint.compute(robot).substituted;
     expect(point).toContain(String.raw`\dfrac{8000\ \text{rpm}}{2} = 4000\ \text{rpm}`);
     expect(point).toContain(String.raw`\dfrac{0.02${NM}}{2} = 0.01${NM}`);
     expect(point).toContain(String.raw`\dfrac{4000\ \text{rpm}}{50} = 80\ \text{rpm}`);
-    expect(point).toContain(String.raw`0.01${NM} \cdot 50 \cdot 0.8 \\ &= 0.4${NM}`);
+    expect(point).toContain(String.raw`0.01${NM} \cdot 50 \cdot 0.8 \\ &= 0.400${NM}`);
     expect(point).toContain(String.raw`\cdot 0.05\ \text{m} \\ &= 0.419\ \text{m/s}`);
     const current = currentEfficiency.compute(robot).substituted;
     expect(current).toContain(
       String.raw`0.2\ \text{A} + (2\ \text{A} - 0.2\ \text{A}) \cdot \dfrac{0.01${NM}}{0.02${NM}}`,
     );
     expect(current).toContain(String.raw`&= 1.1\ \text{A}`);
-    expect(current).toContain(String.raw`\dfrac{4.19\ \text{W}}{7.4\ \text{V} \cdot 1.1\ \text{A}} = 0.515`);
+    expect(current).toContain(String.raw`\dfrac{4.189\ \text{W}}{7.4\ \text{V} \cdot 1.1\ \text{A}} = 0.515`);
     const time = autonomy.compute(robot).substituted;
     expect(time).toContain(String.raw`\dfrac{20\ \text{Wh}}{2 \cdot 7.4\ \text{V} \cdot 1.1\ \text{A}}`);
-    expect(time).toContain(String.raw`\dfrac{20\ \text{Wh}}{16.3\ \text{W}}`);
+    expect(time).toContain(String.raw`\dfrac{20\ \text{Wh}}{16\ \text{W}}`);
     expect(time).toContain(String.raw`= 1.229\ \text{h} = 73.7\ \text{min}`);
     expect(time).toContain(String.raw`I_s = 2\ \text{A}\text{: } 40.5\ \text{min}`);
   });
@@ -218,7 +219,7 @@ describe('T1-3.3 «Al robot» calcs', () => {
   });
 
   it('keep the rest of «Mi robot» when only the currents are missing', () => {
-    // I = 0.1 + 1.1·0.5 = 0.65 A; η = 4.19/(7.4·0.65) = 0.871; 20/9.62 = 2.08 h = 124.7 min;
+    // I = 0.1 + 1.1·0.5 = 0.65 A; η = 4.189/(7.4·0.65) = 0.871; 20/9.62 = 2.079 h = 125 min;
     // stall 20/(2·7.4·1.2) = 67.6 min.
     const robot = withoutCurrents(customRobot());
     expect(maxPower.compute(robot)).toEqual(maxPower.compute(customRobot()));
@@ -227,19 +228,19 @@ describe('T1-3.3 «Al robot» calcs', () => {
     expect(current).toContain(
       String.raw`0.1\ \text{A} + (1.2\ \text{A} - 0.1\ \text{A}) \cdot \dfrac{0.01${NM}}{0.02${NM}}`,
     );
-    expect(current).toContain(String.raw`\dfrac{4.19\ \text{W}}{7.4\ \text{V} \cdot 0.65\ \text{A}} = 0.871`);
+    expect(current).toContain(String.raw`\dfrac{4.189\ \text{W}}{7.4\ \text{V} \cdot 0.65\ \text{A}} = 0.871`);
     const time = autonomy.compute(robot).substituted;
-    expect(time).toContain(String.raw`= 2.08\ \text{h} = 124.7\ \text{min}`);
+    expect(time).toContain(String.raw`= 2.079\ \text{h} = 125\ \text{min}`);
     expect(time).toContain(String.raw`I_s = 1.2\ \text{A}\text{: } 67.6\ \text{min}`);
   });
 
   it('keep the motor of «Mi robot» when only the battery is missing', () => {
-    // 11.1/16.28 = 0.682 h = 40.9 min; stall 11.1/29.6 = 22.5 min.
+    // 11.1/16.28 = 0.6818 h = 40.9 min; stall 11.1/29.6 = 22.5 min.
     const robot = withoutBattery(customRobot());
     expect(currentEfficiency.compute(robot)).toEqual(currentEfficiency.compute(customRobot()));
     const time = autonomy.compute(robot).substituted;
     expect(time).toContain(String.raw`\dfrac{11.1\ \text{Wh}}{2 \cdot 7.4\ \text{V} \cdot 1.1\ \text{A}}`);
-    expect(time).toContain(String.raw`= 0.682\ \text{h} = 40.9\ \text{min}`);
+    expect(time).toContain(String.raw`= 0.6818\ \text{h} = 40.9\ \text{min}`);
     expect(time).toContain(String.raw`I_s = 2\ \text{A}\text{: } 22.5\ \text{min}`);
   });
 

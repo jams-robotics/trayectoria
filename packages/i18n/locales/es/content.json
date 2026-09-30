@@ -7,8 +7,8 @@
   },
   "ruta-1/m00-t02": {
     "e1": "Tu robot avanza a v = {{v_mps}} m/s con un rumbo θ = {{theta_deg}}° respecto al eje x. ¿Cuáles son sus componentes vₓ y v_y, en m/s?",
-    "e2": "La velocidad de tu robot es el vector ({{a_mps}}, {{b_mps}}) m/s. ¿Cuál es su magnitud, en m/s, y su ángulo respecto al eje x, en grados entre −180° y 180°?",
-    "e3": "Tu robot hace dos desplazamientos seguidos: a⃗ = ({{ax_m}}, {{ay_m}}) m y b⃗ = ({{bx_m}}, {{by_m}}) m. ¿Cuál es la magnitud del desplazamiento total a⃗ + b⃗, en m?",
+    "e2": "La velocidad de tu robot es el vector ({{a_mps}}, {{b_mps}}) m/s. ¿Cuál es su módulo, en m/s, y su ángulo respecto al eje x, en grados entre −180° y 180°?",
+    "e3": "Tu robot hace dos desplazamientos seguidos: a⃗ = ({{ax_m}}, {{ay_m}}) m y b⃗ = ({{bx_m}}, {{by_m}}) m. ¿Cuál es el módulo del desplazamiento total a⃗ + b⃗, en m?",
     "e4": "¿Qué ángulo φ forman los vectores (0.3, 0.4) y (0.5, 0)? Responde en grados."
   },
   "ruta-1/m00-t03": {

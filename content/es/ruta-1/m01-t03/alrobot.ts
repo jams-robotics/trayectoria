@@ -9,8 +9,13 @@ import type { RobotCalc } from '../../../index';
  * MDX renders them with `<RobotFormula calc="ruta-1/m01-t03/omega-wheel" />` and `…/period`.
  */
 
-/** Four significant figures: 200 rpm, 20.94 rad/s and 0.3 s in the golden values. */
-const SIGNIFICANT_FIGURES = 4;
+/**
+ * Significant figures of each value, those of its golden value (docs/CONTENT-STANDARDS.md §2.5,
+ * #653): 200 rpm, 20.94 rad/s and 0.3 s.
+ */
+const WHEEL_SPEED_SIGNIFICANT_FIGURES = 3;
+const OMEGA_SIGNIFICANT_FIGURES = 4;
+const PERIOD_SIGNIFICANT_FIGURES = 1;
 
 const RPM_TO_RADPS = (2 * Math.PI) / 60;
 
@@ -20,8 +25,11 @@ const RPM_TO_RADPS = (2 * Math.PI) / 60;
  */
 const REFERENCE_MOTOR = { speed_rpm: 6000, gearRatio: 30 } as const;
 
-function format(value: number): string {
-  return String(Number(value.toPrecision(SIGNIFICANT_FIGURES)));
+/** Padding zeros kept; a value with more integer digits than figures is written whole. */
+function format(value: number, significantFigures: number): string {
+  return Math.abs(value) < 10 ** significantFigures
+    ? value.toPrecision(significantFigures)
+    : Math.round(value).toString();
 }
 
 /**
@@ -49,8 +57,8 @@ export const omegaWheel: RobotCalc = {
     return {
       latex: String.raw`\omega_{rueda} = n_{rueda}\,\dfrac{2\pi}{60}`,
       substituted:
-        String.raw`\omega_{rueda} = ${format(wheelSpeed_rpm(robot))}\ \text{rpm} \cdot \dfrac{2\pi}{60}` +
-        String.raw` = ${format(omegaWheel_radps(robot))}\ \text{rad/s}`,
+        String.raw`\omega_{rueda} = ${format(wheelSpeed_rpm(robot), WHEEL_SPEED_SIGNIFICANT_FIGURES)}\ \text{rpm} \cdot \dfrac{2\pi}{60}` +
+        String.raw` = ${format(omegaWheel_radps(robot), OMEGA_SIGNIFICANT_FIGURES)}\ \text{rad/s}`,
     };
   },
 };
@@ -63,8 +71,8 @@ export const period: RobotCalc = {
     return {
       latex: String.raw`T = \dfrac{2\pi}{\omega_{rueda}}`,
       substituted:
-        String.raw`T = \dfrac{2\pi}{${format(omega_radps)}\ \text{rad/s}}` +
-        String.raw` = ${format((2 * Math.PI) / omega_radps)}\ \text{s}`,
+        String.raw`T = \dfrac{2\pi}{${format(omega_radps, OMEGA_SIGNIFICANT_FIGURES)}\ \text{rad/s}}` +
+        String.raw` = ${format((2 * Math.PI) / omega_radps, PERIOD_SIGNIFICANT_FIGURES)}\ \text{s}`,
     };
   },
 };

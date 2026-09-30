@@ -59,9 +59,9 @@ describe('FreeBodyWidget (F2-03)', () => {
 
     const labels = screen.getAllByRole('slider').map((slider) => slider.getAttribute('aria-label'));
     expect(labels).toEqual([
-      'Tracción: magnitud en N',
+      'Tracción: módulo en N',
       'Tracción: ángulo en °',
-      'Fricción de rodadura: magnitud en N',
+      'Fricción de rodadura: módulo en N',
       'Fricción de rodadura: ángulo en °',
     ]);
   });
@@ -71,7 +71,7 @@ describe('FreeBodyWidget (F2-03)', () => {
     render(<FreeBodyWidget mass_kg={0.9} forces={exploreForces()} showResultant />);
 
     expect(valueOf('Resultante')).toBe('1.10 N');
-    const traction = screen.getByRole('slider', { name: 'Tracción: magnitud en N' });
+    const traction = screen.getByRole('slider', { name: 'Tracción: módulo en N' });
     traction.focus();
     await user.keyboard('{ArrowRight}{ArrowRight}');
 
@@ -83,7 +83,7 @@ describe('FreeBodyWidget (F2-03)', () => {
     const user = userEvent.setup();
     render(<FreeBodyWidget mass_kg={0.9} forces={exploreForces()} showResultant />);
 
-    const traction = screen.getByRole('slider', { name: 'Tracción: magnitud en N' });
+    const traction = screen.getByRole('slider', { name: 'Tracción: módulo en N' });
     traction.focus();
     // 1.5 N down to 0.4 N: eleven steps of 0.1 N, one Shift+arrow plus one arrow.
     await user.keyboard('{Shift>}{ArrowLeft}{/Shift}{ArrowLeft}');
@@ -209,7 +209,7 @@ describe('FreeBodyWidget · mass, slope and μs (#305)', () => {
     expect(valueOf('Fricción estática máxima')).toBe('5.12 N');
     expect(screen.queryByTestId('freebody-slip')).not.toBeInTheDocument();
 
-    await press('Tracción: magnitud en N', '{Shift>}{ArrowRight>3/}{/Shift}');
+    await press('Tracción: módulo en N', '{Shift>}{ArrowRight>3/}{/Shift}');
 
     expect(screen.getByTestId('freebody-slip')).toHaveTextContent(/Desliza/);
     // Applied traction f_max = 5.12 N minus the 2.27 N of the weight along the ramp.

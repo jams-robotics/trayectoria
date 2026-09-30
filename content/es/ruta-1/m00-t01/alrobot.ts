@@ -12,8 +12,14 @@ import { rpmToRadps } from './ejercicios';
 /** Four significant figures: 628.3 in the golden value. */
 const SIGNIFICANT_FIGURES = 4;
 
+/**
+ * Significant figures with their padding zeros; a value with more integer digits than figures is
+ * written whole (docs/CONTENT-STANDARDS.md §2.5, #653).
+ */
 function format(value: number): string {
-  return String(Number(value.toPrecision(SIGNIFICANT_FIGURES)));
+  return Math.abs(value) < 10 ** SIGNIFICANT_FIGURES
+    ? value.toPrecision(SIGNIFICANT_FIGURES)
+    : Math.round(value).toString();
 }
 
 /**

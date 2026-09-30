@@ -18,8 +18,13 @@ const HOOK_OMEGA_RADPS = 1.5;
 const FAST_V_MPS = 0.6;
 const FAST_OMEGA_RADPS = 2;
 
-/** Angular velocities to the hundredth, as in the spec: 16.02, 8.98, 20.94 rad/s. */
-const RADPS_DECIMALS = 2;
+/**
+ * Significant figures of each angular velocity, those of its golden value, padding zeros kept
+ * (docs/CONTENT-STANDARDS.md §2.5, #653): ω_R = 16.02, ω_L = 8.98, ω_max = 20.94 rad/s.
+ */
+const OMEGA_R_SIGNIFICANT_FIGURES = 4;
+const OMEGA_L_SIGNIFICANT_FIGURES = 3;
+const OMEGA_MAX_SIGNIFICANT_FIGURES = 4;
 
 /** Three significant figures for linear speeds, keeping trailing zeros: 0.750, 0.670 m/s. */
 const SPEED_SIGNIFICANT_FIGURES = 3;
@@ -80,8 +85,11 @@ function hookWheels(robot: RobotSpec): { omegaL_radps: number; omegaR_radps: num
   return { omegaL_radps: vL_mps / wheelRadius_m, omegaR_radps: vR_mps / wheelRadius_m };
 }
 
-function formatRadps(value_radps: number): string {
-  return value_radps.toFixed(RADPS_DECIMALS);
+/** A value with more integer digits than figures is written whole. */
+function formatRadps(value_radps: number, significantFigures: number): string {
+  return Math.abs(value_radps) < 10 ** significantFigures
+    ? value_radps.toPrecision(significantFigures)
+    : Math.round(value_radps).toString();
 }
 
 function formatSpeed(value_mps: number): string {
@@ -112,7 +120,7 @@ export const wheelRight: RobotCalc = {
       latex: String.raw`\omega_R = \dfrac{v + \frac{\omega L}{2}}{r}`,
       substituted:
         String.raw`\omega_R = ${wheelFraction('+', robot)}` +
-        String.raw` = ${formatRadps(hookWheels(robot).omegaR_radps)}\ \text{rad/s}`,
+        String.raw` = ${formatRadps(hookWheels(robot).omegaR_radps, OMEGA_R_SIGNIFICANT_FIGURES)}\ \text{rad/s}`,
     };
   },
 };
@@ -125,7 +133,7 @@ export const wheelLeft: RobotCalc = {
       latex: String.raw`\omega_L = \dfrac{v - \frac{\omega L}{2}}{r}`,
       substituted:
         String.raw`\omega_L = ${wheelFraction('-', robot)}` +
-        String.raw` = ${formatRadps(hookWheels(robot).omegaL_radps)}\ \text{rad/s}`,
+        String.raw` = ${formatRadps(hookWheels(robot).omegaL_radps, OMEGA_L_SIGNIFICANT_FIGURES)}\ \text{rad/s}`,
     };
   },
 };
@@ -135,14 +143,17 @@ export const feasibility: RobotCalc = {
   id: 'feasibility',
   compute(robot) {
     const { omegaL_radps, omegaR_radps } = hookWheels(robot);
+    const left = formatRadps(Math.abs(omegaL_radps), OMEGA_L_SIGNIFICANT_FIGURES);
+    const right = formatRadps(Math.abs(omegaR_radps), OMEGA_R_SIGNIFICANT_FIGURES);
     const peak_radps = Math.max(Math.abs(omegaL_radps), Math.abs(omegaR_radps));
     const limit_radps = omegaMax_radps(drive(robot));
+    const limit = formatRadps(limit_radps, OMEGA_MAX_SIGNIFICANT_FIGURES);
     return {
       latex: String.raw`\max(|\omega_L|,|\omega_R|) \le \omega_{max}`,
       substituted:
-        String.raw`\max(${formatRadps(Math.abs(omegaL_radps))},\ ${formatRadps(Math.abs(omegaR_radps))})\ \text{rad/s}` +
-        String.raw` = ${formatRadps(peak_radps)}\ \text{rad/s}` +
-        verdict(peak_radps, limit_radps, String.raw`${formatRadps(limit_radps)}\ \text{rad/s}`),
+        String.raw`\max(${left},\ ${right})\ \text{rad/s}` +
+        String.raw` = ${Math.abs(omegaL_radps) > Math.abs(omegaR_radps) ? left : right}\ \text{rad/s}` +
+        verdict(peak_radps, limit_radps, String.raw`${limit}\ \text{rad/s}`),
     };
   },
 };

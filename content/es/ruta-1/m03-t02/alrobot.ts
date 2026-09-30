@@ -48,8 +48,14 @@ function electricalPower_W({ voltage_V, stallCurrent_A }: Supply): number {
   return MOTORS * voltage_V * stallCurrent_A;
 }
 
+/**
+ * Significant figures with their padding zeros; a value with more integer digits than figures is
+ * written whole (docs/CONTENT-STANDARDS.md §2.5, #653).
+ */
 function format(value: number): string {
-  return String(Number(value.toPrecision(SIGNIFICANT_FIGURES)));
+  return Math.abs(value) < 10 ** SIGNIFICANT_FIGURES
+    ? value.toPrecision(SIGNIFICANT_FIGURES)
+    : Math.round(value).toString();
 }
 
 /** `P_el = 2·V·I`: two motors at the voltage and the stall current of the profile. */
