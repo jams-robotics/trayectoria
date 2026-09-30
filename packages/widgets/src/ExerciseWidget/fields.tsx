@@ -33,6 +33,7 @@ export interface AnswerFieldProps {
   unit: string;
   /** i18n key naming what the field asks for (#629); without it a vector field shows its number. */
   label?: string | undefined;
+  /** This field's own status: `incorrect` only when its component failed the check (#660). */
   status: ExerciseStatus;
   invalid: boolean;
   onChange: (value: string) => void;

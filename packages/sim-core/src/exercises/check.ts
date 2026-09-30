@@ -12,6 +12,11 @@ export interface CheckResult<V> {
    * `Infinity` when the response has the wrong shape.
    */
   readonly relError: number;
+  /**
+   * Whether each answer component passed its own tolerance, in answer order. `undefined` when the
+   * response has the wrong shape, so no per-component verdict exists (#660).
+   */
+  readonly componentCorrect?: readonly boolean[];
   /** The values the seed generated, for interpolating the statement. */
   readonly values: V;
   /** The generated unit: one for every component, or one per component. */
@@ -54,6 +59,7 @@ export function check<V>(
 
   let worstRelError = 0;
   let correct = true;
+  const componentCorrect: boolean[] = [];
 
   for (const [index, expected] of expectedComponents.entries()) {
     const actual = responseComponents[index] ?? Number.NaN;
@@ -70,10 +76,11 @@ export function check<V>(
     const passes =
       tolerance !== undefined &&
       (tolerance.type === 'relative' ? relError <= tolerance.value : absError <= tolerance.value);
+    componentCorrect.push(passes);
     correct = correct && passes;
   }
 
-  return { ...base, correct, relError: worstRelError };
+  return { ...base, correct, relError: worstRelError, componentCorrect };
 }
 
 /** A per-component list (tolerances, units, ...) must have one entry per answer component. */

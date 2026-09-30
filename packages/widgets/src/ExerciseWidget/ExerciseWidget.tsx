@@ -78,6 +78,20 @@ function PrecisionNote({ t }: { t: Translate }): JSX.Element {
 }
 
 /**
+ * This field's own status: with a per-component verdict, a field marks `incorrect` only when its
+ * own component failed, and the passing ones stay `correct` (#660). Without one — pending,
+ * checking, invalid shape — every field shares the row's status, as before.
+ */
+function fieldStatus(
+  status: ExerciseStatus,
+  componentCorrect: readonly boolean[] | undefined,
+  position: number,
+): ExerciseStatus {
+  if (status !== 'incorrect' || componentCorrect === undefined) return status;
+  return componentCorrect[position] === false ? 'incorrect' : 'correct';
+}
+
+/**
  * One numeric field per answer component, «Comprobar», the result and, at the end of the same
  * row, «Nuevos valores» as a tertiary action (docs/DESIGN.md §5, #540).
  */
@@ -93,7 +107,7 @@ function AnswerRow({ state, t }: { state: ExerciseState; t: Translate }): JSX.El
           value={value}
           unit={unitAt(state.unit, position)}
           label={state.labels?.[position]}
-          status={status}
+          status={fieldStatus(status, state.componentCorrect, position)}
           invalid={state.invalid}
           t={t}
           onChange={(next) => {

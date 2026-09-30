@@ -106,6 +106,22 @@ describe('F1-10 check', () => {
     expect(onePasses.relError).toBeCloseTo(0.021, 12);
   });
 
+  test('componentCorrect marks only the failing component, not every one (#660)', () => {
+    const vectorExercise = defineExercise({
+      id: 'vector-component',
+      generate: () => ({ values: {}, answer: [100, 200] as const, unit: 'm' }),
+      statement: () => 'ejercicios.vectorComponent.enunciado',
+      tolerance: { type: 'relative', value: 0.02 },
+    });
+
+    const oneWrong = check(vectorExercise, 9, [101.9, 204.2]);
+    expect(oneWrong.correct).toBe(false);
+    expect(oneWrong.componentCorrect).toEqual([true, false]);
+
+    const allRight = check(vectorExercise, 9, [101.9, 203.8]);
+    expect(allRight.componentCorrect).toEqual([true, true]);
+  });
+
   test('a vector response of a different length is incorrect', () => {
     const vectorExercise = defineExercise({
       id: 'vector-length',

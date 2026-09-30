@@ -42,6 +42,8 @@ export function statementParams(values: unknown): TParams {
 interface Graded {
   correct: boolean;
   relError: number;
+  /** Per-component verdict of the last check, so only the failing fields mark in error (#660). */
+  componentCorrect: readonly boolean[] | undefined;
 }
 
 /** Drafts, validity and outcome of the response row. */
@@ -68,6 +70,9 @@ export interface ExerciseState {
   relativeError: number | null;
   attempt: number;
   invalid: boolean;
+  /** Per-component verdict of the last check; `undefined` before grading or with a shape mismatch,
+   * so the whole row falls back to the shared `status` (#660). */
+  componentCorrect: readonly boolean[] | undefined;
   values: readonly string[];
   /** One unit for every field, or one per field (F1-10c). */
   unit: string | readonly string[];
@@ -180,7 +185,11 @@ function grade<V>(context: Grading<V>): void {
   const attempt = responses.attempt + 1;
   const settled: Responses = {
     values,
-    graded: { correct: outcome.correct, relError: outcome.relError },
+    graded: {
+      correct: outcome.correct,
+      relError: outcome.relError,
+      componentCorrect: outcome.componentCorrect,
+    },
     attempt,
     invalid: false,
     checking: false,
@@ -205,6 +214,25 @@ function grade<V>(context: Grading<V>): void {
   };
   setResponses({ ...settled, checking: true });
   void recorded.then(show, show);
+}
+
+/** Assembles the public state from the instance and the response row (kept out of `useExercise`
+ * to stay under the file's line-per-function budget). */
+function buildState<V>(
+  instance: ReturnType<typeof check<V>>,
+  responses: Responses,
+  rest: Pick<ExerciseState, 'values' | 'unit' | 'labels' | 'edit' | 'verify' | 'regenerate'>,
+): ExerciseState {
+  return {
+    statementKey: instance.statementKey,
+    params: statementParams(instance.values),
+    status: statusOf(responses),
+    relativeError: responses.graded?.relError ?? null,
+    attempt: responses.attempt,
+    invalid: responses.invalid,
+    componentCorrect: responses.graded?.componentCorrect,
+    ...rest,
+  };
 }
 
 /**
@@ -242,18 +270,5 @@ export function useExercise<V>(
     });
   };
 
-  return {
-    statementKey: instance.statementKey,
-    params: statementParams(instance.values),
-    status: statusOf(responses),
-    relativeError: responses.graded?.relError ?? null,
-    attempt: responses.attempt,
-    invalid: responses.invalid,
-    values,
-    unit,
-    labels,
-    edit,
-    verify,
-    regenerate,
-  };
+  return buildState(instance, responses, { values, unit, labels, edit, verify, regenerate });
 }
