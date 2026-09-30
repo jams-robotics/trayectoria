@@ -133,6 +133,25 @@ describe('codec (F4-05)', () => {
     await expect(decode(text)).resolves.toEqual({ ok: false, error: 'invalid' });
   });
 
+  // #527: `params` is a `z.record` over JSON that comes from a link; a `__proto__` key must never
+  // reach Object.prototype nor the prototype of the decoded configuration.
+  it('un `__proto__` en `params` no contamina ningún prototipo', async () => {
+    const golden = JSON.stringify(GOLDEN);
+    const withProto = (value: string): string =>
+      golden.replace('"params":{', `"params":{"__proto__":${value},`);
+
+    for (const value of ['{"polluted":1}', '1']) {
+      const result = await decode(await encodeRaw(withProto(value)));
+      // Whether the schema drops the key or rejects the link, the result carries no new prototype.
+      if (result.ok) {
+        expect(Object.getPrototypeOf(result.value.params)).toBe(Object.prototype);
+        expect(result.value.params).not.toHaveProperty('polluted');
+      }
+    }
+    expect(Object.prototype).not.toHaveProperty('polluted');
+    expect(({} as Record<string, unknown>)['polluted']).toBeUndefined();
+  });
+
   it('el enlace lleva el texto en el parámetro `c` de la página del simulador', async () => {
     const text = await encodedText(GOLDEN);
     expect(shareLink(text, 'https://trayectoria.test')).toBe(

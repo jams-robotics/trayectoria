@@ -199,7 +199,7 @@
         "follow": "La tabla de progreso muestra, por estudiante y por tema, qué está completado, en curso o pendiente.",
         "export": "Exporta la tabla en CSV para tus registros."
       },
-      "notLms": "El modo aula no es un LMS: no gestiona notas, calendarios ni entregas.",
+      "notLms": "El modo aula no es un LMS: no gestiona notas, calendarios ni entregas. El progreso lo anota el navegador de cada estudiante, así que sirve para seguir el avance, no para calificar.",
       "open": "Abrir el aula",
       "join": "Página para unirse a un grupo"
     },

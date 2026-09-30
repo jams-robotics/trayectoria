@@ -36,6 +36,10 @@ Gracias por el interés. Hasta la v1.0 las contribuciones de contenido están ce
 
 Si falta información para completar un ticket: no improvises. Abre un issue con la plantilla `spec-gap` (qué falta, dónde, qué default propones), marca el ticket como bloqueado y detente.
 
+## Seguridad
+
+Las vulnerabilidades no se reportan en issues ni PR públicos. Sigue [`SECURITY.md`](SECURITY.md): aviso privado en GitHub o correo a `contacto@trayectoria.org`.
+
 ## Licencias
 
 Al contribuir aceptas que el código se publique bajo MIT (`LICENSE`) y el contenido bajo CC BY-SA 4.0 (`LICENSE-CONTENT`). Los robots del catálogo deben tener licencia abierta verificable en hardware y software.

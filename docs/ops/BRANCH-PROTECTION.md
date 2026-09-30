@@ -42,6 +42,7 @@ Reglas a marcar:
   - Required approvals: `0` (la aprobación la dan QA y auditoría en comentarios; el humano decide al mergear).
   - Dismiss stale pull request approvals when new commits are pushed: activado.
   - Allowed merge methods: solo *Squash*.
+  - Require review from Code Owners: desactivado. `.github/CODEOWNERS` pide la revisión del propietario en los PR que tocan `.github/`, `infra/` y `supabase/` (#517), pero el propietario es el único dueño y GitHub no deja aprobar el PR propio.
 - **Require status checks to pass**: activado.
   - Require branches to be up to date before merging: activado.
   - Status checks required: `lint`, `typecheck`, `test`, `build`, `audit`, `db`, `e2e` (aparecen en el buscador una vez que el workflow ha corrido al menos una vez en un PR).
@@ -108,6 +109,22 @@ gh api --method PATCH repos/jams-robotics/trayectoria \
   -F squash_merge_commit_message=PR_BODY \
   -F delete_branch_on_merge=true
 ```
+
+## 3b. Seguridad del código (Settings → Advanced Security)
+
+Se activan desde el panel; el repositorio solo aporta `.github/dependabot.yml` y el `audit` semanal de `ci.yml` (#515). Todo es gratuito en un repositorio público.
+
+| Opción | Valor |
+|---|---|
+| Private vulnerability reporting | **activado**: es el canal de `SECURITY.md` (#514) |
+| Dependency graph y Dependabot alerts | **activados** |
+| Dependabot security updates | **activado**: PR automáticos para las dependencias con advisory |
+| Dependabot version updates | los define `.github/dependabot.yml` (npm agrupado por minor/patch, acciones y la imagen de Docker; lunes, con 3 días de espera tras cada versión) |
+| Code scanning → CodeQL analysis | **Default setup** |
+| Secret Protection (secret scanning) | **activado** |
+| Push protection | **activado**: GitHub rechaza el push que contiene un secreto conocido |
+
+El workflow `ci.yml` corre además el job `audit` cada lunes a las 06:00 UTC. Si falla, GitHub avisa a quien modificó por última vez el `cron` del workflow y el run queda en rojo en *Actions → CI*.
 
 ## 4. Verificación
 

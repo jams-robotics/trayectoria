@@ -1,7 +1,12 @@
 import { t } from '@trayectoria/i18n';
 import { describe, expect, it } from 'vitest';
 
-import { emailValidationError, passwordValidationError } from './fields';
+import {
+  emailValidationError,
+  MIN_PASSWORD_LENGTH,
+  newPasswordValidationError,
+  passwordValidationError,
+} from './fields';
 
 // #534: the auth forms opt out of native validation (`noValidate`) and show these Spanish
 // messages instead of the browser's own bubble, which speaks whatever language the browser is
@@ -30,5 +35,37 @@ describe('passwordValidationError', () => {
 
   it('accepts any non-empty value (the length minimum is a separate, server-checked rule)', () => {
     expect(passwordValidationError(t, 'x')).toBe('');
+  });
+});
+
+// #512: a new password (sign-up, recovery) mirrors the server rules of supabase/config.toml:
+// `minimum_password_length = 10` and `password_requirements = "letters_digits"`.
+describe('newPasswordValidationError', () => {
+  it('asks for the password when it is empty', () => {
+    expect(newPasswordValidationError(t, '')).toBe('Escribe tu contraseña');
+  });
+
+  it('asks for at least 10 characters', () => {
+    expect(MIN_PASSWORD_LENGTH).toBe(10);
+    expect(newPasswordValidationError(t, 'abc12345')).toBe(
+      'La contraseña debe tener al menos 10 caracteres',
+    );
+    expect(newPasswordValidationError(t, 'abcd12345')).toBe(
+      'La contraseña debe tener al menos 10 caracteres',
+    );
+  });
+
+  it('asks for letters and digits', () => {
+    expect(newPasswordValidationError(t, 'abcdefghij')).toBe(
+      'La contraseña debe tener letras y números',
+    );
+    expect(newPasswordValidationError(t, '1234567890')).toBe(
+      'La contraseña debe tener letras y números',
+    );
+  });
+
+  it('accepts 10 characters with a letter and a digit', () => {
+    expect(newPasswordValidationError(t, 'abcde12345')).toBe('');
+    expect(newPasswordValidationError(t, 'trayectoria-e2e-2026')).toBe('');
   });
 });

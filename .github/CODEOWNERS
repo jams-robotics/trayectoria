@@ -1,0 +1,7 @@
+# Owner of the paths that decide what runs and where (#517): CI and deploy workflows,
+# infrastructure and the database. Every PR that touches them asks this owner for a review.
+# "Require review from Code Owners" stays off in the ruleset: the owner is the only one and
+# cannot approve their own pull requests.
+/.github/ @jams286
+/infra/ @jams286
+/supabase/ @jams286

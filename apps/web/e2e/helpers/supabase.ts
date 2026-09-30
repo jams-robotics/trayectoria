@@ -17,7 +17,7 @@ import type { Database } from '@trayectoria/db';
 const ENV_NAMES = ['PUBLIC_SUPABASE_URL', 'PUBLIC_SUPABASE_ANON_KEY'] as const;
 
 /** The public URL and anon key, from the shell or from the local defaults of `.env.example`. */
-function publicEnv(): Record<string, string> {
+export function publicEnv(): Record<string, string> {
   const file = readFileSync(path.resolve(import.meta.dirname, '../../../../.env.example'), 'utf8');
   const defaults = Object.fromEntries(
     file
@@ -60,7 +60,7 @@ export interface TestUser {
   readonly client: TestClient;
 }
 
-/** The password every e2e user shares; the local stack requires at least six characters. */
+/** The password every e2e user shares; the local stack asks for 10 characters, letters and digits. */
 export const E2E_PASSWORD = 'trayectoria-e2e-2026';
 
 /** Creates an account with the given role and returns it already signed in. */
