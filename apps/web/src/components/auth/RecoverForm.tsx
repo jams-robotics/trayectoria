@@ -181,7 +181,14 @@ export function RecoverForm(): JSX.Element {
   const fromLink = useArrivedFromRecoveryLink();
   const linkStatus = useEmailLink();
   if (linkStatus === 'expired') {
-    return <FormStatus pending={false} error={t('auth.recover.linkExpired')} message="" />;
+    // The request form stays available right below the notice (SEC-DB): asking for a new link
+    // needs no reload.
+    return (
+      <div className="flex flex-col gap-6">
+        <FormStatus pending={false} error={t('auth.recover.linkExpired')} message="" />
+        <RequestLinkForm />
+      </div>
+    );
   }
   return recovering || fromLink ? <NewPasswordForm /> : <RequestLinkForm />;
 }
