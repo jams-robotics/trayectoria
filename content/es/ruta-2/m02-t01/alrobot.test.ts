@@ -35,6 +35,13 @@ function mobileOf(robot: RobotSpec): NonNullable<RobotSpec['mobile']> {
   return robot.mobile;
 }
 
+/** The reference robot without the optional fields of `mobile`, which these calcs do not need. */
+function withoutOptionalFields(): RobotSpec {
+  const { maxAccel_radps2, encoderTicksPerRev, motor, battery, ...mobile } = mobileOf(REFERENCE);
+  expect([maxAccel_radps2, encoderTicksPerRev, motor, battery]).not.toContain(undefined);
+  return { ...REFERENCE, mobile };
+}
+
 /** The reference robot with another sensor array. */
 function withSensors(count: number, spacing_m: number): RobotSpec {
   const mobile = mobileOf(REFERENCE);
@@ -85,6 +92,13 @@ describe('T2-2.1 «Al robot» calcs', () => {
     const arm = withoutMobile();
     for (const calc of robotCalcs) {
       expect(calc.compute(arm)).toEqual(calc.compute(REFERENCE));
+    }
+  });
+
+  it('need none of the optional fields of the profile', () => {
+    const robot = withoutOptionalFields();
+    for (const calc of robotCalcs) {
+      expect(calc.compute(robot)).toEqual(calc.compute(REFERENCE));
     }
   });
 });
