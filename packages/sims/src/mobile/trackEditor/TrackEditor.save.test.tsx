@@ -47,6 +47,8 @@ describe('TrackEditor · Guardar (F4-06)', () => {
     await user.click(screen.getByTestId('track-editor-save-track'));
     const confirm = screen.getByTestId('track-editor-save-track-confirm');
     expect(confirm).toBeDisabled();
+    // #543: the disabled button says why.
+    expect(confirm).toHaveAttribute('title', 'Escribe un nombre para la pista.');
     await user.type(screen.getByTestId('track-editor-save-name'), '   ');
     expect(confirm).toBeDisabled();
     expect(onSaveTrack).not.toHaveBeenCalled();

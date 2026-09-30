@@ -2,6 +2,8 @@
   "trackEditor": {
     "scene": "Lienzo del editor de pista: la pista dibujada y la previsualización de la herramienta activa.",
     "tools": "Herramienta",
+    "historyGroup": "Historial",
+    "fileGroup": "Archivo",
     "tool": {
       "select": "Seleccionar",
       "line": "Recta",
@@ -81,6 +83,8 @@
     "controllerGroup": "Controlador",
     "custom": "Propio",
     "customBadge": "v2",
+    "customTitle": "Disponible en la versión 2",
+    "customHint": "«Propio», con el código de tu controlador, estará disponible en la versión 2.",
     "controller": {
       "manual": "Manual",
       "onoff": "On/off",
@@ -260,6 +264,7 @@
     "title": "Guardar y compartir",
     "name": "Nombre de la configuración",
     "save": "Guardar",
+    "saveHint": "Escribe un nombre para guardar.",
     "load": "Cargar",
     "delete": "Borrar",
     "confirmDelete": "¿Borrar la configuración?",

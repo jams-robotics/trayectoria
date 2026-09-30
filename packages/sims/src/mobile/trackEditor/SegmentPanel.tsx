@@ -3,6 +3,8 @@ import type { JSX, KeyboardEvent } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { ArcSegment, TrackSegment, Vec2 } from '@trayectoria/sim-core';
 
+import { SegmentList } from './SegmentList';
+import type { ContinuityReport } from './continuity';
 import { segmentEndpoints } from './model';
 import type { Endpoint } from './model';
 
@@ -12,16 +14,15 @@ const MAX_DECIMALS = 6;
 // docs/DESIGN.md §5 (Campo numérico) and §8: mono, tabular numbers, 40 px tall, visible focus.
 // `w-12` and not `w-24`: the spacing scale only exposes the D-01 tokens (global.css empties the
 // default scales), so `w-24` was never generated and the field stretched until it squashed its
-// label in the 280 px column. It was only visible since Tailwind scans `sims` (#167).
+// label in the 280 px column. It was only visible since Tailwind scans `sims` (#167). `h-8` is
+// the 40 px of that scale; `h-10` was 64 px (#552).
 const FIELD =
-  'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus h-10 w-12 border px-2 text-right font-mono text-sm tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2';
+  'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus h-8 w-12 border px-2 text-right font-mono text-sm tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2';
 const ROW = 'text-fg-muted flex items-center justify-between gap-3 text-sm';
-const SEGMENT_BUTTON =
-  'border-border text-fg-muted focus-visible:outline-focus min-h-11 w-full cursor-pointer rounded-sm border px-3 text-left font-mono text-xs focus-visible:outline-2 focus-visible:outline-offset-2';
-const SEGMENT_ON = 'border-primary text-fg';
-// docs/DESIGN.md §5 (Tabs/segmentado): the same pattern as the tool selector.
+// docs/DESIGN.md §5 (Tabs/segmentado): the same pattern as the tool selector, 44 px tall
+// (`min-h-11` was 80 px on the D-01 scale, #552).
 const DIRECTION =
-  'min-h-11 border-border text-fg-muted focus-visible:outline-focus flex-1 cursor-pointer border-r px-3 text-sm font-semibold last:border-r-0 focus-visible:outline-2 focus-visible:outline-offset-2';
+  'min-h-[44px] border-border text-fg-muted focus-visible:outline-focus flex-1 cursor-pointer border-r px-3 text-sm font-semibold last:border-r-0 focus-visible:outline-2 focus-visible:outline-offset-2';
 const DIRECTION_ON = 'bg-primary text-primary-fg';
 
 /** Formats a number for a field: no trailing zeros, no floating point noise. */
@@ -113,43 +114,8 @@ export interface SegmentPanelProps {
   onRadius: (radius_m: number) => void;
   onCcw: (ccw: boolean) => void;
   onLineWidth: (w_m: number) => void;
-}
-
-/** The list of segments: the keyboard way into the selection, with no pointer involved. */
-function SegmentList({
-  segments,
-  selected,
-  onSelect,
-}: Pick<SegmentPanelProps, 'segments' | 'selected' | 'onSelect'>): JSX.Element {
-  const t = useT();
-  if (segments.length === 0) {
-    return <p className="text-fg-muted text-sm">{t('sims.trackEditor.noSegments')}</p>;
-  }
-  return (
-    <ul className="flex flex-col gap-2" aria-label={t('sims.trackEditor.segments')}>
-      {segments.map((segment, index) => (
-        <li key={`${segment.type}-${String(index)}`}>
-          <button
-            type="button"
-            aria-pressed={selected === index}
-            // #160: mark of the selected segment, the same one the canvas highlights.
-            {...(selected === index ? { 'data-selected': 'true' } : {})}
-            aria-label={t(`sims.trackEditor.segment${segment.type === 'arc' ? 'Arc' : 'Line'}`, {
-              index: index + 1,
-            })}
-            onClick={() => {
-              onSelect(index);
-            }}
-            className={`${SEGMENT_BUTTON} ${selected === index ? SEGMENT_ON : ''}`}
-          >
-            {t(`sims.trackEditor.segment${segment.type === 'arc' ? 'Arc' : 'Line'}`, {
-              index: index + 1,
-            })}
-          </button>
-        </li>
-      ))}
-    </ul>
-  );
+  /** The continuity of the track, shown in the segments block of the panel (#552). */
+  continuity: ContinuityReport;
 }
 
 /** The two fields of one end of the segment, in metres. */
@@ -321,7 +287,12 @@ export function SegmentPanel(props: SegmentPanelProps): JSX.Element {
     >
       <h3 className="text-base font-semibold">{panelTitle(t, segment, selected)}</h3>
       <div className="mt-3">
-        <SegmentList segments={segments} selected={selected} onSelect={onSelect} />
+        <SegmentList
+          segments={segments}
+          selected={selected}
+          onSelect={onSelect}
+          continuity={props.continuity}
+        />
       </div>
       {segment === undefined ? (
         <p className="text-fg-muted mt-3 text-sm">{t('sims.trackEditor.noSegment')}</p>
