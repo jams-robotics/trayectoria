@@ -215,4 +215,19 @@ describe('F1-10c check with per-component unit', () => {
     });
     expect(() => check(mismatched, 1, [1, 2, 3])).toThrow(/2 units.*3 components/);
   });
+
+  test('a label list whose length differs from the answer throws a clear error (#629)', () => {
+    const mismatched = defineExercise({
+      id: 'mismatched-labels',
+      generate: () => ({
+        values: {},
+        answer: [1, 2],
+        unit: ['m/s²', 'm'],
+        labels: ['content.x.labels.e1.0'],
+      }),
+      statement: () => 'ejercicios.mismatchedLabels.enunciado',
+      tolerance: { type: 'relative', value: 0.02 },
+    });
+    expect(() => check(mismatched, 1, [1, 2])).toThrow(/1 labels.*2 components/);
+  });
 });

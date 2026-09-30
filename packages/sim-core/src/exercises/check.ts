@@ -25,7 +25,7 @@ export interface CheckResult<V> {
  *
  * Pure: the same exercise, seed and response always give the same result, because the generator
  * only sees a fresh `createRng(seed)`. With a tolerance list, each component is graded against its
- * own entry; a tolerance or unit list whose length differs from the answer is a definition error
+ * own entry; a tolerance, unit or label list whose length differs from the answer is a definition error
  * and throws.
  */
 export function check<V>(
@@ -33,11 +33,14 @@ export function check<V>(
   seed: number,
   response: number | readonly number[],
 ): CheckResult<V> {
-  const { values, answer, unit } = exercise.generate(createRng(seed));
+  const { values, answer, unit, labels } = exercise.generate(createRng(seed));
   const expectedComponents = toComponents(answer);
   const responseComponents = toComponents(response);
   const tolerances = tolerancePerComponent(exercise, expectedComponents.length);
   assertUnitPerComponent(exercise.id, unit, expectedComponents.length);
+  if (labels !== undefined) {
+    assertComponentCount(exercise.id, labels.length, expectedComponents.length, 'labels');
+  }
 
   const shapeMatches =
     Array.isArray(answer) === Array.isArray(response) &&
