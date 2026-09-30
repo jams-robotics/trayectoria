@@ -42,6 +42,14 @@ describe('DiffDriveWidget odometryRows: velocidad estimada por encoders (#306, T
     expect(new Set([deltaS, deltaTheta, vl, vr, v, x]).size).toBe(6);
   });
 
+  it('muestra el Δt fijo de la velocidad estimada, 0.1 s, justo antes de ella (#567)', () => {
+    const rows = odometryRows(READOUT, REAL, t);
+    const terms = rows.map(([term]) => term);
+    const dt = terms.indexOf('Intervalo de muestreo de la velocidad Δt');
+    expect(valueOf(rows, 'Intervalo de muestreo de la velocidad Δt')).toBe('0.1 s');
+    expect(terms[dt + 1]).toBe('Velocidad estimada de la rueda izquierda');
+  });
+
   it('no cambia las filas existentes de la pose estimada, el error o los ticks', () => {
     const rows = odometryRows(READOUT, REAL, t);
     expect(valueOf(rows, 'Posición x estimada')).toBe('0.234 m');

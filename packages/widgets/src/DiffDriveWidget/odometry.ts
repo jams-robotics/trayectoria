@@ -109,6 +109,81 @@ export function estimatedVelocity(step: Step, dt_s: number): EstimatedVelocity {
   };
 }
 
+/**
+ * Fixed sampling period of the velocity the encoders estimate, in seconds: the `Δt` of the hook
+ * of T2-0.1 (45 ticks in 0.1 s). It is shown in the odometry panel (#567).
+ */
+export const VELOCITY_SAMPLE_S = 0.1;
+
+/** Both wheel angles at one sampling instant. */
+export interface WheelAngles {
+  readonly wheelAngleL_rad: number;
+  readonly wheelAngleR_rad: number;
+}
+
+/** Wheel angles latched at the last two sampling instants `k·Δt` and `(k−1)·Δt` (#567). */
+export interface VelocitySample {
+  readonly latest: WheelAngles;
+  readonly previous: WheelAngles;
+}
+
+/**
+ * A state of the model plus the velocity sample, carried inside the state so the estimate only
+ * depends on the simulated time, never on which states a browser frame happened to publish.
+ */
+export interface SampledState extends DiffDriveState {
+  readonly sample: VelocitySample;
+}
+
+function anglesOf(state: DiffDriveState): WheelAngles {
+  return { wheelAngleL_rad: state.wheelAngleL_rad, wheelAngleR_rad: state.wheelAngleR_rad };
+}
+
+/** The opening state: both samples are the starting angles, so the estimate starts at zero. */
+export function sampledStart(state: DiffDriveState): SampledState {
+  const angles = anglesOf(state);
+  return { ...state, sample: { latest: angles, previous: angles } };
+}
+
+/**
+ * The state after one integration step of `dt_s`: on every multiple of `VELOCITY_SAMPLE_S` the
+ * new angles become the latest sample and the old latest one the previous; otherwise the sample
+ * is carried over unchanged (#567).
+ */
+export function sampledStep(
+  next: DiffDriveState,
+  sample: VelocitySample,
+  dt_s: number,
+): SampledState {
+  const stepsPerSample = Math.round(VELOCITY_SAMPLE_S / dt_s);
+  const onSample = Math.round(next.t_s / dt_s) % stepsPerSample === 0;
+  return {
+    ...next,
+    sample: onSample ? { latest: anglesOf(next), previous: sample.latest } : sample,
+  };
+}
+
+/**
+ * Velocity the encoders estimate from the ticks counted between the last two sampling instants,
+ * quantised with the believed `N_e`: `v ≈ 2π r Δticks / (N_e Δt)` with `Δt = VELOCITY_SAMPLE_S`
+ * (T2-0.1, #567). Zero until a first full period has elapsed.
+ */
+export function sampledVelocity(
+  sample: VelocitySample,
+  calibration: Calibration,
+): EstimatedVelocity {
+  const { ticksPerRev } = calibration;
+  const delta: Ticks = {
+    left:
+      encoderTicks(sample.latest.wheelAngleL_rad, ticksPerRev) -
+      encoderTicks(sample.previous.wheelAngleL_rad, ticksPerRev),
+    right:
+      encoderTicks(sample.latest.wheelAngleR_rad, ticksPerRev) -
+      encoderTicks(sample.previous.wheelAngleR_rad, ticksPerRev),
+  };
+  return estimatedVelocity(stepOf(delta, calibration), VELOCITY_SAMPLE_S);
+}
+
 /** Distance between the estimated and the real position, in metres (T-5.4). */
 export function positionError_m(estimated: Pose, real: Pose): number {
   return Math.hypot(estimated.x_m - real.x_m, estimated.y_m - real.y_m);
