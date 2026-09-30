@@ -191,11 +191,11 @@ describe('e3 · D, v_pred y t_vuelta: v_med y Δ%', () => {
   });
 });
 
-describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94; #451; #461)', () => {
+describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94; #451; #461; #568)', () => {
   const SWEEP_SEEDS = Array.from({ length: 5000 }, (_, seed) => seed + 1);
   const STATEMENT_SIG_FIGS = 4;
-  /** #451: an answer graded with a relative tolerance is exactly 0 or at least 0.01 in its unit. */
-  const MIN_NONZERO_ANSWER = 0.01;
+  /** #451, #568: an answer graded with a relative tolerance is exactly 0 or at least 0.025. */
+  const MIN_NONZERO_ANSWER = 0.025;
   const shown = (value: number): number => Number(format(value, '', STATEMENT_SIG_FIGS));
   const isShownExactly = (value: number): boolean =>
     Math.abs(shown(value) - value) <= EPSILON * Math.max(1, Math.abs(value));
@@ -215,7 +215,7 @@ describe('whole-statement sweep (ExerciseWidget shows 4 significant figures, #94
     expect(failures.slice(0, 5)).toEqual([]);
   });
 
-  it('keeps every answer graded with a relative tolerance at 0 or at least 0.01', () => {
+  it('keeps every answer graded with a relative tolerance at 0 or at least 0.025', () => {
     const failures: string[] = [];
     for (const { id, generate, tolerance } of exercises as readonly Exercise<unknown>[]) {
       for (const seed of SWEEP_SEEDS) {

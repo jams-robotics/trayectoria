@@ -34,6 +34,20 @@ export function components_mps(v_mps: number, theta_deg: number): [number, numbe
   return [v_mps * Math.cos(theta_rad), v_mps * Math.sin(theta_rad)];
 }
 
+/**
+ * `a⃗′`: `a⃗` turned `θ` counterclockwise without changing its magnitude, with θ in degrees like
+ * the other helpers: `a′_x = a_x cosθ − a_y sinθ`, `a′_y = a_x sinθ + a_y cosθ` (box «Rotación
+ * de un vector por componentes», #560).
+ */
+export function rotated(a: readonly [number, number], theta_deg: number): [number, number] {
+  const theta_rad = degToRad(theta_deg);
+  const [ax, ay] = a;
+  return [
+    ax * Math.cos(theta_rad) - ay * Math.sin(theta_rad),
+    ax * Math.sin(theta_rad) + ay * Math.cos(theta_rad),
+  ];
+}
+
 /** `|v⃗| = √(vₓ² + v_y²)`, in the unit of the components. */
 export function magnitude(x: number, y: number): number {
   return Math.hypot(x, y);

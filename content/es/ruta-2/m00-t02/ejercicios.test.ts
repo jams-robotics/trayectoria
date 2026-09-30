@@ -15,6 +15,8 @@ import {
   E4_POINT_M,
   E4_POSE,
   exercises,
+  toGlobal_m,
+  toRobot_m,
 } from './ejercicios';
 
 // Golden values of docs/CURRICULUM.md § T2-0.2, Verifica. Each one runs through the exercise's own
@@ -288,5 +290,40 @@ describe('answers close to 0 (#451, #568)', () => {
         }
       }
     }
+  });
+});
+
+describe('worked examples of Concepto and Al robot (#560)', () => {
+  // docs/CURRICULUM.md § T2-0.2: the point is rotated by components, with the rotation of the box of
+  // Vectores (T1-0.2), and then translated by the position of the robot.
+  const ORIGIN_AT_30_DEG = { x_m: 0, y_m: 0, theta_deg: 30 } as const;
+  const HOOK_POSE = { x_m: 1.2, y_m: 0.5, theta_deg: 30 } as const;
+
+  it('(0.09, 0) m rotated 30° → (0.0779, 0.045) m; plus (1.2, 0.5) m → (1.278, 0.545) m', () => {
+    const [xRotated_m, yRotated_m] = toGlobal_m(ORIGIN_AT_30_DEG, [0.09, 0]);
+    expect(xRotated_m).toBeCloseTo(0.0779, 4);
+    expect(yRotated_m).toBeCloseTo(0.045, 4);
+    const [x_m, y_m] = toGlobal_m(HOOK_POSE, [0.09, 0]);
+    expect(x_m).toBeCloseTo(1.278, 3);
+    expect(y_m).toBeCloseTo(0.545, 3);
+  });
+
+  it('(0.09, 0.024) m rotated 30° → (0.0659, 0.0658) m; plus (1.2, 0.5) m → (1.266, 0.5658) m', () => {
+    const [xRotated_m, yRotated_m] = toGlobal_m(ORIGIN_AT_30_DEG, [0.09, 0.024]);
+    expect(xRotated_m).toBeCloseTo(0.0659, 4);
+    expect(yRotated_m).toBeCloseTo(0.0658, 4);
+    const [x_m, y_m] = toGlobal_m(HOOK_POSE, [0.09, 0.024]);
+    expect(x_m).toBeCloseTo(1.266, 3);
+    expect(y_m).toBeCloseTo(0.5658, 4);
+  });
+
+  it('undoes the transform by translating and rotating by −θ, R(−θ) = R(θ)ᵀ', () => {
+    const [x_m, y_m] = toRobot_m(HOOK_POSE, toGlobal_m(HOOK_POSE, [0.09, 0.024]));
+    expect(x_m).toBeCloseTo(0.09, 9);
+    expect(y_m).toBeCloseTo(0.024, 9);
+    const rotatedBack_m = toRobot_m(ORIGIN_AT_30_DEG, [0.4, 0.3]);
+    const rotatedByMinusTheta_m = toGlobal_m({ x_m: 0, y_m: 0, theta_deg: -30 }, [0.4, 0.3]);
+    expect(rotatedBack_m[0]).toBeCloseTo(rotatedByMinusTheta_m[0], 12);
+    expect(rotatedBack_m[1]).toBeCloseTo(rotatedByMinusTheta_m[1], 12);
   });
 });

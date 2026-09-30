@@ -4,15 +4,15 @@ import type { RobotCalc } from '../../../index';
 
 /**
  * «Al robot» calcs of T1-1.2 (docs/CURRICULUM.md § T1-1.2): the ramp of «Mi robot» from rest to
- * `v_max`, with `a = α · r`, `t = v_max / a` and `Δx = v_max² / (2a)`. The MDX renders them with
- * `<RobotFormula calc="ruta-1/m01-t02/acceleration" />`, `…/ramp-time` and `…/ramp-distance`.
+ * `v_max`, with `t = v_max / a` and `Δx = v_max² / (2a)`. The ramp `a` and `v_max` are data of
+ * the profile (#559, #574): the calcs obtain them from «Mi robot» without showing the formulas
+ * `a = α · r` (taught in T1-2.3) and `v_max = ω_max · r` (taught in T1-1.4). The MDX renders
+ * them with `<RobotFormula calc="ruta-1/m01-t02/acceleration" />`, `…/ramp-time` and
+ * `…/ramp-distance`.
  */
 
 /** Three significant figures, keeping trailing zeros: 1.28 m/s², 0.670 m/s, 0.524 s, 0.175 m. */
 const SIGNIFICANT_FIGURES = 3;
-
-/** Four significant figures for α, as for the angular velocities of T1-0.1. */
-const ALPHA_SIGNIFICANT_FIGURES = 4;
 
 const RPM_TO_RADPS = (2 * Math.PI) / 60;
 
@@ -48,42 +48,33 @@ function drive(robot: RobotSpec): Drive {
 }
 
 interface Ramp {
-  readonly alpha_radps2: number;
-  readonly wheelRadius_m: number;
   readonly a_mps2: number;
   readonly vMax_mps: number;
 }
 
-/** `a = α · r` and `v_max = ω_max · r`, with `ω_max = n · 2π/60 / i`. */
+/**
+ * The two data of the profile: the ramp `a = α · r` (the simulator applies `maxAccel_radps2` to
+ * the wheels) and `v_max = ω_max · r`, with `ω_max = n · 2π/60 / i`. Both chains stay here, out
+ * of the rendered formulas, which only show their numbers.
+ */
 function ramp(robot: RobotSpec): Ramp {
   const { speed_rpm, gearRatio, wheelRadius_m, alpha_radps2 } = drive(robot);
   const omegaMax_radps = (speed_rpm * RPM_TO_RADPS) / gearRatio;
-  return {
-    alpha_radps2,
-    wheelRadius_m,
-    a_mps2: alpha_radps2 * wheelRadius_m,
-    vMax_mps: omegaMax_radps * wheelRadius_m,
-  };
+  return { a_mps2: alpha_radps2 * wheelRadius_m, vMax_mps: omegaMax_radps * wheelRadius_m };
 }
 
 function format(value: number): string {
   return value.toPrecision(SIGNIFICANT_FIGURES);
 }
 
-function formatAlpha(alpha_radps2: number): string {
-  return String(Number(alpha_radps2.toPrecision(ALPHA_SIGNIFICANT_FIGURES)));
-}
-
-/** `a = α · r`. */
+/** The ramp `a`, shown as a datum: `a = 1.28 m/s²` with the reference robot. */
 export const acceleration: RobotCalc = {
   id: 'acceleration',
   compute(robot) {
-    const { alpha_radps2, wheelRadius_m, a_mps2 } = ramp(robot);
+    const { a_mps2 } = ramp(robot);
     return {
-      latex: String.raw`a = \alpha \cdot r`,
-      substituted:
-        String.raw`a = ${formatAlpha(alpha_radps2)}\ \text{rad/s}^2 \cdot ${wheelRadius_m}\ \text{m}` +
-        String.raw` = ${format(a_mps2)}\ \text{m/s}^2`,
+      latex: 'a',
+      substituted: String.raw`a = ${format(a_mps2)}\ \text{m/s}^2`,
     };
   },
 };
