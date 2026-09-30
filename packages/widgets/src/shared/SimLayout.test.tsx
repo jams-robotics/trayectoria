@@ -80,7 +80,20 @@ describe('SimLayout (docs/DESIGN.md §6)', () => {
       'lg:[&>[data-layout=stack]:only-child:has(>div>:nth-child(4))]:col-span-2',
       'lg:[&>:only-child:not([data-param-grid]):has([data-layout=stack]>div>:nth-child(4))]:col-span-2',
       'lg:[&:has(>:only-child:not([data-param-grid]))_[data-layout=stack]>div:has(>:nth-child(4))]:grid-cols-2',
-      'lg:[@media(min-height:640px)]:[&_:is(input,select,button)]:scroll-mt-[calc(50vh+64px)]',
+      'lg:[@media(min-height:640px)]:[&_:is(input,select,button,[role=slider])]:scroll-mt-[calc(50vh+64px)]',
+    );
+  });
+
+  test('the extras keep the same scroll margin, so a chart marker scrolled into view is not hidden under the sticky row (#544)', () => {
+    const { container } = render(
+      <SimLayout
+        viewer={<i />}
+        values={<i />}
+        extras={[{ key: 'chart', node: <div role="slider" tabIndex={0} />, mobile: 'end' }]}
+      />,
+    );
+    expect(regionOf(container, 'extras')).toHaveClass(
+      'lg:[@media(min-height:640px)]:[&_:is(input,select,button,[role=slider])]:scroll-mt-[calc(50vh+64px)]',
     );
   });
 

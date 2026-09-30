@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
@@ -76,27 +76,40 @@ function NameField({
   );
 }
 
-/** The name field and «Guardar»; without a name the button is disabled, never hidden. */
+/**
+ * The name field and «Guardar»; without a name the button is disabled, never hidden, and a line
+ * under the row says what it is waiting for (#543).
+ */
 function SaveRow({ onSave, t }: { onSave: (name: string) => void; t: Translate }): JSX.Element {
   const [name, setName] = useState('');
+  const hintId = useId();
   const trimmed = name.trim();
+  const waiting = trimmed === '';
   return (
-    <div className="flex flex-wrap items-end gap-2">
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <NameField name={name} onName={setName} t={t} />
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <NameField name={name} onName={setName} t={t} />
+        </div>
+        <button
+          type="button"
+          className={PRIMARY}
+          data-testid="sim-config-save"
+          disabled={waiting}
+          {...(waiting ? { title: t('sims.simConfig.saveHint'), 'aria-describedby': hintId } : {})}
+          onClick={() => {
+            onSave(trimmed);
+            setName('');
+          }}
+        >
+          {t('sims.simConfig.save')}
+        </button>
       </div>
-      <button
-        type="button"
-        className={PRIMARY}
-        data-testid="sim-config-save"
-        disabled={trimmed === ''}
-        onClick={() => {
-          onSave(trimmed);
-          setName('');
-        }}
-      >
-        {t('sims.simConfig.save')}
-      </button>
+      {waiting ? (
+        <p id={hintId} className="text-fg-muted text-sm" data-testid="sim-config-save-hint">
+          {t('sims.simConfig.saveHint')}
+        </p>
+      ) : null}
     </div>
   );
 }

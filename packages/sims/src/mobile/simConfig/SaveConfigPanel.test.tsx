@@ -64,6 +64,20 @@ describe('SaveConfigPanel (F4-05)', () => {
     expect(screen.getByTestId('sim-config-name')).toHaveValue('');
   });
 
+  it('sin nombre, «Guardar» dice qué le falta y lo deja de decir al escribirlo (#543)', async () => {
+    const user = userEvent.setup();
+    setup();
+    const save = screen.getByTestId('sim-config-save');
+    expect(save).toHaveAttribute('title', t('sims.simConfig.saveHint'));
+    expect(save).toHaveAccessibleDescription(t('sims.simConfig.saveHint'));
+    expect(screen.getByTestId('sim-config-save-hint')).toHaveTextContent('Escribe un nombre para guardar.');
+
+    await user.type(screen.getByTestId('sim-config-name'), 'Óvalo');
+    expect(save).not.toHaveAttribute('title');
+    expect(save).not.toHaveAccessibleDescription();
+    expect(screen.queryByTestId('sim-config-save-hint')).not.toBeInTheDocument();
+  });
+
   it('sin configuraciones guardadas muestra el aviso y ninguna fila', () => {
     setup();
     expect(screen.getByText(t('sims.simConfig.empty'))).toBeInTheDocument();

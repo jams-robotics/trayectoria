@@ -100,6 +100,8 @@ describe('ProjectileWidget (F2-05)', () => {
     expect(valueOf('Alcance')).toBe('2.51 m');
   });
 
+  // Timeout explícito: 30 pulsaciones de teclado vía userEvent pueden superar los 5 s
+  // por defecto bajo carga en CI (visto también en StoryGallery.test.tsx y widgetRegistry.test.ts).
   test('`overlay` añade un segundo lanzamiento con sus propios deslizadores y columna', async () => {
     const user = userEvent.setup();
     render(
@@ -128,7 +130,7 @@ describe('ProjectileWidget (F2-05)', () => {
 
     const [rangeA, rangeB] = valueOf('Alcance').split('  ·  ');
     expect(rangeA).toBe(rangeB);
-  });
+  }, 15000);
 
   test('`overlay` se ignora en dropFromRobot (#304)', () => {
     render(<ProjectileWidget mode="dropFromRobot" initial={{ vRobot_mps: 0.6, h_m: 0.25 }} overlay />);

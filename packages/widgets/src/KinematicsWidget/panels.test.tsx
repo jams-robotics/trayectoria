@@ -1,15 +1,18 @@
-import { act, render } from '@testing-library/react';
+import { act, render, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { Translate } from '@trayectoria/i18n';
 
-import { MotionScene } from './panels';
+import { MotionScene, useSceneAspect } from './panels';
 import type { Motion } from './compute';
 
 /** Translation stub: returns the key, so the tests read the structure and not the Spanish. */
 const t: Translate = (key) => key;
 
-/** Width every container reports: 720 px at the 6:1 strip of the scene → 120 px high. */
+/**
+ * Width every container reports: 720 px, 405 px high at the 16/9 of the scene (jsdom has no
+ * `matchMedia`, so the hook answers the `lg` aspect).
+ */
 const WIDTH_PX = 720;
 
 /** Arguments of every `arc` the scene paints: only the particle draws one. */
@@ -96,5 +99,62 @@ describe('MotionScene (#303)', () => {
       expect(x_px).toBeGreaterThan(0);
       expect(x_px).toBeLessThan(WIDTH_PX);
     }
+  });
+});
+
+/** A `matchMedia` that answers `matches` to every query and remembers its change listeners. */
+function stubMatchMedia(matches: boolean): { listeners: Array<() => void>; queries: string[] } {
+  const listeners: Array<() => void> = [];
+  const queries: string[] = [];
+  vi.stubGlobal('matchMedia', (query: string) => {
+    queries.push(query);
+    return {
+      matches,
+      addEventListener: (_type: string, listener: () => void) => listeners.push(listener),
+      removeEventListener: (_type: string, listener: () => void) => {
+        listeners.splice(listeners.indexOf(listener), 1);
+      },
+    };
+  });
+  return { listeners, queries };
+}
+
+describe('useSceneAspect (#544)', () => {
+  test('desde lg el visor es 16/9, el de todos los visores', () => {
+    const { queries } = stubMatchMedia(true);
+    const { result } = renderHook(() => useSceneAspect());
+    expect(result.current).toBeCloseTo(16 / 9, 10);
+    expect(queries).toContain('(min-width: 1024px)');
+  });
+
+  test('bajo lg el visor es 3/2: al menos 200 px de alto desde 360 px de ancho', () => {
+    stubMatchMedia(false);
+    const { result } = renderHook(() => useSceneAspect());
+    expect(result.current).toBeCloseTo(3 / 2, 10);
+    // 360 px of screen minus the 16 px gutters of §9: 328 px wide, 218 px high.
+    expect((360 - 2 * 16) / result.current).toBeGreaterThanOrEqual(200);
+  });
+
+  test('sin matchMedia (render en servidor, jsdom) queda en 16/9', () => {
+    vi.stubGlobal('matchMedia', undefined);
+    const { result } = renderHook(() => useSceneAspect());
+    expect(result.current).toBeCloseTo(16 / 9, 10);
+  });
+
+  test('sigue el cambio de la consulta y se da de baja al desmontar', () => {
+    const media = stubMatchMedia(true);
+    const { result, unmount } = renderHook(() => useSceneAspect());
+    expect(media.listeners).toHaveLength(1);
+    vi.stubGlobal('matchMedia', () => ({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+    act(() => {
+      for (const listener of media.listeners) listener();
+    });
+    expect(result.current).toBeCloseTo(3 / 2, 10);
+    unmount();
+    expect(media.listeners).toHaveLength(0);
   });
 });

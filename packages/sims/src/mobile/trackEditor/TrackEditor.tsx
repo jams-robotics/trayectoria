@@ -8,7 +8,7 @@ import { SegmentPanel } from './SegmentPanel';
 import { Toolbar } from './Toolbar';
 import { useTrackEditor } from './useTrackEditor';
 import type { TrackEditorApi } from './useTrackEditor';
-import { ContinuityNotice, EditorToast } from './notices';
+import { EditorToast } from './notices';
 import { ConfirmReplace, useTrackFiles } from './useTrackFiles';
 
 /** The numeric panel of the selected segment, wired to the editor. */
@@ -23,6 +23,7 @@ function Panel({ editor }: { editor: TrackEditorApi }): JSX.Element {
       onRadius={editor.setRadius}
       onCcw={editor.setCcw}
       onLineWidth={editor.setLineWidth}
+      continuity={editor.continuity}
     />
   );
 }
@@ -102,17 +103,13 @@ function EditorToolbar({
   );
 }
 
-/** The notices the editor can open: continuity, load error, confirmation, toast. */
-function EditorNotices({
-  editor,
-  files,
-}: {
-  editor: TrackEditorApi;
-  files: ReturnType<typeof useTrackFiles>;
-}): JSX.Element {
+/**
+ * The notices the editor can open: load error, confirmation, toast. The continuity notice went
+ * into the segments block of the panel, next to the list it describes (#552).
+ */
+function EditorNotices({ files }: { files: ReturnType<typeof useTrackFiles> }): JSX.Element {
   return (
     <>
-      <ContinuityNotice report={editor.continuity} />
       <LoadError message={files.error} />
       <ConfirmReplace
         pending={files.pending}
@@ -241,7 +238,7 @@ export function TrackEditor({
         renderPanel={renderPanel}
         canvasHeight_px={canvasHeight_px}
       />
-      <EditorNotices editor={editor} files={files} />
+      <EditorNotices files={files} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import type { JSX } from 'react';
 import type { MobileSpec } from '@trayectoria/robot-spec';
-import { PRESET_LINE_WIDTH_M, sensorPositions } from '@trayectoria/sim-core';
+import { PRESET_LINE_WIDTH_M, format, sensorPositions } from '@trayectoria/sim-core';
 import type { Translate } from '@trayectoria/i18n';
 
 import { Scene2D } from '../Scene2D/Scene2D';
@@ -74,8 +74,8 @@ export function SensorScene({
     <Scene2D
       worldWidth_m={WORLD_WIDTH_M}
       description={t('widgets.LineSensorWidget.scene', {
-        offset: String(offset_m),
-        angle: String(angle_rad),
+        offset: format(offset_m, ''),
+        angle: format(angle_rad, ''),
       })}
     >
       <Rect
