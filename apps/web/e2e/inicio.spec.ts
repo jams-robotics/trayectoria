@@ -68,6 +68,11 @@ test('at 390 px both calls to action are on the first screen, with no overflow',
 
 test('the keyboard reaches both calls to action and the simulator link', async ({ page }) => {
   await page.goto('/');
+  // Wait for HomeDemo to hydrate and mount the simulator link before tabbing, so the focus
+  // order does not shift mid-walk when the lazy chunk lands.
+  await expect(page.getByRole('link', { name: common.home.demo.open })).toBeVisible({
+    timeout: DEMO_TIMEOUT_MS,
+  });
   const targets = [common.home.startRoute, common.home.tryTopic, common.home.demo.open];
   const reached = new Set<string>();
   for (let step = 0; step < 30 && reached.size < targets.length; step += 1) {

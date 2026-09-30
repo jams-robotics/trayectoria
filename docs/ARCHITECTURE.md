@@ -153,8 +153,8 @@ El envoltorio `sims/urdf` (ADR-0008, #124) es el único punto que toca `fflate`:
 |---|---|
 | `meta.description` | Trayectoria · De la física al robot. Dos rutas abiertas y en español para estudiantes de ingeniería: cada tema termina en un cálculo con tu robot y en un simulador en el navegador. |
 | `nav.route` | Rutas |
-| `home.lead` | Dos rutas encadenadas para ingeniería: Fundamentos, la física y la matemática que usa un robot, y Robot móvil, del encoder a la pista. Cada tema termina en tu robot: primero un móvil 2D, después un brazo articulado. |
-| `home.startRoute` | Empezar por Fundamentos |
+| `home.lead` | Ruta abierta y en español para estudiantes de ingeniería que construyen su primer robot móvil. Cada tema termina en un cálculo con tu robot y en un simulador que corre en tu navegador. Sin cuenta para empezar. |
+| `home.startRoute` | Empezar la ruta |
 | `home.route.title` | Las dos rutas |
 | `home.features.myRobot.text` | Los parámetros que defines en el primer tema (masa, radio de rueda, sensores) acompañan cada ejercicio y simulación de las dos rutas. |
 | `home.thread.text` | Los 25 temas cierran con la sección «Al robot»: el mismo concepto, calculado con los datos de tu perfil «Mi robot», y cada uno añade un dato nuevo. En Robot móvil ese perfil es el robot que simulas y controlas, y el proyecto final usa un número de cada módulo de las dos rutas. |
