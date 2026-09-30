@@ -14,14 +14,19 @@ const STATEMENT_SIG_FIGS = 4;
 /** Typographic minus sign of the statements (V-05, #475). */
 const MINUS_SIGN = '−';
 
-/** A statement number rounded to 4 significant figures, negative ones with «−» (V-05). */
+/**
+ * A statement number rounded to 4 significant figures without padding zeros, negative ones with
+ * «−» (V-05): a value drawn as 0.98 m/s reads `0.98`, never `0.9800` (#550).
+ */
 function statementNumber(value: number): string {
-  return format(value, '', STATEMENT_SIG_FIGS).replace(/^-/, MINUS_SIGN);
+  const text = format(value, '', STATEMENT_SIG_FIGS);
+  const trimmed = text.includes('.') && !text.includes('e') ? text.replace(/\.?0+$/, '') : text;
+  return trimmed.replace(/^-/, MINUS_SIGN);
 }
 
 /**
- * Statement values rounded to 4 significant figures, ready to interpolate (#94, decision 4);
- * negative numbers carry the minus sign U+2212 (V-05, #475).
+ * Statement values rounded to 4 significant figures without padding zeros, ready to interpolate
+ * (#94, decision 4; #550); negative numbers carry the minus sign U+2212 (V-05, #475).
  */
 export function statementParams(values: unknown): TParams {
   if (typeof values !== 'object' || values === null) return {};

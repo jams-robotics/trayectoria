@@ -14,6 +14,7 @@ import {
   setLineWidth,
   setRadius,
   select,
+  viewCenter_m,
 } from './model';
 import type { Endpoint, EditorState } from './model';
 import { ARC_RADIUS_FACTOR, PICK_TOLERANCE_M, arcFromDrag, usePointer } from './useTrackPointer';
@@ -37,6 +38,13 @@ export interface TrackEditorApi {
   readonly tool: TrackTool;
   readonly draft: TrackDraft | null;
   readonly continuity: ContinuityReport;
+  /**
+   * Centre of the canvas view, in metres: the centre of the track the editor opened with or last
+   * replaced whole (preset, file), so the track is framed instead of left in one half of the
+   * canvas (#552). `null` while no such track had segments; the canvas then uses its default.
+   * It never moves with an edit: the pointer mapping stays fixed under the learner mid-stroke.
+   */
+  readonly viewCenter_m: Vec2 | null;
   readonly canUndo: boolean;
   readonly canRedo: boolean;
   /** True when the track changed since the last save, load or preset. */
@@ -143,21 +151,39 @@ function usePanel(
   };
 }
 
+/**
+ * The view centre of the canvas (#552): framed on the opening track and again on each whole
+ * replacement; a replacement with no segments keeps the frame there was.
+ */
+function useViewCenter(initial: Track): [Vec2 | null, (track: Track) => void] {
+  const [center_m, setCenter] = useState(() => viewCenter_m(initial));
+  const recenter = useCallback((track: Track): void => {
+    setCenter((current) => viewCenter_m(track) ?? current);
+  }, []);
+  return [center_m, recenter];
+}
+
+/** What replaces the whole track at once, as the api exposes it. */
+type WholeTrack = Pick<TrackEditorApi, 'applyPreset' | 'toJson' | 'loadJson' | 'markSaved'>;
+
 /** Whatever replaces the whole track at once: a preset, a loaded file, a save mark. */
 function useWholeTrack(
   state: EditorState,
   replace: (next: History<EditorState>) => void,
-): [Track, Pick<TrackEditorApi, 'applyPreset' | 'toJson' | 'loadJson' | 'markSaved'>] {
+): [Track, Vec2 | null, WholeTrack] {
   const [saved, setSaved] = useState(state.track);
+  const [center_m, recenter] = useViewCenter(state.track);
   const reset = useCallback(
     (next: EditorState): void => {
       replace(createHistory(next));
       setSaved(next.track);
+      recenter(next.track);
     },
-    [replace],
+    [replace, recenter],
   );
   return [
     saved,
+    center_m,
     {
       applyPreset: useCallback(
         (name: PresetName): void => {
@@ -224,13 +250,14 @@ export function useTrackEditor(options: UseTrackEditorOptions = {}): TrackEditor
   const [tool, setTool] = useState<TrackTool>('select');
   const state = history.present;
   const { draft, down, move, up } = usePointer(state, tool, commit);
-  const [saved, files] = useWholeTrack(state, replace);
+  const [saved, viewCenter, files] = useWholeTrack(state, replace);
 
   return {
     state,
     tool,
     draft,
     continuity: useMemo(() => continuity(state.track), [state.track]),
+    viewCenter_m: viewCenter,
     canUndo: canUndo(history),
     canRedo: canRedo(history),
     dirty: state.track !== saved,

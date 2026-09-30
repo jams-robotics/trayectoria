@@ -17,14 +17,16 @@ function isPresetName(name: string): name is PresetName {
 /** Preset names of sim-core, in the order they are offered. */
 const PRESET_NAMES: readonly PresetName[] = Object.keys(presets).filter(isPresetName);
 
-// docs/DESIGN.md §5 (Tabs/segmentado) and §8: 44 px targets, visible focus, tokens only.
+// docs/DESIGN.md §5 (Tabs/segmentado) and §8: 44 px targets, visible focus, tokens only. The
+// height is `min-h-[44px]` and not `min-h-11`: the spacing scale is the D-01 one, where step 11 is
+// 80 px, which is what made the bar look improvised (#552).
 const SEGMENT =
-  'min-h-11 border-border text-fg-muted focus-visible:outline-focus shrink-0 cursor-pointer border-r font-semibold last:border-r-0 focus-visible:outline-2 focus-visible:outline-offset-2';
+  'min-h-[44px] border-border text-fg-muted focus-visible:outline-focus shrink-0 cursor-pointer border-r font-semibold last:border-r-0 focus-visible:outline-2 focus-visible:outline-offset-2';
 const SEGMENT_ON = 'bg-primary text-primary-fg';
 const BUTTON =
-  'border-border bg-bg-raised text-fg rounded-md focus-visible:outline-focus min-h-11 shrink-0 cursor-pointer border font-semibold hover:border-fg-muted focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-default disabled:opacity-45';
+  'border-border bg-bg-raised text-fg rounded-md focus-visible:outline-focus min-h-[44px] shrink-0 cursor-pointer border font-semibold hover:border-fg-muted focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-default disabled:opacity-45';
 const SELECT =
-  'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus min-h-11 shrink-0 border px-2 font-mono focus-visible:outline-2 focus-visible:outline-offset-2';
+  'border-border bg-bg text-fg rounded-sm focus-visible:outline-focus min-h-[44px] shrink-0 border px-2 font-mono focus-visible:outline-2 focus-visible:outline-offset-2';
 
 // #189 (decision 1): beside the simulator side panel the bar controls —four tools, undo, redo,
 // export, import, «Nueva» (#190), «Guardar» (#191) and the preset— go with 8 px of padding and the
@@ -35,6 +37,14 @@ const PAD = 'px-4';
 const PAD_TIGHT = 'px-2';
 const TEXT = 'text-sm';
 const TEXT_TIGHT = 'text-xs';
+
+/**
+ * One group of the bar after the first (#552): a left border separates it from the one before, so
+ * tools, history and file read as three blocks instead of eleven loose buttons. The group shrinks
+ * to the row (`min-w-0`, no `shrink-0`) so its own controls wrap inside it at 390 px instead of
+ * running past the edge of the box.
+ */
+const GROUP = 'border-border flex min-w-0 flex-wrap items-center gap-2 border-l pl-3';
 
 /** The two classes that tighten a bar control: its side padding and its body. */
 interface Sizing {
@@ -167,19 +177,28 @@ function PresetPicker({
 }
 
 /**
- * Where the whole track comes from: loading it from a file, starting a blank one or starting from a
- * preset (#190, decisions 1 and 2). «Nueva» goes next to «Cargar» and the selector because all three
- * answer the same question, and not next to the drawing tools.
+ * The file group (#552): exporting and saving the track on the canvas, and where a whole track
+ * comes from — loading it from a file, starting a blank one or starting from a preset (#190,
+ * decisions 1 and 2). «Nueva» goes next to «Cargar» and the selector because all three answer the
+ * same question, and not next to the drawing tools.
  */
-function TrackGroup({
+function FileGroup({
+  onSave,
+  onSaveTrack,
   onLoad,
   onNew,
   onPreset,
   size,
-}: Pick<ToolbarProps, 'onLoad' | 'onNew' | 'onPreset'> & { size: Sizing }): JSX.Element {
+}: Pick<ToolbarProps, 'onSave' | 'onSaveTrack' | 'onLoad' | 'onNew' | 'onPreset'> & {
+  size: Sizing;
+}): JSX.Element {
   const t = useT();
   return (
-    <>
+    <div role="group" aria-label={t('sims.trackEditor.fileGroup')} className={GROUP}>
+      <BarButton label={t('sims.trackEditor.exportJson')} size={size} onClick={onSave} />
+      {onSaveTrack === undefined ? null : (
+        <SaveTrackField onSave={onSaveTrack} pad={size.pad} text={size.text} />
+      )}
       <LoadButton onLoad={onLoad} size={size} />
       <button
         type="button"
@@ -191,7 +210,7 @@ function TrackGroup({
         {t('sims.trackEditor.newTrack')}
       </button>
       <PresetPicker onPreset={onPreset} onNew={onNew} size={size} />
-    </>
+    </div>
   );
 }
 
@@ -220,31 +239,40 @@ function BarButton({
   );
 }
 
-/** Undo, redo and «Exportar JSON»: what acts on the track already on the canvas. */
+/** Undo and redo: the history group of the bar (#552). */
 function HistoryGroup({
   canUndo,
   canRedo,
   onUndo,
   onRedo,
-  onSave,
   size,
-}: Pick<ToolbarProps, 'canUndo' | 'canRedo' | 'onUndo' | 'onRedo' | 'onSave'> & {
+}: Pick<ToolbarProps, 'canUndo' | 'canRedo' | 'onUndo' | 'onRedo'> & {
   size: Sizing;
 }): JSX.Element {
   const t = useT();
   return (
-    <>
-      <BarButton label={t('sims.trackEditor.undo')} size={size} disabled={!canUndo} onClick={onUndo} />
-      <BarButton label={t('sims.trackEditor.redo')} size={size} disabled={!canRedo} onClick={onRedo} />
-      <BarButton label={t('sims.trackEditor.exportJson')} size={size} onClick={onSave} />
-    </>
+    <div role="group" aria-label={t('sims.trackEditor.historyGroup')} className={GROUP}>
+      <BarButton
+        label={t('sims.trackEditor.undo')}
+        size={size}
+        disabled={!canUndo}
+        onClick={onUndo}
+      />
+      <BarButton
+        label={t('sims.trackEditor.redo')}
+        size={size}
+        disabled={!canRedo}
+        onClick={onRedo}
+      />
+    </div>
   );
 }
 
 /**
- * Toolbar of the track editor: tools, undo/redo, save, load and the preset picker. Every control
- * carries its own label and reaches 44 px, so the whole bar is operable by keyboard and on a
- * phone (docs/DESIGN.md §8 and §9 point 3).
+ * Toolbar of the track editor in three separated groups (#552): the tools, the history (undo,
+ * redo) and the file (export, save, load, new, preset). Every control carries its own label and
+ * reaches 44 px, so the whole bar is operable by keyboard and on a phone (docs/DESIGN.md §8 and
+ * §9 point 3).
  */
 export function Toolbar(props: ToolbarProps): JSX.Element {
   const { tool, onTool, canUndo, canRedo, onUndo, onRedo, onSave, onLoad, onPreset } = props;
@@ -262,13 +290,17 @@ export function Toolbar(props: ToolbarProps): JSX.Element {
         canRedo={canRedo}
         onUndo={onUndo}
         onRedo={onRedo}
-        onSave={onSave}
         size={size}
       />
-      {onSaveTrack === undefined ? null : (
-        <SaveTrackField onSave={onSaveTrack} pad={size.pad} text={size.text} />
-      )}
-      <TrackGroup onLoad={onLoad} onNew={onNew} onPreset={onPreset} size={size} />
+      <FileGroup
+        onSave={onSave}
+        // `exactOptionalPropertyTypes`: an absent prop is absent, not `undefined`.
+        {...(onSaveTrack === undefined ? {} : { onSaveTrack })}
+        onLoad={onLoad}
+        onNew={onNew}
+        onPreset={onPreset}
+        size={size}
+      />
     </div>
   );
 }

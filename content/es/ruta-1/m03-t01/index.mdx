@@ -43,11 +43,11 @@ La masa se cancela y queda h_max = v²/(2·g).
 
 Con los datos del gancho, h_max = 0.6²/(2·9.81) = 0.0183 m. Tu robot sube menos de 2 cm.
 
-La fricción cinética siempre se opone al movimiento, así que su trabajo es negativo y no se
-recupera. Con fricción, E cae a lo largo del recorrido y el robot sube menos.
-
-Lo mismo pasa en el tiro parabólico. Sin rozamiento con el aire, la pelota cambia energía cinética
-por potencial al subir y la recupera al bajar, pero Eₖ + Eₚ es la misma en todo el vuelo.
+La fricción siempre se opone al movimiento, así que su trabajo es negativo y no se recupera. En
+un robot que rueda sin deslizar, esa fuerza es la fricción de rodadura, la resistencia que el
+suelo opone a la rueda al girar. Se modela igual que la fricción cinética, f = μₖ·N, con un μₖ
+mucho menor que el de un cuerpo que desliza. Con fricción, E cae a lo largo del recorrido y el
+robot sube menos.
 </Concepto>
 
 <Formulas>
@@ -93,7 +93,9 @@ Sin fricción:
 <Explora>
 Un robot de 0.9 kg recorre un tramo horizontal a 0.6 m/s y sube una rampa de 15° (0.26 rad): el robot
 del gancho. Las barras muestran en cada instante su energía cinética, su energía potencial, su
-energía mecánica y el trabajo de la fricción.
+energía mecánica y el trabajo de la fricción. El control «Coeficiente de rozamiento cinético»,
+μₖ, hace aquí de resistencia a la rodadura: una fuerza μₖ·N en contra del avance, en el tramo
+plano y en la rampa. Empieza en 0.
 
 <EnergyWidget mode="ramp" initial={{ mass_kg: 0.9, v0_mps: 0.6, slope_rad: 0.26 }} />
 
@@ -118,20 +120,20 @@ Eₖ = ½·m·v² y Eₚ = m·g·h son proporcionales a m: al duplicar la masa, 
 </Experimento>
 
 <Experimento
-  cambia="el coeficiente de fricción cinética μₖ de 0 a 0.05"
+  cambia="μₖ, la resistencia a la rodadura, de 0 a 0.05"
   observa="la barra de energía mecánica mientras el robot avanza y sube, y la altura final"
   porque="¿Por qué E decrece y el robot sube menos?"
 >
-La fricción se opone al movimiento, así que su trabajo es negativo y saca energía mecánica que no
-vuelve. La barra de E baja a lo largo de todo el recorrido, también en la rampa. Queda menos Eₖ
-para convertirse en Eₚ, y el robot se detiene más abajo.
+La fricción de rodadura se opone al movimiento, así que su trabajo es negativo y saca energía
+mecánica que no vuelve. La barra de E baja a lo largo de todo el recorrido, también en la rampa.
+Queda menos Eₖ para convertirse en Eₚ, y el robot se detiene más abajo.
 </Experimento>
 </Explora>
 
 <AlRobot>
 Sin motor y sin fricción, lo más alto que sube tu robot por inercia depende solo de la rapidez
 con la que llega al pie de la rampa. La mayor que puede tener es su velocidad lineal máxima
-v_max, la que calculaste en [Vectores](/ruta/ruta-1/m00/t02).
+v_max, la que calculaste en [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04).
 
 A esa rapidez, con la masa m de tu perfil de «Mi robot», su energía cinética es:
 
@@ -149,7 +151,8 @@ h_max = 0.670²/(2·9.81) = 0.0229 m. A su rapidez máxima, sube por inercia poc
 
 Esa Eₖ es también el trabajo neto que hay que hacer sobre tu robot para llevarlo del reposo a
 v_max, y la energía que la fricción tiene que disipar para detenerlo cuando el motor se corta en
-llano.
+llano. A qué ritmo entregan los motores esa energía, y cuánto dura la batería entregándola, lo
+calculas en [Potencia](/ruta/ruta-1/m03/t02).
 </AlRobot>
 
 <Verifica

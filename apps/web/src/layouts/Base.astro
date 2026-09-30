@@ -74,7 +74,9 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
   <body class="bg-bg text-fg font-sans flex min-h-dvh flex-col">
     <Nav />
     <RobotSession client:load />
-    <main class="flex-1">
+    <!-- #538: on the pages behind a session (the ones with an `AuthGate`) the main area is a
+      column, so their content can fill it and centre the sign-up card in what is left. -->
+    <main class="flex-1 has-[[data-auth]]:flex has-[[data-auth]]:flex-col">
       <slot />
     </main>
     <Footer />

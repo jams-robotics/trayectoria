@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react';
 import type { JSX } from 'react';
 import { format } from '@trayectoria/sim-core';
 import type { Translate } from '@trayectoria/i18n';
@@ -12,8 +13,39 @@ import type { Motion } from './compute';
 import { Particle } from './Particle';
 import type { KinematicsEditable, Timeline } from './timeline';
 
-/** Width over height of the scene: a wide strip, since the motion is one-dimensional. */
-const SCENE_ASPECT = 6;
+/**
+ * Width over height of the scene from the `lg` breakpoint of `SimLayout`: the 16/9 of every
+ * viewer, so the sticky row keeps its 50 vh cap (docs/DESIGN.md §6, point 4).
+ */
+const SCENE_ASPECT_LG = 16 / 9;
+/**
+ * Width over height of the scene below `lg`: 3/2, so the particle gets at least 200 px of height
+ * from a 360 px screen on (232 px at 390 px, close to the 240 px of the mobile viewer, §9) and
+ * the «0.5 m» scale sits in its corner, away from the axis (#544).
+ */
+const SCENE_ASPECT_MOBILE = 3 / 2;
+/** The `lg` breakpoint, `--breakpoint-lg` of apps/web/src/styles/global.css. */
+const LG_QUERY = '(min-width: 1024px)';
+
+function subscribeToLg(onChange: () => void): () => void {
+  if (typeof matchMedia !== 'function') return () => {};
+  const query = matchMedia(LG_QUERY);
+  query.addEventListener('change', onChange);
+  return () => {
+    query.removeEventListener('change', onChange);
+  };
+}
+
+/** True from `lg` on; also where `matchMedia` does not exist (server render, jsdom). */
+function isFromLg(): boolean {
+  return typeof matchMedia !== 'function' || matchMedia(LG_QUERY).matches;
+}
+
+/** The aspect of the scene at the current viewport width; it follows the `lg` breakpoint (#544). */
+export function useSceneAspect(): number {
+  const fromLg = useSyncExternalStore(subscribeToLg, isFromLg, isFromLg);
+  return fromLg ? SCENE_ASPECT_LG : SCENE_ASPECT_MOBILE;
+}
 
 /** Sliders of the editable values, with the ranges of T-1.1 and T-1.2 (docs/CURRICULUM.md). */
 const RANGES: Readonly<Record<KinematicsEditable, { min: number; max: number; step: number }>> = {
@@ -103,11 +135,12 @@ export function MotionScene({
   const x_m = positionAt(motion, t_s);
   const v_mps = velocityAt(motion, t_s);
   const view = sceneViewOf(motion, duration_s);
+  const aspect = useSceneAspect();
   return (
     <Scene2D
       worldWidth_m={view.worldWidth_m}
       center_m={[view.centerX_m, 0]}
-      aspect={SCENE_ASPECT}
+      aspect={aspect}
       description={t('widgets.KinematicsWidget.scene')}
     >
       <Axes />

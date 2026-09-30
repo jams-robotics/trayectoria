@@ -146,4 +146,20 @@ describe('KinematicsWidget (F2-04)', () => {
       'Partícula sobre un eje horizontal, con su vector velocidad',
     );
   });
+  test('desde el punto de corte, sliders y gráficas ocupan todo el ancho del widget, en una fila cada uno (#544)', () => {
+    const { container } = render(
+      <KinematicsWidget
+        initial={{ x0_m: 0, v0_mps: 0.5, a_mps2: 0.2 }}
+        editable={['x0', 'v0', 'a']}
+        duration_s={5}
+      />,
+    );
+
+    const charts = container.querySelector('[data-kinematics-charts]');
+    expect(charts).toHaveClass('grid', 'lg:grid-cols-3');
+    expect(charts?.querySelectorAll('[data-testid="plot-marker"]')).toHaveLength(3);
+    const panel = screen.getByRole('region', { name: /parámetros/i });
+    expect(panel.parentElement).toHaveClass('lg:col-span-2');
+    expect(panel.parentElement?.className).toContain('lg:[&_[data-layout=stack]>div]:flex-row');
+  });
 });
