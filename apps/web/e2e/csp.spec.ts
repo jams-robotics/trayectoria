@@ -239,10 +239,10 @@ test.describe('security headers (#507)', () => {
     const missing = new Map<string, string>();
     for (const file of htmlFiles(DIST)) {
       const html = readFileSync(file, 'utf8');
-      for (const match of html.matchAll(/<script(\s[^>]*)?>([\s\S]*?)<\/script>/g)) {
+      for (const match of html.matchAll(/<script(\s[^>]*)?>([\s\S]*?)<\/script\s*>/gi)) {
         const attributes = match[1] ?? '';
         const body = match[2] ?? '';
-        if (/\ssrc=/.test(attributes) || /type="application\/(ld\+)?json"/.test(attributes)) {
+        if (/\ssrc=/i.test(attributes) || /type="application\/(ld\+)?json"/i.test(attributes)) {
           continue;
         }
         const hash = `'sha256-${createHash('sha256').update(body).digest('base64')}'`;

@@ -35,11 +35,13 @@ const lines = readFileSync(file, 'utf8').split('\n');
 const isPolicy = (line) => !line.trimStart().startsWith('#') && line.includes(MARKER);
 if (!lines.some(isPolicy)) fail(`no ${MARKER} in ${file}`);
 
-const SCRIPT = /<script(\s[^>]*)?>([\s\S]*?)<\/script>/g;
+// HTML tag names are case-insensitive and an end tag may carry spaces before its ">".
+const SCRIPT = /<script(\s[^>]*)?>([\s\S]*?)<\/script\s*>/gi;
+const JSON_TYPE = /type="application\/(ld\+)?json"/i;
 const hashes = new Set();
 for (const html of htmlFiles(dist)) {
   for (const [, attributes = '', body = ''] of readFileSync(html, 'utf8').matchAll(SCRIPT)) {
-    if (/\ssrc=/.test(attributes) || /type="application\/(ld\+)?json"/.test(attributes)) continue;
+    if (/\ssrc=/i.test(attributes) || JSON_TYPE.test(attributes)) continue;
     const hash = createHash('sha256').update(body).digest('base64');
     hashes.add(`'sha256-${hash}'`);
   }

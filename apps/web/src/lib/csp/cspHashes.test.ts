@@ -50,7 +50,7 @@ beforeEach(() => {
   );
   writeFileSync(
     path.join(dist, 'ruta', 'index.html'),
-    `<html><head><script>${THEME}</script></head><body><script>${OUTLINE}</script></body></html>`,
+    `<html><head><script>${THEME}</script></head><body><SCRIPT>${OUTLINE}</SCRIPT ></body></html>`,
   );
   headers = path.join(root, '_headers');
   writeFileSync(headers, `${COMMENT}\n/*\n  Content-Security-Policy: ${POLICY}\n`);
