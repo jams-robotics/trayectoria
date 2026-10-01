@@ -1,5 +1,7 @@
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdtempSync, readFileSync, readdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import { expect, test, type Page } from '@playwright/test';
@@ -11,8 +13,10 @@ import { makeZip, type ZipFile } from './helpers/zip';
 // #507: security headers of every deployment. `public/_headers` (Cloudflare) and
 // `infra/Caddyfile` (self-hosting) declare them; neither `astro dev` nor `astro preview` serves
 // them, so the page tests add the CSP of `_headers` to each HTML response themselves and fail on
-// any violation the browser reports. The CSP only lets inline scripts run by hash: the build scan
-// names the hash of any inline script missing from it. Both need the build, which is what the web
+// any violation the browser reports. The CSP only lets inline scripts run by hash, which
+// `scripts/csp-hashes.mjs` writes in place of `__SCRIPT_HASHES__` when deploying (#665): the tests
+// apply it to a copy of `_headers`, and the build scan names the hash of any inline script the
+// result still misses. Both need the build, which is what the web
 // server serves with CI set (playwright.config.ts); `astro dev` injects scripts of its own, so
 // locally they run with `CI=1 pnpm e2e`.
 
@@ -21,7 +25,9 @@ const HEADERS_FILE = path.join(WEB, 'public/_headers');
 const CADDYFILE = path.resolve(WEB, '../../infra/Caddyfile');
 const DIST = path.join(WEB, 'dist');
 const CATALOG = path.resolve(WEB, '../../catalog/arms');
+const CSP_HASHES = path.resolve(WEB, '../../scripts/csp-hashes.mjs');
 const SUPABASE_PLACEHOLDER = '__SUPABASE_ORIGINS__';
+const SCRIPT_PLACEHOLDER = '__SCRIPT_HASHES__';
 /** Cloudflare Web Analytics: only the Cloudflare deployment loads its beacon. */
 const CLOUDFLARE_ANALYTICS = [
   'https://static.cloudflareinsights.com',
@@ -39,11 +45,11 @@ const BUILD_ONLY = 'needs the build that the web server serves with CI set';
 /** Lazy islands pull three and the URDF loader in. */
 const ISLAND_TIMEOUT_MS = 30_000;
 
-/** The headers of the `/*` rule of `public/_headers`. */
-function cloudflareHeaders(): Map<string, string> {
+/** The headers of the `/*` rule of `public/_headers`, or of `file` (a copy of it). */
+function cloudflareHeaders(file = HEADERS_FILE): Map<string, string> {
   const headers = new Map<string, string>();
   let inRule = false;
-  for (const line of readFileSync(HEADERS_FILE, 'utf8').split('\n')) {
+  for (const line of readFileSync(file, 'utf8').split('\n')) {
     if (line.startsWith('#') || line.trim() === '') continue;
     if (!line.startsWith(' ')) {
       inRule = line.trim() === '/*';
@@ -72,10 +78,23 @@ function directive(csp: string, name: string): string[] {
   return found?.slice(1) ?? [];
 }
 
+let hashedHeadersFile = '';
+
+/** A copy of `public/_headers` with the hashes of the build written in, as deploy.yml does. */
+function hashedHeaders(): string {
+  if (hashedHeadersFile === '') {
+    const file = path.join(mkdtempSync(path.join(tmpdir(), 'csp-')), '_headers');
+    copyFileSync(HEADERS_FILE, file);
+    execFileSync(process.execPath, [CSP_HASHES, file, DIST], { stdio: 'inherit' });
+    hashedHeadersFile = file;
+  }
+  return hashedHeadersFile;
+}
+
 /** The CSP as a deployment sends it for the local Supabase stack the tests run against. */
 function localCsp(): string {
   const origin = new URL(publicEnv()['PUBLIC_SUPABASE_URL'] ?? '').origin;
-  const csp = cloudflareHeaders().get('Content-Security-Policy') ?? '';
+  const csp = cloudflareHeaders(hashedHeaders()).get('Content-Security-Policy') ?? '';
   return csp.replace(SUPABASE_PLACEHOLDER, `${origin} ${origin.replace(/^http/, 'ws')}`);
 }
 
@@ -194,6 +213,10 @@ test.describe('security headers (#507)', () => {
     expect(directive(csp, 'script-src')).not.toContain("'unsafe-inline'");
     expect(directive(csp, 'script-src')).not.toContain("'unsafe-eval'");
     expect(directive(csp, 'connect-src')).toContain(SUPABASE_PLACEHOLDER);
+    // The hashes come from the build (#665): the placeholder, once, in script-src, and no hash.
+    expect(directive(csp, 'script-src')).toContain(SCRIPT_PLACEHOLDER);
+    expect(csp.split(SCRIPT_PLACEHOLDER)).toHaveLength(2);
+    expect(csp).not.toContain("'sha256-");
 
     // Self-hosted copies send the same policy without the Cloudflare Web Analytics origins.
     const withoutAnalytics = csp
@@ -210,9 +233,9 @@ test.describe('security headers (#507)', () => {
 
   test('every inline script of the build has its hash in script-src', () => {
     test.skip(!AGAINST_BUILD || !existsSync(DIST), BUILD_ONLY);
-    const allowed = new Set(
-      directive(cloudflareHeaders().get('Content-Security-Policy') ?? '', 'script-src'),
-    );
+    const csp = cloudflareHeaders(hashedHeaders()).get('Content-Security-Policy') ?? '';
+    expect(csp).not.toContain(SCRIPT_PLACEHOLDER);
+    const allowed = new Set(directive(csp, 'script-src'));
     const missing = new Map<string, string>();
     for (const file of htmlFiles(DIST)) {
       const html = readFileSync(file, 'utf8');
@@ -226,7 +249,7 @@ test.describe('security headers (#507)', () => {
         if (!allowed.has(hash)) missing.set(hash, path.relative(DIST, file));
       }
     }
-    // Add each hash (and its line in the comment) to public/_headers and infra/Caddyfile.
+    // A hash missing here means scripts/csp-hashes.mjs no longer picks every inline script.
     expect(Object.fromEntries(missing)).toEqual({});
   });
 

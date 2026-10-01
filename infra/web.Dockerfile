@@ -18,10 +18,12 @@ ENV PUBLIC_SUPABASE_URL=$PUBLIC_SUPABASE_URL \
 COPY . .
 RUN pnpm install --frozen-lockfile
 RUN pnpm build
+# The CSP lets the inline scripts of this build run by hash (#665); Caddy's stage has no Node.
+RUN node scripts/csp-hashes.mjs infra/Caddyfile
 
 FROM caddy:2.11.4-alpine@sha256:6aeddd44c3078b0f9a35206472a11420648a79c184603ef95957d0a20044cb2b
 ARG PUBLIC_SUPABASE_URL
-COPY infra/Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /repo/infra/Caddyfile /etc/caddy/Caddyfile
 # The CSP names the same Supabase the site was built for (#507).
 RUN --mount=type=bind,source=infra/csp-origins.sh,target=/tmp/csp-origins.sh \
   sh /tmp/csp-origins.sh /etc/caddy/Caddyfile

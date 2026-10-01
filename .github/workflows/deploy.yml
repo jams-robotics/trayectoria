@@ -96,6 +96,11 @@ jobs:
           PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY }}
         run: pnpm build
 
+      # The CSP of apps/web/public/_headers lets the inline scripts of this build run by hash (#665).
+      - name: Write the inline script hashes into the CSP
+        if: steps.token.outputs.ready == 'true'
+        run: node scripts/csp-hashes.mjs apps/web/dist/_headers
+
       # The CSP of apps/web/public/_headers names the Supabase project of this build (#507).
       - name: Write the Supabase origins into the CSP
         if: steps.token.outputs.ready == 'true'
@@ -165,6 +170,11 @@ jobs:
           PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
           PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY }}
         run: pnpm build
+
+      # The CSP of apps/web/public/_headers lets the inline scripts of this build run by hash (#665).
+      - name: Write the inline script hashes into the CSP
+        if: steps.token.outputs.ready == 'true'
+        run: node scripts/csp-hashes.mjs apps/web/dist/_headers
 
       # The CSP of apps/web/public/_headers names the Supabase project of this build (#507).
       - name: Write the Supabase origins into the CSP
