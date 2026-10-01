@@ -181,6 +181,8 @@ PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co sh infra/csp-origins.sh ap
 
 **Si cambia un script en línea** (un `<script>` de `Base.astro`, `Nav.astro` u `Outline.astro`, o una versión nueva de Astro), su hash cambia y el navegador lo bloquea. El e2e `apps/web/e2e/csp.spec.ts` falla e imprime el hash nuevo: sustitúyelo en `apps/web/public/_headers` y en `infra/Caddyfile`, que llevan la misma política. En local se comprueba con `CI=1 pnpm e2e`, que construye el sitio; `pnpm dev` no sirve `_headers`.
 
+`pnpm e2e` levanta el servidor en el puerto 4321; con `PLAYWRIGHT_PORT=<puerto>` (entero entre 1024 y 65535) usa otro, para correr el e2e en dos worktrees a la vez.
+
 Para probar las cabeceras reales en local, con el build hecho y el Supabase local en marcha:
 
 ```bash

@@ -1,14 +1,16 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
+import { resolvePlaywrightPort } from './src/lib/e2e/playwrightPort';
 
 // E2E (F0-08) runs against the Supabase stack started with `supabase start` (docs/ops/SUPABASE.md),
 // locally and in the `e2e` job of CI (F0-02d). Locally the web server is `astro dev`; with `CI` set
 // it builds once and serves the static output with `astro preview`, so no test pays for the cold
 // reload of the dev server (#219). The public Supabase variables default to the local values of
-// .env.example when the shell does not set them.
+// .env.example when the shell does not set them. The port is 4321 unless PLAYWRIGHT_PORT sets
+// another one, so parallel worktrees do not share a server (#666).
 const IS_CI = Boolean(process.env.CI);
-const PORT = 4321;
+const PORT = resolvePlaywrightPort(process.env.PLAYWRIGHT_PORT);
 // astro is called directly (no pnpm in between) so Playwright owns the process.
 const ASTRO = 'node node_modules/astro/bin/astro.mjs';
 const SERVER_ARGS = `--host 127.0.0.1 --port ${PORT}`;
