@@ -162,7 +162,7 @@ Con el dominio activo, comprueba que la **Site URL** de Supabase es `https://<do
 | Directiva | Fuentes | Por qué |
 |---|---|---|
 | `default-src` | `'self'` | Todo lo demás sale del propio dominio |
-| `script-src` | `'self'`, siete hashes `sha256`, `https://static.cloudflareinsights.com` | Los scripts en línea del build (tema claro u oscuro de `Base.astro`, runtime de las islas de Astro y sus directivas `client:load`, `client:visible` y `client:only`, y los scripts de `Nav.astro` y `Outline.astro`), y la baliza de Cloudflare Web Analytics. Sin `'unsafe-inline'` ni `'unsafe-eval'` |
+| `script-src` | `'self'`, los hashes `sha256` del build, `https://static.cloudflareinsights.com` | Los scripts en línea del build (tema claro u oscuro de `Base.astro`, runtime de las islas de Astro y sus directivas `client:load`, `client:visible` y `client:only`, y los scripts de `Nav.astro` y `Outline.astro`), y la baliza de Cloudflare Web Analytics. Sin `'unsafe-inline'` ni `'unsafe-eval'` |
 | `style-src` | `'self' 'unsafe-inline'` | KaTeX escribe atributos `style` en cada fórmula y Astro inserta estilos de las islas |
 | `img-src` | `'self'` | Solo imágenes propias |
 | `font-src` | `'self' data:` | KaTeX incrusta sus fuentes más pequeñas como `data:` |
@@ -173,19 +173,21 @@ Con el dominio activo, comprueba que la **Site URL** de Supabase es `https://<do
 
 En la zona de Cloudflare, **Rocket Loader** (*Speed → Optimization*) y **Email Address Obfuscation** (*Scrape Shield*) deben quedar desactivados: los dos inyectan scripts en línea sin hash que la CSP bloquea. Web Analytics sí puede estar activado: su baliza es una de las fuentes de la tabla.
 
-El archivo lleva `__SUPABASE_ORIGINS__` en lugar del proyecto: tras el build, el workflow ejecuta `infra/csp-origins.sh`, que lo sustituye por el origen de `PUBLIC_SUPABASE_URL` y su forma `wss://`. Si despliegas a mano, ejecútalo tú antes de `wrangler deploy`:
+El archivo lleva dos marcadores que el workflow sustituye tras el build, sobre `apps/web/dist/_headers`: `__SCRIPT_HASHES__`, en `script-src`, con los hashes de los scripts en línea (`scripts/csp-hashes.mjs`), y `__SUPABASE_ORIGINS__` con el origen de `PUBLIC_SUPABASE_URL` y su forma `wss://` (`infra/csp-origins.sh`). Si despliegas a mano, ejecuta los dos antes de `wrangler deploy`:
 
 ```bash
+node scripts/csp-hashes.mjs apps/web/dist/_headers
 PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co sh infra/csp-origins.sh apps/web/dist/_headers
 ```
 
-**Si cambia un script en línea** (un `<script>` de `Base.astro`, `Nav.astro` u `Outline.astro`, o una versión nueva de Astro), su hash cambia y el navegador lo bloquea. El e2e `apps/web/e2e/csp.spec.ts` falla e imprime el hash nuevo: sustitúyelo en `apps/web/public/_headers` y en `infra/Caddyfile`, que llevan la misma política. En local se comprueba con `CI=1 pnpm e2e`, que construye el sitio; `pnpm dev` no sirve `_headers`.
+**Si cambia un script en línea** (un `<script>` de `Base.astro`, `Nav.astro` u `Outline.astro`, o una versión nueva de Astro), no hay que tocar la política: `scripts/csp-hashes.mjs` recorre `apps/web/dist/**/*.html`, calcula el SHA-256 de cada `<script>` en línea (sin `src` y que no sea JSON), y escribe la lista sin repetidos en lugar de `__SCRIPT_HASHES__`. Falla si el archivo no lleva el marcador o si no hay build. El workflow lo ejecuta sobre `_headers`, e `infra/web.Dockerfile` sobre el `Caddyfile`. El e2e `apps/web/e2e/csp.spec.ts` lo aplica a una copia de `_headers` y falla si queda algún script en línea sin hash o si alguna página registra una violación. En local se comprueba con `CI=1 pnpm e2e`, que construye el sitio; `pnpm dev` no sirve `_headers`.
 
 `pnpm e2e` levanta el servidor en el puerto 4321; con `PLAYWRIGHT_PORT=<puerto>` (entero entre 1024 y 65535) usa otro, para correr el e2e en dos worktrees a la vez.
 
 Para probar las cabeceras reales en local, con el build hecho y el Supabase local en marcha:
 
 ```bash
+node scripts/csp-hashes.mjs apps/web/dist/_headers
 PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 sh infra/csp-origins.sh apps/web/dist/_headers
 cd apps/web
 pnpm exec wrangler dev --port 4399
