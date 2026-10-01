@@ -182,6 +182,8 @@ PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co sh infra/csp-origins.sh ap
 
 **Si cambia un script en línea** (un `<script>` de `Base.astro`, `Nav.astro` u `Outline.astro`, o una versión nueva de Astro), no hay que tocar la política: `scripts/csp-hashes.mjs` recorre `apps/web/dist/**/*.html`, calcula el SHA-256 de cada `<script>` en línea (sin `src` y que no sea JSON), y escribe la lista sin repetidos en lugar de `__SCRIPT_HASHES__`. Falla si el archivo no lleva el marcador o si no hay build. El workflow lo ejecuta sobre `_headers`, e `infra/web.Dockerfile` sobre el `Caddyfile`. El e2e `apps/web/e2e/csp.spec.ts` lo aplica a una copia de `_headers` y falla si queda algún script en línea sin hash o si alguna página registra una violación. En local se comprueba con `CI=1 pnpm e2e`, que construye el sitio; `pnpm dev` no sirve `_headers`.
 
+`pnpm e2e` levanta el servidor en el puerto 4321; con `PLAYWRIGHT_PORT=<puerto>` (entero entre 1024 y 65535) usa otro, para correr el e2e en dos worktrees a la vez.
+
 Para probar las cabeceras reales en local, con el build hecho y el Supabase local en marcha:
 
 ```bash
