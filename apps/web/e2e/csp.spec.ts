@@ -239,7 +239,7 @@ test.describe('security headers (#507)', () => {
     const missing = new Map<string, string>();
     for (const file of htmlFiles(DIST)) {
       const html = readFileSync(file, 'utf8');
-      for (const match of html.matchAll(/<script(\s[^>]*)?>([\s\S]*?)<\/script\s*>/gi)) {
+      for (const match of html.matchAll(/<script(\s[^>]*)?>([\s\S]*?)<\/script\b[^>]*>/gi)) {
         const attributes = match[1] ?? '';
         const body = match[2] ?? '';
         if (/\ssrc=/i.test(attributes) || /type="application\/(ld\+)?json"/i.test(attributes)) {
