@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
-    "@types/node": "24.13.4",
+    "@types/node": "26.6.4",
     "@xmldom/xmldom": "0.9.12"
   }
 }
