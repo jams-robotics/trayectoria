@@ -28,6 +28,7 @@ import type { CameraMode, CameraRig } from './cameraRig';
 import { readPalette } from './palette';
 import type { ArenaPalette } from './palette';
 import { animateGoals, buildFree } from './freeMesh';
+import { watchOwnModel } from '../model/ownModel';
 import { buildRobot, disposeGroup } from './robotMesh';
 import type { RobotMesh } from './robotMesh';
 import { buildTrack } from './trackMesh';
@@ -250,12 +251,26 @@ function dispose(s: Stage): void {
  */
 export function createArenaScene(canvas: HTMLCanvasElement, root: Element): ArenaScene {
   const s = stageFor(canvas, root);
+  // The robot is rebuilt when the learner's own model changes (preview while adjusting).
+  const last: { spec: MobileSpec | null; second: SecondRobot; sensors: boolean } = {
+    spec: null,
+    second: 'none',
+    sensors: true,
+  };
+  const unwatch = watchOwnModel(() => {
+    if (last.spec !== null) setRobot(s, last.spec, last.second, last.sensors);
+  });
   return {
     canvas,
     setTrack: (track) => setTrack(s, track),
     setFree: (layout) => setFree(s, layout),
     markGoals: (collected, t_s) => animateGoals(s.actors.goals, collected, t_s),
-    setRobot: (spec, second, sensors) => setRobot(s, spec, second, sensors),
+    setRobot(spec, second, sensors) {
+      last.spec = spec;
+      last.second = second;
+      last.sensors = sensors;
+      setRobot(s, spec, second, sensors);
+    },
     setCamera: (mode) => s.rig.setMode(mode),
     frame: (you, ghost, dt_s) => frame(s, you, ghost, dt_s),
     clearTrails() {
@@ -263,6 +278,9 @@ export function createArenaScene(canvas: HTMLCanvasElement, root: Element): Aren
       s.trails.ghost.clear();
     },
     resize: (width_px, height_px, freeFraction = 1) => resize(s, width_px, height_px, freeFraction),
-    dispose: () => dispose(s),
+    dispose() {
+      unwatch();
+      dispose(s);
+    },
   };
 }

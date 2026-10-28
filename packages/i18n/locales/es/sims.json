@@ -398,6 +398,28 @@
       "learned": "Con el mismo robot y la misma física, gana quien mejor decide por dónde ir: una trayectoria limpia ahorra más tiempo que ir a toda velocidad."
     },
     "robotFrom": "El carrito usa las medidas de «Mi robot»: radio de rueda, separación y sensores.",
+    "ownModel": {
+      "title": "Tu robot en 3D",
+      "hint": "Sube el modelo de tu robot (STL o GLB) para verlo en la pista. Solo cambia el aspecto: la física sigue saliendo de «Mi robot». Se guarda solo en este navegador.",
+      "pick": "Elegir o arrastrar un archivo .stl o .glb",
+      "limit": "Máximo {{mb}} MB",
+      "scale": "Escala",
+      "smaller": "−",
+      "bigger": "+",
+      "rotX": "Girar en X 90°",
+      "rotY": "Girar en Y 90°",
+      "rotZ": "Girar en Z 90°",
+      "lift": "Altura",
+      "wheels": "Mostrar ruedas",
+      "remove": "Quitar modelo",
+      "error": {
+        "extension": "Solo se aceptan archivos .stl o .glb (STEP no).",
+        "size": "El archivo pesa más de {{mb}} MB.",
+        "empty": "El archivo está vacío.",
+        "header": "El archivo no parece un STL o un GLB válido.",
+        "parse": "No se pudo leer el modelo. Si es un GLB comprimido, expórtalo sin compresión."
+      }
+    },
     "editRobot": "Editar mi robot",
     "camera": {
       "label": "Cámara",

@@ -17,7 +17,9 @@ import { sensorPositions } from '@trayectoria/sim-core';
 import type { DiffDriveState, LineReading } from '@trayectoria/sim-core';
 import type { MobileSpec } from '@trayectoria/robot-spec';
 
+import { getOwnModel } from '../model/ownModel';
 import type { ArenaPalette } from './palette';
+import { buildOwnBody } from './ownBody';
 
 // The 3D robot is built from the very numbers of the spec: wheel radius and track, chassis
 // length and width, and the sensor array (count, spacing, forward offset). Changing «Mi robot»
@@ -227,12 +229,14 @@ export function buildRobot(
   const right = wheel(spec, palette, -1, opacity);
   const bar = sensorBar(spec, palette, opacity);
   bar.group.visible = sensors;
-  group.add(
-    chassis(spec, palette, ghost ? palette.ghost : palette.robot, opacity),
-    left,
-    right,
-    bar.group,
-  );
+  // The learner's own model, when there is one, takes the place of the chassis (not the ghost's).
+  const own = ghost ? null : getOwnModel();
+  const shell =
+    own === null
+      ? chassis(spec, palette, ghost ? palette.ghost : palette.robot, opacity)
+      : buildOwnBody(own, spec, palette.robot);
+  group.add(shell, left, right, bar.group);
+  left.visible = right.visible = own === null || own.adjust.wheels;
   if (ghost && !opaque) dropShadows(group);
   const materials = materialsOf(group);
   return {
