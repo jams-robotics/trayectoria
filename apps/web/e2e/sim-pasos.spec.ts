@@ -12,6 +12,11 @@ const steps = sims.arena.steps;
 const LOAD_TIMEOUT_MS = 30_000;
 /** A run of the square takes a few seconds of simulated time. */
 const RUN_TIMEOUT_MS = 30_000;
+/**
+ * CI draws WebGL in software at a few frames per second, and the race advances at most
+ * `MAX_FRAME_S` per frame: the eight moves of the square take over a minute of real time there.
+ */
+const SQUARE_TIMEOUT_MS = 120_000;
 
 async function openSteps(page: Page): Promise<string[]> {
   const errors: string[] = [];
@@ -61,6 +66,7 @@ test.describe('Pasos', () => {
   });
 
   test('a square written with «Repetir» solves the goal', async ({ page }) => {
+    test.setTimeout(SQUARE_TIMEOUT_MS + 60_000);
     const errors = await openSteps(page);
     await page.getByRole('button', { name: steps.goal.square }).click();
     await add(page, steps.repeat.replace('{{n}}', '4'));
@@ -69,7 +75,7 @@ test.describe('Pasos', () => {
     await add(page, steps.end);
     await run(page);
     const celebration = page.getByRole('dialog', { name: steps.doneSquare });
-    await expect(celebration).toBeVisible({ timeout: RUN_TIMEOUT_MS });
+    await expect(celebration).toBeVisible({ timeout: SQUARE_TIMEOUT_MS });
     await expect(celebration).toContainText(steps.done);
     expect(errors).toEqual([]);
   });
