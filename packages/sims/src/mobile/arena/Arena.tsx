@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import type { JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 import { maxWheelSpeed_radps } from '@trayectoria/sim-core';
@@ -21,6 +21,7 @@ import { StageOverlays } from './ArenaOverlays';
 import { StepsPanel } from './StepsPanel';
 import type { Overlay } from './recorder';
 import { TelemetryChart } from './TelemetryChart';
+import type { RemoteControl } from './remote';
 import { useArenaLoop } from './useArenaLoop';
 import type { ArenaLoop, ArenaRefs } from './useArenaLoop';
 import { useArenaSettings } from './useArenaSettings';
@@ -30,12 +31,17 @@ import type { ArenaSettings, ArenaSettingsApi } from './useArenaSettings';
 import { useManualDrive } from './useManualDrive';
 import { useSteps } from './useSteps';
 import type { StepsApi } from './useSteps';
+import { useRemoteDrive } from './useRemoteDrive';
 
 export interface ArenaProps {
   /** Where «Editar mi robot» goes. */
   readonly robotHref: string;
   /** Robot to simulate; «Mi robot» of the learner when it is not given. */
   readonly robot?: RobotSpec;
+  /** Remote controller (classroom phones, #685) that drives and tunes the robot. */
+  readonly remote?: RemoteControl;
+  /** Extra UI of the page, floated over the arena (the classroom panel). */
+  readonly aula?: ReactNode;
 }
 
 function statusOf(loop: ArenaLoop, settings: ArenaSettings): ArenaStatus {
@@ -64,7 +70,7 @@ function overlayOf(t: Translate, loop: ArenaLoop, settings: ArenaSettings): Over
   };
 }
 
-function useArena(robot: RobotSpec | undefined) {
+function useArena(robot: RobotSpec | undefined, remote: RemoteControl | undefined) {
   const myRobot = useMyRobot();
   const spec = robot ?? myRobot;
   const mobile: MobileSpec | undefined = spec.mobile;
@@ -82,6 +88,7 @@ function useArena(robot: RobotSpec | undefined) {
     isDuo ? WASD_KEYS : ANY_KEYS,
   );
   const second = useFreeDrive(mobile, isDuo, ARROW_KEYS);
+  useRemoteDrive(remote, { spec: mobile, api, drive, free });
   const refs: ArenaRefs = {
     root: useRef<HTMLDivElement | null>(null),
     canvas: useRef<HTMLCanvasElement | null>(null),
@@ -260,8 +267,8 @@ function TrackPanels({
  * self-checking challenges and video recording for social media. Its free mode swaps the line
  * for an open floor with cones and stars, driven by hand.
  */
-export function Arena({ robotHref, robot }: ArenaProps): JSX.Element {
-  const state = useArena(robot);
+export function Arena({ robotHref, robot, remote, aula }: ArenaProps): JSX.Element {
+  const state = useArena(robot, remote);
   const { api, free, steps, refs, loop } = state;
   const bar = useTopBar(refs, loop, api);
   // Cinema is the camera for watching and recording: the panels step aside, as in Brazo.
@@ -278,6 +285,7 @@ export function Arena({ robotHref, robot }: ArenaProps): JSX.Element {
         <VideoTools {...bar} />
       </div>
       <SidePanels state={state} cinema={cinema} robotHref={robotHref} />
+      {aula}
     </div>
   );
 }

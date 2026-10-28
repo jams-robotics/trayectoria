@@ -75,5 +75,53 @@
     "scrollHint": "La tabla se desplaza en horizontal: usa las flechas del teclado o arrastra para ver al resto de estudiantes.",
     "export": "Exportar CSV",
     "exported": "CSV exportado"
+  },
+  "session": {
+    "teacher": {
+      "open": "Aula",
+      "title": "Sesión de aula",
+      "intro": "Abre una sesión para que los teléfonos de tu grupo controlen el robot. Tú apruebas a cada uno y eliges quién conduce.",
+      "group": "Grupo",
+      "start": "Abrir sesión",
+      "close": "Cerrar sesión",
+      "link": "Enlace para los teléfonos",
+      "copy": "Copiar el enlace",
+      "copied": "Enlace copiado",
+      "copyUnavailable": "Copia el enlace a mano: el portapapeles no está disponible.",
+      "expires": "Caduca a las {{time}}",
+      "participants": "Participantes",
+      "none": "Nadie ha pedido entrar todavía.",
+      "approve": "Aprobar a {{name}}",
+      "kick": "Expulsar a {{name}}",
+      "drive": "Dar el control a {{name}}",
+      "release": "Quitar el control a {{name}}",
+      "driving": "Conduce",
+      "pending": "Espera aprobación",
+      "approved": "Aprobado",
+      "last": "Último comando",
+      "idle": "ninguno",
+      "failed": "No se pudo completar la operación. Inténtalo de nuevo."
+    },
+    "phone": {
+      "title": "Controlar el robot",
+      "eyebrow": "Estudiante",
+      "noToken": "Escanea el código QR o abre el enlace que muestra tu docente.",
+      "invalid": "El enlace no es válido, caducó o tu cuenta no pertenece a ese grupo.",
+      "confirm": "Sesión de {{teacher}}",
+      "ask": "Pedir unirme",
+      "waiting": "Esperando que {{teacher}} te apruebe…",
+      "approved": "Aprobado. Espera a que el docente te dé el control.",
+      "yourTurn": "Es tu turno: conduces tú.",
+      "kicked": "El docente te sacó de la sesión.",
+      "ended": "La sesión terminó.",
+      "modeDrive": "Manejar",
+      "modeTune": "Ajustar",
+      "modes": "Modo del control",
+      "left": "Izquierda",
+      "right": "Derecha",
+      "forward": "Avanzar",
+      "back": "Retroceder",
+      "tuneHint": "Los cambios llegan al controlador del robot en la pantalla."
+    }
   }
 }

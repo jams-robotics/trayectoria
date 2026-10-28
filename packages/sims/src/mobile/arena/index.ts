@@ -2,3 +2,4 @@
 // pages). The package barrel `src/index.ts` must never reexport anything from here.
 export { Arena } from './Arena';
 export type { ArenaProps } from './Arena';
+export type { RemoteControl, RemoteEvent } from './remote';
