@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import type { Track, WheelCommand } from '@trayectoria/sim-core';
 import type { RobotSpec } from '@trayectoria/robot-spec';
@@ -6,12 +6,14 @@ import type { RobotSpec } from '@trayectoria/robot-spec';
 import { createDuoRace, isDuoRace } from './duoRace';
 import type { DuoProgress } from './duoRace';
 import { FREE_LAYOUT } from './freeArena';
+import type { FreeLayout } from './freeArena';
 import { createFreeRace, freeProgress, isFreeRace } from './freeRace';
-import type { FreeProgress } from './freeRace';
+import type { FreeDriver, FreeProgress } from './freeRace';
 import { createRace } from './race';
 import type { Race, Racer } from './race';
 import { createArenaScene } from './scene/arenaScene';
 import type { ArenaScene, ScreenPoint, SecondRobot } from './scene/arenaScene';
+import { stepsLayout } from './stepGoals';
 import { createTelemetry } from './telemetry';
 import type { Telemetry } from './telemetry';
 import { NOISE_SIGMA } from './useArenaSettings';
@@ -66,6 +68,13 @@ interface LoopInputs {
   readonly command: WheelCommand | null;
   /** Wheel speeds of player 2 in a two-player race. */
   readonly command2: WheelCommand | null;
+  /** The program runner of the «Pasos» mode, when it has one running. */
+  readonly driver?: FreeDriver | null;
+}
+
+/** The floor of the free arena: the slalom, or the one of the «Pasos» mode. */
+function layoutOf(steps: boolean, goal: ArenaSettings['stepGoal']): FreeLayout {
+  return steps ? stepsLayout(goal) : FREE_LAYOUT;
 }
 
 function placeTag(tag: HTMLDivElement | null, point: ScreenPoint): void {
@@ -78,7 +87,7 @@ function placeTag(tag: HTMLDivElement | null, point: ScreenPoint): void {
 function newRace({ spec, track, settings }: LoopInputs): Race {
   if (settings.players === 2)
     return createDuoRace(spec, settings.free ? { layout: FREE_LAYOUT } : { track });
-  if (settings.free) return createFreeRace(spec, FREE_LAYOUT);
+  if (settings.free) return createFreeRace(spec, layoutOf(settings.steps, settings.stepGoal));
   return createRace({
     spec,
     track,
@@ -99,6 +108,8 @@ function useRace(inputs: LoopInputs, epoch: number): Race {
     spec.id,
     settings.track,
     settings.free,
+    settings.steps,
+    settings.stepGoal,
     settings.players,
     settings.controller,
     settings.ghost,
@@ -156,14 +167,18 @@ function useScene(refs: ArenaRefs, inputs: LoopInputs): RefObject<ArenaScene | n
   const { spec, track, settings } = inputs;
   const mobile = spec.mobile;
   const second = secondOf(settings);
+  const layout = useMemo(
+    () => layoutOf(settings.steps, settings.stepGoal),
+    [settings.steps, settings.stepGoal],
+  );
   useEffect(() => {
     // The free arena has no line: its robots carry no sensors.
     if (mobile !== undefined) scene.current?.setRobot(mobile, second, !settings.free);
   }, [mobile, second, settings.free, scene]);
   useEffect(() => {
-    if (settings.free) scene.current?.setFree(FREE_LAYOUT);
+    if (settings.free) scene.current?.setFree(layout, settings.steps);
     else scene.current?.setTrack(track);
-  }, [track, settings.free, scene]);
+  }, [track, settings.free, settings.steps, layout, scene]);
   useEffect(() => {
     const canvas = refs.canvas.current;
     scene.current?.setCamera(settings.camera);
@@ -246,6 +261,7 @@ export function useArenaLoop(refs: ArenaRefs, inputs: LoopInputs): ArenaLoop {
   race.setRivalParams(inputs.settings.rivalParams[inputs.settings.rival]);
   race.setCommand(inputs.command);
   if (isDuoRace(race)) race.setCommand2(inputs.command2);
+  if (isFreeRace(race)) race.setDriver(inputs.driver ?? null);
 
   useEffect(() => {
     telemetry.clear();

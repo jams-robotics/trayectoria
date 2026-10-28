@@ -8,12 +8,17 @@ import type { ArenaTrackId } from './arenaTracks';
 import { challengeOf } from './challenges';
 import type { ChallengeId } from './challenges';
 import type { CameraMode } from './scene/cameraRig';
+import type { StepGoal } from './stepGoals';
 
 /** Everything the learner chooses in the arena. */
 export interface ArenaSettings {
   readonly track: ArenaTrackId;
   /** The free arena (cones and goals, no line) instead of a track. */
   readonly free: boolean;
+  /** The «Pasos» mode of the free arena: the robot runs a program of buttons instead of keys. */
+  readonly steps: boolean;
+  /** The goal of «Pasos»: draw a square, reach the star, or free play (`null`). */
+  readonly stepGoal: StepGoal | null;
   readonly controller: ControllerId;
   /** Gains of every controller, so switching tabs keeps what was tuned on each one. */
   readonly params: Readonly<Record<ControllerId, ControllerParams>>;
@@ -38,6 +43,8 @@ export const NOISE_SIGMA = 0.06;
 export const INITIAL_SETTINGS: ArenaSettings = {
   track: 'circuit',
   free: false,
+  steps: false,
+  stepGoal: null,
   controller: 'pid',
   params: {
     manual: CONTROLLERS.manual.defaults,
@@ -94,13 +101,27 @@ function withGain(all: GainsById, id: ControllerId, key: string, value: number):
 
 /** The free arena: manual driving only, no rival and no challenge. */
 function freeOf(current: ArenaSettings): ArenaSettings {
-  return { ...current, free: true, controller: 'manual', ghost: false, challenge: null };
+  return {
+    ...current,
+    free: true,
+    steps: false,
+    controller: 'manual',
+    ghost: false,
+    challenge: null,
+  };
 }
 
 /** One player or two: two drive by hand; back to one, a track gets its PID and ghost back. */
 function withPlayers(current: ArenaSettings, players: 1 | 2): ArenaSettings {
   if (players === 2)
-    return { ...current, players, controller: 'manual', ghost: false, challenge: null };
+    return {
+      ...current,
+      players,
+      steps: false,
+      controller: 'manual',
+      ghost: false,
+      challenge: null,
+    };
   if (current.free) return { ...current, players };
   return { ...current, players, controller: 'pid', ghost: true };
 }
@@ -108,7 +129,7 @@ function withPlayers(current: ArenaSettings, players: 1 | 2): ArenaSettings {
 /** `id` as the track; coming from the free arena it brings back the PID and the ghost. */
 function withTrack(current: ArenaSettings, id: ArenaTrackId): ArenaSettings {
   if (!current.free) return { ...current, track: id };
-  return { ...current, free: false, track: id, controller: 'pid', ghost: true };
+  return { ...current, free: false, steps: false, track: id, controller: 'pid', ghost: true };
 }
 
 /** The gains of the learner's controller and of the rival's. */

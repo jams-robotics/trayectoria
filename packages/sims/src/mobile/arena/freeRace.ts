@@ -1,5 +1,5 @@
 import { DEFAULT_DT_S } from '@trayectoria/sim-core';
-import type { Model, WheelCommand } from '@trayectoria/sim-core';
+import type { DiffDriveState, Model, WheelCommand } from '@trayectoria/sim-core';
 import type { RobotSpec } from '@trayectoria/robot-spec';
 
 import { CONTROLLERS } from '../lineFollower/controllers';
@@ -11,6 +11,9 @@ import type { FreeLayout } from './freeArena';
 import { MAX_FRAME_S, STEP_EPS_S } from './race';
 import type { Race, Racer } from './race';
 
+/** Wheel command computed at every step from the robot's pose (the «Pasos» mode); `bumped` is true after a hit. */
+export type FreeDriver = (pose: DiffDriveState, bumped: boolean) => WheelCommand;
+
 /** A run of the free arena: the same robot model, with cones, walls and goals instead of a line. */
 export interface FreeRace extends Race {
   /** Which goals of the layout are already collected. */
@@ -19,6 +22,8 @@ export interface FreeRace extends Race {
   readonly finished_s: number | null;
   /** Simulated time of the first move, in seconds: the stopwatch starts there; `null` before. */
   readonly started_s: number | null;
+  /** Hands the wheels to `driver` (or back to `setCommand` with `null`). */
+  setDriver(driver: FreeDriver | null): void;
 }
 
 export function isFreeRace(race: Race): race is FreeRace {
@@ -49,7 +54,12 @@ interface Run {
   collected: readonly boolean[];
   finished_s: number | null;
   started_s: number | null;
+  driver: FreeDriver | null;
+  bumped: boolean;
 }
+
+/** A push-back larger than this counts as a hit, in metres. */
+const BUMP_EPS_M = 1e-6;
 
 function wheelsMove(command: WheelCommand): boolean {
   return command.omegaL_radps !== 0 || command.omegaR_radps !== 0;
@@ -60,17 +70,20 @@ function stepFree(
   model: Model<LineFollowerState, LineFollowerInput>,
   layout: FreeLayout,
   run: Run,
-  input: LineFollowerInput,
+  manual: LineFollowerInput,
 ): void {
+  const driven = run.driver?.(run.racer.state.robot, run.bumped);
+  const input = driven === undefined ? manual : { command: driven };
   const next = model.step(run.racer.state, input, DEFAULT_DT_S);
   const at = resolveCollisions(layout, next.robot);
+  run.bumped = Math.hypot(at.x_m - next.robot.x_m, at.y_m - next.robot.y_m) > BUMP_EPS_M;
   // The line is never in play: a centred reading keeps the trail green instead of «lost».
   const reading = { ...next.reading, linePosition: 0 };
   run.racer = { ...run.racer, state: { ...next, reading, robot: { ...next.robot, ...at } } };
   run.collected = collectGoals(layout, run.collected, at);
   if (run.started_s === null && input.command !== undefined && wheelsMove(input.command))
     run.started_s = next.robot.t_s;
-  if (run.collected.every(Boolean)) run.finished_s = next.robot.t_s;
+  if (run.collected.length > 0 && run.collected.every(Boolean)) run.finished_s = next.robot.t_s;
 }
 
 function freeModel(
@@ -85,6 +98,17 @@ function freeModel(
   });
 }
 
+function newRun(model: Model<LineFollowerState, LineFollowerInput>, layout: FreeLayout): Run {
+  return {
+    racer: { state: model.init(0), laps_s: [], lostCount: 0, lostFor_s: 0, derailed: false },
+    collected: layout.goals.map(() => false),
+    finished_s: null,
+    started_s: null,
+    driver: null,
+    bumped: false,
+  };
+}
+
 /**
  * Builds a free run. The model still needs a track to read, so it gets one whose line the robot
  * never follows: its readings are ignored, and nothing here can derail the robot. The run stops
@@ -92,12 +116,7 @@ function freeModel(
  */
 export function createFreeRace(spec: RobotSpec, layout: FreeLayout): FreeRace {
   const model = freeModel(spec, layout);
-  const run: Run = {
-    racer: { state: model.init(0), laps_s: [], lostCount: 0, lostFor_s: 0, derailed: false },
-    collected: layout.goals.map(() => false),
-    finished_s: null,
-    started_s: null,
-  };
+  const run = newRun(model, layout);
   let input: LineFollowerInput = {};
   let pending_s = 0;
   return {
@@ -120,6 +139,9 @@ export function createFreeRace(spec: RobotSpec, layout: FreeLayout): FreeRace {
         pending_s -= DEFAULT_DT_S;
         stepFree(model, layout, run, input);
       }
+    },
+    setDriver(driver) {
+      run.driver = driver;
     },
     setParams: () => undefined,
     setRivalParams: () => undefined,

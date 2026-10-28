@@ -2,7 +2,11 @@ import {
   BoxGeometry,
   ConeGeometry,
   ExtrudeGeometry,
+  Float32BufferAttribute,
   Group,
+  LineBasicMaterial,
+  LineSegments,
+  BufferGeometry,
   Mesh,
   MeshStandardMaterial,
   PlaneGeometry,
@@ -10,6 +14,7 @@ import {
 } from 'three';
 
 import { CONE_RADIUS_M, GOAL_RADIUS_M } from '../freeArena';
+import { CELL_M } from '../steps';
 import type { FreeLayout } from '../freeArena';
 import type { ArenaPalette } from './palette';
 import type { Bounds } from './trackMesh';
@@ -53,6 +58,25 @@ function walls(layout: FreeLayout, palette: ArenaPalette): Mesh[] {
   });
 }
 
+/** Faint lines every `CELL_M` over the floor, for counting cells in the «Pasos» mode. */
+function gridLines(layout: FreeLayout, palette: ArenaPalette): LineSegments {
+  const points: number[] = [];
+  const cellsX = Math.floor(layout.halfWidth_m / CELL_M);
+  const cellsY = Math.floor(layout.halfHeight_m / CELL_M);
+  for (let i = -cellsX; i <= cellsX; i += 1)
+    points.push(i * CELL_M, -layout.halfHeight_m, 0, i * CELL_M, layout.halfHeight_m, 0);
+  for (let j = -cellsY; j <= cellsY; j += 1)
+    points.push(-layout.halfWidth_m, j * CELL_M, 0, layout.halfWidth_m, j * CELL_M, 0);
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new Float32BufferAttribute(points, 3));
+  const lines = new LineSegments(
+    geometry,
+    new LineBasicMaterial({ color: palette.deck, transparent: true, opacity: 0.45 }),
+  );
+  lines.position.z = 0.002;
+  return lines;
+}
+
 export interface FreeMesh {
   readonly group: Group;
   /** One star per goal of the layout, in the same order. */
@@ -60,8 +84,8 @@ export interface FreeMesh {
   readonly bounds: Bounds;
 }
 
-/** The open floor with its walls, the traffic cones and the stars of `layout`. */
-export function buildFree(layout: FreeLayout, palette: ArenaPalette): FreeMesh {
+/** The open floor with its walls, the traffic cones and the stars of `layout`; `grid` adds the cell lines. */
+export function buildFree(layout: FreeLayout, palette: ArenaPalette, grid = false): FreeMesh {
   const group = new Group();
   const floor = new Mesh(
     new PlaneGeometry(layout.halfWidth_m * 2, layout.halfHeight_m * 2),
@@ -93,6 +117,7 @@ export function buildFree(layout: FreeLayout, palette: ArenaPalette): FreeMesh {
     return pivot;
   });
   group.add(floor, ...walls(layout, palette), ...cones, ...goals);
+  if (grid) group.add(gridLines(layout, palette));
   const bounds = {
     minX: -layout.halfWidth_m,
     minY: -layout.halfHeight_m,

@@ -8,16 +8,17 @@ import { useMyRobot } from '@trayectoria/widgets';
 
 import { ARENA_TRACKS } from './arenaTracks';
 import { ArenaPanel } from './ArenaPanel';
-import { Brand, PlaybackBar, TopBar, VideoTools } from './ArenaBars';
+import { Brand, TopBar, VideoTools } from './ArenaBars';
 import type { ArenaStatus, TopBarProps } from './ArenaBars';
 import { HUD_CARD, LapBoard, SensorPanel } from './ArenaHud';
 import { useArenaKeys, useChallengeCheck, useRecorder } from './arenaHooks';
-import { ChallengeBanner, ChallengeCelebration, Tag } from './ArenaParts';
-import { DuoLayer, duoOverlay } from './DuoHud';
+import { ChallengeCelebration, Tag } from './ArenaParts';
+import { duoOverlay } from './DuoHud';
 import { DuoPanel } from './DuoPanel';
-import { FreeLayer, freeOverlay } from './FreeHud';
+import { freeOverlay } from './FreeHud';
 import { FreePanel } from './FreePanel';
-import { KICK_RAD } from './race';
+import { StageOverlays } from './ArenaOverlays';
+import { StepsPanel } from './StepsPanel';
 import type { Overlay } from './recorder';
 import { TelemetryChart } from './TelemetryChart';
 import { useArenaLoop } from './useArenaLoop';
@@ -27,6 +28,8 @@ import { ANY_KEYS, ARROW_KEYS, WASD_KEYS, useFreeDrive } from './useFreeDrive';
 import type { FreeDriveApi } from './useFreeDrive';
 import type { ArenaSettings, ArenaSettingsApi } from './useArenaSettings';
 import { useManualDrive } from './useManualDrive';
+import { useSteps } from './useSteps';
+import type { StepsApi } from './useSteps';
 
 export interface ArenaProps {
   /** Where «Editar mi robot» goes. */
@@ -72,7 +75,12 @@ function useArena(robot: RobotSpec | undefined) {
   const isDuo = api.settings.players === 2;
   const drive = useManualDrive(mobile, api.settings.controller === 'manual' && !isFree && !isDuo);
   // Two players: player 1 on WASD, player 2 on the arrows, both held-key drives of the free arena.
-  const free = useFreeDrive(mobile, isFree || isDuo, isDuo ? WASD_KEYS : ANY_KEYS);
+  const steps = useSteps(mobile, api.settings.stepGoal);
+  const free = useFreeDrive(
+    mobile,
+    (isFree && !api.settings.steps) || isDuo,
+    isDuo ? WASD_KEYS : ANY_KEYS,
+  );
   const second = useFreeDrive(mobile, isDuo, ARROW_KEYS);
   const refs: ArenaRefs = {
     root: useRef<HTMLDivElement | null>(null),
@@ -86,10 +94,11 @@ function useArena(robot: RobotSpec | undefined) {
     settings: api.settings,
     command: isFree || isDuo ? free.command : drive.command,
     command2: second.command,
+    driver: api.settings.steps ? steps.driver : null,
   });
   useArenaKeys(loop, api);
   const challenges = useChallengeCheck(loop.snapshot, api);
-  return { mobile, api, drive, free, refs, loop, challenges };
+  return { mobile, api, drive, free, steps, refs, loop, challenges };
 }
 
 /** What the top bar shows and does: status, camera, recording and fullscreen. */
@@ -111,52 +120,6 @@ function useTopBar(refs: ArenaRefs, loop: ArenaLoop, api: ArenaSettingsApi): Top
   };
 }
 
-/** Start, restart, kick and speed, centred under the canvas. */
-function Playback({ loop, api }: { loop: ArenaLoop; api: ArenaSettingsApi }): JSX.Element {
-  return (
-    <div className="absolute inset-x-0 bottom-3 z-10 flex justify-center px-3 lg:bottom-4">
-      <PlaybackBar
-        running={loop.running}
-        speed={api.settings.speed}
-        onToggle={() => loop.setRunning(!loop.running)}
-        onReset={() => loop.reset()}
-        onKick={() => loop.kick(KICK_RAD)}
-        onSpeed={(speed) => api.update({ speed })}
-      />
-    </div>
-  );
-}
-
-/** What floats over the canvas besides the top bar: the free arena's board and pad, or the track's banner. */
-function StageOverlays({
-  loop,
-  api,
-  free,
-}: {
-  loop: ArenaLoop;
-  api: ArenaSettingsApi;
-  free: FreeDriveApi;
-}): JSX.Element {
-  if (api.settings.players === 2)
-    return (
-      <DuoLayer progress={loop.snapshot?.duo ?? null} drive={free} onRestart={() => loop.reset()} />
-    );
-  if (api.settings.free)
-    return (
-      <FreeLayer
-        progress={loop.snapshot?.free ?? null}
-        drive={free}
-        onRestart={() => loop.reset()}
-      />
-    );
-  return (
-    <>
-      <ChallengeBanner settings={api.settings} />
-      <Playback loop={loop} api={api} />
-    </>
-  );
-}
-
 /** The canvas with the name tags and the bars floating over it. */
 function ArenaStage({
   refs,
@@ -164,12 +127,14 @@ function ArenaStage({
   api,
   bar,
   free,
+  steps,
 }: {
   refs: ArenaRefs;
   loop: ArenaLoop;
   api: ArenaSettingsApi;
   bar: TopBarProps;
   free: FreeDriveApi;
+  steps: StepsApi;
 }): JSX.Element {
   const t = useT();
   const duo = api.settings.players === 2;
@@ -191,7 +156,7 @@ function ArenaStage({
         className="bg-primary text-primary-fg"
       />
       <TopBar {...bar} />
-      <StageOverlays loop={loop} api={api} free={free} />
+      <StageOverlays loop={loop} api={api} free={free} steps={steps} />
     </div>
   );
 }
@@ -233,16 +198,25 @@ function SidePanels({
   cinema: boolean;
   robotHref: string;
 }): JSX.Element {
-  const { api, loop } = state;
+  const { api, loop, steps } = state;
   const duo = api.settings.players === 2;
   if (!duo && !api.settings.free)
     return <TrackPanels state={state} cinema={cinema} robotHref={robotHref} />;
   return (
     <aside
-      className={`${cinema ? 'hidden' : ''} px-3 lg:absolute lg:left-4 lg:top-12 lg:w-panel lg:px-0`}
+      className={`${cinema ? 'hidden' : ''} px-3 lg:absolute lg:left-4 lg:top-12 lg:w-panel lg:px-0 ${api.settings.steps ? 'lg:bottom-12 lg:overflow-y-auto lg:pt-12' : ''}`}
     >
       {duo ? (
         <DuoPanel api={api} onRestart={() => loop.reset()} />
+      ) : api.settings.steps ? (
+        <StepsPanel
+          api={api}
+          steps={steps}
+          onRun={() => {
+            steps.run();
+            loop.reset();
+          }}
+        />
       ) : (
         <FreePanel api={api} onRestart={() => loop.reset()} />
       )}
@@ -288,7 +262,7 @@ function TrackPanels({
  */
 export function Arena({ robotHref, robot }: ArenaProps): JSX.Element {
   const state = useArena(robot);
-  const { api, free, refs, loop } = state;
+  const { api, free, steps, refs, loop } = state;
   const bar = useTopBar(refs, loop, api);
   // Cinema is the camera for watching and recording: the panels step aside, as in Brazo.
   const cinema = api.settings.camera === 'cinema';
@@ -298,7 +272,7 @@ export function Arena({ robotHref, robot }: ArenaProps): JSX.Element {
       data-theme="dark"
       className="relative flex flex-col gap-3 bg-bg pb-4 text-fg lg:block lg:h-[calc(100dvh-4rem)] lg:min-h-[40rem] lg:overflow-hidden lg:pb-0"
     >
-      <ArenaStage refs={refs} loop={loop} api={api} bar={bar} free={free} />
+      <ArenaStage refs={refs} loop={loop} api={api} bar={bar} free={free} steps={steps} />
       <div className="flex flex-wrap items-center justify-between gap-2 px-3 lg:hidden">
         <Brand status={bar.status} free={bar.free} />
         <VideoTools {...bar} />

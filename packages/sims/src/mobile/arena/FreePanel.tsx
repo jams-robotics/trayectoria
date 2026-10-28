@@ -24,6 +24,9 @@ export function FreePanel({
       <button type="button" className={BUTTON} onClick={onRestart}>
         {t('sims.arena.free.restart')}
       </button>
+      <button type="button" className={BUTTON} onClick={() => api.update({ steps: true })}>
+        {t('sims.arena.free.toSteps')}
+      </button>
       <DuoToggle api={api} />
       <button type="button" className={BUTTON} onClick={() => api.pickTrack(api.settings.track)}>
         {t('sims.arena.free.exit')}

@@ -381,7 +381,50 @@
       "doneTitle": "Todas las estrellas en {{time}} s",
       "learned": "Un robot se mueve con dos ruedas: si una va más rápido que la otra, el robot gira.",
       "again": "Jugar otra vez",
-      "close": "Seguir en la arena"
+      "close": "Seguir en la arena",
+      "toSteps": "Programar con pasos"
+    },
+    "steps": {
+      "title": "Pasos",
+      "lead": "Arma un programa con los botones y mira cómo el robot lo hace paso a paso. Cada cuadrito del piso mide 25 cm.",
+      "goalLabel": "Reto",
+      "goal": {
+        "free": "Libre",
+        "square": "Dibuja un cuadrado",
+        "star": "Llega a la estrella"
+      },
+      "hint": {
+        "free": "Prueba lo que quieras: avanza, gira y repite.",
+        "square": "Haz que el robot dibuje un cuadrado y vuelva al punto de inicio. Pista: usa Repetir.",
+        "star": "Lleva el robot hasta la estrella sin chocar con los conos."
+      },
+      "forward": "Avanzar",
+      "left": "Girar izquierda",
+      "right": "Girar derecha",
+      "repeat": "Repetir ×{{n}}",
+      "end": "Fin repetir",
+      "repeatTimes": "Veces que repite",
+      "more": "Más veces",
+      "less": "Menos veces",
+      "program": "Tu programa",
+      "empty": "Todavía no hay pasos. Toca un botón de arriba.",
+      "count": "{{count}} de {{max}} pasos",
+      "undo": "Borrar último",
+      "clear": "Limpiar",
+      "run": "Ejecutar",
+      "exit": "Volver a manejar con teclas",
+      "running": "El robot va por el paso {{n}}…",
+      "blocked": "¡Uy! El robot chocó con un cono en el paso {{n}} y se detuvo. Cambia el programa y prueba otra vez.",
+      "finished": "El robot terminó el programa.",
+      "missSquare": "El robot terminó, pero no dibujó un cuadrado que vuelva al inicio. ¡Prueba otra vez!",
+      "missStar": "El robot terminó, pero no llegó a la estrella. ¡Prueba otra vez!",
+      "done": "¡Reto superado!",
+      "doneSquare": "¡Dibujaste un cuadrado!",
+      "doneStar": "¡Llegaste a la estrella!",
+      "learnedSquare": "Un cuadrado son cuatro veces lo mismo: avanzar y girar. Con Repetir lo escribes una sola vez y ahorras pasos.",
+      "learnedStar": "Un programa es una lista de pasos que el robot sigue en orden: si cambias el orden, llega a otro lugar.",
+      "again": "Jugar otra vez",
+      "close": "Seguir programando"
     },
     "duo": {
       "start": "2 jugadores",

@@ -48,7 +48,7 @@ export interface ArenaScene {
   readonly canvas: HTMLCanvasElement;
   setTrack(track: Track): void;
   /** Swaps the mat for the open floor of the free arena, with its cones and stars. */
-  setFree(layout: FreeLayout): void;
+  setFree(layout: FreeLayout, grid?: boolean): void;
   /** Hides the collected stars and spins the rest; `t_s` is the simulated time. */
   markGoals(collected: readonly boolean[], t_s: number): void;
   setRobot(spec: MobileSpec, second: SecondRobot, sensors: boolean): void;
@@ -180,9 +180,9 @@ function setTrack(s: Stage, track: Track): void {
   s.rig.setBounds(built.bounds);
 }
 
-function setFree(s: Stage, layout: FreeLayout): void {
+function setFree(s: Stage, layout: FreeLayout, grid: boolean): void {
   replace(s.scene, s.actors.track);
-  const built = buildFree(layout, s.palette);
+  const built = buildFree(layout, s.palette, grid);
   s.actors.track = built.group;
   s.actors.goals = built.goals;
   s.scene.add(built.group);
@@ -263,7 +263,7 @@ export function createArenaScene(canvas: HTMLCanvasElement, root: Element): Aren
   return {
     canvas,
     setTrack: (track) => setTrack(s, track),
-    setFree: (layout) => setFree(s, layout),
+    setFree: (layout, grid = false) => setFree(s, layout, grid),
     markGoals: (collected, t_s) => animateGoals(s.actors.goals, collected, t_s),
     setRobot(spec, second, sensors) {
       last.spec = spec;
