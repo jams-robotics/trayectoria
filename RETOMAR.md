@@ -1,46 +1,66 @@
-# RETOMAR: Pista 3D (simulador del carrito, v2)
+# RETOMAR: v2 de la Pista 3D (olas 1 a 5)
 
-Rama local `feat/simulador-3d-carrito`, **sin push** (pedido: nada a producción; se lanza con la etapa 2 de reels).
+Todo es local y **sin push**. El pedido es no publicar nada hasta terminar los 25 reels. Plan y milestones en GitHub: issues #679 a #686, milestones «Ola 1» a «Ola 5».
 
-## Objetivo
+## Ramas (apiladas, de abajo arriba)
 
-Que el simulador del carrito seguidor de línea esté al nivel de Brazo (`jams286/brazo`): inmersivo, legible y que dé ganas de compartirlo. El brazo de Trayectoria no se tocó.
+| Rama | Issue | Qué trae |
+|---|---|---|
+| `feat/simulador-3d-carrito` | #679 | Pista 3D en `/simuladores/carrito` |
+| `feat/680-duelo` | #680 | Rival configurable y vueltas ganadas |
+| `feat/681-modo-libre` | #681 | Arena libre con conos y estrellas |
+| `test/679-e2e-pista-3d` | #679 | e2e de la Pista 3D; el menú «Simuladores» abre la Pista 3D |
+| `feat/682-dos-jugadores` | #682 | 2 jugadores (WASD y flechas) en pista y arena libre |
+| `feat/684-tu-robot` | #684 | Subir STL/GLB del robot propio (solo en el navegador, IndexedDB) |
+| `feat/686-pasos` | #686 | Modo «Pasos»: programar con Avanzar, Girar y Repetir; retos del cuadrado y de la estrella |
+| `feat/685-aula` | #685 | Sesión de aula: el docente aprueba y el teléfono maneja o ajusta (migración 0014) |
 
-## Qué hay
+Aparte, desde `main`: `ux/683-2d-legible` (#683), con el simulador 2D y el editor de pistas a ancho de escritorio.
 
-- Página nueva **`/simuladores/carrito`** («Pista 3D»), a pantalla completa y oscura, con three.js puro (ya era dependencia de `sims`; no se agregaron dependencias).
-- Usa **la misma física** del simulador 2D (`createLineFollowerModel`, controladores, presets de sim-core). La escena 3D solo dibuja esos estados.
-- Robot 3D armado con las medidas de «Mi robot»: ruedas que giran según el ángulo real, sensores que se encienden con su lectura y haces IR.
-- Estela coloreada por el error: verde si va centrado y rojo si está por perder la línea.
-- Cámaras: Persecución, Libre (órbita), Cenital, A bordo y Cine (Cine oculta los paneles). Teclas 1 a 5.
-- **Carrera contra el robot de referencia**: un fantasma translúcido con el PID de referencia y la diferencia en segundos en vivo.
-- Instrumentos grandes: vuelta actual y mejor vuelta, velocidad, barras de los 5 sensores, aguja del error y telemetría de 8 s (error y ω de cada rueda, con las pérdidas de línea sombreadas).
-- Controladores: Manejar (flechas/WASD y botones táctiles), On/off, P y PID, cada uno con una línea que explica qué hace cada ganancia.
-- **«Empujón»** (tecla K): desvía el robot 20° para ver cómo se recupera el controlador.
-- **8 retos** que se comprueban solos con los números de la simulación, con confeti y «Lo que aprendiste». El progreso se guarda en el navegador.
-- **Grabar video** vertical 9:16 (o 16:9) con la vuelta, la mejor vuelta y `trayectoria.org` impresos. Sale en MP4 si el navegador puede y, si no, en WebM. Pensado para los reels.
-- Pista nueva «Gran circuito» (5,9 m, con chicana).
-- En `/simuladores/movil` hay un aviso que enlaza a la Pista 3D. El 2D y los temas no cambiaron.
-
-## Decisiones tomadas sin ti (todas editables)
-
-1. Página aparte en lugar de reemplazar `/simuladores/movil`: el 2D lo usan los temas, el editor de pistas y las pruebas e2e. **El menú «Simuladores» sigue apuntando al 2D.** Para la v2 bastaría con cambiar el `href` en `apps/web/src/components/Nav.astro`.
-2. La escena es oscura en los dos temas (`data-theme="dark"` en la raíz), como un visor. Los colores salen de los tokens de DESIGN.md.
-3. Al abrir arranca sola, en el Gran circuito, con un PID un poco más rápido que la referencia y la carrera activa. Así quien llega de un reel ve movimiento al instante.
-4. Las metas de los retos se calibraron con el robot de referencia (`challenges.test.ts` prueba que cada reto tiene solución y que no se pasa con los valores por defecto).
-5. Las decisiones quedan aquí y no en `CLAUDE.md`/`docs/`, porque el `CLAUDE.md` del proyecto prohíbe tocarlos sin ticket.
+Cada rama contiene a las de arriba. Merge en orden, o todo de una vez desde `feat/685-aula`.
 
 ## Cómo probar
 
 ```
-pnpm dev            # http://localhost:4321/simuladores/carrito
-pnpm --filter @trayectoria/sims exec vitest run src/mobile/arena
+pnpm dev                         # http://localhost:4321/simuladores/carrito
+npx -y supabase@2 start          # para el aula y las e2e
 ```
+
+- **Aula:** con un docente que tenga grupo, abre el panel «Aula» en la Pista 3D. Copia el enlace y ábrelo en otra ventana con un alumno del grupo.
+- **Pasos:** Pista → Arena libre → «Programar con pasos».
+
+## Estado de las pruebas (28 oct)
+
+- `lint`, `typecheck`, `test` (unitarias y 270 pgTAP), `build` y presupuesto de bundle: en verde.
+- e2e completo: en verde, salvo los visuales Tema y Plot, que ya fallaban en `main` local.
+- Revisión de seguridad del aula: aprobada con cambios, ya aplicados (ver #685).
+
+## Antes de salir a producción
+
+1. Snapshots `-linux`: los genera CI cuando hay push (`playwright.config.ts`, instrucciones arriba del `snapshotPathTemplate`). `ux/683` y esta pila cambian los mismos snapshots de `sim-movil`: se regeneran al integrar.
+2. Ola 4 (aula):
+   - Respaldo de la base.
+   - `npx -y supabase@2 db push --dry-run`, luego `db push` **antes** del deploy.
+   - En el panel, Realtime Settings: desactivar «Allow public access».
+   - Detalle en `docs/ops/DEPLOY.md`.
+3. Probar en iPhone y en un Android de gama baja: grabación de video, rendimiento y manejo con el teléfono.
+
+## Decisiones tomadas sin el responsable (editables)
+
+- **Modelo propio:** se guarda solo en el navegador, sin Storage. Acepta STL y GLB sin Draco; STEP no.
+- **Pasos:** botones de pasos fijos, no bloques visuales. 1 casilla = 25 cm, giros de 90°, Repetir con un nivel de anidamiento.
+- **Aula:**
+  - Sin QR dibujado: no hay librería y no se agregaron dependencias. El panel muestra el enlace en grande.
+  - El teléfono solo mueve el robot en arena libre o en manual.
+  - Un solo conductor activo a la vez.
+- **2 jugadores:** solo con teclado. En móvil se muestran los botones del jugador 1.
+- **Ruta 0 (niños):** propuesta en #686. El currículo y `content/` esperan tus decisiones.
 
 ## Pendientes
 
-- Probar la grabación en el iPhone y en Chrome (headless no graba video).
-- Probar el rendimiento en un celular de gama baja. Si va lento: sombras más chicas (`shadow.mapSize` en `scene/arenaScene.ts`) o `devicePixelRatio` en 1.
-- Si la v2 convierte esta pista en el simulador principal: cambiar el menú y decidir qué pasa con el 2D (¿se queda para los temas?).
-- Faltan pruebas e2e de la página nueva (Playwright necesita `supabase start`).
-- Ideas para después: editor de pistas en 3D, controlador «Propio» con código, obstáculos y sensor ultrasónico, compartir el tiempo por enlace (`?reto=`) y una tabla de récords.
+- QR en el aula: agregar una librería (requiere ticket) o escribir un generador propio.
+- Magic link y registro: no vuelven a la sesión de aula (el login con contraseña sí vuelve).
+- Alumno retirado del grupo: sigue aprobado hasta que lo expulsen. Reabrir la sesión borra las expulsiones (anotado en #685).
+- #683: a 1366×768 el lienzo del editor queda en parte bajo el pliegue. `LineFollowerView.tsx` ya pasa de 300 líneas (viene de antes).
+- Faltan e2e del modo Pasos y de 2 jugadores, y no se probó un GLB real con texturas.
+- Ideas: editor de pistas en 3D, controlador «Propio» con código, sensor ultrasónico, récords por enlace.
