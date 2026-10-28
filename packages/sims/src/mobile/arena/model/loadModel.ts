@@ -26,7 +26,10 @@ function parseGlb(bytes: ArrayBuffer): Promise<Object3D> {
 
 /** An STL is only geometry: it gets one neutral material, tinted later. */
 function parseStl(bytes: ArrayBuffer): Object3D {
-  const mesh = new Mesh(new STLLoader().parse(bytes), new MeshStandardMaterial());
+  const geometry = new STLLoader().parse(bytes);
+  // Many exporters write zero normals in the facets, which renders the model black.
+  geometry.computeVertexNormals();
+  const mesh = new Mesh(geometry, new MeshStandardMaterial());
   const group = new Group();
   group.add(mesh);
   return group;
