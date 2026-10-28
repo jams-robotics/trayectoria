@@ -360,6 +360,27 @@
       "tight": "Curvas cerradas",
       "length": "{{length}} m de línea"
     },
+    "free": {
+      "card": "Arena libre",
+      "cardHint": "Sin línea: recoge las estrellas",
+      "title": "Arena libre",
+      "lead": "Maneja el robot y recoge todas las estrellas sin chocar con los conos.",
+      "keys": "Con el teclado: flechas o WASD. Con el celular: los botones de abajo. El robot solo se mueve mientras los mantienes apretados.",
+      "board": "Marcador",
+      "goals": "Estrellas",
+      "time": "Tiempo",
+      "forward": "Avanzar",
+      "back": "Retroceder",
+      "left": "Izquierda",
+      "right": "Derecha",
+      "restart": "Empezar de nuevo",
+      "exit": "Elegir una pista",
+      "done": "¡Lo lograste!",
+      "doneTitle": "Todas las estrellas en {{time}} s",
+      "learned": "Un robot se mueve con dos ruedas: si una va más rápido que la otra, el robot gira.",
+      "again": "Jugar otra vez",
+      "close": "Seguir en la arena"
+    },
     "robotFrom": "El carrito usa las medidas de «Mi robot»: radio de rueda, separación y sensores.",
     "editRobot": "Editar mi robot",
     "camera": {

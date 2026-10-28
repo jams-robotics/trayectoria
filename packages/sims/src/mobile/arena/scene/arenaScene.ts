@@ -21,11 +21,13 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import type { Track } from '@trayectoria/sim-core';
 import type { MobileSpec } from '@trayectoria/robot-spec';
 
+import type { FreeLayout } from '../freeArena';
 import type { Racer } from '../race';
 import { createCameraRig } from './cameraRig';
 import type { CameraMode, CameraRig } from './cameraRig';
 import { readPalette } from './palette';
 import type { ArenaPalette } from './palette';
+import { animateGoals, buildFree } from './freeMesh';
 import { buildRobot, disposeGroup } from './robotMesh';
 import type { RobotMesh } from './robotMesh';
 import { buildTrack } from './trackMesh';
@@ -41,6 +43,10 @@ export type ScreenPoint = { readonly x: number; readonly y: number } | null;
 export interface ArenaScene {
   readonly canvas: HTMLCanvasElement;
   setTrack(track: Track): void;
+  /** Swaps the mat for the open floor of the free arena, with its cones and stars. */
+  setFree(layout: FreeLayout): void;
+  /** Hides the collected stars and spins the rest; `t_s` is the simulated time. */
+  markGoals(collected: readonly boolean[], t_s: number): void;
   setRobot(spec: MobileSpec, ghost: boolean): void;
   setCamera(mode: CameraMode): void;
   /** Draws the racers and moves the camera; returns where each robot is on screen. */
@@ -95,6 +101,7 @@ interface Actors {
   you: RobotMesh | null;
   ghost: RobotMesh | null;
   track: Group | null;
+  goals: readonly Group[];
 }
 
 function project(
@@ -146,7 +153,7 @@ function stageFor(canvas: HTMLCanvasElement, root: Element): Stage {
     scene,
     camera,
     rig: createCameraRig(camera, canvas),
-    actors: { you: null, ghost: null, track: null },
+    actors: { you: null, ghost: null, track: null, goals: [] },
     trails,
     at: new Vector3(),
   };
@@ -161,8 +168,18 @@ function replace(scene: Scene, old: { group: Group } | Group | null): void {
 
 function setTrack(s: Stage, track: Track): void {
   replace(s.scene, s.actors.track);
+  s.actors.goals = [];
   const built = buildTrack(track, s.palette);
   s.actors.track = built.group;
+  s.scene.add(built.group);
+  s.rig.setBounds(built.bounds);
+}
+
+function setFree(s: Stage, layout: FreeLayout): void {
+  replace(s.scene, s.actors.track);
+  const built = buildFree(layout, s.palette);
+  s.actors.track = built.group;
+  s.actors.goals = built.goals;
   s.scene.add(built.group);
   s.rig.setBounds(built.bounds);
 }
@@ -228,6 +245,8 @@ export function createArenaScene(canvas: HTMLCanvasElement, root: Element): Aren
   return {
     canvas,
     setTrack: (track) => setTrack(s, track),
+    setFree: (layout) => setFree(s, layout),
+    markGoals: (collected, t_s) => animateGoals(s.actors.goals, collected, t_s),
     setRobot: (spec, ghost) => setRobot(s, spec, ghost),
     setCamera: (mode) => s.rig.setMode(mode),
     frame: (you, ghost, dt_s) => frame(s, you, ghost, dt_s),

@@ -3,6 +3,9 @@ import type { RefObject } from 'react';
 import type { Track, WheelCommand } from '@trayectoria/sim-core';
 import type { RobotSpec } from '@trayectoria/robot-spec';
 
+import { FREE_LAYOUT } from './freeArena';
+import { createFreeRace, freeProgress, isFreeRace } from './freeRace';
+import type { FreeProgress } from './freeRace';
 import { createRace } from './race';
 import type { Race, Racer } from './race';
 import { createArenaScene } from './scene/arenaScene';
@@ -30,6 +33,8 @@ const SEED = 7;
 export interface ArenaSnapshot {
   readonly you: Racer;
   readonly ghost: Racer | null;
+  /** Goals and stopwatch of the free arena; `null` on a track. */
+  readonly free: FreeProgress | null;
 }
 
 export interface ArenaRefs {
@@ -64,13 +69,28 @@ function placeTag(tag: HTMLDivElement | null, point: ScreenPoint): void {
     tag.style.transform = `translate(${point.x}px, ${point.y}px) translate(-50%, -130%)`;
 }
 
+function newRace({ spec, track, settings }: LoopInputs): Race {
+  if (settings.free) return createFreeRace(spec, FREE_LAYOUT);
+  return createRace({
+    spec,
+    track,
+    controller: settings.controller,
+    params: settings.params[settings.controller],
+    ghost: settings.ghost,
+    rival: { controller: settings.rival, params: settings.rivalParams[settings.rival] },
+    seed: SEED,
+    ...(settings.noise ? { noiseSigma: NOISE_SIGMA } : {}),
+  });
+}
+
 /** The race, rebuilt (paused at `t = 0`) whenever something that defines the run changes. */
 function useRace(inputs: LoopInputs, epoch: number): Race {
-  const { spec, track, settings } = inputs;
+  const { spec, settings } = inputs;
   const [race, setRace] = useState<{ key: string; race: Race } | null>(null);
   const key = JSON.stringify([
     spec.id,
     settings.track,
+    settings.free,
     settings.controller,
     settings.ghost,
     settings.rival,
@@ -81,16 +101,7 @@ function useRace(inputs: LoopInputs, epoch: number): Race {
     epoch,
   ]);
   if (race === null || race.key !== key) {
-    const next = createRace({
-      spec,
-      track,
-      controller: settings.controller,
-      params: settings.params[settings.controller],
-      ghost: settings.ghost,
-      rival: { controller: settings.rival, params: settings.rivalParams[settings.rival] },
-      seed: SEED,
-      ...(settings.noise ? { noiseSigma: NOISE_SIGMA } : {}),
-    });
+    const next = newRace(inputs);
     setRace({ key, race: next });
     return next;
   }
@@ -138,7 +149,10 @@ function useScene(refs: ArenaRefs, inputs: LoopInputs): RefObject<ArenaScene | n
   useEffect(() => {
     if (mobile !== undefined) scene.current?.setRobot(mobile, settings.ghost);
   }, [mobile, settings.ghost, scene]);
-  useEffect(() => scene.current?.setTrack(track), [track, scene]);
+  useEffect(() => {
+    if (settings.free) scene.current?.setFree(FREE_LAYOUT);
+    else scene.current?.setTrack(track);
+  }, [track, settings.free, scene]);
   useEffect(() => {
     const canvas = refs.canvas.current;
     scene.current?.setCamera(settings.camera);
@@ -171,12 +185,13 @@ function useFrames(
       const { race, running, speed } = live.current;
       if (running) race.advance(dt_s * speed);
       telemetry.record(race.you);
+      if (isFreeRace(race)) scene.current?.markGoals(race.collected, race.you.state.robot.t_s);
       const points = scene.current?.frame(race.you, race.ghost, Math.min(dt_s, 0.1));
       placeTag(refs.youTag.current, race.ghost === null ? null : (points?.you ?? null));
       placeTag(refs.ghostTag.current, points?.ghost ?? null);
       if (now - lastSnapshot > SNAPSHOT_EVERY_MS) {
         lastSnapshot = now;
-        onSnapshot({ you: race.you, ghost: race.ghost });
+        onSnapshot({ you: race.you, ghost: race.ghost, free: freeProgress(race) });
       }
       frame = requestAnimationFrame(tick);
     };

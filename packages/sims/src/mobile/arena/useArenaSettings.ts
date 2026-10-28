@@ -11,6 +11,8 @@ import type { CameraMode } from './scene/cameraRig';
 /** Everything the learner chooses in the arena. */
 export interface ArenaSettings {
   readonly track: ArenaTrackId;
+  /** The free arena (cones and goals, no line) instead of a track. */
+  readonly free: boolean;
   readonly controller: ControllerId;
   /** Gains of every controller, so switching tabs keeps what was tuned on each one. */
   readonly params: Readonly<Record<ControllerId, ControllerParams>>;
@@ -32,6 +34,7 @@ export const NOISE_SIGMA = 0.06;
 /** The arena opens on the long circuit, PID a bit faster than the reference, racing the ghost. */
 export const INITIAL_SETTINGS: ArenaSettings = {
   track: 'circuit',
+  free: false,
   controller: 'pid',
   params: {
     manual: CONTROLLERS.manual.defaults,
@@ -70,6 +73,10 @@ export interface ArenaSettingsApi {
   readonly setParam: (key: string, value: number) => void;
   readonly setRivalParam: (key: string, value: number) => void;
   readonly startChallenge: (id: ChallengeId | null) => void;
+  /** Opens the free arena: manual driving only, no rival and no challenge. */
+  readonly startFree: () => void;
+  /** Picks a track; coming from the free arena it brings back the PID and the ghost. */
+  readonly pickTrack: (id: ArenaTrackId) => void;
 }
 
 type GainsById = ArenaSettings['params'];
@@ -77,6 +84,17 @@ type GainsById = ArenaSettings['params'];
 /** The gains of every controller with one gain of `id` changed. */
 function withGain(all: GainsById, id: ControllerId, key: string, value: number): GainsById {
   return { ...all, [id]: { ...all[id], [key]: value } };
+}
+
+/** The free arena: manual driving only, no rival and no challenge. */
+function freeOf(current: ArenaSettings): ArenaSettings {
+  return { ...current, free: true, controller: 'manual', ghost: false, challenge: null };
+}
+
+/** `id` as the track; coming from the free arena it brings back the PID and the ghost. */
+function withTrack(current: ArenaSettings, id: ArenaTrackId): ArenaSettings {
+  if (!current.free) return { ...current, track: id };
+  return { ...current, free: false, track: id, controller: 'pid', ghost: true };
 }
 
 export function useArenaSettings(initial: ArenaSettings = INITIAL_SETTINGS): ArenaSettingsApi {
@@ -109,8 +127,12 @@ export function useArenaSettings(initial: ArenaSettings = INITIAL_SETTINGS): Are
       };
     });
   }, []);
+  const startFree = useCallback(() => setSettings(freeOf), []);
+  const pickTrack = useCallback((id: ArenaTrackId) => {
+    setSettings((current) => withTrack(current, id));
+  }, []);
   return useMemo(
-    () => ({ settings, update, setParam, setRivalParam, startChallenge }),
-    [settings, update, setParam, setRivalParam, startChallenge],
+    () => ({ settings, update, setParam, setRivalParam, startChallenge, startFree, pickTrack }),
+    [settings, update, setParam, setRivalParam, startChallenge, startFree, pickTrack],
   );
 }

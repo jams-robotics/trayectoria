@@ -5,6 +5,7 @@ import { trackLength_m } from '@trayectoria/sim-core';
 import type { Track } from '@trayectoria/sim-core';
 
 import { ARENA_TRACKS, ARENA_TRACK_IDS } from './arenaTracks';
+import { FREE_LAYOUT } from './freeArena';
 import type { ArenaTrackId } from './arenaTracks';
 import { boundsOf, sampleTrack } from './scene/trackMesh';
 import type { ArenaSettingsApi } from './useArenaSettings';
@@ -76,13 +77,64 @@ function TrackCard({
   );
 }
 
+/** The free arena seen from above: its cones as dots and its stars as bigger, lighter ones. */
+function FreeThumb(): JSX.Element {
+  const scale = THUMB / (FREE_LAYOUT.halfWidth_m * 2 + 0.2);
+  const place = (x_m: number, y_m: number) => ({
+    cx: THUMB / 2 + x_m * scale,
+    cy: THUMB / 2 - y_m * scale,
+  });
+  return (
+    <svg
+      viewBox={`0 0 ${THUMB} ${THUMB}`}
+      className="aspect-square w-full rounded-sm bg-sim-track"
+      aria-hidden="true"
+    >
+      {FREE_LAYOUT.cones.map((cone) => (
+        <circle
+          key={`${cone.x_m},${cone.y_m}`}
+          r={3}
+          className="fill-error"
+          {...place(cone.x_m, cone.y_m)}
+        />
+      ))}
+      {FREE_LAYOUT.goals.map((goal) => (
+        <circle
+          key={`${goal.x_m},${goal.y_m}`}
+          r={4}
+          className="fill-warning"
+          {...place(goal.x_m, goal.y_m)}
+        />
+      ))}
+    </svg>
+  );
+}
+
+function FreeCard({ active, onPick }: { active: boolean; onPick: () => void }): JSX.Element {
+  const t = useT();
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onPick}
+      className={`col-span-2 flex flex-col gap-2 rounded-md border p-2 text-left transition-colors ${
+        active ? 'border-primary bg-primary/10' : 'border-border bg-bg hover:border-fg-muted'
+      }`}
+    >
+      <FreeThumb />
+      <span className="text-sm font-semibold text-fg">{t('sims.arena.free.card')}</span>
+      <span className="text-xs text-fg-muted">{t('sims.arena.free.cardHint')}</span>
+    </button>
+  );
+}
+
 export interface TrackTabProps {
   readonly api: ArenaSettingsApi;
   /** Link to «Mi robot», whose measures build the 3D robot. */
   readonly robotHref: string;
 }
 
-/** The four tracks as thumbnails, and where the robot's measures come from. */
+/** The four tracks and the free arena as thumbnails, and where the robot's measures come from. */
 export function TrackTab({ api, robotHref }: TrackTabProps): JSX.Element {
   const t = useT();
   return (
@@ -92,10 +144,11 @@ export function TrackTab({ api, robotHref }: TrackTabProps): JSX.Element {
           <TrackCard
             key={id}
             id={id}
-            active={api.settings.track === id}
-            onPick={() => api.update({ track: id })}
+            active={!api.settings.free && api.settings.track === id}
+            onPick={() => api.pickTrack(id)}
           />
         ))}
+        <FreeCard active={api.settings.free} onPick={api.startFree} />
       </div>
       <p className="text-sm text-fg-muted">{t('sims.arena.robotFrom')}</p>
       <a

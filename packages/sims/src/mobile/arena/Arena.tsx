@@ -12,14 +12,19 @@ import { Brand, PlaybackBar, TopBar, VideoTools } from './ArenaBars';
 import type { ArenaStatus, TopBarProps } from './ArenaBars';
 import { HUD_CARD, LapBoard, SensorPanel } from './ArenaHud';
 import { useArenaKeys, useChallengeCheck, useRecorder } from './arenaHooks';
+import type { ChallengeState } from './arenaHooks';
 import { Celebration } from './Celebration';
 import { challengeText } from './ChallengesTab';
+import { FreeLayer, freeOverlay } from './FreeHud';
+import { FreePanel } from './FreePanel';
 import { KICK_RAD } from './race';
 import type { Overlay } from './recorder';
 import { TelemetryChart } from './TelemetryChart';
 import { useArenaLoop } from './useArenaLoop';
 import type { ArenaLoop, ArenaRefs } from './useArenaLoop';
 import { useArenaSettings } from './useArenaSettings';
+import { useFreeDrive } from './useFreeDrive';
+import type { FreeDriveApi } from './useFreeDrive';
 import type { ArenaSettings, ArenaSettingsApi } from './useArenaSettings';
 import { useManualDrive } from './useManualDrive';
 
@@ -37,6 +42,8 @@ function statusOf(loop: ArenaLoop, settings: ArenaSettings): ArenaStatus {
 }
 
 function overlayOf(t: Translate, loop: ArenaLoop, settings: ArenaSettings): Overlay {
+  const free = loop.snapshot?.free;
+  if (free !== undefined && free !== null) return freeOverlay(t, free);
   const you = loop.snapshot?.you;
   const lap_s = you === undefined ? 0 : you.state.robot.t_s - you.state.lapStart_s;
   const best = you === undefined || you.laps_s.length === 0 ? null : Math.min(...you.laps_s);
@@ -91,7 +98,9 @@ function useArena(robot: RobotSpec | undefined) {
   if (mobile === undefined)
     throw new Error('La pista 3D requiere un robot con perfil «mobile-diff»');
   const api = useArenaSettings();
-  const drive = useManualDrive(mobile, api.settings.controller === 'manual');
+  const isFree = api.settings.free;
+  const drive = useManualDrive(mobile, api.settings.controller === 'manual' && !isFree);
+  const free = useFreeDrive(mobile, isFree);
   const refs: ArenaRefs = {
     root: useRef<HTMLDivElement | null>(null),
     canvas: useRef<HTMLCanvasElement | null>(null),
@@ -102,11 +111,11 @@ function useArena(robot: RobotSpec | undefined) {
     spec,
     track: ARENA_TRACKS[api.settings.track],
     settings: api.settings,
-    command: drive.command,
+    command: isFree ? free.command : drive.command,
   });
   useArenaKeys(loop, api);
   const challenges = useChallengeCheck(loop.snapshot, api);
-  return { mobile, api, drive, refs, loop, challenges };
+  return { mobile, api, drive, free, refs, loop, challenges };
 }
 
 /** What the top bar shows and does: status, camera, recording and fullscreen. */
@@ -143,20 +152,47 @@ function Playback({ loop, api }: { loop: ArenaLoop; api: ArenaSettingsApi }): JS
   );
 }
 
+/** What floats over the canvas besides the top bar: the free arena's board and pad, or the track's banner. */
+function StageOverlays({
+  loop,
+  api,
+  free,
+}: {
+  loop: ArenaLoop;
+  api: ArenaSettingsApi;
+  free: FreeDriveApi;
+}): JSX.Element {
+  if (api.settings.free)
+    return (
+      <FreeLayer
+        progress={loop.snapshot?.free ?? null}
+        drive={free}
+        onRestart={() => loop.reset()}
+      />
+    );
+  return (
+    <>
+      <ChallengeBanner settings={api.settings} />
+      <Playback loop={loop} api={api} />
+    </>
+  );
+}
+
 /** The canvas with the name tags and the bars floating over it. */
 function ArenaStage({
   refs,
   loop,
   api,
   bar,
+  free,
 }: {
   refs: ArenaRefs;
   loop: ArenaLoop;
   api: ArenaSettingsApi;
   bar: TopBarProps;
+  free: FreeDriveApi;
 }): JSX.Element {
   const t = useT();
-  const { settings } = api;
   return (
     <div className="relative h-[64dvh] lg:absolute lg:inset-0 lg:h-auto">
       <canvas
@@ -175,8 +211,7 @@ function ArenaStage({
         className="bg-primary text-primary-fg"
       />
       <TopBar {...bar} />
-      <ChallengeBanner settings={settings} />
-      <Playback loop={loop} api={api} />
+      <StageOverlays loop={loop} api={api} free={free} />
     </div>
   );
 }
@@ -206,27 +241,21 @@ function HudAside({
   );
 }
 
-/**
- * The 3D line-follower arena: the same simulation as the 2D simulator, staged as a dark 3D
- * track with chase cameras, big readable instruments, a race against the reference robot,
- * self-checking challenges and video recording for social media.
- */
-export function Arena({ robotHref, robot }: ArenaProps): JSX.Element {
-  const { mobile, api, drive, refs, loop, challenges } = useArena(robot);
-  const bar = useTopBar(refs, loop, api);
-  // Cinema is the camera for watching and recording: the panels step aside, as in Brazo.
-  const cinema = api.settings.camera === 'cinema';
+type ArenaState = ReturnType<typeof useArena>;
+
+/** Everything beside the canvas on a track: lap board, sensors, telemetry, panel and celebration. */
+function TrackPanels({
+  state,
+  cinema,
+  robotHref,
+}: {
+  state: ArenaState;
+  cinema: boolean;
+  robotHref: string;
+}): JSX.Element {
+  const { mobile, api, drive, loop, challenges } = state;
   return (
-    <div
-      ref={refs.root}
-      data-theme="dark"
-      className="relative flex flex-col gap-3 bg-bg pb-4 text-fg lg:block lg:h-[calc(100dvh-4rem)] lg:min-h-[40rem] lg:overflow-hidden lg:pb-0"
-    >
-      <ArenaStage refs={refs} loop={loop} api={api} bar={bar} />
-      <div className="flex flex-wrap items-center justify-between gap-2 px-3 lg:hidden">
-        <Brand status={bar.status} />
-        <VideoTools {...bar} />
-      </div>
+    <>
       <HudAside cinema={cinema} loop={loop} mobile={mobile} />
       <aside
         className={`${cinema ? 'hidden' : ''} px-3 lg:absolute lg:left-4 lg:top-12 lg:bottom-12 lg:w-panel lg:overflow-y-auto lg:px-0`}
@@ -239,12 +268,57 @@ export function Arena({ robotHref, robot }: ArenaProps): JSX.Element {
           robotHref={robotHref}
         />
       </aside>
-      {challenges.celebrating === null ? null : (
-        <Celebration
-          id={challenges.celebrating}
-          onNext={challenges.next}
-          onClose={challenges.dismiss}
-        />
+      <ChallengeCelebration challenges={challenges} />
+    </>
+  );
+}
+
+function ChallengeCelebration({ challenges }: { challenges: ChallengeState }): JSX.Element | null {
+  const t = useT();
+  const { celebrating } = challenges;
+  if (celebrating === null) return null;
+  return (
+    <Celebration
+      heading={t('sims.arena.challenges.passed')}
+      title={challengeText(t, celebrating, 'title')}
+      learned={challengeText(t, celebrating, 'learned')}
+      onNext={challenges.next}
+      onClose={challenges.dismiss}
+    />
+  );
+}
+
+/**
+ * The 3D line-follower arena: the same simulation as the 2D simulator, staged as a dark 3D
+ * track with chase cameras, big readable instruments, a race against the reference robot,
+ * self-checking challenges and video recording for social media. Its free mode swaps the line
+ * for an open floor with cones and stars, driven by hand.
+ */
+export function Arena({ robotHref, robot }: ArenaProps): JSX.Element {
+  const state = useArena(robot);
+  const { api, free, refs, loop } = state;
+  const bar = useTopBar(refs, loop, api);
+  // Cinema is the camera for watching and recording: the panels step aside, as in Brazo.
+  const cinema = api.settings.camera === 'cinema';
+  return (
+    <div
+      ref={refs.root}
+      data-theme="dark"
+      className="relative flex flex-col gap-3 bg-bg pb-4 text-fg lg:block lg:h-[calc(100dvh-4rem)] lg:min-h-[40rem] lg:overflow-hidden lg:pb-0"
+    >
+      <ArenaStage refs={refs} loop={loop} api={api} bar={bar} free={free} />
+      <div className="flex flex-wrap items-center justify-between gap-2 px-3 lg:hidden">
+        <Brand status={bar.status} />
+        <VideoTools {...bar} />
+      </div>
+      {api.settings.free ? (
+        <aside
+          className={`${cinema ? 'hidden' : ''} px-3 lg:absolute lg:left-4 lg:top-12 lg:w-panel lg:px-0`}
+        >
+          <FreePanel api={api} onRestart={() => loop.reset()} />
+        </aside>
+      ) : (
+        <TrackPanels state={state} cinema={cinema} robotHref={robotHref} />
       )}
     </div>
   );

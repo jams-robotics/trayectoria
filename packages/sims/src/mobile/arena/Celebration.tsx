@@ -2,9 +2,6 @@ import { useEffect, useRef } from 'react';
 import type { JSX, RefObject } from 'react';
 import { useT } from '@trayectoria/i18n';
 
-import { challengeText } from './ChallengesTab';
-import type { ChallengeId } from './challenges';
-
 /** Confetti pieces and how long they fall, in milliseconds. */
 const PIECES = 90;
 const FALL_MS = 2600;
@@ -52,9 +49,17 @@ function useConfetti(ref: RefObject<HTMLCanvasElement | null>): void {
 }
 
 export interface CelebrationProps {
-  readonly id: ChallengeId;
+  /** The small line over the title: «¡Reto superado!». */
+  readonly heading: string;
+  readonly title: string;
+  /** What the learner takes away, under «Lo que aprendiste». */
+  readonly learned: string;
+  /** Label of the button that goes on (next challenge, play again); needed with `onNext`. */
+  readonly nextLabel?: string | undefined;
   readonly onNext: (() => void) | null;
   readonly onClose: () => void;
+  /** Label of the button that closes the dialog; «Seguir en la pista» when omitted. */
+  readonly closeLabel?: string | undefined;
 }
 
 /** «Cerrar» (focused on open) and, when there is one, «Siguiente reto». */
@@ -62,7 +67,9 @@ function CelebrationActions({
   closeRef,
   onNext,
   onClose,
-}: Pick<CelebrationProps, 'onNext' | 'onClose'> & {
+  nextLabel,
+  closeLabel,
+}: Pick<CelebrationProps, 'onNext' | 'onClose' | 'nextLabel' | 'closeLabel'> & {
   closeRef: RefObject<HTMLButtonElement | null>;
 }): JSX.Element {
   const t = useT();
@@ -74,7 +81,7 @@ function CelebrationActions({
         onClick={onClose}
         className="min-h-11 rounded-md border border-border px-4 font-semibold text-fg hover:border-fg-muted"
       >
-        {t('sims.arena.challenges.close')}
+        {closeLabel ?? t('sims.arena.challenges.close')}
       </button>
       {onNext === null ? null : (
         <button
@@ -82,16 +89,43 @@ function CelebrationActions({
           onClick={onNext}
           className="min-h-11 rounded-md bg-primary px-4 font-semibold text-primary-fg hover:bg-primary-hover"
         >
-          {t('sims.arena.challenges.next')}
+          {nextLabel ?? t('sims.arena.challenges.next')}
         </button>
       )}
     </div>
   );
 }
 
-/** «¡Reto superado!»: what the challenge taught, over a burst of confetti. */
-export function Celebration({ id, onNext, onClose }: CelebrationProps): JSX.Element {
+function CelebrationText({
+  heading,
+  title,
+  learned,
+}: Pick<CelebrationProps, 'heading' | 'title' | 'learned'>): JSX.Element {
   const t = useT();
+  return (
+    <>
+      <p className="font-mono text-sm text-physical">{heading}</p>
+      <h2 id="arena-celebration-title" className="text-2xl font-semibold text-fg">
+        {title}
+      </h2>
+      <p className="text-xs font-semibold uppercase text-fg-muted">
+        {t('sims.arena.challenges.learned')}
+      </p>
+      <p className="text-base text-fg">{learned}</p>
+    </>
+  );
+}
+
+/** «¡Reto superado!»: what the challenge taught, over a burst of confetti. */
+export function Celebration({
+  heading,
+  title,
+  learned,
+  nextLabel,
+  closeLabel,
+  onNext,
+  onClose,
+}: CelebrationProps): JSX.Element {
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const close = useRef<HTMLButtonElement | null>(null);
   useConfetti(canvas);
@@ -109,15 +143,14 @@ export function Celebration({ id, onNext, onClose }: CelebrationProps): JSX.Elem
         aria-hidden="true"
       />
       <div className="relative flex max-w-form-card flex-col gap-3 rounded-lg border border-physical bg-bg-raised p-6 shadow-md">
-        <p className="font-mono text-sm text-physical">{t('sims.arena.challenges.passed')}</p>
-        <h2 id="arena-celebration-title" className="text-2xl font-semibold text-fg">
-          {challengeText(t, id, 'title')}
-        </h2>
-        <p className="text-xs font-semibold uppercase text-fg-muted">
-          {t('sims.arena.challenges.learned')}
-        </p>
-        <p className="text-base text-fg">{challengeText(t, id, 'learned')}</p>
-        <CelebrationActions closeRef={close} onNext={onNext} onClose={onClose} />
+        <CelebrationText heading={heading} title={title} learned={learned} />
+        <CelebrationActions
+          closeRef={close}
+          onNext={onNext}
+          onClose={onClose}
+          nextLabel={nextLabel}
+          closeLabel={closeLabel}
+        />
       </div>
     </div>
   );

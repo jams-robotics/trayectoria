@@ -14,9 +14,9 @@ import type { LineFollowerInput, LineFollowerState } from '../lineFollower/model
 export const DERAIL_AFTER_S = 2.5;
 
 /** Simulated seconds integrated at most per frame, so a stalled tab does not freeze on return. */
-const MAX_FRAME_S = 0.1;
+export const MAX_FRAME_S = 0.1;
 
-const STEP_EPS_S = 1e-9;
+export const STEP_EPS_S = 1e-9;
 
 /** Heading kick of «Empujón», in radians (about 20°). */
 export const KICK_RAD = 0.35;

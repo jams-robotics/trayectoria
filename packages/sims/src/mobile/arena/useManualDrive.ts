@@ -9,7 +9,7 @@ import { commandOf } from '../lineFollower/useManualKeyboard';
 const START_RADPS = 8;
 const STEP_RADPS = 1;
 /** Fraction of the base speed taken from one wheel and given to the other while turning. */
-const TURN_FRACTION = 0.45;
+export const TURN_FRACTION = 0.45;
 
 export type Steer = -1 | 0 | 1;
 
@@ -23,13 +23,13 @@ export interface ManualDriveApi {
   accelerate(steps: number): void;
 }
 
-const LEFT_KEYS = new Set(['ArrowLeft', 'a', 'A']);
-const RIGHT_KEYS = new Set(['ArrowRight', 'd', 'D']);
-const UP_KEYS = new Set(['ArrowUp', 'w', 'W']);
-const DOWN_KEYS = new Set(['ArrowDown', 's', 'S']);
+export const LEFT_KEYS = new Set(['ArrowLeft', 'a', 'A']);
+export const RIGHT_KEYS = new Set(['ArrowRight', 'd', 'D']);
+export const UP_KEYS = new Set(['ArrowUp', 'w', 'W']);
+export const DOWN_KEYS = new Set(['ArrowDown', 's', 'S']);
 
 /** Keys typed into a control (a slider, a field, a select) are that control's, not the robot's. */
-function typedInControl(event: KeyboardEvent): boolean {
+export function typedInControl(event: KeyboardEvent): boolean {
   const target = event.target;
   if (!(target instanceof HTMLElement)) return false;
   return ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName) || target.isContentEditable;
