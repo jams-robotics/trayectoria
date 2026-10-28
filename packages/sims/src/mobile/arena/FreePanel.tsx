@@ -1,6 +1,7 @@
 import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 
+import { DuoToggle } from './DuoPanel';
 import type { ArenaSettingsApi } from './useArenaSettings';
 
 const BUTTON =
@@ -23,6 +24,7 @@ export function FreePanel({
       <button type="button" className={BUTTON} onClick={onRestart}>
         {t('sims.arena.free.restart')}
       </button>
+      <DuoToggle api={api} />
       <button type="button" className={BUTTON} onClick={() => api.pickTrack(api.settings.track)}>
         {t('sims.arena.free.exit')}
       </button>

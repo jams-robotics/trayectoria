@@ -12,6 +12,8 @@ export const CAMERA_MODES: readonly CameraMode[] = ['chase', 'orbit', 'top', 'on
 
 /** Fraction of the gap to the goal the camera closes per second (exponential smoothing). */
 const FOLLOW_RATE = 4.5;
+/** Closest the camera gets to a pair of robots, in metres. */
+const PAIR_MIN_M = 1.1;
 /** Angular speed of the cinema orbit, in rad/s. */
 const CINEMA_RADPS = 0.25;
 
@@ -21,8 +23,11 @@ export interface CameraRig {
   setBounds(bounds: Bounds): void;
   /** Fraction of the canvas width left free by the side panels, for the overview framings. */
   setWidthFraction(fraction: number): void;
-  /** Moves the camera towards the goal of the current mode for `robot`. */
-  update(robot: DiffDriveState, dt_s: number): void;
+  /**
+   * Moves the camera towards the goal of the current mode for `robot`; with `other` (two players)
+   * the chase frames both robots instead.
+   */
+  update(robot: DiffDriveState, dt_s: number, other?: DiffDriveState): void;
 }
 
 interface Goal {
@@ -35,6 +40,25 @@ function chaseGoal(robot: DiffDriveState, goal: Goal): void {
   const sin = Math.sin(robot.theta_rad);
   goal.eye.set(robot.x_m - 0.55 * cos, robot.y_m - 0.55 * sin, 0.34);
   goal.target.set(robot.x_m + 0.3 * cos, robot.y_m + 0.3 * sin, 0);
+}
+
+/** Both robots in view from behind and above: the camera backs off as they drift apart. */
+function pairGoal(
+  state: RigState,
+  camera: PerspectiveCamera,
+  robots: readonly [DiffDriveState, DiffDriveState],
+  goal: Goal,
+): void {
+  const [a, b] = robots;
+  const bounds = {
+    minX: Math.min(a.x_m, b.x_m),
+    minY: Math.min(a.y_m, b.y_m),
+    maxX: Math.max(a.x_m, b.x_m),
+    maxY: Math.max(a.y_m, b.y_m),
+  };
+  const height_m = Math.max(fitDistance(bounds, camera, state.widthFraction), PAIR_MIN_M);
+  centerOf(bounds, goal.target);
+  goal.eye.set(goal.target.x, goal.target.y - height_m * 0.35, height_m);
 }
 
 function onboardGoal(robot: DiffDriveState, goal: Goal): void {
@@ -98,8 +122,10 @@ function goalFor(
   goal: Goal,
   robot: DiffDriveState,
   dt_s: number,
+  other: DiffDriveState | undefined,
 ): void {
-  if (state.mode === 'chase') chaseGoal(robot, goal);
+  if (state.mode === 'chase' && other !== undefined) pairGoal(state, camera, [robot, other], goal);
+  else if (state.mode === 'chase') chaseGoal(robot, goal);
   else if (state.mode === 'onboard') onboardGoal(robot, goal);
   else if (state.mode === 'top') {
     centerOf(state.bounds, goal.target);
@@ -140,12 +166,12 @@ export function createCameraRig(camera: PerspectiveCamera, element: HTMLElement)
       state.bounds = next;
       reframe();
     },
-    update(robot, dt_s) {
+    update(robot, dt_s, other) {
       if (state.mode === 'orbit') {
         controls.update();
         return;
       }
-      goalFor(state, camera, goal, robot, dt_s);
+      goalFor(state, camera, goal, robot, dt_s, other);
       // The onboard camera is rigid: smoothing it would make the robot seem to drift under it.
       const k = state.mode === 'onboard' ? 1 : 1 - Math.exp(-FOLLOW_RATE * dt_s);
       camera.position.lerp(goal.eye, k);

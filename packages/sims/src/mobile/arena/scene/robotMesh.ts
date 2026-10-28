@@ -206,18 +206,22 @@ function dropShadows(group: Group): void {
   });
 }
 
-/**
- * Builds the robot of `spec`. `ghost` builds the translucent reference robot, which shows no
- * sensor beams so the learner's robot stays the one that reads the line. Without `sensors` the
- * sensor bar and its beams are left out: the free arena has no line to read.
- */
+export interface RobotLook {
+  /** The reference robot: translucent, with no sensor beams so the learner's stays the one that reads the line. */
+  readonly ghost?: boolean;
+  /** A ghost at full opacity and casting its shadow: the second player's robot. */
+  readonly opaque?: boolean;
+  /** Without it the sensor bar and its beams are left out: the free arena has no line to read. */
+  readonly sensors?: boolean;
+}
+
+/** Builds the robot of `spec`. */
 export function buildRobot(
   spec: MobileSpec,
   palette: ArenaPalette,
-  ghost = false,
-  sensors = true,
+  { ghost = false, opaque = false, sensors = true }: RobotLook = {},
 ): RobotMesh {
-  const opacity = ghost ? 0.38 : 1;
+  const opacity = ghost && !opaque ? 0.38 : 1;
   const group = new Group();
   const left = wheel(spec, palette, 1, opacity);
   const right = wheel(spec, palette, -1, opacity);
@@ -229,7 +233,7 @@ export function buildRobot(
     right,
     bar.group,
   );
-  if (ghost) dropShadows(group);
+  if (ghost && !opaque) dropShadows(group);
   const materials = materialsOf(group);
   return {
     group,

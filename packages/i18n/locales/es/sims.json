@@ -312,7 +312,8 @@
       "running": "En marcha",
       "paused": "En pausa",
       "derailed": "Fuera de la pista",
-      "manual": "Manejas tú"
+      "manual": "Manejas tú",
+      "duo": "Manejan los dos"
     },
     "tabs": {
       "label": "Paneles",
@@ -381,6 +382,20 @@
       "learned": "Un robot se mueve con dos ruedas: si una va más rápido que la otra, el robot gira.",
       "again": "Jugar otra vez",
       "close": "Seguir en la arena"
+    },
+    "duo": {
+      "start": "2 jugadores",
+      "title": "Dos jugadores",
+      "player": "Jugador {{n}}",
+      "leadLaps": "Un robot cada uno en la misma pista, a mano. Gana quien complete {{laps}} vueltas primero.",
+      "leadStars": "Un robot cada uno en la arena, a mano. Gana quien recoja más estrellas: las que toma uno desaparecen para el otro.",
+      "keys": "Jugador 1: W A S D. Jugador 2: flechas. Cada robot se mueve solo mientras mantienes sus teclas apretadas. Si chocan, se empujan.",
+      "touchNote": "Dos jugadores es para teclado: en el celular maneja solo el jugador 1.",
+      "back": "Volver a 1 jugador",
+      "done": "¡Tenemos ganador!",
+      "winner": "Gana el jugador {{n}}",
+      "tie": "Empate",
+      "learned": "Con el mismo robot y la misma física, gana quien mejor decide por dónde ir: una trayectoria limpia ahorra más tiempo que ir a toda velocidad."
     },
     "robotFrom": "El carrito usa las medidas de «Mi robot»: radio de rueda, separación y sensores.",
     "editRobot": "Editar mi robot",

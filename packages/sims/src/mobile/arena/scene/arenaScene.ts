@@ -40,6 +40,9 @@ const FLOOR_M = 14;
 /** Screen position of a robot, in CSS pixels of the canvas; `null` when behind the camera. */
 export type ScreenPoint = { readonly x: number; readonly y: number } | null;
 
+/** The robot next to the learner's: none, the translucent reference or player 2. */
+export type SecondRobot = 'none' | 'ghost' | 'player';
+
 export interface ArenaScene {
   readonly canvas: HTMLCanvasElement;
   setTrack(track: Track): void;
@@ -47,7 +50,7 @@ export interface ArenaScene {
   setFree(layout: FreeLayout): void;
   /** Hides the collected stars and spins the rest; `t_s` is the simulated time. */
   markGoals(collected: readonly boolean[], t_s: number): void;
-  setRobot(spec: MobileSpec, ghost: boolean, sensors: boolean): void;
+  setRobot(spec: MobileSpec, second: SecondRobot, sensors: boolean): void;
   setCamera(mode: CameraMode): void;
   /** Draws the racers and moves the camera; returns where each robot is on screen. */
   frame(you: Racer, ghost: Racer | null, dt_s: number): { you: ScreenPoint; ghost: ScreenPoint };
@@ -100,6 +103,7 @@ function rendererFor(canvas: HTMLCanvasElement): WebGLRenderer {
 interface Actors {
   you: RobotMesh | null;
   ghost: RobotMesh | null;
+  second: SecondRobot;
   track: Group | null;
   goals: readonly Group[];
 }
@@ -153,7 +157,7 @@ function stageFor(canvas: HTMLCanvasElement, root: Element): Stage {
     scene,
     camera,
     rig: createCameraRig(camera, canvas),
-    actors: { you: null, ghost: null, track: null, goals: [] },
+    actors: { you: null, ghost: null, second: 'none', track: null, goals: [] },
     trails,
     at: new Vector3(),
   };
@@ -184,11 +188,15 @@ function setFree(s: Stage, layout: FreeLayout): void {
   s.rig.setBounds(built.bounds);
 }
 
-function setRobot(s: Stage, spec: MobileSpec, ghost: boolean, sensors: boolean): void {
+function setRobot(s: Stage, spec: MobileSpec, second: SecondRobot, sensors: boolean): void {
   replace(s.scene, s.actors.you);
   replace(s.scene, s.actors.ghost);
-  s.actors.you = buildRobot(spec, s.palette, false, sensors);
-  s.actors.ghost = ghost ? buildRobot(spec, s.palette, true, sensors) : null;
+  s.actors.you = buildRobot(spec, s.palette, { sensors });
+  s.actors.second = second;
+  s.actors.ghost =
+    second === 'none'
+      ? null
+      : buildRobot(spec, s.palette, { ghost: true, opaque: second === 'player', sensors });
   s.scene.add(s.actors.you.group);
   if (s.actors.ghost !== null) s.scene.add(s.actors.ghost.group);
 }
@@ -208,10 +216,10 @@ function frame(
   );
   if (ghost !== null && actors.ghost !== null) {
     actors.ghost.update(ghost.state.robot, ghost.state.reading);
-    actors.ghost.fade(fadeNear(camera, actors.ghost.group, at));
+    if (actors.second === 'ghost') actors.ghost.fade(fadeNear(camera, actors.ghost.group, at));
     trails.ghost.push(ghost.state.robot.x_m, ghost.state.robot.y_m, 0);
   }
-  s.rig.update(you.state.robot, dt_s);
+  s.rig.update(you.state.robot, dt_s, actors.second === 'player' ? ghost?.state.robot : undefined);
   s.renderer.render(s.scene, camera);
   return {
     you: project(actors.you?.group, camera, s.canvas, at),
@@ -247,7 +255,7 @@ export function createArenaScene(canvas: HTMLCanvasElement, root: Element): Aren
     setTrack: (track) => setTrack(s, track),
     setFree: (layout) => setFree(s, layout),
     markGoals: (collected, t_s) => animateGoals(s.actors.goals, collected, t_s),
-    setRobot: (spec, ghost, sensors) => setRobot(s, spec, ghost, sensors),
+    setRobot: (spec, second, sensors) => setRobot(s, spec, second, sensors),
     setCamera: (mode) => s.rig.setMode(mode),
     frame: (you, ghost, dt_s) => frame(s, you, ghost, dt_s),
     clearTrails() {

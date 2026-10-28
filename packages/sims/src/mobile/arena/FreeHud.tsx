@@ -85,13 +85,21 @@ function HoldButton({
   );
 }
 
-/** Turn on the left thumb, go on the right one. */
-function FreePad({ drive }: { drive: FreeDriveApi }): JSX.Element {
+/** Turn on the left thumb, go on the right one; `keyboardOnly` leaves it to phones and tablets. */
+export function FreePad({
+  drive,
+  keyboardOnly = false,
+}: {
+  drive: FreeDriveApi;
+  keyboardOnly?: boolean;
+}): JSX.Element {
   const t = useT();
   const hold = (set: (value: Steer) => void, value: Steer) => (held: boolean) =>
     set(held ? value : 0);
   return (
-    <div className="absolute inset-x-0 bottom-3 z-10 flex items-end justify-between gap-3 px-3 lg:bottom-4">
+    <div
+      className={`absolute inset-x-0 bottom-3 z-10 flex items-end justify-between gap-3 px-3 lg:bottom-4 ${keyboardOnly ? 'lg:hidden' : ''}`}
+    >
       <div className="flex gap-3">
         <HoldButton glyph="◀" label={t('sims.arena.free.left')} onHold={hold(drive.setSteer, 1)} />
         <HoldButton

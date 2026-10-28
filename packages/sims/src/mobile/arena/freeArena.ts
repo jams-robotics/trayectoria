@@ -81,3 +81,22 @@ export function collectGoals(
   );
   return next.every((done, i) => done === collected[i]) ? collected : next;
 }
+
+/**
+ * Two robots (circles of `ROBOT_RADIUS_M`) moved apart along the line between their centres until
+ * they only touch, each by half the overlap. Robots on the same spot are pushed apart along x.
+ */
+export function separateRobots(a: Point, b: Point): readonly [Point, Point] {
+  const dx_m = b.x_m - a.x_m;
+  const dy_m = b.y_m - a.y_m;
+  const distance_m = Math.hypot(dx_m, dy_m);
+  const overlap_m = 2 * ROBOT_RADIUS_M - distance_m;
+  if (overlap_m <= 0) return [a, b];
+  const nx = distance_m === 0 ? 1 : dx_m / distance_m;
+  const ny = distance_m === 0 ? 0 : dy_m / distance_m;
+  const push_m = overlap_m / 2;
+  return [
+    { x_m: a.x_m - nx * push_m, y_m: a.y_m - ny * push_m },
+    { x_m: b.x_m + nx * push_m, y_m: b.y_m + ny * push_m },
+  ];
+}

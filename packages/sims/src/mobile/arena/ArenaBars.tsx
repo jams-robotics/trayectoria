@@ -9,13 +9,14 @@ const GLASS = 'rounded-lg border border-border bg-bg-raised/85 shadow-md backdro
 const BUTTON = 'min-h-10 rounded-md px-3 text-sm font-semibold transition-colors';
 const QUIET = `${BUTTON} text-fg hover:bg-bg`;
 
-export type ArenaStatus = 'running' | 'paused' | 'derailed' | 'manual';
+export type ArenaStatus = 'running' | 'paused' | 'derailed' | 'manual' | 'duo';
 
 const STATUS_DOT: Record<ArenaStatus, string> = {
   running: 'bg-success',
   paused: 'bg-fg-muted',
   derailed: 'bg-error',
   manual: 'bg-physical',
+  duo: 'bg-physical',
 };
 
 export interface TopBarProps {
@@ -40,7 +41,9 @@ export function Brand({ status, free }: { status: ArenaStatus; free: boolean }):
         <span className="text-base font-semibold leading-tight text-fg">
           {t('sims.arena.brand')}
         </span>
-        <span className="font-mono text-xs text-fg-muted">{t(free ? 'sims.arena.subtitleFree' : 'sims.arena.subtitle')}</span>
+        <span className="font-mono text-xs text-fg-muted">
+          {t(free ? 'sims.arena.subtitleFree' : 'sims.arena.subtitle')}
+        </span>
       </div>
       <span
         className="flex items-center gap-2 rounded-full border border-border px-2 py-1 text-xs text-fg"

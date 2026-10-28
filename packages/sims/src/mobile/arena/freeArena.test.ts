@@ -7,6 +7,7 @@ import {
   ROBOT_RADIUS_M,
   collectGoals,
   resolveCollisions,
+  separateRobots,
 } from './freeArena';
 
 const NONE = FREE_LAYOUT.goals.map(() => false);
@@ -68,5 +69,25 @@ describe('collectGoals', () => {
   it('keeps a collected goal collected and returns the same array when nothing changed', () => {
     const done = [true, ...NONE.slice(1)];
     expect(collectGoals(FREE_LAYOUT, done, { x_m: 0, y_m: 0.9 })).toBe(done);
+  });
+});
+
+describe('separateRobots', () => {
+  it('leaves robots that do not touch where they are', () => {
+    const a = { x_m: 0, y_m: 0 };
+    const b = { x_m: 3 * ROBOT_RADIUS_M, y_m: 0 };
+    expect(separateRobots(a, b)).toEqual([a, b]);
+  });
+
+  it('pushes overlapping robots apart by half the overlap each, until they only touch', () => {
+    const [a, b] = separateRobots({ x_m: 0, y_m: 0 }, { x_m: ROBOT_RADIUS_M, y_m: 0 });
+    expect(Math.hypot(b.x_m - a.x_m, b.y_m - a.y_m)).toBeCloseTo(2 * ROBOT_RADIUS_M, 9);
+    expect(a.x_m).toBeCloseTo(-ROBOT_RADIUS_M / 2, 9);
+    expect(b.x_m).toBeCloseTo(1.5 * ROBOT_RADIUS_M, 9);
+  });
+
+  it('separates robots on the very same spot', () => {
+    const [a, b] = separateRobots({ x_m: 1, y_m: 1 }, { x_m: 1, y_m: 1 });
+    expect(Math.hypot(b.x_m - a.x_m, b.y_m - a.y_m)).toBeCloseTo(2 * ROBOT_RADIUS_M, 9);
   });
 });

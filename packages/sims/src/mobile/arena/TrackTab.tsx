@@ -7,6 +7,7 @@ import type { Track } from '@trayectoria/sim-core';
 import { ARENA_TRACKS, ARENA_TRACK_IDS } from './arenaTracks';
 import { FREE_LAYOUT } from './freeArena';
 import type { ArenaTrackId } from './arenaTracks';
+import { DuoToggle } from './DuoPanel';
 import { boundsOf, sampleTrack } from './scene/trackMesh';
 import type { ArenaSettingsApi } from './useArenaSettings';
 
@@ -150,6 +151,7 @@ export function TrackTab({ api, robotHref }: TrackTabProps): JSX.Element {
         ))}
         <FreeCard active={api.settings.free} onPick={api.startFree} />
       </div>
+      <DuoToggle api={api} />
       <p className="text-sm text-fg-muted">{t('sims.arena.robotFrom')}</p>
       <a
         href={robotHref}

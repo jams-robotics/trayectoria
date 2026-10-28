@@ -3,13 +3,15 @@ import type { RefObject } from 'react';
 import type { Track, WheelCommand } from '@trayectoria/sim-core';
 import type { RobotSpec } from '@trayectoria/robot-spec';
 
+import { createDuoRace, isDuoRace } from './duoRace';
+import type { DuoProgress } from './duoRace';
 import { FREE_LAYOUT } from './freeArena';
 import { createFreeRace, freeProgress, isFreeRace } from './freeRace';
 import type { FreeProgress } from './freeRace';
 import { createRace } from './race';
 import type { Race, Racer } from './race';
 import { createArenaScene } from './scene/arenaScene';
-import type { ArenaScene, ScreenPoint } from './scene/arenaScene';
+import type { ArenaScene, ScreenPoint, SecondRobot } from './scene/arenaScene';
 import { createTelemetry } from './telemetry';
 import type { Telemetry } from './telemetry';
 import { NOISE_SIGMA } from './useArenaSettings';
@@ -35,6 +37,8 @@ export interface ArenaSnapshot {
   readonly ghost: Racer | null;
   /** Goals and stopwatch of the free arena; `null` on a track. */
   readonly free: FreeProgress | null;
+  /** Score and stopwatch of the two-player race; `null` with one player. */
+  readonly duo: DuoProgress | null;
 }
 
 export interface ArenaRefs {
@@ -60,6 +64,8 @@ interface LoopInputs {
   readonly settings: ArenaSettings;
   /** Wheel speeds of the manual mode, or `null` to let the controller drive. */
   readonly command: WheelCommand | null;
+  /** Wheel speeds of player 2 in a two-player race. */
+  readonly command2: WheelCommand | null;
 }
 
 function placeTag(tag: HTMLDivElement | null, point: ScreenPoint): void {
@@ -70,6 +76,8 @@ function placeTag(tag: HTMLDivElement | null, point: ScreenPoint): void {
 }
 
 function newRace({ spec, track, settings }: LoopInputs): Race {
+  if (settings.players === 2)
+    return createDuoRace(spec, settings.free ? { layout: FREE_LAYOUT } : { track });
   if (settings.free) return createFreeRace(spec, FREE_LAYOUT);
   return createRace({
     spec,
@@ -91,6 +99,7 @@ function useRace(inputs: LoopInputs, epoch: number): Race {
     spec.id,
     settings.track,
     settings.free,
+    settings.players,
     settings.controller,
     settings.ghost,
     settings.rival,
@@ -146,10 +155,11 @@ function useScene(refs: ArenaRefs, inputs: LoopInputs): RefObject<ArenaScene | n
   const scene = useMountedScene(refs, panels);
   const { spec, track, settings } = inputs;
   const mobile = spec.mobile;
+  const second = secondOf(settings);
   useEffect(() => {
     // The free arena has no line: its robots carry no sensors.
-    if (mobile !== undefined) scene.current?.setRobot(mobile, settings.ghost, !settings.free);
-  }, [mobile, settings.ghost, settings.free, scene]);
+    if (mobile !== undefined) scene.current?.setRobot(mobile, second, !settings.free);
+  }, [mobile, second, settings.free, scene]);
   useEffect(() => {
     if (settings.free) scene.current?.setFree(FREE_LAYOUT);
     else scene.current?.setTrack(track);
@@ -160,6 +170,18 @@ function useScene(refs: ArenaRefs, inputs: LoopInputs): RefObject<ArenaScene | n
     if (canvas !== null && scene.current !== null) fitScene(scene.current, canvas, panels.current);
   }, [settings.camera, refs.canvas, scene]);
   return scene;
+}
+
+/** The robot beside the learner's: player 2, the reference ghost or none. */
+function secondOf(settings: ArenaSettings): SecondRobot {
+  if (settings.players === 2) return 'player';
+  return settings.ghost ? 'ghost' : 'none';
+}
+
+/** Which stars are taken, for the scene to hide them; `null` on a track. */
+function takenOf(race: Race): readonly boolean[] | null {
+  if (isDuoRace(race)) return race.taken;
+  return isFreeRace(race) ? race.collected : null;
 }
 
 interface Live {
@@ -186,13 +208,19 @@ function useFrames(
       const { race, running, speed } = live.current;
       if (running) race.advance(dt_s * speed);
       telemetry.record(race.you);
-      if (isFreeRace(race)) scene.current?.markGoals(race.collected, race.you.state.robot.t_s);
+      const taken = takenOf(race);
+      if (taken !== null) scene.current?.markGoals(taken, race.you.state.robot.t_s);
       const points = scene.current?.frame(race.you, race.ghost, Math.min(dt_s, 0.1));
       placeTag(refs.youTag.current, race.ghost === null ? null : (points?.you ?? null));
       placeTag(refs.ghostTag.current, points?.ghost ?? null);
       if (now - lastSnapshot > SNAPSHOT_EVERY_MS) {
         lastSnapshot = now;
-        onSnapshot({ you: race.you, ghost: race.ghost, free: freeProgress(race) });
+        onSnapshot({
+          you: race.you,
+          ghost: race.ghost,
+          free: freeProgress(race),
+          duo: isDuoRace(race) ? race.duo : null,
+        });
       }
       frame = requestAnimationFrame(tick);
     };
@@ -217,6 +245,7 @@ export function useArenaLoop(refs: ArenaRefs, inputs: LoopInputs): ArenaLoop {
   race.setParams(inputs.settings.params[inputs.settings.controller]);
   race.setRivalParams(inputs.settings.rivalParams[inputs.settings.rival]);
   race.setCommand(inputs.command);
+  if (isDuoRace(race)) race.setCommand2(inputs.command2);
 
   useEffect(() => {
     telemetry.clear();

@@ -12,9 +12,9 @@ import { Brand, PlaybackBar, TopBar, VideoTools } from './ArenaBars';
 import type { ArenaStatus, TopBarProps } from './ArenaBars';
 import { HUD_CARD, LapBoard, SensorPanel } from './ArenaHud';
 import { useArenaKeys, useChallengeCheck, useRecorder } from './arenaHooks';
-import type { ChallengeState } from './arenaHooks';
-import { Celebration } from './Celebration';
-import { challengeText } from './ChallengesTab';
+import { ChallengeBanner, ChallengeCelebration, Tag } from './ArenaParts';
+import { DuoLayer, duoOverlay } from './DuoHud';
+import { DuoPanel } from './DuoPanel';
 import { FreeLayer, freeOverlay } from './FreeHud';
 import { FreePanel } from './FreePanel';
 import { KICK_RAD } from './race';
@@ -23,7 +23,7 @@ import { TelemetryChart } from './TelemetryChart';
 import { useArenaLoop } from './useArenaLoop';
 import type { ArenaLoop, ArenaRefs } from './useArenaLoop';
 import { useArenaSettings } from './useArenaSettings';
-import { useFreeDrive } from './useFreeDrive';
+import { ANY_KEYS, ARROW_KEYS, WASD_KEYS, useFreeDrive } from './useFreeDrive';
 import type { FreeDriveApi } from './useFreeDrive';
 import type { ArenaSettings, ArenaSettingsApi } from './useArenaSettings';
 import { useManualDrive } from './useManualDrive';
@@ -38,10 +38,13 @@ export interface ArenaProps {
 function statusOf(loop: ArenaLoop, settings: ArenaSettings): ArenaStatus {
   if (loop.snapshot?.you.derailed === true) return 'derailed';
   if (!loop.running) return 'paused';
+  if (settings.players === 2) return 'duo';
   return settings.controller === 'manual' ? 'manual' : 'running';
 }
 
 function overlayOf(t: Translate, loop: ArenaLoop, settings: ArenaSettings): Overlay {
+  const duo = loop.snapshot?.duo;
+  if (duo !== undefined && duo !== null) return duoOverlay(t, duo);
   const free = loop.snapshot?.free;
   if (free !== undefined && free !== null) return freeOverlay(t, free);
   const you = loop.snapshot?.you;
@@ -58,39 +61,6 @@ function overlayOf(t: Translate, loop: ArenaLoop, settings: ArenaSettings): Over
   };
 }
 
-function Tag({
-  tagRef,
-  label,
-  className,
-}: {
-  tagRef: ArenaRefs['youTag'];
-  label: string;
-  className: string;
-}): JSX.Element {
-  return (
-    <div
-      ref={tagRef}
-      hidden
-      className={`pointer-events-none absolute left-0 top-0 rounded-full px-2 py-1 font-mono text-xs font-semibold shadow-md ${className}`}
-    >
-      {label}
-    </div>
-  );
-}
-
-function ChallengeBanner({ settings }: { settings: ArenaSettings }): JSX.Element | null {
-  const t = useT();
-  if (settings.challenge === null) return null;
-  return (
-    <div className="pointer-events-none absolute inset-x-0 top-12 z-10 flex justify-center px-3 lg:top-12">
-      <p className="max-w-form-card rounded-lg border border-physical bg-bg-raised/90 px-4 py-2 text-center text-sm text-fg shadow-md backdrop-blur">
-        <span className="font-semibold text-physical">{`${challengeText(t, settings.challenge, 'title')} · `}</span>
-        {challengeText(t, settings.challenge, 'goal')}
-      </p>
-    </div>
-  );
-}
-
 function useArena(robot: RobotSpec | undefined) {
   const myRobot = useMyRobot();
   const spec = robot ?? myRobot;
@@ -99,8 +69,11 @@ function useArena(robot: RobotSpec | undefined) {
     throw new Error('La pista 3D requiere un robot con perfil «mobile-diff»');
   const api = useArenaSettings();
   const isFree = api.settings.free;
-  const drive = useManualDrive(mobile, api.settings.controller === 'manual' && !isFree);
-  const free = useFreeDrive(mobile, isFree);
+  const isDuo = api.settings.players === 2;
+  const drive = useManualDrive(mobile, api.settings.controller === 'manual' && !isFree && !isDuo);
+  // Two players: player 1 on WASD, player 2 on the arrows, both held-key drives of the free arena.
+  const free = useFreeDrive(mobile, isFree || isDuo, isDuo ? WASD_KEYS : ANY_KEYS);
+  const second = useFreeDrive(mobile, isDuo, ARROW_KEYS);
   const refs: ArenaRefs = {
     root: useRef<HTMLDivElement | null>(null),
     canvas: useRef<HTMLCanvasElement | null>(null),
@@ -111,7 +84,8 @@ function useArena(robot: RobotSpec | undefined) {
     spec,
     track: ARENA_TRACKS[api.settings.track],
     settings: api.settings,
-    command: isFree ? free.command : drive.command,
+    command: isFree || isDuo ? free.command : drive.command,
+    command2: second.command,
   });
   useArenaKeys(loop, api);
   const challenges = useChallengeCheck(loop.snapshot, api);
@@ -163,6 +137,10 @@ function StageOverlays({
   api: ArenaSettingsApi;
   free: FreeDriveApi;
 }): JSX.Element {
+  if (api.settings.players === 2)
+    return (
+      <DuoLayer progress={loop.snapshot?.duo ?? null} drive={free} onRestart={() => loop.reset()} />
+    );
   if (api.settings.free)
     return (
       <FreeLayer
@@ -194,6 +172,7 @@ function ArenaStage({
   free: FreeDriveApi;
 }): JSX.Element {
   const t = useT();
+  const duo = api.settings.players === 2;
   return (
     <div className="relative h-[64dvh] lg:absolute lg:inset-0 lg:h-auto">
       <canvas
@@ -203,12 +182,12 @@ function ArenaStage({
       />
       <Tag
         tagRef={refs.youTag}
-        label={t('sims.arena.you')}
+        label={duo ? t('sims.arena.duo.player', { n: 1 }) : t('sims.arena.you')}
         className="bg-physical text-physical-fg"
       />
       <Tag
         tagRef={refs.ghostTag}
-        label={t('sims.arena.reference')}
+        label={duo ? t('sims.arena.duo.player', { n: 2 }) : t('sims.arena.reference')}
         className="bg-primary text-primary-fg"
       />
       <TopBar {...bar} />
@@ -244,6 +223,33 @@ function HudAside({
 
 type ArenaState = ReturnType<typeof useArena>;
 
+/** The left panel of the free arena and of a two-player race; the track has its own panels. */
+function SidePanels({
+  state,
+  cinema,
+  robotHref,
+}: {
+  state: ArenaState;
+  cinema: boolean;
+  robotHref: string;
+}): JSX.Element {
+  const { api, loop } = state;
+  const duo = api.settings.players === 2;
+  if (!duo && !api.settings.free)
+    return <TrackPanels state={state} cinema={cinema} robotHref={robotHref} />;
+  return (
+    <aside
+      className={`${cinema ? 'hidden' : ''} px-3 lg:absolute lg:left-4 lg:top-12 lg:w-panel lg:px-0`}
+    >
+      {duo ? (
+        <DuoPanel api={api} onRestart={() => loop.reset()} />
+      ) : (
+        <FreePanel api={api} onRestart={() => loop.reset()} />
+      )}
+    </aside>
+  );
+}
+
 /** Everything beside the canvas on a track: lap board, sensors, telemetry, panel and celebration. */
 function TrackPanels({
   state,
@@ -274,21 +280,6 @@ function TrackPanels({
   );
 }
 
-function ChallengeCelebration({ challenges }: { challenges: ChallengeState }): JSX.Element | null {
-  const t = useT();
-  const { celebrating } = challenges;
-  if (celebrating === null) return null;
-  return (
-    <Celebration
-      heading={t('sims.arena.challenges.passed')}
-      title={challengeText(t, celebrating, 'title')}
-      learned={challengeText(t, celebrating, 'learned')}
-      onNext={challenges.next}
-      onClose={challenges.dismiss}
-    />
-  );
-}
-
 /**
  * The 3D line-follower arena: the same simulation as the 2D simulator, staged as a dark 3D
  * track with chase cameras, big readable instruments, a race against the reference robot,
@@ -312,15 +303,7 @@ export function Arena({ robotHref, robot }: ArenaProps): JSX.Element {
         <Brand status={bar.status} free={bar.free} />
         <VideoTools {...bar} />
       </div>
-      {api.settings.free ? (
-        <aside
-          className={`${cinema ? 'hidden' : ''} px-3 lg:absolute lg:left-4 lg:top-12 lg:w-panel lg:px-0`}
-        >
-          <FreePanel api={api} onRestart={() => loop.reset()} />
-        </aside>
-      ) : (
-        <TrackPanels state={state} cinema={cinema} robotHref={robotHref} />
-      )}
+      <SidePanels state={state} cinema={cinema} robotHref={robotHref} />
     </div>
   );
 }
