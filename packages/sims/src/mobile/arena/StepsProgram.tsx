@@ -40,7 +40,7 @@ export function ProgramList({ steps }: { steps: StepsApi }): JSX.Element {
         <p className="text-base text-fg-muted">{t('sims.arena.steps.empty')}</p>
       ) : (
         <ol
-          className="flex max-h-48 flex-col gap-1 overflow-y-auto pr-1"
+          className="flex max-h-[40vh] flex-col gap-1 overflow-y-auto pr-1"
           aria-label={t('sims.arena.steps.program')}
         >
           {steps.program.map((step, i) => {
