@@ -13,7 +13,7 @@ type Direction = keyof Held;
 
 const NONE: Held = { left: false, right: false, forward: false, back: false };
 const BIG =
-  'flex min-h-24 touch-none select-none items-center justify-center rounded-lg border border-border bg-bg-raised text-3xl font-semibold text-fg active:border-primary active:bg-primary active:text-primary-fg';
+  'flex min-h-12 touch-none py-8 select-none items-center justify-center rounded-lg border border-border bg-bg-raised text-3xl font-semibold text-fg active:border-primary active:bg-primary active:text-primary-fg';
 
 function axisOf(positive: boolean, negative: boolean): Axis {
   if (positive === negative) return 0;

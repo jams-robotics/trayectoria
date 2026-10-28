@@ -187,7 +187,7 @@ export function ClassroomPanel({ bus }: { bus: RemoteBus }): JSX.Element | null 
   const [open, setOpen] = useState(false);
   if (groups.length === 0) return null;
   return (
-    <aside className="absolute bottom-16 left-4 z-20 w-panel max-w-[calc(100%-2rem)] rounded-lg border border-border bg-bg-raised/95 p-3 text-fg shadow-md backdrop-blur lg:bottom-4">
+    <aside className="absolute bottom-12 left-4 z-20 w-panel max-w-[calc(100%-2rem)] rounded-lg border border-border bg-bg-raised/95 p-3 text-fg shadow-md backdrop-blur lg:bottom-4">
       <button
         type="button"
         data-testid="aula-toggle"
