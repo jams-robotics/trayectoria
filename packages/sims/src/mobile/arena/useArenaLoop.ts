@@ -147,8 +147,9 @@ function useScene(refs: ArenaRefs, inputs: LoopInputs): RefObject<ArenaScene | n
   const { spec, track, settings } = inputs;
   const mobile = spec.mobile;
   useEffect(() => {
-    if (mobile !== undefined) scene.current?.setRobot(mobile, settings.ghost);
-  }, [mobile, settings.ghost, scene]);
+    // The free arena has no line: its robots carry no sensors.
+    if (mobile !== undefined) scene.current?.setRobot(mobile, settings.ghost, !settings.free);
+  }, [mobile, settings.ghost, settings.free, scene]);
   useEffect(() => {
     if (settings.free) scene.current?.setFree(FREE_LAYOUT);
     else scene.current?.setTrack(track);

@@ -47,7 +47,7 @@ export interface ArenaScene {
   setFree(layout: FreeLayout): void;
   /** Hides the collected stars and spins the rest; `t_s` is the simulated time. */
   markGoals(collected: readonly boolean[], t_s: number): void;
-  setRobot(spec: MobileSpec, ghost: boolean): void;
+  setRobot(spec: MobileSpec, ghost: boolean, sensors: boolean): void;
   setCamera(mode: CameraMode): void;
   /** Draws the racers and moves the camera; returns where each robot is on screen. */
   frame(you: Racer, ghost: Racer | null, dt_s: number): { you: ScreenPoint; ghost: ScreenPoint };
@@ -184,11 +184,11 @@ function setFree(s: Stage, layout: FreeLayout): void {
   s.rig.setBounds(built.bounds);
 }
 
-function setRobot(s: Stage, spec: MobileSpec, ghost: boolean): void {
+function setRobot(s: Stage, spec: MobileSpec, ghost: boolean, sensors: boolean): void {
   replace(s.scene, s.actors.you);
   replace(s.scene, s.actors.ghost);
-  s.actors.you = buildRobot(spec, s.palette);
-  s.actors.ghost = ghost ? buildRobot(spec, s.palette, true) : null;
+  s.actors.you = buildRobot(spec, s.palette, false, sensors);
+  s.actors.ghost = ghost ? buildRobot(spec, s.palette, true, sensors) : null;
   s.scene.add(s.actors.you.group);
   if (s.actors.ghost !== null) s.scene.add(s.actors.ghost.group);
 }
@@ -247,7 +247,7 @@ export function createArenaScene(canvas: HTMLCanvasElement, root: Element): Aren
     setTrack: (track) => setTrack(s, track),
     setFree: (layout) => setFree(s, layout),
     markGoals: (collected, t_s) => animateGoals(s.actors.goals, collected, t_s),
-    setRobot: (spec, ghost) => setRobot(s, spec, ghost),
+    setRobot: (spec, ghost, sensors) => setRobot(s, spec, ghost, sensors),
     setCamera: (mode) => s.rig.setMode(mode),
     frame: (you, ghost, dt_s) => frame(s, you, ghost, dt_s),
     clearTrails() {

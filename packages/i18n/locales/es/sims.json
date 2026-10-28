@@ -307,6 +307,7 @@
   "arena": {
     "brand": "Pista 3D",
     "subtitle": "Seguidor de línea · física real",
+    "subtitleFree": "Arena libre · conos y estrellas",
     "status": {
       "running": "En marcha",
       "paused": "En pausa",

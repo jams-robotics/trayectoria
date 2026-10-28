@@ -28,9 +28,11 @@ export interface TopBarProps {
   readonly onVertical: (vertical: boolean) => void;
   readonly onRecord: () => void;
   readonly onFullscreen: () => void;
+  /** The free arena is on: the brand names it instead of the line follower. */
+  readonly free: boolean;
 }
 
-export function Brand({ status }: { status: ArenaStatus }): JSX.Element {
+export function Brand({ status, free }: { status: ArenaStatus; free: boolean }): JSX.Element {
   const t = useT();
   return (
     <div className={`${GLASS} flex items-center gap-3 px-3 py-2`}>
@@ -38,7 +40,7 @@ export function Brand({ status }: { status: ArenaStatus }): JSX.Element {
         <span className="text-base font-semibold leading-tight text-fg">
           {t('sims.arena.brand')}
         </span>
-        <span className="font-mono text-xs text-fg-muted">{t('sims.arena.subtitle')}</span>
+        <span className="font-mono text-xs text-fg-muted">{t(free ? 'sims.arena.subtitleFree' : 'sims.arena.subtitle')}</span>
       </div>
       <span
         className="flex items-center gap-2 rounded-full border border-border px-2 py-1 text-xs text-fg"
@@ -87,7 +89,7 @@ export function TopBar(props: TopBarProps): JSX.Element {
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-wrap items-start justify-between gap-2 p-3 lg:p-4 [&>*]:pointer-events-auto">
       <div className="hidden lg:block">
-        <Brand status={props.status} />
+        <Brand status={props.status} free={props.free} />
       </div>
       <Cameras camera={props.camera} onCamera={props.onCamera} />
       <div className="hidden lg:block">

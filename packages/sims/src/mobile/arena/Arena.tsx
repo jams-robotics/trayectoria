@@ -133,6 +133,7 @@ function useTopBar(refs: ArenaRefs, loop: ArenaLoop, api: ArenaSettingsApi): Top
     onVertical: recorder.setVertical,
     onRecord: recorder.toggle,
     onFullscreen: () => void refs.root.current?.requestFullscreen(),
+    free: settings.free,
   };
 }
 
@@ -308,7 +309,7 @@ export function Arena({ robotHref, robot }: ArenaProps): JSX.Element {
     >
       <ArenaStage refs={refs} loop={loop} api={api} bar={bar} free={free} />
       <div className="flex flex-wrap items-center justify-between gap-2 px-3 lg:hidden">
-        <Brand status={bar.status} />
+        <Brand status={bar.status} free={bar.free} />
         <VideoTools {...bar} />
       </div>
       {api.settings.free ? (

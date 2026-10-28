@@ -181,6 +181,24 @@ function sensorBar(spec: MobileSpec, palette: ArenaPalette, ghost: number): Sens
   return { group, leds, beams };
 }
 
+/** Lights each sensor LED and beam with its reading; the ghost shows no beams. */
+function lightSensors(
+  bar: SensorParts,
+  palette: ArenaPalette,
+  reading: LineReading,
+  ghost: boolean,
+): void {
+  reading.values.forEach((value, k) => {
+    const led = bar.leds[k];
+    const beam = bar.beams[k];
+    if (led !== undefined) {
+      led.color.copy(palette.sensorOff).lerp(palette.sensorOn, value);
+      led.emissive.copy(palette.sensorOn).multiplyScalar(value * 1.6);
+    }
+    if (beam !== undefined) beam.opacity = ghost ? 0 : 0.15 + value * 0.55;
+  });
+}
+
 /** The ghost casts no shadow: it is a reference, not a body on the mat. */
 function dropShadows(group: Group): void {
   group.traverse((child) => {
@@ -190,19 +208,26 @@ function dropShadows(group: Group): void {
 
 /**
  * Builds the robot of `spec`. `ghost` builds the translucent reference robot, which shows no
- * sensor beams so the learner's robot stays the one that reads the line.
+ * sensor beams so the learner's robot stays the one that reads the line. Without `sensors` the
+ * sensor bar and its beams are left out: the free arena has no line to read.
  */
-export function buildRobot(spec: MobileSpec, palette: ArenaPalette, ghost = false): RobotMesh {
+export function buildRobot(
+  spec: MobileSpec,
+  palette: ArenaPalette,
+  ghost = false,
+  sensors = true,
+): RobotMesh {
   const opacity = ghost ? 0.38 : 1;
   const group = new Group();
   const left = wheel(spec, palette, 1, opacity);
   const right = wheel(spec, palette, -1, opacity);
-  const sensors = sensorBar(spec, palette, opacity);
+  const bar = sensorBar(spec, palette, opacity);
+  bar.group.visible = sensors;
   group.add(
     chassis(spec, palette, ghost ? palette.ghost : palette.robot, opacity),
     left,
     right,
-    sensors.group,
+    bar.group,
   );
   if (ghost) dropShadows(group);
   const materials = materialsOf(group);
@@ -217,15 +242,7 @@ export function buildRobot(spec: MobileSpec, palette: ArenaPalette, ghost = fals
       group.rotation.z = robot.theta_rad;
       left.rotation.y = robot.wheelAngleL_rad;
       right.rotation.y = robot.wheelAngleR_rad;
-      reading.values.forEach((value, k) => {
-        const led = sensors.leds[k];
-        const beam = sensors.beams[k];
-        if (led !== undefined) {
-          led.color.copy(palette.sensorOff).lerp(palette.sensorOn, value);
-          led.emissive.copy(palette.sensorOn).multiplyScalar(value * 1.6);
-        }
-        if (beam !== undefined) beam.opacity = ghost ? 0 : 0.15 + value * 0.55;
-      });
+      lightSensors(bar, palette, reading, ghost);
     },
   };
 }
