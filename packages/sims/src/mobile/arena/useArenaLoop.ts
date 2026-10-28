@@ -74,6 +74,9 @@ function useRace(inputs: LoopInputs, epoch: number): Race {
     settings.controller,
     settings.ghost,
     settings.rival,
+    // Any gain of the rival restarts the run, as its controller does: a rival tuned mid-race and
+    // set back to the reference would otherwise leave a run no longer comparable.
+    settings.rivalParams[settings.rival],
     settings.noise,
     epoch,
   ]);
