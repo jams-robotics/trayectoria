@@ -1,0 +1,28 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import { PhoneSession } from '../../components/aula/PhoneSession';
+import Base from '../../layouts/Base.astro';
+
+// The phone side of a class session (#685). The join token travels in the URL fragment
+// (`#t=<token>`), which never reaches a server log or a `Referer`; the island reads it in the
+// browser, so the page stays prerendered.
+const cta = {
+  title: t('auth.gate.title'),
+  body: t('auth.gate.body'),
+  register: t('auth.gate.register'),
+  login: t('auth.gate.login'),
+};
+---
+
+<Base title={t('aula.session.phone.title')}>
+  <section class="mx-auto flex w-full max-w-[1120px] flex-1 flex-col px-5 py-11 md:px-8">
+    <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
+      {t('aula.session.phone.eyebrow')}
+    </p>
+    <h1 class="text-2xl leading-tight mt-4 font-semibold">{t('aula.session.phone.title')}</h1>
+    <div class="mt-7 max-w-form-card flex flex-1 flex-col">
+      <PhoneSession client:load cta={cta} />
+    </div>
+  </section>
+</Base>
