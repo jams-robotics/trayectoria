@@ -6,6 +6,7 @@ import type { MobileSpec } from '@trayectoria/robot-spec';
 import { ChallengesTab } from './ChallengesTab';
 import type { ChallengeId } from './challenges';
 import { ControlTab, SEGMENT, segmentButton } from './ControlTab';
+import { RivalSection } from './RivalSection';
 import { TrackTab } from './TrackTab';
 import type { ArenaSettingsApi } from './useArenaSettings';
 import type { ManualDriveApi } from './useManualDrive';
@@ -19,6 +20,20 @@ export interface ArenaPanelProps {
   readonly drive: ManualDriveApi;
   readonly passed: ReadonlySet<ChallengeId>;
   readonly robotHref: string;
+}
+
+/** The learner's controller and, while the ghost races, the rival's. */
+function ControlPane({
+  spec,
+  api,
+  drive,
+}: Omit<ArenaPanelProps, 'passed' | 'robotHref'>): JSX.Element {
+  return (
+    <div className="flex flex-col gap-4">
+      <ControlTab spec={spec} api={api} drive={drive} />
+      {api.settings.ghost ? <RivalSection spec={spec} api={api} /> : null}
+    </div>
+  );
 }
 
 /** The side panel: the controller and its gains, the track, and the challenges. */
@@ -51,7 +66,7 @@ export function ArenaPanel({ spec, api, drive, passed, robotHref }: ArenaPanelPr
         ))}
       </div>
       <div id={`arena-tabpanel-${tab}`} role="tabpanel" aria-labelledby={`arena-tab-${tab}`}>
-        {tab === 'control' ? <ControlTab spec={spec} api={api} drive={drive} /> : null}
+        {tab === 'control' ? <ControlPane spec={spec} api={api} drive={drive} /> : null}
         {tab === 'track' ? <TrackTab api={api} robotHref={robotHref} /> : null}
         {tab === 'challenges' ? (
           <ChallengesTab active={api.settings.challenge} passed={passed} onStart={startChallenge} />

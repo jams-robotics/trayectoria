@@ -33,6 +33,8 @@ export interface ChallengeRun {
   readonly controller: ControllerId;
   readonly you: Racer;
   readonly ghost: Racer | null;
+  /** False when the rival is not the reference PID; `beatGhost` then does not count. */
+  readonly rivalIsReference?: boolean;
 }
 
 /** Target lap of «Sprint en el óvalo», in seconds: the reference PID does 8.4 s. */
@@ -50,7 +52,8 @@ function average(values: readonly number[]): number {
   return values.reduce((sum, value) => sum + value, 0) / Math.max(values.length, 1);
 }
 
-function beatsGhost({ you, ghost }: ChallengeRun): boolean {
+function beatsGhost({ you, ghost, rivalIsReference = true }: ChallengeRun): boolean {
+  if (!rivalIsReference) return false;
   const mine = you.laps_s[0];
   if (mine === undefined || ghost === null) return false;
   const theirs = ghost.laps_s[0];

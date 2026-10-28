@@ -8,6 +8,7 @@ import type { Overlay, Recording } from './recorder';
 import { CAMERA_MODES } from './scene/cameraRig';
 import { loadPassed, savePassed } from './stores/challengeProgress';
 import type { ArenaLoop, ArenaSnapshot } from './useArenaLoop';
+import { isReferenceRival } from './useArenaSettings';
 import type { ArenaSettingsApi } from './useArenaSettings';
 import { KICK_RAD } from './race';
 
@@ -56,11 +57,12 @@ export function useChallengeCheck(
   const [passed, setPassed] = useState<ReadonlySet<ChallengeId>>(() => loadPassed());
   const [celebrating, setCelebrating] = useState<ChallengeId | null>(null);
   const { challenge: active, controller } = api.settings;
+  const rivalIsReference = isReferenceRival(api.settings);
   const { startChallenge } = api;
   useEffect(() => {
     if (active === null || snapshot === null) return;
-    if (!challengeOf(active).passed({ controller, you: snapshot.you, ghost: snapshot.ghost }))
-      return;
+    const run = { controller, you: snapshot.you, ghost: snapshot.ghost, rivalIsReference };
+    if (!challengeOf(active).passed(run)) return;
     setCelebrating(active);
     setPassed((current) => {
       const next = new Set(current).add(active);
@@ -68,7 +70,7 @@ export function useChallengeCheck(
       return next;
     });
     startChallenge(null);
-  }, [snapshot, active, controller, startChallenge]);
+  }, [snapshot, active, controller, rivalIsReference, startChallenge]);
   const following = CHALLENGES.find(
     (challenge) => challenge.id !== celebrating && !passed.has(challenge.id),
   );

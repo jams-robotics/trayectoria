@@ -347,6 +347,11 @@
     "noise": "Ruido en los sensores",
     "you": "Tú",
     "reference": "Referencia",
+    "rival": {
+      "name": "Rival",
+      "title": "Rival",
+      "notReference": "El rival no es el PID de referencia: el reto «Gánale a la referencia» no cuenta."
+    },
     "track": {
       "label": "Pista",
       "circuit": "Gran circuito",
@@ -387,7 +392,8 @@
       "last": "Última",
       "speed": "Velocidad",
       "lost": "Pérdidas de línea",
-      "gap": "vs. referencia",
+      "gap": "vs. rival",
+      "wins": "Vueltas ganadas",
       "ahead": "adelante",
       "behind": "atrás"
     },

@@ -1,6 +1,7 @@
 import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 
+import { lapWins } from './race';
 import type { Racer } from './race';
 
 const CARD = 'rounded-lg border border-border bg-bg-raised/85 p-3 shadow-md backdrop-blur';
@@ -41,6 +42,21 @@ function Stat({
   );
 }
 
+/** Laps won by each racer, once at least one lap of both is closed. */
+function Wins({ you, rival }: { you: Racer; rival: Racer }): JSX.Element | null {
+  const t = useT();
+  const wins = lapWins(you, rival);
+  if (wins.you + wins.rival === 0) return null;
+  return (
+    <div className="col-span-2 flex items-baseline justify-between gap-2 border-t border-border pt-2">
+      <span className="text-xs text-fg-muted">{t('sims.arena.hud.wins')}</span>
+      <span className="font-mono text-lg text-fg">
+        {`${t('sims.arena.you')} ${wins.you} · ${t('sims.arena.rival.name')} ${wins.rival}`}
+      </span>
+    </div>
+  );
+}
+
 /** Lap counter, current and best lap, speed and the gap to the reference robot. */
 export function LapBoard({ you, ghost }: { you: Racer; ghost: Racer | null }): JSX.Element {
   const t = useT();
@@ -58,6 +74,7 @@ export function LapBoard({ you, ghost }: { you: Racer; ghost: Racer | null }): J
         label={t('sims.arena.hud.speed')}
         value={`${Math.abs(you.state.robot.v_mps).toFixed(2)} m/s`}
       />
+      {ghost === null ? null : <Wins you={you} rival={ghost} />}
       {gap === null ? null : (
         <div className="col-span-2 flex items-baseline justify-between gap-2 border-t border-border pt-2">
           <span className="text-xs text-fg-muted">{t('sims.arena.hud.gap')}</span>

@@ -41,8 +41,23 @@ export interface RaceOptions {
   readonly params: ControllerParams;
   /** Races the reference PID next to the learner's robot. */
   readonly ghost: boolean;
+  /** Controller and gains of the rival; the reference PID when omitted. */
+  readonly rival?: { readonly controller: ControllerId; readonly params: ControllerParams };
   readonly seed: number;
   readonly noiseSigma?: number;
+}
+
+/** Laps won by each racer: lap `k` of one against lap `k` of the other, the faster one wins. */
+export function lapWins(you: Racer, rival: Racer): { you: number; rival: number } {
+  const wins = { you: 0, rival: 0 };
+  const count = Math.min(you.laps_s.length, rival.laps_s.length);
+  for (let k = 0; k < count; k += 1) {
+    const mine = you.laps_s[k] ?? 0;
+    const theirs = rival.laps_s[k] ?? 0;
+    if (mine < theirs) wins.you += 1;
+    else if (theirs < mine) wins.rival += 1;
+  }
+  return wins;
 }
 
 /** A run of the learner's robot and, optionally, the reference ghost. */
@@ -53,6 +68,8 @@ export interface Race {
   advance(elapsed_s: number): void;
   /** New gains for the running controller, applied from the next step on. */
   setParams(params: ControllerParams): void;
+  /** New gains for the rival's controller, applied from the next step on. */
+  setRivalParams(params: ControllerParams): void;
   /** Wheel speeds that override the controller (manual mode); `null` hands it back. */
   setCommand(command: WheelCommand | null): void;
   /** Turns the learner's robot by `rad` without stopping it, to watch the controller recover. */
@@ -116,9 +133,9 @@ function runnerOf(options: RaceOptions, id: ControllerId, params: ControllerPara
 export function createRace(options: RaceOptions): Race {
   const mine = runnerOf(options, options.controller, options.params);
   const you: Runner = mine.runner;
-  const ghost: Runner | null = options.ghost
-    ? runnerOf(options, 'pid', { ...REFERENCE_PID_PARAMS }).runner
-    : null;
+  const rival = options.rival ?? { controller: 'pid', params: { ...REFERENCE_PID_PARAMS } };
+  const theirs = options.ghost ? runnerOf(options, rival.controller, rival.params) : null;
+  const ghost: Runner | null = theirs === null ? null : theirs.runner;
   let input: LineFollowerInput = {};
   let pending_s = 0;
   const race: Race = {
@@ -139,6 +156,9 @@ export function createRace(options: RaceOptions): Race {
     },
     setParams(params) {
       mine.controller.params = params;
+    },
+    setRivalParams(params) {
+      if (theirs !== null) theirs.controller.params = params;
     },
     setCommand(command) {
       input = command === null ? {} : { command };

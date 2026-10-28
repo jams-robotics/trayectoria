@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { REFERENCE_PID_PARAMS } from '@trayectoria/sim-core';
 
 import { CONTROLLERS } from '../lineFollower/controllers';
 import type { ControllerId, ControllerParams } from '../lineFollower/controllers';
@@ -14,6 +15,9 @@ export interface ArenaSettings {
   /** Gains of every controller, so switching tabs keeps what was tuned on each one. */
   readonly params: Readonly<Record<ControllerId, ControllerParams>>;
   readonly ghost: boolean;
+  /** Controller of the rival (never manual) and its gains, apart from the learner's. */
+  readonly rival: ControllerId;
+  readonly rivalParams: Readonly<Record<ControllerId, ControllerParams>>;
   readonly noise: boolean;
   readonly camera: CameraMode;
   /** Playback multiplier of the simulated time. */
@@ -36,31 +40,60 @@ export const INITIAL_SETTINGS: ArenaSettings = {
     pid: { ...CONTROLLERS.pid.defaults, omegaBase_radps: 13 },
   },
   ghost: true,
+  rival: 'pid',
+  rivalParams: {
+    manual: CONTROLLERS.manual.defaults,
+    onoff: CONTROLLERS.onoff.defaults,
+    p: CONTROLLERS.p.defaults,
+    pid: { ...REFERENCE_PID_PARAMS },
+  },
   noise: false,
   camera: 'chase',
   speed: 1,
   challenge: null,
 };
 
+/** True while the rival is the reference PID, the one the challenges are calibrated against. */
+export function isReferenceRival(settings: ArenaSettings): boolean {
+  const pid = settings.rivalParams.pid;
+  return (
+    settings.rival === 'pid' &&
+    Object.entries(REFERENCE_PID_PARAMS).every(([key, value]) => pid[key] === value)
+  );
+}
+
+type SettingsPatch = Partial<Omit<ArenaSettings, 'params' | 'rivalParams'>>;
+
 export interface ArenaSettingsApi {
   readonly settings: ArenaSettings;
-  readonly update: (patch: Partial<Omit<ArenaSettings, 'params'>>) => void;
+  readonly update: (patch: SettingsPatch) => void;
   readonly setParam: (key: string, value: number) => void;
+  readonly setRivalParam: (key: string, value: number) => void;
   readonly startChallenge: (id: ChallengeId | null) => void;
+}
+
+type GainsById = ArenaSettings['params'];
+
+/** The gains of every controller with one gain of `id` changed. */
+function withGain(all: GainsById, id: ControllerId, key: string, value: number): GainsById {
+  return { ...all, [id]: { ...all[id], [key]: value } };
 }
 
 export function useArenaSettings(initial: ArenaSettings = INITIAL_SETTINGS): ArenaSettingsApi {
   const [settings, setSettings] = useState(initial);
-  const update = useCallback((patch: Partial<Omit<ArenaSettings, 'params'>>) => {
+  const update = useCallback((patch: SettingsPatch) => {
     setSettings((current) => ({ ...current, ...patch }));
   }, []);
   const setParam = useCallback((key: string, value: number) => {
     setSettings((current) => ({
       ...current,
-      params: {
-        ...current.params,
-        [current.controller]: { ...current.params[current.controller], [key]: value },
-      },
+      params: withGain(current.params, current.controller, key, value),
+    }));
+  }, []);
+  const setRivalParam = useCallback((key: string, value: number) => {
+    setSettings((current) => ({
+      ...current,
+      rivalParams: withGain(current.rivalParams, current.rival, key, value),
     }));
   }, []);
   const startChallenge = useCallback((id: ChallengeId | null) => {
@@ -77,7 +110,7 @@ export function useArenaSettings(initial: ArenaSettings = INITIAL_SETTINGS): Are
     });
   }, []);
   return useMemo(
-    () => ({ settings, update, setParam, startChallenge }),
-    [settings, update, setParam, startChallenge],
+    () => ({ settings, update, setParam, setRivalParam, startChallenge }),
+    [settings, update, setParam, setRivalParam, startChallenge],
   );
 }

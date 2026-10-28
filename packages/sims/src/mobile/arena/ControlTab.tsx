@@ -16,15 +16,17 @@ export function segmentButton(active: boolean): string {
 }
 
 /** One gain: its name, its value, the slider and what it does in one line. */
-function Slider({
+export function Slider({
   param,
   onChange,
+  idPrefix = 'arena-param',
 }: {
   param: ParamPanelParam;
   onChange: (key: string, value: number) => void;
+  idPrefix?: string;
 }): JSX.Element {
   const t = useT();
-  const id = `arena-param-${param.key}`;
+  const id = `${idPrefix}-${param.key}`;
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-baseline justify-between gap-2">

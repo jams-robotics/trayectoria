@@ -3,7 +3,8 @@ import { parseRobotSpec, referenceMobile } from '@trayectoria/robot-spec';
 
 import { CONTROLLERS } from '../lineFollower/controllers';
 import { ARENA_TRACKS } from './arenaTracks';
-import { DERAIL_AFTER_S, KICK_RAD, createRace } from './race';
+import { DERAIL_AFTER_S, KICK_RAD, createRace, lapWins } from './race';
+import type { Racer } from './race';
 
 function spec() {
   const result = parseRobotSpec(referenceMobile);
@@ -66,5 +67,36 @@ describe('createRace', () => {
     const x = run.you.state.robot.x_m;
     run.advance(0.05);
     expect(run.you.state.robot.x_m).toBe(x);
+  });
+});
+
+describe('rival', () => {
+  function duel(rival?: { controller: 'onoff'; params: Record<string, number> }) {
+    return createRace({
+      spec: spec(),
+      track: ARENA_TRACKS.oval,
+      controller: 'pid',
+      params: CONTROLLERS.pid.defaults,
+      ghost: true,
+      ...(rival === undefined ? {} : { rival }),
+      seed: 7,
+    });
+  }
+
+  test('a rival with another controller runs another path than the reference', () => {
+    const reference = duel();
+    const onoff = duel({ controller: 'onoff', params: { ...CONTROLLERS.onoff.defaults } });
+    for (let i = 0; i < 100; i += 1) {
+      reference.advance(0.05);
+      onoff.advance(0.05);
+    }
+    expect(onoff.ghost?.state.robot.x_m).not.toBeCloseTo(reference.ghost?.state.robot.x_m ?? 0, 3);
+    expect(onoff.you.state.robot.x_m).toBeCloseTo(reference.you.state.robot.x_m, 9);
+  });
+
+  test('lapWins counts the faster lap of each pair and skips ties and open laps', () => {
+    const racer = (laps_s: number[]): Racer => ({ ...race().you, laps_s });
+    expect(lapWins(racer([8, 9, 7]), racer([9, 8, 7, 5]))).toEqual({ you: 1, rival: 1 });
+    expect(lapWins(racer([]), racer([8]))).toEqual({ you: 0, rival: 0 });
   });
 });

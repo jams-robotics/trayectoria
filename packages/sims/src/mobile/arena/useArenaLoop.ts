@@ -73,6 +73,7 @@ function useRace(inputs: LoopInputs, epoch: number): Race {
     settings.track,
     settings.controller,
     settings.ghost,
+    settings.rival,
     settings.noise,
     epoch,
   ]);
@@ -83,6 +84,7 @@ function useRace(inputs: LoopInputs, epoch: number): Race {
       controller: settings.controller,
       params: settings.params[settings.controller],
       ghost: settings.ghost,
+      rival: { controller: settings.rival, params: settings.rivalParams[settings.rival] },
       seed: SEED,
       ...(settings.noise ? { noiseSigma: NOISE_SIGMA } : {}),
     });
@@ -194,6 +196,7 @@ export function useArenaLoop(refs: ArenaRefs, inputs: LoopInputs): ArenaLoop {
   const live = useRef<Live>({ race, running, speed: inputs.settings.speed });
   live.current = { race, running, speed: inputs.settings.speed };
   race.setParams(inputs.settings.params[inputs.settings.controller]);
+  race.setRivalParams(inputs.settings.rivalParams[inputs.settings.rival]);
   race.setCommand(inputs.command);
 
   useEffect(() => {
