@@ -21,11 +21,11 @@ import type { usePageState } from './useMobileSimState';
  */
 const LEFT_COLUMN = 'flex min-w-0 flex-1 flex-col gap-3';
 
-/** The viewer is capped at 50 vh (16/9, so 50vh·16/9 wide) and centred, same conditions. */
+/** #683: the viewer and the editor canvas are capped at 60 vh (16/9, so 60vh·16/9 wide), same conditions. */
 const VIEWER_CAP =
   '[@media(min-width:1024px)_and_(min-height:640px)]:mx-auto ' +
   '[@media(min-width:1024px)_and_(min-height:640px)]:w-full ' +
-  '[@media(min-width:1024px)_and_(min-height:640px)]:max-w-[calc(50vh*16/9)]';
+  '[@media(min-width:1024px)_and_(min-height:640px)]:max-w-[calc(60vh*16/9)]';
 
 /** What the viewer box receives from the island. */
 interface ViewerBoxProps {
@@ -67,14 +67,16 @@ export function ViewerBox(props: ViewerBoxProps): JSX.Element {
       <div hidden={editing} className={VIEWER_CAP}>
         {viewer}
       </div>
-      <TrackEditorBox
-        open={editing}
-        track={page.editorTrack}
-        onTrack={page.onTrack}
-        onBack={onBack}
-        renderPanel={(panel) => <EditorPanelPort store={panels} panel={panel} />}
-        onSaveTrack={onSaveTrack}
-      />
+      <div hidden={!editing} className={VIEWER_CAP}>
+        <TrackEditorBox
+          open={editing}
+          track={page.editorTrack}
+          onTrack={page.onTrack}
+          onBack={onBack}
+          renderPanel={(panel) => <EditorPanelPort store={panels} panel={panel} />}
+          onSaveTrack={onSaveTrack}
+        />
+      </div>
       {plots}
     </div>
   );
