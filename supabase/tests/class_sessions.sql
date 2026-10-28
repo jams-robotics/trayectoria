@@ -2,7 +2,7 @@
 -- Users: teacher A owns group G; B and C are members; D is in no group; E is a second teacher.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(24);
+select plan(29);
 
 create function pg_temp.act_as(target_user_id uuid) returns void language sql as $$
   select set_config(
@@ -118,6 +118,13 @@ select ok(public.aula_can_use_topic(realtime.topic(), true), 'the teacher uses a
 
 select pg_temp.act_as('00000000-0000-4000-8000-00000000000b');
 select ok(public.aula_can_use_topic(realtime.topic(), true), 'approved sends on its own topic');
+select is_empty($$ select * from public.class_sessions $$, 'a student cannot read the sessions, nor their token');
+delete from public.session_participants;
+select results_eq(
+  $$ select count(*)::int from public.session_participants $$,
+  $$ values (1) $$,
+  'a student cannot delete their own row'
+);
 select pg_temp.on_topic('aula:00000000-0000-4000-8000-0000000005e1:00000000-0000-4000-8000-00000000000c');
 select ok(
   not public.aula_can_use_topic(realtime.topic(), true)
@@ -155,6 +162,33 @@ select is_empty($$ select * from public.session_participants $$, 'closing delete
 select ok(
   not public.aula_can_use_topic(realtime.topic(), false),
   'a closed session has no topics'
+);
+
+-- An expired session admits no requests and no topics, even for rows already approved.
+reset role;
+insert into public.class_sessions (id, group_id, teacher_id, join_token, expires_at) values
+  ('00000000-0000-4000-8000-0000000005e2', '00000000-0000-4000-8000-0000000000a1',
+   '00000000-0000-4000-8000-00000000000a', '00000000-0000-4000-8000-0000000007a2', now() - interval '1 minute');
+insert into public.session_participants (session_id, user_id, status) values
+  ('00000000-0000-4000-8000-0000000005e2', '00000000-0000-4000-8000-00000000000b', 'approved');
+set local role authenticated;
+select pg_temp.act_as('00000000-0000-4000-8000-00000000000c');
+select is_empty(
+  $$ select * from public.request_join_session('00000000-0000-4000-8000-0000000007a2', true) $$,
+  'an expired session admits no request'
+);
+select pg_temp.on_topic('aula:00000000-0000-4000-8000-0000000005e2:00000000-0000-4000-8000-00000000000b');
+select pg_temp.act_as('00000000-0000-4000-8000-00000000000b');
+select ok(
+  not public.aula_can_use_topic(realtime.topic(), false)
+  and not public.aula_can_use_topic(realtime.topic(), true),
+  'an approved participant has no topic once the session expired'
+);
+select pg_temp.act_as('00000000-0000-4000-8000-00000000000a');
+select ok(
+  not public.aula_can_use_topic(realtime.topic(), false)
+  and not public.aula_can_use_topic(realtime.topic(), true),
+  'the teacher has no topic once the session expired'
 );
 
 select * from finish();
