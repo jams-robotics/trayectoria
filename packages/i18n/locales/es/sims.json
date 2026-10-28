@@ -295,5 +295,189 @@
     "downloadFailed": "No se pudo descargar el brazo guardado.",
     "loadFailed": "No se pudo cargar el brazo importado.",
     "loading": "Cargando el brazo importado…"
+  },
+  "arenaPage": {
+    "title": "Pista 3D: seguidor de línea",
+    "lead": "Un carrito seguidor de línea en 3D con la misma física del simulador 2D. Ajusta el controlador, compite contra el robot de referencia y supera los retos.",
+    "loading": "Cargando la pista 3D…",
+    "promo": "Nuevo: la pista 3D, con retos y carrera contra el robot de referencia.",
+    "promoLink": "Abrir la pista 3D",
+    "classic": "Ver el simulador 2D clásico"
+  },
+  "arena": {
+    "brand": "Pista 3D",
+    "subtitle": "Seguidor de línea · física real",
+    "status": {
+      "running": "En marcha",
+      "paused": "En pausa",
+      "derailed": "Fuera de la pista",
+      "manual": "Manejas tú"
+    },
+    "tabs": {
+      "label": "Paneles",
+      "control": "Control",
+      "track": "Pista",
+      "challenges": "Retos"
+    },
+    "controller": {
+      "label": "Controlador",
+      "manual": "Manejar",
+      "onoff": "On/off",
+      "p": "P",
+      "pid": "PID"
+    },
+    "controllerHint": {
+      "manual": "Tú eres el controlador: flechas o WASD para girar y acelerar. Los sensores siguen leyendo, pero nadie les hace caso.",
+      "onoff": "Si ve la línea a un lado, gira de golpe hacia ese lado. Simple, pero zigzaguea.",
+      "p": "Gira en proporción al error: poco error, poca corrección. Más suave que on/off.",
+      "pid": "P corrige el error de ahora, I el que se acumula y D frena la oscilación. El que usan los robots de competencia."
+    },
+    "paramHint": {
+      "omegaBase_radps": "Qué tan rápido giran las ruedas en recta.",
+      "delta_radps": "Cuánto cambia cada rueda al corregir.",
+      "kp": "Fuerza de la corrección según el error.",
+      "ki": "Corrige el error que se acumula con el tiempo.",
+      "kd": "Frena la corrección cuando el error cambia rápido.",
+      "iMax": "Tope de la parte integral, para que no se dispare.",
+      "threshold": "Umbral"
+    },
+    "speedOf": "≈ {{speed}} m/s en recta",
+    "ghost": "Carrera contra el robot de referencia",
+    "ghostHint": "Un robot translúcido con el PID de referencia corre la misma pista.",
+    "noise": "Ruido en los sensores",
+    "you": "Tú",
+    "reference": "Referencia",
+    "track": {
+      "label": "Pista",
+      "circuit": "Gran circuito",
+      "oval": "Óvalo",
+      "s": "Curvas en S",
+      "tight": "Curvas cerradas",
+      "length": "{{length}} m de línea"
+    },
+    "robotFrom": "El carrito usa las medidas de «Mi robot»: radio de rueda, separación y sensores.",
+    "editRobot": "Editar mi robot",
+    "camera": {
+      "label": "Cámara",
+      "chase": "Persecución",
+      "orbit": "Libre",
+      "top": "Cenital",
+      "onboard": "A bordo",
+      "cinema": "Cine"
+    },
+    "play": "Arrancar",
+    "pause": "Pausa",
+    "reset": "Reiniciar",
+    "kick": "Empujón",
+    "kickHint": "Desvía el robot 20° para ver cómo se recupera el controlador",
+    "speed": "Velocidad de la simulación",
+    "record": "Grabar",
+    "recordStop": "Detener",
+    "recordVertical": "Vertical 9:16",
+    "recordHint": "Graba la pista en video para compartirla",
+    "recording": "Grabando",
+    "recordSaved": "Video guardado",
+    "recordUnsupported": "Este navegador no puede grabar video",
+    "fullscreen": "Pantalla completa",
+    "hud": {
+      "lap": "Vuelta",
+      "laps": "Vueltas",
+      "lapTime": "Vuelta actual",
+      "best": "Mejor vuelta",
+      "last": "Última",
+      "speed": "Velocidad",
+      "lost": "Pérdidas de línea",
+      "gap": "vs. referencia",
+      "ahead": "adelante",
+      "behind": "atrás"
+    },
+    "sensors": {
+      "title": "Sensores",
+      "error": "Error de línea",
+      "left": "izq.",
+      "right": "der.",
+      "centered": "centrado",
+      "lost": "línea perdida",
+      "hint": "Cada sensor mide cuánta línea negra tiene debajo (0 a 1). El error es dónde la ve el arreglo: −1 a la izquierda, +1 a la derecha."
+    },
+    "chart": {
+      "title": "Telemetría",
+      "window": "últimos 8 s",
+      "error": "Error",
+      "errorHint": "El controlador intenta llevarlo a 0",
+      "wheels": "Ruedas",
+      "left": "ω izq.",
+      "right": "ω der.",
+      "unit": "rad/s"
+    },
+    "manual": {
+      "left": "Girar a la izquierda",
+      "right": "Girar a la derecha",
+      "faster": "Más rápido",
+      "slower": "Más lento",
+      "keys": "Flechas o WASD · Espacio arranca o pausa"
+    },
+    "challenges": {
+      "title": "Retos",
+      "intro": "Cada reto se comprueba solo con los números de la simulación.",
+      "level": "Nivel {{level}}",
+      "start": "Intentar",
+      "active": "En curso",
+      "done": "Superado",
+      "doneCount": "{{done}} de {{total}} superados",
+      "passed": "¡Reto superado!",
+      "learned": "Lo que aprendiste",
+      "next": "Siguiente reto",
+      "close": "Seguir en la pista",
+      "none": "Modo libre",
+      "firstLap": {
+        "title": "Primera vuelta",
+        "goal": "Completa una vuelta al óvalo con el PID.",
+        "learned": "Un controlador de lazo cerrado mide (sensores), compara con lo que quiere (línea al centro) y corrige (ruedas). Eso es todo un robot autónomo."
+      },
+      "onoffOval": {
+        "title": "Todo o nada",
+        "goal": "Da 3 vueltas al óvalo con el controlador on/off.",
+        "learned": "El on/off solo conoce dos respuestas, por eso zigzaguea. Mira la estela: las franjas rojas son las correcciones bruscas."
+      },
+      "tightP": {
+        "title": "Curvas cerradas",
+        "goal": "Da 2 vueltas a las curvas cerradas con el controlador P.",
+        "learned": "Con P la corrección crece con el error: en una curva cerrada el error crece y el robot gira más."
+      },
+      "cleanS": {
+        "title": "Sin perder la línea",
+        "goal": "3 vueltas a las curvas en S sin perder la línea ni una vez. Empieza con on/off… ¿te alcanza?",
+        "learned": "Elegir el controlador es parte del diseño: on/off pierde la línea en las S; P o PID no."
+      },
+      "beatGhost": {
+        "title": "Gánale a la referencia",
+        "goal": "Termina tu primera vuelta al gran circuito antes que el robot de referencia.",
+        "learned": "Más velocidad exige mejor control. Subir la velocidad base sin ajustar Kp y Kd hace que el robot se salga."
+      },
+      "pilot": {
+        "title": "Piloto",
+        "goal": "Maneja tú una vuelta al óvalo en menos de {{seconds}} s.",
+        "learned": "Manejar a mano con el retraso de los motores es difícil. Por eso los robots usan control automático: reacciona cada milisegundo."
+      },
+      "ovalSprint": {
+        "title": "Sprint",
+        "goal": "Una vuelta al óvalo en menos de {{seconds}} s.",
+        "learned": "Para ir rápido hay que subir la velocidad base y compensar con las ganancias. Así se afina un robot de competencia."
+      },
+      "cleanCircuit": {
+        "title": "Vuelta de campeón",
+        "goal": "3 vueltas al gran circuito sin perder la línea, con promedio menor a {{seconds}} s.",
+        "learned": "Rápido y limpio a la vez: eso es un controlador bien sintonizado. Ya hablas el idioma de la robótica de competencia."
+      }
+    },
+    "intro": {
+      "title": "Un robot real, en tu navegador",
+      "body": "Este carrito sigue la línea con 5 sensores y un controlador PID. Cambia sus números y mira qué pasa.",
+      "go": "Empezar"
+    },
+    "tag": {
+      "derailed": "¡Se salió!"
+    }
   }
 }

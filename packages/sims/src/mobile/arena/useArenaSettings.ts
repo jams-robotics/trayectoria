@@ -1,0 +1,83 @@
+import { useCallback, useMemo, useState } from 'react';
+
+import { CONTROLLERS } from '../lineFollower/controllers';
+import type { ControllerId, ControllerParams } from '../lineFollower/controllers';
+import type { ArenaTrackId } from './arenaTracks';
+import { challengeOf } from './challenges';
+import type { ChallengeId } from './challenges';
+import type { CameraMode } from './scene/cameraRig';
+
+/** Everything the learner chooses in the arena. */
+export interface ArenaSettings {
+  readonly track: ArenaTrackId;
+  readonly controller: ControllerId;
+  /** Gains of every controller, so switching tabs keeps what was tuned on each one. */
+  readonly params: Readonly<Record<ControllerId, ControllerParams>>;
+  readonly ghost: boolean;
+  readonly noise: boolean;
+  readonly camera: CameraMode;
+  /** Playback multiplier of the simulated time. */
+  readonly speed: number;
+  readonly challenge: ChallengeId | null;
+}
+
+export const PLAYBACK_SPEEDS: readonly number[] = [0.25, 0.5, 1, 2];
+/** Standard deviation of the sensor noise when «Ruido» is on. */
+export const NOISE_SIGMA = 0.06;
+
+/** The arena opens on the long circuit, PID a bit faster than the reference, racing the ghost. */
+export const INITIAL_SETTINGS: ArenaSettings = {
+  track: 'circuit',
+  controller: 'pid',
+  params: {
+    manual: CONTROLLERS.manual.defaults,
+    onoff: CONTROLLERS.onoff.defaults,
+    p: CONTROLLERS.p.defaults,
+    pid: { ...CONTROLLERS.pid.defaults, omegaBase_radps: 13 },
+  },
+  ghost: true,
+  noise: false,
+  camera: 'chase',
+  speed: 1,
+  challenge: null,
+};
+
+export interface ArenaSettingsApi {
+  readonly settings: ArenaSettings;
+  readonly update: (patch: Partial<Omit<ArenaSettings, 'params'>>) => void;
+  readonly setParam: (key: string, value: number) => void;
+  readonly startChallenge: (id: ChallengeId | null) => void;
+}
+
+export function useArenaSettings(initial: ArenaSettings = INITIAL_SETTINGS): ArenaSettingsApi {
+  const [settings, setSettings] = useState(initial);
+  const update = useCallback((patch: Partial<Omit<ArenaSettings, 'params'>>) => {
+    setSettings((current) => ({ ...current, ...patch }));
+  }, []);
+  const setParam = useCallback((key: string, value: number) => {
+    setSettings((current) => ({
+      ...current,
+      params: {
+        ...current.params,
+        [current.controller]: { ...current.params[current.controller], [key]: value },
+      },
+    }));
+  }, []);
+  const startChallenge = useCallback((id: ChallengeId | null) => {
+    setSettings((current) => {
+      if (id === null) return { ...current, challenge: null };
+      const challenge = challengeOf(id);
+      return {
+        ...current,
+        challenge: id,
+        track: challenge.track,
+        ghost: challenge.ghost,
+        controller: challenge.controller ?? current.controller,
+      };
+    });
+  }, []);
+  return useMemo(
+    () => ({ settings, update, setParam, startChallenge }),
+    [settings, update, setParam, startChallenge],
+  );
+}
