@@ -16,6 +16,8 @@ const ASTRO = 'node node_modules/astro/bin/astro.mjs';
 const SERVER_ARGS = `--host 127.0.0.1 --port ${PORT}`;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const PUBLIC_ENV_NAMES = ['PUBLIC_SUPABASE_URL', 'PUBLIC_SUPABASE_ANON_KEY'] as const;
+// Specs that drive the 3D track: CI draws WebGL in software, and two at once hang the page.
+const THREE_D_SPECS = /(sim-carrito|sim-dos-jugadores|sim-pasos|aula-sesion)\.spec\.ts$/;
 
 function readEnvExample(): Record<string, string> {
   const file = readFileSync(path.resolve(import.meta.dirname, '../../.env.example'), 'utf8');
@@ -64,7 +66,19 @@ export default defineConfig({
     baseURL: BASE_URL,
     trace: 'retain-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    {
+      name: 'chromium',
+      testIgnore: THREE_D_SPECS,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: '3d',
+      testMatch: THREE_D_SPECS,
+      workers: 1,
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
   webServer: {
     // --ignore-lock skips the lock file of Astro 7, which a previous aborted dev run may have left.
     command: IS_CI
