@@ -1,6 +1,8 @@
-import { AuthGate, type AuthGateCta } from '@trayectoria/auth';
+import { AuthGate, useSession, type AuthGateCta } from '@trayectoria/auth';
 import { useT } from '@trayectoria/i18n';
-import type { JSX } from 'react';
+import { useEffect, type JSX } from 'react';
+
+import { rememberReturnTo } from '../../stores/returnTo';
 
 import { PRIMARY_BUTTON } from '../auth/fields';
 import { PhoneControls } from './PhoneControls';
@@ -53,6 +55,11 @@ function PhonePanel(): JSX.Element {
 
 /** The island of `/aula/sesion`: needs a session; the token is read from `#t=` (#685). */
 export function PhoneSession({ cta }: { cta: AuthGateCta }): JSX.Element {
+  const { session, ready } = useSession();
+  // Without a session the student goes to the login: the login sends them back here with the token.
+  useEffect(() => {
+    if (ready && session === null) rememberReturnTo(window.location.pathname + window.location.hash);
+  }, [ready, session]);
   return (
     <AuthGate cta={cta}>
       <PhonePanel />

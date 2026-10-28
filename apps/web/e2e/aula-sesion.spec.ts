@@ -13,14 +13,18 @@ function uniqueEmail(prefix: string): string {
   return `${prefix}+${Date.now()}-${test.info().workerIndex}@example.com`;
 }
 
-async function signInOnPage(page: Page, email: string): Promise<void> {
-  await page.goto('/auth/login');
+async function fillLogin(page: Page, email: string): Promise<void> {
   await page.waitForFunction(() =>
     [...document.querySelectorAll('astro-island')].every((island) => !island.hasAttribute('ssr')),
   );
   await page.getByLabel(auth.fields.email, { exact: true }).fill(email);
   await page.getByLabel(auth.fields.password, { exact: true }).fill(E2E_PASSWORD);
   await page.getByRole('button', { name: auth.login.submit, exact: true }).click();
+}
+
+async function signInOnPage(page: Page, email: string): Promise<void> {
+  await page.goto('/auth/login');
+  await fillLogin(page, email);
   await page.waitForURL('**/cuenta');
 }
 
@@ -71,6 +75,16 @@ test('classroom: the phone asks, the teacher approves, drives and kicks', async 
   await carlosPhone.goto(link);
   await expect(carlosPhone.getByTestId('phone-invalid')).toBeVisible();
   await carlosPhone.context().close();
+
+  // Without a session the QR goes through the login and comes back with the token (#685).
+  const late = await browser.newContext({ viewport: { width: 390, height: 780 } });
+  const latePhone = await late.newPage();
+  await latePhone.goto(link);
+  await latePhone.getByRole('link', { name: auth.gate.login, exact: true }).click();
+  await fillLogin(latePhone, ana.email);
+  await latePhone.waitForURL('**/aula/sesion#t=*');
+  await expect(latePhone.getByTestId('phone-teacher')).toContainText(TEACHER_NAME);
+  await late.close();
 
   // A student of the group sees who runs the session, asks and waits.
   const anaPhone = await phoneOf(browser, ana);
