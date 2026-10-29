@@ -6,7 +6,7 @@ import { stepsLayout } from './stepGoals';
 import type { StepGoal } from './stepGoals';
 import { createStepRunner } from './stepRunner';
 import type { RunStatus, StepRunner } from './stepRunner';
-import { MIN_REPEAT, addStep, expand, removeLast } from './steps';
+import { MIN_REPEAT, addStep, expand, moveStep, removeAt, removeLast } from './steps';
 import type { Program, Step } from './steps';
 
 export interface StepsApi {
@@ -16,6 +16,10 @@ export interface StepsApi {
   readonly setRepeatN: (n: number) => void;
   readonly add: (step: Step) => void;
   readonly undo: () => void;
+  /** Takes out the button at `index` (a «Repetir» or «Fin» with its partner). */
+  readonly remove: (index: number) => void;
+  /** Moves the button at `index` one place up (−1) or down (+1) when the program stays valid. */
+  readonly move: (index: number, by: -1 | 1) => void;
   readonly clear: () => void;
   /** Builds the runner of the program for a robot at the start; the caller restarts the race. */
   readonly run: () => void;
@@ -51,6 +55,8 @@ export function useSteps(spec: MobileSpec, goal: StepGoal | null): StepsApi {
     setRepeatN,
     add: (step) => edit((current) => addStep(current, step)),
     undo: () => edit(removeLast),
+    remove: (index) => edit((current) => removeAt(current, index)),
+    move: (index, by) => edit((current) => moveStep(current, index, by)),
     clear: () => edit(() => []),
     run() {
       setLastId(lastId + 1);

@@ -19,6 +19,7 @@ import { freeOverlay } from './FreeHud';
 import { FreePanel } from './FreePanel';
 import { StageOverlays } from './ArenaOverlays';
 import { StepsPanel } from './StepsPanel';
+import { ProgramPanel } from './StepsProgram';
 import type { Overlay } from './recorder';
 import { TelemetryChart } from './TelemetryChart';
 import type { RemoteControl } from './remote';
@@ -195,6 +196,24 @@ function HudAside({
 
 type ArenaState = ReturnType<typeof useArena>;
 
+/** The program of «Pasos» on the right, the side the free floor leaves empty. */
+function ProgramAside({ state, cinema }: { state: ArenaState; cinema: boolean }): JSX.Element {
+  const { steps, loop } = state;
+  return (
+    <aside
+      className={`${cinema ? 'hidden' : 'flex'} flex-col px-3 lg:absolute lg:top-12 lg:right-4 lg:bottom-12 lg:w-panel lg:px-0 lg:pt-12`}
+    >
+      <ProgramPanel
+        steps={steps}
+        onRun={() => {
+          steps.run();
+          loop.reset();
+        }}
+      />
+    </aside>
+  );
+}
+
 /** The left panel of the free arena and of a two-player race; the track has its own panels. */
 function SidePanels({
   state,
@@ -210,24 +229,20 @@ function SidePanels({
   if (!duo && !api.settings.free)
     return <TrackPanels state={state} cinema={cinema} robotHref={robotHref} />;
   return (
-    <aside
-      className={`${cinema ? 'hidden' : ''} px-3 lg:absolute lg:left-4 lg:top-12 lg:w-panel lg:px-0 ${api.settings.steps ? 'lg:bottom-12 lg:overflow-y-auto lg:pt-12' : ''}`}
-    >
-      {duo ? (
-        <DuoPanel api={api} onRestart={() => loop.reset()} />
-      ) : api.settings.steps ? (
-        <StepsPanel
-          api={api}
-          steps={steps}
-          onRun={() => {
-            steps.run();
-            loop.reset();
-          }}
-        />
-      ) : (
-        <FreePanel api={api} onRestart={() => loop.reset()} />
-      )}
-    </aside>
+    <>
+      <aside
+        className={`${cinema ? 'hidden' : ''} px-3 lg:absolute lg:left-4 lg:top-12 lg:w-panel lg:px-0 ${api.settings.steps ? 'lg:bottom-12 lg:overflow-y-auto lg:pt-12' : ''}`}
+      >
+        {duo ? (
+          <DuoPanel api={api} onRestart={() => loop.reset()} />
+        ) : api.settings.steps ? (
+          <StepsPanel api={api} steps={steps} />
+        ) : (
+          <FreePanel api={api} onRestart={() => loop.reset()} />
+        )}
+      </aside>
+      {!duo && api.settings.steps ? <ProgramAside state={state} cinema={cinema} /> : null}
+    </>
   );
 }
 

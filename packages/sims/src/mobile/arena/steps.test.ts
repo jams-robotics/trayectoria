@@ -5,7 +5,7 @@ import type { MobileSpec } from '@trayectoria/robot-spec';
 import { createFreeRace } from './freeRace';
 import { backAtStart, isSquare, stepsLayout } from './stepGoals';
 import { createStepRunner } from './stepRunner';
-import { MAX_STEPS, addStep, canAdd, expand } from './steps';
+import { MAX_STEPS, addStep, canAdd, canMove, expand, moveStep, removeAt } from './steps';
 import type { Program, Step } from './steps';
 
 const F: Step = { kind: 'forward' };
@@ -68,6 +68,46 @@ describe('addStep', () => {
     expect(canAdd(build(times(2), end), times(3))).toBe(true);
     expect(canAdd([], times(1))).toBe(false);
     expect(canAdd([], times(10))).toBe(false);
+  });
+});
+
+describe('removeAt', () => {
+  const F = { kind: 'forward' } as const;
+  const L = { kind: 'left' } as const;
+  const R4 = { kind: 'repeat', n: 4 } as const;
+  const END = { kind: 'end' } as const;
+
+  test('takes out one move and keeps the rest in order', () => {
+    expect(removeAt([F, L, F], 1)).toEqual([F, F]);
+  });
+
+  test('a «Repetir» or its «Fin» take the pair out and leave the block once', () => {
+    expect(removeAt([F, R4, F, L, END, F], 1)).toEqual([F, F, L, F]);
+    expect(removeAt([F, R4, F, L, END, F], 4)).toEqual([F, F, L, F]);
+  });
+});
+
+describe('moveStep', () => {
+  const F = { kind: 'forward' } as const;
+  const L = { kind: 'left' } as const;
+  const R4 = { kind: 'repeat', n: 4 } as const;
+  const END = { kind: 'end' } as const;
+
+  test('swaps a move with its neighbour', () => {
+    expect(moveStep([F, L], 1, -1)).toEqual([L, F]);
+    expect(moveStep([F, L], 0, 1)).toEqual([L, F]);
+  });
+
+  test('moves into and out of a block, never past the edges', () => {
+    expect(moveStep([F, R4, L, END], 0, 1)).toEqual([R4, F, L, END]);
+    expect(moveStep([R4, L, END, F], 3, -1)).toEqual([R4, L, F, END]);
+    expect(moveStep([F, L], 0, -1)).toEqual([F, L]);
+    expect(moveStep([F, L], 1, 1)).toEqual([F, L]);
+  });
+
+  test('refuses a move that breaks the block: «Fin» before its «Repetir»', () => {
+    expect(canMove([R4, END], 1, -1)).toBe(false);
+    expect(moveStep([R4, END], 0, 1)).toEqual([R4, END]);
   });
 });
 

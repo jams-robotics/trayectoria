@@ -52,6 +52,66 @@ export function removeLast(program: Program): Program {
   return program.slice(0, -1);
 }
 
+/** Whether `program` follows the rules: no «Repetir» inside another, no «Fin» without one. */
+export function isValid(program: Program): boolean {
+  let open = false;
+  for (const step of program) {
+    if (step.kind === 'repeat') {
+      if (open) return false;
+      open = true;
+    } else if (step.kind === 'end') {
+      if (!open) return false;
+      open = false;
+    }
+  }
+  return true;
+}
+
+/** The index of the «Repetir» or «Fin» that pairs with the one at `index`, or `null`. */
+function partnerOf(program: Program, index: number): number | null {
+  const kind = program[index]?.kind;
+  if (kind === 'repeat') {
+    const end = program.findIndex((step, i) => i > index && step.kind === 'end');
+    return end === -1 ? null : end;
+  }
+  if (kind === 'end') {
+    for (let i = index - 1; i >= 0; i -= 1) if (program[i]?.kind === 'repeat') return i;
+  }
+  return null;
+}
+
+/**
+ * Without the button at `index`. A «Repetir» or «Fin» takes its partner with it, so the block's
+ * moves stay and run once.
+ */
+export function removeAt(program: Program, index: number): Program {
+  const partner = partnerOf(program, index);
+  return program.filter((_, i) => i !== index && i !== partner);
+}
+
+/** `program` with the button at `index` swapped with its neighbour `by` (−1 up, +1 down). */
+function swapped(program: Program, index: number, by: -1 | 1): Program {
+  const other = index + by;
+  const out = [...program];
+  const a = out[index];
+  const b = out[other];
+  if (a === undefined || b === undefined) return program;
+  out[index] = b;
+  out[other] = a;
+  return out;
+}
+
+/** Whether the button at `index` can move one place by `by` and leave a valid program. */
+export function canMove(program: Program, index: number, by: -1 | 1): boolean {
+  const moved = swapped(program, index, by);
+  return moved !== program && isValid(moved);
+}
+
+/** The button at `index` one place up or down, or the same program when the move is not valid. */
+export function moveStep(program: Program, index: number, by: -1 | 1): Program {
+  return canMove(program, index, by) ? swapped(program, index, by) : program;
+}
+
 /** The moves of `program`, each block repeated; a block left open runs up to the end. */
 export function expand(program: Program): readonly Action[] {
   const out: Action[] = [];

@@ -65,6 +65,28 @@ test.describe('Pasos', () => {
     expect(errors).toEqual([]);
   });
 
+  test('any button of the program can be taken out or moved', async ({ page }) => {
+    const errors = await openSteps(page);
+    await add(page, steps.forward);
+    await add(page, steps.left);
+    await add(page, steps.right);
+    const rows = program(page).getByRole('listitem');
+    await expect(rows).toHaveCount(3);
+
+    // Take out the middle one: the first and the last stay, in order.
+    await page.getByRole('button', { name: steps.remove.replace('{{n}}', '2') }).click();
+    await expect(rows).toHaveCount(2);
+    await expect(rows.nth(0)).toContainText(steps.forward);
+    await expect(rows.nth(1)).toContainText(steps.right);
+
+    // Move the last one up: it becomes the first.
+    await page.getByRole('button', { name: steps.moveUp.replace('{{n}}', '2') }).click();
+    await expect(rows.nth(0)).toContainText(steps.right);
+    await expect(rows.nth(1)).toContainText(steps.forward);
+    await expect(page.getByRole('button', { name: steps.moveUp.replace('{{n}}', '1') })).toBeDisabled();
+    expect(errors).toEqual([]);
+  });
+
   test('a square written with «Repetir» solves the goal', async ({ page }) => {
     test.setTimeout(SQUARE_TIMEOUT_MS + 60_000);
     const errors = await openSteps(page);

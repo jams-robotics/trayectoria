@@ -5,7 +5,7 @@ import { MAX_REPEAT, MIN_REPEAT, canAdd } from './steps';
 import type { Step } from './steps';
 import { stepLabel } from './stepLabel';
 import type { StepGoal } from './stepGoals';
-import { ProgramActions, ProgramList, SMALL } from './StepsProgram';
+import { SMALL } from './StepsProgram';
 import type { StepsApi } from './useSteps';
 import type { ArenaSettingsApi } from './useArenaSettings';
 
@@ -102,15 +102,13 @@ function GoalPicker({ api, onPick }: { api: ArenaSettingsApi; onPick: () => void
   );
 }
 
-/** Big buttons that build the program, its list, run and the way back to driving by keys. */
+/** The goal, the big buttons that build the program and the way back to driving by keys. */
 export function StepsPanel({
   api,
   steps,
-  onRun,
 }: {
   api: ArenaSettingsApi;
   steps: StepsApi;
-  onRun: () => void;
 }): JSX.Element {
   const t = useT();
   return (
@@ -119,8 +117,6 @@ export function StepsPanel({
       <p className="text-sm text-fg-muted">{t('sims.arena.steps.lead')}</p>
       <GoalPicker api={api} onPick={steps.stop} />
       <Palette steps={steps} />
-      <ProgramList steps={steps} />
-      <ProgramActions steps={steps} onRun={onRun} />
       <button
         type="button"
         className={SMALL}
