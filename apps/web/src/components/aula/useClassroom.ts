@@ -96,6 +96,7 @@ export function useClassroom(userId: string, groupId: string, bus: RemoteBus): C
   const setActive = (id: string | null): void => {
     setActiveId(id);
     hubRef.current?.setActive(id);
+    if (id !== null) bus.emit({ kind: 'takeover' });
   };
   return {
     session,

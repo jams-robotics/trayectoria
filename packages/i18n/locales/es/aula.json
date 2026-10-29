@@ -101,7 +101,20 @@
       "approved": "Aprobado",
       "last": "Último comando",
       "idle": "ninguno",
-      "failed": "No se pudo completar la operación. Inténtalo de nuevo."
+      "failed": "No se pudo completar la operación. Inténtalo de nuevo.",
+      "howScan": "Los alumnos escanean el QR.",
+      "howApprove": "Apruebas a cada uno.",
+      "howDrive": "Das el control y manejan desde el teléfono.",
+      "showQr": "Mostrar QR en grande",
+      "scanTitle": "Escanea con la cámara del teléfono",
+      "closeQr": "Cerrar",
+      "approveShort": "Aprobar",
+      "driveShort": "Dar el control",
+      "releaseShort": "Quitar el control",
+      "kickShort": "Expulsar",
+      "toggleOpen": "Aula · sesión abierta",
+      "togglePending": "Aula · {{n}} por aprobar",
+      "toggleDriving": "Aula · conduce {{name}}"
     },
     "phone": {
       "title": "Controlar el robot",
@@ -122,7 +135,25 @@
       "right": "Derecha",
       "forward": "Avanzar",
       "back": "Retroceder",
-      "tuneHint": "Los cambios llegan al controlador del robot en la pantalla."
+      "tuneHint": "El robot sigue la línea con estas ganancias. Mira la pantalla y prueba.",
+      "still": "Quieto",
+      "leftShort": "Izq.",
+      "rightShort": "Der.",
+      "padLabel": "Joystick: arrastra para mover el robot, o usa las flechas del teclado",
+      "padHint": "Arrastra el círculo con el dedo. Al soltarlo, el robot se detiene.",
+      "stepsLabel": "Pasos para controlar el robot",
+      "step": {
+        "ask": "Unirme",
+        "approval": "Espera",
+        "turn": "Turno",
+        "drive": "Manejar"
+      },
+      "offerHint": "Tu docente te aprobará y te dará el turno para manejar el robot de la pantalla.",
+      "waitingHint": "Deja esta página abierta: cambia sola cuando te aprueben.",
+      "approvedHint": "Cuando sea tu turno, aquí aparecerá el joystick.",
+      "live": "Manejas tú: mira la pantalla",
+      "connected": "Conectado a la sesión de {{teacher}}",
+      "offline": "Sin sesión"
     }
   }
 }

@@ -17,23 +17,47 @@ interface Targets {
   readonly free: FreeDriveApi;
 }
 
-/** Applies a gain only if the current controller has it, clamped to its slider range. */
+/**
+ * Applies a gain, clamped to its slider range. A gain needs a controller on the line, so from the
+ * free arena or two players the arena goes back to the track with the PID, without the ghost: one
+ * robot on screen is the one the phone tunes.
+ */
 function applyParam(targets: Targets, key: string, value: number): void {
-  const { settings, setParam } = targets.api;
+  const { api, spec } = targets;
+  const { settings } = api;
+  const offLine = settings.free || settings.players === 2;
+  const controller =
+    offLine || !CONTROLLERS[settings.controller].keys.includes(key) ? 'pid' : settings.controller;
+  if (controller !== settings.controller || offLine) {
+    if (settings.players === 2) api.setPlayers(1);
+    if (settings.free) api.pickTrack(settings.track);
+    api.update({ controller, ghost: false });
+  }
   const slider = controllerParams(
-    settings.controller,
-    settings.params[settings.controller],
-    targets.spec,
+    controller,
+    settings.params[controller],
+    spec,
     (text) => text,
   ).find((param) => param.key === key);
-  if (slider === undefined || !CONTROLLERS[settings.controller].keys.includes(key)) return;
-  setParam(key, Math.min(Math.max(value, slider.min), slider.max));
+  if (slider === undefined) return;
+  api.setParam(key, Math.min(Math.max(value, slider.min), slider.max));
 }
 
-/** The free arena takes the held direction; the manual track steers and `go` changes the speed. */
+/** Whether a phone can drive the robot as the arena is: by hand, not by a controller or a program. */
+function drivable(api: ArenaSettingsApi): boolean {
+  const { settings } = api;
+  if (settings.players === 2) return true;
+  if (settings.free) return !settings.steps;
+  return settings.controller === 'manual';
+}
+
+/**
+ * The free arena (and player 1 of two) takes the held direction; the manual track steers and
+ * `go` changes the speed.
+ */
 function applyDrive(targets: Targets, steer: RemoteEvent & { kind: 'drive' }): void {
   const { api, drive, free } = targets;
-  if (api.settings.free) {
+  if (api.settings.free || api.settings.players === 2) {
     free.setGo(steer.go);
     free.setSteer(steer.steer);
   } else if (api.settings.controller === 'manual') {
@@ -55,9 +79,19 @@ export function useRemoteDrive(remote: RemoteControl | undefined, targets: Targe
     const stop = (): void => applyDrive(latest.current, { kind: 'drive', steer: 0, go: 0 });
     const unsubscribe = remote.subscribe((event) => {
       if (event.kind === 'param') return applyParam(latest.current, event.key, event.value);
+      if (event.kind === 'takeover') {
+        if (!drivable(latest.current.api)) latest.current.api.startFree();
+        return undefined;
+      }
       clearTimeout(deadman);
-      applyDrive(latest.current, event);
-      if (event.steer !== 0 || event.go !== 0) deadman = setTimeout(stop, REMOTE_DEADMAN_MS);
+      const moving = event.steer !== 0 || event.go !== 0;
+      // A phone that drives takes the arena to the free floor; the settings there arrive next render.
+      if (moving && !drivable(latest.current.api)) {
+        latest.current.api.startFree();
+        latest.current.free.setGo(event.go);
+        latest.current.free.setSteer(event.steer);
+      } else applyDrive(latest.current, event);
+      if (moving) deadman = setTimeout(stop, REMOTE_DEADMAN_MS);
       return undefined;
     });
     return () => {

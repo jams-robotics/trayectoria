@@ -16,12 +16,12 @@ const cta = {
 ---
 
 <Base title={t('aula.session.phone.title')}>
-  <section class="mx-auto flex w-full max-w-[1120px] flex-1 flex-col px-5 py-11 md:px-8">
+  <section class="mx-auto flex w-full max-w-form-card flex-1 flex-col px-4 py-6 md:py-11">
     <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
       {t('aula.session.phone.eyebrow')}
     </p>
-    <h1 class="text-2xl leading-tight mt-4 font-semibold">{t('aula.session.phone.title')}</h1>
-    <div class="mt-7 max-w-form-card flex flex-1 flex-col">
+    <h1 class="text-xl leading-tight mt-2 font-semibold">{t('aula.session.phone.title')}</h1>
+    <div class="mt-4 flex flex-1 flex-col">
       <PhoneSession client:load cta={cta} />
     </div>
   </section>

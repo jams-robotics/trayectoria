@@ -2,6 +2,7 @@ import { expect, test, type Browser, type Page } from '@playwright/test';
 
 import auth from '../../../packages/i18n/locales/es/auth.json' with { type: 'json' };
 import aula from '../../../packages/i18n/locales/es/aula.json' with { type: 'json' };
+import sims from '../../../packages/i18n/locales/es/sims.json' with { type: 'json' };
 import { E2E_PASSWORD, joinGroup, signUp, type TestUser } from './helpers/supabase';
 
 // #685: the phone as a controller of the 3D track, approved by the teacher. One teacher in the
@@ -100,15 +101,25 @@ test('classroom: the phone asks, the teacher approves, drives and kicks', async 
   await page.getByRole('button', { name: named(aula.session.teacher.drive, 'Ana Aula') }).click();
   await expect(anaPhone.getByTestId('phone-pad')).toBeVisible({ timeout: 15_000 });
 
-  // Holding «Avanzar» reaches the PC; letting go stops it.
-  const forward = anaPhone.getByRole('button', { name: aula.session.phone.forward });
-  const box = await forward.boundingBox();
-  if (box === null) throw new Error('forward button has no box');
-  await anaPhone.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  // Giving the control opens the free arena on the PC, where a phone can drive.
+  const board = page.getByRole('region', { name: sims.arena.free.board });
+  await expect(board).toContainText('0.0 s', { timeout: 15_000 });
+
+  // Pushing the joystick up drives forward on the PC and the robot moves; letting go stops it.
+  const pad = await anaPhone.getByTestId('phone-pad').boundingBox();
+  if (pad === null) throw new Error('the joystick has no box');
+  const centreX = pad.x + pad.width / 2;
+  const centreY = pad.y + pad.height / 2;
+  await anaPhone.mouse.move(centreX, centreY);
   await anaPhone.mouse.down();
+  await anaPhone.mouse.move(centreX, centreY - pad.height / 3, { steps: 4 });
+  const state = anaPhone.locator('#phone-drive-state');
+  await expect(state).toHaveText(aula.session.phone.forward);
   await expect(page.getByTestId('aula-last')).toHaveText('0 · 1', { timeout: 15_000 });
+  await expect(board).not.toContainText('0.0 s', { timeout: 15_000 });
   await anaPhone.mouse.up();
   await expect(page.getByTestId('aula-last')).toHaveText('0 · 0', { timeout: 15_000 });
+  await expect(state).toHaveText(aula.session.phone.still);
 
   // Kicked: the phone says so, the row is no longer approved and she cannot ask again.
   await page.getByRole('button', { name: named(aula.session.teacher.kick, 'Ana Aula') }).click();
