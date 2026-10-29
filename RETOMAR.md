@@ -26,7 +26,7 @@ PUBLIC_SUPABASE_URL=http://192.168.1.29:54321 CLAUDECODE= pnpm dev --host 0.0.0.
 
 ## Estado de las pruebas (28 oct, rama `feat/aula-telefono`)
 
-- `lint`, `typecheck`, unitarias (sim-core 462, sims 578, web 337, content 656, auth y progress), `build` y `content:check`: en verde.
+- `lint`, `typecheck`, unitarias (sim-core 462, sims 583, web 341, content 656, auth y progress), `build` y `content:check`: en verde.
 - e2e completo (266): en verde. `formula-desborde-390` falla de vez en cuando por una navegación; repetido 6 de 6 en verde.
 - Visuales Plot, Tema y Tema-mobile: corregidos (las `-win32` eran anteriores al marcador dentro de la gráfica y al bloque de cierre del #661).
 - Recorrido manual con capturas como docente a 1884×936 y teléfono a 390×844: Pasos, aula, recarga del teléfono, vistas y progreso.
@@ -46,7 +46,6 @@ PUBLIC_SUPABASE_URL=http://192.168.1.29:54321 CLAUDECODE= pnpm dev --host 0.0.0.
 - **Vista y progreso:** dar el control reinicia la arena en «Persecución». El teléfono elige entre Persecución, A bordo y Cenital, ve las estrellas y el tiempo, y al terminar tiene «Jugar otra vez». Un teléfono que se recarga recupera su turno sin pedir unirse.
 - **Pasos:** el programa va en un panel a la derecha y cada paso se puede subir, bajar o quitar. Un «Repetir» o «Fin» se va con su pareja.
 - **QR:** `qrcode-generator` 2.0.4 (MIT, sin dependencias), autorizado el 28 oct. Se dibuja oscuro sobre blanco en ambos temas.
-- **Pasos:** botones de 48 px y «Ejecutar» fijo al pie del panel.
 
 ## Pendientes
 
