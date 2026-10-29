@@ -1,15 +1,6 @@
 # RETOMAR: v2 de la Pista 3D
 
-La pila de la v2 está en un solo PR, **#694 · v2 Pista 3D** (rama `feat/685-aula`, ya en GitHub). Encima va la rama **local** `feat/aula-telefono`, sin push, con lo que salió de la prueba manual del 28 oct.
-
-## Ramas
-
-| Rama | Dónde | Qué trae |
-|---|---|---|
-| `feat/685-aula` | GitHub, PR #694 | Pista 3D, duelo, arena libre, 2 jugadores, tu robot, Pasos y sesión de aula (#679 a #686) |
-| `feat/aula-telefono` | Solo local | Encima de la anterior: el teléfono maneja de verdad, control como el de brazo, QR, grupos del docente en `/cuenta` y Pasos a 720 px (#697, #698) |
-
-Para integrar `feat/aula-telefono` en el PR #694: `git switch feat/685-aula && git merge --ff-only feat/aula-telefono && git push`.
+La v2 completa está en un solo PR, **#694 · v2 Pista 3D** (rama `feat/685-aula`, en GitHub). Incluye lo que salió de las pruebas manuales del 28 oct: el teléfono maneja de verdad, control como el de brazo, QR, vista y progreso en el teléfono, grupos del docente en `/cuenta` y el programa de Pasos editable (#697, #698).
 
 ## Cómo probar en local (con teléfono)
 
@@ -24,7 +15,7 @@ PUBLIC_SUPABASE_URL=http://192.168.1.29:54321 CLAUDECODE= pnpm dev --host 0.0.0.
 - Pista 3D → «Aula» → «Abrir sesión» → «Mostrar QR en grande» → el alumno escanea, pide unirse → «Aprobar» → «Dar el control».
 - Si el teléfono no carga la página, abre el firewall (PowerShell como administrador): `New-NetFirewallRule -DisplayName "Trayectoria dev" -Direction Inbound -Protocol TCP -LocalPort 4321,54321 -Action Allow -Profile Private`.
 
-## Estado de las pruebas (28 oct, rama `feat/aula-telefono`)
+## Estado de las pruebas (28 oct)
 
 - `lint`, `typecheck`, unitarias (sim-core 462, sims 583, web 341, content 656, auth y progress), `build` y `content:check`: en verde.
 - e2e completo (266): en verde. `formula-desborde-390` falla de vez en cuando por una navegación; repetido 6 de 6 en verde.
@@ -51,7 +42,7 @@ PUBLIC_SUPABASE_URL=http://192.168.1.29:54321 CLAUDECODE= pnpm dev --host 0.0.0.
 
 - #699 · Aula: varios alumnos, un carrito por teléfono.
 - #696 · Vulnerabilidad en devalue: bloquea `audit` en CI.
-- Joystick en Safari de iOS: arreglado sin probar en un iPhone (WebKit de Windows no emula el dedo). Probarlo.
+- Joystick en Safari de iOS: sigue sin funcionar (probado el 28 oct en un iPhone; en Edge sí). Anotado en #697.
 - El `aria-live` del joystick anuncia cada cambio de dirección con lector de pantalla.
 - Error de hidratación de `TopicStatus` en el log del dev server (viene de antes; no lo toca esta rama).
 - Magic link y registro no vuelven a la sesión de aula (el login con contraseña sí vuelve).
