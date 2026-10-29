@@ -22,7 +22,7 @@ export function QrCode({ text, label }: { text: string; label: string }): JSX.El
       data-testid="aula-qr"
       viewBox={`0 0 ${size} ${size}`}
       shapeRendering="crispEdges"
-      className="aspect-square w-full max-w-64 rounded-md"
+      className="aspect-square w-full rounded-md"
     >
       {/* Fixed colours, not theme tokens: a camera needs dark modules on a light ground. */}
       <rect width={size} height={size} fill="white" />

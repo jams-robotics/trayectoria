@@ -122,7 +122,9 @@ function Header({ session }: { session: Session }): JSX.Element {
     ? t('aula.session.phone.live')
     : waiting
       ? t('aula.session.phone.connected', { teacher: teacherName })
-      : t('aula.session.phone.offline');
+      : phase === 'checking'
+        ? t('aula.loading')
+        : t('aula.session.phone.offline');
   return (
     <div className="flex items-center gap-2 border-b border-border pb-3">
       <span

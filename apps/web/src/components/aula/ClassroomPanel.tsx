@@ -10,7 +10,7 @@ import { useClassroom, useTeacherGroups, type Classroom } from './useClassroom';
 
 const BUTTON =
   'min-h-8 rounded-md border border-border bg-bg px-3 text-sm font-semibold text-fg hover:border-primary disabled:opacity-60';
-const PRIMARY = 'min-h-8 rounded-md bg-primary px-3 text-sm font-semibold text-primary-fg';
+const PRIMARY = 'min-h-9 rounded-md bg-primary px-3 text-sm font-semibold text-primary-fg';
 
 /** The QR full screen over the arena, for a projector: the class scans it from their seats. */
 function BigQr({ url, onClose }: { url: string; onClose: () => void }): JSX.Element {
