@@ -293,7 +293,7 @@ function Room(props: { groups: readonly Group[]; bus: RemoteBus; userId: string 
   }, [room.activeId]);
   return (
     <aside
-      className={`absolute bottom-12 left-4 z-20 ${open ? 'w-panel' : ''} max-w-[calc(100%-2rem)] rounded-lg border border-border bg-bg-raised/95 p-3 text-fg shadow-md backdrop-blur lg:bottom-4`}
+      className={`absolute bottom-12 left-4 z-20 lg:bottom-[9rem] ${open ? 'w-panel' : ''} max-w-[calc(100%-2rem)] rounded-lg border border-border bg-bg-raised/95 p-3 text-fg shadow-md backdrop-blur`}
     >
       <button
         type="button"
