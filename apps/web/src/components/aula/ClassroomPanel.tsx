@@ -287,6 +287,10 @@ function Room(props: { groups: readonly Group[]; bus: RemoteBus; userId: string 
   const [open, setOpen] = useState(false);
   const [groupId, setGroupId] = useState(props.groups[0]?.id ?? '');
   const room = useClassroom(props.userId, groupId, props.bus);
+  // Handing the wheel closes the panel: the arena and its own buttons are what matter then.
+  useEffect(() => {
+    if (room.activeId !== null) setOpen(false);
+  }, [room.activeId]);
   return (
     <aside
       className={`absolute bottom-12 left-4 z-20 ${open ? 'w-panel' : ''} max-w-[calc(100%-2rem)] rounded-lg border border-border bg-bg-raised/95 p-3 text-fg shadow-md backdrop-blur lg:bottom-4`}

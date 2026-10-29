@@ -32,7 +32,7 @@ import type { ArenaSettings, ArenaSettingsApi } from './useArenaSettings';
 import { useManualDrive } from './useManualDrive';
 import { useSteps } from './useSteps';
 import type { StepsApi } from './useSteps';
-import { useRemoteDrive } from './useRemoteDrive';
+import { useRemoteDrive, useRemoteStage } from './useRemoteDrive';
 
 export interface ArenaProps {
   /** Where «Editar mi robot» goes. */
@@ -105,6 +105,7 @@ function useArena(robot: RobotSpec | undefined, remote: RemoteControl | undefine
     driver: api.settings.steps ? steps.driver : null,
   });
   useArenaKeys(loop, api);
+  useRemoteStage(remote, loop, api);
   const challenges = useChallengeCheck(loop.snapshot, api);
   return { mobile, api, drive, free, steps, refs, loop, challenges };
 }

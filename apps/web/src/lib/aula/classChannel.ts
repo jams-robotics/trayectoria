@@ -5,13 +5,28 @@
  * anything acts on them.
  */
 import type { DbClient } from '@trayectoria/db';
+import type { RemoteCamera } from '@trayectoria/sims/arena';
 
 export type Axis = -1 | 0 | 1;
 
 export type ClassMessage =
   | { readonly kind: 'drive'; readonly steer: Axis; readonly go: Axis }
   | { readonly kind: 'param'; readonly key: string; readonly value: number }
-  | { readonly kind: 'turn'; readonly active: boolean };
+  | { readonly kind: 'turn'; readonly active: boolean }
+  /** Phone → PC: start the run again. */
+  | { readonly kind: 'restart' }
+  /** Phone → PC: the view of the projected screen. */
+  | { readonly kind: 'camera'; readonly mode: RemoteCamera }
+  /** PC → phone: how the free run goes. */
+  | {
+      readonly kind: 'progress';
+      readonly collected: number;
+      readonly total: number;
+      readonly time_s: number;
+      readonly done: boolean;
+    };
+
+const CAMERAS: readonly RemoteCamera[] = ['chase', 'onboard', 'top'];
 
 const EVENT = 'msg';
 
@@ -26,11 +41,31 @@ function axisOf(value: unknown): Axis | null {
   return value === -1 || value === 0 || value === 1 ? value : null;
 }
 
-/** A message of the wire as one of the three known shapes, or `null` for anything else. */
+function isCount(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 100;
+}
+
+/** A progress message, with counts in range and a finite time, or `null`. */
+function progressOf(payload: object): ClassMessage | null {
+  const field = (name: string): unknown => Reflect.get(payload, name);
+  const [collected, total, time_s, done] = ['collected', 'total', 'time_s', 'done'].map(field);
+  if (!isCount(collected) || !isCount(total) || typeof done !== 'boolean') return null;
+  if (typeof time_s !== 'number' || !Number.isFinite(time_s) || time_s < 0) return null;
+  return { kind: 'progress', collected, total, time_s, done };
+}
+
+/** A message of the wire as one of the known shapes, or `null` for anything else. */
 export function parseMessage(payload: unknown): ClassMessage | null {
   if (typeof payload !== 'object' || payload === null) return null;
   const field = (name: string): unknown => Reflect.get(payload, name);
-  const [kind, steer, go, key, value, active] = ['kind', 'steer', 'go', 'key', 'value', 'active'].map(field);
+  const [kind, steer, go, key, value, active] = [
+    'kind',
+    'steer',
+    'go',
+    'key',
+    'value',
+    'active',
+  ].map(field);
   const steerAxis = axisOf(steer);
   const goAxis = axisOf(go);
   if (kind === 'drive' && steerAxis !== null && goAxis !== null)
@@ -38,6 +73,10 @@ export function parseMessage(payload: unknown): ClassMessage | null {
   if (kind === 'param' && typeof key === 'string' && typeof value === 'number')
     return Number.isFinite(value) ? { kind, key, value } : null;
   if (kind === 'turn' && typeof active === 'boolean') return { kind, active };
+  if (kind === 'restart') return { kind };
+  const mode = CAMERAS.find((camera) => camera === field('mode'));
+  if (kind === 'camera') return mode === undefined ? null : { kind, mode };
+  if (kind === 'progress') return progressOf(payload);
   return null;
 }
 

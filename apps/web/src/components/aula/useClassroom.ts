@@ -54,12 +54,17 @@ function useHub(session: OpenSession | null, bus: RemoteBus, onDrive: (m: ClassM
   useEffect(() => {
     if (session === null) return undefined;
     const hub = createTeacherHub(getDbClient(), session.id, (message) => {
-      if (message.kind === 'turn') return;
+      if (message.kind === 'turn' || message.kind === 'progress') return;
       onDrive(message);
       bus.emit(message);
     });
     hubRef.current = hub;
+    // The arena's progress goes to the phone that drives, so it knows how the run goes.
+    const unwatch = bus.watch((free) => {
+      if (free !== null) hub.tellActive({ kind: 'progress', ...free });
+    });
     return () => {
+      unwatch();
       hub.close();
       hubRef.current = null;
     };
@@ -92,7 +97,10 @@ export function useClassroom(userId: string, groupId: string, bus: RemoteBus): C
     if (groupId !== '') void findSession(groupId).then(setSession, () => setSession(null));
   }, [groupId]);
   const run = (task: Promise<unknown>): void =>
-    void task.then(() => setFailed(false), () => setFailed(true));
+    void task.then(
+      () => setFailed(false),
+      () => setFailed(true),
+    );
   const setActive = (id: string | null): void => {
     setActiveId(id);
     hubRef.current?.setActive(id);

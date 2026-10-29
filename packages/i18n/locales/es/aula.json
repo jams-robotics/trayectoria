@@ -153,7 +153,19 @@
       "approvedHint": "Cuando sea tu turno, aquí aparecerá el joystick.",
       "live": "Manejas tú: mira la pantalla",
       "connected": "Conectado a la sesión de {{teacher}}",
-      "offline": "Sin sesión"
+      "offline": "Sin sesión",
+      "stars": "Estrellas {{collected}}/{{total}} · {{time}} s",
+      "done": "Completado: {{collected}} de {{total}} estrellas en {{time}} s",
+      "doneHint": "Juega otra vez para mejorar tu tiempo, o cambia la vista de la pantalla.",
+      "again": "Jugar otra vez",
+      "restart": "Reiniciar",
+      "view": "Vista de la pantalla",
+      "viewHint": "En Persecución y A bordo, derecha es derecha y adelante es adelante.",
+      "camera": {
+        "chase": "Persecución",
+        "onboard": "A bordo",
+        "top": "Cenital"
+      }
     }
   }
 }

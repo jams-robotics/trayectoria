@@ -1,7 +1,10 @@
 import { useEffect, useRef } from 'react';
+
+import type { ArenaLoop } from './useArenaLoop';
 import type { MobileSpec } from '@trayectoria/robot-spec';
 
 import { CONTROLLERS, controllerParams } from '../lineFollower/controllers';
+import type { FreeProgress } from './freeRace';
 import type { RemoteControl, RemoteEvent } from './remote';
 import type { ArenaSettingsApi } from './useArenaSettings';
 import type { FreeDriveApi } from './useFreeDrive';
@@ -83,6 +86,7 @@ export function useRemoteDrive(remote: RemoteControl | undefined, targets: Targe
         if (!drivable(latest.current.api)) latest.current.api.startFree();
         return undefined;
       }
+      if (event.kind !== 'drive') return undefined;
       clearTimeout(deadman);
       const moving = event.steer !== 0 || event.go !== 0;
       // A phone that drives takes the arena to the free floor; the settings there arrive next render.
@@ -100,4 +104,42 @@ export function useRemoteDrive(remote: RemoteControl | undefined, targets: Targe
       stop();
     };
   }, [remote]);
+}
+
+/** Changes in the progress worth telling a phone: a star, the end, or a new second. */
+function progressKey(progress: FreeProgress | null): string {
+  if (progress === null) return '';
+  return `${progress.collected}/${progress.total}/${progress.done}/${Math.floor(progress.time_s)}`;
+}
+
+/**
+ * The stage side of a remote: a phone that takes the wheel gets a fresh run seen from behind, it
+ * can restart the run and pick the view; and it hears how the free run goes.
+ */
+export function useRemoteStage(
+  remote: RemoteControl | undefined,
+  loop: ArenaLoop,
+  api: ArenaSettingsApi,
+): void {
+  const latest = useRef({ loop, api });
+  latest.current = { loop, api };
+  useEffect(() => {
+    if (remote === undefined) return undefined;
+    return remote.subscribe((event) => {
+      const { loop: stage, api: settings } = latest.current;
+      if (event.kind === 'takeover') {
+        stage.reset();
+        settings.update({ camera: 'chase' });
+      } else if (event.kind === 'restart') stage.reset();
+      else if (event.kind === 'camera') settings.update({ camera: event.mode });
+    });
+  }, [remote]);
+  const free = loop.snapshot?.free ?? null;
+  const key = progressKey(free);
+  const sent = useRef<string | null>(null);
+  useEffect(() => {
+    if (remote?.report === undefined || sent.current === key) return;
+    sent.current = key;
+    remote.report(free);
+  });
 }

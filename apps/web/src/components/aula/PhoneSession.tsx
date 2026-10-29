@@ -91,7 +91,7 @@ function Offer({ session }: { session: Session }): JSX.Element {
 function PhoneBody({ session }: { session: Session }): JSX.Element {
   const t = useT();
   const { phase, teacherName } = session;
-  if (phase === 'driving') return <PhoneControls send={session.send} />;
+  if (phase === 'driving') return <PhoneControls send={session.send} progress={session.progress} />;
   if (phase === 'offer') return <Offer session={session} />;
   if (phase === 'waiting')
     return (

@@ -15,6 +15,8 @@ export interface TeacherHub {
   sync: (participants: readonly Participant[]) => void;
   /** One driver at a time; `null` for nobody. The phones are told whether it is their turn. */
   setActive: (userId: string | null) => void;
+  /** Sends `message` to the phone whose turn it is, if any. */
+  tellActive: (message: ClassMessage) => void;
   close: () => void;
 }
 
@@ -27,36 +29,56 @@ function dropUnapproved(topics: Map<string, TopicHandle>, approved: ReadonlySet<
   }
 }
 
+function approvedOf(participants: readonly Participant[]): ReadonlySet<string> {
+  return new Set(participants.filter((p) => p.status === 'approved').map((p) => p.userId));
+}
+
+interface HubState {
+  readonly topics: Map<string, TopicHandle>;
+  active: string | null;
+  progress: ClassMessage | null;
+}
+
+/** Tells `userId` whether it drives; the driver also hears the last progress, in case it missed it. */
+function tell(state: HubState, userId: string): void {
+  const topic = state.topics.get(userId);
+  topic?.send({ kind: 'turn', active: userId === state.active });
+  if (userId === state.active && state.progress !== null) topic?.send(state.progress);
+}
+
 export function createTeacherHub(
   db: DbClient,
   sessionId: string,
   onMessage: (message: ClassMessage) => void,
 ): TeacherHub {
-  const topics = new Map<string, TopicHandle>();
-  let active: string | null = null;
-  const tell = (userId: string): void =>
-    topics.get(userId)?.send({ kind: 'turn', active: userId === active });
+  const state: HubState = { topics: new Map(), active: null, progress: null };
+  const { topics } = state;
   const listen = (userId: string): void => {
     const topic = openTopic(db, topicOf(sessionId, userId), (message) => {
-      if (userId === active) onMessage(message);
+      if (userId === state.active) onMessage(message);
     });
     topics.set(userId, topic);
-    tell(userId);
   };
   return {
     sync(participants) {
-      const approved = new Set(
-        participants.filter((p) => p.status === 'approved').map((p) => p.userId),
-      );
+      const approved = approvedOf(participants);
       dropUnapproved(topics, approved);
-      for (const userId of approved) if (!topics.has(userId)) listen(userId);
-      if (active !== null && !approved.has(active)) active = null;
+      if (state.active !== null && !approved.has(state.active)) state.active = null;
+      // Every poll repeats the turn: a phone that reloaded or slept missed the first one.
+      for (const userId of approved) {
+        if (!topics.has(userId)) listen(userId);
+        tell(state, userId);
+      }
     },
     setActive(userId) {
-      const previous = active;
-      active = userId;
-      if (previous !== null) tell(previous);
-      if (userId !== null) tell(userId);
+      const previous = state.active;
+      state.active = userId;
+      if (previous !== null) tell(state, previous);
+      if (userId !== null) tell(state, userId);
+    },
+    tellActive(message) {
+      if (message.kind === 'progress') state.progress = message;
+      if (state.active !== null) topics.get(state.active)?.send(message);
     },
     close() {
       for (const handle of topics.values()) handle.close();

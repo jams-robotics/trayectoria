@@ -2,7 +2,12 @@ import { useSession } from '@trayectoria/auth';
 import { getDbClient } from '@trayectoria/db';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { openTopic, topicOf, type ClassMessage, type TopicHandle } from '../../lib/aula/classChannel';
+import {
+  openTopic,
+  topicOf,
+  type ClassMessage,
+  type TopicHandle,
+} from '../../lib/aula/classChannel';
 import { askToJoin, myStatus, tokenFromHash, type JoinOffer } from '../../lib/aula/classSession';
 
 /** How often a waiting phone asks whether the teacher decided. */
@@ -19,8 +24,12 @@ export type PhonePhase =
   | 'kicked'
   | 'ended';
 
+/** How the free run goes, as the PC last told this phone; `null` before any word or on a track. */
+export type PhoneProgress = Extract<ClassMessage, { kind: 'progress' }> | null;
+
 export interface PhoneSession {
   readonly phase: PhonePhase;
+  readonly progress: PhoneProgress;
   readonly teacherName: string;
   ask: () => void;
   send: (message: ClassMessage) => void;
@@ -54,12 +63,14 @@ function useRequest(
   userId: string,
   onTurn: (active: boolean) => void,
   onStatus: (status: PhonePhase) => void,
+  onProgress: (progress: PhoneProgress) => void,
 ): { send: (message: ClassMessage) => void } {
   const handle = useRef<TopicHandle | null>(null);
   useEffect(() => {
     if (sessionId === null) return undefined;
     const topic = openTopic(getDbClient(), topicOf(sessionId, userId), (message) => {
       if (message.kind === 'turn') onTurn(message.active);
+      else if (message.kind === 'progress') onProgress(message);
     });
     handle.current = topic;
     const poll = (): void => {
@@ -76,7 +87,7 @@ function useRequest(
       topic.close();
       handle.current = null;
     };
-  }, [sessionId, userId, onTurn, onStatus]);
+  }, [sessionId, userId, onTurn, onStatus, onProgress]);
   return { send: (message) => handle.current?.send(message) };
 }
 
@@ -88,12 +99,20 @@ export function usePhoneSession(): PhoneSession {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [status, setStatus] = useState<PhonePhase>('waiting');
   const [turn, setTurn] = useState(false);
-  const request = useRequest(sessionId, userId, setTurn, setStatus);
+  const [progress, setProgress] = useState<PhoneProgress>(null);
+  const request = useRequest(sessionId, userId, setTurn, setStatus, setProgress);
+  // A phone that reloads or wakes up is already in the session: it goes back in without asking.
+  useEffect(() => {
+    if (offer === null || sessionId !== null) return;
+    void myStatus(offer.sessionId, userId).then((mine) => {
+      if (mine === 'approved' || mine === 'pending') setSessionId(offer.sessionId);
+    });
+  }, [offer, sessionId, userId]);
   const ask = useCallback(() => {
     const token = tokenFromHash(window.location.hash);
     void askToJoin(token, true).then((joined) => setSessionId(joined?.sessionId ?? null));
   }, []);
   const decided = sessionId === null ? first : status;
   const phase = decided === 'approved' && turn ? 'driving' : decided;
-  return { phase, teacherName: offer?.teacherName ?? '', ask, send: request.send };
+  return { phase, progress, teacherName: offer?.teacherName ?? '', ask, send: request.send };
 }

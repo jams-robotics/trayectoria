@@ -121,7 +121,25 @@ test('classroom: the phone asks, the teacher approves, drives and kicks', async 
   await expect(page.getByTestId('aula-last')).toHaveText('0 · 0', { timeout: 15_000 });
   await expect(state).toHaveText(aula.session.phone.still);
 
+  // The phone hears how the run goes, and «Reiniciar» starts it again on the PC.
+  await expect(anaPhone.getByTestId('phone-run')).toContainText('0/5', { timeout: 15_000 });
+  await anaPhone.getByRole('button', { name: aula.session.phone.restart }).click();
+  await expect(board).toContainText('0.0 s', { timeout: 15_000 });
+
+  // Handing the wheel put the screen behind the robot; the phone picks another view.
+  const view = (name: string) => page.getByRole('radio', { name, exact: true });
+  await expect(view(sims.arena.camera.chase)).toHaveAttribute('aria-checked', 'true');
+  await anaPhone.getByRole('button', { name: aula.session.phone.camera.onboard }).click();
+  await expect(view(sims.arena.camera.onboard)).toHaveAttribute('aria-checked', 'true', {
+    timeout: 15_000,
+  });
+
+  // A phone that reloads (or slept) keeps its turn: the joystick comes back without asking.
+  await anaPhone.reload();
+  await expect(anaPhone.getByTestId('phone-pad')).toBeVisible({ timeout: 20_000 });
+
   // Kicked: the phone says so, the row is no longer approved and she cannot ask again.
+  await page.getByTestId('aula-toggle').click();
   await page.getByRole('button', { name: named(aula.session.teacher.kick, 'Ana Aula') }).click();
   await expect(anaPhone.getByTestId('phone-kicked')).toBeVisible({ timeout: 15_000 });
   const { data } = await ana.client.from('session_participants').select('status');
