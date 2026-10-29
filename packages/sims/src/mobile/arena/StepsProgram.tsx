@@ -64,7 +64,7 @@ export function ProgramList({ steps }: { steps: StepsApi }): JSX.Element {
   );
 }
 
-/** «Ejecutar» big, «Borrar último» and «Limpiar» beside it. */
+/** «Ejecutar» big, «Borrar último» and «Limpiar» beside it, pinned to the bottom of the panel. */
 export function ProgramActions({
   steps,
   onRun,
@@ -75,10 +75,11 @@ export function ProgramActions({
   const t = useT();
   const empty = steps.program.length === 0;
   return (
-    <div className="grid grid-cols-2 gap-2">
+    // Sticky at the foot of the scrolling panel: «Ejecutar» stays in view however long the program (#698).
+    <div className="sticky bottom-0 grid grid-cols-2 gap-2 border-t border-border bg-bg-raised pt-3">
       <button
         type="button"
-        className="col-span-2 min-h-12 rounded-lg bg-primary px-4 text-xl font-semibold text-primary-fg hover:bg-primary-hover disabled:opacity-40"
+        className="col-span-2 min-h-10 rounded-lg bg-primary px-4 text-xl font-semibold text-primary-fg hover:bg-primary-hover disabled:opacity-40"
         disabled={empty}
         onClick={onRun}
       >

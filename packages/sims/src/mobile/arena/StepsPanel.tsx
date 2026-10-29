@@ -10,7 +10,7 @@ import type { StepsApi } from './useSteps';
 import type { ArenaSettingsApi } from './useArenaSettings';
 
 const BIG =
-  'flex min-h-12 items-center justify-center gap-2 rounded-lg border border-border bg-bg px-3 text-lg font-semibold text-fg hover:border-primary disabled:opacity-40 disabled:hover:border-border';
+  'flex min-h-9 items-center justify-center gap-2 rounded-lg border border-border bg-bg px-3 text-lg font-semibold text-fg hover:border-primary disabled:opacity-40 disabled:hover:border-border';
 
 const GOALS: ReadonlyArray<StepGoal | null> = [null, 'square', 'star'];
 
