@@ -1,66 +1,54 @@
-# RETOMAR: v2 de la Pista 3D (olas 1 a 5)
+# RETOMAR: v2 de la Pista 3D
 
-Todo es local y **sin push**. El pedido es no publicar nada hasta terminar los 25 reels. Plan y milestones en GitHub: issues #679 a #686, milestones «Ola 1» a «Ola 5».
+La pila de la v2 está en un solo PR, **#694 · v2 Pista 3D** (rama `feat/685-aula`, ya en GitHub). Encima va la rama **local** `feat/aula-telefono`, sin push, con lo que salió de la prueba manual del 28 oct.
 
-## Ramas (apiladas, de abajo arriba)
+## Ramas
 
-| Rama | Issue | Qué trae |
+| Rama | Dónde | Qué trae |
 |---|---|---|
-| `feat/simulador-3d-carrito` | #679 | Pista 3D en `/simuladores/carrito` |
-| `feat/680-duelo` | #680 | Rival configurable y vueltas ganadas |
-| `feat/681-modo-libre` | #681 | Arena libre con conos y estrellas |
-| `test/679-e2e-pista-3d` | #679 | e2e de la Pista 3D; el menú «Simuladores» abre la Pista 3D |
-| `feat/682-dos-jugadores` | #682 | 2 jugadores (WASD y flechas) en pista y arena libre |
-| `feat/684-tu-robot` | #684 | Subir STL/GLB del robot propio (solo en el navegador, IndexedDB) |
-| `feat/686-pasos` | #686 | Modo «Pasos»: programar con Avanzar, Girar y Repetir; retos del cuadrado y de la estrella |
-| `feat/685-aula` | #685 | Sesión de aula: el docente aprueba y el teléfono maneja o ajusta (migración 0014) |
+| `feat/685-aula` | GitHub, PR #694 | Pista 3D, duelo, arena libre, 2 jugadores, tu robot, Pasos y sesión de aula (#679 a #686) |
+| `feat/aula-telefono` | Solo local | Encima de la anterior: el teléfono maneja de verdad, control como el de brazo, QR, grupos del docente en `/cuenta` y Pasos a 720 px (#697, #698) |
 
-Aparte, desde `main`: `ux/683-2d-legible` (#683), con el simulador 2D y el editor de pistas a ancho de escritorio.
+Para integrar `feat/aula-telefono` en el PR #694: `git switch feat/685-aula && git merge --ff-only feat/aula-telefono && git push`.
 
-Cada rama contiene a las de arriba. Merge en orden, o todo de una vez desde `feat/685-aula`.
-
-## Cómo probar
+## Cómo probar en local (con teléfono)
 
 ```
-pnpm dev                         # http://localhost:4321/simuladores/carrito
-npx -y supabase@2 start          # para el aula y las e2e
+npx -y supabase@2 start
+cd apps/web
+PUBLIC_SUPABASE_URL=http://192.168.1.29:54321 CLAUDECODE= pnpm dev --host 0.0.0.0
 ```
 
-- **Aula:** con un docente que tenga grupo, abre el panel «Aula» en la Pista 3D. Copia el enlace y ábrelo en otra ventana con un alumno del grupo.
-- **Pasos:** Pista → Arena libre → «Programar con pasos».
+- Entra como docente en `http://192.168.1.29:4321` (no en localhost; si no, el QR sale con localhost).
+- Cuentas locales, todas con la contraseña `trayectoria-e2e-2026`: `docente@example.com` (dueño de «Grupo de prueba») y `alumno1@example.com` a `alumno3@example.com`. Se recrean con `node <scratchpad>/aula-usuarios.mts` si se reinicia Supabase.
+- Pista 3D → «Aula» → «Abrir sesión» → «Mostrar QR en grande» → el alumno escanea, pide unirse → «Aprobar» → «Dar el control».
+- Si el teléfono no carga la página, abre el firewall (PowerShell como administrador): `New-NetFirewallRule -DisplayName "Trayectoria dev" -Direction Inbound -Protocol TCP -LocalPort 4321,54321 -Action Allow -Profile Private`.
 
-## Estado de las pruebas (28 oct)
+## Estado de las pruebas (28 oct, rama `feat/aula-telefono`)
 
-- `lint`, `typecheck`, `test` (unitarias y 270 pgTAP), `build` y presupuesto de bundle: en verde.
-- e2e completo: en verde, salvo los visuales Tema y Plot, que ya fallaban en `main` local.
-- Revisión de seguridad del aula: aprobada con cambios, ya aplicados (ver #685).
+- `lint`, `typecheck`, unitarias (sim-core 462, sims 578, web 337, content 656, auth y progress), `build` y `content:check`: en verde.
+- e2e completo: en verde, salvo los visuales Plot, Tema y Tema-mobile, que ya fallaban en `main` local.
+- QA independiente del diff: aplicados sus hallazgos; ver «Decisiones».
 
 ## Antes de salir a producción
 
-1. Snapshots `-linux`: los genera CI cuando hay push (`playwright.config.ts`, instrucciones arriba del `snapshotPathTemplate`). `ux/683` y esta pila cambian los mismos snapshots de `sim-movil`: se regeneran al integrar.
-2. Ola 4 (aula):
-   - Respaldo de la base.
-   - `npx -y supabase@2 db push --dry-run`, luego `db push` **antes** del deploy.
-   - En el panel, Realtime Settings: desactivar «Allow public access».
-   - Detalle en `docs/ops/DEPLOY.md`.
-3. Probar en iPhone y en un Android de gama baja: grabación de video, rendimiento y manejo con el teléfono.
+1. Respaldo de la base, `npx -y supabase@2 db push --dry-run`, luego `db push` (migración `0014`) **antes** del deploy.
+2. En el panel de Supabase, Realtime Settings: desactivar «Allow public access».
+3. Merge del PR #694 a `main` (despliega solo). Detalle en `docs/ops/DEPLOY.md`.
+4. Snapshots `-linux` de `sim-movil`: los regenera CI al hacer push.
 
 ## Decisiones tomadas sin el responsable (editables)
 
-- **Modelo propio:** se guarda solo en el navegador, sin Storage. Acepta STL y GLB sin Draco; STEP no.
-- **Pasos:** botones de pasos fijos, no bloques visuales. 1 casilla = 25 cm, giros de 90°, Repetir con un nivel de anidamiento.
-- **Aula:**
-  - Sin QR dibujado: no hay librería y no se agregaron dependencias. El panel muestra el enlace en grande.
-  - El teléfono solo mueve el robot en arena libre o en manual.
-  - Un solo conductor activo a la vez.
-- **2 jugadores:** solo con teclado. En móvil se muestran los botones del jugador 1.
-- **Ruta 0 (niños):** propuesta en #686. El currículo y `content/` esperan tus decisiones.
+- **Aula, modo del simulador:** dar el control a un teléfono pasa la Pista 3D a la arena libre. Que el teléfono ajuste una ganancia la pasa a la pista con PID y sin fantasma. Si el docente estaba en Pasos o en un reto, se pierde. Un solo conductor a la vez.
+- **Control del teléfono:** joystick de un dedo que se cuantiza a 8 direcciones (el protocolo sigue siendo −1, 0 o 1 por eje), y pestaña «Ajustar» que empieza en las ganancias de referencia. Sin botón PARAR: soltar el joystick detiene el robot.
+- **QR:** `qrcode-generator` 2.0.4 (MIT, sin dependencias), autorizado el 28 oct. Se dibuja oscuro sobre blanco en ambos temas.
+- **Pasos:** botones de 48 px y «Ejecutar» fijo al pie del panel.
 
 ## Pendientes
 
-- QR en el aula: agregar una librería (requiere ticket) o escribir un generador propio.
-- Magic link y registro: no vuelven a la sesión de aula (el login con contraseña sí vuelve).
-- Alumno retirado del grupo: sigue aprobado hasta que lo expulsen. Reabrir la sesión borra las expulsiones (anotado en #685).
-- #683: a 1366×768 el lienzo del editor queda en parte bajo el pliegue. `LineFollowerView.tsx` ya pasa de 300 líneas (viene de antes).
-- Faltan e2e del modo Pasos y de 2 jugadores, y no se probó un GLB real con texturas.
-- Ideas: editor de pistas en 3D, controlador «Propio» con código, sensor ultrasónico, récords por enlace.
+- #699 · Aula: varios alumnos, un carrito por teléfono.
+- #696 · Vulnerabilidad en devalue: bloquea `audit` en CI.
+- Visuales Plot, Tema y Tema-mobile fallan en `main` local.
+- Joystick: con teclado, mantener ↑ y pulsar ↓ deja el robot quieto al soltar ↓. Y su `aria-live` anuncia cada cambio de dirección.
+- Magic link y registro no vuelven a la sesión de aula (el login con contraseña sí vuelve).
+- Ramas remotas de los PRs cerrados #687 a #693 y `delete_branch_on_merge` sin activar.
