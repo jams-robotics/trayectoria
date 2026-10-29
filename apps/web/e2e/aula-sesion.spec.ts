@@ -69,6 +69,7 @@ test('classroom: the phone asks, the teacher approves, drives and kicks', async 
   await page.getByRole('button', { name: aula.session.teacher.start }).click();
   const link = await page.getByTestId('aula-link').inputValue();
   expect(link).toContain('/aula/sesion#t=');
+  await expect(page.getByRole('img', { name: aula.session.teacher.qr })).toBeVisible();
 
   // A student of another group is refused, with no hint about why.
   const carlosPhone = await phoneOf(browser, carlos);

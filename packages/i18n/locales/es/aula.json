@@ -85,6 +85,7 @@
       "start": "Abrir sesión",
       "close": "Cerrar sesión",
       "link": "Enlace para los teléfonos",
+      "qr": "Código QR del enlace: escanéalo con la cámara del teléfono",
       "copy": "Copiar el enlace",
       "copied": "Enlace copiado",
       "copyUnavailable": "Copia el enlace a mano: el portapapeles no está disponible.",

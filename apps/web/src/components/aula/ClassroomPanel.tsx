@@ -5,13 +5,14 @@ import { useState, type JSX } from 'react';
 import { joinUrl, type OpenSession, type Participant } from '../../lib/aula/classSession';
 import type { Group } from '../../lib/aula/groups';
 import type { RemoteBus } from '../../lib/aula/remoteControl';
+import { QrCode } from './QrCode';
 import { useClassroom, useTeacherGroups, type Classroom } from './useClassroom';
 
 const BUTTON =
   'min-h-10 rounded-md border border-border bg-bg px-3 text-sm font-semibold text-fg hover:border-primary disabled:opacity-60';
 const PRIMARY = 'min-h-10 rounded-md bg-primary px-3 text-sm font-semibold text-primary-fg';
 
-/** No QR library in the repo (no new dependencies): the link is shown big and can be copied. */
+/** The join link as a QR code for the phones' cameras, and as text to copy. */
 function SessionLink({ session }: { session: OpenSession }): JSX.Element {
   const t = useT();
   const [note, setNote] = useState('');
@@ -28,6 +29,7 @@ function SessionLink({ session }: { session: OpenSession }): JSX.Element {
       <label htmlFor="aula-link" className="text-sm font-medium">
         {t('aula.session.teacher.link')}
       </label>
+      <QrCode text={url} label={t('aula.session.teacher.qr')} />
       <textarea
         id="aula-link"
         data-testid="aula-link"
