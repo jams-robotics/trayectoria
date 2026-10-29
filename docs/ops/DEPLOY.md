@@ -44,6 +44,8 @@ pnpm dlx supabase@2.117.0 db push
 
 `link` pide la contraseña de la base de datos. `db push --dry-run` lista las migraciones de `supabase/migrations/` que se aplicarían; `db push` las aplica. Repite los dos últimos comandos cada vez que se mergee una migración nueva, **antes** de que el sitio que la necesita llegue a producción.
 
+**Sesión de aula (#685, migración `0014`).** El orden es: respaldo → `db push --dry-run` → `db push` → **desactivar el acceso público de Realtime** → desplegar el sitio. En *Project Settings → Realtime Settings* (o *Realtime → Settings*) apaga **Allow public access**: con él encendido cualquiera podría abrir canales sin autenticarse; las políticas de `realtime.messages` de la migración solo protegen los canales privados. Hazlo antes del deploy, porque el sitio nuevo ya abre canales privados `aula:{session_id}:{user_id}`.
+
 ### 1.3 URL y clave pública
 
 En *Project Settings → API Keys* (pestaña de claves `anon`/`service_role`) copia la clave **`anon`**, y en *Project Settings → Data API* la **Project URL** (`https://<project-ref>.supabase.co`). Son los valores de `PUBLIC_SUPABASE_URL` y `PUBLIC_SUPABASE_ANON_KEY` del paso 3. La clave `anon` es pública por diseño (el acceso pasa por RLS). La clave `service_role` no se usa nunca en el sitio ni en GitHub.
@@ -221,6 +223,8 @@ pnpm exec wrangler rollback <version-id> --message "<motivo>"
 ```
 
 Sin `<version-id>`, `rollback` vuelve a la versión anterior a la actual. Cada despliegue lleva como mensaje el commit que lo generó, lo que permite localizar la versión buena en la lista.
+
+**Base de datos (solo si hay que quitar la sesión de aula).** El SQL de rollback está al inicio de `supabase/migrations/0014_class_sessions.sql`; se corre a mano, en ese orden, después de volver al sitio anterior. No vuelvas a encender *Allow public access*.
 
 **C. Revertir en `main`.** `git revert <commit>` en una rama, PR y merge: el workflow despliega el resultado. Es la corrección definitiva después de A o B.
 

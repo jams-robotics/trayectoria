@@ -75,6 +75,55 @@ export type Database = {
           },
         ]
       }
+      class_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          group_id: string
+          id: string
+          join_token: string
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          group_id: string
+          id?: string
+          join_token?: string
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          group_id?: string
+          id?: string
+          join_token?: string
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_sessions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_sessions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups_visible"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_sessions_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_members: {
         Row: {
           group_id: string
@@ -276,6 +325,45 @@ export type Database = {
           },
         ]
       }
+      session_participants: {
+        Row: {
+          decided_at: string | null
+          requested_at: string
+          session_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          decided_at?: string | null
+          requested_at?: string
+          session_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          decided_at?: string | null
+          requested_at?: string
+          session_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_participants_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "class_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tracks: {
         Row: {
           created_at: string
@@ -333,6 +421,10 @@ export type Database = {
       }
     }
     Functions: {
+      aula_can_use_topic: {
+        Args: { sending: boolean; topic: string }
+        Returns: boolean
+      }
       delete_account: { Args: { nonce: string }; Returns: boolean }
       generate_invite_code: { Args: never; Returns: string }
       is_group_member: { Args: { target_group_id: string }; Returns: boolean }
@@ -343,6 +435,13 @@ export type Database = {
       regenerate_invite_code: {
         Args: { target_group_id: string }
         Returns: string
+      }
+      request_join_session: {
+        Args: { confirm?: boolean; session_token: string }
+        Returns: {
+          session_id: string
+          teacher_name: string
+        }[]
       }
       teaches_user: { Args: { target_user_id: string }; Returns: boolean }
       verify_reauthentication: { Args: { nonce: string }; Returns: boolean }

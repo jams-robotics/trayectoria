@@ -2,6 +2,7 @@ import { signIn, signInWithOtp } from '@trayectoria/auth';
 import { useT } from '@trayectoria/i18n';
 import { useId, useState, type JSX, type SubmitEvent } from 'react';
 
+import { takeReturnTo } from '../../stores/returnTo';
 import {
   absoluteUrl,
   EmailPasswordFields,
@@ -78,7 +79,7 @@ export function LoginForm(): JSX.Element {
     if (!validation.validate(email, password)) return;
     void run(
       () => signIn(email, password),
-      () => goTo('/cuenta'),
+      () => goTo(takeReturnTo('/cuenta')),
     );
   }
 
