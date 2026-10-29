@@ -27,8 +27,10 @@ PUBLIC_SUPABASE_URL=http://192.168.1.29:54321 CLAUDECODE= pnpm dev --host 0.0.0.
 ## Estado de las pruebas (28 oct, rama `feat/aula-telefono`)
 
 - `lint`, `typecheck`, unitarias (sim-core 462, sims 578, web 337, content 656, auth y progress), `build` y `content:check`: en verde.
-- e2e completo: en verde, salvo los visuales Plot, Tema y Tema-mobile, que ya fallaban en `main` local.
-- QA independiente del diff: aplicados sus hallazgos; ver «Decisiones».
+- e2e completo (266): en verde. `formula-desborde-390` falla de vez en cuando por una navegación; repetido 6 de 6 en verde.
+- Visuales Plot, Tema y Tema-mobile: corregidos (las `-win32` eran anteriores al marcador dentro de la gráfica y al bloque de cierre del #661).
+- Recorrido manual con capturas como docente a 1884×936 y teléfono a 390×844: Pasos, aula, recarga del teléfono, vistas y progreso.
+- Si el dev server da «504 Outdated Optimize Dep» (pasó al agregar `qrcode-generator`), bórrale la caché: `rm -rf apps/web/node_modules/.vite`.
 
 ## Antes de salir a producción
 
@@ -41,6 +43,8 @@ PUBLIC_SUPABASE_URL=http://192.168.1.29:54321 CLAUDECODE= pnpm dev --host 0.0.0.
 
 - **Aula, modo del simulador:** dar el control a un teléfono pasa la Pista 3D a la arena libre. Que el teléfono ajuste una ganancia la pasa a la pista con PID y sin fantasma. Si el docente estaba en Pasos o en un reto, se pierde. Un solo conductor a la vez.
 - **Control del teléfono:** joystick de un dedo que se cuantiza a 8 direcciones (el protocolo sigue siendo −1, 0 o 1 por eje), y pestaña «Ajustar» que empieza en las ganancias de referencia. Sin botón PARAR: soltar el joystick detiene el robot.
+- **Vista y progreso:** dar el control reinicia la arena en «Persecución». El teléfono elige entre Persecución, A bordo y Cenital, ve las estrellas y el tiempo, y al terminar tiene «Jugar otra vez». Un teléfono que se recarga recupera su turno sin pedir unirse.
+- **Pasos:** el programa va en un panel a la derecha y cada paso se puede subir, bajar o quitar. Un «Repetir» o «Fin» se va con su pareja.
 - **QR:** `qrcode-generator` 2.0.4 (MIT, sin dependencias), autorizado el 28 oct. Se dibuja oscuro sobre blanco en ambos temas.
 - **Pasos:** botones de 48 px y «Ejecutar» fijo al pie del panel.
 
@@ -48,7 +52,8 @@ PUBLIC_SUPABASE_URL=http://192.168.1.29:54321 CLAUDECODE= pnpm dev --host 0.0.0.
 
 - #699 · Aula: varios alumnos, un carrito por teléfono.
 - #696 · Vulnerabilidad en devalue: bloquea `audit` en CI.
-- Visuales Plot, Tema y Tema-mobile fallan en `main` local.
-- Joystick: con teclado, mantener ↑ y pulsar ↓ deja el robot quieto al soltar ↓. Y su `aria-live` anuncia cada cambio de dirección.
+- Joystick en Safari de iOS: arreglado sin probar en un iPhone (WebKit de Windows no emula el dedo). Probarlo.
+- El `aria-live` del joystick anuncia cada cambio de dirección con lector de pantalla.
+- Error de hidratación de `TopicStatus` en el log del dev server (viene de antes; no lo toca esta rama).
 - Magic link y registro no vuelven a la sesión de aula (el login con contraseña sí vuelve).
 - Ramas remotas de los PRs cerrados #687 a #693 y `delete_branch_on_merge` sin activar.
