@@ -60,6 +60,8 @@ interface Run {
 
 /** A push-back larger than this counts as a hit, in metres. */
 const BUMP_EPS_M = 1e-6;
+/** With no command the model would fall back to its manual controller, which drives forward. */
+const STOPPED: LineFollowerInput = { command: { omegaL_radps: 0, omegaR_radps: 0 } };
 
 function wheelsMove(command: WheelCommand): boolean {
   return command.omegaL_radps !== 0 || command.omegaR_radps !== 0;
@@ -117,7 +119,7 @@ function newRun(model: Model<LineFollowerState, LineFollowerInput>, layout: Free
 export function createFreeRace(spec: RobotSpec, layout: FreeLayout): FreeRace {
   const model = freeModel(spec, layout);
   const run = newRun(model, layout);
-  let input: LineFollowerInput = {};
+  let input = STOPPED;
   let pending_s = 0;
   return {
     get you() {
@@ -146,7 +148,7 @@ export function createFreeRace(spec: RobotSpec, layout: FreeLayout): FreeRace {
     setParams: () => undefined,
     setRivalParams: () => undefined,
     setCommand(command) {
-      input = command === null ? {} : { command };
+      input = command === null ? STOPPED : { command };
     },
     kick: () => undefined,
   };

@@ -4,7 +4,7 @@ import { parseRobotSpec, referenceMobile } from '@trayectoria/robot-spec';
 import { FREE_LAYOUT, ROBOT_RADIUS_M } from './freeArena';
 import { createFreeRace, freeProgress } from './freeRace';
 
-function run(command: { omegaL_radps: number; omegaR_radps: number }, seconds: number) {
+function run(command: { omegaL_radps: number; omegaR_radps: number } | null, seconds: number) {
   const result = parseRobotSpec(referenceMobile);
   if (!result.ok) throw new Error('reference robot does not parse');
   const race = createFreeRace(result.value, FREE_LAYOUT);
@@ -27,5 +27,11 @@ describe('createFreeRace', () => {
     expect(race.you.state.robot.x_m).toBeCloseTo(FREE_LAYOUT.start.x_m, 6);
     // The stopwatch waits for the first move.
     expect(freeProgress(race)).toMatchObject({ collected: 0, total: 5, done: false, time_s: 0 });
+  });
+
+  test('stays put with no command at all, as in «Pasos» before «Ejecutar»', () => {
+    const race = run(null, 1);
+    expect(race.you.state.robot.x_m).toBeCloseTo(FREE_LAYOUT.start.x_m, 6);
+    expect(race.you.state.robot.y_m).toBeCloseTo(FREE_LAYOUT.start.y_m, 6);
   });
 });
