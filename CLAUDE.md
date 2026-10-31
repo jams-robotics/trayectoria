@@ -1,5 +1,5 @@
 # CLAUDE.md — Instrucciones para agentes
-
+Tracker: trayectoria
 Este repositorio es **Trayectoria**, una plataforma open source para aprender ingeniería aplicada a robótica. Estas instrucciones valen para cualquier persona o agente que contribuya: se trabaja con un ticket, dentro de su alcance y siguiendo los estándares. No se diseña producto ni arquitectura desde un ticket.
 
 ## Tu rol
