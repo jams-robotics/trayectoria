@@ -6,6 +6,7 @@ import { useEffect, useState, type JSX } from 'react';
 import { DeleteAccount } from './DeleteAccount';
 import { MyGroups } from './MyGroups';
 import { SECONDARY_BUTTON } from './fields';
+import { TeacherGroups } from './TeacherGroups';
 
 type Profile = Pick<Tables<'profiles'>, 'display_name' | 'role'>;
 
@@ -94,8 +95,12 @@ export function AccountPanel(): JSX.Element {
           </button>
         </div>
       </div>
-      {/* «Mis grupos» and «Eliminar cuenta» (F3-03); the latter closes the page. */}
-      <MyGroups userId={session.user.id} />
+      {/* «Mis grupos» (the owned ones for a teacher) and «Eliminar cuenta» (F3-03); the latter closes the page. */}
+      {profile === null ? null : profile.role === 'teacher' ? (
+        <TeacherGroups userId={session.user.id} />
+      ) : (
+        <MyGroups userId={session.user.id} />
+      )}
       <DeleteAccount />
     </div>
   );

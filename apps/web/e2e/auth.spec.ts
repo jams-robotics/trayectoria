@@ -46,6 +46,10 @@ test('sign-up with the teacher role, then login, show the role on /cuenta', asyn
   await expect(page.getByTestId('account-role')).toHaveText(auth.roles.teacher);
   await expect(page.getByTestId('account-email')).toHaveText(email);
   await expect(page.getByTestId('account-display-name')).toHaveText(DISPLAY_NAME);
+  // A teacher's «Mis grupos» leads to the groups they own in /aula.
+  await expect(
+    page.getByTestId('teacher-groups').getByRole('link', { name: auth.groups.openAula }),
+  ).toHaveAttribute('href', '/aula');
 
   await signOut(page);
 

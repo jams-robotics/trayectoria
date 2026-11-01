@@ -13,6 +13,7 @@ const STATIC_PATHS = [
   '/docentes',
   '/unirse',
   '/simuladores/brazo',
+  '/simuladores/carrito',
   '/simuladores/movil',
   '/brazos',
 ];

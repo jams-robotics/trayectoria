@@ -1,0 +1,16 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import { ArenaIsland } from '../../components/sim/ArenaIsland';
+import Base from '../../layouts/Base.astro';
+
+// The 3D line-follower arena: the simulation of `/simuladores/movil` staged in 3D, full width.
+// `client:only="react"` keeps `three` out of every other page (docs/ARCHITECTURE.md §8).
+---
+
+<Base title={t('sims.arenaPage.title')} description={t('sims.arenaPage.lead')}>
+  <h1 class="sr-only">{t('sims.arenaPage.title')}</h1>
+  <ArenaIsland client:only="react">
+    <div slot="fallback" class="h-[calc(100dvh-4rem)] min-h-[40rem] bg-bg" aria-hidden="true"></div>
+  </ArenaIsland>
+</Base>

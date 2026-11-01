@@ -262,6 +262,7 @@ test.describe('security headers (#507)', () => {
       '/ruta/ruta-1/m00/t01/',
       '/ruta/ruta-1/m03/t03/',
       '/simuladores/movil',
+      '/simuladores/carrito',
       '/simuladores/brazo?robot=so101',
       '/brazos/',
       '/brazos/so101/',

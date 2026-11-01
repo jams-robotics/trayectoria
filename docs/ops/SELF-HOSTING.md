@@ -121,6 +121,8 @@ docker run --rm --network host -v "$PWD":/repo -w /repo -e COREPACK_ENABLE_DOWNL
 
 La salida lista las migraciones `0001_schema.sql` … aplicadas. Añade `--dry-run` antes de `--yes` para ver qué se aplicaría sin tocar la base. La imagen de Node va fijada por etiqueta y digest, la misma que usa `infra/web.Dockerfile`.
 
+La migración `0014` (sesión de aula, #685) usa canales privados de Realtime. Antes de arrancar el sitio nuevo, desactiva **Allow public access** en *Realtime Settings* de Studio (si tu versión de Realtime lo ofrece); el orden es migración → ajuste → sitio. Para deshacer la migración, el SQL de rollback está al inicio de `supabase/migrations/0014_class_sessions.sql`.
+
 ### 6. Obtener la clave `anon`
 
 Es el valor de `ANON_KEY` en `/opt/supabase-project/.env`:
