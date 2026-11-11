@@ -49,6 +49,8 @@ interface PlotProps {
 En modo `live` el eje x empieza en 0 y nunca es negativo: muestra de 0 a `windowSeconds` hasta que la ventana empieza a deslizarse. Mientras el buffer está vacío la tarjeta se reduce a una línea de texto, sin cuadrícula. Con varias series el título las nombra («Gráfica de P, I, D») y el eje vertical lleva solo la unidad común; un eje sin unidad no lleva paréntesis. La lectura (`readout`) es una capa enfocable sobre el área de dibujo: el ratón o las flechas ←/→ mueven una marca vertical y una caja con el valor de cada serie en la muestra más cercana.
 Los valores de los ejes se escriben sin separador de miles (`6000`, no `6,000`), como el resto del contenido. La etiqueta de una `refLines` que cae en el borde superior del área de dibujo se escribe por debajo de la línea para que no se recorte (#609).
 
+`ParamPanel` escucha el evento de documento `trayectoria:aplicar` (`APPLY_EVENT`), con `detail` `{ clave: valor }`: aplica los valores de las claves que tiene, recortados a su rango. Lo dispara el botón «Aplicar» de `Experimento` (prop `aplica`) (v1.5). `ReadoutPanel` pliega tras «Más datos» las filas que pasan de las cinco primeras cuando son siete o más (`visibleRows` lo ajusta); `SimLayout` acepta `sticky={false}` para un simulador cuyos valores no caben junto al visor. `RobotBody` acepta `sensorReadings` (0–1 por sensor).
+
 ### Scene2D
 Canvas 2D en coordenadas físicas (m, Y hacia arriba). Hijos declarativos: `Grid`, `Axes`, `Vector`, `Trace`, `Circle`, `Rect`, `RobotBody` (desde `RobotSpec`), `Label`, `TrackLayer`.
 ```ts
@@ -73,12 +75,15 @@ Ejercicio de opción múltiple (v1.5): `defineChoiceExercise({ id, statement, op
 
 `index` pinta el prefijo `E1`, `E2`… del ejercicio dentro del tema; `seed` fija la instancia para stories, tests y e2e (si no, la primera instancia es común a todos; desde «Nuevos valores» sale de la sesión, aprobado por el humano en el chat, 2026-09-26). En una respuesta vectorial, si `generate` devuelve `labels`, cada campo lleva delante el texto de su clave y ese texto en el `aria-label` («Aceleración en m/s²»); sin `labels`, los campos se numeran («1», «2»; `aria-label` «Componente 1 en m/s») (#629).
 
+Retroalimentación (v1.5): al primer intento fallido sale la línea general; al segundo, una pista calculada con la respuesta y el valor esperado (signo contrario, factor de 60, 2π, 1000 o 100, o un orden de magnitud de diferencia; `hints.ts`); al tercero, además, la solución con su valor y unidad.
+
 ### MyRobotWidget
 Formulario del perfil móvil y tarjeta compacta.
 ```ts
 interface MyRobotWidgetProps { mode: 'form' | 'card'; editHref?: string; fields?: string[] }
 ```
 `fields` (v1.5) limita el formulario a esas rutas de `MobileSpec` (`wheelRadius_m`, `maxMotorSpeed_rpm`, `lineSensors.spacing_m`…, las `key` de `fields.ts`); con él se ocultan el nombre, los valores derivados y los grupos que quedan vacíos, y los campos no listados conservan su valor guardado. Sin `fields`, el formulario completo.
+El formulario completo lleva un esquema del robot visto desde arriba con cada medida señalada; la del campo enfocado se resalta (v1.5).
 Hook asociado: `useMyRobot(): RobotSpec` (siempre devuelve un spec: el del usuario o el robot de referencia).
 
 ## Física y matemática

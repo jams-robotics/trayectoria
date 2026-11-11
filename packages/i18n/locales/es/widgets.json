@@ -6,6 +6,9 @@
     "valueText": "{{value}} {{unit}}",
     "status": "{{label}}: {{value}} {{unit}}"
   },
+  "Experimento": {
+    "apply": "Aplicar al widget"
+  },
   "ReadoutPanel": {
     "more": "Más datos"
   },

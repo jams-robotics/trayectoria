@@ -10,9 +10,14 @@ interface Props {
   observa: string;
   /** The question that closes the experiment; the answer goes in the children, 3 sentences at most. */
   porque: string;
+  /**
+   * Values the «Aplicar» button sets in the topic widget, by the key of each slider of its
+   * parameter panel (`{ kd: 0.8 }`). Without it the card has no button (v1.5).
+   */
+  aplica?: Record<string, number>;
 }
 
-const { cambia, observa, porque } = Astro.props;
+const { cambia, observa, porque, aplica } = Astro.props;
 ---
 
 <article
@@ -28,6 +33,17 @@ const { cambia, observa, porque } = Astro.props;
     <span class="text-fg-muted text-sm">{t('topic.experiment.observe')}</span>
     <span>{observa}</span>
   </p>
+  {
+    aplica !== undefined && (
+      <button
+        type="button"
+        data-aplica={JSON.stringify(aplica)}
+        class="border-primary text-primary hover:bg-primary hover:text-primary-fg mt-3 h-[44px] rounded-md border px-4 text-sm font-semibold transition-colors duration-[120ms]"
+      >
+        {t('widgets.Experimento.apply')}
+      </button>
+    )
+  }
   <p class="text-fg mt-2 mb-0">{porque}</p>
   <details class="mt-3">
     <summary class="text-primary min-h-[44px] flex cursor-pointer items-center text-sm font-medium">
@@ -38,3 +54,14 @@ const { cambia, observa, porque } = Astro.props;
     </div>
   </details>
 </article>
+
+<script>
+  // «Aplicar»: tells the parameter panel of the topic widget to take these values. The event name
+  // is `APPLY_EVENT` of packages/widgets (ParamPanel).
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-aplica]')) {
+    button.addEventListener('click', () => {
+      const detail: unknown = JSON.parse(button.dataset.aplica ?? '{}');
+      document.dispatchEvent(new CustomEvent('trayectoria:aplicar', { detail }));
+    });
+  }
+</script>

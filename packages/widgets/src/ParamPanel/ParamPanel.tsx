@@ -248,11 +248,38 @@ function ParamRow({
 }
 
 /**
+ * Name of the document event the «Aplicar» button of an `Experimento` fires (v1.5): its `detail`
+ * is `{ [param key]: value }`. A panel applies the values whose key it has, clamped to its range.
+ */
+export const APPLY_EVENT = 'trayectoria:aplicar';
+
+/** Listens for `APPLY_EVENT` and sends each matching value through `onChange`. */
+function useApplyEvent(params: readonly ParamPanelParam[], onChange: ParamChangeHandler): void {
+  const latest = useRef({ params, onChange });
+  latest.current = { params, onChange };
+  useEffect(() => {
+    const apply = (event: Event): void => {
+      const values: unknown = event instanceof CustomEvent ? event.detail : null;
+      if (typeof values !== 'object' || values === null) return;
+      for (const param of latest.current.params) {
+        const value: unknown = Object.getOwnPropertyDescriptor(values, param.key)?.value;
+        if (typeof value === 'number') latest.current.onChange(param.key, quantize(value, param));
+      }
+    };
+    document.addEventListener(APPLY_EVENT, apply);
+    return () => {
+      document.removeEventListener(APPLY_EVENT, apply);
+    };
+  }, []);
+}
+
+/**
  * Sliders with a numeric field, unit and range (docs/WIDGETS.md; Slider of docs/DESIGN.md §5).
  * Keyboard: arrows move one step, Shift+arrow ten steps, Enter applies the typed value.
  */
 export function ParamPanel({ params, onChange, layout = 'stack' }: ParamPanelProps): JSX.Element {
   const t = useT();
+  useApplyEvent(params, onChange);
   const status = params
     .map((param) =>
       t('widgets.ParamPanel.status', {
