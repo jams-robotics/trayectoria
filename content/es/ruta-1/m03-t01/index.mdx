@@ -33,6 +33,7 @@ Empieza en 0.
 
 <Experimento
   cambia="la velocidad inicial v₀ al doble, de 0.6 a 1.2 m/s"
+  aplica={{ v0: 1.2 }}
   observa="la altura que alcanza el robot en la rampa"
   porque="¿Por qué la altura se cuadruplica?"
 >
@@ -41,7 +42,8 @@ de la rapidez, así que duplicarla la multiplica por 4: pasa de 0.0183 m a 0.073
 </Experimento>
 
 <Experimento
-  cambia="la masa m al doble, de 0.9 a 1.8 kg"
+  cambia="la masa del robot m al doble, de 0.9 a 1.8 kg"
+  aplica={{ mass: 1.8 }}
   observa="la altura que alcanza el robot en la rampa"
   porque="¿Por qué la altura no cambia?"
 >
@@ -50,7 +52,8 @@ cancela y la altura no depende de ella. El robot sube los mismos 0.0183 m.
 </Experimento>
 
 <Experimento
-  cambia="μₖ, la resistencia a la rodadura, de 0 a 0.05"
+  cambia="el «Coeficiente de rozamiento cinético» μₖ, la resistencia a la rodadura, de 0 a 0.05"
+  aplica={{ mu: 0.05 }}
   observa="la barra de energía mecánica mientras el robot avanza y sube, y la altura final"
   porque="¿Por qué E decrece y el robot sube menos?"
 >

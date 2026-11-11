@@ -39,6 +39,7 @@ error a cero.
 
 <Experimento
   cambia="Kd de 0 a 0.8"
+  aplica={{ kd: 0.8 }}
   observa="la curva de error en las rectas: cuánto oscila y el tamaño de sus picos"
   porque="¿Por qué se amortigua la oscilación?"
 >
@@ -48,8 +49,9 @@ robot cruce la línea; el Concepto explica por qué hace falta.
 </Experimento>
 
 <Experimento
-  cambia="Ki de 0 a 2 y luego a 10, con Kd = 0.8"
-  observa="la curva del término I en la gráfica del PID y cuánto se aleja de cero la curva de error en las curvas"
+  cambia="Ki de 0 a 2 y luego a 10, con Kd = 0.8 («Aplicar» pone Ki = 2 y Kd = 0.8)"
+  aplica={{ ki: 2, kd: 0.8 }}
+  observa="la curva del término I en la «Gráfica de P, I, D» y cuánto se aleja de cero la curva de error en las curvas"
   porque="¿Por qué se reduce el sesgo hacia afuera?"
 >
 La curva del término I baja hasta un valor negativo estable y la de error se acerca a cero según
@@ -58,8 +60,9 @@ sesgo que deja el resto.
 </Experimento>
 
 <Experimento
-  cambia="«Límite integral» de 1 a 0.1, con Ki = 10"
-  observa="la curva del término I en la gráfica del PID y la curva de error en las curvas"
+  cambia="«Límite integral» de 1 a 0.1, con Ki = 10 y Kd = 0.8"
+  aplica={{ iMax: 0.1, ki: 10, kd: 0.8 }}
+  observa="la curva del término I en la «Gráfica de P, I, D» y la curva de error en las curvas"
   porque="¿Por qué vuelve el sesgo?"
 >
 El término I queda plano en −1 rad/s y la curva de error vuelve a alejarse de cero en las curvas.

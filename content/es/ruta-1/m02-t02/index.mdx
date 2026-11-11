@@ -41,8 +41,9 @@ agarran.
 />
 
 <Experimento
-  cambia="la tracción por encima de μₛ·N, de 3 N a 6 N"
-  observa="el aviso «desliza» y la tracción que llega a la resultante"
+  cambia="el control «Tracción: módulo» por encima de μₛ·N, de 3 N a 6 N"
+  aplica={{ 'traction:magnitude': 6 }}
+  observa="el aviso «desliza» y la fila «Resultante», la tracción que llega a la resultante"
   porque="¿Por qué la tracción no pasa de ese máximo?"
 >
 En la rampa de 15° la normal es 8.53 N y la fuerza máxima de fricción, 5.12 N. Las ruedas no
@@ -51,7 +52,8 @@ limita a 5.12 N.
 </Experimento>
 
 <Experimento
-  cambia="la tracción a 0 N y luego la pendiente, grado a grado desde 15°"
+  cambia="la tracción a 0 N («Aplicar» solo hace este paso) y luego la pendiente, grado a grado desde 15°"
+  aplica={{ 'traction:magnitude': 0 }}
   observa="el ángulo al que aparece «desliza»"
   porque="¿Por qué el robot deja de sostenerse cerca de 31°?"
 >
@@ -61,8 +63,9 @@ A 30° aún se sostiene y a 31° ya no, sea cual sea la masa.
 </Experimento>
 
 <Experimento
-  cambia="μₛ de 0.6 a 0.3 (goma dura), con la pendiente en 0°"
-  observa="la aceleración máxima en el panel"
+  cambia="el coeficiente de fricción estática μₛ de 0.6 a 0.3 (goma dura), con la pendiente en 0°"
+  aplica={{ mu_s: 0.3, slope: 0 }}
+  observa="la fila «Aceleración máxima sin deslizar» del panel"
   porque="¿Por qué la aceleración máxima se reduce a la mitad?"
 >
 En plano, la aceleración máxima es proporcional a μₛ. Pasa de 5.89 m/s² a 2.94 m/s² sin que

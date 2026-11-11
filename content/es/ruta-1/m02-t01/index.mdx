@@ -52,7 +52,8 @@ y la resultante; el panel da sus valores y la aceleración, que empieza en 1.22 
 />
 
 <Experimento
-  cambia="la tracción hasta igualar la fricción: 0.4 N"
+  cambia="el control «Tracción: módulo» hasta igualar la fricción: 0.4 N"
+  aplica={{ 'traction:magnitude': 0.4 }}
   observa="la resultante y la aceleración"
   porque="¿Por qué una resultante cero no significa que el robot esté en reposo?"
 >
@@ -62,6 +63,7 @@ velocidad no cambia, no que sea cero. Si el robot ya avanzaba, sigue a velocidad
 
 <Experimento
   cambia="la pendiente de 0° a 15°"
+  aplica={{ slope: 15 }}
   observa="el peso a lo largo de la superficie y la resultante"
   porque="¿Por qué aparece una fuerza de 2.29 N en contra de la tracción?"
 >
@@ -72,6 +74,7 @@ normal baja a 8.53 N.
 
 <Experimento
   cambia="la masa al doble, de 0.9 a 1.8 kg, en plano y con la misma tracción"
+  aplica={{ mass: 1.8, slope: 0, 'traction:magnitude': 1.5 }}
   observa="la aceleración"
   porque="¿Por qué se reduce a la mitad?"
 >

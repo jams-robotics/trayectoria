@@ -35,6 +35,7 @@ gráficas x–t, v–t y a–t muestran el mismo movimiento con un marcador de t
 
 <Experimento
   cambia="la aceleración a al doble, de 0.4 a 0.8 m/s²"
+  aplica={{ a: 0.8 }}
   observa="x en t = 1.5 s, con el marcador de tiempo"
   porque="¿Por qué x se duplica?"
 >
@@ -43,7 +44,8 @@ en t = 1.5 s pasa de 0.45 m a 0.9 m.
 </Experimento>
 
 <Experimento
-  cambia="pon v₀ = 0.6 m/s y a = −1.2 m/s²"
+  cambia="pon la velocidad inicial v₀ = 0.6 m/s y la aceleración a = −1.2 m/s²"
+  aplica={{ v0: 0.6, a: -1.2 }}
   observa="el instante en que v–t cruza cero y el valor de x en ese instante"
   porque="¿Por qué el robot se detiene a 0.15 m?"
 >
@@ -52,7 +54,8 @@ horizontal y x alcanza su máximo.
 </Experimento>
 
 <Experimento
-  cambia="v₀ al doble, de 0.3 a 0.6 m/s, con la misma a = −1.2 m/s²"
+  cambia="v₀ al doble, con la misma a = −1.2 m/s²: «Aplicar» pone v₀ = 0.3 m/s y a = −1.2 m/s²; después súbela a 0.6 m/s"
+  aplica={{ v0: 0.3, a: -1.2 }}
   observa="la distancia de frenado: el máximo de x–t"
   porque="¿Por qué se cuadruplica al duplicar v₀?"
 >

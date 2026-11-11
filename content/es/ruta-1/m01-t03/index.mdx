@@ -32,7 +32,7 @@ vueltas.
 
 <Experimento
   cambia="el tiempo: reinicia y reproduce 1 s a 200 rpm"
-  observa="el contador de vueltas"
+  observa="la fila «Vueltas», el contador de vueltas"
   porque="¿Por qué marca 3.33 vueltas?"
 >
 200 rpm son 200 vueltas en 60 s, es decir, 200/60 = 3.33 vueltas por segundo. En 1 s el ángulo
@@ -40,8 +40,9 @@ girado es θ = 20.94 rad, y 20.94/2π = 3.33 vueltas.
 </Experimento>
 
 <Experimento
-  cambia="n de 200 rpm a 60 rpm"
-  observa="el período T"
+  cambia="la velocidad angular n de 200 rpm a 60 rpm"
+  aplica={{ omega: 60 }}
+  observa="la fila «Período», el período T"
   porque="¿Por qué T vale exactamente 1 s?"
 >
 60 rpm son 60 vueltas en 60 s: una vuelta por segundo. Por eso T = 60/60 = 1 s, y
@@ -49,7 +50,7 @@ girado es θ = 20.94 rad, y 20.94/2π = 3.33 vueltas.
 </Experimento>
 
 <Experimento
-  cambia="el radio r, sin tocar la velocidad de giro"
+  cambia="el radio de la rueda r, sin tocar la velocidad de giro"
   observa="ω y el período T"
   porque="¿Por qué no cambian?"
 >

@@ -75,7 +75,8 @@ del límite de 3.53 m/s², y la rueda exterior gira a 19.5 rad/s, por debajo de 
 </Experimento>
 
 <Experimento
-  cambia="la velocidad base de 15 a 16 rad/s y luego a 17, y reproduce 3 vueltas"
+  cambia="la «Velocidad base» de 15 a 16 rad/s y luego a 17, y reproduce 3 vueltas («Aplicar» pone 16 rad/s)"
+  aplica={{ omegaBase_radps: 16 }}
   observa="la «Última vuelta» frente a la meta de 5.5 s y si el robot pierde la línea"
   porque="¿Hasta dónde puedes subir la velocidad base?"
 >
@@ -85,7 +86,8 @@ menos que el anterior.
 </Experimento>
 
 <Experimento
-  cambia="la velocidad base de vuelta a 15 rad/s, Kd de 0.3 a 0.05 y reinicia (paso 7)"
+  cambia="la «Velocidad base» de vuelta a 15 rad/s, Kd de 0.3 a 0.05 y reinicia (paso 7)"
+  aplica={{ omegaBase_radps: 15, kd: 0.05 }}
   observa="la gráfica de error y el contador de vueltas hasta que el simulador se detiene"
   porque="¿Por qué con menos Kd el robot pierde la línea?"
 >

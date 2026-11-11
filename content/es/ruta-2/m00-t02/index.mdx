@@ -47,7 +47,7 @@ y no depende de la pose.
 
 <Experimento
   cambia="la posición del robot: arrástralo a otro punto"
-  observa="la fila «Sensor 1» del panel de marcos, el sensor izquierdo extremo"
+  observa="la fila «Sensor 1 en el marco global» del panel de marcos, el sensor izquierdo extremo"
   porque="¿Por qué cambian sus coordenadas en {G} y no las de {R}?"
 >
 El sensor está fijo al robot, así que en \{R\} sus coordenadas son siempre las del perfil:
@@ -56,7 +56,8 @@ y sumando su posición.
 </Experimento>
 
 <Experimento
-  cambia="la orientación inicial θ₀ a 90°"
+  cambia="la «Orientación inicial» θ₀ a 90°"
+  aplica={{ theta: 90 }}
   observa="la matriz R(θ) del panel de marcos"
   porque="¿Por qué la x del robot pasa a ser la y del mundo?"
 >
