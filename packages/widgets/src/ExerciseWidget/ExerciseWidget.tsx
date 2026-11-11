@@ -4,6 +4,7 @@ import type { Choices, Exercise } from '@trayectoria/sim-core';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 
+import { hintText, solutionText } from './feedback';
 import { AnswerField, ResultLine } from './fields';
 import type { ExerciseStatus } from './fields';
 import { unitAt, useExercise } from './state';
@@ -35,8 +36,10 @@ function announcement(state: ExerciseState, t: Translate): string {
   if (state.status === 'correct') return t('widgets.ExerciseWidget.correct');
   if (state.status !== 'incorrect') return '';
   const line = t('widgets.ExerciseWidget.incorrect');
-  const hint = t('widgets.ExerciseWidget.hint');
-  return `${line} · ${hint} · ${t('widgets.ExerciseWidget.attempt', { n: state.attempt })}`;
+  const hint = hintText(state, t);
+  const attempt = t('widgets.ExerciseWidget.attempt', { n: state.attempt });
+  const solution = solutionText(state, t);
+  return [line, hint, attempt, ...(solution === null ? [] : [solution])].join(' · ');
 }
 
 /** Statement of the instance, with the `E{n}` prefix and the «obligatorio» tag when they apply. */
@@ -208,6 +211,25 @@ function ChoiceRow({
   );
 }
 
+/** Under a wrong numeric answer: the hint, the attempt and, from the third one, the solution. */
+function Feedback({ state, t }: { state: ExerciseState; t: Translate }): JSX.Element {
+  const solution = solutionText(state, t);
+  return (
+    <p className="text-fg-muted mt-2 text-sm">
+      <span data-testid="exercise-hint">{hintText(state, t)}</span>
+      {' · '}
+      <span data-testid="exercise-attempt">
+        {t('widgets.ExerciseWidget.attempt', { n: state.attempt })}
+      </span>
+      {solution === null ? null : (
+        <span data-testid="exercise-solution" className="text-fg ml-2 font-semibold">
+          {solution}
+        </span>
+      )}
+    </p>
+  );
+}
+
 /**
  * One exercise of `defineExercise`: statement with the generated values, a numeric field per
  * answer component, verification with `check()` of sim-core and feedback (docs/WIDGETS.md,
@@ -239,13 +261,7 @@ export function ExerciseWidget<V>({
         <p className="text-error mt-2 text-sm">{t('widgets.ExerciseWidget.invalid')}</p>
       ) : null}
       {state.status === 'incorrect' && exercise.choices === undefined ? (
-        <p className="text-fg-muted mt-2 text-sm">
-          <span data-testid="exercise-hint">{t('widgets.ExerciseWidget.hint')}</span>
-          {' · '}
-          <span data-testid="exercise-attempt">
-            {t('widgets.ExerciseWidget.attempt', { n: state.attempt })}
-          </span>
-        </p>
+        <Feedback state={state} t={t} />
       ) : null}
       <p className="sr-only" role="status" aria-live="polite">
         {announcement(state, t)}
