@@ -11,7 +11,7 @@ import { Vector } from '../Scene2D/primitives/Vector';
 /** Width over height of the view: the lift is taller than wide, with the bar beside it. */
 const ASPECT = 4 / 3;
 /** Every size of the scene is a share of `H`, so any lift height fills the view the same way. */
-const LOAD_FACTOR = 0.15;
+const LOAD_FACTOR = 0.2;
 const DRUM_RADIUS_FACTOR = 0.06;
 /** Gap between the top of the load at `h = H` and the bottom of the drum. */
 const DRUM_GAP_FACTOR = 0.12;

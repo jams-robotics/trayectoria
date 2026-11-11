@@ -40,10 +40,14 @@ function boxOf(mode: (typeof MODES)[number], rMax_m: number) {
 }
 
 describe('escena de RotationWidget a escala del radio (#359)', () => {
-  it('el radio máximo de la escena es 0.1 m, o initial.r_m si es mayor', () => {
-    expect(sceneRadiusOf(0.032)).toBe(0.1);
-    expect(sceneRadiusOf(0.1)).toBe(0.1);
+  it('el radio de la escena es 0.065 m, o initial.r_m si es mayor: el disco de 0.032 m ocupa un tercio del alto', () => {
+    expect(sceneRadiusOf(0.032)).toBe(0.065);
     expect(sceneRadiusOf(0.25)).toBe(0.25);
+    expect((2 * 0.032) / sceneHeightOf('disc', sceneRadiusOf(0.032))).toBeGreaterThanOrEqual(0.32);
+  });
+
+  it('un radio mayor que 1.35 veces el de la escena se dibuja con ese tope', () => {
+    expect(drawnRadius('disc', 0.2, R_MAX_M)).toBeCloseTo(1.35 * R_MAX_M, 12);
   });
 
   for (const mode of MODES) {
