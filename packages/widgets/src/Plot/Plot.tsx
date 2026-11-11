@@ -102,6 +102,7 @@ export function Plot(props: PlotProps): JSX.Element {
           <MarkerLayer marker={marker} xRange={xRange} plotArea={plotArea} unit={x.unit} t={t} />
         )}
       </div>
+      {props.guide === undefined ? null : <p className="text-fg-muted mt-3 mb-0 text-sm">{props.guide}</p>}
       <p className="sr-only" role="status" aria-live="polite">
         {status}
       </p>

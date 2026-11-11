@@ -90,4 +90,6 @@ export interface PlotProps {
    * los datos» or «Rango completo» and says when the fitted axis magnifies the variation.
    */
   fullRange?: readonly [number, number] | undefined;
+  /** One line under the chart, inside its card, on how to read it (v1.5). */
+  guide?: string | undefined;
 }

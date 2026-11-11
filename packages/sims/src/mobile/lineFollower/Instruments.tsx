@@ -147,8 +147,8 @@ export function Instruments({
             height={height}
             vLines={lapMarks(laps, t)}
             fullRange={fullRangeOf(id, limits)}
+            guide={t(`sims.instruments.guide.${id}`)}
           />
-          <p className="text-fg-muted mt-2 mb-0 text-sm">{t(`sims.instruments.guide.${id}`)}</p>
         </div>
       ))}
     </div>
