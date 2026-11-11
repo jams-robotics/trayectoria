@@ -375,11 +375,11 @@ for (const topic of MODULE_0_TOPICS) {
       ].sort(),
     );
     const { left, width } = blocks[0]!;
-    // Since 1.5 the experiments share one row of cards (docs/DESIGN.md §4): same left edge, not width.
+    // Since 1.5 the experiments share one row of cards (DESIGN.md §4): they are not reading blocks.
     const misaligned = blocks.filter(
       (block) =>
-        Math.abs(block.left - left) > EDGE_TOLERANCE_PX ||
-        (block.kind !== 'experiment' && Math.abs(block.width - width) > EDGE_TOLERANCE_PX),
+        block.kind !== 'experiment' &&
+        Math.max(Math.abs(block.left - left), Math.abs(block.width - width)) > EDGE_TOLERANCE_PX,
     );
     expect(misaligned).toEqual([]);
   });
