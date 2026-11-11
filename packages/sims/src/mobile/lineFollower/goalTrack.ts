@@ -1,7 +1,7 @@
 import { trackLength_m } from '@trayectoria/sim-core';
 import type { Track } from '@trayectoria/sim-core';
 
-import type { TrackJson } from './tracks';
+import type { TrackJson, TrackPreset } from './tracks';
 
 // The lap-time game (v1.5): which record a track keeps and the factory target of each preset.
 
@@ -9,7 +9,7 @@ import type { TrackJson } from './tracks';
  * Target lap of each preset, in seconds: about 7 % under what the reference robot with the
  * reference PID does (oval 8.58, S 11.26, tight 5.31, cross 8.08), so beating it takes tuning.
  */
-export const TARGET_LAP_S: Readonly<Record<string, number>> = {
+export const TARGET_LAP_S: Readonly<Record<string, number>> & Readonly<Record<TrackPreset, number>> = {
   oval: 8,
   s: 10.5,
   tight: 5,
@@ -26,7 +26,7 @@ export interface LapGoalTrack {
 export function goalOf(track: TrackJson, resolved: Track): LapGoalTrack {
   // Own keys only: a track name is outside input and must not reach the prototype of the table.
   if (typeof track === 'string' && Object.hasOwn(TARGET_LAP_S, track)) {
-    return { key: track, target_s: TARGET_LAP_S[track] };
+    return { key: track, target_s: TARGET_LAP_S[track as TrackPreset] };
   }
   return { key: `custom:${String(Math.round(trackLength_m(resolved) * 1000))}` };
 }
