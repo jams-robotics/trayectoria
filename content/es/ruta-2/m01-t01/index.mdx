@@ -34,7 +34,8 @@ muestra el centro de giro (CIR), el radio de giro, la trayectoria y la velocidad
 />
 
 <Experimento
-  cambia="la rueda izquierda a 20 rad/s, igual que la derecha"
+  cambia="la «Velocidad rueda izquierda» a 20 rad/s, igual que la derecha"
+  aplica={{ omegaL: 20, omegaR: 20 }}
   observa="el CIR y el radio de giro"
   porque="¿Por qué el robot avanza en línea recta?"
 >
@@ -43,7 +44,8 @@ infinito. Un arco de radio infinito es una recta.
 </Experimento>
 
 <Experimento
-  cambia="la rueda izquierda a −20 rad/s, con la derecha a 20 rad/s"
+  cambia="la «Velocidad rueda izquierda» a −20 rad/s, con la derecha a 20 rad/s"
+  aplica={{ omegaL: -20, omegaR: 20 }}
   observa="dónde queda el CIR y cuánto vale el radio de giro"
   porque="¿Por qué el robot gira sin moverse del sitio?"
 >
@@ -51,7 +53,8 @@ Con las ruedas opuestas, el centro del eje no avanza. El robot solo gira, a 8.53
 </Experimento>
 
 <Experimento
-  cambia="la rueda izquierda a 0 rad/s, con la derecha a 20 rad/s"
+  cambia="la «Velocidad rueda izquierda» a 0 rad/s, con la derecha a 20 rad/s"
+  aplica={{ omegaL: 0, omegaR: 20 }}
   observa="dónde queda el CIR y cuánto vale el radio de giro"
   porque="¿Por qué el CIR cae sobre la rueda izquierda?"
 >

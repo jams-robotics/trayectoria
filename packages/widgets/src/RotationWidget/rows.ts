@@ -52,9 +52,9 @@ function discRows(rotation: Rotation, t_s: number, t: Translate): ReadoutRow[] {
         ? format(period_s, t('widgets.RotationWidget.unitS'))
         : t('widgets.RotationWidget.atRest'),
     ],
+    [t('widgets.RotationWidget.turns'), format(turnsAt('disc', rotation, t_s), '')],
     [t('widgets.RotationWidget.frequency'), format(frequency(omega_radps), t('widgets.RotationWidget.unitHz'))],
     [t('widgets.RotationWidget.angle'), format(angleAt('disc', rotation, t_s), t('widgets.RotationWidget.unitRad'))],
-    [t('widgets.RotationWidget.turns'), format(turnsAt('disc', rotation, t_s), '')],
   ];
 }
 

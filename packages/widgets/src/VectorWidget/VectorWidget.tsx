@@ -36,19 +36,23 @@ interface RowContext {
   t: Translate;
 }
 
-/** The three lines a single vector contributes to the panel, per `show`. */
+/**
+ * The lines a single vector contributes to the panel, per `show`: the components first (the
+ * ones the topic reads), then the magnitude and the angle (v1.5).
+ */
 function vectorRows(
   name: string,
   polar: Polar,
   components: Vec2,
   { show, unit, t }: RowContext,
-): ReadonlyArray<readonly [string, string]> {
+): { main: ReadonlyArray<readonly [string, string]>; rest: ReadonlyArray<readonly [string, string]> } {
   const angle = t('widgets.VectorWidget.degrees', {
     value: polar.angle_deg.toFixed(ANGLE_DECIMALS),
   });
-  const rows: Array<readonly [string, string]> = [];
+  const main: Array<readonly [string, string]> = [];
+  const rest: Array<readonly [string, string]> = [];
   if (show.includes('components')) {
-    rows.push([
+    main.push([
       t('widgets.VectorWidget.components', { name }),
       t('widgets.VectorWidget.pair', {
         x: format(components[0], unit),
@@ -56,41 +60,52 @@ function vectorRows(
       }),
     ]);
   }
-  rows.push([t('widgets.VectorWidget.magnitude', { name }), format(polar.magnitude, unit)]);
-  if (show.includes('angle')) rows.push([t('widgets.VectorWidget.angle', { name }), angle]);
-  return rows;
+  const magnitude: readonly [string, string] = [
+    t('widgets.VectorWidget.magnitude', { name }),
+    format(polar.magnitude, unit),
+  ];
+  // Without components the magnitude is the vector's only line, so it stays in view.
+  (main.length === 0 ? main : rest).push(magnitude);
+  if (show.includes('angle')) rest.push([t('widgets.VectorWidget.angle', { name }), angle]);
+  return { main, rest };
 }
 
-/** Every line of the panel: the two vectors, then the sum, the dot product and the angle. */
+/**
+ * Every line of the panel and how many stay in view: the components of a, b and a + b, then the
+ * dot product and the angle between them; the magnitudes and angles of each vector go behind
+ * «Más datos» (v1.5).
+ */
 function panelRows(
   readout: VectorReadout,
   a: Vec2,
   b: Vec2,
   context: RowContext,
-): ReadonlyArray<readonly [string, string]> {
+): { rows: ReadonlyArray<readonly [string, string]>; inView: number } {
   const { show, unit, t } = context;
-  const rows = [
-    ...vectorRows(t('widgets.VectorWidget.nameA'), readout.a, a, context),
-    ...vectorRows(t('widgets.VectorWidget.nameB'), readout.b, b, context),
+  const parts = [
+    vectorRows(t('widgets.VectorWidget.nameA'), readout.a, a, context),
+    vectorRows(t('widgets.VectorWidget.nameB'), readout.b, b, context),
   ];
   if (show.includes('sum')) {
-    rows.push(
-      ...vectorRows(t('widgets.VectorWidget.nameSum'), readout.sum, readout.sum_components, context),
+    parts.push(
+      vectorRows(t('widgets.VectorWidget.nameSum'), readout.sum, readout.sum_components, context),
     );
   }
+  const main = parts.flatMap((part) => part.main);
+  const rest = parts.flatMap((part) => part.rest);
   if (show.includes('dot')) {
-    rows.push([
+    main.push([
       t('widgets.VectorWidget.dot'),
       format(readout.dot, t('widgets.VectorWidget.squareUnit', { unit })),
     ]);
   }
   if (show.includes('angle')) {
-    rows.push([
+    main.push([
       t('widgets.VectorWidget.between'),
       t('widgets.VectorWidget.degrees', { value: readout.between_deg.toFixed(ANGLE_DECIMALS) }),
     ]);
   }
-  return rows;
+  return { rows: [...main, ...rest], inView: main.length };
 }
 
 /** The arrows of the scene: a, b and, with `sum`, the parallelogram rule and the sum itself. */
@@ -219,6 +234,7 @@ export function VectorWidget({
   const [b, setB] = useState<Vec2>(initialB);
   const readout = useMemo(() => readVectors(a, b), [a, b]);
   const context: RowContext = { show, unit, t };
+  const panel = panelRows(readout, a, b, context);
   const status = t('widgets.VectorWidget.status', {
     magnitude: format(readout.sum.magnitude, unit),
     angle: readout.sum.angle_deg.toFixed(ANGLE_DECIMALS),
@@ -240,7 +256,8 @@ export function VectorWidget({
       <div className="md:w-panel">
         <ReadoutPanel
           title={t('widgets.VectorWidget.panel')}
-          rows={panelRows(readout, a, b, context)}
+          rows={panel.rows}
+          visibleRows={panel.inView}
         />
         <LiveStatus text={status} />
       </div>

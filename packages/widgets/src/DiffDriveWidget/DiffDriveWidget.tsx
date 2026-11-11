@@ -97,16 +97,18 @@ function dragHandler(
 function OdometryReadouts({
   odometry,
   real,
+  velocityFirst,
   t,
 }: {
   odometry: Odometry | null;
   real: Pose;
+  velocityFirst: boolean;
   t: Translate;
 }): JSX.Element | null {
   if (odometry === null) return null;
   return (
     <>
-      <OdometryPanel odometry={odometry} real={real} t={t} />
+      <OdometryPanel odometry={odometry} real={real} velocityFirst={velocityFirst} t={t} />
       <LiveStatus text={odometryStatusOf(odometry, real, t)} />
     </>
   );
@@ -141,7 +143,13 @@ function Values({
         extraRows={maneuverRows(maneuver, t)}
         t={t}
       >
-        <OdometryReadouts odometry={odometry} real={readout.pose} t={t} />
+        {/* Without `frames` the topic is the velocity estimate (T-4.5); with it, the drift of the pose. */}
+        <OdometryReadouts
+          odometry={odometry}
+          real={readout.pose}
+          velocityFirst={!show.includes('frames')}
+          t={t}
+        />
       </PosePanel>
       <LiveStatus text={maneuverStatusOf(statusOf(readout, t), maneuver?.phase ?? null, t)} />
     </>

@@ -46,8 +46,9 @@ También muestra la potencia de entrada y la de salida; qué es la potencia lo v
 />
 
 <Experimento
-  cambia="z₄, los dientes del último engranaje, de 50 a 60"
-  observa="la velocidad y el torque de salida"
+  cambia="los «Dientes del engranaje de salida», z₄, de 50 a 60"
+  aplica={{ z4: 60 }}
+  observa="las filas «Velocidad de salida» y «Torque de salida»"
   porque="¿Por qué uno sube y el otro baja en la misma proporción?"
 >
 La relación total pasa de 30 a 36, 1.2 veces mayor. La velocidad de salida baja de 100 rpm a
@@ -55,8 +56,9 @@ La relación total pasa de 30 a 36, 1.2 veces mayor. La velocidad de salida baja
 </Experimento>
 
 <Experimento
-  cambia="la eficiencia η de 0.6 a 1"
-  observa="el torque de salida"
+  cambia="la «Eficiencia» η de 0.6 a 1"
+  aplica={{ efficiency: 1 }}
+  observa="la fila «Torque de salida»"
   porque="¿Por qué sube de 0.108 a 0.18 N·m?"
 >
 Con η = 1 la caja no pierde nada y la salida sube a 0.18 N·m. Con η = 0.6, el 40 % se pierde en
@@ -65,8 +67,9 @@ la eficiencia de la caja solo recorta el torque.
 </Experimento>
 
 <Experimento
-  cambia="z₁ y z₂ entre sí: 60 dientes en la entrada y 10 en la salida de la primera etapa"
-  observa="la relación total y la velocidad y el torque de salida"
+  cambia="z₁ y z₂ entre sí: 60 en «Dientes del engranaje de entrada» (z₁) y 10 en «Dientes del segundo engranaje» (z₂), la primera etapa"
+  aplica={{ z1: 60, z2: 10 }}
+  observa="las filas «Relación total», «Velocidad de salida» y «Torque de salida»"
   porque="¿Por qué ahora el tren multiplica la velocidad y divide el torque?"
 >
 La primera etapa queda con una relación menor que 1, y la total pasa a 0.833. La velocidad de
@@ -75,7 +78,7 @@ salida sube a 3600 rpm, más que la del motor, y el torque baja a 0.003 N·m, me
 
 <Experimento
   cambia="nada: deja el tren como está"
-  observa="el sentido de giro de cada eje"
+  observa="la fila «Sentido de salida» y el sentido de giro de cada eje en el dibujo"
   porque="¿Por qué la salida gira en el mismo sentido que el motor?"
 >
 Cada par engranado invierte el sentido de giro. El eje intermedio gira al revés que el motor, y la

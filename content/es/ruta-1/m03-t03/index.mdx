@@ -55,7 +55,8 @@ el máximo de la parábola.
 </Experimento>
 
 <Experimento
-  cambia="el torque de bloqueo al doble, de 0.012 a 0.024 N·m"
+  cambia="el «Torque de bloqueo» al doble, de 0.012 a 0.024 N·m"
+  aplica={{ stallTorque_Nm: 0.024 }}
   observa="la potencia máxima y la velocidad a la que se da"
   porque="¿Por qué se duplica a 3.77 W y sigue en 3000 rpm?"
 >
@@ -65,7 +66,8 @@ cambió.
 </Experimento>
 
 <Experimento
-  cambia="el punto de trabajo al bloqueo, 0 rpm"
+  cambia="la «Velocidad» del punto de trabajo al bloqueo, 0 rpm"
+  aplica={{ speed_rpm: 0 }}
   observa="la corriente I y las dos potencias, eléctrica y mecánica"
   porque="¿Por qué 1.2 A y 0 W mecánicos?"
 >

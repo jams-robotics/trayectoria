@@ -48,6 +48,7 @@ redondea a un número entero de ticks. Esa cuantización es lo único que separa
 
 <Experimento
   cambia="el deslizador «Radio de rueda creído» 1 mm por encima, de 0.032 a 0.033 m"
+  aplica={{ believedRadius: 0.033 }}
   observa="la traza estimada frente a la real y el error de posición"
   porque="¿Por qué la estimada se adelanta y el error crece con la distancia?"
 >
@@ -58,6 +59,7 @@ así que el error crece linealmente con la distancia.
 
 <Experimento
   cambia="el deslizador «Distancia entre ruedas creída» 5 mm por encima, de 0.15 a 0.155 m"
+  aplica={{ believedBase: 0.155 }}
   observa="la orientación estimada y el error de rumbo a los 30 s"
   porque="¿Por qué el rumbo estimado se queda atrás unos 12°?"
 >

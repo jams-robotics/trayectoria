@@ -39,8 +39,9 @@ muestreo» del panel.
 />
 
 <Experimento
-  cambia="la velocidad de las dos ruedas a 1 rad/s"
-  observa="la velocidad estimada en el panel de odometría"
+  cambia="las velocidades de las dos ruedas, «Velocidad rueda izquierda» y «Velocidad rueda derecha», a 1 rad/s"
+  aplica={{ omegaL: 1, omegaR: 1 }}
+  observa="la fila «Velocidad lineal estimada» del panel de odometría"
   porque="¿Por qué salta en escalones?"
 >
 A 1 rad/s la rueda gira despacio, así que en cada muestra caen pocos ticks. La
@@ -50,7 +51,8 @@ muestreo. Un tick de más o de menos en una muestra es un escalón visible.
 
 <Experimento
   cambia="el deslizador «Ticks por vuelta de rueda» a 20"
-  observa="la velocidad estimada frente a la real"
+  aplica={{ ticksPerRev: 20 }}
+  observa="la «Velocidad lineal estimada» frente a la «Velocidad lineal» real del panel de pose"
   porque="¿Por qué los escalones son enormes?"
 >
 Con 20 ticks por vuelta, cada tick equivale a 0.01005 m, mucho más que con 360 ticks. Cada tick es
@@ -60,7 +62,8 @@ valores muy separados.
 
 <Experimento
   cambia="el deslizador «Ticks por vuelta de rueda» a 2000"
-  observa="la velocidad estimada frente a la real"
+  aplica={{ ticksPerRev: 2000 }}
+  observa="la «Velocidad lineal estimada» frente a la «Velocidad lineal» real del panel de pose"
   porque="¿Por qué la estimada sigue a la real?"
 >
 Con 2000 ticks por vuelta, cada tick equivale a 0.1005 mm. En cada muestra caen muchos ticks y uno

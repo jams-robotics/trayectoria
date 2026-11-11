@@ -201,16 +201,19 @@ export function applyCalibration(
 export function OdometryPanel({
   odometry,
   real,
+  velocityFirst,
   t,
 }: {
   odometry: OdometryReadout;
   real: Pose;
+  /** The topic reads the velocity estimate: its lines come first (v1.5). */
+  velocityFirst: boolean;
   t: Translate;
 }): JSX.Element {
   return (
     <ReadoutPanel
       title={t('widgets.DiffDriveWidget.odometryPanel')}
-      rows={odometryRows(odometry, real, t)}
+      rows={odometryRows(odometry, real, t, velocityFirst)}
       visibleRows={ODOMETRY_ESSENTIAL_ROWS}
     />
   );
@@ -228,12 +231,13 @@ export function Notice({ text, tone }: { text: string; tone: 'error' | 'muted' }
 
 /** Pose rows with the maneuver lines right after the essential ones, so they stay in view. */
 function posePanelRows(
+  mode: DiffDriveMode,
   readout: Readout,
   spec: MobileSpec,
   extraRows: readonly ReadoutRow[],
   t: Translate,
 ): readonly ReadoutRow[] {
-  const rows = poseRows(readout, spec, t);
+  const rows = poseRows(readout, spec, t, mode);
   return [...rows.slice(0, POSE_ESSENTIAL_ROWS), ...extraRows, ...rows.slice(POSE_ESSENTIAL_ROWS)];
 }
 
@@ -285,7 +289,10 @@ function RotationMatrix({ pose, t }: { pose: Pose; t: Translate }): JSX.Element 
   );
 }
 
-/** The frames panel: `R(θ)` as a matrix and the global sensor coordinates behind «Más datos». */
+/** Sensor lines of the frames panel in view: the first one, the one the topics read (v1.5). */
+const FRAMES_ESSENTIAL_ROWS = 1;
+
+/** The frames panel: `R(θ)` as a matrix, the first sensor and the rest behind «Más datos». */
 function FramesPanel({
   pose,
   spec,
@@ -299,7 +306,7 @@ function FramesPanel({
     <ReadoutPanel
       title={t('widgets.DiffDriveWidget.framesPanel')}
       rows={frameRows(pose, spec, t)}
-      visibleRows={0}
+      visibleRows={FRAMES_ESSENTIAL_ROWS}
       lead={<RotationMatrix pose={pose} t={t} />}
     />
   );
@@ -311,6 +318,7 @@ function FramesPanel({
  * orientation `θ₀` is a slider of the controls, because the scene only drags `x, y` (#371).
  */
 export function PosePanel({
+  mode,
   readout,
   spec,
   withFrames,
@@ -322,7 +330,7 @@ export function PosePanel({
     <div className="flex flex-col gap-4">
       <ReadoutPanel
         title={t('widgets.DiffDriveWidget.panel')}
-        rows={posePanelRows(readout, spec, extraRows, t)}
+        rows={posePanelRows(mode, readout, spec, extraRows, t)}
         visibleRows={POSE_ESSENTIAL_ROWS + extraRows.length}
       />
       {children}

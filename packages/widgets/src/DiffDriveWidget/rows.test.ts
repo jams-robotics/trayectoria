@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { t } from '@trayectoria/i18n';
 
+import { defaultRobot, mobileOf } from './compute';
 import type { Pose } from './compute';
-import { odometryRows } from './rows';
+import { ODOMETRY_ESSENTIAL_ROWS, POSE_ESSENTIAL_ROWS, odometryRows, poseRows, readDiffDrive } from './rows';
 import type { OdometryReadout } from './rows';
 
 /** The value of one line of a set of rows, by its term. */
@@ -54,5 +55,38 @@ describe('DiffDriveWidget odometryRows: velocidad estimada por encoders (#306, T
     const rows = odometryRows(READOUT, REAL, t);
     expect(valueOf(rows, 'Posición x estimada')).toBe('0.234 m');
     expect(valueOf(rows, 'Ticks acumulados (izquierda, derecha)')).toBe('(45, 45 ticks)');
+  });
+});
+
+describe('DiffDriveWidget: filas a la vista de los «Explora» (v1.5)', () => {
+  const inView = (rows: readonly (readonly [string, string])[], count: number): string[] =>
+    rows.slice(0, count).map(([term]) => term);
+
+  it('con velocityFirst, los ticks, Δt y las velocidades estimadas van primero', () => {
+    const terms = inView(odometryRows(READOUT, REAL, t, true), ODOMETRY_ESSENTIAL_ROWS);
+    expect(terms).toContain('Velocidad lineal estimada');
+    expect(terms).toContain('Intervalo de muestreo de la velocidad Δt');
+    expect(terms).not.toContain('Error de posición');
+  });
+
+  it('sin velocityFirst, la pose estimada y los errores siguen a la vista', () => {
+    const terms = inView(odometryRows(READOUT, REAL, t), ODOMETRY_ESSENTIAL_ROWS);
+    expect(terms).toContain('Error de posición');
+    expect(terms).toContain('Error de rumbo');
+  });
+
+  it('en inverse, la velocidad de cada rueda va en las filas a la vista', () => {
+    const spec = mobileOf(defaultRobot());
+    const readout = readDiffDrive(
+      REAL,
+      { omegaL_radps: 1, omegaR_radps: 2 },
+      { v_mps: 0.05, omega_radps: 0.1 },
+      spec,
+    );
+    const terms = inView(poseRows(readout, spec, t, 'inverse'), POSE_ESSENTIAL_ROWS);
+    expect(terms).toEqual(
+      expect.arrayContaining(['Velocidad de la rueda izquierda', 'Velocidad de la rueda derecha']),
+    );
+    expect(inView(poseRows(readout, spec, t, 'forward'), POSE_ESSENTIAL_ROWS)).toContain('Velocidad lineal');
   });
 });
