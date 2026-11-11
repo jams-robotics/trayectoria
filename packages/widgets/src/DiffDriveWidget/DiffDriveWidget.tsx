@@ -11,7 +11,10 @@ import { SimLayout } from '../shared/SimLayout';
 import { forwardKinematics, inverseKinematics, mobileOf, saturate } from './compute';
 import type { DiffDriveMode, DiffDriveShow, Pose, WheelCommand } from './compute';
 import { ModeSliders } from './controls';
-import type { Maneuver } from './maneuver';
+import { plannedPath } from './maneuver';
+import type { Maneuver, ManeuverPlan } from './maneuver';
+import { ManeuverLine } from './maneuverView';
+import type { PlannedManeuver } from './maneuverView';
 import {
   OdometryPanel,
   PosePanel,
@@ -104,6 +107,11 @@ function TraceLegend({ t }: { t: Translate }): JSX.Element {
       ))}
     </div>
   );
+}
+
+/** The maneuver the scene previews: only before it starts, from where the robot is (v1.5). */
+function plannedOf(plan: ManeuverPlan | null, timeline: Timeline): PlannedManeuver | undefined {
+  return plan !== null && timeline.t_s === 0 ? plannedPath(timeline.start, plan) : undefined;
 }
 
 /** Drags the chassis to set `x, y`; absent while the simulation runs (#92, decision 6). */
@@ -279,8 +287,10 @@ export function DiffDriveWidget(props: DiffDriveWidgetProps): JSX.Element {
             trace_m={timeline.trace_m}
             onDrag={dragHandler(timeline)}
             odometry={sceneOdometry(odometry)}
+            planned={plannedOf(sequence.plan, timeline)}
           />
           {odometry !== null && show.includes('trace') ? <TraceLegend t={t} /> : null}
+          <ManeuverLine plan={sequence.plan} readout={now.maneuver} t_s={timeline.t_s} t={t} />
           <SimControls {...timeline.driver} {...timeline.controls} t_s={timeline.t_s} />
         </>
       }

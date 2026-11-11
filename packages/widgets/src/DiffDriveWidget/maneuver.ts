@@ -84,6 +84,23 @@ export function phaseAt(plan: ManeuverPlan, t_s: number): ManeuverPhase {
   return 'done';
 }
 
+/**
+ * What the maneuver will do from `start`, in closed form: the straight stretch of phase 2 and the
+ * pose it ends at, which keeps the orientation it started with (v1.5).
+ */
+export function plannedPath(
+  start: { x_m: number; y_m: number; theta_rad: number },
+  plan: ManeuverPlan,
+): { path_m: [readonly [number, number], readonly [number, number]]; end: typeof start } {
+  const heading_rad = start.theta_rad + plan.turn_rad;
+  const x_m = start.x_m + plan.distance_m * Math.cos(heading_rad);
+  const y_m = start.y_m + plan.distance_m * Math.sin(heading_rad);
+  return {
+    path_m: [[start.x_m, start.y_m], [x_m, y_m]],
+    end: { x_m, y_m, theta_rad: start.theta_rad },
+  };
+}
+
 /** The `(v, ω)` of a phase: turns at `±ω` with `v = 0`, the advance at `v` with `ω = 0`. */
 export function phaseTwist(plan: ManeuverPlan, phase: ManeuverPhase): Twist {
   const turning_radps = Math.sign(plan.turn_rad) * plan.omega_radps;

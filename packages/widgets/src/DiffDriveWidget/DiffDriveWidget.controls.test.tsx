@@ -36,6 +36,8 @@ describe('DiffDriveWidget controles a la vista y plegados (v1.5)', () => {
     const user = userEvent.setup();
     render(<DiffDriveWidget mode="inverse" show={['frames']} initial={{}} maneuver={{ turn_deg: 90, distance_m: 0.2 }} />);
     await user.click(screen.getByRole('button', { name: 'Maniobra en tres movimientos' }));
-    expect(controls().inView).toEqual(['Giro', 'Avance', 'Orientación inicial']);
+    // `θ₀` turns the robot right away, so beside «Giro» it read as part of the maneuver (v1.5).
+    expect(controls()).toMatchObject({ inView: ['Giro', 'Avance'] });
+    expect(controls().folded).toContain('Orientación inicial');
   });
 });

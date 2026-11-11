@@ -18,7 +18,7 @@ import {
   ticksAt,
 } from './odometry';
 import type { Calibration } from './odometry';
-import { odometryView } from './scene';
+import { odometryView } from './view';
 import { DT_S } from './timeline';
 
 /** Absolute tolerance of the golden values of the ticket (#93, decision 2). */

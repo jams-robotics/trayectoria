@@ -21,8 +21,14 @@ const INACTIVE = `${BUTTON} bg-bg-raised text-fg border-border hover:border-fg-m
  * moves the robot by hand and `θ₀`; `odometry` with `frames` is the drift of the calibration
  * and without them the encoders.
  */
-export function visibleKeys(mode: DiffDriveMode, show: readonly DiffDriveShow[]): readonly string[] {
+export function visibleKeys(
+  mode: DiffDriveMode,
+  show: readonly DiffDriveShow[],
+  maneuver = false,
+): readonly string[] {
   const frames = show.includes('frames');
+  // With the maneuver on, `θ₀` beside «Giro» read as part of it: it turns the robot right away (v1.5).
+  if (maneuver) return ['maneuverTurn', 'maneuverDistance'];
   if (mode === 'odometry') {
     return frames ? ['believedRadius', 'believedBase'] : ['omegaL', 'omegaR', 'ticksPerRev'];
   }
@@ -93,6 +99,46 @@ export function ManeuverToggle({
 }
 
 /**
+ * The maneuver switch and, with it on, «Valores iniciales»: the prop values, `θ₀ = 0` and the
+ * robot back at the origin (v1.5). Both start the run over from the origin.
+ */
+function ManeuverButtons({
+  sequence,
+  resetAll,
+  t,
+}: {
+  sequence: ManeuverControls;
+  resetAll: () => void;
+  t: Translate;
+}): JSX.Element | null {
+  if (!sequence.available) return null;
+  return (
+    <div className="flex flex-wrap gap-2">
+      <ManeuverToggle
+        active={sequence.active}
+        onToggle={() => {
+          sequence.toggle();
+          resetAll();
+        }}
+        t={t}
+      />
+      {sequence.active ? (
+        <button
+          type="button"
+          className={INACTIVE}
+          onClick={() => {
+            sequence.resetValues();
+            resetAll();
+          }}
+        >
+          {t('widgets.DiffDriveWidget.resetValues')}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+/**
  * The sliders of the mode across both columns of the parameters, with the maneuver switch (when
  * there is one) and the saturation notice above them; `folded` sit behind «Más controles»
  * (#92, decision 4; #394; v1.5).
@@ -129,7 +175,7 @@ interface ModeSlidersProps {
     onSlider: (key: string, value: number) => void;
   };
   sequence: ManeuverControls;
-  timeline: Pick<Timeline, 'restart' | 'setTheta0' | 'theta0_rad'> & {
+  timeline: Pick<Timeline, 'restart' | 'resetAll' | 'setTheta0' | 'theta0_rad'> & {
     driver: Pick<Timeline['driver'], 'running'>;
   };
   feasible: boolean;
@@ -152,22 +198,11 @@ export function ModeSliders({
   const theta = thetaParam(timeline.theta0_rad, t, timeline.driver.running);
   const { inView, folded } = splitParams(
     [...(sequence.active ? sequence.params : sliders.params), ...theta],
-    visibleKeys(mode, show),
+    visibleKeys(mode, show, sequence.active),
   );
   return (
     <Sliders
-      toggle={
-        sequence.available ? (
-          <ManeuverToggle
-            active={sequence.active}
-            onToggle={() => {
-              sequence.toggle();
-              timeline.restart();
-            }}
-            t={t}
-          />
-        ) : null
-      }
+      toggle={<ManeuverButtons sequence={sequence} resetAll={timeline.resetAll} t={t} />}
       params={inView}
       folded={folded}
       onChange={(key, value) => {

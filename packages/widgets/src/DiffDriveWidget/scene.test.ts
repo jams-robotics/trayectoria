@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Pose } from './compute';
-import { fitView } from './scene';
+import { fitView } from './view';
 
 const ORIGIN: Pose = { x_m: 0, y_m: 0, theta_rad: 0 };
 

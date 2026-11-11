@@ -154,4 +154,31 @@ describe('DiffDriveWidget maniobra en tres movimientos (#394, T-5.5)', () => {
     },
     RUN_TIMEOUT_MS,
   );
+
+  test(
+    'tras una maniobra terminada la siguiente sale de donde quedó; «Valores iniciales» vuelve al origen (v1.5)',
+    async () => {
+      const user = userEvent.setup();
+      renderT55('inverse', FAST);
+      await turnOn(user);
+      expect(screen.getByText(/^Plan: 1 gira 90°, 2 avanza 0\.10 m, 3 gira -90°/)).toBeInTheDocument();
+      stepSimulation(40);
+      expect(screen.getByText(/^Movimiento 2 de 3/)).toBeInTheDocument();
+      stepSimulation(PAST_END_STEPS - 40);
+      expect(screen.getByText(/^Terminada: quedó desplazado/)).toBeInTheDocument();
+      const field = screen.getByRole('textbox', { name: /Giro/ });
+      await user.clear(field);
+      await user.type(field, '-90{Enter}');
+      expect(valueOf('Fase')).toBe('1 · Girar');
+      expect(valueOf('Posición y')).toBe('0.100 m');
+      stepSimulation(PAST_END_STEPS);
+      expect(valueOf('Posición y')).toBe('0.00 m');
+      await user.click(screen.getByRole('button', { name: 'Valores iniciales' }));
+      expect(screen.getByRole('slider', { name: /^Giro/ })).toHaveValue('90');
+      expect(valueOf('Posición y')).toBe('0.00 m');
+      stepSimulation(PAST_END_STEPS);
+      expect(valueOf('Posición y')).toBe('0.100 m');
+    },
+    RUN_TIMEOUT_MS,
+  );
 });
