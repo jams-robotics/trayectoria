@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 
 import { tokenColor } from '../../shared/theme';
 import { useSceneDraw } from '../context';
+import { fillSubscriptText } from '../subscriptText';
 import { worldToPx } from '../transform';
 import type { Transform } from '../transform';
 
@@ -39,7 +40,7 @@ export function Label({
       ctx.font = LABEL_FONT;
       ctx.textAlign = align === 'right' ? 'left' : 'right';
       ctx.textBaseline = 'bottom';
-      ctx.fillText(text, x_px + (align === 'right' ? OFFSET_PX : -OFFSET_PX), y_px - OFFSET_PX);
+      fillSubscriptText(ctx, text, x_px + (align === 'right' ? OFFSET_PX : -OFFSET_PX), y_px - OFFSET_PX);
       ctx.restore();
     },
     [x_m, y_m, text, color, align],

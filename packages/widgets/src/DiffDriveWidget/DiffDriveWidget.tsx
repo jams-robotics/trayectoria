@@ -16,7 +16,6 @@ import {
   OdometryPanel,
   PosePanel,
   applyCalibration,
-  theta0Of,
   applyTwist,
   applyWheel,
   calibrationParams,
@@ -29,7 +28,7 @@ import type { Readout, TwistInput } from './panels';
 import { calibrationOf } from './odometry';
 import type { Calibration } from './odometry';
 import { maneuverRows, maneuverStatusOf, odometryStatusOf } from './rows';
-import { DiffDriveScene } from './scene';
+import { DiffDriveScene, TALL_ASPECT } from './scene';
 import { useTimeline } from './timeline';
 import type { Timeline } from './timeline';
 import { commandNow, useManeuver } from './useManeuver';
@@ -94,13 +93,6 @@ function dragHandler(
   };
 }
 
-/** Turns the `θ₀` slider of the pose panel into a new initial orientation (#371). */
-function thetaHandler(timeline: Timeline): (value_deg: number) => void {
-  return (value_deg) => {
-    timeline.setTheta0(theta0Of(value_deg));
-  };
-}
-
 /** The odometry panel and its live description; nothing outside `mode: 'odometry'`. */
 function OdometryReadouts({
   odometry,
@@ -126,7 +118,6 @@ function Values({
   readout,
   spec,
   show,
-  timeline,
   odometry,
   maneuver,
   t,
@@ -135,7 +126,6 @@ function Values({
   readout: Readout;
   spec: MobileSpec;
   show: readonly DiffDriveShow[];
-  timeline: Timeline;
   odometry: Odometry | null;
   maneuver: ManeuverReadout | null;
   t: Translate;
@@ -146,10 +136,8 @@ function Values({
         mode={mode}
         readout={readout}
         spec={spec}
-        withFrames={show.includes('frames')}
-        theta0_rad={timeline.theta0_rad}
-        running={timeline.driver.running}
-        onTheta={thetaHandler(timeline)}
+        // The drift of `odometry` does not read the matrix: two panels fill the column, three leave a gap.
+        withFrames={show.includes('frames') && mode !== 'odometry'}
         extraRows={maneuverRows(maneuver, t)}
         t={t}
       >
@@ -247,12 +235,13 @@ export function DiffDriveWidget(props: DiffDriveWidgetProps): JSX.Element {
     useDiffDrive(props, t);
   return (
     <SimLayout
-      // Odometry and frames put three panels beside the viewer: let them grow, not scroll.
-      sticky={mode !== 'odometry' && !show.includes('frames')}
+      // The values grow to their content, so the row does not stick: it would not fit the window.
+      sticky={false}
       viewer={
         <>
           <DiffDriveScene
             {...{ spec, twist, show, t, robot: applicable }}
+            aspect={TALL_ASPECT}
             command={now.command}
             pose={timeline.pose}
             feasible={readout.feasible}
@@ -264,9 +253,11 @@ export function DiffDriveWidget(props: DiffDriveWidgetProps): JSX.Element {
         </>
       }
       values={
-        <Values {...{ mode, readout, spec, show, timeline, odometry, t }} maneuver={now.maneuver} />
+        <Values {...{ mode, readout, spec, show, odometry, t }} maneuver={now.maneuver} />
       }
-      params={<ModeSliders {...{ sliders, sequence, timeline, t }} feasible={readout.feasible} />}
+      params={
+        <ModeSliders {...{ mode, show, sliders, sequence, timeline, t }} feasible={readout.feasible} />
+      }
     />
   );
 }

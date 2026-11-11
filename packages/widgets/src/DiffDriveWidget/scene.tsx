@@ -12,18 +12,22 @@ import { RobotBody } from '../Scene2D/primitives/RobotBody';
 import { Trace } from '../Scene2D/primitives/Trace';
 import { Vector } from '../Scene2D/primitives/Vector';
 import { DragHandle, SceneOverlay } from '../shared/SceneOverlay';
-import { icrOf, toGlobal, turningRadius_m, wheelCentres, wheelSpeed_mps } from './compute';
+import { icrOf, toGlobal, wheelCentres, wheelSpeed_mps } from './compute';
 import type { DiffDriveShow, Pose, Twist, WheelCommand } from './compute';
 import { radiusText } from './rows';
 
 /** Narrowest view, in metres: about four chassis, so the robot is never lost in the floor. */
 const MIN_VIEW_M = 0.8;
-/** Widest view, in metres: a table-sized patch of floor for a wide turn or a long straight. */
-const MAX_VIEW_M = 3;
-/** Share of the radius the view leaves beyond the ICR, so the marker is not on the edge. */
+/** Widest view, in metres: past it the view follows the robot, which stays about 8 % of the width. */
+const MAX_VIEW_M = 2.4;
+/** Space the view leaves around what it frames, in metres: the chassis, its axes and their labels. */
+const PAD_M = 0.25;
+/** Share of the gap the odometry view leaves around the two poses. */
 const VIEW_MARGIN = 1.25;
-/** Width over height of the view; the same 16/9 strip the other scene widgets use. */
+/** Width over height of the view; the 16/9 strip the other scene widgets use. */
 const ASPECT = 16 / 9;
+/** Taller view for the layouts that are not sticky: they have the room under the viewer. */
+export const TALL_ASPECT = 4 / 3;
 /** Radius of the ICR marker, in metres; a dot next to the 0.18 m chassis. */
 const ICR_RADIUS_M = 0.012;
 /** Length of a frame axis, in metres: half a chassis, so the triad reads next to the robot. */
@@ -34,31 +38,45 @@ const M_PER_MPS = 0.2;
 const ODOMETRY_COLOR = 'color-data-2';
 
 /**
- * Width of the view in metres. The ICR sits `R` to the side of the robot, so the view has to be
- * that tall: the width is the height times the aspect. It is bounded so a straight path does not
- * zoom out and a pivot does not fill the canvas with the chassis (#92, decision 5).
+ * View that frames what the learner is looking at: the origin of the floor, the robot, its trace
+ * and, when it is drawn, the ICR. It opens on the robot, at `MIN_VIEW_M`, and widens as the run
+ * leaves more floor behind; at `MAX_VIEW_M` it stops and follows the robot, so the chassis never
+ * shrinks past the point where it is lost (v1.5).
  */
-export function viewWidthOf(twist: Twist): number {
-  const radius_m = Math.abs(turningRadius_m(twist));
-  if (!Number.isFinite(radius_m)) return MAX_VIEW_M;
-  return Math.min(Math.max(VIEW_MARGIN * radius_m * ASPECT, MIN_VIEW_M), MAX_VIEW_M);
-}
-
-/**
- * Centre of the view: halfway between the robot and its ICR, so both stay inside it while it
- * turns; the robot itself on a straight path, where there is no centre to fit.
- */
-export function viewCentre(pose: Pose, twist: Twist): [number, number] {
-  const icr_m = icrOf(pose, twist);
-  if (icr_m === null) return [pose.x_m, pose.y_m];
-  return [(pose.x_m + icr_m[0]) / 2, (pose.y_m + icr_m[1]) / 2];
+export function fitView(
+  pose: Pose,
+  points_m: ReadonlyArray<readonly [number, number]>,
+  aspect = ASPECT,
+): { width_m: number; centre_m: [number, number] } {
+  let minX = Math.min(0, pose.x_m);
+  let maxX = Math.max(0, pose.x_m);
+  let minY = Math.min(0, pose.y_m);
+  let maxY = Math.max(0, pose.y_m);
+  for (const [x_m, y_m] of points_m) {
+    minX = Math.min(minX, x_m);
+    maxX = Math.max(maxX, x_m);
+    minY = Math.min(minY, y_m);
+    maxY = Math.max(maxY, y_m);
+  }
+  const need_m = Math.max(maxX - minX + 2 * PAD_M, (maxY - minY + 2 * PAD_M) * aspect);
+  const width_m = Math.min(Math.max(need_m, MIN_VIEW_M), MAX_VIEW_M);
+  // Where the box does not fit, keep the robot inside it instead of the middle of the box.
+  const keep = (centre_m: number, at_m: number, half_m: number): number =>
+    Math.min(Math.max(centre_m, at_m - half_m + PAD_M), at_m + half_m - PAD_M);
+  return {
+    width_m,
+    centre_m: [
+      keep((minX + maxX) / 2, pose.x_m, width_m / 2),
+      keep((minY + maxY) / 2, pose.y_m, width_m / 2 / aspect),
+    ],
+  };
 }
 
 /**
  * Narrowest view of `mode: 'odometry'`, in metres: wide enough for a stretch of both traces to
  * read beside the two chassis, which `MIN_VIEW_M` alone is not.
  */
-const MIN_ODOMETRY_VIEW_M = 1.2;
+const MIN_ODOMETRY_VIEW_M = 0.9;
 
 /**
  * View of `mode: 'odometry'`: it frames the two poses instead of the ICR, because what the
@@ -97,6 +115,8 @@ export interface DiffDriveSceneProps {
   trace_m: ReadonlyArray<readonly [number, number]>;
   /** Moves the robot while the simulation is paused; absent while it runs (#92, decision 6). */
   onDrag?: ((point_m: readonly [number, number]) => void) | undefined;
+  /** Width over height of the view. Defaults to 16/9. */
+  aspect?: number;
   /** Pose the odometry estimates and its trace; absent outside `mode: 'odometry'`. */
   odometry?: { pose: Pose; trace_m: ReadonlyArray<readonly [number, number]> } | undefined;
   t: Translate;
@@ -133,7 +153,7 @@ function Odometry({
   );
 }
 
-/** The ICR dot and the line from the centre of the axle to it, with `R` beside it (T-5.2). */
+/** The ICR dot and the line from the centre of the axle to it, with `R` beside the dot (T-5.2). */
 function Icr({
   pose,
   twist,
@@ -148,16 +168,18 @@ function Icr({
   const icr_m = icrOf(pose, twist);
   if (icr_m === null) return null;
   const centre_m: [number, number] = [pose.x_m, pose.y_m];
-  const mid_m: [number, number] = [
-    (centre_m[0] + icr_m[0]) / 2,
-    (centre_m[1] + icr_m[1]) / 2,
-  ];
   return (
     <>
       <Trace points_m={[centre_m, icr_m]} color="color-data-1" />
       <Circle center_m={[icr_m[0], icr_m[1]]} radius_m={ICR_RADIUS_M} color="color-data-1" filled />
       {withRadius ? (
-        <Label at_m={mid_m} text={radiusText(twist, t)} color="color-data-1" />
+        // On the far side of the dot from the robot, so the text never lands on the chassis.
+        <Label
+          at_m={[icr_m[0], icr_m[1]]}
+          text={radiusText(twist, t)}
+          color="color-data-1"
+          align={pose.x_m >= icr_m[0] ? 'left' : 'right'}
+        />
       ) : null}
     </>
   );
@@ -247,16 +269,14 @@ function WheelVelocities({
   );
 }
 
-/** The view the scene opens on: around the ICR, or around the two poses in `odometry`. */
+/** The view of the scene: around the two poses in `odometry`, around the run otherwise. */
 function viewOf(
-  pose: Pose,
-  twist: Twist,
-  odometry: DiffDriveSceneProps['odometry'],
+  { pose, twist, trace_m, show, odometry, aspect }: DiffDriveSceneProps,
 ): { width_m: number; centre_m: [number, number] } {
-  if (odometry === undefined) {
-    return { width_m: viewWidthOf(twist), centre_m: viewCentre(pose, twist) };
-  }
-  return odometryView(pose, odometry.pose);
+  if (odometry !== undefined) return odometryView(pose, odometry.pose);
+  const icr_m = show.includes('icr') ? icrOf(pose, twist) : null;
+  const points_m = [...(show.includes('trace') ? trace_m : []), ...(icr_m === null ? [] : [icr_m])];
+  return fitView(pose, points_m, aspect);
 }
 
 /** Description of the scene; `odometry` adds the estimated pose and trace to it (T-5.4). */
@@ -315,26 +335,16 @@ function DragLayer({
  * frames, the trace it leaves and an arrow per wheel (docs/WIDGETS.md, DiffDriveWidget; #92,
  * decision 5). While it is paused the chassis can be dragged to set `x, y` (decision 6).
  */
-export function DiffDriveScene({
-  robot,
-  spec,
-  pose,
-  twist,
-  command,
-  feasible,
-  show,
-  trace_m,
-  onDrag,
-  odometry,
-  t,
-}: DiffDriveSceneProps): JSX.Element {
+export function DiffDriveScene(props: DiffDriveSceneProps): JSX.Element {
+  const { robot, spec, pose, twist, command, feasible, show, trace_m, onDrag, odometry, t } = props;
+  const aspect = props.aspect ?? ASPECT;
   const has = (name: DiffDriveShow): boolean => show.includes(name);
-  const view = viewOf(pose, twist, odometry);
+  const view = viewOf(props);
   return (
     <Scene2D
       worldWidth_m={view.width_m}
       center_m={view.centre_m}
-      aspect={ASPECT}
+      aspect={aspect}
       description={sceneDescription(odometry !== undefined, t)}
     >
       <Grid />

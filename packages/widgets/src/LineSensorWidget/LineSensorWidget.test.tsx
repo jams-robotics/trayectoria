@@ -63,10 +63,10 @@ describe('LineSensorWidget (T-6.1)', () => {
   test('showBinary shows b_k with the threshold u = 0.5, and the threshold slider moves it', () => {
     render(<LineSensorWidget initialOffset_m={0} showBinary />);
 
-    expect(screen.getByTestId('b-1')).toHaveTextContent('b_1 = 1');
+    expect(screen.getByTestId('b-1')).toHaveTextContent('b1 = 1');
     slide('Umbral u', 0.6);
-    expect(screen.getByTestId('b-1')).toHaveTextContent('b_1 = 0');
-    expect(screen.getByTestId('b-2')).toHaveTextContent('b_2 = 1');
+    expect(screen.getByTestId('b-1')).toHaveTextContent('b1 = 0');
+    expect(screen.getByTestId('b-2')).toHaveTextContent('b2 = 1');
   });
 
   test('without showBinary there is no binary reading', () => {

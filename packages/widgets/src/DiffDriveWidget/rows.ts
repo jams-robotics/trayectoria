@@ -89,30 +89,29 @@ function pointText(point_m: readonly [number, number], t: Translate): string {
   });
 }
 
+/** The four terms of `R(θ)` as text, row by row: `r11, r12, r21, r22` (#92, decision 6). */
+export function matrixTerms(pose: Pose): readonly [string, string, string, string] {
+  const term = (value: number): string => format(snapToZero(value), '');
+  const [r11, r12, r21, r22] = rotationMatrix(pose.theta_rad);
+  return [term(r11), term(r12), term(r21), term(r22)];
+}
+
 /**
- * The extra lines of `show: ['frames']`: the four terms of `R(θ)` and the global coordinates of
- * the sensors of the spec, which come from `forwardOffset_m` and `spacing_m` (#92, decision 6).
+ * The extra lines of `show: ['frames']`: the global coordinates of the sensors of the spec,
+ * which come from `forwardOffset_m` and `spacing_m` (#92, decision 6). `R(θ)` is a matrix, so
+ * `matrixTerms` gives it its own layout.
  */
 export function frameRows(
   pose: Pose,
   spec: MobileSpec,
   t: Translate,
 ): readonly ReadoutRow[] {
-  const [r11, r12, r21, r22] = rotationMatrix(pose.theta_rad);
-  const term = (value: number): string => format(snapToZero(value), '');
-  const sensors = sensorPositions(spec).map(
+  return sensorPositions(spec).map(
     (point_m, index): ReadoutRow => [
       t('widgets.DiffDriveWidget.sensor', { index: String(index + 1) }),
       pointText(toGlobal(pose, point_m), t),
     ],
   );
-  return [
-    [t('widgets.DiffDriveWidget.matrixR11'), term(r11)],
-    [t('widgets.DiffDriveWidget.matrixR12'), term(r12)],
-    [t('widgets.DiffDriveWidget.matrixR21'), term(r21)],
-    [t('widgets.DiffDriveWidget.matrixR22'), term(r22)],
-    ...sensors,
-  ];
 }
 
 /** One sentence with the pose, `v`, `ω` and `R`, for the `aria-live` region (#92, decision 8). */
