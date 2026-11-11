@@ -58,6 +58,8 @@
   /* widths */
   --size-panel-side: 352px;
   --size-form-card: 640px;
+  /* Page container: every page, the bar and the footer share it, so their left edges match. */
+  --size-site: 1120px;
 
   /* shape */
   --radius-sm: 4px;
@@ -74,6 +76,13 @@
   --sim-sensor-on: var(--color-success);
   --sim-sensor-off: #b7c2cc;
   --sim-trace: var(--color-data-1);
+}
+
+/* Large monitors: the site grows with them (the topic page splits in two columns there). */
+@media (min-width: 1700px) {
+  :root {
+    --size-site: 1680px;
+  }
 }
 
 [data-theme="dark"] {

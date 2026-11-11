@@ -6,6 +6,17 @@ import Section from './Section.astro';
 // Section 5 (docs/CONTENT-STANDARDS.md §2): the concept with the data of «Mi robot».
 ---
 
-<Section id="al-robot" title={t('topic.sections.alRobot')} number={5}>
+<Section id="al-robot" title={t('topic.sections.alRobot')} number={4} accent="physical">
   <slot />
 </Section>
+
+<style>
+  /* The «Al robot» calc cards sit in the section's prose: separate them from text and from each other. */
+  :global(#al-robot div[data-robot-formula]) {
+    margin-top: var(--space-5);
+  }
+  /* The orange marks what happens to the learner's robot: the calc card carries it on its edge. */
+  :global(#al-robot div[data-robot-formula] > astro-island > div) {
+    border-left: 4px solid var(--color-physical);
+  }
+</style>

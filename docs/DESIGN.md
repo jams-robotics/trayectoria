@@ -10,7 +10,7 @@ Documento normativo. Los valores viven en `tokens.css`; aquí se explica por qu�
 
 1. **La teoría se toca.** Cada concepto aparece junto a algo manipulable. Si un widget no cambia al mover un parámetro, no es un widget.
 2. **El número siempre con su unidad.** Nunca `0.69`; siempre `0.69 m/s`. Los valores numéricos van en mono con `font-variant-numeric: tabular-nums` para que no bailen.
-3. **Dos mundos, dos colores.** Azul petróleo (`--color-primary`) = teoría, interfaz, acción. Ámbar (`--color-physical`) = robot, mundo físico, "Al robot", simulador. El ámbar es escaso a propósito: cuando aparece, significa "esto le pasa a tu robot".
+3. **Dos mundos, dos colores.** Azul petróleo (`--color-primary`) = teoría, interfaz, acción. Ámbar (`--color-physical`) = robot, mundo físico, "Al robot", simulador. El ámbar es escaso a propósito: cuando aparece, significa "esto le pasa a tu robot". Usos definidos (v1.5): el borde izquierdo del reto con el que abre cada tema, el numeral de «Al robot» y el borde izquierdo de sus tarjetas de cálculo, y el robot en los visores. Nada más lleva ámbar.
 4. **Sobrio, no frío.** Sin celebraciones, sin puntos, sin medallas. El feedback es concreto y habla del problema, no de la mecánica interna: "Incorrecto" con una pista ("Revisa el cálculo y las unidades."), nunca un porcentaje de tolerancia (#533). La calidez viene de la tipografía humanista y del ámbar, no de adornos.
 5. **Legible proyectado.** Cuerpo 16 px mínimo, contraste AA en todo, objetivos ≥ 44 px. Un aula con proyector barato es el caso base, no el borde.
 6. **Superficies planas, jerarquía por borde.** Las tarjetas se separan con `--color-border` y un salto `bg → bg-raised`; las sombras son casi imperceptibles y solo para elementos flotantes.
@@ -86,7 +86,7 @@ Tres archivos en `apps/web/public/`:
 
 Escala (1.25, base 16): `--text-xs` 13 · `--text-sm` 14 · `--text-base` 16 · `--text-lg` 20 · `--text-xl` 25 · `--text-2xl` 31 · `--text-3xl` 39. Interlineado `--leading-body` 1.6 en prosa, `--leading-tight` 1.2 en títulos y cifras grandes.
 
-Uso: h1 de página `2xl`/600; h1 de Inicio `3xl`; h2 de sección `lg`/600 con numeral mono `xs` muted delante; cuerpo `base`; ayuda y metadatos `sm` muted; etiquetas mono en mayúsculas `xs` con `letter-spacing .06em`. Ancho de lectura máximo **72ch**. Nunca menos de 13 px, y 13 px solo en mono para ejes/leyendas.
+Uso: h1 de página `2xl`/600; h1 de Inicio `3xl`; h2 de sección `xl`/600 (v1.5: antes `lg`, apenas más grande que el cuerpo) con numeral mono `xs` muted delante (en «Al robot», en `physical`); cuerpo `base`; ayuda y metadatos `sm` muted; etiquetas mono en mayúsculas `xs` con `letter-spacing .06em`. Ancho de lectura máximo **72ch**. Nunca menos de 13 px, y 13 px solo en mono para ejes/leyendas.
 
 ---
 
@@ -99,9 +99,13 @@ Radios: `--radius-sm` 4 (inputs, botones de simulación, chips de estado en tabl
 
 Sombras: `--shadow-sm` para thumbs de slider y tarjetas flotantes dentro de un visor; `--shadow-md` solo para toasts y popovers. Las tarjetas en flujo **no** llevan sombra.
 
-Anchos: contenido 1120 px (Inicio, Ruta), 1200 px (Tema), 1240 px (Aula); simuladores a ancho completo con padding 32. Panel lateral de simulador 340–360 px, token `--size-panel-side` = 352 px (utilidad `w-panel`); índice de secciones 200 px; lateral de Ruta 300 px. Tarjeta de formulario (CTA de registro, Aula, Unirse, Robots), token `--size-form-card` = 640 px (utilidad `max-w-form-card`).
+Anchos: un solo contenedor de página, token `--size-site` (utilidad `max-w-site`), compartido por barra, pie y todas las páginas, incluido el tema, para que el borde izquierdo no salte al navegar: 1120 px, y 1680 px desde 1700 px de ancho de ventana (breakpoint `2xl`). Las columnas de texto de `/docentes`, `/acerca` y `/contribuir` van pegadas a ese borde izquierdo, no centradas; simuladores a ancho completo con padding 32. Panel lateral de simulador 340–360 px, token `--size-panel-side` = 352 px (utilidad `w-panel`); índice de secciones 200 px; lateral de Ruta 300 px. Tarjeta de formulario (CTA de registro, Aula, Unirse, Robots), token `--size-form-card` = 640 px (utilidad `max-w-form-card`).
 
 Página de tema (#302): texto corrido, tarjetas `Formula` y `RobotFormula`, tarjetas `Experimento`, `MyRobotWidget` y ejercicios de Verifica comparten una sola columna de lectura de 72ch, con los mismos bordes izquierdo y derecho. Solo los widgets grandes de Explora (simuladores con visor) usan todo el ancho de la columna de contenido. En móvil no cambia nada (§9).
+
+Tema a dos columnas (v1.5, solo desde 1700 px, `2xl`): el texto del artículo (reto, experimentos, Concepto … Profundiza) en una columna de 38rem a la izquierda y el widget grande de Explora fijo (`position: sticky`, `top` 16 px, alto máximo de la ventana) a la derecha mientras se lee todo el artículo. Por debajo de 1700 px se queda una sola columna: los widgets parten visor y panel por el breakpoint de la ventana (`lg`), no por su propio ancho, y necesitan unos 740 px de columna. Un tema con dos widgets en Explora conserva una columna. Implementado en `components/tema/Explora.astro` con `display: contents` y `:has()`.
+
+Fórmulas (v1.5): una sola tarjeta por sección con todas las fórmulas separadas por una línea; la tarjeta propia del widget `Formula` se aplana dentro de ella. La leyenda de variables va en columnas, `sm` muted, una vez por fórmula y sin repetir variables ya definidas en la sección.
 
 ---
 
@@ -153,14 +157,14 @@ Esquina inferior derecha, `bg-raised`, borde `border`, punto de 8 px `success`/`
 4 px, fondo `border`, relleno `primary`, radio 2. Siempre acompañada de la cifra mono (`9/29` o `31 %`). Nunca animada al cargar.
 
 ### Tabla
-`bg-raised` con borde y radio `lg`, `overflow:auto`. Cabecera `sm`/600, columnas de tema en mono `xs` muted centradas. Filas 44 px con divisor `border`. Primera columna sticky. Celdas de estado: cuadrado 26 px radio `sm` — completado `success` con "C", en curso `primary` con "E", con errores `error` con "✕", pendiente solo borde. Tinta sobre el color: `bg-raised`. Cada estado tiene letra además de color y `title`. La celda cuadrada es para la tabla del aula. En el índice de la ruta, donde el estudiante no puede cambiar el estado, no se usa nada con forma de control: el texto del estado más un punto `primary` de 10 px para «en curso», un check `success` tenue para «completado» y solo el texto para «pendiente», con `title` en el indicador (#532).
+`bg-raised` con borde y radio `lg`, `overflow:auto`. Cabecera `sm`/600, columnas de tema en mono `xs` muted centradas. Filas 44 px con divisor `border`. Primera columna sticky. Celdas de estado: cuadrado 26 px radio `sm` — completado `success` con "C", en curso `primary` con "E", con errores `error` con "✕", pendiente solo borde. Tinta sobre el color: `bg-raised`. Cada estado tiene letra además de color y `title`. La celda cuadrada es para la tabla del aula. En el índice de la ruta, donde el estudiante no puede cambiar el estado, no se usa nada con forma de control: el texto del estado más un punto `primary` de 10 px para «en curso», un check `success` tenue para «completado» y, para «pendiente», nada visible salvo en el primer tema sin completar, que dice «Sigue aquí» con el punto `primary` (v1.5; los demás pendientes llevan el texto solo para lectores de pantalla). Cada fila lleva además la duración (mono `xs`) y una línea `sm` muted con los dos primeros objetivos del tema. `title` en el indicador (#532).
 
 ### Navegación
 Cabecera 56 px `bg-raised` con borde inferior. Marca (glifo de chasis ámbar + "Trayectoria" 18/600) · enlaces 500 muted, activo `primary` con subrayado 2 px · derecha: progreso 96 px + cifra mono, avatar 32 px con iniciales. En móvil: marca + botón menú; los enlaces se despliegan justo bajo la cabecera, a todo el ancho, en `bg-raised` con `shadow-md` (es un elemento flotante), sobre un velo `bg` al 80 % que tapa la página. Mientras está abierto el botón dice «Cerrar»; lo cierran el propio botón, tocar el velo, Esc (el foco vuelve al botón) y salir de la cabecera con Tab. Antes era una hoja pegada al borde inferior, lejos del botón y sin forma evidente de cerrarla (#545).
 Índice lateral de tema (200 px, sticky): lista con borde izquierdo 2 px `border`; sección actual borde `primary` y texto `primary` 600.
 
 ### Pie
-`sm` muted, licencia a la izquierda, enlaces a la derecha, sin fondo.
+`sm` muted, licencia a la izquierda, enlaces a la derecha, sin fondo. Los enlaces miden al menos 32 px de alto y los de migas de pan (enlace de ruta sobre el título del tema) 24 px (WCAG 2.5.8).
 
 ---
 

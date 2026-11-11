@@ -12,9 +12,9 @@ const SECTIONS = common.topic.sections;
 /** Las 7 anclas de docs/CONTENT-STANDARDS.md §2, en orden. */
 const SECTION_IDS = [
   'gancho',
+  'explora',
   'concepto',
   'formulas',
-  'explora',
   'al-robot',
   'verifica',
   'profundiza',
@@ -22,10 +22,10 @@ const SECTION_IDS = [
 
 /** Los títulos i18n de esas mismas secciones, en el mismo orden. */
 const SECTION_TITLES = [
-  SECTIONS.gancho,
+  '',
+  SECTIONS.explora,
   SECTIONS.concepto,
   SECTIONS.formulas,
-  SECTIONS.explora,
   SECTIONS.alRobot,
   SECTIONS.verifica,
   SECTIONS.profundiza,
@@ -52,7 +52,10 @@ test('las 7 secciones existen, en el orden del estándar', async ({ page }) => {
   ]);
   // El `h2` lleva el número mono delante del título (docs/design/03-tema-claro.png), así que se
   // comprueba que lo contiene, no que es exactamente igual.
+  // The opening challenge («gancho») has no heading.
+  await expect(page.locator('#gancho h2')).toHaveCount(0);
   for (const [index, id] of SECTION_IDS.entries()) {
+    if (id === 'gancho') continue;
     await expect(page.locator(`#${id} h2`)).toContainText(SECTION_TITLES[index] ?? '');
   }
 });
@@ -63,6 +66,7 @@ test('cada enlace del índice lateral lleva a su sección', async ({ page }) => 
   await expect(outline).toBeVisible();
 
   for (const [index, id] of SECTION_IDS.entries()) {
+    if (id === 'gancho') continue;
     const link = outline.locator(`[data-outline-link="${id}"]`);
     await expect(link).toHaveText(SECTION_TITLES[index] ?? '');
     await link.click();
@@ -114,11 +118,11 @@ test('a 390 px el índice está plegado y se despliega', async ({ page }) => {
   const outline = page.locator('[data-outline="mobile"]');
   await expect(outline).toBeVisible();
   await expect(outline).not.toHaveAttribute('open', '');
-  await expect(outline.locator('[data-outline-link="gancho"]')).toBeHidden();
+  await expect(outline.locator('[data-outline-link="explora"]')).toBeHidden();
 
   await outline.getByText(common.topic.outline).click();
   await expect(outline).toHaveAttribute('open', '');
-  await expect(outline.locator('[data-outline-link="gancho"]')).toBeVisible();
+  await expect(outline.locator('[data-outline-link="explora"]')).toBeVisible();
 });
 
 test('Profundiza resuelve la clave del frontmatter a su referencia completa', async ({ page }) => {

@@ -27,7 +27,7 @@ const emphasised = (text: string): { text: string; italic: boolean }[] =>
   text.split(/\*([^*]+)\*/g).map((part, index) => ({ text: part, italic: index % 2 === 1 }));
 ---
 
-<Section id="profundiza" title={t('topic.sections.profundiza')} number={7}>
+<Section id="profundiza" title={t('topic.sections.profundiza')} number={6}>
   <ul class="m-0 grid list-none gap-3 p-0" aria-label={t('topic.references')}>
     {references.map(({ key, text }) => (
       <li class="flex gap-3" data-reference={key}>

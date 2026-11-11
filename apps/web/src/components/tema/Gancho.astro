@@ -1,11 +1,19 @@
 ---
-import { t } from '@trayectoria/i18n';
-
 import Section from './Section.astro';
 
-// Section 1 (docs/CONTENT-STANDARDS.md §2): the robotics question with numbers of the topic.
+// Opening challenge (docs/CONTENT-STANDARDS.md §2): the robotics question with numbers of the topic.
+// It has no heading and no number: the topic opens with the question itself (v1.5).
 ---
 
-<Section id="gancho" title={t('topic.sections.gancho')} number={1}>
-  <slot />
+<Section id="gancho">
+  <div class="gancho border-physical border-l-4 pl-4 text-lg leading-body">
+    <slot />
+  </div>
 </Section>
+
+<style>
+  /* The box already sits at the section's top: the first paragraph needs no prose margin. */
+  div.gancho :global(p:first-child) {
+    margin-top: 0;
+  }
+</style>

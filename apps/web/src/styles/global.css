@@ -35,6 +35,7 @@
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1700px;
 }
 
 @theme inline {
@@ -107,6 +108,11 @@
 /* Simulator side panel width (DESIGN.md §4, Anchos): `w-panel`, used with the panel's breakpoint. */
 @utility w-panel {
   width: var(--size-panel-side);
+}
+
+/* Page container width (DESIGN.md §4, Anchos): `max-w-site`, shared by pages, bar and footer. */
+@utility max-w-site {
+  max-width: var(--size-site);
 }
 
 /* Form card width (DESIGN.md §4, Anchos): `max-w-form-card`, sign-up CTA and forms (#548). */

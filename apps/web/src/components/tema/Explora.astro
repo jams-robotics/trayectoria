@@ -6,10 +6,59 @@ import Section from './Section.astro';
 // Section 4 (docs/CONTENT-STANDARDS.md §2): the large widget and 2 to 4 `Experimento`, which the
 // MDX passes as children of this section (#97, decision 2). It is the only `wide` section: the widget
 // takes the whole content column and the text and the experiments stay at 72ch (#302).
+// From 1700 px (`2xl`) with a single widget, the section splits in two columns: the text and the
+// experiments on the left, the widget pinned on the right while they are read (v1.5, C-2).
 ---
 
-<Section id="explora" title={t('topic.sections.explora')} number={2} wide>
-  <div class="grid gap-5">
+<Section id="explora" title={t('topic.sections.explora')} number={1} wide>
+  <div class="explora-grid grid gap-5">
     <slot />
   </div>
 </Section>
+
+<style>
+  /*
+    Two columns from 1700 px, for the whole article: the widget stays pinned on the right while
+    the experiments and the following sections (Concepto … Profundiza) are read on the left. The
+    section, its prose box and the grid become `display: contents` so their children are items of
+    the article's grid; the widget spans from the «Explora» heading to the end of the article.
+
+    Why 1700 px and not 1280: the widgets split into viewer and side panel by the viewport
+    breakpoint (`lg`), not by their own width, so the column that holds them needs about 740 px.
+    Narrower than that, nothing changes. A topic with two widgets keeps one column too (they would
+    overlap in the same cell). Needs `:has()`; without it the page stays in one column.
+  */
+  @media (min-width: 1700px) {
+    :global(article[data-topic-article]:not(:has([data-topic-widget] ~ [data-topic-widget]))) {
+      display: grid;
+      grid-template-columns: minmax(0, 38rem) minmax(0, 1fr);
+      column-gap: var(--space-7);
+      align-items: start;
+    }
+    :global(article[data-topic-article]:not(:has([data-topic-widget] ~ [data-topic-widget])) > *) {
+      grid-column: 1;
+    }
+    :global(article[data-topic-article]:not(:has([data-topic-widget] ~ [data-topic-widget])) > #explora),
+    :global(article[data-topic-article]:not(:has([data-topic-widget] ~ [data-topic-widget])) #explora > div),
+    :global(article[data-topic-article]:not(:has([data-topic-widget] ~ [data-topic-widget]))) .explora-grid {
+      display: contents;
+    }
+    :global(article[data-topic-article]:not(:has([data-topic-widget] ~ [data-topic-widget])) #explora > h2) {
+      grid-column: 1;
+      margin-top: var(--space-9);
+    }
+    :global(article[data-topic-article]:not(:has([data-topic-widget] ~ [data-topic-widget])) .explora-grid > *) {
+      grid-column: 1;
+      margin-top: var(--space-5);
+    }
+    :global(article[data-topic-article]:not(:has([data-topic-widget] ~ [data-topic-widget])) .explora-grid > [data-topic-widget]) {
+      grid-column: 2;
+      grid-row: 2 / span 40;
+      margin-top: var(--space-9);
+      position: sticky;
+      top: var(--space-4);
+      max-height: calc(100vh - var(--space-7));
+      overflow-y: auto;
+    }
+  }
+</style>

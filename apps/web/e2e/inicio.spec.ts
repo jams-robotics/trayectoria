@@ -112,11 +112,10 @@ test('the module cards of both routes link to their first topic', async ({ page 
   ]);
 });
 
-test('the rigor strip links to the issues labelled contenido', async ({ page }) => {
+test('the hero links to the short entry /empieza', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByText(common.home.rigor.text)).toBeVisible();
-  await expect(page.getByRole('link', { name: common.home.rigor.link })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: common.home.firstTime })).toHaveAttribute(
     'href',
-    /label%3Acontenido$/,
+    '/empieza',
   );
 });

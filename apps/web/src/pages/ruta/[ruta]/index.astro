@@ -23,6 +23,8 @@ const topics = await getCollection('topics');
 const publishedIds = new Set(
   topics.filter((topic) => topic.data.status === 'published').map((topic) => topic.id),
 );
+// One line per topic: duration and its first two objectives (frontmatter), when it is published.
+const topicInfo = new Map(topics.map((topic) => [topic.id, topic.data]));
 const routes = (await getCollection('routes')).map((entry) => ({ ...entry.data, id: entry.id }));
 
 // The route schema validates data.id as ruta-N; route.id (from the directory) is only for URLs.
@@ -52,7 +54,7 @@ const usesLink =
 ---
 
 <Base title={route.data.title}>
-  <section class="mx-auto max-w-[1120px] px-5 py-9 md:px-8">
+  <section class="mx-auto max-w-site px-5 py-9 md:px-8">
     <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
       {t('route.eyebrow', { number: routeNumber })}
     </p>
@@ -81,24 +83,38 @@ const usesLink =
     <ol class="mt-8 grid list-none gap-5 p-0">
       {route.data.modules.map((module) => (
         <li class="bg-bg-raised border-border rounded-lg border p-6">
-          <h2 class="text-lg leading-tight m-0 flex items-baseline gap-3 font-semibold">
+          <h2 class="text-xl leading-tight m-0 flex items-baseline gap-3 font-semibold">
             <span class="text-fg-muted font-mono text-xs font-normal">
               {t('route.moduleNumber', { number: module.number })}
             </span>
             {module.title}
           </h2>
-          <ol class="mt-4 grid list-none gap-2 p-0">
+          <ol class="mt-4 grid list-none gap-4 p-0">
             {module.topics.map((topic, index) => (
               <li class="flex items-center gap-3">
                 <span class="text-fg-muted font-mono text-xs">
                   {module.number}.{index + 1}
                 </span>
-                {publishedIds.has(`${route.id}/${topic.id}`) ? (
-                  <a href={topicUrl(`${route.id}/${topic.id}`)}>{topic.title}</a>
-                ) : (
-                  <span class="text-fg-muted">{topic.title}</span>
+                <span class="min-w-0 flex-1">
+                  {publishedIds.has(`${route.id}/${topic.id}`) ? (
+                    <a href={topicUrl(`${route.id}/${topic.id}`)}>{topic.title}</a>
+                  ) : (
+                    <span class="text-fg-muted">{topic.title}</span>
+                  )}
+                  {topicInfo.get(`${route.id}/${topic.id}`) !== undefined && (
+                    <span class="text-fg-muted block text-sm">
+                      {topicInfo.get(`${route.id}/${topic.id}`)!.objectives.slice(0, 2).join(' · ')}
+                    </span>
+                  )}
+                </span>
+                {topicInfo.get(`${route.id}/${topic.id}`) !== undefined && (
+                  <span class="text-fg-muted font-mono text-xs">
+                    {t('topic.minutes', {
+                      minutes: topicInfo.get(`${route.id}/${topic.id}`)!.estimatedMinutes,
+                    })}
+                  </span>
                 )}
-                <TopicStatus client:load topicId={`${route.id}/${topic.id}`} />
+                <TopicStatus client:load topicId={`${route.id}/${topic.id}`} topicIds={topicIds} />
               </li>
             ))}
           </ol>

@@ -9,7 +9,7 @@ describe('F0-06 t()', () => {
 
   test('resolves a dot-notation key to its Spanish value', () => {
     expect(t('nav.home')).toBe('Inicio');
-    expect(t('home.features.widgets.title')).toBe('Visualizaciones manipulables');
+    expect(t('home.features.widgets.title')).toBe('Entiendes cada fórmula moviéndola');
   });
 
   test('interpolates {{params}} without HTML escaping', () => {
