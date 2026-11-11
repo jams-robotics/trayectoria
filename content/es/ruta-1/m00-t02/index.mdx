@@ -19,14 +19,15 @@ seoDescription: "Aprende a descomponer y sumar vectores, y a usar el producto es
 ---
 
 <Gancho>
-Tu robot avanza a 0.5 m/s apuntando 30° respecto al eje x de la mesa. ¿Cuánto avanza en x y
-cuánto en y cada segundo?
+Tu robot avanza a 0.5 m/s apuntando 30° respecto al eje x de la mesa, pero tu programa necesita
+cuánto se desplaza en x y cuánto en y. Tu reto: haz que vaya justo en la dirección de y, sin
+cambiar su rapidez, y mira qué le pasa a cada componente.
 </Gancho>
 
 <Explora>
 Dos vectores de velocidad, a y b, salen del origen y se arrastran por la punta. El panel muestra
 las componentes y el ángulo de cada uno, su suma y su producto escalar. a empieza como la
-velocidad del gancho: 0.5 m/s a 30°.
+velocidad del reto: 0.5 m/s a 30°.
 
 <VectorWidget
   initialA={[0.433, 0.25]}
@@ -40,7 +41,7 @@ velocidad del gancho: 0.5 m/s a 30°.
   observa="las componentes de a"
   porque="¿Por qué una componente crece mientras la otra decrece?"
 >
-La longitud fija el módulo, y |a⃗|² = a_x² + a_y² no cambia. Si una componente crece, la otra
+La longitud fija el módulo, y |a⃗|² = a<sub>x</sub>² + a<sub>y</sub>² no cambia. Si una componente crece, la otra
 tiene que decrecer para que la suma de sus cuadrados siga igual. Solo cambia el ángulo, que
 reparte el módulo entre x e y.
 </Experimento>
@@ -65,35 +66,36 @@ el producto escalar es cero siempre que sean perpendiculares.
 </Explora>
 
 <Concepto>
-Un **vector** es una magnitud con dirección: su **módulo** dice cuánto mide, y su
-dirección es el ángulo θ que forma con el eje x, antihorario.
+Viste que al arrastrar la punta de a cambian las componentes, pero no su longitud. Un **vector** es
+una magnitud con dirección: su **módulo** dice cuánto mide y su dirección es el ángulo θ que forma
+con el eje x, antihorario.
 
-El mismo vector se escribe con sus **componentes**, cuánto mide en x y en y. Si una velocidad
-v⃗ tiene módulo v y ángulo θ, sus componentes son vₓ = v cosθ y v_y = v sinθ. Del gancho,
-vₓ = 0.5 · cos 30° = 0.433 m/s y v_y = 0.5 · sin 30° = 0.25 m/s.
+<Figura alt="Dos ejes, x horizontal e y vertical, y un vector que sale del origen con un ángulo θ respecto al eje x. Líneas punteadas muestran sus componentes en x y en y." caption="El vector, su módulo y sus dos componentes sobre los ejes.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><line class="f-axis" x1="50" y1="140" x2="283" y2="140" /><polygon class="f-mutedfill" points="290,140 283,136.8 283,143.2" /><line class="f-axis" x1="50" y1="140" x2="50" y2="27" /><polygon class="f-mutedfill" points="50,20 46.9,27 53.1,27" /><text class="t" x="292" y="155">x</text><text class="t" x="40" y="24">y</text><line class="f-vel" x1="50" y1="140" x2="165.2" y2="73.5" /><polygon class="f-velfill" points="171.2,70 163.6,70.8 166.8,76.2" /><line class="f-dash" x1="171.2" y1="140" x2="171.2" y2="70" /><line class="f-dash" x1="50" y1="70" x2="171.2" y2="70" /><path class="f-line" d="M86 140 A36 36 0 0 0 81.2 122" /><text class="t" x="96" y="132">θ</text><text class="t-m t-c" x="110" y="157">componente en x</text><text class="t-m" x="58" y="112">componente en y</text><text class="t-v t-c" x="130" y="82">módulo</text></svg>
+</Figura>
 
-Para recomponerlo, el módulo sale de Pitágoras, |v⃗| = √(vₓ² + v_y²), y el ángulo, de
-θ = atan2(v_y, vₓ). No uses atan(v_y/vₓ): el cociente pierde los signos y confunde (0.3, 0.4)
-con (−0.3, −0.4). atan2 mira las dos componentes y devuelve el ángulo en el cuadrante correcto.
+El mismo vector se escribe con sus **componentes**, cuánto mide en x y en y. Si una velocidad tiene
+módulo v y ángulo θ, cada componente sale de v por el coseno o el seno de θ. Como el módulo no
+cambia, una componente crece cuando la otra decrece: lo único que se mueve es el reparto entre los
+dos ejes.
 
-Para sumar dos vectores se suman sus componentes: a⃗ + b⃗ = (a_x + b_x, a_y + b_y); los
-módulos no se suman.
+Para recomponerlo, el módulo sale de Pitágoras y el ángulo, de atan2 con las dos componentes. No
+uses la arcotangente de un solo cociente: pierde los signos y confunde (0.3, 0.4) con (−0.3, −0.4).
+atan2 devuelve el ángulo en el cuadrante correcto.
 
-El **producto escalar** combina dos vectores en un número: a⃗ · b⃗ = a_x·b_x + a_y·b_y. También
-vale |a⃗||b⃗| cos φ, con φ el ángulo entre ellos; igualando las dos formas se despeja φ. Si vale
-cero, son perpendiculares.
+Para sumar dos vectores se suman sus componentes; los módulos no se suman. Por eso, cuando b apunta
+contra a, las componentes se cancelan y la suma se acerca a cero.
 
-La velocidad de tu robot es un vector: su módulo es la rapidez, en m/s, y su dirección, el
-rumbo θ.
+El **producto escalar** combina dos vectores en un número. Se calcula con las componentes o con los
+módulos y el coseno del ángulo φ entre ellos; igualando las dos formas se despeja φ. Si vale cero,
+los vectores son perpendiculares, como viste con el coseno de 90°.
 
-**Rotación de un vector por componentes.** Girar un vector a⃗ un ángulo θ en sentido antihorario,
-sin cambiar su módulo, da el vector a⃗′ de componentes a′_x = a_x cosθ − a_y sinθ y
-a′_y = a_x sinθ + a_y cosθ. Con el vector del gancho, (0.5, 0) m/s girado 30° da
-(0.5·0.866 − 0·0.5, 0.5·0.5 + 0·0.866) = (0.433, 0.25) m/s: las componentes del gancho. Ese
-vector girado otros 60° da (0.433·0.5 − 0.25·0.866, 0.433·0.866 + 0.25·0.5) = (0.000, 0.5) m/s:
-0.5 m/s a 90°, con el mismo módulo. Girar −θ cambia el signo de los senos.
+Girar un vector un ángulo θ en sentido antihorario, sin cambiar su módulo, da un vector nuevo cuyas
+componentes mezclan las dos del original con el seno y el coseno de θ.
 [Pose y marcos de referencia](/ruta/ruta-2/m00/t02), en la ruta Robot móvil, usa esta rotación
 para pasar un punto del marco del robot al de la mesa.
+
+La velocidad de tu robot es un vector: su módulo es la rapidez, en m/s, y su dirección, el rumbo θ.
 </Concepto>
 
 <Formulas>
@@ -135,29 +137,29 @@ Los ángulos se dan en grados; 180° = π rad. Pon la calculadora en grados.
 </Formulas>
 
 <AlRobot>
-Este tema no pide ningún dato nuevo de «Mi robot». Toma como dato de tu perfil v_max, la
+Este tema no pide ningún dato nuevo de «Mi robot». Toma como dato de tu perfil v<sub>max</sub>, la
 velocidad lineal máxima que alcanza tu robot con el motor sin carga; de dónde sale:
 [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04).
 
-v_max es una rapidez: dice qué tan rápido puede ir tu robot, pero no hacia dónde. Para tener el
-vector velocidad falta el rumbo. Si tu robot avanza a v_max con un rumbo θ = 30° respecto al eje
-x de la mesa, como en el gancho, sus componentes son:
+v<sub>max</sub> es una rapidez: dice qué tan rápido puede ir tu robot, pero no hacia dónde. Para tener el
+vector velocidad falta el rumbo. Si tu robot avanza a v<sub>max</sub> con un rumbo θ = 30° respecto al eje
+x de la mesa, sus componentes son:
 
 <RobotFormula calc="ruta-1/m00-t02/vx" />
 
 <RobotFormula calc="ruta-1/m00-t02/vy" />
 
-Con el robot de referencia, v_max = 0.670 m/s. A 30°, cada segundo avanza 0.580 m en x y
-0.335 m en y. Si tu perfil tiene otra v_max, las dos fórmulas se recalculan con tu dato.
+Con el robot de referencia, v<sub>max</sub> = 0.670 m/s. A 30°, cada segundo avanza 0.580 m en x y
+0.335 m en y. Si tu perfil tiene otra v<sub>max</sub>, las dos fórmulas se recalculan con tu dato.
 
-Comprueba la recomposición: √(0.580² + 0.335²) = 0.670 m/s. Las componentes reparten la rapidez
-entre los dos ejes, pero no la aumentan: ningún rumbo hace que tu robot vaya más rápido que
-v_max. Y con la rotación por componentes del Concepto, (0.670, 0) m/s girado 30° da esas mismas
-componentes: girar el vector y descomponerlo a 30° es el mismo cálculo.
+Comprueba la recomposición: el módulo de esas dos componentes vuelve a dar 0.670 m/s. Las
+componentes reparten la rapidez entre los dos ejes, pero no la aumentan: ningún rumbo hace que tu
+robot vaya más rápido que v<sub>max</sub>. Y girar 30° el vector (0.670, 0) m/s da esas mismas componentes:
+girarlo y descomponerlo a 30° es el mismo cálculo.
 </AlRobot>
 
 <Verifica
-  ejercicios={['ruta-1/m00-t02/e1', 'ruta-1/m00-t02/e2', 'ruta-1/m00-t02/e3', 'ruta-1/m00-t02/e4']}
+  ejercicios={['ruta-1/m00-t02/e1', 'ruta-1/m00-t02/e2', 'ruta-1/m00-t02/e3', 'ruta-1/m00-t02/e4', 'ruta-1/m00-t02/e5']}
   topicId="ruta-1/m00-t02"
   obligatorios={['e1', 'e2', 'e3']}
 />

@@ -7,6 +7,9 @@
  * `Verifica` key actually resolves is checked by `apps/web/src/lib/verifica.test.ts` against the
  * `EXERCISES` registry, and the build also fails on an unknown key (`Verifica.astro`) (F6-00).
  *
+ * v1.5 (CONTENT-STANDARDS §2, §4, §7): a published topic also needs one `Figura`, no subscript
+ * written with an underscore in running text, and no platform notes in the lesson.
+ *
  * Output: one line per violation, `content/es/<id>/index.mdx: <reason>`.
  * Exit code 1 if any topic fails, 0 if all pass.
  */
@@ -124,6 +127,24 @@ function exerciseKeys(body) {
 }
 
 /**
+ * v1.5 rules: a figure, no underscore subscripts and no platform notes in running text.
+ * @param {string} body
+ * @param {number} bodyOffset
+ * @param {(reason: string) => void} report
+ */
+function checkV15(body, bodyOffset, report) {
+  if (countTag(body, 'Figura') < 1) report('falta una <Figura> en el Concepto');
+  for (const { line, text } of proseLines(body)) {
+    if (/[A-Za-zωηθτΔ]_[A-Za-z0-9{]/.test(text)) {
+      report(`línea ${line + bodyOffset}: subíndice con guion bajo en el texto; usa <sub>`);
+    }
+    for (const note of PLATFORM_NOTES) {
+      if (note.test(text)) report(`línea ${line + bodyOffset}: nota de plataforma dentro de la lección`);
+    }
+  }
+}
+
+/**
  * @param {string} file
  * @param {Finding[]} findings
  */
@@ -155,6 +176,8 @@ function checkTopic(file, findings) {
 
   if (status === 'draft') return;
 
+  checkV15(body, bodyOffset, report);
+
   const experiments = countTag(body, 'Experimento');
   const { experiments: exp, exercises: ex } = LIMITS;
   if (experiments < exp.min || experiments > exp.max) {
@@ -166,6 +189,32 @@ function checkTopic(file, findings) {
   if (exercises < ex.min || exercises > ex.max) {
     report(`<Verifica> tiene ${exercises} ejercicios; el estándar pide de ${ex.min} a ${ex.max}`);
   }
+}
+
+/** Frases de nota de plataforma que el estándar prohíbe dentro de una lección (§2, Al robot). */
+const PLATFORM_NOTES = [/cuando la plataforma admita/i, /el simulador no muestra/i, /el simulador no modela/i];
+
+/**
+ * Running text of the body: no tag blocks (props and attributes) and no `code` spans.
+ * @param {string} body
+ */
+function proseLines(body) {
+  /** @type {{ line: number; text: string }[]} */
+  const out = [];
+  let inBlock = false;
+  body.split(String.fromCharCode(10)).forEach((raw, index) => {
+    const trimmed = raw.trim();
+    if (inBlock) {
+      if (trimmed.endsWith('>')) inBlock = false;
+      return;
+    }
+    if (/^<[A-Za-z]/.test(raw)) {
+      if (!trimmed.endsWith('>')) inBlock = true;
+      return;
+    }
+    out.push({ line: index + 1, text: raw.replace(/`[^`]*`/g, '') });
+  });
+  return out;
 }
 
 function main() {

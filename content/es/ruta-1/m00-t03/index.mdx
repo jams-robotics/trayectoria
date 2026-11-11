@@ -18,8 +18,9 @@ seoDescription: "Aprende a distinguir la velocidad media de la instantánea y a 
 ---
 
 <Gancho>
-Cada 0.1 s tu robot reporta su posición: 0.00, 0.05, 0.12, 0.21 m. ¿Va a velocidad constante?
-¿Cuál es su velocidad en el último tramo?
+Las lecturas de posición de tu robot cada 0.1 s (0.00, 0.05, 0.12, 0.21 m) crecen cada vez más
+rápido, y ya no sabes qué velocidad lleva en cada instante. Tu reto: con el marcador de tiempo,
+encuentra en qué instante del movimiento del simulador el robot va exactamente a 1 m/s.
 </Gancho>
 
 <Explora>
@@ -65,28 +66,34 @@ vale cero, la tangente a x–t es horizontal. Ahí x deja de crecer y alcanza su
 </Explora>
 
 <Concepto>
+Viste que la tangente a x–t tiene la misma pendiente que el valor de v–t en ese instante. De ahí
+sale todo.
+
+<Figura alt="Una curva de posición contra tiempo. Una recta secante une dos puntos de la curva y una recta tangente toca la curva en un solo punto. Cuando los dos puntos se acercan, la secante se parece a la tangente." caption="La velocidad media es la pendiente de la secante; la instantánea, la de la tangente.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><line class="f-axis" x1="40" y1="145" x2="293" y2="145" /><polygon class="f-mutedfill" points="300,145 293,141.8 293,148.2" /><line class="f-axis" x1="40" y1="145" x2="40" y2="22" /><polygon class="f-mutedfill" points="40,15 36.9,22 43.1,22" /><text class="t" x="302" y="160">t</text><text class="t" x="30" y="22">x</text><path class="f-d1" d="M40 140 Q170 135 280 30" /><line class="f-dash" x1="95" y1="127" x2="235" y2="76" /><circle class="f-d1fill" cx="95" cy="127" r="3" /><circle class="f-d1fill" cx="235" cy="76" r="3" /><line class="f-vel" x1="60" y1="133" x2="160" y2="106" /><text class="t-m t-c" x="200" y="60">secante: velocidad media</text><text class="t-v t-c" x="170" y="163">tangente: velocidad instantánea</text></svg>
+</Figura>
+
 La **velocidad media** de tu robot en un intervalo es el desplazamiento dividido entre el tiempo
-que tarda en recorrerlo: v̄ = Δx/Δt. Si en Δt = 0.1 s avanza Δx = 0.05 m, su velocidad media en
-ese tramo es 0.5 m/s. La velocidad media no dice qué pasa dentro del intervalo: el robot puede ir
-más rápido al final que al principio.
+que tarda en recorrerlo. No dice qué pasa dentro del intervalo: el robot puede ir más rápido al
+final que al principio.
 
-En la gráfica x–t, v̄ es la pendiente de la recta que une los dos puntos del intervalo. Si reduces
-Δt, los dos puntos se acercan y esa recta se parece cada vez más a la tangente a la curva en un
-instante. El valor al que tiende Δx/Δt cuando Δt tiende a cero es la **derivada** de x respecto a
-t. Ese valor es la **velocidad instantánea**: v = dx/dt, la pendiente de x–t en cada instante.
+En la gráfica x–t, la velocidad media es la pendiente de la recta que une los dos puntos del
+intervalo. Si reduces Δt, los dos puntos se acercan y esa recta se parece cada vez más a la
+tangente en un instante. El valor al que tiende el cociente cuando Δt tiende a cero es la
+**derivada** de x respecto a t, y es la **velocidad instantánea**: la pendiente de x–t en cada
+instante. Una velocidad constante es una recta en x–t.
 
-La misma operación aplicada a la velocidad da la aceleración: a = dv/dt, la pendiente de la
-gráfica v–t. La aceleración media en un intervalo es (v₂ − v₁)/Δt. Una velocidad constante es una recta en x–t.
+La misma operación aplicada a la velocidad da la aceleración: la pendiente de v–t. Donde v–t cruza
+cero, la tangente a x–t es horizontal y x alcanza un máximo.
 
-Para posiciones que son polinomios del tiempo basta una regla: la derivada de c·tⁿ es c·n·tⁿ⁻¹.
-Si x = 0.2·t², con x en m y t en s, entonces v = 0.4·t, y en t = 2 s el robot va a 0.8 m/s.
-Derivar otra vez da a = 0.4 m/s², constante.
+Para posiciones que son polinomios del tiempo basta una regla: la derivada de c·tⁿ baja el
+exponente en uno y lo multiplica por n. Derivar x = 0.2·t², con x en m y t en s, da una velocidad
+que crece de forma lineal con t y una aceleración constante.
 
 El signo de v indica la dirección del movimiento: positivo si x crece, negativo si x decrece.
 
-Con la tabla del gancho, las velocidades medias de los tres tramos son 0.05/0.1 = 0.5 m/s,
-0.07/0.1 = 0.7 m/s y 0.09/0.1 = 0.9 m/s. El robot no va a velocidad constante: cada tramo es más
-rápido que el anterior, así que acelera, y en el último tramo va a 0.9 m/s.
+Con las lecturas del reto, cada tramo de 0.1 s avanza más que el anterior: el robot no va a
+velocidad constante, acelera.
 </Concepto>
 
 <Formulas>
@@ -122,7 +129,7 @@ desplazamiento Δx entre ellas dividido entre Δt.
 Es una velocidad media, la del último intervalo. Cuanto más corto es Δt, más se parece a la
 velocidad instantánea v = dx/dt.
 
-Δx y Δt no son datos de tu perfil de «Mi robot», así que este cálculo usa las lecturas del gancho.
+Δx y Δt no son datos de tu perfil de «Mi robot», así que este cálculo usa las lecturas del reto.
 En el último tramo, entre dos lecturas separadas Δt = 0.1 s, la posición pasa de 0.12 m a 0.21 m:
 avanza Δx = 0.09 m.
 
@@ -131,7 +138,7 @@ avanza Δx = 0.09 m.
   substituted="\bar v = \frac{0.09\ \text{m}}{0.1\ \text{s}} = 0.9\ \text{m/s}"
 />
 
-La velocidad media de ese intervalo es 0.9 m/s, la del último tramo del gancho: el
+La velocidad media de ese intervalo es 0.9 m/s, la del último tramo del reto: el
 simulador hace con las lecturas del encoder el mismo cálculo que tú hiciste con la tabla.
 </AlRobot>
 
@@ -140,8 +147,7 @@ simulador hace con las lecturas del encoder el mismo cálculo que tú hiciste co
     'ruta-1/m00-t03/e1',
     'ruta-1/m00-t03/e2',
     'ruta-1/m00-t03/e3',
-    'ruta-1/m00-t03/e4',
-  ]}
+    'ruta-1/m00-t03/e4', 'ruta-1/m00-t03/e5']}
   topicId="ruta-1/m00-t03"
   obligatorios={['e1', 'e2', 'e3']}
 />

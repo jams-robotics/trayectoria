@@ -2,6 +2,7 @@ import AlRobot from './AlRobot.astro';
 import Concepto from './Concepto.astro';
 import Experimento from './Experimento.astro';
 import Explora from './Explora.astro';
+import Figura from './Figura.astro';
 import Formula from './Formula.astro';
 import Formulas from './Formulas.astro';
 import Gancho from './Gancho.astro';
@@ -33,6 +34,7 @@ export const temaComponents: Readonly<Record<string, unknown>> = {
   Formula,
   Explora,
   Experimento,
+  Figura,
   AlRobot,
   RobotFormula,
   Verifica,

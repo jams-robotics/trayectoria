@@ -18,14 +18,15 @@ seoDescription: "Aprende por qué el control on/off hace oscilar a un seguidor d
 ---
 
 <Gancho>
-Tu robot ve la línea a la derecha (p = +0.4). ¿Cuánto más rápido debe ir la rueda izquierda que
-la derecha para volver a centrarla?
+Tu robot ve la línea a la derecha y corrige a golpes: en las rectas hace zigzag y, con otra
+corrección, se sale en la curva. Tu reto: con el control proporcional, encuentra una ganancia con la
+que el robot dé las dos vueltas al óvalo sin perder la línea y sin oscilar en las rectas.
 </Gancho>
 
 <Explora>
-El robot de referencia sigue la pista Óvalo con control proporcional, K_p = 8 y velocidad base
-ω_base = 15 rad/s. La escena muestra la pista, el robot con sus sensores y la traza que deja; las
-gráficas muestran el error e y la velocidad angular ω del robot en el tiempo.
+Tu robot sigue la pista Óvalo con control proporcional, Kp = 8, y una velocidad base de 15 rad/s. La
+escena muestra la pista, el robot con sus sensores y la traza que deja; las gráficas muestran el
+error y la velocidad angular del robot en el tiempo.
 
 <LineFollowerWidget
   track="oval"
@@ -35,69 +36,73 @@ gráficas muestran el error e y la velocidad angular ω del robot en el tiempo.
 />
 
 <Experimento
-  cambia="K_p de 8 a 2"
+  cambia="Kp de 8 a 2"
   observa="la primera curva en la escena"
   porque="¿Por qué el robot se sale?"
 >
-En la curva el robot necesita una ω que, con u = K_p·e, solo aparece con un error grande. Con
-K_p = 2 el error crece hasta que la línea sale del arreglo, a t ≈ 1.59 s. Con K_p = 8 el mismo giro
-pide un error cuatro veces menor, y el robot da 2 vueltas en 15 s (≈ 6.04 s y ≈ 5.85 s) sin perderla.
+En la curva el robot necesita un giro que, con una ganancia baja, solo aparece con un error grande.
+Con Kp = 2 el error crece hasta que la línea sale del arreglo, a t ≈ 1.59 s. Con Kp = 8 el mismo
+giro pide un error cuatro veces menor, y el robot da 2 vueltas en 15 s sin perderla.
 </Experimento>
 
 <Experimento
-  cambia="K_p a 20"
+  cambia="Kp a 20"
   observa="la gráfica del error en las rectas"
   porque="¿Por qué oscila de lado a lado?"
 >
-El motor tarda en cambiar de velocidad, su constante de tiempo τ_m, así que la corrección llega
-tarde y el robot cruza la línea antes de que termine. En los primeros 5 s el error cambia de signo 10 veces, frente a 4 con
-K_p = 8. En la 2.ª vuelta la oscilación saca al robot de la línea, a t ≈ 7.9 s.
+El motor tarda en cambiar de velocidad, así que la corrección llega tarde y el robot cruza la línea
+antes de que termine. En los primeros 5 s el error cambia de signo 10 veces, frente a 4 con
+Kp = 8. En la 2.ª vuelta la oscilación saca al robot de la línea, a t ≈ 7.9 s.
 </Experimento>
 
 <Experimento
-  cambia="el controlador a On/off y «Corrección» u_0 de 4 a 8 rad/s"
+  cambia="el controlador a On/off y «Corrección» de 4 a 8 rad/s"
   observa="la traza en la escena y la gráfica del error"
   porque="¿Por qué hay zigzag permanente aunque la recta sea perfecta?"
 >
-On/off siempre manda ±u_0 y nunca u = 0, así que el robot cruza la línea una y otra vez: 25
-cambios de signo en 15 s, un RMS del error de 0.32 (RMS: el error típico, la raíz de la media de
-los cuadrados) y una vuelta de ≈ 8.86 s sin perder la línea. Con
-u_0 = 4 rad/s la conmutación es tan rápida que el motor la suaviza y el error apenas se ve (RMS
-0.003). Con u_0 ≥ 8.5 rad/s el zigzag crece hasta perder la línea.
+On/off siempre manda la misma corrección, hacia un lado o hacia el otro, y nunca cero, así que el
+robot cruza la línea una y otra vez: 25 cambios de signo en 15 s y una vuelta de ≈ 8.86 s sin
+perder la línea. Con una corrección de 4 rad/s la conmutación es tan rápida que el motor la suaviza
+y el error apenas se ve. Con 8.5 rad/s o más el zigzag crece hasta perder la línea.
 </Experimento>
-
-Al cambiar de controlador, el widget vuelve a los valores por defecto del nuevo (ω_base = 10 rad/s,
-u_0 = 4 rad/s). Por eso on/off va al final.
 </Explora>
 
 <Concepto>
-El arreglo de sensores te da la posición de la línea p. Si la quieres centrada, el **error** del
-controlador es directamente e = p: positivo con la línea a la derecha, negativo a la izquierda.
+Viste que con Kp bajo el robot se sale en la curva, que con Kp alto oscila y que on/off hace zigzag
+permanente. El arreglo de sensores te da la posición p de la línea. Si la quieres centrada, el
+**error** del controlador es esa misma posición: positivo con la línea a la derecha, negativo a la
+izquierda.
 
-El controlador convierte el error en una **acción de control** u, en rad/s, y la reparte entre
-las ruedas: ω_L = ω_base + u y ω_R = ω_base − u. Las ruedas mueven al robot, el robot mueve el
-arreglo y el arreglo mide un nuevo error. Ese circuito es un **lazo cerrado**.
+<Figura alt="Un lazo cerrado de cuatro bloques en fila: sensores, controlador, ruedas y robot. Una flecha vuelve del robot a los sensores porque al moverse cambia la posición de la línea, y el lazo se repite." caption="El control en lazo cerrado: medir, corregir, mover y volver a medir.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><rect class="f-box" x="10" y="50" width="64" height="40" rx="3" /><text class="t t-c" x="42" y="67">sensores</text><text class="t-m t-c" x="42" y="81">posición p</text><line class="f-line" x1="74" y1="70" x2="89" y2="70" /><polygon class="f-fgfill" points="96,70 89,66.8 89,73.2" /><rect class="f-fillbox" x="96" y="50" width="64" height="40" rx="3" /><text class="t t-c" x="128" y="67">controlador</text><text class="t-m t-c" x="128" y="81">acción u</text><line class="f-line" x1="160" y1="70" x2="175" y2="70" /><polygon class="f-fgfill" points="182,70 175,66.8 175,73.2" /><rect class="f-box" x="182" y="50" width="64" height="40" rx="3" /><text class="t t-c" x="214" y="74">ruedas</text><line class="f-line" x1="246" y1="70" x2="261" y2="70" /><polygon class="f-fgfill" points="268,70 261,66.8 261,73.2" /><rect class="f-box" x="268" y="50" width="44" height="40" rx="3" /><text class="t t-c" x="290" y="74">robot</text><path class="f-vel" d="M290 90 L290 130 L42 130 L42 94" /><polygon class="f-velfill" points="42,92 37,102 47,102" /><text class="t-m t-c" x="166" y="148">el robot se mueve y la línea cambia de posición</text></svg>
+</Figura>
 
-El controlador más simple es el **on/off**: gira siempre con la misma corrección u_0, hacia el
-lado que marca el signo del error. Nunca manda u = 0, así que incluso con la línea centrada el
-robot gira hacia un lado, la cruza y gira hacia el otro. La oscilación es permanente.
+El controlador convierte el error en una **acción de control** u, en rad/s, y la reparte entre las
+ruedas: a la izquierda le suma u a la velocidad base y a la derecha se la resta. Las ruedas mueven
+al robot, el robot mueve el arreglo y el arreglo mide un nuevo error. Ese circuito es un **lazo
+cerrado**.
 
-El **control proporcional** corrige en proporción al error: u = K_p·e. Error pequeño, corrección
-pequeña. Con los datos del gancho y K_p = 8 rad/s, u = 8·0.4 = 3.2 rad/s: la rueda izquierda va
-2u = 6.4 rad/s más rápido que la derecha.
+El controlador más simple es el **on/off**: gira siempre con la misma corrección u<sub>0</sub>, hacia el lado
+que marca el signo del error. Nunca manda cero, así que incluso con la línea centrada el robot gira
+hacia un lado, la cruza y gira hacia el otro. La oscilación es permanente.
 
-La ganancia K_p decide el comportamiento. Con K_p bajo, el robot corrige despacio y en una curva
-el error crece hasta que la línea sale del arreglo. Con K_p alto, oscila: el motor no cambia de
-velocidad al instante, tarda su constante de tiempo τ_m, la de
-[El motor y la batería](/ruta/ruta-1/m03/t03); la corrección llega tarde y el robot cruza la
-línea antes de que termine.
+El **control proporcional** corrige en proporción al error: la acción es K<sub>p</sub> por e. Error pequeño,
+corrección pequeña. Con la línea en p = 0.4 y K<sub>p</sub> = 8 rad/s, la acción es 3.2 rad/s: la rueda
+izquierda va 6.4 rad/s más rápido que la derecha.
 
-K_p tampoco puede crecer sin límite. La rueda rápida pide ω_base + K_p·|e|, y ninguna rueda gira
-más rápido que ω_max. Para no saturar con el error más grande, ω_base + K_p·|e|_max ≤ ω_max.
+La ganancia K<sub>p</sub> decide el comportamiento. Con K<sub>p</sub> bajo, el robot corrige despacio y en una curva el
+error crece hasta que la línea sale del arreglo. Con K<sub>p</sub> alto, oscila: el motor no cambia de
+velocidad al instante, tarda su constante de tiempo τ<sub>m</sub>, la de
+[El motor y la batería](/ruta/ruta-1/m03/t03); la corrección llega tarde y el robot cruza la línea
+antes de que termine.
+
+K<sub>p</sub> tampoco puede crecer sin límite. La rueda rápida pide la velocidad base más K<sub>p</sub> por el error, y
+ninguna rueda gira más rápido que ω<sub>max</sub>. Hay un K<sub>p</sub> máximo con el que ni siquiera el error más
+grande satura una rueda.
 
 Lo que corrige al robot es su velocidad angular. Según la
-[cinemática directa](/ruta/ruta-2/m01/t01), ω = (ω_R − ω_L)·r/L = −2·u·r/L. Con u positiva, ω
-es negativa: el robot gira a la derecha, hacia la línea.
+[cinemática directa](/ruta/ruta-2/m01/t01), es proporcional a la diferencia entre las ruedas. Con u
+positiva, es negativa: el robot gira a la derecha, hacia la línea.
 </Concepto>
 
 <Formulas>
@@ -141,8 +146,8 @@ es negativa: el robot gira a la derecha, hacia la línea.
 </Formulas>
 
 <AlRobot>
-Vuelve al gancho con tu robot. Con K_p = 8 y e = 0.4, la acción de control es u = 3.2 rad/s, y con
-ω_base = 15 rad/s los comandos de rueda son:
+Con tu robot, supón la línea a la derecha, e = 0.4, y K<sub>p</sub> = 8: la acción de control es u = 3.2 rad/s, y con
+ω<sub>base</sub> = 15 rad/s los comandos de rueda son:
 
 <Formula latex="\begin{aligned} \omega_L &= 15 + 3.2 = 18.2\ \text{rad/s}\\ \omega_R &= 15 - 3.2 = 11.8\ \text{rad/s} \end{aligned}" />
 
@@ -153,21 +158,21 @@ radio de rueda r y de la distancia entre ruedas L de tu perfil de «Mi robot»:
 
 Con el robot de referencia, ω = −1.365 rad/s: gira a la derecha, hacia la línea.
 
-La ganancia máxima sin saturar depende de ω_max, la que calculaste en
-[Movimiento circular y velocidad angular](/ruta/ruta-1/m01/t03). Con ω_base = 15 rad/s y |e|_max = 1:
+La ganancia máxima sin saturar depende de ω<sub>max</sub>, la que calculaste en
+[Movimiento circular y velocidad angular](/ruta/ruta-1/m01/t03). Con ω<sub>base</sub> = 15 rad/s y |e|_max = 1:
 
 <RobotFormula calc="ruta-2/m02-t02/kp-max" />
 
-Si el ω_max de tu perfil no supera ω_base = 15 rad/s, ninguna K_p positiva evita saturar y el
-cálculo de K_p máxima usa el robot de referencia.
+Si el ω<sub>max</sub> de tu perfil no supera ω<sub>base</sub> = 15 rad/s, ninguna K<sub>p</sub> positiva evita saturar y el
+cálculo de K<sub>p</sub> máxima usa el robot de referencia.
 
-Con el robot de referencia, K_p ≤ 5.94. El K_p = 8 de Explora la supera: con la línea en el borde
-del arreglo, la rueda rápida pediría 15 + 8 = 23 rad/s, más de los 20.94 rad/s que da. La rueda solo satura
-cuando |e| supera (20.94 − 15)/8 = 0.74.
+Con el robot de referencia, K<sub>p</sub> ≤ 5.94. El K<sub>p</sub> = 8 de Explora la supera: con la línea en el borde
+del arreglo, la rueda rápida pediría 23 rad/s, más de los 20.94 rad/s que da. La rueda solo satura
+cuando |e| supera 0.74.
 </AlRobot>
 
 <Verifica
-  ejercicios={['ruta-2/m02-t02/e1', 'ruta-2/m02-t02/e2', 'ruta-2/m02-t02/e3']}
+  ejercicios={['ruta-2/m02-t02/e1', 'ruta-2/m02-t02/e2', 'ruta-2/m02-t02/e3', 'ruta-2/m02-t02/e4']}
   topicId="ruta-2/m02-t02"
   obligatorios={['e1', 'e2', 'e3']}
 />

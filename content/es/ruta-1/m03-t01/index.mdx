@@ -18,16 +18,16 @@ seoDescription: "Aprende a calcular trabajo, energía cinética y potencial, y a
 ---
 
 <Gancho>
-Tu robot de 0.9 kg va a 0.6 m/s y se le corta el motor al pie de una rampa. ¿Hasta qué altura
-sube?
+Se le corta el motor a tu robot al pie de una rampa y apenas sube un par de centímetros. Tu reto:
+sin cambiar la rampa, haz que suba cuatro veces más alto y descubre si hace falta cambiar su masa.
 </Gancho>
 
 <Explora>
-Un robot de 0.9 kg recorre un tramo horizontal a 0.6 m/s y sube una rampa de 15° (0.26 rad): el robot
-del gancho. Las barras muestran en cada instante su energía cinética, su energía potencial, su
-energía mecánica y el trabajo de la fricción. El control «Coeficiente de rozamiento cinético»,
-μₖ, hace aquí de resistencia a la rodadura: una fuerza μₖ·N en contra del avance, en el tramo
-plano y en la rampa. Empieza en 0.
+Un robot de 0.9 kg recorre un tramo horizontal a 0.6 m/s y sube una rampa de 15° (0.26 rad). Las
+barras muestran en cada instante su energía cinética, su energía potencial, su energía mecánica y
+el trabajo de la fricción. El control «Coeficiente de rozamiento cinético», μₖ, hace aquí de
+resistencia a la rodadura: una fuerza en contra del avance, en el tramo plano y en la rampa.
+Empieza en 0.
 
 <EnergyWidget mode="ramp" initial={{ mass_kg: 0.9, v0_mps: 0.6, slope_rad: 0.26 }} />
 
@@ -36,9 +36,8 @@ plano y en la rampa. Empieza en 0.
   observa="la altura que alcanza el robot en la rampa"
   porque="¿Por qué la altura se cuadruplica?"
 >
-Sin fricción, toda la energía cinética se convierte en potencial: h_max = v²/(2·g). La altura
-depende del cuadrado de la rapidez, así que duplicarla multiplica h_max por 2² = 4. Pasa de
-0.0183 m a 0.0734 m.
+Sin fricción, toda la energía cinética se convierte en potencial. La altura depende del cuadrado
+de la rapidez, así que duplicarla la multiplica por 4: pasa de 0.0183 m a 0.0734 m.
 </Experimento>
 
 <Experimento
@@ -46,9 +45,8 @@ depende del cuadrado de la rapidez, así que duplicarla multiplica h_max por 2²
   observa="la altura que alcanza el robot en la rampa"
   porque="¿Por qué la altura no cambia?"
 >
-Eₖ = ½·m·v² y Eₚ = m·g·h son proporcionales a m: al duplicar la masa, las dos se duplican. En
-½·m·v² = m·g·h la masa se cancela, y h_max = v²/(2·g) no depende de ella. El robot sube los mismos
-0.0183 m.
+Las dos energías son proporcionales a la masa: al duplicarla, las dos se duplican. La masa se
+cancela y la altura no depende de ella. El robot sube los mismos 0.0183 m.
 </Experimento>
 
 <Experimento
@@ -63,30 +61,34 @@ Queda menos Eₖ para convertirse en Eₚ, y el robot se detiene más abajo.
 </Explora>
 
 <Concepto>
-Una fuerza hace **trabajo** cuando su punto de aplicación se desplaza. Si la fuerza F forma un
-ángulo θ con el desplazamiento y ese punto recorre una distancia d, el trabajo es W = F·d·cosθ.
-Con θ = 0, la fuerza empuja a favor y W es positivo. Con θ = π/2 rad, como el peso en un tramo
-horizontal, W = 0. Con θ = π rad, como la fricción, W es negativo.
+Viste que al doble de velocidad el robot sube cuatro veces más alto y que la masa no cambia la
+altura. Una fuerza hace **trabajo** cuando su punto de aplicación se desplaza. Si la fuerza forma un
+ángulo θ con el desplazamiento, el trabajo es la fuerza por la distancia por el coseno de θ. Con
+θ = 0, la fuerza empuja a favor y el trabajo es positivo. Con θ = π/2 rad, como el peso en un tramo
+horizontal, es cero. Con θ = π rad, como la fricción, es negativo.
 
-La **energía cinética** de un cuerpo de masa m con rapidez v es Eₖ = ½·m·v². El **teorema
-trabajo–energía** dice que el trabajo neto, la suma del trabajo de todas las fuerzas, es igual al
-cambio de energía cinética: W_neto = ΔEₖ. Para llevar tu robot de 0.9 kg del reposo a 0.6 m/s,
-las fuerzas hacen un trabajo neto de ½·0.9·0.6² = 0.162 J.
+<Figura alt="Un robot al pie de una rampa con su velocidad, y una línea punteada horizontal a la altura h que alcanza arriba. A la derecha, dos barras de igual altura muestran que la energía cinética de abajo pasa a energía potencial arriba." caption="Sin fricción, toda la energía cinética se convierte en potencial.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><line class="f-axis" x1="20" y1="140" x2="300" y2="140" /><polygon class="f-box" points="110,140 210,140 210,80" /><rect class="f-fillbox" x="40" y="126" width="28" height="14" rx="3" /><line class="f-vel" x1="68" y1="130" x2="95" y2="130" /><polygon class="f-velfill" points="102,130 95,126.8 95,133.2" /><text class="t-v t-c" x="86" y="122">v</text><line class="f-dash" x1="210" y1="80" x2="150" y2="80" /><line class="f-d1" x1="240" y1="80" x2="240" y2="140" /><text class="t" x="246" y="112">h</text><line class="f-dash" x1="210" y1="80" x2="240" y2="80" /><rect class="f-d1fillbox" x="256" y="100" width="16" height="40" rx="3" /><text class="t-m t-c" x="264" y="154">Eₖ</text><rect class="f-d2fillbox" x="280" y="100" width="16" height="40" rx="3" /><text class="t-m t-c" x="288" y="154">Eₚ</text></svg>
+</Figura>
 
-La **energía potencial** gravitatoria a una altura h sobre un nivel de referencia es Eₚ = m·g·h.
-Cuando el robot sube una rampa, el peso hace trabajo negativo: la energía cinética que pierde no
-desaparece, queda guardada como potencial.
+La **energía cinética** de un cuerpo es la mitad de su masa por el cuadrado de su rapidez. El
+**teorema trabajo–energía** dice que el trabajo neto, la suma del trabajo de todas las fuerzas, es
+igual al cambio de energía cinética. Para llevar tu robot de 0.9 kg del reposo a 0.6 m/s, las
+fuerzas hacen un trabajo neto de 0.162 J.
 
-La suma E = Eₖ + Eₚ es la **energía mecánica**. Sin fricción, E es constante. Si el robot llega
-al pie de la rampa con rapidez v y se detiene arriba, toda su Eₖ pasó a Eₚ: ½·m·v² = m·g·h_max.
-La masa se cancela y queda h_max = v²/(2·g).
+La **energía potencial** gravitatoria a una altura h sobre un nivel de referencia es la masa por g
+por h. Cuando el robot sube una rampa, el peso hace trabajo negativo: la energía cinética que
+pierde no desaparece, queda guardada como potencial.
 
-Con los datos del gancho, h_max = 0.6²/(2·9.81) = 0.0183 m. Tu robot sube menos de 2 cm.
+La suma de las dos es la **energía mecánica**. Sin fricción, es constante. Si el robot llega al pie
+de la rampa con rapidez v y se detiene arriba, toda su energía cinética pasó a potencial. La masa
+se cancela y la altura máxima solo depende del cuadrado de v y de g, como viste con la masa al
+doble. Tu robot a 0.6 m/s sube menos de 2 cm.
 
-La fricción siempre se opone al movimiento, así que su trabajo es negativo y no se recupera. En
-un robot que rueda sin deslizar, esa fuerza es la fricción de rodadura, la resistencia que el
-suelo opone a la rueda al girar. Se modela igual que la fricción cinética, f = μₖ·N, con un μₖ
-mucho menor que el de un cuerpo que desliza. Con fricción, E cae a lo largo del recorrido y el
+La fricción siempre se opone al movimiento, así que su trabajo es negativo y no se recupera. En un
+robot que rueda sin deslizar, esa fuerza es la fricción de rodadura, la resistencia que el suelo
+opone a la rueda al girar. Se modela igual que la fricción cinética, con un μₖ mucho menor que el
+de un cuerpo que desliza. Con fricción, la energía mecánica cae a lo largo del recorrido y el
 robot sube menos.
 </Concepto>
 
@@ -133,7 +135,7 @@ Sin fricción:
 <AlRobot>
 Sin motor y sin fricción, lo más alto que sube tu robot por inercia depende solo de la rapidez
 con la que llega al pie de la rampa. La mayor que puede tener es su velocidad lineal máxima
-v_max, la que calculaste en [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04).
+v<sub>max</sub>, la que calculaste en [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04).
 
 A esa rapidez, con la masa m de tu perfil de «Mi robot», su energía cinética es:
 
@@ -144,11 +146,11 @@ alcanza no depende de la masa:
 
 <RobotFormula calc="ruta-1/m03-t01/max-height" />
 
-Con el robot de referencia, m = 0.9 kg y v_max = 0.670 m/s: Eₖ = 0.5·0.9·0.670² = 0.202 J y
-h_max = 0.670²/(2·9.81) = 0.0229 m. A su rapidez máxima, sube por inercia poco más de 2 cm.
+Con el robot de referencia, m = 0.9 kg y v<sub>max</sub> = 0.670 m/s: Eₖ = 0.202 J y
+h<sub>max</sub> = 0.0229 m. A su rapidez máxima, sube por inercia poco más de 2 cm.
 
 Esa Eₖ es también el trabajo neto que hay que hacer sobre tu robot para llevarlo del reposo a
-v_max, y la energía que la fricción tiene que disipar para detenerlo cuando el motor se corta en
+v<sub>max</sub>, y la energía que la fricción tiene que disipar para detenerlo cuando el motor se corta en
 llano. A qué ritmo entregan los motores esa energía, y cuánto dura la batería entregándola, lo
 calculas en [Potencia](/ruta/ruta-1/m03/t02).
 </AlRobot>
@@ -158,8 +160,7 @@ calculas en [Potencia](/ruta/ruta-1/m03/t02).
     'ruta-1/m03-t01/e1',
     'ruta-1/m03-t01/e2',
     'ruta-1/m03-t01/e3',
-    'ruta-1/m03-t01/e4',
-  ]}
+    'ruta-1/m03-t01/e4', 'ruta-1/m03-t01/e5']}
   topicId="ruta-1/m03-t01"
   obligatorios={['e1', 'e2', 'e3']}
 />

@@ -1,0 +1,69 @@
+---
+import LineFollowerWidget from '../components/tema/catalog/LineFollowerWidget.astro';
+import Base from '../layouts/Base.astro';
+
+// v1.5: short entry «Haz que siga la línea en 10 minutos». The line follower with few controls,
+// one goal and links to the topics that explain each thing; no theory here.
+// The texts live here: `content.json` only holds exercise statements (packages/i18n content.test).
+const text = {
+  title: 'Haz que siga la línea en 10 minutos',
+  description:
+    'Un robot, una pista y dos controles: haz que dé una vuelta completa sin salirse, y descubre qué temas explican lo que acabas de mover.',
+  lead: 'Tu robot sigue una línea con dos controles: la velocidad base y la ganancia Kp. Sin teoría: mueve, mira y ajusta.',
+  goalTitle: 'Tu meta',
+  goal: 'Da una vuelta completa a la pista sin perder la línea y en menos de 7 s. Cuando la «Última vuelta» baje de 7 s, lo lograste.',
+  stepsTitle: 'Cómo intentarlo',
+  linksTitle: 'Cuando quieras saber por qué',
+} as const;
+const steps = [
+  'Pulsa reproducir con los valores de partida y mira cuánto tarda la vuelta.',
+  'Sube la velocidad base de a poco. Si el robot oscila o se sale, baja Kp o la velocidad.',
+  'Repite hasta bajar de 7 s sin perder la línea.',
+];
+const links = [
+  {
+    href: '/ruta/ruta-1/m01/t04',
+    label: 'Por qué más velocidad base acorta la vuelta: Rodadura, de la rueda al robot',
+  },
+  { href: '/ruta/ruta-2/m02/t01', label: 'Cómo sabe el robot dónde está la línea: El sensor de línea' },
+  { href: '/ruta/ruta-2/m02/t02', label: 'Qué hace Kp y por qué oscila: Control on/off y proporcional' },
+  { href: '/ruta/ruta-2/m02/t03', label: 'Cómo quitar la oscilación y el sesgo en curvas: Control PID' },
+];
+---
+
+<Base title={text.title} description={text.description}>
+  <section class="mx-auto max-w-[1120px] px-5 pt-8 pb-9 md:px-8">
+    <h1 class="text-xl leading-tight md:text-2xl font-semibold">{text.title}</h1>
+    <p class="text-fg-muted mt-4 max-w-[72ch]">{text.lead}</p>
+
+    <div class="mt-6">
+      <LineFollowerWidget
+        track="oval"
+        controller="p"
+        initialParams={{ omegaBase_radps: 10, kp: 10 }}
+        showPlots={['error']}
+      />
+    </div>
+
+    <h2 class="mt-8 text-lg font-semibold">{text.goalTitle}</h2>
+    <p class="mt-2 max-w-[72ch]">{text.goal}</p>
+
+    <h2 class="mt-8 text-lg font-semibold">{text.stepsTitle}</h2>
+    <ol class="mt-2 max-w-[72ch] list-decimal pl-5">
+      {steps.map((step) => <li class="mt-1">{step}</li>)}
+    </ol>
+
+    <h2 class="mt-8 text-lg font-semibold">{text.linksTitle}</h2>
+    <ul class="mt-2 max-w-[72ch] list-disc pl-5">
+      {
+        links.map(({ href, label }) => (
+          <li class="mt-1">
+            <a href={href} class="inline-flex min-h-[44px] items-center">
+              {label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Base>

@@ -19,15 +19,16 @@ seoDescription: "Aprende cómo la distancia de los sensores al eje y la separaci
 ---
 
 <Gancho>
-¿Qué pasa si montas los sensores más lejos del eje? ¿Y si acercas las ruedas entre sí? Cada
-medida de tu robot cambia cómo sigue la línea.
+Tu robot sigue la línea, pero la vuelta tarda más de lo que esperabas y no sabes si la culpa es del
+montaje: qué tan lejos del eje van los sensores, cuántos son, qué tan separadas están las ruedas.
+Tu reto: cambia una sola medida del robot para hacer la vuelta más rápida sin perder la línea.
 </Gancho>
 
 <Explora>
-El simulador sigue la pista Curvas cerradas con el controlador PID: K_p = 8, K_i = 1, K_d =
-0.05 y ω_base = 10 rad/s. La gráfica muestra el error e frente al tiempo, y las lecturas dan la
-última vuelta, la mejor y la distancia recorrida. El simulador usa el robot de tu perfil: el
-formulario de «Mi robot», debajo, lo cambia en vivo.
+El widget sigue la pista Curvas cerradas con el controlador PID: Kp = 8, Ki = 1, Kd = 0.05 y una
+velocidad base de 10 rad/s. La gráfica muestra el error frente al tiempo, y las lecturas dan la
+última vuelta, la mejor y la distancia recorrida. Usa el robot de tu perfil: el formulario de
+«Mi robot», debajo, lo cambia en vivo.
 
 <LineFollowerWidget
   track="tight"
@@ -36,21 +37,29 @@ formulario de «Mi robot», debajo, lo cambia en vivo.
   showPlots={['error']}
 />
 
-<MyRobotWidget mode="form" />
+<MyRobotWidget
+  mode="form"
+  fields={[
+    'lineSensors.forwardOffset_m',
+    'lineSensors.count',
+    'lineSensors.spacing_m',
+    'wheelBase_m',
+    'wheelRadius_m',
+  ]}
+/>
 
 Antes de empezar, anota los valores de tu perfil: al terminar tendrás que restaurarlos, porque
-«Guardar» sobrescribe tu perfil real. Las cifras de abajo son con el perfil de referencia, y
-cada experimento parte de él: deshaz el cambio anterior antes del siguiente. Con ese perfil, en
-20 s el robot da una primera vuelta de ≈ 5.5 s y dos de 5.25 s sin perder la línea; el error medio en las
-curvas es −0.43 y su pico, 0.75.
+«Guardar» sobrescribe tu perfil real. Las cifras de abajo son con el perfil de referencia, y cada
+experimento parte de él: deshaz el cambio anterior antes del siguiente. Con ese perfil, en 20 s el
+robot da una primera vuelta de ≈ 5.5 s y dos de 5.25 s sin perder la línea.
 
 <Experimento
   cambia="«Adelanto respecto al eje», d, de 0.09 a 0.15 m"
   observa="la gráfica del error y la última vuelta"
   porque="¿Por qué la vuelta es más rápida con el arreglo más adelantado?"
 >
-El mismo desvío de rumbo da un p mayor, porque p es proporcional a d, y el robot corrige antes:
-empieza a girar antes y corta las esquinas. Recorre 1.48 m por vuelta en lugar de 1.68 m, y la
+El mismo desvío de rumbo mueve más la línea bajo el arreglo, y el robot corrige antes: empieza a
+girar antes y corta las esquinas. Recorre 1.48 m por vuelta en lugar de 1.68 m, y la
 vuelta baja de 5.25 s a 4.62 s. El error medio en las curvas pasa de −0.43 a −0.28.
 </Experimento>
 
@@ -59,9 +68,9 @@ vuelta baja de 5.25 s a 4.62 s. El error medio en las curvas pasa de −0.43 a �
   observa="los picos de la gráfica del error en las curvas"
   porque="¿Por qué sube el error?"
 >
-Con 3 sensores, el sensor exterior queda a (N−1)/2·e_s = 0.012 m del centro en lugar de
-0.024 m, y la línea se acerca al borde del arreglo. El pico del error pasa de 0.75 a 0.99 y su
-valor RMS, de 0.46 a 0.50. El robot sigue sin perder la línea.
+Con 3 sensores, el sensor exterior queda a 0.012 m del centro en lugar de 0.024 m, y la línea se
+acerca al borde del arreglo. El pico del error pasa de 0.75 a 0.99. El robot sigue sin perder la
+línea.
 </Experimento>
 
 <Experimento
@@ -69,45 +78,47 @@ valor RMS, de 0.46 a 0.50. El robot sigue sin perder la línea.
   observa="la primera curva"
   porque="¿Por qué el robot se sale?"
 >
-Con la misma acción de control u, la velocidad angular del robot es ω = −2ur/L, como en
-[Control on/off y proporcional](/ruta/ruta-2/m02/t02): con L mayor, |ω| es menor. El robot no
-gira lo bastante rápido para la primera curva y pierde la línea hacia
-t ≈ 1 s.
+Con la misma acción de control, la velocidad angular del robot es menor cuanto mayor es la
+distancia entre ruedas, como en [Control on/off y proporcional](/ruta/ruta-2/m02/t02). El robot no
+gira lo bastante rápido para la primera curva y pierde la línea hacia t ≈ 1 s.
 </Experimento>
 
 Al terminar, vuelve a escribir en el formulario los valores que anotaste y guarda.
 </Explora>
 
 <Concepto>
-Tu robot mira la línea desde su arreglo de sensores, montado a una distancia d por delante
-del eje de ruedas. Si su rumbo se desvía un ángulo pequeño Δθ respecto a la línea, el arreglo se
-desplaza de lado y_sensor ≈ d·Δθ.
+Viste que mover una sola medida del robot cambia cuánto tarda en dar la vuelta y si la pierde. Tu
+robot mira la línea desde un arreglo de sensores montado a una distancia d por delante del eje de
+ruedas. Si su rumbo se desvía un ángulo pequeño Δθ respecto a la línea, el arreglo se desplaza de
+lado una distancia proporcional a d.
 
-Con más d, el mismo Δθ mueve más la línea bajo el arreglo: el robot detecta antes el desvío,
-pero también lo exagera. Dividir y_sensor entre la posición del sensor exterior, (N−1)/2·e_s, da
-la posición de la línea p. Con d = 0.09 m, N = 5, e_s = 0.012 m y Δθ = 0.1 rad, p = 0.009/0.024
-= 0.375.
+<Figura alt="Vista desde arriba de un robot con un arreglo de cinco sensores delante. Una cota marca la distancia d del arreglo al eje de las ruedas, otra la distancia L entre las ruedas y otra la separación entre sensores." caption="Las medidas del robot que cambian cómo sigue la línea.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><rect class="f-fillbox" x="130" y="90" width="60" height="50" rx="3" /><rect class="f-box" x="120" y="98" width="10" height="36" rx="3" /><rect class="f-box" x="190" y="98" width="10" height="36" rx="3" /><circle class="f-box" cx="112" cy="34" r="5" /><circle class="f-box" cx="136" cy="34" r="5" /><circle class="f-box" cx="160" cy="34" r="5" /><circle class="f-box" cx="184" cy="34" r="5" /><circle class="f-box" cx="208" cy="34" r="5" /><line class="f-dash" x1="160" y1="40" x2="160" y2="116" /><line class="f-d2" x1="228" y1="34" x2="228" y2="116" /><text class="t-v" x="236" y="76">d</text><line class="f-d1" x1="120" y1="152" x2="200" y2="152" /><text class="t-m t-c" x="160" y="166">L entre ruedas</text><line class="f-d1" x1="136" y1="20" x2="160" y2="20" /><text class="t-m t-c" x="148" y="14">separación</text><text class="t-m t-c" x="50" y="38">N sensores</text><line class="f-d2" x1="222" y1="34" x2="234" y2="34" /><line class="f-d2" x1="222" y1="116" x2="234" y2="116" /></svg>
+</Figura>
 
-El sensor exterior está a (N−1)/2·e_s del centro del arreglo. La línea lo sigue tocando hasta
-que su borde lo pasa, así que el robot la pierde en y_perdida = (N−1)/2·e_s + w/2, con w el
-ancho de la línea. Un arreglo más ancho, con más sensores o más separados, tolera desvíos
-mayores.
+Con más d, el mismo Δθ mueve más la línea bajo el arreglo: el robot detecta antes el desvío, pero
+también lo exagera. Dividir ese desplazamiento entre la posición del sensor exterior da la
+posición p de la línea.
 
-El controlador no corrige de forma continua: lee los sensores y actúa una vez por período Δt_c.
-Entre dos correcciones, el robot avanza Δs_ciclo = v·Δt_c sin corregir. Por eso la velocidad
-máxima a la que sigue la línea está limitada por la frecuencia del lazo.
+El sensor exterior está a medio ancho de arreglo del centro. La línea lo sigue tocando hasta que su
+borde lo pasa, así que el robot la pierde a ese semiancho más la mitad del ancho w de la línea. Un
+arreglo más ancho, con más sensores o más separados, tolera desvíos mayores.
+
+El controlador no corrige de forma continua: lee los sensores y actúa una vez por período Δt<sub>c</sub>.
+Entre dos correcciones, el robot avanza sin corregir una distancia igual a su velocidad por ese
+período. Por eso la velocidad máxima a la que sigue la línea está limitada por la frecuencia del
+lazo.
 
 En una curva de radio de giro R, la rueda interior recorre un círculo de radio R − L/2 y la
-exterior uno de radio R + L/2, con L la distancia entre ruedas. Sus velocidades guardan la
-relación v_int/v_ext = (R − L/2)/(R + L/2). Con L grande, la misma curva exige más diferencia
-entre las ruedas.
+exterior uno de radio R + L/2, con L la distancia entre ruedas. Sus velocidades guardan la misma
+relación que esos radios. Con L grande, la misma curva exige más diferencia entre las ruedas.
 
-El radio de rueda r completa el reparto: con el mismo motor, más r da más v pero menos fuerza
-en el suelo, F_rueda = τ_rueda/r, como viste en
+El radio de rueda r completa el reparto: con el mismo motor, más r da más v pero menos fuerza en el
+suelo, porque la tracción es el torque de la rueda entre r, como viste en
 [Torque, reducción y transmisión](/ruta/ruta-1/m02/t04).
 
-d, N, e_s, L y r son parámetros de «Mi robot». Cambiarlos es rediseñar tu robot, y el
-simulador te deja probar cada cambio antes de hacerlo en el taller.
+d, N, e<sub>s</sub>, L y r son parámetros de «Mi robot». Cambiarlos es rediseñar tu robot, y el simulador te
+deja probar cada cambio antes de hacerlo en el taller.
 </Concepto>
 
 <Formulas>
@@ -149,14 +160,14 @@ simulador te deja probar cada cambio antes de hacerlo en el taller.
 <AlRobot>
 Tres números del tema con tu perfil de «Mi robot»: uno ya lo calculaste y dos son nuevos. Dos
 datos no salen del perfil sino de este texto: el ancho de la línea, w = 0.02 m, y el período del lazo,
-Δt_c = 20 ms.
+Δt<sub>c</sub> = 20 ms.
 
 Primero, el desplazamiento lateral al que tu robot pierde la línea. Es el que calculaste en
-[El sensor de línea](/ruta/ruta-2/m02/t01) con N y e_s de tu perfil y w = 0.02 m: con el robot de
-referencia, y_perdida = 0.024 + 0.010 = 0.034 m. Si la línea se aparta más que eso del centro
+[El sensor de línea](/ruta/ruta-2/m02/t01) con N y e<sub>s</sub> de tu perfil y w = 0.02 m: con el robot de
+referencia, y<sub>perdida</sub> = 0.034 m. Si la línea se aparta más que eso del centro
 del arreglo, ningún sensor la ve.
 
-Después, cuánto avanza tu robot entre dos correcciones si va a su velocidad lineal máxima v_max,
+Después, cuánto avanza tu robot entre dos correcciones si va a su velocidad lineal máxima v<sub>max</sub>,
 la que calculaste en [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04):
 
 <RobotFormula calc="ruta-2/m02-t04/step-distance" />
@@ -178,8 +189,7 @@ robot ve antes el desvío, como en el primer experimento.
     'ruta-2/m02-t04/e1',
     'ruta-2/m02-t04/e2',
     'ruta-2/m02-t04/e3',
-    'ruta-2/m02-t04/e4',
-  ]}
+    'ruta-2/m02-t04/e4', 'ruta-2/m02-t04/e5']}
   topicId="ruta-2/m02-t04"
   obligatorios={['e1', 'e2', 'e3']}
 />

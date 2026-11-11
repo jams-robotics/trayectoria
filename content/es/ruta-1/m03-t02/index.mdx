@@ -18,14 +18,15 @@ seoDescription: "Aprende a calcular la potencia mecánica y eléctrica de un mot
 ---
 
 <Gancho>
-Un motor entrega 0.03 N·m a 5000 rpm. ¿Cuántos vatios mecánicos son? Y con una batería de
-11.1 Wh y dos motores de 6 V y 1.2 A, ¿cuántos minutos corre el robot?
+Tu robot se queda sin batería a mitad de la prueba y no sabes si le faltó energía o potencia. Tu
+reto: haz que el motor suba la carga de 0.9 kg hasta 1 m en la mitad de tiempo y mira si la
+energía que gana la carga cambia.
 </Gancho>
 
 <Explora>
-Un motor levanta una carga de 0.9 kg hasta 1 m de altura a velocidad constante. Entrega 4.32 W
-mecánicos, los del segundo ejercicio de Verifica. La barra de la izquierda es la energía
-potencial que gana la carga, con escala fija m·g·H.
+Un motor levanta una carga de 0.9 kg hasta 1 m de altura a velocidad constante y entrega 4.32 W
+mecánicos. La barra de la izquierda es la energía potencial que gana la carga, con escala fija: su
+tope es la energía final de la subida.
 
 <PowerWidget initial={{ power_W: 4.32, mass_kg: 0.9 }} liftHeight_m={1} />
 
@@ -34,8 +35,8 @@ potencial que gana la carga, con escala fija m·g·H.
   observa="el tiempo de subida y la barra de energía"
   porque="¿Por qué el tiempo se reduce a la mitad y la energía final no cambia?"
 >
-La energía final es m·g·H = 8.829 J y no depende de P. Con el doble de potencia esa energía se
-entrega al doble de ritmo: t_subida = m·g·H/P pasa de 2.044 s a 1.022 s.
+La energía final de la subida es 8.829 J y no depende de P. Con el doble de potencia esa energía
+se entrega al doble de ritmo: el tiempo de subida pasa de 2.044 s a 1.022 s.
 </Experimento>
 
 <Experimento
@@ -43,47 +44,50 @@ entrega al doble de ritmo: t_subida = m·g·H/P pasa de 2.044 s a 1.022 s.
   observa="la velocidad de la carga"
   porque="¿Por qué se reduce a la mitad y el tiempo de subida se duplica?"
 >
-Con la misma potencia, P = F·v con F = m·g: si la fuerza se duplica, v = P/(m·g) se reduce a la
+Con la misma potencia, si la fuerza que sostiene la carga se duplica, la velocidad se reduce a la
 mitad, de 0.4893 m/s a 0.2446 m/s. A la mitad de velocidad, subir el mismo metro tarda el doble:
 de 2.044 s a 4.088 s.
 </Experimento>
 
 <Experimento
   cambia="el tiempo: reinicia y pausa a media subida, por ejemplo en t = 1 s"
-  observa="E_p y W = P·t"
+  observa="la energía potencial de la carga y el trabajo del motor"
   porque="¿Por qué coinciden?"
 >
 Sin pérdidas, todo el trabajo que entrega el motor se guarda como energía potencial de la carga.
-En t = 1 s la carga está a 0.4893 m: E_p = m·g·h = 4.32 J, igual que W = 4.32·1 = 4.32 J.
+En t = 1 s la carga está a 0.4893 m y las dos valen 4.32 J.
 </Experimento>
 </Explora>
 
 <Concepto>
-La **potencia** es la energía que se transfiere por unidad de tiempo: P = W/t. Se mide en
-vatios, 1 W = 1 J/s. El motor más potente hace el mismo trabajo en menos tiempo.
+Viste que con el doble de potencia la subida dura la mitad, pero la energía final es la misma. La
+**potencia** es la energía que se transfiere por unidad de tiempo: el trabajo entre el tiempo. Se
+mide en vatios, 1 W = 1 J/s. El motor más potente hace el mismo trabajo en menos tiempo.
 
-Un eje que gira con torque τ a velocidad angular ω entrega P = τ·ω. Con los datos del gancho,
-5000 rpm son 5000·2π/60 = 523.6 rad/s, y ese motor entrega 0.03·523.6 = 15.71 W mecánicos.
+<Figura alt="Una gráfica de energía contra tiempo con dos rectas que salen del origen. La de pendiente mayor, el doble de potencia, llega a la misma energía final en la mitad del tiempo." caption="Con el doble de potencia llegas a la misma energía en la mitad de tiempo.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><line class="f-axis" x1="40" y1="145" x2="293" y2="145" /><polygon class="f-mutedfill" points="300,145 293,141.8 293,148.2" /><line class="f-axis" x1="40" y1="145" x2="40" y2="22" /><polygon class="f-mutedfill" points="40,15 36.9,22 43.1,22" /><text class="t" x="302" y="160">t</text><text class="t t-e" x="30" y="22">energía</text><line class="f-d1" x1="40" y1="145" x2="270" y2="40" /><text class="t" x="274" y="40">P</text><line class="f-d2" x1="40" y1="145" x2="155" y2="40" /><text class="t" x="160" y="34">2P</text><line class="f-dash" x1="40" y1="40" x2="270" y2="40" /><text class="t-m" x="46" y="34">energía final</text><line class="f-dash" x1="155" y1="40" x2="155" y2="145" /><line class="f-dash" x1="270" y1="40" x2="270" y2="145" /><text class="t-m t-c" x="155" y="160">t/2</text><text class="t-m t-c" x="270" y="160">t</text></svg>
+</Figura>
 
-Una fuerza F que empuja a un cuerpo que avanza a v en su misma dirección entrega P = F·v: el
-trabajo F·d de cada segundo.
+Un eje que gira con torque τ a velocidad angular ω entrega una potencia igual al producto de los
+dos. Una fuerza que empuja a un cuerpo que avanza en su misma dirección entrega la fuerza por la
+velocidad: el trabajo de cada segundo.
 
-El motor toma potencia eléctrica de la batería, P_el = V·I, y entrega potencia mecánica en el
-eje; la diferencia se pierde como calor. La **eficiencia** de cualquier máquina es la fracción
-que llega a la salida: η = P_mec/P_el, entre 0 y 1. Un motorreductor tiene dos: la del motor, de
-la electricidad a su eje, y la de la caja, de ese eje a la rueda. El 0.6 del perfil
-de «Mi robot» es la de la caja de [Torque, reducción y transmisión](/ruta/ruta-1/m02/t04), que
-entrega P₂ = P₁·η: de ahí los 1.885 W de entrada y 1.131 W de salida de su panel. La del motor
-se calcula en [El motor y la batería](/ruta/ruta-1/m03/t03).
+El motor toma potencia eléctrica de la batería, voltaje por corriente, y entrega potencia mecánica
+en el eje; la diferencia se pierde como calor. La **eficiencia** de cualquier máquina es la
+fracción que llega a la salida, entre 0 y 1. Un motorreductor tiene dos: la del motor, de la
+electricidad a su eje, y la de la caja, de ese eje a la rueda. El 0.6 del perfil de «Mi robot» es
+la de la caja de [Torque, reducción y transmisión](/ruta/ruta-1/m02/t04): la potencia de salida es
+la de entrada por η, de ahí los 1.885 W de entrada y 1.131 W de salida de su panel. La del motor se
+calcula en [El motor y la batería](/ruta/ruta-1/m03/t03).
 
-La **capacidad** C de una batería es la energía que guarda, en vatios-hora. 1 Wh es la energía
-de 1 W durante una hora: 1 Wh = 3600 J. La batería del gancho guarda 11.1·3600 = 39960 J.
+La **capacidad** C de una batería es la energía que guarda, en vatios-hora. 1 Wh es la energía de
+1 W durante una hora: 3600 J.
 
-La **autonomía** es el tiempo que la batería sostiene el consumo: t_autonomía = C/P_el, en horas
-si C va en Wh y P_el en W. Con dos motores a 6 V y 1.2 A cada uno, los de la hoja de datos de
-[Unidades y magnitudes](/ruta/ruta-1/m00/t01), P_el = 2·6·1.2 = 14.4 W. La batería dura
-11.1/14.4 = 0.771 h, unos 46.3 min. Esos 1.2 A son la corriente de bloqueo, la máxima, con el
-motor parado a plena tensión: es el peor caso. Con la corriente de trabajo, en
+La **autonomía** es el tiempo que la batería sostiene el consumo: la capacidad entre la potencia
+eléctrica, en horas si C va en Wh y la potencia en W. Con dos motores a 6 V y 1.2 A cada uno, los
+de la hoja de datos de [Unidades y magnitudes](/ruta/ruta-1/m00/t01), una batería de 11.1 Wh dura
+unos 46.3 min. Esos 1.2 A son la corriente de bloqueo, la máxima, con el motor parado a plena
+tensión: es el peor caso. Con la corriente de trabajo, en
 [El motor y la batería](/ruta/ruta-1/m03/t03), la batería dura más.
 </Concepto>
 
@@ -138,7 +142,7 @@ Caja de engranajes:
 
 <AlRobot>
 Tu robot tiene dos motores que se alimentan de la misma batería. Parados a plena tensión, con el
-eje detenido, juntos consumen P_el = 2·V·I. V es el voltaje nominal e I la corriente de bloqueo
+eje detenido, juntos consumen P<sub>el</sub> = 2·V·I. V es el voltaje nominal e I la corriente de bloqueo
 del motor de tu perfil de «Mi robot», la máxima que pide el motor.
 
 <RobotFormula calc="ruta-1/m03-t02/electrical-power" />
@@ -150,7 +154,7 @@ Con esa potencia, la capacidad C de tu batería da la autonomía, en horas y en 
 Si tu perfil no define el voltaje del motor, su corriente de bloqueo o la capacidad de la
 batería, el cálculo usa los del robot de referencia: 6 V, 1.2 A y 11.1 Wh.
 
-Con el robot de referencia, P_el = 2·6·1.2 = 14.4 W y t_autonomía = 11.1/14.4 = 0.771 h, unos
+Con el robot de referencia, P<sub>el</sub> = 14.4 W y la autonomía es 0.771 h, unos
 46.3 min. Es una cota inferior de la autonomía: la corriente de bloqueo es la máxima que el motor
 pide, así que en marcha la corriente es menor y la batería dura más. Cuánto más lo calculas en
 [El motor y la batería](/ruta/ruta-1/m03/t03), con la corriente del punto de trabajo.
@@ -161,8 +165,7 @@ pide, así que en marcha la corriente es menor y la batería dura más. Cuánto 
     'ruta-1/m03-t02/e1',
     'ruta-1/m03-t02/e2',
     'ruta-1/m03-t02/e3',
-    'ruta-1/m03-t02/e4',
-  ]}
+    'ruta-1/m03-t02/e4', 'ruta-1/m03-t02/e5']}
   topicId="ruta-1/m03-t02"
   obligatorios={['e1', 'e2', 'e3']}
 />
