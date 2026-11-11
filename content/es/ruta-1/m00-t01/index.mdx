@@ -22,6 +22,41 @@ La hoja de datos de tu motor dice 6000 rpm, 0.012 N·m, 6 V y 1.2 A. ¿Cuántos 
 segundo son 6000 rpm, y cuántos vatios consume?
 </Gancho>
 
+<Explora>
+El disco gira con la velocidad que eliges en rpm y muestra la misma velocidad en rad/s, junto
+con un punto en el borde a la distancia r del centro. El control llega a 600 rpm y no alcanza
+las 6000 rpm del gancho, así que el disco empieza en 200 rpm (20.94 rad/s), la velocidad de la
+rueda del robot de referencia, con su radio de 32 mm.
+
+<RotationWidget mode="disc" inputUnit="rpm" initial={{ omega_radps: 20.94, r_m: 0.032 }} />
+
+<Experimento
+  cambia="n de 200 rpm a 400 rpm"
+  observa="el valor de ω en rad/s"
+  porque="¿Por qué ω se duplica?"
+>
+La conversión multiplica n por un factor constante, 2π/60. Si n se duplica, ω también: pasa de
+20.94 rad/s a 41.89 rad/s.
+</Experimento>
+
+<Experimento
+  cambia="n a 60 rpm"
+  observa="el valor de ω en rad/s"
+  porque="¿Por qué ω sale cerca de 6.28 rad/s?"
+>
+60 rpm es una vuelta por segundo, y una vuelta son 2π rad. Por eso ω = 2π rad/s ≈ 6.28 rad/s.
+</Experimento>
+
+<Experimento
+  cambia="el radio de 32 mm a 64 mm, sin tocar ω"
+  observa="el valor de ω"
+  porque="¿Por qué ω no cambia?"
+>
+ω mide el ángulo que gira el disco en cada segundo, y ese ángulo es el mismo para cualquier
+radio. ω es una propiedad del giro, no del tamaño del disco.
+</Experimento>
+</Explora>
+
 <Concepto>
 El **Sistema Internacional (SI)** fija una unidad para cada magnitud: el metro (m) para la
 longitud, el segundo (s) para el tiempo, el kilogramo (kg) para la masa y el radián (rad) para
@@ -73,41 +108,6 @@ P = 6·1.2 = 7.2 W es lo que consume parado a plena tensión; qué da en marcha 
 - `[v]` · unidad de la rapidez, en análisis dimensional · m/s
 - `v` · rapidez · m/s
 </Formulas>
-
-<Explora>
-El disco gira con la velocidad que eliges en rpm y muestra la misma velocidad en rad/s, junto
-con un punto en el borde a la distancia r del centro. El control llega a 600 rpm y no alcanza
-las 6000 rpm del gancho, así que el disco empieza en 200 rpm (20.94 rad/s), la velocidad de la
-rueda del robot de referencia, con su radio de 32 mm.
-
-<RotationWidget mode="disc" inputUnit="rpm" initial={{ omega_radps: 20.94, r_m: 0.032 }} />
-
-<Experimento
-  cambia="n de 200 rpm a 400 rpm"
-  observa="el valor de ω en rad/s"
-  porque="¿Por qué ω se duplica?"
->
-La conversión multiplica n por un factor constante, 2π/60. Si n se duplica, ω también: pasa de
-20.94 rad/s a 41.89 rad/s.
-</Experimento>
-
-<Experimento
-  cambia="n a 60 rpm"
-  observa="el valor de ω en rad/s"
-  porque="¿Por qué ω sale cerca de 6.28 rad/s?"
->
-60 rpm es una vuelta por segundo, y una vuelta son 2π rad. Por eso ω = 2π rad/s ≈ 6.28 rad/s.
-</Experimento>
-
-<Experimento
-  cambia="el radio de 32 mm a 64 mm, sin tocar ω"
-  observa="el valor de ω"
-  porque="¿Por qué ω no cambia?"
->
-ω mide el ángulo que gira el disco en cada segundo, y ese ángulo es el mismo para cualquier
-radio. ω es una propiedad del giro, no del tamaño del disco.
-</Experimento>
-</Explora>
 
 <AlRobot>
 Aquí creas **Mi robot**, el perfil que usan los temas de la ruta. El formulario empieza con los

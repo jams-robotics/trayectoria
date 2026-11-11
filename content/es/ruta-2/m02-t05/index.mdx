@@ -34,6 +34,66 @@ Todo lo que calculaste en las dos rutas se junta aquí: tu robot, tus medidas, t
 Completa la pista, mide, y compara con la teoría.
 </Gancho>
 
+<Explora>
+Arriba, el formulario de «Mi robot»; abajo, tu robot en la pista Óvalo con un PID de partida:
+K_p = 8, K_i = 1, K_d = 0.3 y ω_base = 15 rad/s. Las gráficas muestran el error, la velocidad v
+y los términos P, I y D en vivo; el panel da v, ω, las vueltas y t, y la tarjeta de vueltas, la
+«Última vuelta», la «Mejor vuelta», la «Velocidad media» y la «Distancia recorrida» de la última
+vuelta. El simulador no muestra la longitud de la pista: es 2.771 m. Los experimentos siguen los
+pasos del guion. El 1 y el 4 no necesitan uno propio: el 1 se lee en el control «Velocidad base»
+y el 4 usa el tiempo de vuelta del último experimento.
+
+<MyRobotWidget mode="form" />
+
+<LineFollowerWidget
+  track="oval"
+  controller="pid"
+  initialParams={{ kp: 8, ki: 1, kd: 0.3, omegaBase_radps: 15 }}
+  showPlots={['error', 'v', 'pid']}
+/>
+
+<Experimento
+  cambia="nada: pulsa reproducir y deja correr 2 vueltas (paso 2)"
+  observa="la gráfica de v en el arranque y la «Última vuelta» tras la 1.ª y tras la 2.ª vuelta"
+  porque="¿Por qué la 1.ª vuelta dura ≈ 0.24 s más, y no los 0.1875 s del paso 2?"
+>
+La 1.ª dura ≈ 5.98 s y la 2.ª ≈ 5.74 s: el arranque cuesta 0.24 s. La rampa sola explica
+0.1875 s; el resto lo pone la respuesta lenta del motor, la τ_m de
+[El motor y la batería](/ruta/ruta-1/m03/t03), que retrasa la v de la gráfica. Sumando paso a
+paso con Δt = 1 ms la rampa y τ_m juntas, el arranque cuesta 0.233 s.
+</Experimento>
+
+<Experimento
+  cambia="pausa la simulación varias veces con el robot en mitad de una curva (pasos 3 y 6)"
+  observa="v y ω en el panel en cada pausa"
+  porque="¿Por qué R = v/ω sale cerca de 0.25 m y ninguna rueda satura?"
+>
+v se queda en ≈ 0.47–0.48 m/s y ω oscila alrededor de 1.9–2.0 rad/s, así que R = v/ω ≈ 0.25 m:
+el robot sigue la curva de la pista. Con esos valores, a_c = v²/R ≈ 0.92 m/s², lejos de
+3.53 m/s², y con ω = 1.92 rad/s la rueda exterior gira a 19.5 rad/s, por debajo de sus 20.94 rad/s.
+</Experimento>
+
+<Experimento
+  cambia="K_d de 0.3 a 0.05 y reinicia (paso 7)"
+  observa="la gráfica de error y el contador de vueltas hasta que el simulador se detiene"
+  porque="¿Por qué con menos K_d el robot pierde la línea?"
+>
+Con K_d = 0.05 el término D apenas frena el giro, así que la oscilación que deja K_p crece en las
+curvas. En la 3.ª vuelta el robot pierde la línea y el simulador se detiene. Por eso el orden es
+P → D → I: la K_d se ajusta antes de dar por buena la sintonía.
+</Experimento>
+
+<Experimento
+  cambia="K_d de vuelta a 0.3, reinicia y deja correr 3 vueltas (pasos 5 y 7)"
+  observa="la «Distancia recorrida» frente a 2.771 m, y la «Última vuelta» y la «Velocidad media» frente a tu predicción"
+  porque="¿Por qué la medida no coincide del todo con la predicción?"
+>
+El robot recorre ≈ 2.75 m por vuelta, unos 4924 ticks por encoder: corta las curvas porque sus
+sensores van delante del eje, y por eso la vuelta dura algo menos que t_pred. La 1.ª vuelta
+además incluye el arranque (paso 2), y si una rueda satura, v baja de ω_base·r (paso 6).
+</Experimento>
+</Explora>
+
 <Concepto>
 Sin concepto nuevo: es un guion con una preparación y siete pasos, uno por módulo de las dos
 rutas. Cada paso da su predicción con el robot de referencia y la lectura del simulador que la
@@ -99,66 +159,6 @@ sin perder la línea y compara el tiempo de vuelta y la «Velocidad media» con 
 - `v_pred` · velocidad predicha · m/s
 - `v_med` · velocidad media medida · m/s
 </Formulas>
-
-<Explora>
-Arriba, el formulario de «Mi robot»; abajo, tu robot en la pista Óvalo con un PID de partida:
-K_p = 8, K_i = 1, K_d = 0.3 y ω_base = 15 rad/s. Las gráficas muestran el error, la velocidad v
-y los términos P, I y D en vivo; el panel da v, ω, las vueltas y t, y la tarjeta de vueltas, la
-«Última vuelta», la «Mejor vuelta», la «Velocidad media» y la «Distancia recorrida» de la última
-vuelta. El simulador no muestra la longitud de la pista: es 2.771 m. Los experimentos siguen los
-pasos del guion. El 1 y el 4 no necesitan uno propio: el 1 se lee en el control «Velocidad base»
-y el 4 usa el tiempo de vuelta del último experimento.
-
-<MyRobotWidget mode="form" />
-
-<LineFollowerWidget
-  track="oval"
-  controller="pid"
-  initialParams={{ kp: 8, ki: 1, kd: 0.3, omegaBase_radps: 15 }}
-  showPlots={['error', 'v', 'pid']}
-/>
-
-<Experimento
-  cambia="nada: pulsa reproducir y deja correr 2 vueltas (paso 2)"
-  observa="la gráfica de v en el arranque y la «Última vuelta» tras la 1.ª y tras la 2.ª vuelta"
-  porque="¿Por qué la 1.ª vuelta dura ≈ 0.24 s más, y no los 0.1875 s del paso 2?"
->
-La 1.ª dura ≈ 5.98 s y la 2.ª ≈ 5.74 s: el arranque cuesta 0.24 s. La rampa sola explica
-0.1875 s; el resto lo pone la respuesta lenta del motor, la τ_m de
-[El motor y la batería](/ruta/ruta-1/m03/t03), que retrasa la v de la gráfica. Sumando paso a
-paso con Δt = 1 ms la rampa y τ_m juntas, el arranque cuesta 0.233 s.
-</Experimento>
-
-<Experimento
-  cambia="pausa la simulación varias veces con el robot en mitad de una curva (pasos 3 y 6)"
-  observa="v y ω en el panel en cada pausa"
-  porque="¿Por qué R = v/ω sale cerca de 0.25 m y ninguna rueda satura?"
->
-v se queda en ≈ 0.47–0.48 m/s y ω oscila alrededor de 1.9–2.0 rad/s, así que R = v/ω ≈ 0.25 m:
-el robot sigue la curva de la pista. Con esos valores, a_c = v²/R ≈ 0.92 m/s², lejos de
-3.53 m/s², y con ω = 1.92 rad/s la rueda exterior gira a 19.5 rad/s, por debajo de sus 20.94 rad/s.
-</Experimento>
-
-<Experimento
-  cambia="K_d de 0.3 a 0.05 y reinicia (paso 7)"
-  observa="la gráfica de error y el contador de vueltas hasta que el simulador se detiene"
-  porque="¿Por qué con menos K_d el robot pierde la línea?"
->
-Con K_d = 0.05 el término D apenas frena el giro, así que la oscilación que deja K_p crece en las
-curvas. En la 3.ª vuelta el robot pierde la línea y el simulador se detiene. Por eso el orden es
-P → D → I: la K_d se ajusta antes de dar por buena la sintonía.
-</Experimento>
-
-<Experimento
-  cambia="K_d de vuelta a 0.3, reinicia y deja correr 3 vueltas (pasos 5 y 7)"
-  observa="la «Distancia recorrida» frente a 2.771 m, y la «Última vuelta» y la «Velocidad media» frente a tu predicción"
-  porque="¿Por qué la medida no coincide del todo con la predicción?"
->
-El robot recorre ≈ 2.75 m por vuelta, unos 4924 ticks por encoder: corta las curvas porque sus
-sensores van delante del eje, y por eso la vuelta dura algo menos que t_pred. La 1.ª vuelta
-además incluye el arranque (paso 2), y si una rueda satura, v baja de ω_base·r (paso 6).
-</Experimento>
-</Explora>
 
 <AlRobot>
 La predicción sale de tu perfil de «Mi robot»: el radio de rueda r y la ω_base de Explora,

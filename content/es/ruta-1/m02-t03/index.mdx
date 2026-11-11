@@ -22,6 +22,43 @@ Tu rueda pasa de 0 a 200 rpm en 0.5 s. ¿Qué aceleración angular es? Y si el r
 de 0.5 m de radio a 0.6 m/s, ¿qué aceleración centrípeta sufre?
 </Gancho>
 
+<Explora>
+La rueda arranca desde el reposo con la aceleración angular que eliges. El panel muestra ω, la
+aceleración tangencial del borde y el tiempo que tarda en llegar a 200 rpm. El panel de curva
+calcula la aceleración centrípeta y la velocidad máxima sin patinar para el radio, la velocidad y
+el coeficiente de fricción que elijas.
+
+<RotationWidget mode="angularAccel" initial={{ omega_radps: 0, r_m: 0.032, alpha_radps2: 41.89 }} />
+
+<Experimento
+  cambia="el tiempo: reinicia y reproduce 0.5 s"
+  observa="la velocidad angular ω"
+  porque="¿Por qué llega a 20.9 rad/s?"
+>
+Con α constante desde el reposo, ω = α·t = 41.89·0.5 = 20.94 rad/s. Son justo los 200 rpm del
+gancho.
+</Experimento>
+
+<Experimento
+  cambia="α de 41.89 rad/s² a 83.78 rad/s²"
+  observa="el tiempo hasta 200 rpm"
+  porque="¿Por qué se reduce a la mitad?"
+>
+El tiempo para ganar Δω es Δt = Δω/α. Con el mismo Δω de 20.94 rad/s y el doble de α, tarda la
+mitad: 0.25 s en lugar de 0.5 s.
+</Experimento>
+
+<Experimento
+  cambia="en el panel de curva, reproduce y reduce el radio R de 0.5 m a 0.25 m, con la misma v"
+  observa="la flecha a_c de la vista de la curva y su valor"
+  porque="¿Por qué la flecha y a_c se duplican?"
+>
+En a_c = v²/R, con v fija, a_c es inversamente proporcional a R. La mitad de radio da el doble de
+aceleración: de 0.72 m/s² a 1.44 m/s². La flecha de la vista se dibuja proporcional a a_c, así que
+su longitud también se duplica.
+</Experimento>
+</Explora>
+
 <Concepto>
 Cuando la velocidad angular cambia, la rueda tiene **aceleración angular** α: el cambio de
 velocidad angular Δω dividido entre el intervalo Δt en que ocurre, α = Δω/Δt. Se mide en rad/s².
@@ -98,43 +135,6 @@ el perfil de «Mi robot»: un parámetro de la simulación, no un límite del mo
 - `g` · aceleración gravitatoria · m/s²
 - `R` · radio de giro · m
 </Formulas>
-
-<Explora>
-La rueda arranca desde el reposo con la aceleración angular que eliges. El panel muestra ω, la
-aceleración tangencial del borde y el tiempo que tarda en llegar a 200 rpm. El panel de curva
-calcula la aceleración centrípeta y la velocidad máxima sin patinar para el radio, la velocidad y
-el coeficiente de fricción que elijas.
-
-<RotationWidget mode="angularAccel" initial={{ omega_radps: 0, r_m: 0.032, alpha_radps2: 41.89 }} />
-
-<Experimento
-  cambia="el tiempo: reinicia y reproduce 0.5 s"
-  observa="la velocidad angular ω"
-  porque="¿Por qué llega a 20.9 rad/s?"
->
-Con α constante desde el reposo, ω = α·t = 41.89·0.5 = 20.94 rad/s. Son justo los 200 rpm del
-gancho.
-</Experimento>
-
-<Experimento
-  cambia="α de 41.89 rad/s² a 83.78 rad/s²"
-  observa="el tiempo hasta 200 rpm"
-  porque="¿Por qué se reduce a la mitad?"
->
-El tiempo para ganar Δω es Δt = Δω/α. Con el mismo Δω de 20.94 rad/s y el doble de α, tarda la
-mitad: 0.25 s en lugar de 0.5 s.
-</Experimento>
-
-<Experimento
-  cambia="en el panel de curva, reproduce y reduce el radio R de 0.5 m a 0.25 m, con la misma v"
-  observa="la flecha a_c de la vista de la curva y su valor"
-  porque="¿Por qué la flecha y a_c se duplican?"
->
-En a_c = v²/R, con v fija, a_c es inversamente proporcional a R. La mitad de radio da el doble de
-aceleración: de 0.72 m/s² a 1.44 m/s². La flecha de la vista se dibuja proporcional a a_c, así que
-su longitud también se duplica.
-</Experimento>
-</Explora>
 
 <AlRobot>
 Tu robot no alcanza su velocidad de golpe. En

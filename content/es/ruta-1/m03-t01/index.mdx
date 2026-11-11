@@ -22,6 +22,46 @@ Tu robot de 0.9 kg va a 0.6 m/s y se le corta el motor al pie de una rampa. ¿Ha
 sube?
 </Gancho>
 
+<Explora>
+Un robot de 0.9 kg recorre un tramo horizontal a 0.6 m/s y sube una rampa de 15° (0.26 rad): el robot
+del gancho. Las barras muestran en cada instante su energía cinética, su energía potencial, su
+energía mecánica y el trabajo de la fricción. El control «Coeficiente de rozamiento cinético»,
+μₖ, hace aquí de resistencia a la rodadura: una fuerza μₖ·N en contra del avance, en el tramo
+plano y en la rampa. Empieza en 0.
+
+<EnergyWidget mode="ramp" initial={{ mass_kg: 0.9, v0_mps: 0.6, slope_rad: 0.26 }} />
+
+<Experimento
+  cambia="la velocidad inicial v₀ al doble, de 0.6 a 1.2 m/s"
+  observa="la altura que alcanza el robot en la rampa"
+  porque="¿Por qué la altura se cuadruplica?"
+>
+Sin fricción, toda la energía cinética se convierte en potencial: h_max = v²/(2·g). La altura
+depende del cuadrado de la rapidez, así que duplicarla multiplica h_max por 2² = 4. Pasa de
+0.0183 m a 0.0734 m.
+</Experimento>
+
+<Experimento
+  cambia="la masa m al doble, de 0.9 a 1.8 kg"
+  observa="la altura que alcanza el robot en la rampa"
+  porque="¿Por qué la altura no cambia?"
+>
+Eₖ = ½·m·v² y Eₚ = m·g·h son proporcionales a m: al duplicar la masa, las dos se duplican. En
+½·m·v² = m·g·h la masa se cancela, y h_max = v²/(2·g) no depende de ella. El robot sube los mismos
+0.0183 m.
+</Experimento>
+
+<Experimento
+  cambia="μₖ, la resistencia a la rodadura, de 0 a 0.05"
+  observa="la barra de energía mecánica mientras el robot avanza y sube, y la altura final"
+  porque="¿Por qué E decrece y el robot sube menos?"
+>
+La fricción de rodadura se opone al movimiento, así que su trabajo es negativo y saca energía
+mecánica que no vuelve. La barra de E baja a lo largo de todo el recorrido, también en la rampa.
+Queda menos Eₖ para convertirse en Eₚ, y el robot se detiene más abajo.
+</Experimento>
+</Explora>
+
 <Concepto>
 Una fuerza hace **trabajo** cuando su punto de aplicación se desplaza. Si la fuerza F forma un
 ángulo θ con el desplazamiento y ese punto recorre una distancia d, el trabajo es W = F·d·cosθ.
@@ -89,46 +129,6 @@ Sin fricción:
 - `v` · rapidez · m/s
 - `g` · aceleración gravitatoria · m/s²
 </Formulas>
-
-<Explora>
-Un robot de 0.9 kg recorre un tramo horizontal a 0.6 m/s y sube una rampa de 15° (0.26 rad): el robot
-del gancho. Las barras muestran en cada instante su energía cinética, su energía potencial, su
-energía mecánica y el trabajo de la fricción. El control «Coeficiente de rozamiento cinético»,
-μₖ, hace aquí de resistencia a la rodadura: una fuerza μₖ·N en contra del avance, en el tramo
-plano y en la rampa. Empieza en 0.
-
-<EnergyWidget mode="ramp" initial={{ mass_kg: 0.9, v0_mps: 0.6, slope_rad: 0.26 }} />
-
-<Experimento
-  cambia="la velocidad inicial v₀ al doble, de 0.6 a 1.2 m/s"
-  observa="la altura que alcanza el robot en la rampa"
-  porque="¿Por qué la altura se cuadruplica?"
->
-Sin fricción, toda la energía cinética se convierte en potencial: h_max = v²/(2·g). La altura
-depende del cuadrado de la rapidez, así que duplicarla multiplica h_max por 2² = 4. Pasa de
-0.0183 m a 0.0734 m.
-</Experimento>
-
-<Experimento
-  cambia="la masa m al doble, de 0.9 a 1.8 kg"
-  observa="la altura que alcanza el robot en la rampa"
-  porque="¿Por qué la altura no cambia?"
->
-Eₖ = ½·m·v² y Eₚ = m·g·h son proporcionales a m: al duplicar la masa, las dos se duplican. En
-½·m·v² = m·g·h la masa se cancela, y h_max = v²/(2·g) no depende de ella. El robot sube los mismos
-0.0183 m.
-</Experimento>
-
-<Experimento
-  cambia="μₖ, la resistencia a la rodadura, de 0 a 0.05"
-  observa="la barra de energía mecánica mientras el robot avanza y sube, y la altura final"
-  porque="¿Por qué E decrece y el robot sube menos?"
->
-La fricción de rodadura se opone al movimiento, así que su trabajo es negativo y saca energía
-mecánica que no vuelve. La barra de E baja a lo largo de todo el recorrido, también en la rampa.
-Queda menos Eₖ para convertirse en Eₚ, y el robot se detiene más abajo.
-</Experimento>
-</Explora>
 
 <AlRobot>
 Sin motor y sin fricción, lo más alto que sube tu robot por inercia depende solo de la rapidez

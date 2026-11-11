@@ -8,6 +8,8 @@ Cada tema termina en el robot. Si la sección "Al robot" es decorativa o forzada
 
 ## 2. Anatomía obligatoria (7 secciones, en este orden)
 
+> **Orden vigente desde la versión 1.5:** Gancho (el reto), Explora, Concepto, Fórmulas, Al robot, Verifica, Profundiza. El widget va antes de la teoría. `scripts/content-check.mjs` exige este orden. Las descripciones de abajo conservan la numeración anterior hasta que se reescriban en la misma versión.
+
 1. **Gancho.** Una pregunta robótica concreta en máximo 3 frases; con números cuando el temario los da (aprobado por el humano en el chat, 2026-09-26). ("Tu motor gira a 200 rpm y tu rueda mide 3 cm de radio. ¿A qué velocidad avanza tu robot?")
 2. **Concepto.** 150 a 350 palabras. Explica la idea con la visualización al lado. Sin historia, sin anécdotas, sin "en este tema aprenderás".
 3. **Fórmulas.** Cada fórmula en su propio bloque con `Formula`, seguida de la lista de variables: símbolo, nombre, unidad SI. Símbolos exclusivamente del glosario.

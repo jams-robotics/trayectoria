@@ -22,6 +22,46 @@ seoDescription: "Aprende a leer un arreglo de sensores de reflectancia y a calcu
   Tus 5 sensores leen 0, 0.2, 0.9, 0.3 y 0. ¿Dónde está la línea respecto al centro de tu robot?
 </Gancho>
 
+<Explora>
+Con el robot de referencia, el arreglo de 5 sensores, visto desde arriba, sobre un tramo recto de línea de 20 mm
+centrado bajo él. Cada barra muestra la lectura v_k de un sensor con su cifra y su lectura binaria
+b_k con el umbral u = 0.5; el panel da k̄, p e y_línea. Las lecturas llevan un ruido σ = 0.03, que
+cambia cada 0.1 s mientras la simulación corre.
+
+<LineSensorWidget initialOffset_m={0} showBinary noiseSigma={0.03} />
+
+<Experimento
+  cambia="el desplazamiento de la línea hacia la izquierda, de 0 a 0.012 m"
+  observa="p y las barras de los sensores"
+  porque="¿Por qué p se vuelve negativo?"
+>
+  La línea queda bajo los sensores de índice bajo, así que sus lecturas crecen y las barras se
+  mueven con ella. El índice ponderado k̄ baja de 2, el centro, y p = (k̄ − 2)/2 se vuelve negativo:
+  la línea está a la izquierda.
+</Experimento>
+
+<Experimento
+  cambia="el desplazamiento de la línea hasta que ningún sensor la vea"
+  observa="el aviso «línea perdida» y el valor de p"
+  porque="¿Por qué p conserva el signo y la línea se pierde a 0.036 m?"
+>
+  La suma de las lecturas baja de 0.5 y el promedio ya no significa nada, así que p guarda el último
+  signo, −1. El widget pierde la línea a 0.036 m y no a 0.034 m por la huella de 4 mm de cada
+  sensor: el sensor 0 aún lee 0.5 cuando su centro está 2 mm fuera del borde, y la suma solo baja de
+  0.5 después.
+</Experimento>
+
+<Experimento
+  cambia="el ruido σ de 0.03 a 0.1, con la línea centrada, y pulsa «Reproducir»"
+  observa="la lectura binaria de los sensores 1 y 3 con el umbral u = 0.5"
+  porque="¿Por qué algunos sensores parpadean?"
+>
+Con la línea centrada, los sensores 1 y 3 leen 0.5, justo el umbral. Cualquier ruido los hace cruzar
+u hacia arriba o hacia abajo en cada muestra. El umbral necesita margen respecto a las lecturas
+habituales.
+</Experimento>
+</Explora>
+
 <Concepto>
 Un **sensor de reflectancia** tiene un emisor de luz infrarroja y un receptor que mide cuánta luz
 vuelve del suelo. El fondo claro refleja mucho; la línea oscura refleja poco.
@@ -80,46 +120,6 @@ mueva.
 - `v_k` · lectura normalizada del sensor k, en [0, 1] · —
 - `u` · umbral de la lectura binaria · —
 </Formulas>
-
-<Explora>
-Con el robot de referencia, el arreglo de 5 sensores, visto desde arriba, sobre un tramo recto de línea de 20 mm
-centrado bajo él. Cada barra muestra la lectura v_k de un sensor con su cifra y su lectura binaria
-b_k con el umbral u = 0.5; el panel da k̄, p e y_línea. Las lecturas llevan un ruido σ = 0.03, que
-cambia cada 0.1 s mientras la simulación corre.
-
-<LineSensorWidget initialOffset_m={0} showBinary noiseSigma={0.03} />
-
-<Experimento
-  cambia="el desplazamiento de la línea hacia la izquierda, de 0 a 0.012 m"
-  observa="p y las barras de los sensores"
-  porque="¿Por qué p se vuelve negativo?"
->
-  La línea queda bajo los sensores de índice bajo, así que sus lecturas crecen y las barras se
-  mueven con ella. El índice ponderado k̄ baja de 2, el centro, y p = (k̄ − 2)/2 se vuelve negativo:
-  la línea está a la izquierda.
-</Experimento>
-
-<Experimento
-  cambia="el desplazamiento de la línea hasta que ningún sensor la vea"
-  observa="el aviso «línea perdida» y el valor de p"
-  porque="¿Por qué p conserva el signo y la línea se pierde a 0.036 m?"
->
-  La suma de las lecturas baja de 0.5 y el promedio ya no significa nada, así que p guarda el último
-  signo, −1. El widget pierde la línea a 0.036 m y no a 0.034 m por la huella de 4 mm de cada
-  sensor: el sensor 0 aún lee 0.5 cuando su centro está 2 mm fuera del borde, y la suma solo baja de
-  0.5 después.
-</Experimento>
-
-<Experimento
-  cambia="el ruido σ de 0.03 a 0.1, con la línea centrada, y pulsa «Reproducir»"
-  observa="la lectura binaria de los sensores 1 y 3 con el umbral u = 0.5"
-  porque="¿Por qué algunos sensores parpadean?"
->
-Con la línea centrada, los sensores 1 y 3 leen 0.5, justo el umbral. Cualquier ruido los hace cruzar
-u hacia arriba o hacia abajo en cada muestra. El umbral necesita margen respecto a las lecturas
-habituales.
-</Experimento>
-</Explora>
 
 <AlRobot>
 El arreglo de tu perfil de «Mi robot» fija el mayor desplazamiento que el promedio ponderado puede

@@ -19,7 +19,7 @@ const repoRoot = resolve(import.meta.dirname, '..');
 const contentDir = join(repoRoot, 'content/es');
 
 /** Secciones obligatorias, en el orden de docs/CONTENT-STANDARDS.md §2. */
-const SECTIONS = ['Gancho', 'Concepto', 'Formulas', 'Explora', 'AlRobot', 'Verifica', 'Profundiza'];
+const SECTIONS = ['Gancho', 'Explora', 'Concepto', 'Formulas', 'AlRobot', 'Verifica', 'Profundiza'];
 
 /** Límites que el estándar fija para un tema ya escrito (§2, puntos 4 y 6). */
 const LIMITS = { experiments: { min: 2, max: 4 }, exercises: { min: 3, max: 5 } };

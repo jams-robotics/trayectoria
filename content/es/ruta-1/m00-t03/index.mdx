@@ -22,6 +22,48 @@ Cada 0.1 s tu robot reporta su posición: 0.00, 0.05, 0.12, 0.21 m. ¿Va a veloc
 ¿Cuál es su velocidad en el último tramo?
 </Gancho>
 
+<Explora>
+Una partícula avanza en línea recta con x₀ = 0 m, v₀ = 0.5 m/s y a = 0.2 m/s² durante 5 s. Las
+gráficas x–t, v–t y a–t muestran el mismo movimiento con un marcador de tiempo común, y la
+tangente a x–t en ese instante.
+
+<KinematicsWidget
+  initial={{ x0_m: 0, v0_mps: 0.5, a_mps2: 0.2 }}
+  editable={['v0', 'a']}
+  duration_s={5}
+  showTangent
+/>
+
+<Experimento
+  cambia="el marcador de tiempo, arrastrándolo"
+  observa="la tangente en la gráfica x–t"
+  porque="¿Por qué la pendiente de la tangente coincide con el valor de v–t en ese instante?"
+>
+La pendiente de la tangente a x–t es la derivada dx/dt en ese instante. Esa derivada es la
+velocidad instantánea v, que es justo lo que pinta la gráfica v–t. Por eso los dos números son
+exactamente el mismo.
+</Experimento>
+
+<Experimento
+  cambia="la aceleración a hasta 0"
+  observa="la gráfica x–t"
+  porque="¿Por qué x–t se vuelve una recta?"
+>
+Con a = 0 la velocidad no cambia y v–t es horizontal. Si v = dx/dt es constante, la pendiente de
+x–t es la misma en todos los instantes: una recta. Pendiente constante significa velocidad
+constante.
+</Experimento>
+
+<Experimento
+  cambia="pon a negativa, con v₀ positiva"
+  observa="el instante en que v–t cruza cero"
+  porque="¿Por qué x alcanza un máximo justo en ese instante?"
+>
+Antes de ese instante v es positiva y x crece; después v es negativa y x decrece. Donde v = dx/dt
+vale cero, la tangente a x–t es horizontal. Ahí x deja de crecer y alcanza su máximo.
+</Experimento>
+</Explora>
+
 <Concepto>
 La **velocidad media** de tu robot en un intervalo es el desplazamiento dividido entre el tiempo
 que tarda en recorrerlo: v̄ = Δx/Δt. Si en Δt = 0.1 s avanza Δx = 0.05 m, su velocidad media en
@@ -68,48 +110,6 @@ rápido que el anterior, así que acelera, y en el último tramo va a 0.9 m/s.
 - `n` · exponente de t en c·tⁿ · —
 - `t` · tiempo · s
 </Formulas>
-
-<Explora>
-Una partícula avanza en línea recta con x₀ = 0 m, v₀ = 0.5 m/s y a = 0.2 m/s² durante 5 s. Las
-gráficas x–t, v–t y a–t muestran el mismo movimiento con un marcador de tiempo común, y la
-tangente a x–t en ese instante.
-
-<KinematicsWidget
-  initial={{ x0_m: 0, v0_mps: 0.5, a_mps2: 0.2 }}
-  editable={['v0', 'a']}
-  duration_s={5}
-  showTangent
-/>
-
-<Experimento
-  cambia="el marcador de tiempo, arrastrándolo"
-  observa="la tangente en la gráfica x–t"
-  porque="¿Por qué la pendiente de la tangente coincide con el valor de v–t en ese instante?"
->
-La pendiente de la tangente a x–t es la derivada dx/dt en ese instante. Esa derivada es la
-velocidad instantánea v, que es justo lo que pinta la gráfica v–t. Por eso los dos números son
-exactamente el mismo.
-</Experimento>
-
-<Experimento
-  cambia="la aceleración a hasta 0"
-  observa="la gráfica x–t"
-  porque="¿Por qué x–t se vuelve una recta?"
->
-Con a = 0 la velocidad no cambia y v–t es horizontal. Si v = dx/dt es constante, la pendiente de
-x–t es la misma en todos los instantes: una recta. Pendiente constante significa velocidad
-constante.
-</Experimento>
-
-<Experimento
-  cambia="pon a negativa, con v₀ positiva"
-  observa="el instante en que v–t cruza cero"
-  porque="¿Por qué x alcanza un máximo justo en ese instante?"
->
-Antes de ese instante v es positiva y x crece; después v es negativa y x decrece. Donde v = dx/dt
-vale cero, la tangente a x–t es horizontal. Ahí x deja de crecer y alcanza su máximo.
-</Experimento>
-</Explora>
 
 <AlRobot>
 Tu robot no mide su velocidad de forma directa. El encoder de cada rueda cuenta fracciones de

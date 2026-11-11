@@ -22,6 +22,42 @@ Un motor entrega 0.03 N·m a 5000 rpm. ¿Cuántos vatios mecánicos son? Y con u
 11.1 Wh y dos motores de 6 V y 1.2 A, ¿cuántos minutos corre el robot?
 </Gancho>
 
+<Explora>
+Un motor levanta una carga de 0.9 kg hasta 1 m de altura a velocidad constante. Entrega 4.32 W
+mecánicos, los del segundo ejercicio de Verifica. La barra de la izquierda es la energía
+potencial que gana la carga, con escala fija m·g·H.
+
+<PowerWidget initial={{ power_W: 4.32, mass_kg: 0.9 }} liftHeight_m={1} />
+
+<Experimento
+  cambia="la potencia P al doble, de 4.32 a 8.64 W"
+  observa="el tiempo de subida y la barra de energía"
+  porque="¿Por qué el tiempo se reduce a la mitad y la energía final no cambia?"
+>
+La energía final es m·g·H = 8.829 J y no depende de P. Con el doble de potencia esa energía se
+entrega al doble de ritmo: t_subida = m·g·H/P pasa de 2.044 s a 1.022 s.
+</Experimento>
+
+<Experimento
+  cambia="la masa m al doble, de 0.9 a 1.8 kg"
+  observa="la velocidad de la carga"
+  porque="¿Por qué se reduce a la mitad y el tiempo de subida se duplica?"
+>
+Con la misma potencia, P = F·v con F = m·g: si la fuerza se duplica, v = P/(m·g) se reduce a la
+mitad, de 0.4893 m/s a 0.2446 m/s. A la mitad de velocidad, subir el mismo metro tarda el doble:
+de 2.044 s a 4.088 s.
+</Experimento>
+
+<Experimento
+  cambia="el tiempo: reinicia y pausa a media subida, por ejemplo en t = 1 s"
+  observa="E_p y W = P·t"
+  porque="¿Por qué coinciden?"
+>
+Sin pérdidas, todo el trabajo que entrega el motor se guarda como energía potencial de la carga.
+En t = 1 s la carga está a 0.4893 m: E_p = m·g·h = 4.32 J, igual que W = 4.32·1 = 4.32 J.
+</Experimento>
+</Explora>
+
 <Concepto>
 La **potencia** es la energía que se transfiere por unidad de tiempo: P = W/t. Se mide en
 vatios, 1 W = 1 J/s. El motor más potente hace el mismo trabajo en menos tiempo.
@@ -99,42 +135,6 @@ Caja de engranajes:
 
 - Sin variables: relaciona dos unidades de energía; la del SI es el julio (J).
 </Formulas>
-
-<Explora>
-Un motor levanta una carga de 0.9 kg hasta 1 m de altura a velocidad constante. Entrega 4.32 W
-mecánicos, los del segundo ejercicio de Verifica. La barra de la izquierda es la energía
-potencial que gana la carga, con escala fija m·g·H.
-
-<PowerWidget initial={{ power_W: 4.32, mass_kg: 0.9 }} liftHeight_m={1} />
-
-<Experimento
-  cambia="la potencia P al doble, de 4.32 a 8.64 W"
-  observa="el tiempo de subida y la barra de energía"
-  porque="¿Por qué el tiempo se reduce a la mitad y la energía final no cambia?"
->
-La energía final es m·g·H = 8.829 J y no depende de P. Con el doble de potencia esa energía se
-entrega al doble de ritmo: t_subida = m·g·H/P pasa de 2.044 s a 1.022 s.
-</Experimento>
-
-<Experimento
-  cambia="la masa m al doble, de 0.9 a 1.8 kg"
-  observa="la velocidad de la carga"
-  porque="¿Por qué se reduce a la mitad y el tiempo de subida se duplica?"
->
-Con la misma potencia, P = F·v con F = m·g: si la fuerza se duplica, v = P/(m·g) se reduce a la
-mitad, de 0.4893 m/s a 0.2446 m/s. A la mitad de velocidad, subir el mismo metro tarda el doble:
-de 2.044 s a 4.088 s.
-</Experimento>
-
-<Experimento
-  cambia="el tiempo: reinicia y pausa a media subida, por ejemplo en t = 1 s"
-  observa="E_p y W = P·t"
-  porque="¿Por qué coinciden?"
->
-Sin pérdidas, todo el trabajo que entrega el motor se guarda como energía potencial de la carga.
-En t = 1 s la carga está a 0.4893 m: E_p = m·g·h = 4.32 J, igual que W = 4.32·1 = 4.32 J.
-</Experimento>
-</Explora>
 
 <AlRobot>
 Tu robot tiene dos motores que se alimentan de la misma batería. Parados a plena tensión, con el

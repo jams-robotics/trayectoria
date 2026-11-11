@@ -22,6 +22,42 @@ Tu motorreductor gira a 200 rpm. ¿Cuántos radianes por segundo son, cuánto du
 cuántas vueltas da en 10 s?
 </Gancho>
 
+<Explora>
+El disco gira a la velocidad que eliges en rpm, con un punto marcado en el borde a la distancia r
+del centro. El panel muestra ω en rad/s, el período, la frecuencia, el ángulo girado y las
+vueltas.
+
+<RotationWidget mode="disc" inputUnit="rpm" initial={{ omega_radps: 20.94, r_m: 0.032 }} />
+
+<Experimento
+  cambia="el tiempo: reinicia y reproduce 1 s a 200 rpm"
+  observa="el contador de vueltas"
+  porque="¿Por qué marca 3.33 vueltas?"
+>
+200 rpm son 200 vueltas en 60 s, es decir, 200/60 = 3.33 vueltas por segundo. En 1 s el ángulo
+girado es θ = 20.94 rad, y 20.94/2π = 3.33 vueltas.
+</Experimento>
+
+<Experimento
+  cambia="n de 200 rpm a 60 rpm"
+  observa="el período T"
+  porque="¿Por qué T vale exactamente 1 s?"
+>
+60 rpm son 60 vueltas en 60 s: una vuelta por segundo. Por eso T = 60/60 = 1 s, y
+ω = 2π/T = 6.28 rad/s.
+</Experimento>
+
+<Experimento
+  cambia="el radio r, sin tocar la velocidad de giro"
+  observa="ω y el período T"
+  porque="¿Por qué no cambian?"
+>
+Todos los puntos del disco giran el mismo ángulo en el mismo tiempo, así que ω y T no dependen de
+r. Solo cambia la rapidez del punto del borde, que recorre más arco en cada vuelta cuanto mayor
+es r. Esa rapidez es el tema de [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04).
+</Experimento>
+</Explora>
+
 <Concepto>
 Un ángulo mide cuánto arco abarca respecto al radio. Si un punto a la distancia r del centro
 recorre un arco s, el ángulo girado es θ = s/r. Es un cociente de dos longitudes: el **radián**
@@ -82,42 +118,6 @@ T = 60/200 = 0.3 s, y en 10 s el eje da 200·10/60 = 33.33 vueltas.
 - `ω` · velocidad angular · rad/s
 - `t` · tiempo · s
 </Formulas>
-
-<Explora>
-El disco gira a la velocidad que eliges en rpm, con un punto marcado en el borde a la distancia r
-del centro. El panel muestra ω en rad/s, el período, la frecuencia, el ángulo girado y las
-vueltas.
-
-<RotationWidget mode="disc" inputUnit="rpm" initial={{ omega_radps: 20.94, r_m: 0.032 }} />
-
-<Experimento
-  cambia="el tiempo: reinicia y reproduce 1 s a 200 rpm"
-  observa="el contador de vueltas"
-  porque="¿Por qué marca 3.33 vueltas?"
->
-200 rpm son 200 vueltas en 60 s, es decir, 200/60 = 3.33 vueltas por segundo. En 1 s el ángulo
-girado es θ = 20.94 rad, y 20.94/2π = 3.33 vueltas.
-</Experimento>
-
-<Experimento
-  cambia="n de 200 rpm a 60 rpm"
-  observa="el período T"
-  porque="¿Por qué T vale exactamente 1 s?"
->
-60 rpm son 60 vueltas en 60 s: una vuelta por segundo. Por eso T = 60/60 = 1 s, y
-ω = 2π/T = 6.28 rad/s.
-</Experimento>
-
-<Experimento
-  cambia="el radio r, sin tocar la velocidad de giro"
-  observa="ω y el período T"
-  porque="¿Por qué no cambian?"
->
-Todos los puntos del disco giran el mismo ángulo en el mismo tiempo, así que ω y T no dependen de
-r. Solo cambia la rapidez del punto del borde, que recorre más arco en cada vuelta cuanto mayor
-es r. Esa rapidez es el tema de [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04).
-</Experimento>
-</Explora>
 
 <AlRobot>
 La rueda de tu robot gira a la velocidad de salida de su motorreductor. Esa velocidad sin carga,

@@ -21,6 +21,55 @@ seoDescription: "Aprende a leer la recta torque–velocidad de un motor de corri
 La hoja de datos dice 6000 rpm y 0.012 N·m. ¿Puede el motor dar las dos cosas a la vez?
 </Gancho>
 
+<Explora>
+El widget dibuja la recta torque–velocidad del motor de referencia arriba y su parábola de
+potencia abajo, de 0 a n₀. El punto de trabajo se arrastra en cualquiera de las dos gráficas o se
+mueve con el control «Velocidad», y el panel muestra τ, P, I, V·I y η_motor. Entra el motor del
+gancho, 6000 rpm y 0.012 N·m, con I₀ = 0.1 A, I_s = 1.2 A y 6 V. El punto empieza en 3000 rpm,
+el de potencia máxima, y no en uno de los dos extremos de la hoja de datos.
+
+<MotorCurveWidget
+  initial={{
+    stallTorque_Nm: 0.012,
+    noLoadSpeed_rpm: 6000,
+    noLoadCurrent_A: 0.1,
+    stallCurrent_A: 1.2,
+    voltage_V: 6,
+    speed_rpm: 3000,
+  }}
+  editable={['stallTorque_Nm']}
+/>
+
+<Experimento
+  cambia="el punto de trabajo: arrástralo desde 6000 rpm hasta 0"
+  observa="la potencia mecánica P"
+  porque="¿Por qué sube hasta 1.885 W en 3000 rpm y vuelve a cero?"
+>
+P = τ·ω. Sin carga, en 6000 rpm, τ = 0; en bloqueo, ω = 0: en ninguno de los dos extremos el
+motor entrega potencia. En 3000 rpm, τ_s/2 = 0.006 N·m por ω₀/2 = 314.2 rad/s dan 1.885 W, el
+máximo de la parábola.
+</Experimento>
+
+<Experimento
+  cambia="τ_s al doble, de 0.012 a 0.024 N·m"
+  observa="P_max y la velocidad a la que se da"
+  porque="¿Por qué se duplica a 3.77 W y sigue en 3000 rpm?"
+>
+P_max = τ_s·ω₀/4 es proporcional a τ_s·ω₀: con el doble de τ_s, el doble de potencia. La
+velocidad del máximo, ω₀/2, depende solo de ω₀, que no cambió.
+</Experimento>
+
+<Experimento
+  cambia="el punto de trabajo al bloqueo, 0 rpm"
+  observa="la corriente I y las dos potencias, eléctrica y mecánica"
+  porque="¿Por qué 1.2 A y 0 W mecánicos?"
+>
+En bloqueo I = I_s = 1.2 A y el eje no gira: los 6·1.2 = 7.2 W eléctricos se van en calor. Sin
+carga pide I₀ = 0.1 A y tampoco entrega potencia. En 3000 rpm consume 0.65 A, 3.9 W eléctricos, y
+entrega 1.885 W mecánicos: η_motor = 0.48.
+</Experimento>
+</Explora>
+
 <Concepto>
 La hoja de datos de [Unidades y magnitudes](/ruta/ruta-1/m00/t01) no da un punto de trabajo
 sino dos extremos. Sin carga, el eje gira a la **velocidad sin carga** ω₀, n₀ en rpm en la hoja
@@ -110,55 +159,6 @@ La autonomía se calcula con la corriente del punto de trabajo, no con la de blo
 - `V` · voltaje · V
 - `I` · corriente de cada motor · A
 </Formulas>
-
-<Explora>
-El widget dibuja la recta torque–velocidad del motor de referencia arriba y su parábola de
-potencia abajo, de 0 a n₀. El punto de trabajo se arrastra en cualquiera de las dos gráficas o se
-mueve con el control «Velocidad», y el panel muestra τ, P, I, V·I y η_motor. Entra el motor del
-gancho, 6000 rpm y 0.012 N·m, con I₀ = 0.1 A, I_s = 1.2 A y 6 V. El punto empieza en 3000 rpm,
-el de potencia máxima, y no en uno de los dos extremos de la hoja de datos.
-
-<MotorCurveWidget
-  initial={{
-    stallTorque_Nm: 0.012,
-    noLoadSpeed_rpm: 6000,
-    noLoadCurrent_A: 0.1,
-    stallCurrent_A: 1.2,
-    voltage_V: 6,
-    speed_rpm: 3000,
-  }}
-  editable={['stallTorque_Nm']}
-/>
-
-<Experimento
-  cambia="el punto de trabajo: arrástralo desde 6000 rpm hasta 0"
-  observa="la potencia mecánica P"
-  porque="¿Por qué sube hasta 1.885 W en 3000 rpm y vuelve a cero?"
->
-P = τ·ω. Sin carga, en 6000 rpm, τ = 0; en bloqueo, ω = 0: en ninguno de los dos extremos el
-motor entrega potencia. En 3000 rpm, τ_s/2 = 0.006 N·m por ω₀/2 = 314.2 rad/s dan 1.885 W, el
-máximo de la parábola.
-</Experimento>
-
-<Experimento
-  cambia="τ_s al doble, de 0.012 a 0.024 N·m"
-  observa="P_max y la velocidad a la que se da"
-  porque="¿Por qué se duplica a 3.77 W y sigue en 3000 rpm?"
->
-P_max = τ_s·ω₀/4 es proporcional a τ_s·ω₀: con el doble de τ_s, el doble de potencia. La
-velocidad del máximo, ω₀/2, depende solo de ω₀, que no cambió.
-</Experimento>
-
-<Experimento
-  cambia="el punto de trabajo al bloqueo, 0 rpm"
-  observa="la corriente I y las dos potencias, eléctrica y mecánica"
-  porque="¿Por qué 1.2 A y 0 W mecánicos?"
->
-En bloqueo I = I_s = 1.2 A y el eje no gira: los 6·1.2 = 7.2 W eléctricos se van en calor. Sin
-carga pide I₀ = 0.1 A y tampoco entrega potencia. En 3000 rpm consume 0.65 A, 3.9 W eléctricos, y
-entrega 1.885 W mecánicos: η_motor = 0.48.
-</Experimento>
-</Explora>
 
 <AlRobot>
 Tu motor no da a la vez la velocidad sin carga y el torque de bloqueo de tu perfil de «Mi robot».

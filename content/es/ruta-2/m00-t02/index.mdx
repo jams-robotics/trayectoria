@@ -22,6 +22,49 @@ Tu robot está en (1.2, 0.5) m apuntando a 30°, y su sensor central está 0.09 
 ¿Dónde está el sensor sobre la mesa?
 </Gancho>
 
+<Explora>
+El robot de tu perfil avanza en curva durante 6 s, con ω_L = 6 rad/s y ω_R = 8 rad/s. El
+simulador dibuja los ejes de \{G\} y de \{R\}, la trayectoria recorrida y un panel de marcos con la
+matriz R(θ) y las coordenadas de los sensores en ambos marcos.
+
+<DiffDriveWidget
+  mode="forward"
+  show={['frames', 'trace']}
+  initial={{ omegaL_radps: 6, omegaR_radps: 8 }}
+  duration_s={6}
+/>
+
+<Experimento
+  cambia="la posición del robot: pausa y arrástralo; después, reproduce"
+  observa="los ejes de {R} y los de {G}"
+  porque="¿Por qué los ejes de {R} se mueven y los de {G} no?"
+>
+\{R\} está pegado al robot: su origen es el punto medio del eje de las ruedas. Al arrastrarlo, sus
+ejes se trasladan con él, y al reproducir además giran, porque θ cambia. \{G\} está fijo a la mesa
+y no depende de la pose.
+</Experimento>
+
+<Experimento
+  cambia="la posición del robot: arrástralo a otro punto"
+  observa="la fila «Sensor 1» del panel de marcos, el sensor izquierdo extremo"
+  porque="¿Por qué cambian sus coordenadas en {G} y no las de {R}?"
+>
+El sensor está fijo al robot, así que en \{R\} sus coordenadas son siempre las del perfil:
+(0.09, 0.024) m con el robot de referencia. En \{G\} dependen de la pose, porque
+p⃗_G = p⃗_\{R,0\} + R(θ)·p⃗_R.
+</Experimento>
+
+<Experimento
+  cambia="la orientación inicial θ₀ a 90°"
+  observa="la matriz R(θ) del panel de marcos"
+  porque="¿Por qué la x del robot pasa a ser la y del mundo?"
+>
+Con θ = 90°, cos θ = 0 y sin θ = 1, así que la primera columna de R(θ) es (0, 1). Esa columna es
+el eje X de \{R\} visto desde \{G\}: el robot mira en la dirección de Y de \{G\}, y avanzar en x de \{R\}
+es avanzar en y de \{G\}.
+</Experimento>
+</Explora>
+
 <Concepto>
 Para ubicar algo sobre la mesa necesitas un **marco de referencia**: un origen y dos ejes. El
 **marco global** \{G\} está fijo a la mesa, con X a la derecha e Y hacia arriba. El **marco del
@@ -87,49 +130,6 @@ marco al siguiente.
 - `(x_o, y_o)` · punto objetivo · m
 - `x, y` · posición del robot en \{G\} · m
 </Formulas>
-
-<Explora>
-El robot de tu perfil avanza en curva durante 6 s, con ω_L = 6 rad/s y ω_R = 8 rad/s. El
-simulador dibuja los ejes de \{G\} y de \{R\}, la trayectoria recorrida y un panel de marcos con la
-matriz R(θ) y las coordenadas de los sensores en ambos marcos.
-
-<DiffDriveWidget
-  mode="forward"
-  show={['frames', 'trace']}
-  initial={{ omegaL_radps: 6, omegaR_radps: 8 }}
-  duration_s={6}
-/>
-
-<Experimento
-  cambia="la posición del robot: pausa y arrástralo; después, reproduce"
-  observa="los ejes de {R} y los de {G}"
-  porque="¿Por qué los ejes de {R} se mueven y los de {G} no?"
->
-\{R\} está pegado al robot: su origen es el punto medio del eje de las ruedas. Al arrastrarlo, sus
-ejes se trasladan con él, y al reproducir además giran, porque θ cambia. \{G\} está fijo a la mesa
-y no depende de la pose.
-</Experimento>
-
-<Experimento
-  cambia="la posición del robot: arrástralo a otro punto"
-  observa="la fila «Sensor 1» del panel de marcos, el sensor izquierdo extremo"
-  porque="¿Por qué cambian sus coordenadas en {G} y no las de {R}?"
->
-El sensor está fijo al robot, así que en \{R\} sus coordenadas son siempre las del perfil:
-(0.09, 0.024) m con el robot de referencia. En \{G\} dependen de la pose, porque
-p⃗_G = p⃗_\{R,0\} + R(θ)·p⃗_R.
-</Experimento>
-
-<Experimento
-  cambia="la orientación inicial θ₀ a 90°"
-  observa="la matriz R(θ) del panel de marcos"
-  porque="¿Por qué la x del robot pasa a ser la y del mundo?"
->
-Con θ = 90°, cos θ = 0 y sin θ = 1, así que la primera columna de R(θ) es (0, 1). Esa columna es
-el eje X de \{R\} visto desde \{G\}: el robot mira en la dirección de Y de \{G\}, y avanzar en x de \{R\}
-es avanzar en y de \{G\}.
-</Experimento>
-</Explora>
 
 <AlRobot>
 Los sensores de línea de tu robot están fijos en \{R\}. Tu perfil de «Mi robot» da su número N, su

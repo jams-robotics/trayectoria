@@ -23,6 +23,47 @@ Tu robot avanza a 0.5 m/s apuntando 30° respecto al eje x de la mesa. ¿Cuánto
 cuánto en y cada segundo?
 </Gancho>
 
+<Explora>
+Dos vectores de velocidad, a y b, salen del origen y se arrastran por la punta. El panel muestra
+las componentes y el ángulo de cada uno, su suma y su producto escalar. a empieza como la
+velocidad del gancho: 0.5 m/s a 30°.
+
+<VectorWidget
+  initialA={[0.433, 0.25]}
+  initialB={[0.2, -0.1]}
+  show={['components', 'sum', 'angle', 'dot']}
+  unit="m/s"
+/>
+
+<Experimento
+  cambia="la punta de a, arrastrándola sin cambiar su longitud"
+  observa="las componentes de a"
+  porque="¿Por qué una componente crece mientras la otra decrece?"
+>
+La longitud fija el módulo, y |a⃗|² = a_x² + a_y² no cambia. Si una componente crece, la otra
+tiene que decrecer para que la suma de sus cuadrados siga igual. Solo cambia el ángulo, que
+reparte el módulo entre x e y.
+</Experimento>
+
+<Experimento
+  cambia="b, hasta que apunte en sentido opuesto a a"
+  observa="la suma a + b"
+  porque="¿Por qué la suma se acerca a cero?"
+>
+Las componentes de b tienen signo contrario a las de a, y al sumarlas componente a componente se
+cancelan. Si además b mide lo mismo que a, la suma es exactamente el vector cero.
+</Experimento>
+
+<Experimento
+  cambia="b, hasta que quede perpendicular a a"
+  observa="el producto escalar a · b"
+  porque="¿Por qué vale cero?"
+>
+a⃗ · b⃗ = |a⃗||b⃗| cos φ, y con φ = 90° el coseno es cero. Da igual cuánto midan los dos vectores:
+el producto escalar es cero siempre que sean perpendiculares.
+</Experimento>
+</Explora>
+
 <Concepto>
 Un **vector** es una magnitud con dirección: su **módulo** dice cuánto mide, y su
 dirección es el ángulo θ que forma con el eje x, antihorario.
@@ -92,47 +133,6 @@ para pasar un punto del marco del robot al de la mesa.
 
 Los ángulos se dan en grados; 180° = π rad. Pon la calculadora en grados.
 </Formulas>
-
-<Explora>
-Dos vectores de velocidad, a y b, salen del origen y se arrastran por la punta. El panel muestra
-las componentes y el ángulo de cada uno, su suma y su producto escalar. a empieza como la
-velocidad del gancho: 0.5 m/s a 30°.
-
-<VectorWidget
-  initialA={[0.433, 0.25]}
-  initialB={[0.2, -0.1]}
-  show={['components', 'sum', 'angle', 'dot']}
-  unit="m/s"
-/>
-
-<Experimento
-  cambia="la punta de a, arrastrándola sin cambiar su longitud"
-  observa="las componentes de a"
-  porque="¿Por qué una componente crece mientras la otra decrece?"
->
-La longitud fija el módulo, y |a⃗|² = a_x² + a_y² no cambia. Si una componente crece, la otra
-tiene que decrecer para que la suma de sus cuadrados siga igual. Solo cambia el ángulo, que
-reparte el módulo entre x e y.
-</Experimento>
-
-<Experimento
-  cambia="b, hasta que apunte en sentido opuesto a a"
-  observa="la suma a + b"
-  porque="¿Por qué la suma se acerca a cero?"
->
-Las componentes de b tienen signo contrario a las de a, y al sumarlas componente a componente se
-cancelan. Si además b mide lo mismo que a, la suma es exactamente el vector cero.
-</Experimento>
-
-<Experimento
-  cambia="b, hasta que quede perpendicular a a"
-  observa="el producto escalar a · b"
-  porque="¿Por qué vale cero?"
->
-a⃗ · b⃗ = |a⃗||b⃗| cos φ, y con φ = 90° el coseno es cero. Da igual cuánto midan los dos vectores:
-el producto escalar es cero siempre que sean perpendiculares.
-</Experimento>
-</Explora>
 
 <AlRobot>
 Este tema no pide ningún dato nuevo de «Mi robot». Toma como dato de tu perfil v_max, la

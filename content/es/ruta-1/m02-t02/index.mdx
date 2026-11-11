@@ -22,6 +22,52 @@ Con ruedas de μₛ = 0.6, ¿cuál es la aceleración máxima que tu robot puede
 importar cuánto torque tenga el motor?
 </Gancho>
 
+<Explora>
+Un robot de 0.9 kg está en una rampa de 15° con ruedas de μₛ = 0.6 y una tracción de 3 N cuesta
+arriba. El diagrama muestra el peso, la normal, la tracción y la resultante; el panel da N, f_max
+y a_max, y avisa «desliza» cuando las ruedas no agarran.
+
+<FreeBodyWidget
+  mass_kg={0.9}
+  forces={[
+    { key: 'traction', label: 'Tracción', magnitude_N: 3, angle_rad: 0, editable: true },
+  ]}
+  slope_rad={0.26}
+  mu_s={0.6}
+  editableParams={['slope', 'mu_s']}
+  showResultant
+/>
+
+<Experimento
+  cambia="la tracción por encima de μₛ·N, de 3 N a 6 N"
+  observa="el aviso «desliza» y la tracción que llega a la resultante"
+  porque="¿Por qué la tracción no pasa de f_max?"
+>
+En la rampa de 15°, N = 8.53 N y f_max = 0.6·8.53 = 5.12 N. Las ruedas no pueden transmitir más
+fuerza que f_max: el torque de más solo las hace girar en falso. Por eso la fuerza real se limita
+a 5.12 N.
+</Experimento>
+
+<Experimento
+  cambia="la tracción a 0 N y luego la pendiente, grado a grado desde 15°"
+  observa="el ángulo al que aparece «desliza»"
+  porque="¿Por qué el robot deja de sostenerse cerca de 31°?"
+>
+Sin tracción, la fricción estática sostiene m·g·sinφ con un límite de μₛ·m·g·cosφ. El robot
+resbala cuando tanφ supera μₛ = 0.6, pasado φ_max = 30.96°. A 30° aún se sostiene y a 31° ya no,
+sea cual sea la masa.
+</Experimento>
+
+<Experimento
+  cambia="μₛ de 0.6 a 0.3 (goma dura), con la pendiente en 0°"
+  observa="a_max en el panel"
+  porque="¿Por qué la aceleración máxima se reduce a la mitad?"
+>
+En plano, a_max = μₛ·g: es proporcional a μₛ. Pasa de 5.89 m/s² a 2.94 m/s² sin que cambien la
+masa ni el motor.
+</Experimento>
+</Explora>
+
 <Concepto>
 La rueda motriz empuja el suelo hacia atrás en el punto de contacto, y el suelo empuja la rueda
 hacia adelante. Esa fuerza de fricción f es la tracción que mueve al robot.
@@ -85,52 +131,6 @@ empezar a frenar, la distancia de frenado es d_frenado = v²/(2·μₖ·g).
 - `μₖ` · coeficiente de fricción cinética · —
 - `g` · aceleración gravitatoria · m/s²
 </Formulas>
-
-<Explora>
-Un robot de 0.9 kg está en una rampa de 15° con ruedas de μₛ = 0.6 y una tracción de 3 N cuesta
-arriba. El diagrama muestra el peso, la normal, la tracción y la resultante; el panel da N, f_max
-y a_max, y avisa «desliza» cuando las ruedas no agarran.
-
-<FreeBodyWidget
-  mass_kg={0.9}
-  forces={[
-    { key: 'traction', label: 'Tracción', magnitude_N: 3, angle_rad: 0, editable: true },
-  ]}
-  slope_rad={0.26}
-  mu_s={0.6}
-  editableParams={['slope', 'mu_s']}
-  showResultant
-/>
-
-<Experimento
-  cambia="la tracción por encima de μₛ·N, de 3 N a 6 N"
-  observa="el aviso «desliza» y la tracción que llega a la resultante"
-  porque="¿Por qué la tracción no pasa de f_max?"
->
-En la rampa de 15°, N = 8.53 N y f_max = 0.6·8.53 = 5.12 N. Las ruedas no pueden transmitir más
-fuerza que f_max: el torque de más solo las hace girar en falso. Por eso la fuerza real se limita
-a 5.12 N.
-</Experimento>
-
-<Experimento
-  cambia="la tracción a 0 N y luego la pendiente, grado a grado desde 15°"
-  observa="el ángulo al que aparece «desliza»"
-  porque="¿Por qué el robot deja de sostenerse cerca de 31°?"
->
-Sin tracción, la fricción estática sostiene m·g·sinφ con un límite de μₛ·m·g·cosφ. El robot
-resbala cuando tanφ supera μₛ = 0.6, pasado φ_max = 30.96°. A 30° aún se sostiene y a 31° ya no,
-sea cual sea la masa.
-</Experimento>
-
-<Experimento
-  cambia="μₛ de 0.6 a 0.3 (goma dura), con la pendiente en 0°"
-  observa="a_max en el panel"
-  porque="¿Por qué la aceleración máxima se reduce a la mitad?"
->
-En plano, a_max = μₛ·g: es proporcional a μₛ. Pasa de 5.89 m/s² a 2.94 m/s² sin que cambien la
-masa ni el motor.
-</Experimento>
-</Explora>
 
 <AlRobot>
 La comparación es motor contra fricción, al arrancar con el eje del motor parado, en bloqueo. En

@@ -1,5 +1,9 @@
 # CLAUDE.md — Instrucciones para agentes
 Tracker: trayectoria
+Flujo: general
+Fase: producción
+
+> **Excepción vigente: versión 1.5 (rediseño de la experiencia).** Decisión del propietario del 10 nov 2026, válida hasta que la 1.5 salga a `main`. Se trabaja sin ticket: cada pista en su rama `pista/<letra>-<nombre>` y su worktree, que salen de `v2/integracion` y vuelven a ella. Durante la 1.5 sí se permite modificar `docs/`, este archivo y versiones de dependencias cuando el cambio lo pide, en el mismo commit que el código. Sigue vigente todo lo demás: prohibiciones sobre secretos, datos personales, `supabase/migrations/` e `infra/`, los comandos y el estilo de trabajo. Un solo PR de `v2/integracion` a `main`; el merge lo autoriza el propietario.
 Este repositorio es **Trayectoria**, una plataforma open source para aprender ingeniería aplicada a robótica. Estas instrucciones valen para cualquier persona o agente que contribuya: se trabaja con un ticket, dentro de su alcance y siguiendo los estándares. No se diseña producto ni arquitectura desde un ticket.
 
 ## Tu rol

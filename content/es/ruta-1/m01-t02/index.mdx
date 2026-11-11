@@ -22,6 +22,46 @@ Tu robot arranca desde el reposo y llega a 0.6 m/s en 1.5 s. ¿Qué aceleración
 avanzó mientras aceleraba?
 </Gancho>
 
+<Explora>
+Una partícula arranca desde el reposo, con x₀ = 0 m, v₀ = 0 m/s y a = 0.4 m/s², durante 4 s: el
+robot del gancho. Las gráficas x–t, v–t y a–t muestran el mismo movimiento con un marcador de
+tiempo común.
+
+<KinematicsWidget
+  initial={{ x0_m: 0, v0_mps: 0, a_mps2: 0.4 }}
+  editable={['v0', 'a']}
+  duration_s={4}
+/>
+
+<Experimento
+  cambia="la aceleración a al doble, de 0.4 a 0.8 m/s²"
+  observa="x en t = 1.5 s, con el marcador de tiempo"
+  porque="¿Por qué x se duplica?"
+>
+Con x₀ = 0 y v₀ = 0, la posición es x = ½·a·t². En un mismo instante, x es proporcional a a.
+Por eso en t = 1.5 s pasa de 0.45 m a 0.9 m.
+</Experimento>
+
+<Experimento
+  cambia="pon v₀ = 0.6 m/s y a = −1.2 m/s²"
+  observa="el instante en que v–t cruza cero y el valor de x en ese instante"
+  porque="¿Por qué el robot se detiene a 0.15 m?"
+>
+El robot frena hasta v = 0 en t = 0.6/1.2 = 0.5 s. Con v² = v₀² + 2·a·Δx y v = 0, avanza
+Δx = 0.6²/(2·1.2) = 0.15 m mientras frena. Ahí la tangente a x–t es horizontal y x alcanza su
+máximo.
+</Experimento>
+
+<Experimento
+  cambia="v₀ al doble, de 0.3 a 0.6 m/s, con la misma a = −1.2 m/s²"
+  observa="la distancia de frenado: el máximo de x–t"
+  porque="¿Por qué se cuadruplica al duplicar v₀?"
+>
+La distancia de frenado es Δx = v₀²/(2·|a|): depende del cuadrado de v₀. Duplicar v₀ multiplica
+Δx por 2² = 4. Pasa de 0.0375 m a 0.15 m.
+</Experimento>
+</Explora>
+
 <Concepto>
 Si la aceleración de tu robot es constante, su velocidad cambia lo mismo en cada segundo. Con
 a = 0.4 m/s², cada segundo gana 0.4 m/s. Ese es el **movimiento uniformemente acelerado**
@@ -74,46 +114,6 @@ primera ecuación, a = 0.6/1.5 = 0.4 m/s². De la segunda, mientras acelera avan
 - `a` · aceleración · m/s²
 - `Δx` · desplazamiento en un intervalo · m
 </Formulas>
-
-<Explora>
-Una partícula arranca desde el reposo, con x₀ = 0 m, v₀ = 0 m/s y a = 0.4 m/s², durante 4 s: el
-robot del gancho. Las gráficas x–t, v–t y a–t muestran el mismo movimiento con un marcador de
-tiempo común.
-
-<KinematicsWidget
-  initial={{ x0_m: 0, v0_mps: 0, a_mps2: 0.4 }}
-  editable={['v0', 'a']}
-  duration_s={4}
-/>
-
-<Experimento
-  cambia="la aceleración a al doble, de 0.4 a 0.8 m/s²"
-  observa="x en t = 1.5 s, con el marcador de tiempo"
-  porque="¿Por qué x se duplica?"
->
-Con x₀ = 0 y v₀ = 0, la posición es x = ½·a·t². En un mismo instante, x es proporcional a a.
-Por eso en t = 1.5 s pasa de 0.45 m a 0.9 m.
-</Experimento>
-
-<Experimento
-  cambia="pon v₀ = 0.6 m/s y a = −1.2 m/s²"
-  observa="el instante en que v–t cruza cero y el valor de x en ese instante"
-  porque="¿Por qué el robot se detiene a 0.15 m?"
->
-El robot frena hasta v = 0 en t = 0.6/1.2 = 0.5 s. Con v² = v₀² + 2·a·Δx y v = 0, avanza
-Δx = 0.6²/(2·1.2) = 0.15 m mientras frena. Ahí la tangente a x–t es horizontal y x alcanza su
-máximo.
-</Experimento>
-
-<Experimento
-  cambia="v₀ al doble, de 0.3 a 0.6 m/s, con la misma a = −1.2 m/s²"
-  observa="la distancia de frenado: el máximo de x–t"
-  porque="¿Por qué se cuadruplica al duplicar v₀?"
->
-La distancia de frenado es Δx = v₀²/(2·|a|): depende del cuadrado de v₀. Duplicar v₀ multiplica
-Δx por 2² = 4. Pasa de 0.0375 m a 0.15 m.
-</Experimento>
-</Explora>
 
 <AlRobot>
 Tu robot no arranca de golpe: el simulador lo acelera con una rampa de aceleración

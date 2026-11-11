@@ -22,6 +22,45 @@ Mandas 15 rad/s a la rueda izquierda y 20 rad/s a la derecha. ¿Qué hace el rob
 avanza, cuánto gira y con qué radio?
 </Gancho>
 
+<Explora>
+Con el robot de referencia, el robot parte con ω_L = 15 rad/s y ω_R = 20 rad/s, los del gancho, durante 8 s. La vista
+muestra el CIR, el radio de giro, la trayectoria y la velocidad de cada rueda.
+
+<DiffDriveWidget
+  mode="forward"
+  show={['icr', 'radius', 'trace', 'wheelVelocities']}
+  initial={{ omegaL_radps: 15, omegaR_radps: 20 }}
+  duration_s={8}
+/>
+
+<Experimento
+  cambia="ω_L a 20 rad/s, igual que ω_R"
+  observa="el CIR y el radio de giro"
+  porque="¿Por qué el robot avanza en línea recta?"
+>
+Con las dos ruedas a la misma velocidad, v_R = v_L y ω = 0. El radio R = v/ω crece sin límite y el
+CIR se va al infinito. Un arco de radio infinito es una recta.
+</Experimento>
+
+<Experimento
+  cambia="ω_L a −20 rad/s, con ω_R = 20 rad/s"
+  observa="dónde queda el CIR y cuánto vale el radio de giro"
+  porque="¿Por qué el robot gira sin moverse del sitio?"
+>
+Con las ruedas opuestas, v = (v_R + v_L)/2 = 0 y el centro del eje no avanza. El robot solo gira,
+con ω = 2·0.64/0.15 = 8.533 rad/s. El CIR está en el centro del eje y el radio es cero.
+</Experimento>
+
+<Experimento
+  cambia="ω_L a 0 rad/s, con ω_R = 20 rad/s"
+  observa="dónde queda el CIR y cuánto vale el radio de giro"
+  porque="¿Por qué el CIR cae sobre la rueda izquierda?"
+>
+La rueda izquierda está quieta, así que es el único punto del eje que no se mueve: ahí está el
+CIR. El radio es la distancia de esa rueda al centro del eje, R = L/2 = 0.075 m.
+</Experimento>
+</Explora>
+
 <Concepto>
 La **cinemática directa** del robot diferencial va de las velocidades de las ruedas al
 movimiento del robot. Sin deslizamiento, cada rueda avanza v = ω·r. Con r = 0.032 m, la rueda
@@ -84,45 +123,6 @@ pose.
 - `ω` · velocidad angular del robot · rad/s
 - `t` · tiempo · s
 </Formulas>
-
-<Explora>
-Con el robot de referencia, el robot parte con ω_L = 15 rad/s y ω_R = 20 rad/s, los del gancho, durante 8 s. La vista
-muestra el CIR, el radio de giro, la trayectoria y la velocidad de cada rueda.
-
-<DiffDriveWidget
-  mode="forward"
-  show={['icr', 'radius', 'trace', 'wheelVelocities']}
-  initial={{ omegaL_radps: 15, omegaR_radps: 20 }}
-  duration_s={8}
-/>
-
-<Experimento
-  cambia="ω_L a 20 rad/s, igual que ω_R"
-  observa="el CIR y el radio de giro"
-  porque="¿Por qué el robot avanza en línea recta?"
->
-Con las dos ruedas a la misma velocidad, v_R = v_L y ω = 0. El radio R = v/ω crece sin límite y el
-CIR se va al infinito. Un arco de radio infinito es una recta.
-</Experimento>
-
-<Experimento
-  cambia="ω_L a −20 rad/s, con ω_R = 20 rad/s"
-  observa="dónde queda el CIR y cuánto vale el radio de giro"
-  porque="¿Por qué el robot gira sin moverse del sitio?"
->
-Con las ruedas opuestas, v = (v_R + v_L)/2 = 0 y el centro del eje no avanza. El robot solo gira,
-con ω = 2·0.64/0.15 = 8.533 rad/s. El CIR está en el centro del eje y el radio es cero.
-</Experimento>
-
-<Experimento
-  cambia="ω_L a 0 rad/s, con ω_R = 20 rad/s"
-  observa="dónde queda el CIR y cuánto vale el radio de giro"
-  porque="¿Por qué el CIR cae sobre la rueda izquierda?"
->
-La rueda izquierda está quieta, así que es el único punto del eje que no se mueve: ahí está el
-CIR. El radio es la distancia de esa rueda al centro del eje, R = L/2 = 0.075 m.
-</Experimento>
-</Explora>
 
 <AlRobot>
 Con las ruedas de tu perfil de «Mi robot», los mismos comandos del gancho, ω_L = 15 rad/s y

@@ -22,6 +22,69 @@ seoDescription: "Aprende a relacionar torque, fuerza y radio, a calcular la redu
   rueda contra el suelo?
 </Gancho>
 
+<Explora>
+Un tren de dos etapas, 10:60 y 10:50, es decir 6:1 y 5:1: i_total = 30, la reducción del
+robot de referencia. Entra el motor del gancho en su punto de trabajo de potencia máxima, 3000 rpm y
+0.006 N·m: la mitad de su velocidad sin carga y la mitad de su torque de bloqueo, que no se dan a
+la vez; por qué ese punto lo explica [El motor y la batería](/ruta/ruta-1/m03/t03). η = 0.6 se
+aplica una vez al total. El widget dibuja los engranajes con el sentido de giro de cada eje y
+muestra la relación de cada etapa, la relación total y la velocidad y el torque de salida,
+100 rpm y 0.108 N·m. El panel también muestra dos potencias, 1.885 W de entrada y 1.131 W de
+salida: qué es la potencia y por qué la salida es menor se ve en [Potencia](/ruta/ruta-1/m03/t02).
+
+<GearWidget
+  stages={2}
+  initial={{
+    z1: 10,
+    z2: 60,
+    z3: 10,
+    z4: 50,
+    nIn_rpm: 3000,
+    torqueIn_Nm: 0.006,
+    efficiency: 0.6,
+  }}
+/>
+
+<Experimento
+  cambia="z₄, los dientes del último engranaje, de 50 a 60"
+  observa="la velocidad y el torque de salida"
+  porque="¿Por qué uno sube y el otro baja en la misma proporción?"
+>
+  La relación pasa de i_total = 6·5 = 30 a 6·6 = 36, 1.2 veces mayor. La velocidad de salida se
+  divide entre i_total y baja de 100 rpm a 83.3 rpm. El torque se multiplica por i_total y sube de
+  0.108 N·m a 0.130 N·m, el mismo factor 1.2.
+</Experimento>
+
+<Experimento
+  cambia="la eficiencia η de 0.6 a 1"
+  observa="el torque de salida"
+  porque="¿Por qué sube de 0.108 a 0.18 N·m?"
+>
+  Con η = 1 la caja no pierde nada: τ = 0.006·30 = 0.18 N·m. Con η = 0.6, el 40 % se pierde en
+  fricción entre dientes y ejes, y la salida se queda en 0.6·0.18 = 0.108 N·m. La velocidad de
+  salida no cambia: la eficiencia de la caja solo recorta el torque.
+</Experimento>
+
+<Experimento
+  cambia="z₁ y z₂ entre sí: 60 dientes en la entrada y 10 en la salida de la primera etapa"
+  observa="la relación total y la velocidad y el torque de salida"
+  porque="¿Por qué ahora el tren multiplica la velocidad y divide el torque?"
+>
+  La primera etapa queda con i₁ = 10/60 = 0.167, menor que 1, e i_total = 0.167·5 = 0.833. La
+  velocidad de salida se divide entre 0.833: 3000/0.833 = 3600 rpm, más que el motor. El torque se
+  multiplica por 0.833 y por η: 0.006·0.833·0.6 = 0.003 N·m, menos que a la entrada.
+</Experimento>
+
+<Experimento
+  cambia="nada: deja el tren como está"
+  observa="el sentido de giro de cada eje"
+  porque="¿Por qué la salida gira en el mismo sentido que el motor?"
+>
+  Cada par engranado invierte el sentido de giro. El eje intermedio gira al revés que el motor, y
+  la segunda etapa lo invierte otra vez. Dos inversiones devuelven el sentido de la entrada.
+</Experimento>
+</Explora>
+
 <Concepto>
 El **torque** mide cuánto hace girar una fuerza alrededor de un eje: la fuerza por su brazo, la
 distancia perpendicular del eje a la línea de la fuerza: τ = F·r, en N·m. En una rueda, el
@@ -95,69 +158,6 @@ Rampa a velocidad constante, con dos ruedas motrices:
 - `φ` · ángulo de pendiente · rad
 - `r` · radio de rueda · m
 </Formulas>
-
-<Explora>
-Un tren de dos etapas, 10:60 y 10:50, es decir 6:1 y 5:1: i_total = 30, la reducción del
-robot de referencia. Entra el motor del gancho en su punto de trabajo de potencia máxima, 3000 rpm y
-0.006 N·m: la mitad de su velocidad sin carga y la mitad de su torque de bloqueo, que no se dan a
-la vez; por qué ese punto lo explica [El motor y la batería](/ruta/ruta-1/m03/t03). η = 0.6 se
-aplica una vez al total. El widget dibuja los engranajes con el sentido de giro de cada eje y
-muestra la relación de cada etapa, la relación total y la velocidad y el torque de salida,
-100 rpm y 0.108 N·m. El panel también muestra dos potencias, 1.885 W de entrada y 1.131 W de
-salida: qué es la potencia y por qué la salida es menor se ve en [Potencia](/ruta/ruta-1/m03/t02).
-
-<GearWidget
-  stages={2}
-  initial={{
-    z1: 10,
-    z2: 60,
-    z3: 10,
-    z4: 50,
-    nIn_rpm: 3000,
-    torqueIn_Nm: 0.006,
-    efficiency: 0.6,
-  }}
-/>
-
-<Experimento
-  cambia="z₄, los dientes del último engranaje, de 50 a 60"
-  observa="la velocidad y el torque de salida"
-  porque="¿Por qué uno sube y el otro baja en la misma proporción?"
->
-  La relación pasa de i_total = 6·5 = 30 a 6·6 = 36, 1.2 veces mayor. La velocidad de salida se
-  divide entre i_total y baja de 100 rpm a 83.3 rpm. El torque se multiplica por i_total y sube de
-  0.108 N·m a 0.130 N·m, el mismo factor 1.2.
-</Experimento>
-
-<Experimento
-  cambia="la eficiencia η de 0.6 a 1"
-  observa="el torque de salida"
-  porque="¿Por qué sube de 0.108 a 0.18 N·m?"
->
-  Con η = 1 la caja no pierde nada: τ = 0.006·30 = 0.18 N·m. Con η = 0.6, el 40 % se pierde en
-  fricción entre dientes y ejes, y la salida se queda en 0.6·0.18 = 0.108 N·m. La velocidad de
-  salida no cambia: la eficiencia de la caja solo recorta el torque.
-</Experimento>
-
-<Experimento
-  cambia="z₁ y z₂ entre sí: 60 dientes en la entrada y 10 en la salida de la primera etapa"
-  observa="la relación total y la velocidad y el torque de salida"
-  porque="¿Por qué ahora el tren multiplica la velocidad y divide el torque?"
->
-  La primera etapa queda con i₁ = 10/60 = 0.167, menor que 1, e i_total = 0.167·5 = 0.833. La
-  velocidad de salida se divide entre 0.833: 3000/0.833 = 3600 rpm, más que el motor. El torque se
-  multiplica por 0.833 y por η: 0.006·0.833·0.6 = 0.003 N·m, menos que a la entrada.
-</Experimento>
-
-<Experimento
-  cambia="nada: deja el tren como está"
-  observa="el sentido de giro de cada eje"
-  porque="¿Por qué la salida gira en el mismo sentido que el motor?"
->
-  Cada par engranado invierte el sentido de giro. El eje intermedio gira al revés que el motor, y
-  la segunda etapa lo invierte otra vez. Dos inversiones devuelven el sentido de la entrada.
-</Experimento>
-</Explora>
 
 <AlRobot>
 El torque de bloqueo τ_s es el máximo que da tu motor, con el eje detenido. Pasa por la reducción

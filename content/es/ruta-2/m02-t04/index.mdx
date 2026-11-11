@@ -23,6 +23,61 @@ seoDescription: "Aprende cómo la distancia de los sensores al eje y la separaci
 medida de tu robot cambia cómo sigue la línea.
 </Gancho>
 
+<Explora>
+El simulador sigue la pista Curvas cerradas con el controlador PID: K_p = 8, K_i = 1, K_d =
+0.05 y ω_base = 10 rad/s. La gráfica muestra el error e frente al tiempo, y las lecturas dan la
+última vuelta, la mejor y la distancia recorrida. El simulador usa el robot de tu perfil: el
+formulario de «Mi robot», debajo, lo cambia en vivo.
+
+<LineFollowerWidget
+  track="tight"
+  controller="pid"
+  initialParams={{ kp: 8, ki: 1, kd: 0.05, omegaBase_radps: 10 }}
+  showPlots={['error']}
+/>
+
+<MyRobotWidget mode="form" />
+
+Antes de empezar, anota los valores de tu perfil: al terminar tendrás que restaurarlos, porque
+«Guardar» sobrescribe tu perfil real. Las cifras de abajo son con el perfil de referencia, y
+cada experimento parte de él: deshaz el cambio anterior antes del siguiente. Con ese perfil, en
+20 s el robot da una primera vuelta de ≈ 5.5 s y dos de 5.25 s sin perder la línea; el error medio en las
+curvas es −0.43 y su pico, 0.75.
+
+<Experimento
+  cambia="«Adelanto respecto al eje», d, de 0.09 a 0.15 m"
+  observa="la gráfica del error y la última vuelta"
+  porque="¿Por qué la vuelta es más rápida con el arreglo más adelantado?"
+>
+El mismo desvío de rumbo da un p mayor, porque p es proporcional a d, y el robot corrige antes:
+empieza a girar antes y corta las esquinas. Recorre 1.48 m por vuelta en lugar de 1.68 m, y la
+vuelta baja de 5.25 s a 4.62 s. El error medio en las curvas pasa de −0.43 a −0.28.
+</Experimento>
+
+<Experimento
+  cambia="«Número de sensores», N, de 5 a 3"
+  observa="los picos de la gráfica del error en las curvas"
+  porque="¿Por qué sube el error?"
+>
+Con 3 sensores, el sensor exterior queda a (N−1)/2·e_s = 0.012 m del centro en lugar de
+0.024 m, y la línea se acerca al borde del arreglo. El pico del error pasa de 0.75 a 0.99 y su
+valor RMS, de 0.46 a 0.50. El robot sigue sin perder la línea.
+</Experimento>
+
+<Experimento
+  cambia="«Distancia entre ruedas», L, de 0.15 a 0.25 m"
+  observa="la primera curva"
+  porque="¿Por qué el robot se sale?"
+>
+Con la misma acción de control u, la velocidad angular del robot es ω = −2ur/L, como en
+[Control on/off y proporcional](/ruta/ruta-2/m02/t02): con L mayor, |ω| es menor. El robot no
+gira lo bastante rápido para la primera curva y pierde la línea hacia
+t ≈ 1 s.
+</Experimento>
+
+Al terminar, vuelve a escribir en el formulario los valores que anotaste y guarda.
+</Explora>
+
 <Concepto>
 Tu robot mira la línea desde su arreglo de sensores, montado a una distancia d por delante
 del eje de ruedas. Si su rumbo se desvía un ángulo pequeño Δθ respecto a la línea, el arreglo se
@@ -90,61 +145,6 @@ simulador te deja probar cada cambio antes de hacerlo en el taller.
 - `R` · radio de giro · m
 - `L` · distancia entre ruedas · m
 </Formulas>
-
-<Explora>
-El simulador sigue la pista Curvas cerradas con el controlador PID: K_p = 8, K_i = 1, K_d =
-0.05 y ω_base = 10 rad/s. La gráfica muestra el error e frente al tiempo, y las lecturas dan la
-última vuelta, la mejor y la distancia recorrida. El simulador usa el robot de tu perfil: el
-formulario de «Mi robot», debajo, lo cambia en vivo.
-
-<LineFollowerWidget
-  track="tight"
-  controller="pid"
-  initialParams={{ kp: 8, ki: 1, kd: 0.05, omegaBase_radps: 10 }}
-  showPlots={['error']}
-/>
-
-<MyRobotWidget mode="form" />
-
-Antes de empezar, anota los valores de tu perfil: al terminar tendrás que restaurarlos, porque
-«Guardar» sobrescribe tu perfil real. Las cifras de abajo son con el perfil de referencia, y
-cada experimento parte de él: deshaz el cambio anterior antes del siguiente. Con ese perfil, en
-20 s el robot da una primera vuelta de ≈ 5.5 s y dos de 5.25 s sin perder la línea; el error medio en las
-curvas es −0.43 y su pico, 0.75.
-
-<Experimento
-  cambia="«Adelanto respecto al eje», d, de 0.09 a 0.15 m"
-  observa="la gráfica del error y la última vuelta"
-  porque="¿Por qué la vuelta es más rápida con el arreglo más adelantado?"
->
-El mismo desvío de rumbo da un p mayor, porque p es proporcional a d, y el robot corrige antes:
-empieza a girar antes y corta las esquinas. Recorre 1.48 m por vuelta en lugar de 1.68 m, y la
-vuelta baja de 5.25 s a 4.62 s. El error medio en las curvas pasa de −0.43 a −0.28.
-</Experimento>
-
-<Experimento
-  cambia="«Número de sensores», N, de 5 a 3"
-  observa="los picos de la gráfica del error en las curvas"
-  porque="¿Por qué sube el error?"
->
-Con 3 sensores, el sensor exterior queda a (N−1)/2·e_s = 0.012 m del centro en lugar de
-0.024 m, y la línea se acerca al borde del arreglo. El pico del error pasa de 0.75 a 0.99 y su
-valor RMS, de 0.46 a 0.50. El robot sigue sin perder la línea.
-</Experimento>
-
-<Experimento
-  cambia="«Distancia entre ruedas», L, de 0.15 a 0.25 m"
-  observa="la primera curva"
-  porque="¿Por qué el robot se sale?"
->
-Con la misma acción de control u, la velocidad angular del robot es ω = −2ur/L, como en
-[Control on/off y proporcional](/ruta/ruta-2/m02/t02): con L mayor, |ω| es menor. El robot no
-gira lo bastante rápido para la primera curva y pierde la línea hacia
-t ≈ 1 s.
-</Experimento>
-
-Al terminar, vuelve a escribir en el formulario los valores que anotaste y guarda.
-</Explora>
 
 <AlRobot>
 Tres números del tema con tu perfil de «Mi robot»: uno ya lo calculaste y dos son nuevos. Dos

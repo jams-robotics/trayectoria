@@ -22,6 +22,54 @@ Tu robot ve la línea a la derecha (p = +0.4). ¿Cuánto más rápido debe ir la
 la derecha para volver a centrarla?
 </Gancho>
 
+<Explora>
+El robot de referencia sigue la pista Óvalo con control proporcional, K_p = 8 y velocidad base
+ω_base = 15 rad/s. La escena muestra la pista, el robot con sus sensores y la traza que deja; las
+gráficas muestran el error e y la velocidad angular ω del robot en el tiempo.
+
+<LineFollowerWidget
+  track="oval"
+  controller="p"
+  initialParams={{ kp: 8, omegaBase_radps: 15 }}
+  showPlots={['error', 'omega']}
+/>
+
+<Experimento
+  cambia="K_p de 8 a 2"
+  observa="la primera curva en la escena"
+  porque="¿Por qué el robot se sale?"
+>
+En la curva el robot necesita una ω que, con u = K_p·e, solo aparece con un error grande. Con
+K_p = 2 el error crece hasta que la línea sale del arreglo, a t ≈ 1.59 s. Con K_p = 8 el mismo giro
+pide un error cuatro veces menor, y el robot da 2 vueltas en 15 s (≈ 6.04 s y ≈ 5.85 s) sin perderla.
+</Experimento>
+
+<Experimento
+  cambia="K_p a 20"
+  observa="la gráfica del error en las rectas"
+  porque="¿Por qué oscila de lado a lado?"
+>
+El motor tarda en cambiar de velocidad, su constante de tiempo τ_m, así que la corrección llega
+tarde y el robot cruza la línea antes de que termine. En los primeros 5 s el error cambia de signo 10 veces, frente a 4 con
+K_p = 8. En la 2.ª vuelta la oscilación saca al robot de la línea, a t ≈ 7.9 s.
+</Experimento>
+
+<Experimento
+  cambia="el controlador a On/off y «Corrección» u_0 de 4 a 8 rad/s"
+  observa="la traza en la escena y la gráfica del error"
+  porque="¿Por qué hay zigzag permanente aunque la recta sea perfecta?"
+>
+On/off siempre manda ±u_0 y nunca u = 0, así que el robot cruza la línea una y otra vez: 25
+cambios de signo en 15 s, un RMS del error de 0.32 (RMS: el error típico, la raíz de la media de
+los cuadrados) y una vuelta de ≈ 8.86 s sin perder la línea. Con
+u_0 = 4 rad/s la conmutación es tan rápida que el motor la suaviza y el error apenas se ve (RMS
+0.003). Con u_0 ≥ 8.5 rad/s el zigzag crece hasta perder la línea.
+</Experimento>
+
+Al cambiar de controlador, el widget vuelve a los valores por defecto del nuevo (ω_base = 10 rad/s,
+u_0 = 4 rad/s). Por eso on/off va al final.
+</Explora>
+
 <Concepto>
 El arreglo de sensores te da la posición de la línea p. Si la quieres centrada, el **error** del
 controlador es directamente e = p: positivo con la línea a la derecha, negativo a la izquierda.
@@ -91,54 +139,6 @@ es negativa: el robot gira a la derecha, hacia la línea.
 - `ω_base` · velocidad base de las ruedas · rad/s
 - `|e|_max` · error máximo considerado · —
 </Formulas>
-
-<Explora>
-El robot de referencia sigue la pista Óvalo con control proporcional, K_p = 8 y velocidad base
-ω_base = 15 rad/s. La escena muestra la pista, el robot con sus sensores y la traza que deja; las
-gráficas muestran el error e y la velocidad angular ω del robot en el tiempo.
-
-<LineFollowerWidget
-  track="oval"
-  controller="p"
-  initialParams={{ kp: 8, omegaBase_radps: 15 }}
-  showPlots={['error', 'omega']}
-/>
-
-<Experimento
-  cambia="K_p de 8 a 2"
-  observa="la primera curva en la escena"
-  porque="¿Por qué el robot se sale?"
->
-En la curva el robot necesita una ω que, con u = K_p·e, solo aparece con un error grande. Con
-K_p = 2 el error crece hasta que la línea sale del arreglo, a t ≈ 1.59 s. Con K_p = 8 el mismo giro
-pide un error cuatro veces menor, y el robot da 2 vueltas en 15 s (≈ 6.04 s y ≈ 5.85 s) sin perderla.
-</Experimento>
-
-<Experimento
-  cambia="K_p a 20"
-  observa="la gráfica del error en las rectas"
-  porque="¿Por qué oscila de lado a lado?"
->
-El motor tarda en cambiar de velocidad, su constante de tiempo τ_m, así que la corrección llega
-tarde y el robot cruza la línea antes de que termine. En los primeros 5 s el error cambia de signo 10 veces, frente a 4 con
-K_p = 8. En la 2.ª vuelta la oscilación saca al robot de la línea, a t ≈ 7.9 s.
-</Experimento>
-
-<Experimento
-  cambia="el controlador a On/off y «Corrección» u_0 de 4 a 8 rad/s"
-  observa="la traza en la escena y la gráfica del error"
-  porque="¿Por qué hay zigzag permanente aunque la recta sea perfecta?"
->
-On/off siempre manda ±u_0 y nunca u = 0, así que el robot cruza la línea una y otra vez: 25
-cambios de signo en 15 s, un RMS del error de 0.32 (RMS: el error típico, la raíz de la media de
-los cuadrados) y una vuelta de ≈ 8.86 s sin perder la línea. Con
-u_0 = 4 rad/s la conmutación es tan rápida que el motor la suaviza y el error apenas se ve (RMS
-0.003). Con u_0 ≥ 8.5 rad/s el zigzag crece hasta perder la línea.
-</Experimento>
-
-Al cambiar de controlador, el widget vuelve a los valores por defecto del nuevo (ω_base = 10 rad/s,
-u_0 = 4 rad/s). Por eso on/off va al final.
-</Explora>
 
 <AlRobot>
 Vuelve al gancho con tu robot. Con K_p = 8 y e = 0.4, la acción de control es u = 3.2 rad/s, y con

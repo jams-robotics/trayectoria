@@ -22,6 +22,50 @@ En un intervalo tu encoder izquierdo contó 400 ticks y el derecho 440. ¿Cuánt
 robot, y dónde está ahora?
 </Gancho>
 
+<Explora>
+Con el robot de referencia, el robot avanza con ω_L = 12 rad/s y ω_R = 13 rad/s durante 30 s. Gira a ω = 0.2133 rad/s, así
+que una vuelta tarda 29.45 s y en 30 s da algo más de una. La vista muestra la traza real y la
+traza estimada por odometría, con los marcos de referencia; el panel de odometría muestra la pose
+estimada, el error de posición y el error de rumbo.
+
+<DiffDriveWidget
+  mode="odometry"
+  show={['trace', 'frames']}
+  initial={{ omegaL_radps: 12, omegaR_radps: 13 }}
+  duration_s={30}
+/>
+
+<Experimento
+  cambia="nada: reproduce los 30 s con la calibración exacta"
+  observa="la traza real y la traza estimada"
+  porque="¿Por qué coinciden, salvo pequeños escalones?"
+>
+Con el radio y la distancia entre ruedas creídos iguales a los reales, la odometría aplica las
+mismas fórmulas que el movimiento. La única diferencia es que cuenta ticks enteros: cada arco se
+redondea a múltiplos de 2πr/N_e. Esa cuantización es lo único que separa las dos trazas.
+</Experimento>
+
+<Experimento
+  cambia="el deslizador «Radio de rueda creído» 1 mm por encima, de 0.032 a 0.033 m"
+  observa="la traza estimada frente a la real y el error de posición"
+  porque="¿Por qué la estimada se adelanta y el error crece con la distancia?"
+>
+Con el radio creído mayor, cada tick vale 2π·0.033/360 m en lugar de 2π·0.032/360 m: la
+odometría cree que avanza un 3.1 % más de lo real. Ese 3.1 % se aplica a cada metro recorrido,
+así que el error crece linealmente con la distancia.
+</Experimento>
+
+<Experimento
+  cambia="el deslizador «Distancia entre ruedas creída» 5 mm por encima, de 0.15 a 0.155 m"
+  observa="la orientación estimada y el error de rumbo a los 30 s"
+  porque="¿Por qué el rumbo estimado se queda atrás unos 12°?"
+>
+Como Δθ = (Δs_R − Δs_L)/L, con la L creída mayor cada giro estimado es 0.150/0.155 del real, un
+3.2 % menos. A los 30 s el robot ha girado algo más de una vuelta, y el 3.2 % de 360° ya son
+11.6°: el error de rumbo es de unos −12°. Ese rumbo desviado tuerce toda la traza estimada.
+</Experimento>
+</Explora>
+
 <Concepto>
 Tu robot no ve dónde está: lo deduce contando ticks. Estimar la pose integrando las lecturas de
 los encoders es la **odometría**.
@@ -74,50 +118,6 @@ El simulador integra a la vez la pose real y la estimada con los ticks, y dibuja
 - `Δs` · avance del robot en un paso de odometría · m
 - `Δθ` · giro del robot en un paso de odometría · rad
 </Formulas>
-
-<Explora>
-Con el robot de referencia, el robot avanza con ω_L = 12 rad/s y ω_R = 13 rad/s durante 30 s. Gira a ω = 0.2133 rad/s, así
-que una vuelta tarda 29.45 s y en 30 s da algo más de una. La vista muestra la traza real y la
-traza estimada por odometría, con los marcos de referencia; el panel de odometría muestra la pose
-estimada, el error de posición y el error de rumbo.
-
-<DiffDriveWidget
-  mode="odometry"
-  show={['trace', 'frames']}
-  initial={{ omegaL_radps: 12, omegaR_radps: 13 }}
-  duration_s={30}
-/>
-
-<Experimento
-  cambia="nada: reproduce los 30 s con la calibración exacta"
-  observa="la traza real y la traza estimada"
-  porque="¿Por qué coinciden, salvo pequeños escalones?"
->
-Con el radio y la distancia entre ruedas creídos iguales a los reales, la odometría aplica las
-mismas fórmulas que el movimiento. La única diferencia es que cuenta ticks enteros: cada arco se
-redondea a múltiplos de 2πr/N_e. Esa cuantización es lo único que separa las dos trazas.
-</Experimento>
-
-<Experimento
-  cambia="el deslizador «Radio de rueda creído» 1 mm por encima, de 0.032 a 0.033 m"
-  observa="la traza estimada frente a la real y el error de posición"
-  porque="¿Por qué la estimada se adelanta y el error crece con la distancia?"
->
-Con el radio creído mayor, cada tick vale 2π·0.033/360 m en lugar de 2π·0.032/360 m: la
-odometría cree que avanza un 3.1 % más de lo real. Ese 3.1 % se aplica a cada metro recorrido,
-así que el error crece linealmente con la distancia.
-</Experimento>
-
-<Experimento
-  cambia="el deslizador «Distancia entre ruedas creída» 5 mm por encima, de 0.15 a 0.155 m"
-  observa="la orientación estimada y el error de rumbo a los 30 s"
-  porque="¿Por qué el rumbo estimado se queda atrás unos 12°?"
->
-Como Δθ = (Δs_R − Δs_L)/L, con la L creída mayor cada giro estimado es 0.150/0.155 del real, un
-3.2 % menos. A los 30 s el robot ha girado algo más de una vuelta, y el 3.2 % de 360° ya son
-11.6°: el error de rumbo es de unos −12°. Ese rumbo desviado tuerce toda la traza estimada.
-</Experimento>
-</Explora>
 
 <AlRobot>
 Con tu perfil de «Mi robot», el paso del gancho, 400 ticks a la izquierda y 440 a la derecha, da
