@@ -5,10 +5,10 @@
 interface Props {
   /** Fixed anchor of the section: `gancho`, `concepto`, … */
   id: string;
-  /** Title already translated by the section component. */
-  title: string;
+  /** Title already translated by the section component; none for the opening challenge. */
+  title?: string;
   /** Position in the topic, painted in mono before the title (docs/design/03-tema-claro.png). */
-  number: number;
+  number?: number;
   /**
    * Explora only: its simulators take the whole content column. Every other section keeps one
    * reading column of 72ch for text, formulas, «Mi robot» and exercises alike (#302).
@@ -17,15 +17,17 @@ interface Props {
 }
 
 const { id, title, number, wide = false } = Astro.props;
-const label = String(number).padStart(2, '0');
+const label = number === undefined ? '' : String(number).padStart(2, '0');
 ---
 
 <section id={id} data-section={id} class="scroll-mt-[72px] mt-9 first:mt-0">
-  <h2 class="text-lg leading-tight m-0 flex items-baseline gap-3 font-semibold">
-    <span class="text-fg-muted font-mono text-xs font-normal">{label}</span>
-    {title}
-  </h2>
-  <div class:list={['prose leading-body mt-4', { 'max-w-[72ch]': !wide }]}>
+  {title !== undefined && (
+    <h2 class="text-lg leading-tight m-0 flex items-baseline gap-3 font-semibold">
+      <span class="text-fg-muted font-mono text-xs font-normal">{label}</span>
+      {title}
+    </h2>
+  )}
+  <div class:list={['prose leading-body', { 'mt-4': title !== undefined, 'max-w-[72ch]': !wide }]}>
     <slot />
   </div>
 </section>
