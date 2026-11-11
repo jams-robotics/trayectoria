@@ -18,15 +18,15 @@ seoDescription: "Aprende a dibujar el diagrama de cuerpo libre de un robot en pl
 ---
 
 <Gancho>
-Tu robot de 0.9 kg debe acelerar a 0.8 m/s². ¿Qué fuerza neta necesitan sus ruedas?
+Tu robot de 0.9 kg empuja con 1.5 N y, aun así, al subir una rampa avanza mucho menos de lo que
+esperabas. Tu reto: sin tocar la tracción ni la fricción, usa solo la pendiente para que el robot
+casi no acelere.
 </Gancho>
 
 <Explora>
-Un robot de 0.9 kg, la masa del gancho, sobre un suelo horizontal, con una tracción de 1.5 N
-hacia adelante y una fricción de rodadura de 0.4 N hacia atrás. Las fuerzas no son las del
-gancho: su resultante, 1.1 N, es mayor que los 0.72 N que pedía, y el robot acelera a
-1.22 m/s² en vez de 0.8 m/s². El diagrama muestra el peso, la normal, las dos fuerzas y la
-resultante; el panel da sus valores y la aceleración.
+Un robot de 0.9 kg sobre un suelo horizontal, con una tracción de 1.5 N hacia adelante y una
+fricción de rodadura de 0.4 N hacia atrás. El diagrama muestra el peso, la normal, las dos fuerzas
+y la resultante; el panel da sus valores y la aceleración, que empieza en 1.22 m/s².
 
 <FreeBodyWidget
   mass_kg={0.9}
@@ -65,9 +65,9 @@ velocidad no cambia, no que sea cero. Si el robot ya avanzaba, sigue a velocidad
   observa="el peso a lo largo de la superficie y la resultante"
   porque="¿Por qué aparece una fuerza de 2.29 N en contra de la tracción?"
 >
-En la rampa, el peso tiene una componente a lo largo de la superficie:
-F_∥ = m·g·sinφ = 0.9·9.81·sin 15° = 2.29 N, rampa abajo. Supera los 1.1 N que dejan la tracción
-y la fricción, así que la resultante apunta rampa abajo. La normal baja a m·g·cos 15° = 8.53 N.
+En la rampa, el peso tiene una componente a lo largo de la superficie, rampa abajo: 2.29 N a 15°.
+Supera los 1.1 N que dejan la tracción y la fricción, así que la resultante apunta rampa abajo. La
+normal baja a 8.53 N.
 </Experimento>
 
 <Experimento
@@ -75,42 +75,40 @@ y la fricción, así que la resultante apunta rampa abajo. La normal baja a m·g
   observa="la aceleración"
   porque="¿Por qué se reduce a la mitad?"
 >
-La fuerza neta sigue siendo 1.5 − 0.4 = 1.1 N, porque tracción y fricción no cambian. De
-a = ΣF/m, al duplicar m la aceleración pasa de 1.22 m/s² a 0.611 m/s².
+La fuerza neta sigue siendo 1.1 N, porque tracción y fricción no cambian. La aceleración es la
+fuerza neta entre la masa: al duplicar m pasa de 1.22 m/s² a 0.611 m/s².
 </Experimento>
 </Explora>
 
 <Concepto>
-Si la fuerza neta sobre un robot es cero, su velocidad no cambia: sigue en reposo o avanza en
-línea recta a velocidad constante. Es la **primera ley de Newton**. Un robot a 0.3 m/s
-constantes no tiene fuerza neta, aunque sus motores funcionen.
+Viste que con tracción y fricción iguales el robot no acelera aunque se mueva, y que la rampa le
+suma una fuerza en contra. Si la fuerza neta sobre un robot es cero, su velocidad no cambia: sigue
+en reposo o avanza en línea recta a velocidad constante. Es la **primera ley de Newton**. Un robot a
+0.3 m/s constantes no tiene fuerza neta, aunque sus motores funcionen.
 
-Si la fuerza neta no es cero, el robot acelera. La **segunda ley de Newton** lo cuantifica:
-ΣF⃗ = m·a⃗. Es una ecuación entre vectores y se cumple componente a componente.
+Si la fuerza neta no es cero, el robot acelera. La **segunda ley de Newton** lo cuantifica: la
+fuerza neta es la masa por la aceleración. Es una ecuación entre vectores y se cumple componente a
+componente.
 
 La **tercera ley de Newton** dice que las fuerzas vienen en pares: si un cuerpo empuja a otro, el
-otro lo empuja con el mismo módulo y en sentido contrario. La rueda empuja el suelo hacia
-atrás y el suelo empuja la rueda hacia adelante. Esa fuerza del suelo, la **tracción**, acelera
-al robot. Es una fricción estática; su límite lo ves en [Fricción](/ruta/ruta-1/m02/t02).
+otro lo empuja con el mismo módulo y en sentido contrario. La rueda empuja el suelo hacia atrás y
+el suelo empuja la rueda hacia adelante. Esa fuerza del suelo, la **tracción**, acelera al robot.
+Es una fricción estática; su límite lo ves en [Fricción](/ruta/ruta-1/m02/t02).
 
 Para aplicar la segunda ley dibujas el **diagrama de cuerpo libre**: el robot aislado, con cada
-fuerza que actúa sobre él. En un plano son cuatro: el peso m·g hacia abajo, la normal N del
-suelo hacia arriba, la tracción hacia adelante y la **fricción de rodadura** hacia atrás, una
-resistencia pequeña que aparece porque la rueda y el suelo se deforman al rodar. En vertical no
-hay aceleración, así que N = m·g. En horizontal, la tracción menos la fricción de rodadura es
-igual a m·a.
+fuerza que actúa sobre él. En un plano son cuatro: el peso hacia abajo, la normal N del suelo hacia
+arriba, la tracción hacia adelante y la **fricción de rodadura** hacia atrás, una resistencia
+pequeña que aparece porque la rueda y el suelo se deforman al rodar. En vertical no hay
+aceleración, así que la normal iguala al peso. En horizontal, la tracción menos la fricción de
+rodadura es la masa por la aceleración.
 
-Un robot como el de referencia se apoya en dos ruedas motrices y una **rueda loca**, que gira
-libre y no empuja. La normal se reparte entre las tres; β es la fracción del peso sobre las
-ruedas motrices, las únicas que dan tracción.
+Un robot como el de referencia se apoya en dos ruedas motrices y una **rueda loca**, que gira libre
+y no empuja. La normal se reparte entre las tres; β es la fracción del peso sobre las ruedas
+motrices, las únicas que dan tracción.
 
-En una rampa de ángulo φ conviene usar ejes a lo largo de la superficie y perpendicular a ella.
-El peso se descompone en F_∥ = m·g·sinφ, rampa abajo, y m·g·cosφ, contra la superficie. La
-normal equilibra la segunda: N = m·g·cosφ. La primera se opone a la tracción cuando el robot
-sube.
-
-Con los datos del gancho, ΣF = m·a = 0.9·0.8 = 0.72 N: la tracción debe dar eso más la fricción
-de rodadura.
+En una rampa de ángulo φ conviene usar ejes a lo largo de la superficie y perpendicular a ella. El
+peso se descompone en una componente a lo largo, rampa abajo, y otra contra la superficie. La
+normal equilibra la segunda. La primera se opone a la tracción cuando el robot sube.
 </Concepto>
 
 <Formulas>
@@ -151,8 +149,8 @@ En un suelo horizontal, la normal equilibra el peso:
 
 <RobotFormula calc="ruta-1/m02-t01/normal" />
 
-Con el robot de referencia, a = 1.28 m/s² y la fuerza neta es F = 0.9·1.28 = 1.152 N.
-La normal vale N = 0.9·9.81 = 8.83 N: el suelo empuja hacia arriba casi ocho veces más de lo
+Con el robot de referencia, a = 1.28 m/s² y la fuerza neta es 1.152 N.
+La normal vale 8.83 N: el suelo empuja hacia arriba casi ocho veces más de lo
 que empuja hacia adelante.
 
 Esa fuerza neta es la tracción menos la fricción de rodadura, así que la tracción tiene que

@@ -18,19 +18,19 @@ seoDescription: "Aprende a relacionar torque, fuerza y radio, a calcular la redu
 ---
 
 <Gancho>
-  El motor entrega 0.012 N·m en bloqueo y la reducción es 30:1. ¿Cuánta fuerza puede empujar cada
-  rueda contra el suelo?
+Tu motor tiene fuerza de sobra en la hoja de datos, pero tu robot apenas sube una rampa: entre el
+motor y el suelo hay una caja de engranajes que cambia velocidad por fuerza. Tu reto: haz que la
+salida del tren gire más rápido que el motor, en vez de más despacio.
 </Gancho>
 
 <Explora>
-Un tren de dos etapas, 10:60 y 10:50, es decir 6:1 y 5:1: i_total = 30, la reducción del
-robot de referencia. Entra el motor del gancho en su punto de trabajo de potencia máxima, 3000 rpm y
-0.006 N·m: la mitad de su velocidad sin carga y la mitad de su torque de bloqueo, que no se dan a
-la vez; por qué ese punto lo explica [El motor y la batería](/ruta/ruta-1/m03/t03). η = 0.6 se
-aplica una vez al total. El widget dibuja los engranajes con el sentido de giro de cada eje y
-muestra la relación de cada etapa, la relación total y la velocidad y el torque de salida,
-100 rpm y 0.108 N·m. El panel también muestra dos potencias, 1.885 W de entrada y 1.131 W de
-salida: qué es la potencia y por qué la salida es menor se ve en [Potencia](/ruta/ruta-1/m03/t02).
+Un tren de dos etapas, 10:60 y 10:50 (6:1 y 5:1), da una reducción total de 30, la del robot de
+referencia. Entra el motor en su punto de trabajo de potencia máxima, 3000 rpm y 0.006 N·m; por qué
+ese punto lo explica [El motor y la batería](/ruta/ruta-1/m03/t03). La eficiencia η = 0.6 se aplica
+una vez al total. El widget dibuja los engranajes con el sentido de giro de cada eje y muestra la
+relación de cada etapa, la total, y la velocidad y el torque de salida: 100 rpm y 0.108 N·m.
+También muestra la potencia de entrada y la de salida; qué es la potencia lo ves en
+[Potencia](/ruta/ruta-1/m03/t02).
 
 <GearWidget
   stages={2}
@@ -50,9 +50,8 @@ salida: qué es la potencia y por qué la salida es menor se ve en [Potencia](/r
   observa="la velocidad y el torque de salida"
   porque="¿Por qué uno sube y el otro baja en la misma proporción?"
 >
-  La relación pasa de i_total = 6·5 = 30 a 6·6 = 36, 1.2 veces mayor. La velocidad de salida se
-  divide entre i_total y baja de 100 rpm a 83.3 rpm. El torque se multiplica por i_total y sube de
-  0.108 N·m a 0.130 N·m, el mismo factor 1.2.
+La relación total pasa de 30 a 36, 1.2 veces mayor. La velocidad de salida baja de 100 rpm a
+83.3 rpm y el torque sube de 0.108 N·m a 0.130 N·m, el mismo factor 1.2.
 </Experimento>
 
 <Experimento
@@ -60,9 +59,9 @@ salida: qué es la potencia y por qué la salida es menor se ve en [Potencia](/r
   observa="el torque de salida"
   porque="¿Por qué sube de 0.108 a 0.18 N·m?"
 >
-  Con η = 1 la caja no pierde nada: τ = 0.006·30 = 0.18 N·m. Con η = 0.6, el 40 % se pierde en
-  fricción entre dientes y ejes, y la salida se queda en 0.6·0.18 = 0.108 N·m. La velocidad de
-  salida no cambia: la eficiencia de la caja solo recorta el torque.
+Con η = 1 la caja no pierde nada y la salida sube a 0.18 N·m. Con η = 0.6, el 40 % se pierde en
+fricción entre dientes y ejes, y la salida se queda en 0.108 N·m. La velocidad de salida no cambia:
+la eficiencia de la caja solo recorta el torque.
 </Experimento>
 
 <Experimento
@@ -70,9 +69,8 @@ salida: qué es la potencia y por qué la salida es menor se ve en [Potencia](/r
   observa="la relación total y la velocidad y el torque de salida"
   porque="¿Por qué ahora el tren multiplica la velocidad y divide el torque?"
 >
-  La primera etapa queda con i₁ = 10/60 = 0.167, menor que 1, e i_total = 0.167·5 = 0.833. La
-  velocidad de salida se divide entre 0.833: 3000/0.833 = 3600 rpm, más que el motor. El torque se
-  multiplica por 0.833 y por η: 0.006·0.833·0.6 = 0.003 N·m, menos que a la entrada.
+La primera etapa queda con una relación menor que 1, y la total pasa a 0.833. La velocidad de
+salida sube a 3600 rpm, más que la del motor, y el torque baja a 0.003 N·m, menos que a la entrada.
 </Experimento>
 
 <Experimento
@@ -80,40 +78,42 @@ salida: qué es la potencia y por qué la salida es menor se ve en [Potencia](/r
   observa="el sentido de giro de cada eje"
   porque="¿Por qué la salida gira en el mismo sentido que el motor?"
 >
-  Cada par engranado invierte el sentido de giro. El eje intermedio gira al revés que el motor, y
-  la segunda etapa lo invierte otra vez. Dos inversiones devuelven el sentido de la entrada.
+Cada par engranado invierte el sentido de giro. El eje intermedio gira al revés que el motor, y la
+segunda etapa lo invierte otra vez. Dos inversiones devuelven el sentido de la entrada.
 </Experimento>
 </Explora>
 
 <Concepto>
-El **torque** mide cuánto hace girar una fuerza alrededor de un eje: la fuerza por su brazo, la
-distancia perpendicular del eje a la línea de la fuerza: τ = F·r, en N·m. En una rueda, el
-suelo empuja en el punto de contacto, a una distancia r del eje: sin deslizamiento, la tracción
-es F_rueda = τ_rueda/r.
+Viste que el tren cambia velocidad por torque en la misma proporción y que con una relación menor
+que 1 pasa lo contrario. El **torque** mide cuánto hace girar una fuerza alrededor de un eje: la
+fuerza por su brazo, la distancia perpendicular del eje a la línea de la fuerza, en N·m. En una
+rueda, el suelo empuja en el punto de contacto, a una distancia r del eje: sin deslizamiento, la
+tracción es el torque de la rueda entre r.
 
-Dos engranajes engranados comparten la velocidad lineal en el contacto, la misma idea que
-v = ω·r en [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04). El radio va con el número de
-dientes z: el de más dientes gira más despacio. La **relación de reducción** i compara la
-entrada 1 con la salida 2: i = z₂/z₁ = n₁/n₂. Con i mayor que 1, el par reduce la velocidad.
+Dos engranajes engranados comparten la velocidad lineal en el contacto, la misma idea que en
+[Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04). El radio va con el número de dientes z: el
+de más dientes gira más despacio. La **relación de reducción** i compara la entrada 1 con la salida
+2: es el cociente de dientes, igual al de velocidades. Con i mayor que 1, el par reduce la
+velocidad.
 
-En el contacto, los dos engranajes se empujan con la misma fuerza. Como τ = F·r y el radio va con
-z, en un par ideal τ₂ = τ₁·i: lo que se pierde en velocidad se gana en torque. Un par real pierde
-algo por fricción. La **eficiencia de la caja** η, entre 0 y 1, es la fracción
-que llega a la salida: τ_rueda = τ_motor·i·η. No es la del motor; qué se pierde en la caja, en
-[Potencia](/ruta/ruta-1/m03/t02).
+En el contacto, los dos engranajes se empujan con la misma fuerza. Como el torque es fuerza por
+radio y el radio va con z, en un par ideal el torque de salida es el de entrada por i: lo que se
+pierde en velocidad se gana en torque. Un par real pierde algo por fricción. La **eficiencia de la
+caja** η, entre 0 y 1, es la fracción que llega a la salida. No es la del motor; qué se pierde en
+la caja, en [Potencia](/ruta/ruta-1/m03/t02).
 
-Cada par invierte el sentido de giro: con dos pares, la salida gira como la entrada. En un tren
-de dos etapas las relaciones se multiplican, i_total = i₁·i₂. El motorreductor del robot de
-referencia es exactamente esto: i = 30 = 6·5.
+Cada par invierte el sentido de giro: con dos pares, la salida gira como la entrada, como viste. En
+un tren de dos etapas las relaciones se multiplican. El motorreductor del robot de referencia es
+exactamente esto: 30 es 6 por 5.
 
-Subir una rampa de ángulo φ a velocidad constante pide una tracción total m·g·sinφ, la componente
-del peso de [Leyes de Newton y diagrama de cuerpo libre](/ruta/ruta-1/m02/t01). Con dos ruedas
-motrices, cada una da la mitad: τ_rueda = (m·g·sinφ/2)·r. A 20°, el robot de referencia pide
-0.0483 N·m por rueda.
+Subir una rampa de ángulo φ a velocidad constante pide una tracción total igual a la componente del
+peso a lo largo de la rampa, la de [Leyes de Newton y diagrama de cuerpo libre](/ruta/ruta-1/m02/t01).
+Con dos ruedas motrices, cada una da la mitad. A 20°, el robot de referencia pide 0.0483 N·m por
+rueda.
 
-El torque que entra al motorreductor es un punto de trabajo del motor, nunca el torque de bloqueo
-y la velocidad sin carga a la vez. El Explora usa el de potencia máxima, 3000 rpm y 0.006 N·m,
-como dato; por qué ese punto: [El motor y la batería](/ruta/ruta-1/m03/t03).
+El torque que entra al motorreductor es un punto de trabajo del motor, nunca el torque de bloqueo y
+la velocidad sin carga a la vez. El Explora usa el de potencia máxima, 3000 rpm y 0.006 N·m, como
+dato; por qué ese punto: [El motor y la batería](/ruta/ruta-1/m03/t03).
 </Concepto>
 
 <Formulas>
@@ -160,8 +160,8 @@ Rampa a velocidad constante, con dos ruedas motrices:
 </Formulas>
 
 <AlRobot>
-El torque de bloqueo τ_s es el máximo que da tu motor, con el eje detenido. Pasa por la reducción
-i y la eficiencia de la caja η_caja de tu perfil de «Mi robot» y llega a cada rueda como su torque
+El torque de bloqueo τ<sub>s</sub> es el máximo que da tu motor, con el eje detenido. Pasa por la reducción
+i y la eficiencia de la caja η<sub>caja</sub> de tu perfil de «Mi robot» y llega a cada rueda como su torque
 máximo, también con el eje detenido:
 
 <RobotFormula calc="ruta-1/m02-t04/wheel-torque" />
@@ -170,14 +170,14 @@ Cada rueda lo convierte en tracción contra el suelo:
 
 <RobotFormula calc="ruta-1/m02-t04/wheel-force" />
 
-Si tu perfil no define el motor, el cálculo usa el del robot de referencia: τ_s = 0.012 N·m y
-η_caja = 0.6.
+Si tu perfil no define el motor, el cálculo usa el del robot de referencia: τ<sub>s</sub> = 0.012 N·m y
+η<sub>caja</sub> = 0.6.
 
-Con el robot de referencia, τ_rueda = 0.216 N·m y F_rueda = 6.75 N por rueda: 13.5 N entre las
-dos. Esta es la F_rueda que [Fricción](/ruta/ruta-1/m02/t02) tomó como dato, y su conclusión vale
-aquí sin recalcularla: con las dos ruedas, a_motor = 15.0 m/s², frente al límite de fricción
-a_max = 3.53 m/s² con μₛ = 0.6 y β = 0.6. Manda la fricción, no el motor: si se le pide todo de
-golpe, las ruedas patinan. Por eso el simulador acelera con una rampa por debajo de ese límite.
+Con el robot de referencia, τ<sub>rueda</sub> = 0.216 N·m y F<sub>rueda</sub> = 6.75 N por rueda: 13.5 N entre las
+dos. Esta es la F<sub>rueda</sub> que [Fricción](/ruta/ruta-1/m02/t02) tomó como dato, y su conclusión vale
+aquí sin recalcularla: con las dos ruedas, a<sub>motor</sub> = 15.0 m/s², frente al límite de fricción
+a<sub>max</sub> = 3.53 m/s² con μₛ = 0.6 y β = 0.6. Manda la fricción, no el motor: si se le pide todo de
+golpe, las ruedas patinan. Por eso tu robot acelera con una rampa por debajo de ese límite.
 
 Es el máximo, con la rueda detenida. Mientras el robot avanza a su velocidad sin carga, el torque
 en la rueda es cero, no 0.216 N·m; entre los dos extremos está la recta de
