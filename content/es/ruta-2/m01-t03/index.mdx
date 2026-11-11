@@ -71,6 +71,10 @@ Viste que con la calibración exacta las dos trazas coinciden y que un milímetr
 separa. Tu robot no ve dónde está: lo deduce contando ticks. Estimar la pose integrando las lecturas
 de los encoders es la **odometría**.
 
+<Figura alt="Dos trayectorias que salen del mismo punto. La trayectoria real es una curva continua. La estimada por odometría empieza igual pero se separa poco a poco. Una flecha entre los dos extremos marca el error de posición." caption="La odometría acumula error: la traza estimada se separa de la real.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><circle class="f-fgfill" cx="50" cy="130" r="4" /><text class="t-m t-c" x="50" y="150">inicio</text><path class="f-d1" d="M50 130 Q130 120 190 80 T280 40" /><path class="f-dash" d="M50 130 Q140 128 200 100 T292 78" /><circle class="f-d1fill" cx="280" cy="40" r="3.5" /><circle class="f-d2fill" cx="292" cy="78" r="3.5" /><line class="f-vel" x1="284" y1="48" x2="288.7" y2="65.2" /><polygon class="f-velfill" points="290,70 290.9,64.6 286.5,65.8" /><text class="t-m" x="222" y="34">real</text><text class="t-m" x="250" y="106">estimada</text><text class="t-v" x="296" y="60">error</text></svg>
+</Figura>
+
 Primero, de ticks a arcos. Cada tick es 1/N<sub>e</sub> de vuelta, y una vuelta hace avanzar la rueda un
 perímetro. El arco de cada rueda es ese perímetro por los ticks que contó, entre N<sub>e</sub>.
 

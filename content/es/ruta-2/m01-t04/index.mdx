@@ -72,6 +72,10 @@ izquierda con tres movimientos. Las ruedas de tu robot solo ruedan hacia delante
 Empujarlas de lado exige arrastrarlas sobre el suelo, y sin deslizamiento eso no ocurre. Por eso la
 velocidad del centro del eje siempre apunta a lo largo del rumbo θ, y θ̇ = ω.
 
+<Figura alt="Vista desde arriba de un robot con una flecha hacia adelante y otra hacia atrás, y una flecha hacia un lado tachada con una cruz. Las ruedas solo pueden mover al robot a lo largo de su rumbo." caption="El robot solo se mueve a lo largo de su rumbo, nunca de lado.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><rect class="f-fillbox" x="135" y="70" width="50" height="60" rx="3" /><rect class="f-box" x="124" y="78" width="11" height="44" rx="3" /><rect class="f-box" x="185" y="78" width="11" height="44" rx="3" /><line class="f-d1" x1="160" y1="70" x2="160" y2="29" /><polygon class="f-d1fill" points="160,22 156.8,29 163.2,29" /><line class="f-d1" x1="160" y1="130" x2="160" y2="157" /><polygon class="f-d1fill" points="160,164 163.2,157 156.8,157" /><text class="t-m" x="172" y="34">adelante</text><text class="t-m" x="172" y="162">atrás</text><line class="f-d2" x1="185" y1="100" x2="245" y2="100" /><polygon class="f-d2fill" points="252,100 245,96.8 245,103.2" /><line class="f-d2" x1="222" y1="88" x2="236" y2="112" /><line class="f-d2" x1="236" y1="88" x2="222" y2="112" /><text class="t-m t-c" x="250" y="124">de lado: imposible</text></svg>
+</Figura>
+
 La componente de la velocidad perpendicular al rumbo vale cero en todo instante. Esa ecuación es una
 restricción sobre las velocidades, no sobre la posición. Cualquier velocidad que la cumpla es
 **admisible**: el robot la puede seguir. Si la ecuación da un valor distinto de cero, pides un

@@ -83,6 +83,10 @@ robot mira la línea desde un arreglo de sensores montado a una distancia d por 
 ruedas. Si su rumbo se desvía un ángulo pequeño Δθ respecto a la línea, el arreglo se desplaza de
 lado una distancia proporcional a d.
 
+<Figura alt="Vista desde arriba de un robot con un arreglo de cinco sensores delante. Una cota marca la distancia d del arreglo al eje de las ruedas, otra la distancia L entre las ruedas y otra la separación entre sensores." caption="Las medidas del robot que cambian cómo sigue la línea.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><rect class="f-fillbox" x="130" y="90" width="60" height="50" rx="3" /><rect class="f-box" x="120" y="98" width="10" height="36" rx="3" /><rect class="f-box" x="190" y="98" width="10" height="36" rx="3" /><circle class="f-box" cx="112" cy="34" r="5" /><circle class="f-box" cx="136" cy="34" r="5" /><circle class="f-box" cx="160" cy="34" r="5" /><circle class="f-box" cx="184" cy="34" r="5" /><circle class="f-box" cx="208" cy="34" r="5" /><line class="f-dash" x1="160" y1="40" x2="160" y2="116" /><line class="f-d2" x1="228" y1="34" x2="228" y2="116" /><text class="t-v" x="236" y="76">d</text><line class="f-d1" x1="120" y1="152" x2="200" y2="152" /><text class="t-m t-c" x="160" y="166">L entre ruedas</text><line class="f-d1" x1="136" y1="20" x2="160" y2="20" /><text class="t-m t-c" x="148" y="14">separación</text><text class="t-m t-c" x="50" y="38">N sensores</text><line class="f-d2" x1="222" y1="34" x2="234" y2="34" /><line class="f-d2" x1="222" y1="116" x2="234" y2="116" /></svg>
+</Figura>
+
 Con más d, el mismo Δθ mueve más la línea bajo el arreglo: el robot detecta antes el desvío, pero
 también lo exagera. Dividir ese desplazamiento entre la posición del sensor exterior da la
 posición p de la línea.

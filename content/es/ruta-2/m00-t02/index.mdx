@@ -74,6 +74,10 @@ derecha e Y hacia arriba. El **marco del robot** \{R\} viaja con el robot: su or
 punto medio del eje de las ruedas, X apunta hacia adelante e Y hacia la izquierda. Los ángulos son
 antihorarios positivos.
 
+<Figura alt="Dos marcos de referencia. El marco de la mesa, G, tiene sus ejes fijos abajo a la izquierda. El marco del robot, R, está pegado al robot, que está girado un ángulo θ. Una flecha une el origen de G con el robot y un punto marca un sensor delante del robot." caption="La pose ubica el marco del robot dentro del marco de la mesa.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><line class="f-axis" x1="30" y1="150" x2="123" y2="150" /><polygon class="f-mutedfill" points="130,150 123,146.8 123,153.2" /><line class="f-axis" x1="30" y1="150" x2="30" y2="67" /><polygon class="f-mutedfill" points="30,60 26.9,67 33.1,67" /><text class="t-m" x="136" y="154">X</text><text class="t-m" x="34" y="56">Y</text><text class="t-m" x="40" y="142">marco G (mesa)</text><g transform="translate(200 90) rotate(-30)"><rect class="f-fillbox" x="-24" y="-14" width="48" height="28" rx="3" /><line class="f-vel" x1="0" y1="0" x2="39" y2="0" /><polygon class="f-velfill" points="46,0 39,-3.1 39,3.1" /><line class="f-force" x1="0" y1="0" x2="-0" y2="-27" /><polygon class="f-forcefill" points="0,-34 -3.2,-27 3.1,-27" /><circle class="f-d2fill" cx="30" cy="0" r="4" /></g><text class="t-v" x="262" y="70">marco R</text><text class="t-m" x="240" y="136">sensor</text><line class="f-dash" x1="30" y1="150" x2="200" y2="90" /><text class="t-m t-c" x="95" y="108">pose (x, y, θ)</text></svg>
+</Figura>
+
 La **pose** del robot es (x, y, θ): la posición del origen de \{R\} en \{G\} más su orientación θ,
 el ángulo del eje X de \{R\} medido desde el eje X de \{G\}.
 

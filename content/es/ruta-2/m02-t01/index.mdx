@@ -69,6 +69,10 @@ Viste que la posición de la línea sale de todas las lecturas juntas y que a ve
 pierde. Un **sensor de reflectancia** tiene un emisor de luz infrarroja y un receptor que mide
 cuánta luz vuelve del suelo. El fondo claro refleja mucho; la línea oscura refleja poco.
 
+<Figura alt="Un arreglo de cinco sensores en fila bajo una línea oscura vertical, ligeramente a la derecha del centro. Sobre cada sensor hay una barra con su lectura: bajas en los extremos y alta en el sensor bajo la línea." caption="Cada sensor da una lectura; juntas dicen dónde está la línea.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><rect class="f-line" x="158" y="20" width="20" height="100" rx="3" /><text class="t-m" x="190" y="34">línea</text><circle class="f-box" cx="100" cy="128" r="7" /><circle class="f-box" cx="130" cy="128" r="7" /><circle class="f-box" cx="160" cy="128" r="7" /><circle class="f-box" cx="190" cy="128" r="7" /><circle class="f-box" cx="220" cy="128" r="7" /><rect class="f-d1fillbox" x="94" y="114" width="12" height="2" rx="1" /><rect class="f-d1fillbox" x="124" y="106" width="12" height="10" rx="1" /><rect class="f-d1fillbox" x="154" y="72" width="12" height="44" rx="1" /><rect class="f-d1fillbox" x="184" y="98" width="12" height="18" rx="1" /><rect class="f-d1fillbox" x="214" y="114" width="12" height="2" rx="1" /><text class="t-m t-c" x="100" y="156">0</text><text class="t-m t-c" x="130" y="156">1</text><text class="t-m t-c" x="160" y="156">2</text><text class="t-m t-c" x="190" y="156">3</text><text class="t-m t-c" x="220" y="156">4</text><text class="t-m t-c" x="60" y="156">sensor</text></svg>
+</Figura>
+
 Cada lectura se normaliza a [0, 1] con 1 = «veo línea»: v<sub>k</sub> vale 1 sobre la línea, 0 sobre el fondo
 y valores intermedios cuando la huella del sensor pisa el borde.
 

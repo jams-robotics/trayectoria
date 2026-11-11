@@ -73,6 +73,10 @@ permanente. El arreglo de sensores te da la posición p de la línea. Si la quie
 **error** del controlador es esa misma posición: positivo con la línea a la derecha, negativo a la
 izquierda.
 
+<Figura alt="Un lazo cerrado de cuatro bloques en fila: sensores, controlador, ruedas y robot. Una flecha vuelve del robot a los sensores porque al moverse cambia la posición de la línea, y el lazo se repite." caption="El control en lazo cerrado: medir, corregir, mover y volver a medir.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><rect class="f-box" x="10" y="50" width="64" height="40" rx="3" /><text class="t t-c" x="42" y="67">sensores</text><text class="t-m t-c" x="42" y="81">posición p</text><line class="f-line" x1="74" y1="70" x2="89" y2="70" /><polygon class="f-fgfill" points="96,70 89,66.8 89,73.2" /><rect class="f-fillbox" x="96" y="50" width="64" height="40" rx="3" /><text class="t t-c" x="128" y="67">controlador</text><text class="t-m t-c" x="128" y="81">acción u</text><line class="f-line" x1="160" y1="70" x2="175" y2="70" /><polygon class="f-fgfill" points="182,70 175,66.8 175,73.2" /><rect class="f-box" x="182" y="50" width="64" height="40" rx="3" /><text class="t t-c" x="214" y="74">ruedas</text><line class="f-line" x1="246" y1="70" x2="261" y2="70" /><polygon class="f-fgfill" points="268,70 261,66.8 261,73.2" /><rect class="f-box" x="268" y="50" width="44" height="40" rx="3" /><text class="t t-c" x="290" y="74">robot</text><path class="f-vel" d="M290 90 L290 130 L42 130 L42 94" /><polygon class="f-velfill" points="42,92 37,102 47,102" /><text class="t-m t-c" x="166" y="148">el robot se mueve y la línea cambia de posición</text></svg>
+</Figura>
+
 El controlador convierte el error en una **acción de control** u, en rad/s, y la reparte entre las
 ruedas: a la izquierda le suma u a la velocidad base y a la derecha se la resta. Las ruedas mueven
 al robot, el robot mueve el arreglo y el arreglo mide un nuevo error. Ese circuito es un **lazo

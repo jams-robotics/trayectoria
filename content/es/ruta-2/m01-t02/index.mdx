@@ -70,6 +70,10 @@ pasa de su velocidad máxima. En la cinemática directa partías de las ruedas: 
 La **cinemática inversa** recorre el camino contrario: das la v y la ω que quieres para el robot y
 obtienes lo que debe hacer cada rueda.
 
+<Figura alt="Un diagrama de bloques. A la izquierda, la velocidad v y la velocidad angular ω que quieres. En el centro, las ecuaciones de la cinemática inversa. A la derecha, la velocidad que debe tener cada rueda." caption="La cinemática inversa convierte lo que quieres del robot en lo que debe hacer cada rueda.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><rect class="f-box" x="14" y="60" width="84" height="50" rx="3" /><text class="t t-c" x="56" y="82">quieres</text><text class="t-m t-c" x="56" y="96">v y ω del robot</text><line class="f-line" x1="98" y1="85" x2="115" y2="85" /><polygon class="f-fgfill" points="122,85 115,81.8 115,88.2" /><rect class="f-fillbox" x="122" y="60" width="84" height="50" rx="3" /><text class="t t-c" x="164" y="82">cinemática</text><text class="t-m t-c" x="164" y="96">inversa</text><line class="f-line" x1="206" y1="85" x2="223" y2="85" /><polygon class="f-fgfill" points="230,85 223,81.8 223,88.2" /><rect class="f-box" x="230" y="60" width="84" height="50" rx="3" /><text class="t t-c" x="272" y="82">cada rueda</text><text class="t-m t-c" x="272" y="96">ω izq. y ω der.</text><text class="t-m t-c" x="160" y="140">dos ecuaciones, dos incógnitas</text></svg>
+</Figura>
+
 Son dos ecuaciones con dos incógnitas. Resolverlas da algo simple: cada rueda va a la velocidad del
 centro del eje más o menos una corrección, la mitad de ω por la distancia entre ruedas. Esa
 corrección crece con el giro y con la distancia entre ruedas. Sin deslizamiento, cada rueda gira a

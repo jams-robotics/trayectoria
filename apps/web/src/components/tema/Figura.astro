@@ -1,0 +1,147 @@
+---
+// A concept figure of the «Concepto» section (docs/CONTENT-STANDARDS.md §7): an own, sober SVG that
+// the MDX writes as children. Colours come from the site tokens, so it works in light and dark;
+// the shapes are drawn with the `f-*` classes below and the text with the `t*` ones.
+interface Props {
+  /** Text alternative: what the figure shows, in one or two sentences. */
+  alt: string;
+  /** One-line caption under the figure. */
+  caption?: string;
+}
+
+const { alt, caption } = Astro.props;
+---
+
+<figure class="figura my-6 max-w-[40rem]" data-testid="figura">
+  <div role="img" aria-label={alt} class="bg-bg-raised border-border rounded-lg border p-4">
+    <slot />
+  </div>
+  {caption && <figcaption class="text-fg-muted mt-2 text-sm">{caption}</figcaption>}
+</figure>
+
+<style is:global>
+  .figura svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .figura svg :is(line, path, circle, rect, polygon) {
+    fill: none;
+    stroke: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .figura .f-line {
+    stroke: var(--color-fg);
+    stroke-width: 2;
+  }
+  .figura .f-axis {
+    stroke: var(--color-fg-muted);
+    stroke-width: 1.5;
+  }
+  .figura .f-dash {
+    stroke: var(--color-fg-muted);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 4;
+  }
+  .figura .f-box {
+    fill: var(--color-bg-raised);
+    stroke: var(--color-fg-muted);
+    stroke-width: 1.5;
+  }
+  .figura .f-fillbox {
+    fill: var(--color-bg);
+    stroke: var(--color-fg);
+    stroke-width: 2;
+  }
+  .figura .f-d1fillbox {
+    fill: var(--color-data-1);
+    fill-opacity: 0.4;
+    stroke: var(--color-data-1);
+    stroke-width: 1.5;
+  }
+  .figura .f-d2fillbox {
+    fill: var(--color-data-2);
+    fill-opacity: 0.4;
+    stroke: var(--color-data-2);
+    stroke-width: 1.5;
+  }
+  .figura .f-area {
+    fill: var(--color-data-1);
+    fill-opacity: 0.2;
+  }
+  .figura .f-gear {
+    stroke: var(--color-fg-muted);
+    stroke-width: 7;
+    stroke-dasharray: 5 4;
+  }
+  .figura .f-ticks {
+    stroke: var(--color-fg);
+    stroke-width: 6;
+    stroke-dasharray: 2 6.4;
+  }
+  .figura .f-track {
+    stroke: var(--color-fg-muted);
+    stroke-width: 16;
+  }
+  .figura .f-vel {
+    stroke: var(--color-vector-velocity);
+    stroke-width: 2.5;
+  }
+  .figura .f-force {
+    stroke: var(--color-vector-force);
+    stroke-width: 2.5;
+  }
+  .figura .f-d1 {
+    stroke: var(--color-data-1);
+    stroke-width: 2.5;
+  }
+  .figura .f-d2 {
+    stroke: var(--color-data-2);
+    stroke-width: 2.5;
+  }
+  .figura .f-velfill {
+    fill: var(--color-vector-velocity);
+  }
+  .figura .f-forcefill {
+    fill: var(--color-vector-force);
+  }
+  .figura .f-d1fill {
+    fill: var(--color-data-1);
+  }
+  .figura .f-d2fill {
+    fill: var(--color-data-2);
+  }
+  .figura .f-fgfill,
+  .figura .f-fillline {
+    fill: var(--color-fg);
+  }
+  .figura .f-mutedfill {
+    fill: var(--color-fg-muted);
+  }
+  .figura :is(.t, .t-m, .t-v, .t-f) {
+    font-family: inherit;
+    font-size: 12px;
+  }
+  .figura .t {
+    fill: var(--color-fg);
+  }
+  .figura .t-m {
+    fill: var(--color-fg-muted);
+  }
+  .figura .t-v {
+    fill: var(--color-vector-velocity);
+    font-weight: 600;
+  }
+  .figura .t-f {
+    fill: var(--color-vector-force);
+    font-weight: 600;
+  }
+  .figura .t-c {
+    text-anchor: middle;
+  }
+  .figura .t-e {
+    text-anchor: end;
+  }
+</style>
