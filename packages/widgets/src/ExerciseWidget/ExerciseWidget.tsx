@@ -1,5 +1,6 @@
+import { useId } from 'react';
 import type { JSX } from 'react';
-import type { Exercise } from '@trayectoria/sim-core';
+import type { Choices, Exercise } from '@trayectoria/sim-core';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 
@@ -131,6 +132,82 @@ function AnswerRow({ state, t }: { state: ExerciseState; t: Translate }): JSX.El
   );
 }
 
+/** The options of a multiple-choice exercise as radios; the selected index is the answer text. */
+function ChoiceOptions({
+  state,
+  choices,
+  t,
+}: {
+  state: ExerciseState;
+  choices: Choices;
+  t: Translate;
+}): JSX.Element {
+  const name = useId();
+  return (
+    <fieldset className="m-0 grid gap-2 border-0 p-0">
+      <legend className="sr-only">{t('widgets.ExerciseWidget.choices')}</legend>
+      {choices.options.map((option, position) => (
+        <label
+          key={option}
+          className="border-border hover:border-fg-muted flex cursor-pointer items-start gap-3 rounded-md border px-3 py-2 text-sm"
+        >
+          <input
+            type="radio"
+            name={name}
+            className="mt-1"
+            checked={state.values[0] === String(position)}
+            disabled={state.status === 'checking'}
+            onChange={() => {
+              state.edit(0, String(position));
+            }}
+          />
+          <span>{t(option)}</span>
+        </label>
+      ))}
+    </fieldset>
+  );
+}
+
+/**
+ * Multiple-choice exercise: options, «Comprobar», the result and, once answered, the
+ * explanation (v1.5).
+ */
+function ChoiceRow({
+  state,
+  choices,
+  t,
+}: {
+  state: ExerciseState;
+  choices: Choices;
+  t: Translate;
+}): JSX.Element {
+  const status: ExerciseStatus = state.status;
+  return (
+    <div className="mt-4">
+      <ChoiceOptions state={state} choices={choices} t={t} />
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          className={status === 'correct' ? GHOST : PRIMARY}
+          disabled={status === 'checking'}
+          onClick={state.verify}
+        >
+          {t('widgets.ExerciseWidget.verify')}
+        </button>
+        <ResultLine status={status} relativeError={state.relativeError} t={t} />
+      </div>
+      {state.invalid ? (
+        <p className="text-error mt-2 text-sm">{t('widgets.ExerciseWidget.chooseOne')}</p>
+      ) : null}
+      {status === 'correct' || status === 'incorrect' ? (
+        <p className="text-fg-muted mt-2 text-sm" data-testid="exercise-explanation">
+          {t(choices.explanation)}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 /**
  * One exercise of `defineExercise`: statement with the generated values, a numeric field per
  * answer component, verification with `check()` of sim-core and feedback (docs/WIDGETS.md,
@@ -156,12 +233,12 @@ export function ExerciseWidget<V>({
       aria-label={t('widgets.ExerciseWidget.title')}
     >
       <Statement state={state} index={index} required={required} t={t} />
-      <PrecisionNote t={t} />
-      <AnswerRow state={state} t={t} />
-      {state.invalid ? (
+      {exercise.choices === undefined ? <PrecisionNote t={t} /> : null}
+      {exercise.choices === undefined ? <AnswerRow state={state} t={t} /> : <ChoiceRow state={state} choices={exercise.choices} t={t} />}
+      {state.invalid && exercise.choices === undefined ? (
         <p className="text-error mt-2 text-sm">{t('widgets.ExerciseWidget.invalid')}</p>
       ) : null}
-      {state.status === 'incorrect' ? (
+      {state.status === 'incorrect' && exercise.choices === undefined ? (
         <p className="text-fg-muted mt-2 text-sm">
           <span data-testid="exercise-hint">{t('widgets.ExerciseWidget.hint')}</span>
           {' · '}
