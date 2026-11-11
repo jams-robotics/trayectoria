@@ -8,7 +8,7 @@ import { LaunchParams, applyChange } from './panels';
 
 // Chip of the segmented control of docs/DESIGN.md §5, as `ModeToggle`: a `border` with `sm`
 // radius, pressed in `primary` over `primary-fg`.
-const CHIP = 'h-10 px-3 text-sm font-semibold transition-colors duration-[120ms]';
+const CHIP = 'h-[44px] px-3 text-sm font-semibold transition-colors duration-[120ms]';
 const PRESSED = `${CHIP} bg-primary text-primary-fg`;
 const RELEASED = `${CHIP} text-fg-muted hover:text-fg`;
 

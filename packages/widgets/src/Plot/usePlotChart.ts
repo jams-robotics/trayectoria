@@ -112,16 +112,17 @@ function structureKey(x: PlotAxis, series: readonly PlotSeries[]): string {
 }
 
 /**
- * One array per chart that the segments plugin reads when it draws: moving a segment (a tangent
- * following the time marker) refills it and redraws instead of rebuilding the chart (#338).
+ * One array per chart that a plugin reads when it draws (segments, reference lines): moving a
+ * segment (a tangent following the time marker) or a reference line (the `P_max` of a motor)
+ * refills it and redraws instead of rebuilding the chart, which blanks it until the new one paints.
  */
-function useSegmentList(segments: readonly PlotSegment[]): { list: PlotSegment[]; key: string } {
-  const [list] = useState<PlotSegment[]>(() => []);
-  const key = JSON.stringify(segments);
+function useMutableList<T>(items: readonly T[]): { list: T[]; key: string } {
+  const [list] = useState<T[]>(() => []);
+  const key = JSON.stringify(items);
   const filledRef = useRef<string | null>(null);
   if (filledRef.current !== key) {
     filledRef.current = key;
-    list.splice(0, list.length, ...segments);
+    list.splice(0, list.length, ...items);
   }
   return { list, key };
 }
@@ -250,7 +251,7 @@ interface Structure {
   lines: readonly PlotRefLine[];
   marks: readonly PlotSegment[];
   vLines: readonly PlotVLine[];
-  /** Changes whenever a segment moves, so the chart can redraw them. */
+  /** Changes whenever a segment or a reference line moves, so the chart can redraw them. */
   marksKey: string;
 }
 
@@ -263,12 +264,20 @@ function useStructure(props: PlotProps, t: Translate): Structure {
   const shape = structureKey(x, series);
   const stableX = useStableBy(x, shape);
   const stableSeries = useStableBy(series, shape);
-  const lines = useStableBy(refLines ?? NO_REF_LINES, JSON.stringify(refLines ?? NO_REF_LINES));
+  const lineList = useMutableList(refLines ?? NO_REF_LINES);
   const vl = useStableBy(vLines ?? NO_VLINES, JSON.stringify(vLines ?? NO_VLINES));
-  const segmentList = useSegmentList(segments ?? NO_SEGMENTS);
+  const segmentList = useMutableList(segments ?? NO_SEGMENTS);
   const marks = segmentList.list.length > 0 ? segmentList.list : NO_SEGMENTS;
   const y = useMemo(() => yAxisOf(stableSeries, t), [stableSeries, t]);
-  return { x: stableX, y, series: stableSeries, lines, vLines: vl, marks, marksKey: segmentList.key };
+  return {
+    x: stableX,
+    y,
+    series: stableSeries,
+    lines: lineList.list,
+    vLines: vl,
+    marks,
+    marksKey: segmentList.key + lineList.key,
+  };
 }
 
 interface ChartOptionsInput {
@@ -361,7 +370,7 @@ export function usePlotChart(props: PlotProps, t: Translate): ChartState {
   });
   useEffect(() => {
     push(chartRef.current);
-  }, [chartRef, push, data, isLive, xRange, options]);
+  }, [chartRef, push, data, isLive, xRange, options, structure.marksKey]);
   useEffect(() => {
     chartRef.current?.redraw(false);
   }, [chartRef, structure.marksKey]);

@@ -8,7 +8,7 @@ const COUNTS: readonly MotorCount[] = [1, 2];
 
 // Chip version of the segmented control of docs/DESIGN.md §5: container with a `border` and
 // `sm` radius, children split by an inner border, active in `primary` over `primary-fg`.
-const CHIP = 'h-10 px-3 font-mono text-sm font-semibold transition-colors duration-[120ms]';
+const CHIP = 'h-[44px] px-3 font-mono text-sm font-semibold transition-colors duration-[120ms]';
 const ACTIVE = `${CHIP} bg-primary text-primary-fg`;
 const INACTIVE = `${CHIP} text-fg-muted hover:text-fg`;
 

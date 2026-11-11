@@ -65,7 +65,7 @@ function usePauseWhenDone(
   const end_m = trackLength_m(ramp);
   const done = driver.state.v_mps <= 0 || driver.state.s_m >= end_m;
   useEffect(() => {
-    if (done && driver.running) driver.pause();
+    if (done && driver.running) driver.finish();
   }, [done, driver]);
 }
 

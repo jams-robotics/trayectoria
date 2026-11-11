@@ -1,6 +1,7 @@
 import type uPlot from 'uplot';
 
 import type { PlotRefLine, PlotSegment, PlotVLine, PlotSeries, PlotAxis } from './types';
+import { fillSubscriptText } from '../Scene2D/subscriptText';
 import { SERIES_DASHES, seriesColor } from '../shared/theme';
 import type { PlotTheme } from '../shared/theme';
 
@@ -16,6 +17,8 @@ export const AXIS_LABEL_FONT = AXIS_FONT;
 const REF_LINE_DASH_PX = [6, 4];
 /** Gap between a reference line and its label, in CSS pixels. */
 const REF_LINE_LABEL_GAP_PX = 6;
+/** Share of the y span left above a reference line that sits at the top of the data. */
+const TOP_LINE_HEADROOM_RATIO = 0.3;
 /** Stroke width of a segment, in CSS pixels; as thick as a series (docs/DESIGN.md §5). */
 const SEGMENT_WIDTH_PX = 2;
 /** Palette index a segment takes when it names no token (docs/DESIGN.md §2.2). */
@@ -192,16 +195,17 @@ function yRange(refLines: readonly PlotRefLine[]): uPlot.Range.Function {
     const values = refLines.map((line) => line.y);
     const min = Math.min(dataMin, ...values);
     const max = Math.max(dataMax, ...values);
-    return uPlotRangeFallback(min, max);
+    // A line at the top of the data (a maximum such as `P_max`) gets room for its label above it.
+    const topPadRatio = values.some((value) => value >= dataMax) ? TOP_LINE_HEADROOM_RATIO : 0.1;
+    return uPlotRangeFallback(min, max, topPadRatio);
   };
 }
 
 /** Pads a range and keeps it non-degenerate (uPlot rejects min === max). */
-function uPlotRangeFallback(min: number, max: number): [number, number] {
+function uPlotRangeFallback(min: number, max: number, topPadRatio = 0.1): [number, number] {
   if (!Number.isFinite(min) || !Number.isFinite(max)) return [0, 1];
   if (min === max) return [min - 1, max + 1];
-  const pad = (max - min) * 0.1;
-  return [min - pad, max + pad];
+  return [min - (max - min) * 0.1, max + (max - min) * topPadRatio];
 }
 
 /**
@@ -246,7 +250,7 @@ export function refLinesPlugin(refLines: readonly PlotRefLine[], theme: PlotThem
           // the clip above would cut it (docs/WIDGETS.md, Plot).
           const fitsAbove = y - gap / 3 - fontHeight >= top;
           ctx.textBaseline = fitsAbove ? 'bottom' : 'top';
-          ctx.fillText(line.label, left + gap, fitsAbove ? y - gap / 3 : y + gap / 3);
+          fillSubscriptText(ctx, line.label, left + gap, fitsAbove ? y - gap / 3 : y + gap / 3);
         }
         ctx.restore();
       },

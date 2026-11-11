@@ -312,8 +312,7 @@ describe('ExerciseWidget (F2-10)', () => {
   test('the statement, the E prefix and the required tag come from i18n keys', () => {
     renderScalar();
 
-    expect(screen.getByText('E1')).toBeInTheDocument();
-    expect(screen.getByText('obligatorio')).toBeInTheDocument();
+    expect(screen.getByText('E1 · obligatorio')).toBeInTheDocument();
     // Values rounded to 4 significant figures before interpolation (#94, decision 4).
     expect(screen.getByTestId('exercise-statement')).toHaveTextContent('7.608 m');
     expect(screen.getByTestId('exercise-statement')).toHaveTextContent('0.3925 m/s');

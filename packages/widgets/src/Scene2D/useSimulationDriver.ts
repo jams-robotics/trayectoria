@@ -50,6 +50,11 @@ export interface SimulationDriver<S> {
   running: boolean;
   play: () => void;
   pause: () => void;
+  /**
+   * Pauses because the run ended or stopped on its own (landed, out of track, line lost). The next
+   * `play` then restarts the run from `t_s = 0` instead of resuming a run that has nowhere to go.
+   */
+  finish: () => void;
   /** Advances exactly one `dt_s` of the simulation, pausing it first. */
   step: () => void;
   /** Returns the simulation to its initial state, paused at `t_s = 0`. */
@@ -69,9 +74,24 @@ interface Snapshot<S> {
 interface Actions {
   play: () => void;
   pause: () => void;
+  finish: () => void;
   step: () => void;
   reset: () => void;
   setSpeed: (speed: number) => void;
+}
+
+/** The speed action: clamps through the simulation and shows the value it kept. */
+function useSpeedSetter<S, I>(
+  sim: Simulation<S, I>,
+  setSpeedState: (speed: number) => void,
+): (speed: number) => void {
+  return useCallback(
+    (next: number): void => {
+      sim.setSpeed(next);
+      setSpeedState(sim.speed);
+    },
+    [sim, setSpeedState],
+  );
 }
 
 /** Builds the playback actions over `sim`; `publish` pushes its state to React. */
@@ -82,38 +102,46 @@ function useActions<S, I>(
   setSpeedState: (speed: number) => void,
   lastAdvance_ms: React.RefObject<number | null>,
 ): Actions {
+  // Set by `finish`, cleared by anything that moves the run again.
+  const finished = useRef(false);
   const pause = useCallback((): void => {
     sim.pause();
     setRunning(false);
   }, [sim, setRunning]);
 
+  const finish = useCallback((): void => {
+    finished.current = true;
+    pause();
+  }, [pause]);
+
   const play = useCallback((): void => {
+    if (finished.current) {
+      finished.current = false;
+      sim.reset();
+      publish();
+    }
     // The next frame becomes the new origin of time, so a long pause is not integrated at once.
     lastAdvance_ms.current = null;
     setRunning(true);
-  }, [setRunning, lastAdvance_ms]);
+  }, [sim, publish, setRunning, lastAdvance_ms]);
 
   const step = useCallback((): void => {
+    finished.current = false;
     pause();
     sim.step(1);
     publish();
   }, [sim, pause, publish]);
 
   const reset = useCallback((): void => {
+    finished.current = false;
     pause();
     sim.reset();
     publish();
   }, [sim, pause, publish]);
 
-  const setSpeed = useCallback(
-    (next: number): void => {
-      sim.setSpeed(next);
-      setSpeedState(sim.speed);
-    },
-    [sim, setSpeedState],
-  );
+  const setSpeed = useSpeedSetter(sim, setSpeedState);
 
-  return { play, pause, step, reset, setSpeed };
+  return { play, pause, finish, step, reset, setSpeed };
 }
 
 /**

@@ -1,10 +1,9 @@
 import type { JSX } from 'react';
-import type { Translate } from '@trayectoria/i18n';
 
-import { Scene2D } from '../Scene2D/Scene2D';
 import { Circle } from '../Scene2D/primitives/Circle';
 import { Label } from '../Scene2D/primitives/Label';
 import { Trace } from '../Scene2D/primitives/Trace';
+import { boundsOf } from './chain';
 import { angleAt, pitchRadius_m, shaftSpeeds } from './compute';
 import type { GearStages, Train } from './compute';
 import { animationScale } from './rows';
@@ -15,10 +14,6 @@ const TOOTH_HEIGHT_FACTOR = 0.14;
 const TOOTH_WIDTH_SHARE = 0.5;
 /** Radius of the hub drawn at the centre of a gear, as a share of the pitch radius. */
 const HUB_FACTOR = 0.18;
-/** Margin around the train, as a share of the widest gear radius (#91, decision 3). */
-const MARGIN_FACTOR = 0.6;
-/** Width over height of the view: the train grows sideways, so a wide strip fits it. */
-const SCENE_ASPECT = 16 / 9;
 /** Radius of the ring that marks the front gear of a shared shaft, as a share of its pitch radius. */
 const RING_FACTOR = 1 - 2 * TOOTH_HEIGHT_FACTOR;
 
@@ -153,34 +148,7 @@ export function drawnGears(
   return gears;
 }
 
-/** Smallest box in metres that holds every gear: `[left, right, bottom, top]`. */
-function boundsOf(gears: readonly DrawnGear[]): readonly [number, number, number, number] {
-  let left_m = 0;
-  let right_m = 0;
-  let bottom_m = 0;
-  let top_m = 0;
-  gears.forEach(({ centre_m, radius_m }) => {
-    left_m = Math.min(left_m, centre_m[0] - radius_m);
-    right_m = Math.max(right_m, centre_m[0] + radius_m);
-    bottom_m = Math.min(bottom_m, centre_m[1] - radius_m);
-    top_m = Math.max(top_m, centre_m[1] + radius_m);
-  });
-  return [left_m, right_m, bottom_m, top_m];
-}
-
-/**
- * Width of the scene in metres: the whole train plus a margin around it (#91, decision 3). A
- * train taller than the strip is fitted by its height instead, so no gear is cut off.
- */
-export function worldWidthOf(gears: readonly DrawnGear[]): number {
-  const [left_m, right_m, bottom_m, top_m] = boundsOf(gears);
-  const margin_m = MARGIN_FACTOR * Math.max(...gears.map(({ radius_m }) => radius_m), 0);
-  const byWidth_m = right_m - left_m + margin_m;
-  const byHeight_m = (top_m - bottom_m + margin_m) * SCENE_ASPECT;
-  return Math.max(byWidth_m, byHeight_m, MARGIN_FACTOR);
-}
-
-/** Centre of the view: the midpoint of the box that holds the train, so it sits centred. */
+/** Centre of the box that holds the train, the point the label of each gear is pushed away from. */
 export function sceneCentre(gears: readonly DrawnGear[]): [number, number] {
   const [left_m, right_m, bottom_m, top_m] = boundsOf(gears);
   return [(left_m + right_m) / 2, (bottom_m + top_m) / 2];
@@ -206,7 +174,7 @@ export function labelAnchor(
 }
 
 /** One gear: its toothed rim, the hub of its shaft and the label with its tooth count. */
-function Gear({
+export function Gear({
   gear,
   viewCentre_m,
 }: {
@@ -234,37 +202,5 @@ function Gear({
       ) : null}
       <Label at_m={labelAnchor(gear, viewCentre_m)} text={gear.label} align={gear.labelAlign} />
     </>
-  );
-}
-
-export interface GearSceneProps {
-  stages: GearStages;
-  train: Train;
-  t_s: number;
-  t: Translate;
-  /** Label of each gear, already translated: `z1 = 12` and so on. */
-  labels: readonly string[];
-}
-
-/**
- * The meshed train: each gear is a closed polygon of `z` teeth of pitch radius `r = m z / 2`,
- * with its centre a sum of radii away from the one it meshes with (#91, decision 3). The rim
- * colours are `data-1` to `data-4`, each one with the label of its tooth count next to it, so
- * colour is never the only channel (docs/DESIGN.md §2.2).
- */
-export function GearScene({ stages, train, t_s, t, labels }: GearSceneProps): JSX.Element {
-  const gears = drawnGears(stages, train, t_s, labels);
-  const centre_m = sceneCentre(gears);
-  return (
-    <Scene2D
-      worldWidth_m={worldWidthOf(gears)}
-      center_m={centre_m}
-      aspect={SCENE_ASPECT}
-      description={t(`widgets.GearWidget.scene${stages === 1 ? 'One' : 'Two'}`)}
-    >
-      {gears.map((gear, index) => (
-        <Gear key={index} gear={gear} viewCentre_m={centre_m} />
-      ))}
-    </Scene2D>
   );
 }

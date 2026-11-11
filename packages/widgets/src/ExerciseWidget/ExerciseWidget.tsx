@@ -43,7 +43,7 @@ function announcement(state: ExerciseState, t: Translate): string {
   return [line, hint, attempt, ...(solution === null ? [] : [solution])].join(' · ');
 }
 
-/** Statement of the instance, with the `E{n}` prefix and the «obligatorio» tag when they apply. */
+/** Statement of the instance, under one line with the `E{n}` number and «obligatorio» when they apply. */
 function Statement({
   state,
   index,
@@ -55,18 +55,18 @@ function Statement({
   required: boolean;
   t: Translate;
 }): JSX.Element {
+  const number = index === undefined ? null : t('widgets.ExerciseWidget.number', { n: index });
+  const tag = required ? t('widgets.ExerciseWidget.required') : null;
+  const header = [number, tag].filter((part) => part !== null).join(' · ');
   return (
-    <p className="text-fg flex flex-wrap items-baseline gap-2 text-base">
-      {index === undefined ? null : (
-        <span className="text-fg-muted font-mono text-xs">
-          {t('widgets.ExerciseWidget.number', { n: index })}
-        </span>
+    <div className="text-fg flex flex-col gap-1">
+      {header === '' ? null : (
+        <p className="text-fg-muted m-0 font-mono text-xs leading-none">{header}</p>
       )}
-      <span data-testid="exercise-statement">{withSubscripts(t(state.statementKey, state.params))}</span>
-      {required ? (
-        <span className="text-fg-muted text-xs">{t('widgets.ExerciseWidget.required')}</span>
-      ) : null}
-    </p>
+      <p className="m-0 text-base" data-testid="exercise-statement">
+        {withSubscripts(t(state.statementKey, state.params))}
+      </p>
+    </div>
   );
 }
 
@@ -250,7 +250,7 @@ export function ExerciseWidget<V>({
 
   return (
     <section
-      className="bg-bg-raised border-border rounded-lg border p-6"
+      className="bg-bg-raised border-border rounded-lg border px-6 pt-4 pb-6"
       data-testid="exercise"
       data-status={state.status}
       aria-label={t('widgets.ExerciseWidget.title')}

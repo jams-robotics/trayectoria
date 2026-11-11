@@ -159,7 +159,8 @@ describe('energy bars (F2-07)', () => {
 describe('ramp scene geometry (F2-07)', () => {
   test('the view is wider than the track the body may cover', () => {
     expect(worldWidthOf(RAMP)).toBeGreaterThan(0.3);
-    expect(sceneCentre(RAMP)[0]).toBeCloseTo(worldWidthOf(RAMP) / 2, 12);
+    // Shifted by a body so the one at the start is not cut by the left edge.
+    expect(sceneCentre(RAMP)[0]).toBeCloseTo(worldWidthOf(RAMP) / 2 - 0.06, 12);
   });
 
   test('the track is flat up to the foot and then climbs at `φ`', () => {
