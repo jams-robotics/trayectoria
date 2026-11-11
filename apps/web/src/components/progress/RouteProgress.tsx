@@ -21,6 +21,8 @@ function labelOf(state: TopicState, t: Translate): string {
   return t('progress.status.pending');
 }
 
+// v1.5: of the pending topics only the first one is flagged («Sigue aquí»); the others show no text,
+// only a visually hidden «Pendiente» for screen readers, instead of a column of identical words.
 // Status indicator (#532): the state changes only from the system, so it must not look like a
 // control. A colour dot for "en curso", a tenue check for "hecho", nothing but the text for
 // "pendiente" (docs/DESIGN.md §2.1 tokens; DESIGN.md §9 point 11: state is never colour alone,
@@ -31,25 +33,51 @@ const CHECK = 'text-success/60 shrink-0 text-base leading-none';
 export interface TopicStatusProps {
   /** Topic id (`ruta-1/m00-t01`). */
   readonly topicId: string;
+  /** Ids of the route's topics in order, to find the first one that is not completed. */
+  readonly topicIds: readonly string[];
+}
+
+/** Text of a topic's state: the flag on the next topic, nothing visible on the other pending ones. */
+function StatusText({
+  label,
+  state,
+  pointer,
+}: {
+  label: string;
+  state: TopicState;
+  pointer: boolean;
+}): JSX.Element {
+  const t = useT();
+  if (state === 'pending' && !pointer) return <span className="sr-only">{label}</span>;
+  return (
+    <span className={pointer ? 'text-primary text-sm font-semibold' : 'text-fg-muted text-sm'}>
+      {pointer ? t('progress.status.next') : label}
+    </span>
+  );
 }
 
 /**
  * State of a topic in the route index: the text plus a non-interactive indicator (#532).
  * The server renders it pending; the island hydrates from `$progress`.
  */
-export function TopicStatus({ topicId }: TopicStatusProps): JSX.Element {
+export function TopicStatus({ topicId, topicIds }: TopicStatusProps): JSX.Element {
   const t = useT();
-  const state = stateOf(useProgress()[topicId]);
+  const progress = useProgress();
+  const state = stateOf(progress[topicId]);
   const label = labelOf(state, t);
+  const pointer =
+    state === 'pending' && topicIds.find((id) => progress[id]?.status !== 'completed') === topicId;
   return (
     <span
-      className="ml-auto flex items-center gap-2"
+      className="ml-auto flex min-w-12 items-center justify-end gap-2"
       data-testid="topic-status"
       data-topic={topicId}
       data-state={state}
     >
-      <span className="text-fg-muted text-sm">{label}</span>
-      {state === 'in_progress' && <span className={DOT} title={label} aria-hidden="true" />}
+      <StatusText label={label} state={state} pointer={pointer} />
+      {(state === 'in_progress' || pointer) && (
+        <span className={DOT} title={label} aria-hidden="true" />
+      )}
       {state === 'completed' && (
         <span className={CHECK} title={label} aria-hidden="true">
           ✓

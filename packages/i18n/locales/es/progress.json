@@ -6,6 +6,7 @@
   "status": {
     "pending": "Pendiente",
     "inProgress": "En curso",
+    "next": "Sigue aquí",
     "completed": "Completado"
   },
   "route": {
