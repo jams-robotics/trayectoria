@@ -6,11 +6,8 @@ import Base from '../../layouts/Base.astro';
 ---
 
 <Base title={t('auth.register.title')}>
-  <section class="mx-auto max-w-[1120px] px-5 py-11 md:px-8">
-    <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
-      {t('auth.register.eyebrow')}
-    </p>
-    <h1 class="text-2xl leading-tight mt-4 font-semibold">{t('auth.register.title')}</h1>
+  <section class="mx-auto max-w-site px-5 py-11 md:px-8">
+    <h1 class="text-2xl leading-tight font-semibold">{t('auth.register.title')}</h1>
     <div class="mt-7 max-w-[480px]">
       <RegisterForm client:visible />
     </div>

@@ -33,27 +33,24 @@
     "lead": "Ruta abierta y en español para estudiantes de ingeniería que construyen su primer robot móvil. Cada tema termina en un cálculo con tu robot y en un simulador que corre en tu navegador. Sin cuenta para empezar.",
     "startRoute": "Empezar la ruta",
     "tryTopic": "Prueba un tema en 3 minutos",
+    "firstTime": "¿Primera vez? Empieza aquí",
     "tagline": "Open source · en español · sin cuenta para empezar",
     "route": {
       "topicCount": "{{topics}} temas"
     },
     "features": {
       "widgets": {
-        "title": "Visualizaciones manipulables",
+        "title": "Entiendes cada fórmula moviéndola",
         "text": "Cada concepto va junto a un widget: mueves un parámetro y ves qué cambia, con el número y su unidad."
       },
       "simulators": {
-        "title": "Dos simuladores",
-        "text": "Un robot móvil 2D con sensores y controlador, y un brazo 3D con cinemática directa. Corren en laptops modestas."
+        "title": "Pruebas tu robot sin construirlo",
+        "text": "Un robot móvil 2D con sensores y controlador, y un brazo 3D con cinemática directa. Corren en tu navegador, incluso en laptops modestas."
       },
       "myRobot": {
-        "title": "Mi robot, de principio a fin",
+        "title": "Calculas con tu propio robot",
         "text": "Los parámetros que defines en el primer tema (masa, radio de rueda, sensores) acompañan cada ejercicio y simulación de las dos rutas."
       }
-    },
-    "rigor": {
-      "text": "Cada tema se contrasta con la bibliografía universitaria y pasa auditorías de física, matemática y robótica.",
-      "link": "Los hallazgos y sus correcciones son públicos."
     },
     "teachers": {
       "eyebrow": "Para docentes",
