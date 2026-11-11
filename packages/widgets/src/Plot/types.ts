@@ -52,6 +52,15 @@ export interface PlotMarker {
   label?: string;
 }
 
+/**
+ * Vertical rule with a label at a given x, such as a lap or a curve (v1.5). Drawn dashed over
+ * the plot area; `label` is caller data and is painted as given.
+ */
+export interface PlotVLine {
+  x: number;
+  label: string;
+}
+
 export interface PlotProps {
   x: PlotAxis;
   series: readonly PlotSeries[];
@@ -62,4 +71,11 @@ export interface PlotProps {
   /** Plot area height in CSS pixels; 200 in a simulator (docs/DESIGN.md §5). */
   height?: number;
   marker?: PlotMarker;
+  /** Labelled vertical rules (laps, curves) at given x values (v1.5). */
+  vLines?: readonly PlotVLine[];
+  /**
+   * Value readout under the pointer and with the arrow keys (v1.5). On by default; `false`
+   * turns it off.
+   */
+  readout?: boolean;
 }

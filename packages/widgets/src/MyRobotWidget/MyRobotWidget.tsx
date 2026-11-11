@@ -19,6 +19,12 @@ export interface MyRobotWidgetProps {
   mode: MyRobotMode;
   /** Where «Editar» of the card points; the account page by default. */
   editHref?: string;
+  /**
+   * Paths of the only fields the form shows (`wheelRadius_m`, `maxMotorSpeed_rpm`, …; see
+   * `RobotField.key`). Without it the whole form shows. The name, the derived block and the
+   * groups left empty are hidden; the fields not listed keep their saved value (v1.5).
+   */
+  fields?: readonly string[];
 }
 
 const BUTTON =
@@ -124,7 +130,7 @@ function Actions({ form, t }: { form: MyRobotFormState; t: Translate }): JSX.Ele
 }
 
 /** The editable form of «Mi robot»: every field of `MobileSpec`, grouped (decision 4). */
-function MyRobotForm({ t }: { t: Translate }): JSX.Element {
+function MyRobotForm({ t, fields }: { t: Translate; fields?: readonly string[] | undefined }): JSX.Element {
   const form = useMyRobotForm({
     saved: t('widgets.MyRobotWidget.saved'),
     resetDone: t('widgets.MyRobotWidget.resetDone'),
@@ -140,11 +146,16 @@ function MyRobotForm({ t }: { t: Translate }): JSX.Element {
         form.save();
       }}
     >
-      <NameField form={form} t={t} />
-      {FIELD_GROUPS.map((group) => (
-        <Group key={group.id} group={group} form={form} t={t} />
-      ))}
-      <Derived form={form} t={t} />
+      {fields === undefined ? <NameField form={form} t={t} /> : null}
+      {FIELD_GROUPS.map((group) => ({
+        ...group,
+        fields: group.fields.filter((field) => fields === undefined || fields.includes(field.key)),
+      }))
+        .filter((group) => group.fields.length > 0)
+        .map((group) => (
+          <Group key={group.id} group={group} form={form} t={t} />
+        ))}
+      {fields === undefined ? <Derived form={form} t={t} /> : null}
       <Actions form={form} t={t} />
       {form.notice === null ? null : (
         <Toast message={form.notice.message} tone={form.notice.tone} onClose={form.dismiss} />
@@ -158,9 +169,9 @@ function MyRobotForm({ t }: { t: Translate }): JSX.Element {
  * learner, and the card that summarises it wherever a topic mentions it. Both read the same
  * store, so saving in the form updates every widget on the page (#95, decisions 4 to 6).
  */
-export function MyRobotWidget({ mode, editHref = '/cuenta' }: MyRobotWidgetProps): JSX.Element {
+export function MyRobotWidget({ mode, editHref = '/cuenta', fields }: MyRobotWidgetProps): JSX.Element {
   const t = useT();
   const robot = useMyRobot();
   if (mode === 'card') return <RobotCard robot={robot} editHref={editHref} t={t} />;
-  return <MyRobotForm t={t} />;
+  return <MyRobotForm t={t} fields={fields} />;
 }

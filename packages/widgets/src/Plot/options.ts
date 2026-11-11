@@ -1,6 +1,6 @@
 import type uPlot from 'uplot';
 
-import type { PlotRefLine, PlotSegment, PlotSeries, PlotAxis } from './types';
+import type { PlotRefLine, PlotSegment, PlotVLine, PlotSeries, PlotAxis } from './types';
 import { SERIES_DASHES, seriesColor } from '../shared/theme';
 import type { PlotTheme } from '../shared/theme';
 
@@ -25,7 +25,8 @@ const SEGMENT_LABEL_GAP_PX = 6;
 
 /** Axis title: label and unit, `t (s)` (docs/WIDGETS.md, docs/DESIGN.md §5). */
 export function axisTitle(axis: PlotAxis): string {
-  return `${axis.label} (${axis.unit})`;
+  if (axis.unit === '') return axis.label;
+  return axis.label === '' ? axis.unit : `${axis.label} (${axis.unit})`;
 }
 
 /**
@@ -106,6 +107,8 @@ export interface BuildOptionsInput {
   refLines: readonly PlotRefLine[];
   /** Straight segments drawn over the plot area (#87, decision 5). */
   segments?: readonly PlotSegment[];
+  /** Labelled vertical rules (v1.5). */
+  vLines?: readonly PlotVLine[];
   /** Fixed x range of the sliding window in live mode; omitted for a static plot. */
   xRange?: readonly [number, number];
   /**
@@ -148,13 +151,14 @@ function plotAreaPlugin(onPlotArea: (area: PlotArea) => void): uPlot.Plugin {
  * reference line above every sample stays visible.
  */
 export function buildOptions(input: BuildOptionsInput): uPlot.Options {
-  const { x, y, series, theme, width_px, height_px, refLines, segments, xRange, onPlotArea } = input;
+  const { x, y, series, theme, width_px, height_px, refLines, segments, vLines, xRange, onPlotArea } = input;
   const scales: uPlot.Scales = {
     x: xRange === undefined ? { time: false } : { time: false, range: [xRange[0], xRange[1]] },
     y: { range: yRange(refLines) },
   };
   const plugins = [
     refLinesPlugin(refLines, theme),
+    ...(vLines === undefined || vLines.length === 0 ? [] : [vLinesPlugin(vLines, theme)]),
     ...(segments === undefined || segments.length === 0 ? [] : [segmentsPlugin(segments, theme)]),
     ...(onPlotArea === undefined ? [] : [plotAreaPlugin(onPlotArea)]),
   ];
@@ -236,6 +240,45 @@ export function refLinesPlugin(refLines: readonly PlotRefLine[], theme: PlotThem
           const fitsAbove = y - gap / 3 - fontHeight >= top;
           ctx.textBaseline = fitsAbove ? 'bottom' : 'top';
           ctx.fillText(line.label, left + gap, fitsAbove ? y - gap / 3 : y + gap / 3);
+        }
+        ctx.restore();
+      },
+    },
+  };
+}
+
+/**
+ * Draws the labelled vertical rules at their x (v1.5): dashed like `refLines`, with the label
+ * at the top, to the right of the rule, or to its left when it would run past the plot area.
+ */
+export function vLinesPlugin(vLines: readonly PlotVLine[], theme: PlotTheme): uPlot.Plugin {
+  return {
+    hooks: {
+      draw: (self: uPlot) => {
+        const { ctx } = self;
+        const { left, top, width, height } = self.bbox;
+        const ratio = self.width === 0 ? 1 : self.ctx.canvas.width / self.width;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(left, top, width, height);
+        ctx.clip();
+        ctx.setLineDash(REF_LINE_DASH_PX.map((segment) => segment * ratio));
+        ctx.lineWidth = AXIS_WIDTH_PX * ratio;
+        ctx.strokeStyle = theme.axis;
+        ctx.fillStyle = theme.label;
+        ctx.font = `${AXIS_FONT_SIZE_PX * ratio}px ui-monospace, monospace`;
+        ctx.textBaseline = 'top';
+        const gap = REF_LINE_LABEL_GAP_PX * ratio;
+        for (const line of vLines) {
+          const x = self.valToPos(line.x, 'x', true);
+          if (!Number.isFinite(x) || x < left || x > left + width) continue;
+          ctx.beginPath();
+          ctx.moveTo(x, top);
+          ctx.lineTo(x, top + height);
+          ctx.stroke();
+          const fitsRight = x + gap + ctx.measureText(line.label).width <= left + width;
+          ctx.textAlign = fitsRight ? 'left' : 'right';
+          ctx.fillText(line.label, fitsRight ? x + gap / 2 : x - gap / 2, top + gap / 3);
         }
         ctx.restore();
       },
