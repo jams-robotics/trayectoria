@@ -241,6 +241,7 @@ interface LineFollowerWidgetProps {
   compact?: boolean;
   showPlots?: Array<'error' | 'v' | 'omega' | 'pid'>;
   noiseSigma?: number;
+  targetLap_s?: number;
   startPose?: StartPose;
   onStartPoseChange?: (pose: StartPose) => void;
   onApi?: (api: LineFollowerApi) => void;
@@ -264,7 +265,7 @@ Parámetros de `initialParams` (#396). Las claves son las del código, no los s�
 - `compact` oculta el selector de controlador, los sliders y las lecturas. Un tema cuyo Explora cambia el controlador o una ganancia no la usa.
 - Motor: el modelo del seguidor usa la respuesta de primer orden del motor (`ARCHITECTURE.md` §4.1, `MOTOR_TIME_CONSTANT_S`). Por eso P oscila con ganancia alta y D la amortigua.
 
-En el mapa MDX (#396), el tema escribe solo props serializables: `track` (nombre de preset o JSON de pista en texto), `controller`, `initialParams`, `compact`, `showPlots`, `noiseSigma` y `seed`. El robot sale de `useMyRobot()`. El componente vive en `packages/sims`, así que el ticket que lo añade al mapa crea una entrada propia del paquete para él, además de su entrada en `widgetRegistry.ts` y del envoltorio `catalog/LineFollowerWidget.astro`.
+En el mapa MDX (#396), el tema escribe solo props serializables: `track` (nombre de preset o JSON de pista en texto), `controller`, `initialParams`, `compact`, `showPlots`, `noiseSigma`, `targetLap_s` (tiempo objetivo de vuelta propio del tema, en segundos; sin él, el de fábrica de la pista) y `seed`. El robot sale de `useMyRobot()`. El componente vive en `packages/sims`, así que el ticket que lo añade al mapa crea una entrada propia del paquete para él, además de su entrada en `widgetRegistry.ts` y del envoltorio `catalog/LineFollowerWidget.astro`.
 
 `renderPanel` envuelve la columna del panel de controlador y `renderViewer` la del visor, para que una página decida qué las rodea sin tocar el DOM del widget: es lo que permite plegar el panel en un acordeón móvil (F4-02b) y alternar visor y editor de pista en la misma caja (#158). `hideControls` oculta los controles de reproducción cuando la página los pone en su barra inferior fija (F4-02b). `seed` fija la semilla del ruido del sensor y es la que viaja en el enlace compartido (#131); cambiarla reconstruye la simulación pausada en `t = 0`. `showPlots` es operativa desde F4-03 (#129): elige cuáles de las cuatro gráficas en vivo se pintan (`'error'`, `'v'`, `'omega'`, `'pid'`); sin la prop no se dibuja ninguna.
 

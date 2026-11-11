@@ -76,6 +76,8 @@ export interface LineFollowerWidgetProps {
   onInstruments?: (instruments: LiveInstruments) => void;
   /** Standard deviation of the sensor noise; without it the readings are exact. */
   noiseSigma?: number;
+  /** Lap target of this use of the widget, in seconds; without it, the factory target of the track. */
+  targetLap_s?: number;
   /**
    * Pose the run starts from (F4-02b, #128, decision 2). Without it the robot starts at the
    * beginning of the track, exactly as in F4-02a. Changing it rebuilds the simulation, so the
@@ -254,7 +256,7 @@ export function LineFollowerWidget(props: LineFollowerWidgetProps): JSX.Element 
         <Viewer
           {...{ api, spec, compact, hideControls, instruments }}
           track={resolved}
-          goal={goalOf(props.track, resolved)}
+          goal={goalOf(props.track, resolved, props.targetLap_s)}
           handle={handleOf(props.startPose, props.onStartPoseChange)}
         />
       }

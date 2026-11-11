@@ -22,12 +22,17 @@ export interface LapGoalTrack {
   readonly target_s?: number;
 }
 
-/** The record key of a track: its preset name, or its length in millimetres when it is custom. */
-export function goalOf(track: TrackJson, resolved: Track): LapGoalTrack {
+/**
+ * The record key of a track: its preset name, or its length in millimetres when it is custom. A
+ * positive `target_s` replaces the factory target (a topic that sets its own challenge).
+ */
+export function goalOf(track: TrackJson, resolved: Track, target_s?: number): LapGoalTrack {
+  const own =
+    target_s !== undefined && Number.isFinite(target_s) && target_s > 0 ? { target_s } : {};
   // Own keys only: a track name is outside input and must not reach the prototype of the table.
   if (typeof track === 'string' && Object.hasOwn(TARGET_LAP_S, track)) {
-    const target_s = TARGET_LAP_S[track];
-    if (target_s !== undefined) return { key: track, target_s };
+    const factory_s = TARGET_LAP_S[track];
+    if (factory_s !== undefined) return { key: track, target_s: factory_s, ...own };
   }
-  return { key: `custom:${String(Math.round(trackLength_m(resolved) * 1000))}` };
+  return { key: `custom:${String(Math.round(trackLength_m(resolved) * 1000))}`, ...own };
 }

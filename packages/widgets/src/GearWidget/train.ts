@@ -60,9 +60,13 @@ export interface TrainLayout {
   view: { worldWidth_m: number; center_m: [number, number] };
 }
 
-/** Teeth drawn for a gear of `z` teeth. */
+/** The most teeth the scene draws on one gear: the count of an 80 tooth gear, the slider's top. */
+const MAX_DRAWN_TEETH = 40;
+
+/** Teeth drawn for a gear of `z` teeth: bounded, whatever `z` the topic was written with. */
 export function drawnTeeth(z: number): number {
-  return Math.max(MIN_DRAWN_TEETH, Math.round(z * DRAWN_TEETH_SHARE));
+  if (!Number.isFinite(z)) return MIN_DRAWN_TEETH;
+  return Math.min(MAX_DRAWN_TEETH, Math.max(MIN_DRAWN_TEETH, Math.round(z * DRAWN_TEETH_SHARE)));
 }
 
 /** Direction each label goes, per gear: away from its neighbours and from the values above. */
