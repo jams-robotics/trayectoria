@@ -152,8 +152,9 @@ function Values({
         onTheta={thetaHandler(timeline)}
         extraRows={maneuverRows(maneuver, t)}
         t={t}
-      />
-      <OdometryReadouts odometry={odometry} real={readout.pose} t={t} />
+      >
+        <OdometryReadouts odometry={odometry} real={readout.pose} t={t} />
+      </PosePanel>
       <LiveStatus text={maneuverStatusOf(statusOf(readout, t), maneuver?.phase ?? null, t)} />
     </>
   );
@@ -246,6 +247,8 @@ export function DiffDriveWidget(props: DiffDriveWidgetProps): JSX.Element {
     useDiffDrive(props, t);
   return (
     <SimLayout
+      // Odometry and frames put three panels beside the viewer: let them grow, not scroll.
+      sticky={mode !== 'odometry' && !show.includes('frames')}
       viewer={
         <>
           <DiffDriveScene

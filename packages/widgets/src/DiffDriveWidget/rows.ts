@@ -46,6 +46,9 @@ export function radiusText(twist: Twist, t: Translate): string {
   return format(radius_m, t('widgets.DiffDriveWidget.unitM'));
 }
 
+/** Rows of the pose panel that stay in view: `x, y, θ, v, ω` (v1.5). */
+export const POSE_ESSENTIAL_ROWS = 5;
+
 /** The pose, the twist, the radius and the wheel commands: the panel of #92, decision 6. */
 export function poseRows(readout: Readout, spec: MobileSpec, t: Translate): readonly ReadoutRow[] {
   const key = (name: string): string => t(`widgets.DiffDriveWidget.${name}`);
@@ -55,9 +58,10 @@ export function poseRows(readout: Readout, spec: MobileSpec, t: Translate): read
     [key('poseX'), format(readout.pose.x_m, unitM)],
     [key('poseY'), format(readout.pose.y_m, unitM)],
     [key('poseTheta'), format(radToDeg(readout.pose.theta_rad), key('unitDeg'))],
-    [key('poseThetaRad'), format(readout.pose.theta_rad, key('unitRad'))],
     [key('v'), format(readout.twist.v_mps, key('unitMps'))],
     [key('omega'), format(readout.twist.omega_radps, unitRadps)],
+    // From here on the rows sit behind «Más datos» (`POSE_ESSENTIAL_ROWS`).
+    [key('poseThetaRad'), format(readout.pose.theta_rad, key('unitRad'))],
     [key('radius'), radiusText(readout.twist, t)],
     [key('omegaL'), format(readout.command.omegaL_radps, unitRadps)],
     [key('omegaR'), format(readout.command.omegaR_radps, unitRadps)],
@@ -168,6 +172,9 @@ export interface OdometryReadout {
 /** Significant figures of the sampling period: `0.1 s`, as the hook of T2-0.1 writes it. */
 const SAMPLE_SIG_FIGS = 1;
 
+/** Rows of the odometry panel that stay in view: the estimated pose and both errors (v1.5). */
+export const ODOMETRY_ESSENTIAL_ROWS = 5;
+
 /**
  * The lines of the odometry panel: `Δs` and `Δθ` of the last step, the fixed `Δt` of the velocity
  * estimate and the velocity the encoders estimate over it (#567), the estimated pose and the two
@@ -184,17 +191,18 @@ export function odometryRows(
   const unitMps = key('unitMps');
   const { estimated, step, velocity } = odometry;
   return [
+    [key('estimatedX'), format(estimated.x_m, unitM)],
+    [key('estimatedY'), format(estimated.y_m, unitM)],
+    [key('estimatedTheta'), format(radToDeg(estimated.theta_rad), key('unitDeg'))],
+    [key('positionError'), format(positionError_m(estimated, real), unitM)],
+    [key('headingError'), format(headingError_deg(estimated, real), key('unitDeg'))],
+    // From here on the rows sit behind «Más datos» (`ODOMETRY_ESSENTIAL_ROWS`).
     [key('deltaS'), format(step.deltaS_m, unitM)],
     [key('deltaTheta'), format(step.deltaTheta_rad, key('unitRad'))],
     [key('sampleDt'), format(VELOCITY_SAMPLE_S, key('unitS'), SAMPLE_SIG_FIGS)],
     [key('estimatedVL'), format(velocity.left_mps, unitMps)],
     [key('estimatedVR'), format(velocity.right_mps, unitMps)],
     [key('estimatedV'), format(velocity.robot_mps, unitMps)],
-    [key('estimatedX'), format(estimated.x_m, unitM)],
-    [key('estimatedY'), format(estimated.y_m, unitM)],
-    [key('estimatedTheta'), format(radToDeg(estimated.theta_rad), key('unitDeg'))],
-    [key('positionError'), format(positionError_m(estimated, real), unitM)],
-    [key('headingError'), format(headingError_deg(estimated, real), key('unitDeg'))],
     [
       key('ticks'),
       t('widgets.DiffDriveWidget.point', {

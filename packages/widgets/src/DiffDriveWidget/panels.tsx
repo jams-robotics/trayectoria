@@ -1,4 +1,4 @@
-import type { JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
 import { degToRad, radToDeg } from '@trayectoria/sim-core';
 import type { MobileSpec } from '@trayectoria/robot-spec';
 import type { Translate } from '@trayectoria/i18n';
@@ -10,7 +10,7 @@ import type { ReadoutRow } from '../shared/ReadoutPanel';
 import { maxSpeed_mps, maxWheelSpeed_radps } from './compute';
 import type { DiffDriveMode, Pose, WheelCommand } from './compute';
 import type { Calibration } from './odometry';
-import { frameRows, odometryRows, poseRows } from './rows';
+import { ODOMETRY_ESSENTIAL_ROWS, POSE_ESSENTIAL_ROWS, frameRows, odometryRows, poseRows } from './rows';
 import type { OdometryReadout, Readout } from './rows';
 
 export { radiusText, readDiffDrive, statusOf } from './rows';
@@ -197,6 +197,7 @@ export function OdometryPanel({
     <ReadoutPanel
       title={t('widgets.DiffDriveWidget.odometryPanel')}
       rows={odometryRows(odometry, real, t)}
+      visibleRows={ODOMETRY_ESSENTIAL_ROWS}
     />
   );
 }
@@ -211,6 +212,20 @@ export function Notice({ text, tone }: { text: string; tone: 'error' | 'muted' }
   );
 }
 
+/** The four terms of `R(θ)` stay in view; the sensor coordinates sit behind «Más datos» (v1.5). */
+const FRAME_MATRIX_ROWS = 4;
+
+/** Pose rows with the maneuver lines right after the essential ones, so they stay in view. */
+function posePanelRows(
+  readout: Readout,
+  spec: MobileSpec,
+  extraRows: readonly ReadoutRow[],
+  t: Translate,
+): readonly ReadoutRow[] {
+  const rows = poseRows(readout, spec, t);
+  return [...rows.slice(0, POSE_ESSENTIAL_ROWS), ...extraRows, ...rows.slice(POSE_ESSENTIAL_ROWS)];
+}
+
 export interface PosePanelProps {
   mode: DiffDriveMode;
   readout: Readout;
@@ -223,6 +238,8 @@ export interface PosePanelProps {
   onTheta: (value_deg: number) => void;
   /** Lines added after the pose ones: the phase and duration of the maneuver (#394), or none. */
   extraRows: readonly ReadoutRow[];
+  /** Rendered right under the pose rows, before the frames and the `θ₀` slider (v1.5). */
+  children?: ReactNode;
   t: Translate;
 }
 
@@ -239,18 +256,22 @@ export function PosePanel({
   running,
   onTheta,
   extraRows,
+  children,
   t,
 }: PosePanelProps): JSX.Element {
   return (
     <div className="flex flex-col gap-4">
       <ReadoutPanel
         title={t('widgets.DiffDriveWidget.panel')}
-        rows={[...poseRows(readout, spec, t), ...extraRows]}
+        rows={posePanelRows(readout, spec, extraRows, t)}
+        visibleRows={POSE_ESSENTIAL_ROWS + extraRows.length}
       />
+      {children}
       {withFrames ? (
         <ReadoutPanel
           title={t('widgets.DiffDriveWidget.framesPanel')}
           rows={frameRows(readout.pose, spec, t)}
+          visibleRows={FRAME_MATRIX_ROWS}
         />
       ) : null}
       {/* A disabled fieldset disables the slider and its field without a prop on ParamPanel. */}

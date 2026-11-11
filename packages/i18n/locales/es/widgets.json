@@ -6,6 +6,9 @@
     "valueText": "{{value}} {{unit}}",
     "status": "{{label}}: {{value}} {{unit}}"
   },
+  "ReadoutPanel": {
+    "more": "Más datos"
+  },
   "Formula": {
     "label": "Fórmula",
     "substituted": "Con tus valores"
@@ -412,6 +415,8 @@
     "axisYG": "y global",
     "axisXR": "x del robot",
     "axisYR": "y del robot",
+    "axisXBoth": "x global = x del robot",
+    "axisYBoth": "y global = y del robot",
     "vectorVL": "v izquierda",
     "vectorVR": "v derecha",
     "unitM": "m",
