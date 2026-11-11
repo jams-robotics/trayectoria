@@ -9,3 +9,10 @@ import Section from './Section.astro';
 <Section id="al-robot" title={t('topic.sections.alRobot')} number={4}>
   <slot />
 </Section>
+
+<style>
+  /* The «Al robot» calc cards sit in the section's prose: separate them from text and from each other. */
+  :global(#al-robot div[data-robot-formula]) {
+    margin-top: var(--space-5);
+  }
+</style>
