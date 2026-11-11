@@ -1,6 +1,7 @@
 {
   "ParamPanel": {
     "title": "Parámetros",
+    "reset": "Valores iniciales",
     "value": "Valor de {{label}}",
     "slider": "{{label}} en {{unit}}",
     "valueText": "{{value}} {{unit}}",
@@ -415,7 +416,6 @@
     "paramManeuverTurn": "Giro",
     "paramManeuverDistance": "Avance",
     "toggleManeuver": "Maniobra en tres movimientos",
-    "resetValues": "Valores iniciales",
     "maneuverLinePlan": "Plan: 1 gira {{turn}}°, 2 avanza {{distance}} m, 3 gira {{back}}° para recuperar el rumbo",
     "maneuverLinePhase1": "Movimiento 1 de 3 · gira {{turn}}° sin avanzar",
     "maneuverLinePhase2": "Movimiento 2 de 3 · avanza {{distance}} m en línea recta",

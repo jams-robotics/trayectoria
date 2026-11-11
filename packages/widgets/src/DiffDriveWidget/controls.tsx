@@ -98,10 +98,7 @@ export function ManeuverToggle({
   );
 }
 
-/**
- * The maneuver switch and, with it on, «Valores iniciales»: the prop values, `θ₀ = 0` and the
- * robot back at the origin (v1.5). Both start the run over from the origin.
- */
+/** The maneuver switch; turning it on or off starts the run over from the origin (v1.5). */
 function ManeuverButtons({
   sequence,
   resetAll,
@@ -113,28 +110,14 @@ function ManeuverButtons({
 }): JSX.Element | null {
   if (!sequence.available) return null;
   return (
-    <div className="flex flex-wrap gap-2">
-      <ManeuverToggle
-        active={sequence.active}
-        onToggle={() => {
-          sequence.toggle();
-          resetAll();
-        }}
-        t={t}
-      />
-      {sequence.active ? (
-        <button
-          type="button"
-          className={INACTIVE}
-          onClick={() => {
-            sequence.resetValues();
-            resetAll();
-          }}
-        >
-          {t('widgets.DiffDriveWidget.resetValues')}
-        </button>
-      ) : null}
-    </div>
+    <ManeuverToggle
+      active={sequence.active}
+      onToggle={() => {
+        sequence.toggle();
+        resetAll();
+      }}
+      t={t}
+    />
   );
 }
 
@@ -148,6 +131,7 @@ export function Sliders({
   params,
   folded,
   onChange,
+  onReset,
   feasible,
   t,
 }: {
@@ -155,6 +139,8 @@ export function Sliders({
   params: readonly ParamPanelParam[];
   folded: readonly ParamPanelParam[];
   onChange: (key: string, value: number) => void;
+  /** «Valores iniciales» also puts the robot back at the origin (v1.5). */
+  onReset?: () => void;
   feasible: boolean;
   t: Translate;
 }): JSX.Element {
@@ -162,7 +148,13 @@ export function Sliders({
     <div className="flex min-w-0 flex-col gap-3 lg:col-span-2">
       {toggle}
       {feasible ? null : <Notice text={t('widgets.DiffDriveWidget.saturated')} tone="error" />}
-      <ParamPanel params={params} folded={folded} onChange={onChange} layout="grid" />
+      <ParamPanel
+        params={params}
+        folded={folded}
+        onChange={onChange}
+        layout="grid"
+        {...(onReset === undefined ? {} : { onReset })}
+      />
     </div>
   );
 }
@@ -210,6 +202,7 @@ export function ModeSliders({
         else if (sequence.change(key, value)) timeline.restart();
         else sliders.onSlider(key, value);
       }}
+      onReset={timeline.resetAll}
       feasible={feasible}
       t={t}
     />

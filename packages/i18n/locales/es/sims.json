@@ -83,7 +83,6 @@
     "scene": "Escena del seguidor de línea: la pista, el robot con sus sensores y la traza recorrida.",
     "sensors": "Sensores",
     "controllerGroup": "Controlador",
-    "reset": "Valores iniciales",
     "controller": {
       "manual": "Manual",
       "onoff": "On/off",

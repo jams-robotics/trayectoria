@@ -148,7 +148,7 @@ describe('LineFollowerWidget (F4-02a)', () => {
       expect(screen.getByRole('button', { name: label })).toHaveAttribute('aria-pressed', 'false');
     }
     expect(screen.queryByTestId('line-follower-custom')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: t('sims.lineFollower.reset') })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: t('widgets.ParamPanel.reset') })).toBeInTheDocument();
   });
 
   it('cambia de controlador y vuelve a sus parámetros por defecto', async () => {

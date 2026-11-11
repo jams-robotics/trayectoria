@@ -21,8 +21,6 @@ export interface ManeuverControls {
   toggle: () => void;
   /** Applies a change of «Giro» or «Avance»; false for any other slider. */
   change: (key: string, value: number) => boolean;
-  /** Puts «Giro» and «Avance» back to the values of the `maneuver` prop (v1.5). */
-  resetValues: () => void;
 }
 
 /** The current phase of the maneuver and its total duration `T`. */
@@ -41,11 +39,10 @@ export function useManeuver(
   t: Translate,
 ): ManeuverControls {
   const [active, setActive] = useState(false);
-  const opening: ManeuverValues = {
+  const [values, setValues] = useState<ManeuverValues>(() => ({
     turn_deg: maneuver?.turn_deg ?? 0,
     distance_m: maneuver?.distance_m ?? 0,
-  };
-  const [values, setValues] = useState<ManeuverValues>(opening);
+  }));
   const available = maneuver !== undefined && mode === 'inverse';
   const on = available && active;
   return {
@@ -62,9 +59,6 @@ export function useManeuver(
         setValues((current) => ({ ...current, distance_m: value }));
       } else return false;
       return true;
-    },
-    resetValues: () => {
-      setValues(opening);
     },
   };
 }

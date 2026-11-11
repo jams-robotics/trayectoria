@@ -3,6 +3,7 @@ import type { CSSProperties, JSX, KeyboardEvent } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 
+import { ResetButton } from './ResetButton';
 import { SLIDER_CSS } from './sliderCss';
 
 /** One editable parameter of the panel (docs/WIDGETS.md, ParamPanel). */
@@ -29,6 +30,13 @@ export interface ParamPanelProps {
   layout?: 'stack' | 'inline' | 'grid';
   /** Sliders folded behind «Más controles» in the same card; they still answer to `Aplicar`. */
   folded?: readonly ParamPanelParam[];
+  /**
+   * False hides «Valores iniciales», for a panel whose owner already has its own (v1.5). Defaults
+   * to true: every slider goes back to the first value it showed.
+   */
+  resettable?: boolean;
+  /** Called after «Valores iniciales», for state the sliders do not hold, such as the pose. */
+  onReset?: (() => void) | undefined;
 }
 
 const SHIFT_FACTOR = 10;
@@ -237,7 +245,8 @@ function useApplyEvent(params: readonly ParamPanelParam[], onChange: ParamChange
       if (typeof values !== 'object' || values === null) return;
       for (const param of latest.current.params) {
         const value: unknown = Object.getOwnPropertyDescriptor(values, param.key)?.value;
-        if (typeof value === 'number' && Number.isFinite(value)) latest.current.onChange(param.key, quantize(value, param));
+        if (typeof value === 'number' && Number.isFinite(value))
+          latest.current.onChange(param.key, quantize(value, param));
       }
     };
     document.addEventListener(APPLY_EVENT, apply);
@@ -296,6 +305,8 @@ export function ParamPanel({
   onChange,
   layout = 'stack',
   folded = [],
+  resettable = true,
+  onReset,
 }: ParamPanelProps): JSX.Element {
   const t = useT();
   const all = [...params, ...folded];
@@ -318,6 +329,7 @@ export function ParamPanel({
           </div>
         </details>
       )}
+      {resettable ? <ResetButton params={all} onChange={onChange} onReset={onReset} t={t} /> : null}
       <p className="sr-only" role="status" aria-live="polite">
         {statusOf(all, t)}
       </p>

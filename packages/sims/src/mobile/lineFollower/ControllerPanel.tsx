@@ -60,12 +60,12 @@ export function ControllerPanel({
           {t('sims.manual.instructions')}
         </p>
       ) : null}
-      <ParamPanel params={controllerParams(controller, params, spec, t)} onChange={onParam} />
-      {onReset === undefined ? null : (
-        <button type="button" className={`${TAB_OFF} self-start`} onClick={onReset}>
-          {t('sims.lineFollower.reset')}
-        </button>
-      )}
+      <ParamPanel
+        params={controllerParams(controller, params, spec, t)}
+        onChange={onParam}
+        resettable={onReset !== undefined}
+        onReset={onReset}
+      />
     </div>
   );
 }
