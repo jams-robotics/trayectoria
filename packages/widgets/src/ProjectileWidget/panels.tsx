@@ -189,9 +189,9 @@ function ParamsHeader({
   action?: ReactNode;
 }): JSX.Element {
   return (
-    // As tall as the toggle: its `h-10` button plus the 1 px border above and below.
+    // As tall as the toggle: its 44 px button plus the 1 px border above and below.
     <div
-      className="flex min-h-[calc(var(--spacing-10)+2px)] items-center justify-between gap-3"
+      className="flex min-h-[46px] items-center justify-between gap-3"
       data-params-header=""
     >
       {legend === undefined ? null : (

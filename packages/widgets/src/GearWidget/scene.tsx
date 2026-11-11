@@ -1,11 +1,27 @@
 import type { JSX } from 'react';
+import { format } from '@trayectoria/sim-core';
 import type { Translate } from '@trayectoria/i18n';
 
 import { Scene2D } from '../Scene2D/Scene2D';
 import { Circle } from '../Scene2D/primitives/Circle';
 import { Label } from '../Scene2D/primitives/Label';
+import { Rect } from '../Scene2D/primitives/Rect';
 import { Trace } from '../Scene2D/primitives/Trace';
-import { angleAt, pitchRadius_m, shaftSpeeds } from './compute';
+import { Vector } from '../Scene2D/primitives/Vector';
+import { worldToPx } from '../Scene2D/transform';
+import { SceneOverlay } from '../shared/SceneOverlay';
+import { CHAIN_ASPECT, SHAFT_THICKNESS_M, boundsOf, chainLayout } from './chain';
+import type { ChainLayout } from './chain';
+import {
+  WHEEL_RADIUS_M,
+  angleAt,
+  groundForce_N,
+  outputSpeed_rpm,
+  outputTorque_Nm,
+  pitchRadius_m,
+  shaftSpeeds,
+  totalRatio,
+} from './compute';
 import type { GearStages, Train } from './compute';
 import { animationScale } from './rows';
 
@@ -15,10 +31,6 @@ const TOOTH_HEIGHT_FACTOR = 0.14;
 const TOOTH_WIDTH_SHARE = 0.5;
 /** Radius of the hub drawn at the centre of a gear, as a share of the pitch radius. */
 const HUB_FACTOR = 0.18;
-/** Margin around the train, as a share of the widest gear radius (#91, decision 3). */
-const MARGIN_FACTOR = 0.6;
-/** Width over height of the view: the train grows sideways, so a wide strip fits it. */
-const SCENE_ASPECT = 16 / 9;
 /** Radius of the ring that marks the front gear of a shared shaft, as a share of its pitch radius. */
 const RING_FACTOR = 1 - 2 * TOOTH_HEIGHT_FACTOR;
 
@@ -153,34 +165,7 @@ export function drawnGears(
   return gears;
 }
 
-/** Smallest box in metres that holds every gear: `[left, right, bottom, top]`. */
-function boundsOf(gears: readonly DrawnGear[]): readonly [number, number, number, number] {
-  let left_m = 0;
-  let right_m = 0;
-  let bottom_m = 0;
-  let top_m = 0;
-  gears.forEach(({ centre_m, radius_m }) => {
-    left_m = Math.min(left_m, centre_m[0] - radius_m);
-    right_m = Math.max(right_m, centre_m[0] + radius_m);
-    bottom_m = Math.min(bottom_m, centre_m[1] - radius_m);
-    top_m = Math.max(top_m, centre_m[1] + radius_m);
-  });
-  return [left_m, right_m, bottom_m, top_m];
-}
-
-/**
- * Width of the scene in metres: the whole train plus a margin around it (#91, decision 3). A
- * train taller than the strip is fitted by its height instead, so no gear is cut off.
- */
-export function worldWidthOf(gears: readonly DrawnGear[]): number {
-  const [left_m, right_m, bottom_m, top_m] = boundsOf(gears);
-  const margin_m = MARGIN_FACTOR * Math.max(...gears.map(({ radius_m }) => radius_m), 0);
-  const byWidth_m = right_m - left_m + margin_m;
-  const byHeight_m = (top_m - bottom_m + margin_m) * SCENE_ASPECT;
-  return Math.max(byWidth_m, byHeight_m, MARGIN_FACTOR);
-}
-
-/** Centre of the view: the midpoint of the box that holds the train, so it sits centred. */
+/** Centre of the box that holds the train, the point the label of each gear is pushed away from. */
 export function sceneCentre(gears: readonly DrawnGear[]): [number, number] {
   const [left_m, right_m, bottom_m, top_m] = boundsOf(gears);
   return [(left_m + right_m) / 2, (bottom_m + top_m) / 2];
@@ -246,25 +231,201 @@ export interface GearSceneProps {
   labels: readonly string[];
 }
 
+/** Token of the motor, the shafts, the wheel and the ground: neutral, so the gears keep the palette. */
+const NEUTRAL = 'color-fg-muted';
+/** Length of the arrow of the force, in wheel radii; it shows the direction, not the size. */
+const FORCE_ARROW_RADII = 1.6;
+/** Share of a wheel radius the hub takes, and the length of its spokes. */
+const HUB_SHARE = 0.18;
+const SPOKE_SHARE = 0.85;
+/** Gap in CSS pixels between the top edge of the view and the values of the stages. */
+const CALLOUT_TOP_PX = 8;
+/** Gap in CSS pixels between the ground and the force. */
+const CALLOUT_GROUND_PX = 10;
+
+/** The values of one stage, written over it. */
+function Callout({
+  x_px,
+  top_px,
+  title,
+  lines,
+}: {
+  x_px: number;
+  top_px: number;
+  title?: string;
+  lines: readonly string[];
+}): JSX.Element {
+  return (
+    <div
+      className="pointer-events-none absolute -translate-x-1/2 text-center text-xs leading-tight whitespace-nowrap"
+      style={{ left: `${String(x_px)}px`, top: `${String(top_px)}px` }}
+      data-callout={title ?? 'force'}
+    >
+      {title === undefined ? null : <div className="text-fg font-semibold">{title}</div>}
+      {lines.map((line) => (
+        <div key={line} className="text-fg-muted font-mono tabular-nums">
+          {line}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** The values of the motor, the reduction and the wheel, each one over its stage. */
+function StageValues({
+  stages,
+  train,
+  layout,
+  t,
+}: {
+  stages: GearStages;
+  train: Train;
+  layout: ChainLayout;
+  t: Translate;
+}): JSX.Element {
+  const outRpm = outputSpeed_rpm(stages, train);
+  return (
+    <SceneOverlay>
+      {({ transform }) => {
+        if (transform === null) return null;
+        const xOf = (x_m: number): number => worldToPx(transform, x_m, 0)[0];
+        const groundY_px = worldToPx(transform, 0, layout.ground.centre_m[1])[1];
+        const rpm = t('widgets.GearWidget.unitRpm');
+        const nm = t('widgets.GearWidget.unitNm');
+        return (
+          <>
+            <Callout
+              x_px={xOf(layout.motor.centre_m[0])}
+              top_px={CALLOUT_TOP_PX}
+              title={t('widgets.GearWidget.stageMotor')}
+              lines={[
+                t('widgets.GearWidget.calloutTorque', { value: format(train.torqueIn_Nm, nm) }),
+                t('widgets.GearWidget.calloutSpeed', { value: format(train.nIn_rpm, rpm) }),
+              ]}
+            />
+            <Callout
+              x_px={xOf(layout.trainCentre_m[0])}
+              top_px={CALLOUT_TOP_PX}
+              title={t('widgets.GearWidget.stageReduction')}
+              lines={[
+                t('widgets.GearWidget.calloutRatio', {
+                  value: format(totalRatio(stages, train), ''),
+                }),
+                t('widgets.GearWidget.calloutEfficiency', {
+                  value: format(train.efficiency, ''),
+                }),
+              ]}
+            />
+            <Callout
+              x_px={xOf(layout.wheel.centre_m[0])}
+              top_px={CALLOUT_TOP_PX}
+              title={t('widgets.GearWidget.stageWheel')}
+              lines={[
+                t('widgets.GearWidget.calloutTorque', {
+                  value: format(outputTorque_Nm(stages, train), nm),
+                }),
+                t('widgets.GearWidget.calloutSpeed', { value: format(outRpm, rpm) }),
+              ]}
+            />
+            <Callout
+              x_px={xOf(layout.wheel.centre_m[0])}
+              top_px={groundY_px + CALLOUT_GROUND_PX}
+              lines={[
+                t('widgets.GearWidget.calloutForce', {
+                  value: format(groundForce_N(stages, train), t('widgets.GearWidget.unitN')),
+                }),
+              ]}
+            />
+          </>
+        );
+      }}
+    </SceneOverlay>
+  );
+}
+
+/** A shaft or the ground: a thin slab. */
+function Slab({
+  centre_m,
+  length_m,
+}: {
+  centre_m: [number, number];
+  length_m: number;
+}): JSX.Element {
+  return (
+    <Rect center_m={centre_m} width_m={length_m} height_m={SHAFT_THICKNESS_M} color={NEUTRAL} filled />
+  );
+}
+
+/** The wheel: its tyre, its hub and a cross of spokes that turns with the output shaft. */
+function Wheel({ layout, angle_rad }: { layout: ChainLayout; angle_rad: number }): JSX.Element {
+  const { centre_m, radius_m } = layout.wheel;
+  return (
+    <>
+      <Circle center_m={centre_m} radius_m={radius_m} color="color-fg" filled />
+      {[0, Math.PI / 2].map((offset_rad) => (
+        <Rect
+          key={offset_rad}
+          center_m={centre_m}
+          width_m={2 * SPOKE_SHARE * radius_m}
+          height_m={SHAFT_THICKNESS_M}
+          angle_rad={angle_rad + offset_rad}
+          color={NEUTRAL}
+        />
+      ))}
+      <Circle center_m={centre_m} radius_m={HUB_SHARE * radius_m} color="color-fg" filled />
+    </>
+  );
+}
+
 /**
- * The meshed train: each gear is a closed polygon of `z` teeth of pitch radius `r = m z / 2`,
- * with its centre a sum of radii away from the one it meshes with (#91, decision 3). The rim
- * colours are `data-1` to `data-4`, each one with the label of its tooth count next to it, so
- * colour is never the only channel (docs/DESIGN.md §2.2).
+ * The whole drive, from left to right: the motor with its shaft, the meshed train and the wheel
+ * on the ground, pushed along by the force of the ground (`F = τ_out / r`, T-4.4). The rim colours
+ * of the gears are `data-1` to `data-4`, each one with the label of its tooth count next to it, so
+ * colour is never the only channel (docs/DESIGN.md §2.2). The values of each stage are written
+ * over it, in HTML over the canvas, so they stay legible at any size.
  */
 export function GearScene({ stages, train, t_s, t, labels }: GearSceneProps): JSX.Element {
   const gears = drawnGears(stages, train, t_s, labels);
-  const centre_m = sceneCentre(gears);
+  const layout = chainLayout(gears);
+  const speeds = shaftSpeeds(stages, train);
+  const wheelAngle_rad = angleAt(speeds.omega4_radps / animationScale(train.nIn_rpm), t_s);
+  // Without slipping the ground pushes the wheel the opposite way its contact point moves.
+  const pushDirection = speeds.omega4_radps > 0 ? -1 : 1;
+  const [contactX_m, contactY_m] = layout.contact_m;
+  const arrowY_m = contactY_m + SHAFT_THICKNESS_M;
   return (
     <Scene2D
-      worldWidth_m={worldWidthOf(gears)}
-      center_m={centre_m}
-      aspect={SCENE_ASPECT}
+      worldWidth_m={layout.view.worldWidth_m}
+      center_m={layout.view.center_m}
+      aspect={CHAIN_ASPECT}
       description={t(`widgets.GearWidget.scene${stages === 1 ? 'One' : 'Two'}`)}
     >
-      {gears.map((gear, index) => (
-        <Gear key={index} gear={gear} viewCentre_m={centre_m} />
+      <Slab centre_m={layout.ground.centre_m} length_m={layout.ground.length_m} />
+      {layout.shafts.map((shaft, index) => (
+        <Slab key={index} {...shaft} />
       ))}
+      <Rect
+        center_m={layout.motor.centre_m}
+        width_m={layout.motor.width_m}
+        height_m={layout.motor.height_m}
+        color={NEUTRAL}
+        filled
+      />
+      {gears.map((gear, index) => (
+        // The label of the output gear goes to its left, away from the wheel and its force.
+        <Gear
+          key={index}
+          gear={index === gears.length - 1 ? { ...gear, labelAlign: 'left' } : gear}
+          viewCentre_m={layout.trainCentre_m}
+        />
+      ))}
+      <Wheel layout={layout} angle_rad={wheelAngle_rad} />
+      <Vector
+        from_m={[contactX_m, arrowY_m]}
+        to_m={[contactX_m + pushDirection * FORCE_ARROW_RADII * WHEEL_RADIUS_M, arrowY_m]}
+        color="color-vector-force"
+      />
+      <StageValues stages={stages} train={train} layout={layout} t={t} />
     </Scene2D>
   );
 }

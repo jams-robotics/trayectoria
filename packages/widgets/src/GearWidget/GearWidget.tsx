@@ -145,6 +145,7 @@ export function GearWidget({ stages, initial, initialTime_s = 0 }: GearWidgetPro
       viewer={<Viewer stages={stages} train={train} t_s={t_s} timeline={timeline} t={t} />}
       values={<Values stages={stages} train={train} t={t} />}
       params={<Sliders stages={stages} train={train} setTrain={setTrain} t={t} />}
+      sticky={false}
     />
   );
 }

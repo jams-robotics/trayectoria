@@ -60,8 +60,8 @@ describe('buildOptions: escalas', () => {
   });
 
   it('leaves room above a reference line at the top of the data for its label', () => {
-    const [, plain] = yRangeOf(options([{ y: 0, label: 'Sin error' }]), 0, 10);
-    const [, top] = yRangeOf(options([{ y: 10, label: 'P_max' }]), 0, 10);
+    const plain = yRangeOf(options([{ y: 0, label: 'Sin error' }]), 0, 10)[1] ?? 0;
+    const top = yRangeOf(options([{ y: 10, label: 'P_max' }]), 0, 10)[1] ?? 0;
     expect(top).toBeGreaterThan(plain + 1);
   });
 
@@ -110,6 +110,7 @@ interface FakeContext {
   lineTo: ReturnType<typeof vi.fn>;
   stroke: ReturnType<typeof vi.fn>;
   fillText: ReturnType<typeof vi.fn>;
+  font: string;
   textAlign: string;
   textBaseline: string;
 }

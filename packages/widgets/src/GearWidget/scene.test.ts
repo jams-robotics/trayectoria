@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { t } from '@trayectoria/i18n';
 
-import { pitchRadius_m } from './compute';
+import { CHAIN_ASPECT, chainLayout } from './chain';
+import { WHEEL_RADIUS_M, pitchRadius_m } from './compute';
 import type { Train } from './compute';
 import { animationScale, directionOf, panelRows, statusOf } from './rows';
 import { applyChange, paramsOf } from './panels';
-import { drawnGears, labelAnchor, sceneCentre, toothPolygon, worldWidthOf } from './scene';
+import { drawnGears, labelAnchor, sceneCentre, toothPolygon } from './scene';
 
 /** The «Explora» of T-4.4: the two stage train of the motor of the profile. */
 const TRAIN: Train = {
@@ -90,23 +91,48 @@ describe('dibujo del tren (F2-08)', () => {
     expect(gears[0]?.angle_rad).toBeCloseTo(2 * Math.PI, 2);
   });
 
-  it('el ancho del mundo cubre el tren con margen y la vista se centra en él', () => {
+  it('la cadena va de izquierda a derecha: motor, tren y rueda, con el motor en el eje de z1', () => {
     const gears = drawnGears(2, TRAIN, 0, LABELS);
-    const span_m = (gears[3]?.centre_m[0] ?? 0) + (gears[3]?.radius_m ?? 0);
+    const layout = chainLayout(gears);
+    const input = gears[0];
+    const output = gears[3];
+    if (input === undefined || output === undefined) throw new Error('falta un engranaje');
 
-    expect(worldWidthOf(gears)).toBeGreaterThan(span_m);
-    expect(sceneCentre(gears)[0]).toBeGreaterThan(0);
-    // The second stage goes down, so the centre of the view goes down too.
-    expect(sceneCentre(gears)[1]).toBeLessThan(0);
+    expect(layout.motor.centre_m[0]).toBeLessThan(input.centre_m[0] - input.radius_m);
+    expect(layout.motor.centre_m[1]).toBe(input.centre_m[1]);
+    expect(layout.wheel.centre_m[0]).toBeGreaterThan(output.centre_m[0] + output.radius_m);
+    expect(layout.wheel.centre_m[1]).toBe(output.centre_m[1]);
+    expect(layout.wheel.radius_m).toBe(WHEEL_RADIUS_M);
   });
 
-  it('el encuadre deja entrar el tren entero también a lo alto', () => {
-    const gears = drawnGears(2, TRAIN, 0, LABELS);
-    const height_m = worldWidthOf(gears) / (16 / 9);
-    const top_m = Math.max(...gears.map(({ centre_m, radius_m }) => centre_m[1] + radius_m));
-    const bottom_m = Math.min(...gears.map(({ centre_m, radius_m }) => centre_m[1] - radius_m));
+  it('la rueda se apoya en el suelo y el punto de contacto es el de su borde inferior', () => {
+    const layout = chainLayout(drawnGears(1, TRAIN, 0, LABELS));
 
-    expect(height_m).toBeGreaterThan(top_m - bottom_m);
+    expect(layout.contact_m[1]).toBeCloseTo(layout.wheel.centre_m[1] - WHEEL_RADIUS_M, 12);
+    expect(layout.ground.centre_m[1]).toBeLessThan(layout.contact_m[1]);
+    expect(layout.ground.length_m).toBeGreaterThan(2 * WHEEL_RADIUS_M);
+  });
+
+  it('el encuadre deja entrar la cadena entera y una franja libre arriba para los valores', () => {
+    const gears = drawnGears(2, TRAIN, 0, LABELS);
+    const { view, wheel, motor } = chainLayout(gears);
+    const height_m = view.worldWidth_m / CHAIN_ASPECT;
+    const top_m = view.center_m[1] + height_m / 2;
+    const bottom_m = view.center_m[1] - height_m / 2;
+    const chainTop_m = Math.max(
+      motor.centre_m[1] + motor.height_m / 2,
+      ...gears.map(({ centre_m, radius_m }) => centre_m[1] + radius_m),
+    );
+    const chainBottom_m = Math.min(
+      wheel.centre_m[1] - wheel.radius_m,
+      ...gears.map(({ centre_m, radius_m }) => centre_m[1] - radius_m),
+    );
+
+    expect(chainBottom_m).toBeGreaterThan(bottom_m);
+    expect(top_m - chainTop_m).toBeGreaterThan(0.25 * height_m);
+    const left_m = view.center_m[0] - view.worldWidth_m / 2;
+    expect(motor.centre_m[0] - motor.width_m / 2).toBeGreaterThan(left_m);
+    expect(wheel.centre_m[0] + wheel.radius_m).toBeLessThan(left_m + view.worldWidth_m);
   });
 
   it('cada etiqueta queda fuera de su corona y alejada del centro de la vista', () => {
@@ -135,7 +161,7 @@ describe('dibujo del tren (F2-08)', () => {
   });
 
   it('un tren vacío no deja el mundo en cero', () => {
-    expect(worldWidthOf([])).toBeGreaterThan(0);
+    expect(chainLayout([]).view.worldWidth_m).toBeGreaterThan(0);
     expect(sceneCentre([])).toEqual([0, 0]);
   });
 

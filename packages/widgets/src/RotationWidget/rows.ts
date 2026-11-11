@@ -8,6 +8,8 @@ import type { Translate } from '@trayectoria/i18n';
 
 import type { ReadoutRow } from '../shared/ReadoutPanel';
 import {
+  TARGET_RPM,
+  alphaAt,
   angleAt,
   centripetalAccel,
   frequency,
@@ -24,8 +26,7 @@ import {
 } from './compute';
 import type { Curve, Rotation, RotationMode } from './compute';
 
-/** Angular speed the readouts count the time to, in rpm (#89, decision 7: T-4.3). */
-export const TARGET_RPM = 200;
+export { TARGET_RPM };
 
 /** The lines shared by the three modes: `ω` in both units, then what each mode adds. */
 function commonRows(rotation: Rotation, omega_radps: number, t: Translate): ReadoutRow[] {
@@ -75,7 +76,7 @@ function accelRows(rotation: Rotation, t_s: number, t: Translate): ReadoutRow[] 
     ...commonRows(rotation, omega_radps, t),
     [
       t('widgets.RotationWidget.tangentialAccel'),
-      format(tangentialAccel(rotation.alpha_radps2, rotation.r_m), t('widgets.RotationWidget.unitMps2')),
+      format(tangentialAccel(alphaAt(rotation, t_s), rotation.r_m), t('widgets.RotationWidget.unitMps2')),
     ],
     [
       t('widgets.RotationWidget.timeToTarget'),
