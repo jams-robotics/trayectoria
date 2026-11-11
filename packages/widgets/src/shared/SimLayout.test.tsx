@@ -48,25 +48,22 @@ describe('SimLayout (docs/DESIGN.md §6)', () => {
     expect(regionOf(container, 'viewer')).toHaveClass('lg:mx-auto', 'lg:max-w-[calc(50vh*16/9)]');
   });
 
-  test('lets the values grow the row up to 50vh and scroll only beyond it (#386)', () => {
+  test('lets the values grow to their content, with no scroll inside (v1.5)', () => {
     const { container } = render(<SimLayout viewer={<i />} values={<i data-testid="v" />} />);
     const values = regionOf(container, 'values');
     expect(values).toHaveClass('lg:w-panel');
     expect(values).not.toHaveClass('lg:relative');
     const box = screen.getByTestId('v').parentElement;
-    expect(box).toHaveClass('lg:max-h-[50vh]', 'lg:overflow-y-auto');
+    expect(box).not.toHaveClass('lg:max-h-[50vh]', 'lg:overflow-y-auto');
     expect(box).not.toHaveClass('lg:absolute', 'lg:inset-0');
   });
 
-  test('applies the same values cap from md when the layout splits at md', () => {
+  test('splits the values column at md too, also with no scroll', () => {
     const { container } = render(
       <SimLayout from="md" viewer={<i />} values={<i data-testid="v" />} />,
     );
     expect(regionOf(container, 'values')).toHaveClass('md:w-panel');
-    expect(screen.getByTestId('v').parentElement).toHaveClass(
-      'md:max-h-[50vh]',
-      'md:overflow-y-auto',
-    );
+    expect(screen.getByTestId('v').parentElement).not.toHaveClass('md:overflow-y-auto');
   });
 
   test('lays the parameters out full width in 2 columns, with a scroll margin', () => {

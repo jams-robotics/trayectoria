@@ -136,7 +136,8 @@ function Values({
         mode={mode}
         readout={readout}
         spec={spec}
-        withFrames={show.includes('frames')}
+        // The drift of `odometry` does not read the matrix: two panels fill the column, three leave a gap.
+        withFrames={show.includes('frames') && mode !== 'odometry'}
         extraRows={maneuverRows(maneuver, t)}
         t={t}
       >
@@ -232,16 +233,15 @@ export function DiffDriveWidget(props: DiffDriveWidgetProps): JSX.Element {
   const { mode, show } = props;
   const { applicable, spec, sliders, sequence, timeline, now, twist, readout, odometry } =
     useDiffDrive(props, t);
-  // Odometry and frames put three panels beside the viewer: let them grow, not scroll.
-  const sticky = mode !== 'odometry' && !show.includes('frames');
   return (
     <SimLayout
-      sticky={sticky}
+      // The values grow to their content, so the row does not stick: it would not fit the window.
+      sticky={false}
       viewer={
         <>
           <DiffDriveScene
             {...{ spec, twist, show, t, robot: applicable }}
-            {...(sticky ? {} : { aspect: TALL_ASPECT })}
+            aspect={TALL_ASPECT}
             command={now.command}
             pose={timeline.pose}
             feasible={readout.feasible}

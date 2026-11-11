@@ -25,7 +25,7 @@ export type ParamChangeHandler = (key: string, value: number) => void;
 export interface ParamPanelProps {
   params: readonly ParamPanelParam[];
   onChange: ParamChangeHandler;
-  /** `grid` lays the sliders in columns of at least 17rem, as many as fit and aligned. */
+  /** `grid` lays the sliders in columns of at least 19rem, as many as fit and aligned. */
   layout?: 'stack' | 'inline' | 'grid';
   /** Sliders folded behind «Más controles» in the same card; they still answer to `Aplicar`. */
   folded?: readonly ParamPanelParam[];
@@ -263,7 +263,7 @@ function statusOf(params: readonly ParamPanelParam[], t: Translate): string {
 const ROWS_CLASS: Readonly<Record<NonNullable<ParamPanelProps['layout']>, string>> = {
   stack: 'flex flex-col gap-5',
   inline: 'flex flex-wrap gap-6',
-  grid: 'grid grid-cols-[repeat(auto-fill,minmax(min(100%,17rem),1fr))] gap-x-8 gap-y-5',
+  grid: 'grid grid-cols-[repeat(auto-fill,minmax(min(100%,19rem),1fr))] gap-x-8 gap-y-5',
 };
 
 /** The rows of a list of parameters, laid out as `layout` says. */
