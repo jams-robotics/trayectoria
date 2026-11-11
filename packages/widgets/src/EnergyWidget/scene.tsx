@@ -38,7 +38,8 @@ export function trackPoint(ramp: Ramp, s_m: number): [number, number] {
 /** Centre of the view, so the flat run and the whole climb both stay inside it. */
 export function sceneCentre(ramp: Ramp): [number, number] {
   const width_m = worldWidthOf(ramp);
-  return [width_m / 2, width_m / ASPECT / 2 - BODY_SIDE_M];
+  // Half a body to the left of the start, so the body at s = 0 is not cut by the edge.
+  return [width_m / 2 - BODY_SIDE_M, width_m / ASPECT / 2 - BODY_SIDE_M];
 }
 
 /**

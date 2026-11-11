@@ -65,7 +65,7 @@
     "nameSum": "a + b",
     "handleA": "Punta del vector a",
     "handleB": "Punta del vector b",
-    "components": "Componentes de {{name}}",
+    "components": "{{name}} (x, y)",
     "magnitude": "Módulo de {{name}}",
     "angle": "Ángulo de {{name}}",
     "pair": "({{x}}, {{y}})",

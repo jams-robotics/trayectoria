@@ -30,7 +30,7 @@ describe('VectorWidget (F2-03)', () => {
   test('shows the components, magnitude and angle of T-0.2 for the initial vectors', () => {
     renderCurriculum();
 
-    expect(valueOf('Componentes de a')).toBe('(0.433 m/s, 0.250 m/s)');
+    expect(valueOf('a (x, y)')).toBe('(0.433 m/s, 0.250 m/s)');
     expect(valueOf('Módulo de a')).toBe('0.500 m/s');
     expect(valueOf('Ángulo de a')).toBe('30.00°');
   });
@@ -38,7 +38,7 @@ describe('VectorWidget (F2-03)', () => {
   test('shows the sum, the dot product and the angle between the two vectors', () => {
     renderCurriculum();
 
-    expect(valueOf('Componentes de a + b')).toBe('(0.633 m/s, 0.150 m/s)');
+    expect(valueOf('a + b (x, y)')).toBe('(0.633 m/s, 0.150 m/s)');
     expect(valueOf('Módulo de a + b')).toBe('0.651 m/s');
     expect(valueOf('Producto escalar a · b')).toBe('0.0616 (m/s)²');
     expect(valueOf('Ángulo entre a y b')).toBe('56.57°');
@@ -55,7 +55,7 @@ describe('VectorWidget (F2-03)', () => {
     expect(screen.getByRole('button', { name: 'Punta del vector a' })).toHaveFocus();
     await user.keyboard('{ArrowRight}');
 
-    expect(valueOf('Componentes de a')).toBe('(0.400 m, 0.400 m)');
+    expect(valueOf('a (x, y)')).toBe('(0.400 m, 0.400 m)');
     expect(valueOf('Módulo de a')).toBe('0.566 m');
     expect(valueOf('Ángulo de a')).toBe('45.00°');
   });
@@ -67,7 +67,7 @@ describe('VectorWidget (F2-03)', () => {
     screen.getByRole('button', { name: 'Punta del vector a' }).focus();
     await user.keyboard('{Shift>}{ArrowUp}{/Shift}');
 
-    expect(valueOf('Componentes de a')).toBe('(0.300 m, 1.40 m)');
+    expect(valueOf('a (x, y)')).toBe('(0.300 m, 1.40 m)');
   });
 
   test('the four arrows move the tip in the four directions of the world', async () => {
@@ -78,7 +78,7 @@ describe('VectorWidget (F2-03)', () => {
     tip.focus();
     await user.keyboard('{ArrowLeft}{ArrowDown}');
 
-    expect(valueOf('Componentes de a')).toBe('(0.400 m, 0.400 m)');
+    expect(valueOf('a (x, y)')).toBe('(0.400 m, 0.400 m)');
   });
 
   test('both tips are focusable controls with a translated name', () => {
@@ -205,7 +205,7 @@ describe('VectorWidget · view fit (#285)', () => {
         fireEvent.pointerUp(tip, { clientX: axis_px, clientY: 1, pointerId: 1 });
       });
 
-      const a = componentsIn('Componentes de a');
+      const a = componentsIn('a (x, y)');
       const [drawnX_px, drawnY_px] = drawnTip(a, [0.2, -0.1]);
       const [handleX_px, handleY_px] = centreOf(tip);
       // The tip is drawn with room for its whole handle, and the handle sits on it.
