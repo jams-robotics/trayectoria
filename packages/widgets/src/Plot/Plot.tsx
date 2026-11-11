@@ -62,7 +62,7 @@ export function Plot(props: PlotProps): JSX.Element {
   const t = useT();
   const { cardRef, hostRef, theme, xRange, data, y, plotArea } = usePlotChart(props, t);
 
-  const waiting = live !== undefined && (data[0]?.length ?? 0) === 0;
+  const waiting = live !== undefined && (data[0]?.length ?? 0) <= 1;
   const status = useThrottledStatus(
     t('widgets.Plot.status', {
       count: series.length,
