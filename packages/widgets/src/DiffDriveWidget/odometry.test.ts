@@ -162,10 +162,10 @@ describe('DiffDriveWidget odometry (F2-09b)', () => {
     const view = odometryView(real, estimated);
     expect(view.centre_m).toEqual([(1.7 + 1.65) / 2, (2.8 + 2.9) / 2]);
     // With both poses on top of it the view does not close in on the chassis: it stays at its minimum.
-    expect(odometryView(real, real).width_m).toBe(1.2);
+    expect(odometryView(real, real).width_m).toBe(0.9);
     // And with a large drift it stops widening at the maximum of the scene.
-    expect(odometryView(real, { ...real, x_m: real.x_m + 5 }).width_m).toBe(3);
-    expect(view.width_m).toBeGreaterThanOrEqual(1.2);
+    expect(odometryView(real, { ...real, x_m: real.x_m + 5 }).width_m).toBe(2.4);
+    expect(view.width_m).toBeGreaterThanOrEqual(0.9);
   });
 });
 

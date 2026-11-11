@@ -3,6 +3,8 @@ import type { CSSProperties, JSX, KeyboardEvent } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 
+import { SLIDER_CSS } from './sliderCss';
+
 /** One editable parameter of the panel (docs/WIDGETS.md, ParamPanel). */
 export interface ParamPanelParam {
   key: string;
@@ -13,6 +15,8 @@ export interface ParamPanelParam {
   step: number;
   value: number;
   description?: string;
+  /** The field and the slider are disabled, with the value still shown. */
+  disabled?: boolean;
 }
 
 /** Emits the value already clamped to [min, max] and snapped to the step. */
@@ -21,7 +25,10 @@ export type ParamChangeHandler = (key: string, value: number) => void;
 export interface ParamPanelProps {
   params: readonly ParamPanelParam[];
   onChange: ParamChangeHandler;
-  layout?: 'stack' | 'inline';
+  /** `grid` lays the sliders in columns of at least 17rem, as many as fit and aligned. */
+  layout?: 'stack' | 'inline' | 'grid';
+  /** Sliders folded behind «Más controles» in the same card; they still answer to `Aplicar`. */
+  folded?: readonly ParamPanelParam[];
 }
 
 const SHIFT_FACTOR = 10;
@@ -44,41 +51,6 @@ export function format(value: number): string {
 const TRACK = 'trayectoria-slider h-6 w-full min-w-0 cursor-pointer appearance-none bg-transparent';
 const FIELD =
   'border-border bg-bg text-fg rounded-sm h-8 w-11 border px-2 text-right font-mono text-sm tabular-nums';
-
-// Slider of docs/DESIGN.md §5: 4 px track in `border`, active segment in `primary`, 20 px thumb
-// filled `bg-raised` with a 2 px `primary` ring and `shadow-sm`. The pseudo-elements of
-// <input type="range"> cannot be reached from utility classes, so they live in one style block.
-const SLIDER_CSS = `
-.trayectoria-slider { --fill: 0%; }
-.trayectoria-slider::-webkit-slider-runnable-track {
-  height: 4px; border-radius: 2px;
-  background: linear-gradient(to right,
-    var(--color-primary) var(--fill), var(--color-border) var(--fill));
-}
-.trayectoria-slider::-moz-range-track {
-  height: 4px; border-radius: 2px; background: var(--color-border);
-}
-.trayectoria-slider::-moz-range-progress {
-  height: 4px; border-radius: 2px; background: var(--color-primary);
-}
-.trayectoria-slider::-webkit-slider-thumb {
-  appearance: none; width: 20px; height: 20px; margin-top: -8px;
-  border-radius: 999px; border: 2px solid var(--color-primary);
-  background: var(--color-bg-raised); box-shadow: var(--shadow-sm);
-}
-.trayectoria-slider::-moz-range-thumb {
-  width: 16px; height: 16px; border-radius: 999px;
-  border: 2px solid var(--color-primary);
-  background: var(--color-bg-raised); box-shadow: var(--shadow-sm);
-}
-.trayectoria-slider:focus-visible { outline: none; }
-.trayectoria-slider:focus-visible::-webkit-slider-thumb {
-  outline: 2px solid var(--color-focus); outline-offset: 2px;
-}
-.trayectoria-slider:focus-visible::-moz-range-thumb {
-  outline: 2px solid var(--color-focus); outline-offset: 2px;
-}
-`;
 
 /** Share of the track left of the thumb, for the active segment of the WebKit track. */
 function fillStyle({ min, max, value }: ParamPanelParam): CSSProperties {
@@ -165,13 +137,14 @@ interface RowPartProps {
 function RowHeader({ param, t, controls, draft, setDraft }: RowPartProps): JSX.Element {
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <span className="text-sm font-medium">{param.label}</span>
-      <span className="flex items-center gap-1">
+      <span className="min-w-0 text-sm font-medium">{param.label}</span>
+      <span className="flex shrink-0 items-center gap-1">
         <input
           type="text"
           inputMode="decimal"
           className={FIELD}
           value={draft}
+          disabled={param.disabled === true}
           aria-label={t('widgets.ParamPanel.value', { label: param.label })}
           onChange={(event) => {
             setDraft(event.target.value);
@@ -193,6 +166,7 @@ function RowTrack({ param, onChange, t, controls }: RowPartProps): JSX.Element {
     <>
       <input
         type="range"
+        disabled={param.disabled === true}
         className={TRACK}
         min={param.min}
         max={param.max}
@@ -273,14 +247,9 @@ function useApplyEvent(params: readonly ParamPanelParam[], onChange: ParamChange
   }, []);
 }
 
-/**
- * Sliders with a numeric field, unit and range (docs/WIDGETS.md; Slider of docs/DESIGN.md §5).
- * Keyboard: arrows move one step, Shift+arrow ten steps, Enter applies the typed value.
- */
-export function ParamPanel({ params, onChange, layout = 'stack' }: ParamPanelProps): JSX.Element {
-  const t = useT();
-  useApplyEvent(params, onChange);
-  const status = params
+/** One sentence with every parameter and its value, for the `aria-live` region. */
+function statusOf(params: readonly ParamPanelParam[], t: Translate): string {
+  return params
     .map((param) =>
       t('widgets.ParamPanel.status', {
         label: param.label,
@@ -289,6 +258,48 @@ export function ParamPanel({ params, onChange, layout = 'stack' }: ParamPanelPro
       }),
     )
     .join(' · ');
+}
+
+const ROWS_CLASS: Readonly<Record<NonNullable<ParamPanelProps['layout']>, string>> = {
+  stack: 'flex flex-col gap-5',
+  inline: 'flex flex-wrap gap-6',
+  grid: 'grid grid-cols-[repeat(auto-fill,minmax(min(100%,17rem),1fr))] gap-x-8 gap-y-5',
+};
+
+/** The rows of a list of parameters, laid out as `layout` says. */
+function Rows({
+  params,
+  onChange,
+  layout,
+  t,
+}: {
+  params: readonly ParamPanelParam[];
+  onChange: ParamChangeHandler;
+  layout: NonNullable<ParamPanelProps['layout']>;
+  t: Translate;
+}): JSX.Element {
+  return (
+    <div className={ROWS_CLASS[layout]}>
+      {params.map((param) => (
+        <ParamRow key={param.key} param={param} onChange={onChange} t={t} />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Sliders with a numeric field, unit and range (docs/WIDGETS.md; Slider of docs/DESIGN.md §5).
+ * Keyboard: arrows move one step, Shift+arrow ten steps, Enter applies the typed value.
+ */
+export function ParamPanel({
+  params,
+  onChange,
+  layout = 'stack',
+  folded = [],
+}: ParamPanelProps): JSX.Element {
+  const t = useT();
+  const all = [...params, ...folded];
+  useApplyEvent(all, onChange);
   return (
     <section
       className="bg-bg-raised border-border rounded-lg border p-6"
@@ -296,13 +307,19 @@ export function ParamPanel({ params, onChange, layout = 'stack' }: ParamPanelPro
       data-layout={layout}
     >
       <style>{SLIDER_CSS}</style>
-      <div className={layout === 'inline' ? 'flex flex-wrap gap-6' : 'flex flex-col gap-5'}>
-        {params.map((param) => (
-          <ParamRow key={param.key} param={param} onChange={onChange} t={t} />
-        ))}
-      </div>
+      <Rows params={params} onChange={onChange} layout={layout} t={t} />
+      {folded.length === 0 ? null : (
+        <details className="mt-2" data-testid="params-more">
+          <summary className="text-primary flex min-h-[44px] cursor-pointer items-center text-sm font-medium">
+            {t('widgets.ParamPanel.more')}
+          </summary>
+          <div className="pt-2">
+            <Rows params={folded} onChange={onChange} layout={layout} t={t} />
+          </div>
+        </details>
+      )}
       <p className="sr-only" role="status" aria-live="polite">
-        {status}
+        {statusOf(all, t)}
       </p>
     </section>
   );

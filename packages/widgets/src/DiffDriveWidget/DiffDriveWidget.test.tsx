@@ -23,6 +23,14 @@ function valueOf(term: string): string {
   return '';
 }
 
+/** The four terms of the matrix `R(θ)`, row by row. */
+function matrixTerms(): string[] {
+  const matrix = screen.getByRole('table', { name: /^R\(θ\), matriz de rotación/ });
+  return within(matrix)
+    .getAllByRole('cell')
+    .map((cell) => cell.textContent ?? '');
+}
+
 /** The slider whose accessible name starts with `label`. */
 function sliderFor(label: string): HTMLElement {
   return screen.getByRole('slider', { name: new RegExp(`^${label}`) });
@@ -106,7 +114,7 @@ describe('DiffDriveWidget (F2-09a)', () => {
     const user = userEvent.setup();
     const { unmount } = render(<DiffDriveWidget mode="forward" show={[]} initial={T52} />);
 
-    const omegaR = sliderFor('Velocidad angular de la rueda derecha');
+    const omegaR = sliderFor('Velocidad rueda derecha');
     expect(omegaR).toHaveAttribute('min', '-20.9');
     expect(omegaR).toHaveAttribute('max', '20.9');
     expect(omegaR).toHaveAttribute('step', '0.1');
@@ -124,14 +132,12 @@ describe('DiffDriveWidget (F2-09a)', () => {
     render(<DiffDriveWidget mode="forward" show={['frames']} initial={T52} />);
 
     // At the initial pose (0, 0, 0) the matrix is the identity and the central sensor sits at 0.09 m.
-    expect(valueOf('R(θ) fila 1 columna 1')).toBe('1.00');
-    expect(valueOf('R(θ) fila 1 columna 2')).toBe('0.00');
+    expect(matrixTerms()).toEqual(['1.00', '0.00', '0.00', '1.00']);
     expect(valueOf('Sensor 3 en el marco global')).toBe('(0.0900, 0.00 m)');
 
     // With θ = 90° the matrix has cos = 0 and sin = 1 (experiment 3 of T-5.1).
     await typeValue(user, 'Orientación inicial', '90');
-    expect(valueOf('R(θ) fila 1 columna 1')).toBe('0.00');
-    expect(valueOf('R(θ) fila 2 columna 1')).toBe('1.00');
+    expect(matrixTerms()).toEqual(['0.00', '-1.00', '1.00', '0.00']);
     expect(valueOf('Orientación')).toBe('90.0 °');
     expect(valueOf('Sensor 3 en el marco global')).toBe('(0.00, 0.0900 m)');
   });
