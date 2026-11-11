@@ -263,7 +263,7 @@ function RotationMatrix({ pose, t }: { pose: Pose; t: Translate }): JSX.Element 
   return (
     <div className="flex items-center gap-2 font-mono text-sm tabular-nums">
       <span aria-hidden="true">{t('widgets.DiffDriveWidget.matrixName')}</span>
-      <div className="border-fg relative px-3 py-1 before:absolute before:inset-y-0 before:left-0 before:w-1.5 before:border-y-2 before:border-l-2 before:border-inherit after:absolute after:inset-y-0 after:right-0 after:w-1.5 after:border-y-2 after:border-r-2 after:border-inherit">
+      <div className="border-fg relative px-3 py-1 before:absolute before:inset-y-0 before:left-0 before:w-[6px] before:border-y-2 before:border-l-2 before:border-inherit after:absolute after:inset-y-0 after:right-0 after:w-[6px] after:border-y-2 after:border-r-2 after:border-inherit">
         <table
           aria-label={t('widgets.DiffDriveWidget.matrix')}
           data-testid="rotation-matrix"
