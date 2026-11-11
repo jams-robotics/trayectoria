@@ -26,3 +26,6 @@ overrides:
   # (GHSA-rfgv-xxqx-mfg5, GHSA-w293-vg96-wgc3); 7.29.1 fixes them and wrangler only picks it up from
   # 4.143.1. Remove this override once wrangler is at 4.143.1 or later.
   'undici@7': '7.29.1'
+  # GHSA-j22f-vq7h-c4qm (#696): devalue 5.9.2 arrives through astro, @astrojs/react and @astrojs/mdx.
+  # Remove once astro resolves devalue 5.9.3 or later by itself.
+  'devalue@<5.9.3': '5.9.3'
