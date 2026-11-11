@@ -20,11 +20,11 @@ const LEFT_COLUMN =
   '[@media(min-width:768px)_and_(min-height:640px)]:max-h-screen ' +
   '[@media(min-width:768px)_and_(min-height:640px)]:overflow-y-auto';
 
-/** Caps the 16/9 scene at 50 vh (so 50vh·16/9 wide) and centres it, same conditions. */
+/** Caps the 16/9 scene at 68 vh (so 68vh·16/9 wide) and centres it, same conditions. */
 const SCENE_CAP =
   'min-w-0 [@media(min-width:768px)_and_(min-height:640px)]:mx-auto ' +
   '[@media(min-width:768px)_and_(min-height:640px)]:w-full ' +
-  '[@media(min-width:768px)_and_(min-height:640px)]:max-w-[calc(50vh*16/9)]';
+  '[@media(min-width:768px)_and_(min-height:640px)]:max-w-[calc(68vh*16/9)]';
 
 /** Whether the row is split in two columns: the sentinel is displayed only from `md`. */
 function useSplit(

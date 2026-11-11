@@ -174,14 +174,14 @@ test('dibujar dos rectas y dos arcos encadenados deja la pista continua y cerrad
   await expect(notice).toContainText('Pista abierta');
 });
 
-test('«Exportar JSON» descarga un JSON con los cuatro segmentos que parseTrack acepta', async ({
+test('«Descargar archivo» descarga un JSON con los cuatro segmentos que parseTrack acepta', async ({
   page,
 }) => {
   const story = await openEditor(page);
   await drawClosedTrack(story);
 
   const download = page.waitForEvent('download');
-  await story.getByRole('button', { name: 'Exportar JSON' }).click();
+  await story.getByRole('button', { name: 'Descargar archivo' }).click();
   const file = await download;
   expect(file.suggestedFilename()).toBe('pista.json');
 
@@ -190,10 +190,10 @@ test('«Exportar JSON» descarga un JSON con los cuatro segmentos que parseTrack
   // El validador del formato es `parseTrack` de sim-core, que `apps/web` no puede importar
   // (docs/ARCHITECTURE.md §2) y que el cargador de Playwright tampoco resuelve a través de
   // `@trayectoria/sims` (arrastra los JSON de i18n). Se ejecuta donde ya está cargado: en la
-  // página, a través del «Importar JSON» del propio editor, que usa `fromJson` → `parseTrack`. Si el
+  // página, a través del «Abrir pista» del propio editor, que usa `fromJson` → `parseTrack`. Si el
   // archivo se acepta y reaparecen los cuatro segmentos en el mismo orden, `parseTrack` lo
   // aceptó; si no, el aviso de error del editor lo delata.
-  await story.getByLabel('Archivo de pista en JSON').setInputFiles({
+  await story.getByLabel('Archivo de pista').setInputFiles({
     name: 'pista.json',
     mimeType: 'application/json',
     buffer: Buffer.from(json, 'utf8'),
@@ -214,7 +214,7 @@ test('cargar un JSON inválido muestra el error y no cambia la pista', async ({ 
   const segments = story.getByRole('list', { name: 'Segmentos de la pista' }).getByRole('button');
   await expect(segments).toHaveCount(1);
 
-  await story.getByLabel('Archivo de pista en JSON').setInputFiles({
+  await story.getByLabel('Archivo de pista').setInputFiles({
     name: 'pista.json',
     mimeType: 'application/json',
     buffer: Buffer.from('{ esto no es una pista', 'utf8'),

@@ -11,6 +11,7 @@ export type {
   PlotRefLine,
   PlotSegment,
   PlotSeries,
+  PlotVLine,
 } from './Plot';
 export {
   Scene2D,

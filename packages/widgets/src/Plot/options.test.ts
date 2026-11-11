@@ -34,6 +34,7 @@ describe('axisTitle', () => {
   it('reads `label (unit)` (docs/WIDGETS.md, docs/DESIGN.md §5)', () => {
     expect(axisTitle(X)).toBe('t (s)');
     expect(axisTitle({ label: 'v', unit: 'm/s' })).toBe('v (m/s)');
+    expect(axisTitle({ label: 'Error', unit: '' })).toBe('Error');
   });
 });
 

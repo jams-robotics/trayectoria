@@ -14,6 +14,9 @@
     "title": "Gráfica de {{label}}",
     "value": "Valor",
     "marker": "Marcador de tiempo",
+    "empty": "Se dibuja al reproducir la simulación.",
+    "readout": "Lectura de la gráfica",
+    "readoutValue": "{{label}} {{value}} {{unit}}",
     "markerValue": "{{value}} {{unit}}",
     "status": "{{count}} series entre {{from}} y {{to}} en el eje horizontal"
   },
@@ -462,6 +465,8 @@
     "hint": "Revisa el cálculo y las unidades.",
     "attempt": "Intento {{n}}",
     "invalid": "Escribe un número.",
+    "choices": "Opciones de respuesta",
+    "chooseOne": "Elige una opción.",
     "regenerate": "Nuevos valores",
     "demo": {
       "trackTime": "Tu robot recorre una pista de {{distance_m}} m a {{speed_mps}} m/s. ¿Cuánto tiempo tarda, en segundos?",

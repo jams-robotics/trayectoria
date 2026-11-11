@@ -153,6 +153,7 @@ export function controllerParams(
       key,
       label: t(`sims.lineFollower.param.${key}`),
       unit: t(`sims.lineFollower.unit.${key}`),
+      description: t(`sims.lineFollower.help.${key}`),
       min,
       max,
       step,

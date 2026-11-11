@@ -10,6 +10,7 @@ import { useControllerChoice } from './ControllerPanel';
 import { ControllerColumn, ViewerColumn } from './columns';
 import type { ControllerParams } from './controllers';
 import { Instruments } from './Instruments';
+import { goalOf } from './goalTrack';
 import { LineFollowerView } from './LineFollowerView';
 import type { StartPoseControl } from './LineFollowerView';
 import type { LineFollowerPlot } from './plots';
@@ -137,6 +138,7 @@ function Viewer({
   hideControls,
   handle,
   instruments,
+  goal,
 }: {
   api: LineFollowerApi;
   spec: RobotSpec;
@@ -145,6 +147,7 @@ function Viewer({
   hideControls: boolean;
   handle: StartPoseControl | undefined;
   instruments: LiveInstruments;
+  goal: ReturnType<typeof goalOf>;
 }): JSX.Element {
   return (
     <LineFollowerView
@@ -154,6 +157,7 @@ function Viewer({
       compact={compact}
       hideControls={hideControls}
       instruments={instruments}
+      goal={goal}
       {...(handle === undefined ? {} : { startPose: handle })}
     />
   );
@@ -250,12 +254,13 @@ export function LineFollowerWidget(props: LineFollowerWidgetProps): JSX.Element 
         <Viewer
           {...{ api, spec, compact, hideControls, instruments }}
           track={resolved}
+          goal={goalOf(props.track, resolved)}
           handle={handleOf(props.startPose, props.onStartPoseChange)}
         />
       }
       plots={
         showPlots === undefined ? null : (
-          <Instruments buffers={instruments.buffers} show={showPlots} mobile={mobile} pid={pid} />
+          <Instruments buffers={instruments.buffers} show={showPlots} {...{ mobile, pid }} laps={instruments.timer.laps} />
         )
       }
     />

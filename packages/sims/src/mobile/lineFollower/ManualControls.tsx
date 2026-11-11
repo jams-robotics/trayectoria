@@ -14,11 +14,11 @@ import type { ManualDrive, ManualKey } from './useManualKeyboard';
 const BUTTON_SIZE_PX = 44;
 
 /** The four directions and the glyph they are drawn with, in pad order. */
-const KEYS: ReadonlyArray<readonly [ManualKey, string]> = [
-  ['up', '↑'],
-  ['left', '←'],
-  ['down', '↓'],
-  ['right', '→'],
+const KEYS: ReadonlyArray<readonly [ManualKey, string, string]> = [
+  ['up', '↑', 'col-start-2 row-start-1'],
+  ['left', '←', 'col-start-1 row-start-2'],
+  ['down', '↓', 'col-start-2 row-start-2'],
+  ['right', '→', 'col-start-3 row-start-2'],
 ];
 
 const BUTTON =
@@ -45,11 +45,11 @@ export function ManualControls({ drive }: ManualControlsProps): JSX.Element {
       className="grid w-fit grid-cols-3 grid-rows-2 gap-1"
       data-testid="manual-controls"
     >
-      {KEYS.map(([key, glyph]) => (
+      {KEYS.map(([key, glyph, cell]) => (
         <button
           key={key}
           type="button"
-          className={`${BUTTON} ${key === 'up' ? 'col-start-2' : ''}`}
+          className={`${BUTTON} ${cell}`}
           style={{ width: BUTTON_SIZE_PX, height: BUTTON_SIZE_PX }}
           aria-label={t(`sims.manual.key.${key}`)}
           data-testid={`manual-${key}`}

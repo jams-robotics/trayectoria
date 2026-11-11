@@ -173,7 +173,7 @@ test.describe('guardar y compartir la configuración (F4-05)', () => {
     // El portapapeles arranca con una marca: si «Copiar enlace» copiara algo, dejaría de estar.
     await page.evaluate(async () => navigator.clipboard.writeText('sin tocar'));
 
-    await page.getByLabel('Archivo de pista en JSON').setInputFiles({
+    await page.getByLabel('Archivo de pista').setInputFiles({
       name: 'pista-larga.json',
       mimeType: 'application/json',
       buffer: Buffer.from(syntheticTrack(TOO_LONG_SEGMENTS), 'utf-8'),

@@ -1,5 +1,7 @@
+import { useId } from 'react';
 import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
+import { segmentLength_m } from '@trayectoria/sim-core';
 import type { TrackSegment } from '@trayectoria/sim-core';
 
 import { ContinuityNotice } from './notices';
@@ -25,6 +27,16 @@ export interface SegmentListProps {
   continuity: ContinuityReport;
 }
 
+/** Decimals of the lengths shown in the list, in metres. */
+const LENGTH_DECIMALS = 2;
+
+/** «1.20 m» for a straight segment, «radio 0.40 m» for an arc. */
+function measureOf(segment: TrackSegment, t: ReturnType<typeof useT>): string {
+  return segment.type === 'arc'
+    ? t('sims.trackEditor.measureArc', { radius: segment.radius_m.toFixed(LENGTH_DECIMALS) })
+    : t('sims.trackEditor.measureLine', { length: segmentLength_m(segment).toFixed(LENGTH_DECIMALS) });
+}
+
 /** The rows of the list: the keyboard way into the selection, with no pointer involved. */
 function Rows({
   segments,
@@ -32,6 +44,7 @@ function Rows({
   onSelect,
 }: Pick<SegmentListProps, 'segments' | 'selected' | 'onSelect'>): JSX.Element {
   const t = useT();
+  const id = useId();
   if (segments.length === 0) {
     return <p className="text-fg-muted text-sm">{t('sims.trackEditor.noSegments')}</p>;
   }
@@ -47,14 +60,16 @@ function Rows({
             aria-label={t(`sims.trackEditor.segment${segment.type === 'arc' ? 'Arc' : 'Line'}`, {
               index: index + 1,
             })}
+            aria-describedby={`${id}-${String(index)}`}
             onClick={() => {
               onSelect(index);
             }}
-            className={`${ROW} ${selected === index ? ROW_ON : ''}`}
+            className={`${ROW} ${selected === index ? ROW_ON : ''} justify-between gap-3`}
           >
             {t(`sims.trackEditor.segment${segment.type === 'arc' ? 'Arc' : 'Line'}`, {
               index: index + 1,
             })}
+            <span id={`${id}-${String(index)}`}>{measureOf(segment, t)}</span>
           </button>
         </li>
       ))}
@@ -69,9 +84,17 @@ export function SegmentList({
   onSelect,
   continuity,
 }: SegmentListProps): JSX.Element {
+  const t = useT();
   return (
     <div className="flex flex-col gap-3" data-testid="track-editor-segments">
       <Rows segments={segments} selected={selected} onSelect={onSelect} />
+      {segments.length === 0 ? null : (
+        <p className="text-fg-muted text-sm" data-testid="track-editor-total">
+          {t('sims.trackEditor.totalLength', {
+            length: segments.reduce((sum, s) => sum + segmentLength_m(s), 0).toFixed(LENGTH_DECIMALS),
+          })}
+        </p>
+      )}
       <ContinuityNotice report={continuity} />
     </div>
   );

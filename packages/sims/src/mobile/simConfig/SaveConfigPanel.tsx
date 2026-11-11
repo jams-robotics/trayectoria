@@ -13,18 +13,18 @@ import type { CopyFailure } from './ShareLink';
 // `robots` row.
 
 const BUTTON =
-  'border-border bg-bg-raised text-fg inline-flex h-11 items-center rounded-md border px-3 ' +
+  'border-border bg-bg-raised text-fg inline-flex h-[44px] items-center rounded-md border px-3 ' +
   'text-sm font-semibold hover:border-fg-muted focus-visible:outline-color-focus ' +
   'focus-visible:outline-2 focus-visible:outline-offset-2';
 const PRIMARY =
-  'bg-primary text-primary-fg border-primary inline-flex h-11 items-center rounded-md border ' +
+  'bg-primary text-primary-fg border-primary inline-flex h-[44px] items-center rounded-md border ' +
   'px-3 text-sm font-semibold focus-visible:outline-color-focus focus-visible:outline-2 ' +
   'focus-visible:outline-offset-2 disabled:cursor-default disabled:opacity-45';
 const GHOST =
-  'text-fg-muted hover:text-fg inline-flex h-11 items-center rounded-md px-2 text-sm ' +
+  'text-fg-muted hover:text-fg inline-flex h-[44px] items-center rounded-md px-2 text-sm ' +
   'focus-visible:outline-color-focus focus-visible:outline-2 focus-visible:outline-offset-2';
 const FIELD =
-  'border-border bg-bg text-fg h-11 min-w-0 flex-1 rounded-md border px-3 text-sm ' +
+  'border-border bg-bg text-fg h-[44px] min-w-0 flex-1 rounded-md border px-3 text-sm ' +
   'focus-visible:outline-color-focus focus-visible:outline-2 focus-visible:outline-offset-2';
 
 export interface SaveConfigPanelProps {

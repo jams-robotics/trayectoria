@@ -40,6 +40,19 @@ export interface Exercise<V> {
    * (e.g. relative for a magnitude and absolute for an angle).
    */
   readonly tolerance: Tolerance | readonly Tolerance[];
+  /**
+   * Present on a multiple-choice exercise (`defineChoiceExercise`): the UI shows the options
+   * instead of a numeric field, and the answer is the index of the correct one.
+   */
+  readonly choices?: Choices;
+}
+
+/** Options of a multiple-choice exercise, as i18n keys of the content catalogue. */
+export interface Choices {
+  /** One key per option, 3 or 4, in the order they are shown. */
+  readonly options: readonly string[];
+  /** Key of the explanation shown once the learner answers, right or wrong. */
+  readonly explanation: string;
 }
 
 /**
@@ -91,4 +104,41 @@ export function isToleranceList(
   tolerance: Tolerance | readonly Tolerance[],
 ): tolerance is readonly Tolerance[] {
   return Array.isArray(tolerance);
+}
+
+/** Definition of a multiple-choice exercise; texts are i18n keys, like the statement of any exercise. */
+export interface ChoiceExerciseDefinition {
+  readonly id: string;
+  /** i18n key of the statement. */
+  readonly statement: string;
+  /** i18n keys of the options, 3 or 4. */
+  readonly options: readonly string[];
+  /** Index in `options` of the only correct one. */
+  readonly correct: number;
+  /** i18n key of the explanation shown on answering. */
+  readonly explanation: string;
+}
+
+/**
+ * Multiple-choice exercise: the answer is the index of the correct option, graded by `check`
+ * like any numeric one (absolute tolerance below one index step), so progress needs no changes.
+ */
+export function defineChoiceExercise(definition: ChoiceExerciseDefinition): Exercise<Record<string, never>> {
+  const { options, correct } = definition;
+  if (options.length < 3 || options.length > 4) {
+    throw new RangeError(`defineChoiceExercise: "${definition.id}" needs 3 or 4 options, got ${options.length}`);
+  }
+  if (!Number.isInteger(correct) || correct < 0 || correct >= options.length) {
+    throw new RangeError(`defineChoiceExercise: "${definition.id}" correct index ${correct} is out of range`);
+  }
+  const base = defineExercise<Record<string, never>>({
+    id: definition.id,
+    generate: () => ({ values: {}, answer: correct, unit: '' }),
+    statement: () => definition.statement,
+    tolerance: { type: 'absolute', value: 0.5 },
+  });
+  return Object.freeze({
+    ...base,
+    choices: Object.freeze({ options: Object.freeze([...options]), explanation: definition.explanation }),
+  });
 }
