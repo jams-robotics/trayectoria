@@ -40,6 +40,10 @@ export function MatrixBlock({ transform, label, link }: MatrixBlockProps): JSX.E
       aria-label={t('sims.matrices.table', { matrix: label, link })}
       data-testid="matrix-block"
     >
+      <caption className="text-fg-muted caption-bottom pt-2 text-left text-xs" data-testid="matrix-legend">
+        {t('sims.matrices.legendRotation')} ·{' '}
+        <span className="text-data-1">{t('sims.matrices.legendPosition')}</span>
+      </caption>
       <tbody>
         {rows.map((cells, row) => (
           // The rows and columns of a 4×4 matrix are fixed positions, not a list that

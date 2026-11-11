@@ -273,12 +273,12 @@ async function renderReady(node: ReactNode): Promise<ReturnType<typeof render>> 
 }
 
 describe('ArmViewer · catalog card and framing (#535, #556)', () => {
-  test('the sliders take the readable names of the card, with the URDF id as auxiliary text', async () => {
+  test('the sliders take the readable names of the card, without the URDF id next to them', async () => {
     stubCatalogWithFicha();
     await renderReady(<ArmViewer catalogId="planar2dof" show={['frames']} />);
     const sliders = within(screen.getByTestId('joint-sliders'));
     expect(sliders.getByText('Articulación 1')).toBeInTheDocument();
-    expect(sliders.getByText('joint1')).toBeInTheDocument();
+    expect(sliders.queryByText('joint1')).not.toBeInTheDocument();
   });
 
   test('the initial camera frames the link origins at rest, from sim-core (#556)', async () => {

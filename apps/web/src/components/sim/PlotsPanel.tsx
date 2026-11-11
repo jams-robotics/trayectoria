@@ -65,12 +65,12 @@ function Charts({
   if (instruments === null) {
     return <p className="text-fg-muted text-sm">{t('sims.mobilePage.readoutsEmpty')}</p>;
   }
-  // #392: on desktop the plots go in a 2×2 grid under the viewer, at the compact height, so the
-  // sticky left column (viewer and «Gráficas») nearly fits the window. On mobile they stack.
+  // #392: on desktop the plots go in a 2×2 grid under the viewer, at the full 200 px height so they are
+  // legible (v1.5). On mobile they stack, compact.
   return (
     <div className={mobile ? undefined : DESKTOP_GRID}>
       <Suspense fallback={<p className="text-fg-muted text-sm">{t('sims.mobilePage.loading')}</p>}>
-        <LazyInstruments buffers={instruments.buffers} show={PAGE_PLOTS} mobile pid={pid} />
+        <LazyInstruments buffers={instruments.buffers} show={PAGE_PLOTS} mobile={mobile} pid={pid} />
       </Suspense>
     </div>
   );

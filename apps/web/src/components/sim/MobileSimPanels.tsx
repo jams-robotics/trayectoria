@@ -1,7 +1,7 @@
 import { isValidElement, lazy, Suspense, useEffect } from 'react';
 import type { JSX, ReactNode } from 'react';
 import type { Translate } from '@trayectoria/i18n';
-import type { ControllerPanelProps, LineFollowerApi, SimConfig } from '@trayectoria/sims';
+import type { ControllerPanelProps, SimConfig } from '@trayectoria/sims';
 
 import { useApi } from './apiStore';
 import type { ApiStore } from './apiStore';
@@ -19,15 +19,12 @@ import type { ControllerChoice, PageState } from './useMobileSimState';
 import type { SavedTracksApi } from './useSavedTracks';
 import type { SimConfigsApi } from './useSimConfigs';
 
-// F4-02b (#128): the panels of `/simuladores/movil` (Robot, Pista, Lecturas and the right
+// F4-02b (#128): the panels of `/simuladores/movil` (Robot, Pista and the right
 // column that groups them), split from `MobileSimIsland.tsx` to keep each file under
 // the limit of docs/STANDARDS.md §4. The card/accordion that wraps each one lives in
 // `SimPanel.tsx` and the track editor column in `EditorColumn.tsx` (#189).
 
 export type { OpenPanelId } from './SimPanel';
-
-/** Decimals of the clock in an accordion summary (docs/DESIGN.md §5). */
-const CLOCK_DECIMALS = 2;
 
 // F4-05 (#131, decision 6): «Guardar y compartir» is one more panel of the column. It is loaded
 // with `import()` like the rest of `@trayectoria/sims`, so it does not enter the initial JS.
@@ -35,47 +32,6 @@ const LazySaveConfigPanel = lazy(async () => {
   const module = await import('@trayectoria/sims');
   return { default: module.SaveConfigPanel };
 });
-
-/**
- * The inline summary of «Lecturas», readable with the accordion closed (docs/DESIGN.md §9.8).
- * It comes from the state the widget publishes through `onApi`, not from a copy of the simulation.
- */
-export function lapSummary(api: LineFollowerApi | null, t: Translate): string | undefined {
-  if (api === null) return undefined;
-  return t('sims.mobilePage.summaryLaps', {
-    laps: api.state.laps,
-    time: api.state.robot.t_s.toFixed(CLOCK_DECIMALS),
-  });
-}
-
-/**
- * The «Lecturas» panel of mockup 04: the laps, the clock and the live speed. The full
- * array readings and the pose are still shown by the widget's own viewer; here goes the
- * summary the mockup places on the right.
- */
-function Readouts({ api, t }: { api: LineFollowerApi | null; t: Translate }): JSX.Element {
-  if (api === null) {
-    return <p className="text-fg-muted text-sm">{t('sims.mobilePage.readoutsEmpty')}</p>;
-  }
-  const rows: ReadonlyArray<readonly [string, string]> = [
-    [t('sims.lineFollower.readout.laps'), String(api.state.laps)],
-    [t('sims.lineFollower.readout.t'), `${api.state.robot.t_s.toFixed(CLOCK_DECIMALS)} s`],
-    [t('sims.lineFollower.readout.v'), `${api.state.robot.v_mps.toFixed(CLOCK_DECIMALS)} m/s`],
-  ];
-  return (
-    <dl
-      className="text-fg-muted grid grid-cols-2 gap-x-4 gap-y-1 font-mono text-sm tabular-nums"
-      data-testid="mobile-page-readouts"
-    >
-      {rows.map(([label, value]) => (
-        <div key={label} className="contents">
-          <dt>{label}</dt>
-          <dd>{value}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
 
 /** Where the track comes from: what the page has picked and its saved tracks (#191). */
 function TrackPanel({ page, tracks }: { page: PageState; tracks: SavedTracksApi }): JSX.Element {
@@ -91,40 +47,6 @@ function TrackPanel({ page, tracks }: { page: PageState; tracks: SavedTracksApi 
       onSaved={tracks.onSelect}
       onDeleteSaved={tracks.onDelete}
     />
-  );
-}
-
-/**
- * «Lecturas»: the only panel that watches the simulation live, and therefore the only one that
- * re-renders on every tick. It subscribes to the store instead of receiving the api by props.
- */
-function ReadoutsPanel({
-  store,
-  t,
-  mobile,
-  openId,
-  setOpenId,
-}: {
-  store: ApiStore;
-  t: Translate;
-  mobile: boolean;
-  openId: OpenPanelId;
-  setOpenId: (id: OpenPanelId) => void;
-}): JSX.Element {
-  const api = useApi(store);
-  const summary = lapSummary(api, t);
-  return (
-    <Panel
-      id="readouts"
-      collapsed
-      title={t('sims.mobilePage.readouts')}
-      {...(summary === undefined ? {} : { summary })}
-      mobile={mobile}
-      openId={openId}
-      setOpenId={setOpenId}
-    >
-      <Readouts api={api} t={t} />
-    </Panel>
   );
 }
 
@@ -193,7 +115,7 @@ function useReportedChoice(
 
 /**
  * The right column of mockup 04: the controller panel the widget hands over and, below,
- * Robot, Pista and Lecturas. It goes inside the widget's `renderPanel` because that is where its
+ * Robot and Pista. It goes inside the widget's `renderPanel` because that is where its
  * own row places the right column, next to the viewer; that way the viewer keeps 2/3 of the
  * mockup's width instead of sharing the cell with the panel.
  */
@@ -223,7 +145,7 @@ export interface SidePanelsProps {
 
 /** The simulation column: the widget's controller and the five cards of mockup 04. */
 function SimColumn(props: SidePanelsProps): JSX.Element {
-  const { page, mobile, openId, setOpenId, t, controller, store, configs, current } = props;
+  const { page, mobile, openId, setOpenId, t, controller, configs, current } = props;
   const shared = { mobile, openId, setOpenId };
   return (
     // Fixed width on desktop: the column lives in the widget's flex row and the «Gráficas»
@@ -242,7 +164,6 @@ function SimColumn(props: SidePanelsProps): JSX.Element {
       <Panel id="track" title={t('sims.mobilePage.track')} {...shared}>
         <TrackPanel page={page} tracks={props.tracks} />
       </Panel>
-      <ReadoutsPanel store={store} t={t} {...shared} />
       {/* #375: on desktop «Gráficas» lives under the viewer, in the sticky left column. */}
       {mobile ? (
         <PlotsPanel

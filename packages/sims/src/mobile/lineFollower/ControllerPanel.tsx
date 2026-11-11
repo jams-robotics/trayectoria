@@ -1,7 +1,6 @@
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
-import type { Translate } from '@trayectoria/i18n';
 import type { MobileSpec, RobotSpec } from '@trayectoria/robot-spec';
 import { ParamPanel } from '@trayectoria/widgets';
 
@@ -13,29 +12,6 @@ const TAB =
   ' duration-[120ms]';
 const TAB_ON = `${TAB} bg-primary text-primary-fg border-primary`;
 const TAB_OFF = `${TAB} bg-bg-raised text-fg border-border hover:border-fg-muted`;
-const TAB_DISABLED = `${TAB} bg-bg-raised text-fg-muted border-border cursor-default opacity-45`;
-
-/**
- * The tab of the student's own controller: v2, shown disabled (docs/DESIGN.md §6). It says why,
- * in its `title` and in the line under the tabs it points to (#543): a grey button with no reason
- * reads as broken.
- */
-function CustomTab({ t, hintId }: { t: Translate; hintId: string }): JSX.Element {
-  return (
-    <button
-      type="button"
-      className={TAB_DISABLED}
-      disabled
-      aria-disabled="true"
-      title={t('sims.lineFollower.customTitle')}
-      aria-describedby={hintId}
-      data-testid="line-follower-custom"
-    >
-      {t('sims.lineFollower.custom')}
-      <span className="ml-2 font-mono text-xs">{t('sims.lineFollower.customBadge')}</span>
-    </button>
-  );
-}
 
 export interface ControllerPanelProps {
   readonly controller: ControllerId;
@@ -43,11 +19,13 @@ export interface ControllerPanelProps {
   readonly spec: MobileSpec;
   readonly onController: (id: ControllerId) => void;
   readonly onParam: (key: string, value: number) => void;
+  /** Puts the gains back to the values the widget opened with. */
+  readonly onReset?: () => void;
 }
 
 /**
  * Controller selector and its sliders (docs/DESIGN.md §6): Manual · On/off · P · PID, plus the
- * disabled «Propio» tab that v2 will enable. Moving a slider applies to the run in progress and
+ * reset button. Moving a slider applies to the run in progress and
  * picking another controller restarts it (#161), which the widget above decides; this component
  * only reports the change.
  */
@@ -57,9 +35,9 @@ export function ControllerPanel({
   spec,
   onController,
   onParam,
+  onReset,
 }: ControllerPanelProps): JSX.Element {
   const t = useT();
-  const hintId = useId();
   return (
     <div className="flex flex-col gap-3" data-testid="line-follower-controller">
       <div role="group" aria-label={t('sims.lineFollower.controllerGroup')} className="flex flex-wrap gap-2">
@@ -76,12 +54,18 @@ export function ControllerPanel({
             {t(CONTROLLERS[id].labelKey)}
           </button>
         ))}
-        <CustomTab t={t} hintId={hintId} />
       </div>
-      <p id={hintId} className="text-fg-muted text-sm" data-testid="line-follower-custom-hint">
-        {t('sims.lineFollower.customHint')}
-      </p>
+      {controller === 'manual' ? (
+        <p className="text-fg-muted text-sm" data-testid="manual-instructions">
+          {t('sims.manual.instructions')}
+        </p>
+      ) : null}
       <ParamPanel params={controllerParams(controller, params, spec, t)} onChange={onParam} />
+      {onReset === undefined ? null : (
+        <button type="button" className={`${TAB_OFF} self-start`} onClick={onReset}>
+          {t('sims.lineFollower.reset')}
+        </button>
+      )}
     </div>
   );
 }
@@ -98,6 +82,7 @@ export function useControllerChoice(
   params: ControllerParams;
   onController: (id: ControllerId) => void;
   onParam: (key: string, value: number) => void;
+  onReset: () => void;
 } {
   const [selected, setSelected] = useState<ControllerId>(() =>
     isControllerId(controller) ? controller : 'pid',
@@ -116,6 +101,12 @@ export function useControllerChoice(
     onParam: (key, value) => {
       setParams((current) => ({ ...current, [key]: value }));
     },
+    onReset: () => {
+      setParams({
+        ...CONTROLLERS[selected].defaults,
+        ...(selected === controller ? initialParams : {}),
+      });
+    },
   };
 }
 
@@ -129,6 +120,7 @@ export function Panel({
   params,
   onController,
   onParam,
+  onReset,
   renderPanel,
 }: {
   spec: RobotSpec;
@@ -136,6 +128,7 @@ export function Panel({
   params: ControllerParams;
   onController: (id: ControllerId) => void;
   onParam: (key: string, value: number) => void;
+  onReset: () => void;
   renderPanel: ((panel: ReactNode) => ReactNode) | undefined;
 }): JSX.Element | null {
   const { mobile } = spec;
@@ -147,6 +140,7 @@ export function Panel({
       spec={mobile}
       onController={onController}
       onParam={onParam}
+      onReset={onReset}
     />
   );
   // With `renderPanel` the page decides where the panel goes and how wide it is (F4-02b: mockup

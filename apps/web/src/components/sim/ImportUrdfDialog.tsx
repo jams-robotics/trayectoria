@@ -37,7 +37,7 @@ function DialogBody({ signedIn, onAccept, onClose }: ImportUrdfDialogProps): JSX
       <button
         type="button"
         data-testid="import-close"
-        className="border-border bg-bg-raised text-fg h-11 self-start rounded-md border px-3 text-sm"
+        className="border-border bg-bg-raised text-fg h-[44px] self-start rounded-md border px-3 text-sm"
         onClick={onClose}
       >
         {t('sims.import.close')}
