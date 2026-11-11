@@ -1,6 +1,7 @@
 import type uPlot from 'uplot';
 
 import type { PlotRefLine, PlotSegment, PlotVLine, PlotSeries, PlotAxis } from './types';
+import { fillSubscriptText } from '../Scene2D/subscriptText';
 import { SERIES_DASHES, seriesColor } from '../shared/theme';
 import type { PlotTheme } from '../shared/theme';
 
@@ -18,11 +19,6 @@ const REF_LINE_DASH_PX = [6, 4];
 const REF_LINE_LABEL_GAP_PX = 6;
 /** Share of the y span left above a reference line that sits at the top of the data. */
 const TOP_LINE_HEADROOM_RATIO = 0.3;
-/** Size of a subscript against its base, and how far it drops, as shares of the font size. */
-const SUBSCRIPT_SCALE = 0.75;
-const SUBSCRIPT_DROP = 0.25;
-/** `X_y` and `X_{y}`, as in the labels of the exercises: the group after the underscore drops. */
-const SUBSCRIPT = /(?<=[\p{L}\p{N}])_(?:\{([^}]*)\}|([\p{L}\p{N}]+))/gu;
 /** Stroke width of a segment, in CSS pixels; as thick as a series (docs/DESIGN.md §5). */
 const SEGMENT_WIDTH_PX = 2;
 /** Palette index a segment takes when it names no token (docs/DESIGN.md §2.2). */
@@ -213,40 +209,6 @@ function uPlotRangeFallback(min: number, max: number, topPadRatio = 0.1): [numbe
 }
 
 /**
- * Writes `text` at `x`, left aligned, with `X_y` composed as a subscript (the canvas has no
- * markup). Text without one is a single `fillText`.
- */
-function fillTextWithSubscripts(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
-  fontPx: number,
-): void {
-  const matches = [...text.matchAll(SUBSCRIPT)];
-  if (matches.length === 0) {
-    ctx.fillText(text, x, y);
-    return;
-  }
-  const base = ctx.font;
-  const subFont = base.replace(`${fontPx}px`, `${fontPx * SUBSCRIPT_SCALE}px`);
-  let cursor = x;
-  let last = 0;
-  const write = (part: string, font: string, dy: number): void => {
-    ctx.font = font;
-    ctx.fillText(part, cursor, y + dy);
-    cursor += ctx.measureText(part).width;
-  };
-  for (const match of matches) {
-    write(text.slice(last, match.index), base, 0);
-    write(match[1] ?? match[2] ?? '', subFont, fontPx * SUBSCRIPT_DROP);
-    last = match.index + match[0].length;
-  }
-  write(text.slice(last), base, 0);
-  ctx.font = base;
-}
-
-/**
  * Draws the reference lines: dashed horizontal rules with their label, in `--sim-axis`
  * (docs/WIDGETS.md, Plot; docs/DESIGN.md §5). `label` is caller data, not UI text of the
  * widget, so it is painted as given (docs/ops/I18N.md §6).
@@ -288,7 +250,7 @@ export function refLinesPlugin(refLines: readonly PlotRefLine[], theme: PlotThem
           // the clip above would cut it (docs/WIDGETS.md, Plot).
           const fitsAbove = y - gap / 3 - fontHeight >= top;
           ctx.textBaseline = fitsAbove ? 'bottom' : 'top';
-          fillTextWithSubscripts(ctx, line.label, left + gap, fitsAbove ? y - gap / 3 : y + gap / 3, fontHeight);
+          fillSubscriptText(ctx, line.label, left + gap, fitsAbove ? y - gap / 3 : y + gap / 3);
         }
         ctx.restore();
       },
