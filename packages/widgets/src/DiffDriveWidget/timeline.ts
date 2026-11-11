@@ -178,7 +178,7 @@ function usePauseAt(
   const stop_s =
     maneuver === null ? duration_s : Math.min(duration_s, maneuverDuration_s(maneuver));
   useEffect(() => {
-    if (driver.running && driver.t_s >= stop_s) driver.pause();
+    if (driver.running && driver.t_s >= stop_s) driver.finish();
   }, [driver, stop_s]);
 }
 

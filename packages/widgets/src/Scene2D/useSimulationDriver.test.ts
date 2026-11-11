@@ -138,6 +138,55 @@ describe('useSimulationDriver (F2-02b)', () => {
     expect(result.current.running).toBe(false);
   });
 
+  test('play after finish restarts the run from t = 0; after a plain pause it resumes', () => {
+    const driven = createDriven();
+    const { result } = renderHook(() => useSimulationDriver(driven.sim, { clock: driven.clock }));
+
+    act(() => {
+      result.current.play();
+    });
+    frame(1000);
+    frame(1100);
+    act(() => {
+      result.current.pause();
+    });
+    act(() => {
+      result.current.play();
+    });
+    expect(result.current.state).toBe(10);
+
+    act(() => {
+      result.current.finish();
+    });
+    expect(result.current.running).toBe(false);
+    expect(result.current.state).toBe(10);
+    act(() => {
+      result.current.play();
+    });
+    expect(result.current.running).toBe(true);
+    expect(result.current.t_s).toBe(0);
+    expect(result.current.state).toBe(0);
+    frame(1200);
+    frame(1300);
+    expect(result.current.state).toBe(10);
+  });
+
+  test('step and reset after finish drop the pending restart', () => {
+    const driven = createDriven();
+    const { result } = renderHook(() => useSimulationDriver(driven.sim, { clock: driven.clock }));
+    act(() => {
+      result.current.step();
+    });
+    act(() => {
+      result.current.finish();
+      result.current.step();
+    });
+    act(() => {
+      result.current.play();
+    });
+    expect(result.current.state).toBe(2);
+  });
+
   test('step pauses a running simulation so the frame loop does not race it', () => {
     const driven = createDriven();
     const { result } = renderHook(() => useSimulationDriver(driven.sim, { clock: driven.clock }));

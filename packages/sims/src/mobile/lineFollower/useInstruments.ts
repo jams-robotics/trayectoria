@@ -146,7 +146,7 @@ export function useInstruments({ api, track, params, pid }: UseInstrumentsOption
       // staying lost does not pause it again (decision 5).
       if (state.lineLost && !previous.lost && state.lostAt !== undefined) {
         setLostAt(state.lostAt);
-        live.current.driver.pause();
+        live.current.driver.finish();
       }
     }
     last.current = { t_s: state.robot.t_s, laps: state.laps, lost: state.lineLost };

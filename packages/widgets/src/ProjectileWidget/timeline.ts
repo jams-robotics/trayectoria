@@ -51,7 +51,7 @@ export function useTimeline(flightTime_s: number, initialTime_s: number): Timeli
 
   const landed = driver.state.t_s >= flightTime_s;
   useEffect(() => {
-    if (landed && driver.running) driver.pause();
+    if (landed && driver.running) driver.finish();
   }, [landed, driver]);
 
   const follow = (action: () => void) => () => {

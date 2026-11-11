@@ -16,7 +16,8 @@ const CLOCK_INTEGER_DIGITS = 2;
 const BUTTON =
   'inline-flex h-9 items-center rounded-sm border px-3 text-sm font-semibold transition-colors' +
   ' duration-[120ms] disabled:cursor-default disabled:opacity-45';
-const PRIMARY = `${BUTTON} bg-primary text-primary-fg border-primary hover:bg-primary-hover`;
+// Reproducir keeps its full colour while it plays: it is the active state, not a dimmed control.
+const PRIMARY = `${BUTTON} bg-primary text-primary-fg border-primary enabled:hover:bg-primary-hover disabled:opacity-100`;
 const SECONDARY = `${BUTTON} bg-bg-raised text-fg border-border hover:border-fg-muted`;
 const SELECT =
   'border-border bg-bg text-fg h-9 rounded-sm border px-2 font-mono text-sm tabular-nums';
