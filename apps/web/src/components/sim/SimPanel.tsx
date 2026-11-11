@@ -24,6 +24,8 @@ export interface PanelProps {
   title: string;
   summary?: string;
   mobile?: boolean;
+  /** #683: on desktop the card is a closed `<details>`; for what is secondary to the canvas. */
+  collapsed?: boolean;
   openId: OpenPanelId;
   setOpenId: (id: OpenPanelId) => void;
   children: ReactNode;
@@ -50,6 +52,17 @@ function AccordionPanel(props: PanelProps): JSX.Element {
 export function Panel(props: PanelProps): JSX.Element {
   const { id, title, children } = props;
   if (props.mobile === true) return <AccordionPanel {...props} />;
+  if (props.collapsed === true) {
+    return (
+      <details
+        className="border-border bg-bg-raised min-w-0 overflow-hidden rounded-lg border p-4"
+        data-testid={`panel-${id}`}
+      >
+        <summary className="text-fg cursor-pointer text-lg font-semibold">{title}</summary>
+        <div className="mt-3">{children}</div>
+      </details>
+    );
+  }
   return (
     // `overflow-hidden`: the «Gráficas» plots fix a pixel width on the canvas that never
     // shrinks again, and without clipping here the card would grow with it (F4-03, #129).
@@ -57,7 +70,7 @@ export function Panel(props: PanelProps): JSX.Element {
       className="border-border bg-bg-raised min-w-0 overflow-hidden rounded-lg border p-4"
       data-testid={`panel-${id}`}
     >
-      <h2 className="text-fg mb-3 font-semibold">{title}</h2>
+      <h2 className="text-fg mb-3 text-lg font-semibold">{title}</h2>
       {children}
     </section>
   );

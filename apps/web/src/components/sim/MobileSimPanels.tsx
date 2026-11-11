@@ -64,7 +64,7 @@ function Readouts({ api, t }: { api: LineFollowerApi | null; t: Translate }): JS
   ];
   return (
     <dl
-      className="text-fg-muted grid grid-cols-2 gap-x-4 gap-y-1 font-mono text-xs tabular-nums"
+      className="text-fg-muted grid grid-cols-2 gap-x-4 gap-y-1 font-mono text-sm tabular-nums"
       data-testid="mobile-page-readouts"
     >
       {rows.map(([label, value]) => (
@@ -116,6 +116,7 @@ function ReadoutsPanel({
   return (
     <Panel
       id="readouts"
+      collapsed
       title={t('sims.mobilePage.readouts')}
       {...(summary === undefined ? {} : { summary })}
       mobile={mobile}
