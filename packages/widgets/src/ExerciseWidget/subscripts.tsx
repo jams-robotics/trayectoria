@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 // both are composed: the combining arrow (U+20D7) is in neither of our fonts.
 
 /** A letter with the combining arrow, or `X_y` / `X_{y}` (the group after the underscore). */
-const MARKUP = /(\p{L})⃗|_(?:\{([^}]*)\}|([\p{L}\p{N}]+))/gu;
+const MARKUP = /(\p{L})⃗|_(?:\{([^{}]{0,32})\}|([\p{L}\p{N}]+))/gu;
 
 /** The text with its subscripts as `<sub>` and its vectors as `.vec`; plain text comes back as is. */
 export function withSubscripts(text: string): ReactNode {

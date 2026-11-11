@@ -1,8 +1,13 @@
 // Labels of the scenes are plain i18n strings that write a subscript as `a_c` or `P_{max}`
 // (the same rule as `withSubscripts` of ExerciseWidget); on the canvas they are composed.
 
-/** `X_y` and `X_{y}`: the group after the underscore is the subscript. */
-const SUBSCRIPT = /_(?:\{([^}]*)\}|([\p{L}\p{N}]+))/gu;
+/**
+ * `X_y` and `X_{y}`: the group after the underscore is the subscript. The braced group is bounded
+ * and takes no brace, so a text with many unclosed `_{` is still matched in linear time.
+ */
+const SUBSCRIPT = /_(?:\{([^{}]{0,32})\}|([\p{L}\p{N}]+))/gu;
+/** Font size of a canvas font string (`600 11px "Source Sans 3"`), with bounded digit runs. */
+const FONT_SIZE = /(\d{1,4}(?:\.\d{1,4})?)px/;
 /** Size of a subscript relative to the font of the label. */
 const SUB_SCALE = 0.75;
 /** How far a subscript drops, as a share of the font size. */
@@ -47,7 +52,7 @@ export function fillSubscriptText(
     return;
   }
   const baseFont = ctx.font;
-  const size = /(\d+(?:\.\d+)?)px/.exec(baseFont);
+  const size = FONT_SIZE.exec(baseFont);
   const size_px = size === null ? 11 : Number(size[1]);
   const subFont = size === null ? baseFont : baseFont.replace(size[0], `${String(size_px * SUB_SCALE)}px`);
   const widthOf = (run: TextRun): number => {
