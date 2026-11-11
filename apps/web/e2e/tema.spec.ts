@@ -315,7 +315,7 @@ for (const topic of ['t01', 't02'] as const) {
 
 // #302: everything that is not an Explora simulator shares one reading column (72ch): running
 // text, formula cards, experiments, the «Mi robot» form and the exercises have the same width and
-// the same left edge. Only the Explora widgets take the whole content column (checked above).
+// the same left edge (the experiments only the left edge: from 1024 px they sit in one row). Only the Explora widgets take the whole content column (checked above).
 const READING_BLOCKS = {
   // Since 1.5 the formulas of the section share ONE card: the card is the reading block, and the
   // formulas inside it are inset by its padding. A formula card outside it (Al robot) still counts.
@@ -352,7 +352,9 @@ for (const topic of MODULE_0_TOPICS) {
         const paragraphs = [...article.querySelectorAll('[data-section] p')].filter(
           (paragraph) =>
             // The opening challenge is set apart on purpose (larger, with a left rule): not a reading block.
-            paragraph.closest('astro-island, [data-testid="experiment"], [data-section="gancho"], [data-testid="formulas-card"]') === null,
+            paragraph.closest(
+              'astro-island, [data-testid="experiment"], [data-section="gancho"], [data-testid="formulas-card"]',
+            ) === null,
         );
         return [
           ...paragraphs.map(box('paragraph')),
@@ -373,10 +375,11 @@ for (const topic of MODULE_0_TOPICS) {
       ].sort(),
     );
     const { left, width } = blocks[0]!;
+    // Since 1.5 the experiments share one row of cards (docs/DESIGN.md §4): same left edge, not width.
     const misaligned = blocks.filter(
       (block) =>
         Math.abs(block.left - left) > EDGE_TOLERANCE_PX ||
-        Math.abs(block.width - width) > EDGE_TOLERANCE_PX,
+        (block.kind !== 'experiment' && Math.abs(block.width - width) > EDGE_TOLERANCE_PX),
     );
     expect(misaligned).toEqual([]);
   });
