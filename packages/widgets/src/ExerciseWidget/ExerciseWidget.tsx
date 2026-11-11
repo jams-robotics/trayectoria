@@ -97,29 +97,47 @@ function fieldStatus(
 }
 
 /**
- * One numeric field per answer component, «Comprobar», the result and, at the end of the same
- * row, «Nuevos valores» as a tertiary action (docs/DESIGN.md §5, #540).
+ * One numeric field per answer component, «Comprobar», the result and, at the end of the row,
+ * «Nuevos valores» as a tertiary action (docs/DESIGN.md §5, #540). With several fields the actions
+ * always take their own row, so the card looks the same whatever the labels measure (v1.5).
  */
 function AnswerRow({ state, t }: { state: ExerciseState; t: Translate }): JSX.Element {
   const status: ExerciseStatus = state.status;
+  const row = state.values.length > 1 ? 'flex flex-wrap items-center gap-3' : 'contents';
   return (
-    <div className="mt-4 flex flex-wrap items-center gap-3">
-      {state.values.map((value, position) => (
-        <AnswerField
-          key={position}
-          index={position}
-          count={state.values.length}
-          value={value}
-          unit={unitAt(state.unit, position)}
-          label={state.labels?.[position]}
-          status={fieldStatus(status, state.componentCorrect, position)}
-          invalid={state.invalid}
-          t={t}
-          onChange={(next) => {
-            state.edit(position, next);
-          }}
-        />
-      ))}
+    <div
+      className={`mt-4 flex gap-3 ${row === 'contents' ? 'flex-wrap items-center' : 'flex-col'}`}
+    >
+      <div className={row}>
+        {state.values.map((value, position) => (
+          <AnswerField
+            key={position}
+            index={position}
+            count={state.values.length}
+            value={value}
+            unit={unitAt(state.unit, position)}
+            label={state.labels?.[position]}
+            status={fieldStatus(status, state.componentCorrect, position)}
+            invalid={state.invalid}
+            t={t}
+            onChange={(next) => {
+              state.edit(position, next);
+            }}
+          />
+        ))}
+      </div>
+      <div className={row}>
+        <AnswerActions state={state} t={t} />
+      </div>
+    </div>
+  );
+}
+
+/** «Comprobar», the result and, last, «Nuevos valores». */
+function AnswerActions({ state, t }: { state: ExerciseState; t: Translate }): JSX.Element {
+  const status: ExerciseStatus = state.status;
+  return (
+    <>
       <button
         type="button"
         className={status === 'correct' ? GHOST : PRIMARY}
@@ -132,7 +150,7 @@ function AnswerRow({ state, t }: { state: ExerciseState; t: Translate }): JSX.El
       <button type="button" className={TERTIARY} onClick={state.regenerate}>
         {t('widgets.ExerciseWidget.regenerate')}
       </button>
-    </div>
+    </>
   );
 }
 
@@ -257,7 +275,11 @@ export function ExerciseWidget<V>({
     >
       <Statement state={state} index={index} required={required} t={t} />
       {exercise.choices === undefined ? <PrecisionNote t={t} /> : null}
-      {exercise.choices === undefined ? <AnswerRow state={state} t={t} /> : <ChoiceRow state={state} choices={exercise.choices} t={t} />}
+      {exercise.choices === undefined ? (
+        <AnswerRow state={state} t={t} />
+      ) : (
+        <ChoiceRow state={state} choices={exercise.choices} t={t} />
+      )}
       {state.invalid && exercise.choices === undefined ? (
         <p className="text-error mt-2 text-sm">{t('widgets.ExerciseWidget.invalid')}</p>
       ) : null}

@@ -163,7 +163,7 @@ function LostMarker({ pose }: { pose: Pose | undefined }): JSX.Element | null {
  */
 function LostEventNotice({ lost, t }: { lost: boolean; t: Translate }): JSX.Element {
   return (
-    <p className="text-error text-sm" role="alert" aria-live="assertive" data-testid="instruments-lost">
+    <p className="text-error text-sm empty:hidden" role="alert" aria-live="assertive" data-testid="instruments-lost">
       {lost ? t('sims.instruments.lineLost') : ''}
     </p>
   );

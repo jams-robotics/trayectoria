@@ -10,7 +10,9 @@ function html(text: string): string {
 
 describe('withSubscripts', () => {
   it('composes a plain subscript and keeps the text around it', () => {
-    expect(html('Tu robot tiene v_max = 0.670 m/s')).toBe('Tu robot tiene v<sub>max</sub> = 0.670 m/s');
+    expect(html('Tu robot tiene v_max = 0.670 m/s')).toBe(
+      'Tu robot tiene v<sub>max</sub> = 0.670 m/s',
+    );
   });
 
   it('composes a braced subscript', () => {
@@ -22,6 +24,12 @@ describe('withSubscripts', () => {
   it('handles Greek bases and several subscripts', () => {
     expect(html('ω_base, Δt_c y Δticks_L')).toBe(
       'ω<sub>base</sub>, Δt<sub>c</sub> y Δticks<sub>L</sub>',
+    );
+  });
+
+  it('draws the arrow of a vector instead of the combining character', () => {
+    expect(html('a⃗ = (0.69, 1.73) m y |a⃗ + b⃗|')).toBe(
+      '<span class="vec">a</span> = (0.69, 1.73) m y |<span class="vec">a</span> + <span class="vec">b</span>|',
     );
   });
 

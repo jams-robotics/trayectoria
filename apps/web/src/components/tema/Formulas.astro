@@ -50,31 +50,6 @@ import Section from './Section.astro';
     font-variant-numeric: normal;
     color: var(--color-fg);
   }
-  /* Vector arrow over a letter: the combining arrow (U+20D7) is in neither of our fonts. */
-  div.formulas :global(.vec) {
-    position: relative;
-    display: inline-block;
-    padding-top: 0.15em;
-  }
-  div.formulas :global(.vec)::before {
-    content: '';
-    position: absolute;
-    top: 0.12em;
-    left: 0.05em;
-    right: 0.05em;
-    border-top: 1px solid currentColor;
-  }
-  div.formulas :global(.vec)::after {
-    content: '';
-    position: absolute;
-    top: 0.12em;
-    right: 0.05em;
-    width: 0.22em;
-    height: 0.22em;
-    border-top: 1px solid currentColor;
-    border-right: 1px solid currentColor;
-    transform: translateY(-50%) rotate(45deg);
-  }
   /* Divider between one formula and the next (`astro-island` is `display: contents`). */
   div.formulas :global(ul + astro-island > div) {
     border-top: 1px solid var(--color-border);

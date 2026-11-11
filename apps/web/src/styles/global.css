@@ -233,3 +233,32 @@
     color: var(--color-primary-hover);
   }
 }
+
+/*
+  Vector arrow over a letter (`<span class="vec">a</span>`): the combining arrow (U+20D7) is in
+  neither of our fonts, so it is drawn. Used by formula legends, topic prose and exercise texts.
+*/
+.vec {
+  position: relative;
+  display: inline-block;
+  padding-top: 0.15em;
+}
+.vec::before {
+  content: '';
+  position: absolute;
+  top: 0.12em;
+  left: 0.05em;
+  right: 0.05em;
+  border-top: 1px solid currentColor;
+}
+.vec::after {
+  content: '';
+  position: absolute;
+  top: 0.12em;
+  right: 0.05em;
+  width: 0.22em;
+  height: 0.22em;
+  border-top: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+  transform: translateY(-50%) rotate(45deg);
+}
