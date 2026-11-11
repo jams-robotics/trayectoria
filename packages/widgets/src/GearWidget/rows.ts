@@ -50,7 +50,10 @@ function ratioRows(stages: GearStages, train: Train, t: Translate): ReadoutRow[]
   ];
 }
 
-/** The lines of the values panel: ratios, output speed, torque, powers and direction (T-4.4). */
+/**
+ * The lines of the values panel: ratios, output speed, torque and direction, then ω and the
+ * powers (T-4.4). The panel keeps the first group in view (`ResultsPanel`).
+ */
 export function panelRows(
   stages: GearStages,
   train: Train,
@@ -63,16 +66,16 @@ export function panelRows(
       format(outputSpeed_rpm(stages, train), t('widgets.GearWidget.unitRpm')),
     ],
     [
-      t('widgets.GearWidget.omegaOut'),
-      format(outputOmega_radps(stages, train), t('widgets.GearWidget.unitRadps')),
-    ],
-    [
       t('widgets.GearWidget.torqueOut'),
       format(outputTorque_Nm(stages, train), t('widgets.GearWidget.unitNm')),
     ],
+    [t('widgets.GearWidget.direction'), directionOf(stages, t)],
+    [
+      t('widgets.GearWidget.omegaOut'),
+      format(outputOmega_radps(stages, train), t('widgets.GearWidget.unitRadps')),
+    ],
     [t('widgets.GearWidget.powerIn'), format(inputPower_W(train), t('widgets.GearWidget.unitW'))],
     [t('widgets.GearWidget.powerOut'), format(outputPower_W(train), t('widgets.GearWidget.unitW'))],
-    [t('widgets.GearWidget.direction'), directionOf(stages, t)],
   ];
 }
 

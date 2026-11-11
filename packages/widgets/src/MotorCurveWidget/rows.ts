@@ -103,7 +103,7 @@ function electricalRows(
   ];
 }
 
-/** The lines of the values panel, in the order of the catalogue entry. */
+/** The lines of the values panel; `ω` goes last so the electrical lines stay in view (v1.5). */
 export function panelRows(
   state: MotorState,
   electrical: MotorElectrical | undefined,
@@ -112,10 +112,6 @@ export function panelRows(
   const { motor, speed_rpm } = state;
   return [
     [t('widgets.MotorCurveWidget.speed'), speedReading(speed_rpm, t)],
-    [
-      t('widgets.MotorCurveWidget.omega'),
-      format(rpmToRadps(speed_rpm), t('widgets.MotorCurveWidget.unitRadps')),
-    ],
     [
       t('widgets.MotorCurveWidget.torque'),
       reading(
@@ -129,6 +125,10 @@ export function panelRows(
       reading(powerAt_W(motor, speed_rpm), maxPower_W(motor), t('widgets.MotorCurveWidget.unitW')),
     ],
     ...(electrical === undefined ? [] : electricalRows(state, electrical, t)),
+    [
+      t('widgets.MotorCurveWidget.omega'),
+      format(rpmToRadps(speed_rpm), t('widgets.MotorCurveWidget.unitRadps')),
+    ],
   ];
 }
 

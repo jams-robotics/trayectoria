@@ -31,8 +31,9 @@ export function frictionRows(
 }
 
 /**
- * The lines of the panel: weight, normal, the friction rows with `mu_s` and, with
- * `showResultant`, `|R|`, its angle and `a`.
+ * The lines of the panel. With `showResultant` the ones the topics read come first, so they stay
+ * in view: the weight along the surface, the normal, the friction rows, `|R|` and `a`; then the
+ * mass, the weight and the angle of `R` (v1.5). Without it: mass, weight, along, normal, friction.
  */
 export function panelRows(
   readout: FreeBodyReadout,
@@ -41,28 +42,36 @@ export function panelRows(
   t: Translate,
 ): readonly ReadoutRow[] {
   const unit_N = t('widgets.FreeBodyWidget.unitN');
-  const rows: ReadoutRow[] = [
-    [t('widgets.FreeBodyWidget.mass'), format(mass_kg, t('widgets.FreeBodyWidget.unitKg'))],
-    [t('widgets.FreeBodyWidget.weight'), format(readout.weight_N, unit_N)],
-    [t('widgets.FreeBodyWidget.weightAlong'), format(readout.weightAlong_N, unit_N)],
-    [t('widgets.FreeBodyWidget.normal'), format(readout.normal_N, unit_N)],
-    ...frictionRows(readout.friction, t),
+  const mass: ReadoutRow = [
+    t('widgets.FreeBodyWidget.mass'),
+    format(mass_kg, t('widgets.FreeBodyWidget.unitKg')),
   ];
-  if (!showResultant) return rows;
-  rows.push(
+  const weight: ReadoutRow = [t('widgets.FreeBodyWidget.weight'), format(readout.weight_N, unit_N)];
+  const along: ReadoutRow = [
+    t('widgets.FreeBodyWidget.weightAlong'),
+    format(readout.weightAlong_N, unit_N),
+  ];
+  const normal: ReadoutRow = [t('widgets.FreeBodyWidget.normal'), format(readout.normal_N, unit_N)];
+  const friction = frictionRows(readout.friction, t);
+  if (!showResultant) return [mass, weight, along, normal, ...friction];
+  return [
+    along,
+    normal,
+    ...friction,
     [t('widgets.FreeBodyWidget.resultant'), format(readout.resultantMagnitude_N, unit_N)],
+    [
+      t('widgets.FreeBodyWidget.accel'),
+      format(readout.accel_mps2, t('widgets.FreeBodyWidget.unitMps2')),
+    ],
+    mass,
+    weight,
     [
       t('widgets.FreeBodyWidget.resultantAngle'),
       t('widgets.FreeBodyWidget.degrees', {
         value: readout.resultantAngle_deg.toFixed(ANGLE_DECIMALS),
       }),
     ],
-    [
-      t('widgets.FreeBodyWidget.accel'),
-      format(readout.accel_mps2, t('widgets.FreeBodyWidget.unitMps2')),
-    ],
-  );
-  return rows;
+  ];
 }
 
 /** The «desliza» notice of the current state, or null while static friction holds (#305). */
