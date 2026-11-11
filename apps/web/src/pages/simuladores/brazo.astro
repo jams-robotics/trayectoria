@@ -24,7 +24,7 @@ const arms = collection.map((arm) => ({ id: arm.id, name: arm.data.name }));
 ---
 
 <Base title={t('sims.armPage.title')} description={t('sims.armPage.lead')}>
-  <section class="mx-auto max-w-[1760px] px-5 pt-11 pb-9 md:px-8">
+  <section class="mx-auto max-w-site px-5 pt-11 pb-9 md:px-8">
     <h1 class="text-xl leading-tight md:text-2xl font-semibold">{t('sims.armPage.title')}</h1>
     <p class="text-fg-muted mt-4 max-w-[72ch]">{t('sims.armPage.lead')}</p>
     <ArmSimIsland arms={arms} client:only="react">

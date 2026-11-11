@@ -25,7 +25,8 @@ const GROUND_HALF_LENGTH = 1.6;
 const DRAWN_TEETH_SHARE = 0.5;
 const MIN_DRAWN_TEETH = 6;
 /** Room around the chain, in metres: for the labels, the values of each stage and the force. */
-const PAD_M = { left: 0.03, right: 0.03, top: 0.07, bottom: 0.06 } as const;
+// Room for the stage labels, drawn in pixels: wide enough for them on a 348 px phone viewer too.
+const PAD_M = { left: 0.07, right: 0.05, top: 0.11, bottom: 0.07 } as const;
 /** Width over height of the view. */
 export const TRAIN_ASPECT = 4 / 3;
 
