@@ -168,76 +168,78 @@ function Block({
   );
 }
 
+/** The block of the disc: its viewer with the controls, its values, the ω–t chart and its sliders. */
+function DiscBlock({
+  rotation,
+  inputUnit,
+  setInputUnit,
+  setRotation,
+  t_s,
+  timeline,
+  t,
+}: Omit<PanelsProps, 'mode' | 'curve' | 'setCurve'> & { timeline: Timeline }): JSX.Element {
+  const mode = 'angularAccel';
+  const omega_radps = omegaAt(mode, rotation, t_s);
+  return (
+    <Block title={t('widgets.RotationWidget.blockDisc')}>
+      <div className={BLOCK_ROW}>
+        <div className={BLOCK_VIEWER}>
+          <RotationScene mode={mode} rotation={rotation} omega_radps={omega_radps} t_s={t_s} t={t} />
+          <SimControls {...timeline.driver} {...timeline.controls} t_s={t_s} />
+        </div>
+        <div className="lg:w-panel">
+          <Values mode={mode} rotation={rotation} t_s={t_s} t={t} />
+        </div>
+      </div>
+      <OmegaPlot rotation={rotation} t_s={t_s} t={t} />
+      <div className={BLOCK_SLIDERS}>
+        <Sliders {...{ mode, rotation, inputUnit, setInputUnit, setRotation, t }} />
+      </div>
+    </Block>
+  );
+}
+
+/** The block of the curve: its viewer, its two values and its three sliders. */
+function CurveBlock({
+  curve,
+  setCurve,
+  t_s,
+  t,
+}: Pick<PanelsProps, 'curve' | 'setCurve' | 't_s' | 't'>): JSX.Element {
+  return (
+    <Block title={t('widgets.RotationWidget.blockCurve')} note={t('widgets.RotationWidget.curveClock')}>
+      <SlipWarning curve={curve} t={t} />
+      <div className={BLOCK_ROW}>
+        <div className={BLOCK_VIEWER}>
+          <CurveScene curve={curve} t_s={t_s} t={t} />
+        </div>
+        <div className="lg:w-panel">
+          <CurveValues curve={curve} t={t} />
+        </div>
+      </div>
+      <div className={BLOCK_SLIDERS}>
+        <CurveSliders
+          curve={curve}
+          onChange={(key, value) => {
+            setCurve((current) => applyCurveChange(current, key, value));
+          }}
+          t={t}
+        />
+      </div>
+    </Block>
+  );
+}
+
 /**
  * `angularAccel` as two sibling blocks with the same structure, the disc that accelerates and
  * the robot in a curve (docs/WIDGETS.md, RotationWidget): each has its title, its viewer, its
  * values beside it and its sliders below. Both move with the clock of the controls of the first.
  */
-function AccelBlocks({
-  rotation,
-  inputUnit,
-  setInputUnit,
-  setRotation,
-  curve,
-  setCurve,
-  t_s,
-  timeline,
-  t,
-}: Omit<PanelsProps, 'mode'> & { timeline: Timeline }): JSX.Element {
-  const mode = 'angularAccel';
+function AccelBlocks(props: Omit<PanelsProps, 'mode'> & { timeline: Timeline }): JSX.Element {
   return (
     <div className="flex flex-col gap-8">
-      <Block title={t('widgets.RotationWidget.blockDisc')}>
-        <div className={BLOCK_ROW}>
-          <div className={BLOCK_VIEWER}>
-            <RotationScene
-              mode={mode}
-              rotation={rotation}
-              omega_radps={omegaAt(mode, rotation, t_s)}
-              t_s={t_s}
-              t={t}
-            />
-            <SimControls {...timeline.driver} {...timeline.controls} t_s={t_s} />
-          </div>
-          <div className="lg:w-panel">
-            <Values mode={mode} rotation={rotation} t_s={t_s} t={t} />
-          </div>
-        </div>
-        <OmegaPlot rotation={rotation} t_s={t_s} t={t} />
-        <div className={BLOCK_SLIDERS}>
-          <Sliders
-            mode={mode}
-            rotation={rotation}
-            inputUnit={inputUnit}
-            setInputUnit={setInputUnit}
-            setRotation={setRotation}
-            t={t}
-          />
-        </div>
-      </Block>
-      <Block
-        title={t('widgets.RotationWidget.blockCurve')}
-        note={t('widgets.RotationWidget.curveClock')}
-      >
-        <SlipWarning curve={curve} t={t} />
-        <div className={BLOCK_ROW}>
-          <div className={BLOCK_VIEWER}>
-            <CurveScene curve={curve} t_s={t_s} t={t} />
-          </div>
-          <div className="lg:w-panel">
-            <CurveValues curve={curve} t={t} />
-          </div>
-        </div>
-        <div className={BLOCK_SLIDERS}>
-          <CurveSliders
-            curve={curve}
-            onChange={(key, value) => {
-              setCurve((current) => applyCurveChange(current, key, value));
-            }}
-            t={t}
-          />
-        </div>
-      </Block>
+      <DiscBlock {...props} />
+      <CurveBlock {...props} />
     </div>
   );
 }

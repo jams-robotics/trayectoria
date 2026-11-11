@@ -80,6 +80,20 @@ interface Actions {
   setSpeed: (speed: number) => void;
 }
 
+/** The speed action: clamps through the simulation and shows the value it kept. */
+function useSpeedSetter<S, I>(
+  sim: Simulation<S, I>,
+  setSpeedState: (speed: number) => void,
+): (speed: number) => void {
+  return useCallback(
+    (next: number): void => {
+      sim.setSpeed(next);
+      setSpeedState(sim.speed);
+    },
+    [sim, setSpeedState],
+  );
+}
+
 /** Builds the playback actions over `sim`; `publish` pushes its state to React. */
 function useActions<S, I>(
   sim: Simulation<S, I>,
@@ -125,13 +139,7 @@ function useActions<S, I>(
     publish();
   }, [sim, pause, publish]);
 
-  const setSpeed = useCallback(
-    (next: number): void => {
-      sim.setSpeed(next);
-      setSpeedState(sim.speed);
-    },
-    [sim, setSpeedState],
-  );
+  const setSpeed = useSpeedSetter(sim, setSpeedState);
 
   return { play, pause, finish, step, reset, setSpeed };
 }

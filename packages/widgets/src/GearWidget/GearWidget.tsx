@@ -9,7 +9,7 @@ import { LiveStatus } from '../shared/ReadoutPanel';
 import { SimLayout } from '../shared/SimLayout';
 import type { GearStages, Train } from './compute';
 import { ResultsPanel, animationScale, applyChange, paramsOf, statusOf } from './panels';
-import { GearScene } from './scene';
+import { GearScene } from './chainScene';
 import { useTimeline } from './timeline';
 import type { Timeline } from './timeline';
 
