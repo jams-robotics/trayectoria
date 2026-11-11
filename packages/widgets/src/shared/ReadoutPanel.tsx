@@ -55,7 +55,7 @@ export function ReadoutPanel({ title, rows, visibleRows }: ReadoutPanelProps): J
       <Rows rows={rows.slice(0, shown)} />
       {folded.length === 0 ? null : (
         <details className="mt-1" data-testid="readout-more">
-          <summary className="text-primary min-h-11 flex cursor-pointer items-center text-sm font-medium">
+          <summary className="text-primary min-h-[44px] flex cursor-pointer items-center text-sm font-medium">
             {t('widgets.ReadoutPanel.more')}
           </summary>
           <Rows rows={folded} />

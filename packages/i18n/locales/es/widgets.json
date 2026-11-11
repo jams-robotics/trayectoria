@@ -501,6 +501,16 @@
     "unitRadps": "rad/s",
     "unitMps": "m/s",
     "unitKg": "kg",
+    "diagram": {
+      "title": "Esquema del robot visto desde arriba, con las medidas del formulario señaladas. El campo enfocado resalta su medida.",
+      "length": "largo",
+      "width": "ancho",
+      "wheelBase": "entre ruedas",
+      "wheelRadius": "radio",
+      "forwardOffset": "adelanto",
+      "spacing": "separación",
+      "footprint": "huella"
+    },
     "labels": {
       "length_m": "Largo",
       "width_m": "Ancho",

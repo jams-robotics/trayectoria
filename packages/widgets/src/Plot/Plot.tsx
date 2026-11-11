@@ -78,7 +78,7 @@ export function Plot(props: PlotProps): JSX.Element {
       data-live={live === undefined ? 'false' : 'true'}
     >
       <figcaption className="mb-3 flex flex-wrap items-baseline justify-between gap-3">
-        <span className="text-sm font-semibold">{t('widgets.Plot.title', { label: y.label })}</span>
+        <span className="text-sm font-semibold">{props.title ?? t('widgets.Plot.title', { label: y.label })}</span>
         <Legend series={series} theme={theme} />
       </figcaption>
       {/* A live chart with nothing recorded yet is one line, not an empty grid (v1.5). */}
