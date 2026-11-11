@@ -14,16 +14,25 @@ interface Props {
    * reading column of 72ch for text, formulas, «Mi robot» and exercises alike (#302).
    */
   wide?: boolean;
+  /** `physical` paints the numeral in the robot's orange: the section is about the real robot. */
+  accent?: 'physical';
 }
 
-const { id, title, number, wide = false } = Astro.props;
+const { id, title, number, wide = false, accent } = Astro.props;
 const label = number === undefined ? '' : String(number).padStart(2, '0');
 ---
 
 <section id={id} data-section={id} class="scroll-mt-[72px] mt-9 first:mt-0">
   {title !== undefined && (
-    <h2 class="text-lg leading-tight m-0 flex items-baseline gap-3 font-semibold">
-      <span class="text-fg-muted font-mono text-xs font-normal">{label}</span>
+    <h2 class="text-xl leading-tight m-0 flex items-baseline gap-3 font-semibold">
+      <span
+        class:list={[
+          'font-mono text-xs font-normal',
+          accent === 'physical' ? 'text-physical' : 'text-fg-muted',
+        ]}
+      >
+        {label}
+      </span>
       {title}
     </h2>
   )}

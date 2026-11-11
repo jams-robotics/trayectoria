@@ -73,14 +73,14 @@ const noPrerequisites = prerequisites.length === 0 && prerequisitesFromRoutes.le
 ---
 
 <Base title={seoTitle ?? title} description={description}>
-  <div class="mx-auto max-w-[1200px] px-5 py-9 md:px-8">
+  <div class="mx-auto max-w-site px-5 py-9 md:px-8">
     <div class="md:flex md:items-start md:gap-10">
       <div class="md:order-2 md:min-w-0 md:flex-1">
         <p class="text-fg-muted font-mono text-xs tracking-[0.06em] uppercase">
           {route.href === undefined ? (
             route.title
           ) : (
-            <a href={route.href} class="no-underline hover:underline">
+            <a href={route.href} class="inline-block min-h-6 no-underline hover:underline">
               {route.title}
             </a>
           )}
@@ -142,7 +142,7 @@ const noPrerequisites = prerequisites.length === 0 && prerequisitesFromRoutes.le
 
         <TopicOutline mobile />
 
-        <article class="mt-8">
+        <article class="mt-8" data-topic-article>
           <slot />
         </article>
 
