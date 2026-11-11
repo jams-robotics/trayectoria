@@ -18,12 +18,13 @@ seoDescription: "Aprende a usar x = x0 + v·t para calcular cuánto tarda tu rob
 ---
 
 <Gancho>
-Tu robot avanza a 0.4 m/s por una pista recta de 4 m. ¿Cuánto tarda?
+Tu robot avanza por una pista recta de 4 m y tu programa no sabe cuándo parar los motores. Tu
+reto: con el simulador, haz que llegue a los 4 m en 5 s en lugar de en 10.
 </Gancho>
 
 <Explora>
-Una partícula parte de x₀ = 0 m a v = 0.4 m/s constante, durante 10 s: el robot del gancho. Las
-gráficas x–t, v–t y a–t muestran el mismo movimiento con un marcador de tiempo común.
+Una partícula parte de x₀ = 0 m a 0.4 m/s constante, durante 10 s: tarda 10 s en llegar a los
+4 m. Las gráficas x–t, v–t y a–t muestran el mismo movimiento con un marcador de tiempo común.
 
 <KinematicsWidget
   initial={{ x0_m: 0, v0_mps: 0.4, a_mps2: 0 }}
@@ -36,8 +37,8 @@ gráficas x–t, v–t y a–t muestran el mismo movimiento con un marcador de t
   observa="el instante en que x–t llega a 4 m, con el marcador de tiempo"
   porque="¿Por qué el tiempo se reduce a la mitad?"
 >
-De Δx = v·Δt, el tiempo para recorrer 4 m es Δt = 4/v. Al doble de v, la mitad de tiempo: pasa
-de 10 s a 5 s.
+El tiempo para recorrer 4 m es esa distancia entre la velocidad. Al doble de v, la mitad de
+tiempo: pasa de 10 s a 5 s.
 </Experimento>
 
 <Experimento
@@ -60,27 +61,25 @@ así que la recta baja, y v–t queda por debajo de cero.
 </Explora>
 
 <Concepto>
-Si la velocidad de tu robot no cambia, avanza la misma distancia en cada segundo. A 0.4 m/s,
-cada segundo suma 0.4 m. Ese es el **movimiento rectilíneo uniforme** (MRU): movimiento en línea
-recta con v constante.
+Viste que al duplicar la velocidad el tiempo se reduce a la mitad y que la recta x–t solo cambia de
+pendiente. Si la velocidad de tu robot no cambia, avanza la misma distancia en cada segundo: a
+0.4 m/s, cada segundo suma 0.4 m. Ese es el **movimiento rectilíneo uniforme** (MRU): movimiento en
+línea recta con v constante.
 
-La posición crece lo mismo en cada intervalo igual, así que depende de t de forma lineal:
-x = x₀ + v·t. En la gráfica x–t es una recta. Su ordenada en t = 0 es x₀ y su pendiente es v.
-Por eso, para leer v de una gráfica x–t, tomas dos puntos de la recta y divides Δx entre Δt.
+La posición crece lo mismo en cada intervalo igual, así que depende de t de forma lineal. En la
+gráfica x–t es una recta: su ordenada en t = 0 es x₀ y su pendiente es v. Por eso, para leer v de
+una gráfica x–t, tomas dos puntos de la recta y divides Δx entre Δt.
 
-La gráfica v–t es una recta horizontal a la altura de v, y a–t vale cero todo el tiempo. El
-área bajo la recta v–t entre dos instantes es un rectángulo de base Δt y altura v. Esa área es
-el desplazamiento: Δx = v·Δt.
+La gráfica v–t es una recta horizontal a la altura de v, y a–t vale cero todo el tiempo. El área
+bajo la recta v–t entre dos instantes es un rectángulo de base Δt y altura v. Esa área es el
+desplazamiento.
 
-El signo de v da el sentido. Con v positiva, x crece y el robot avanza. Con v negativa, x
-decrece, la recta x–t baja y el robot retrocede.
+El signo de v da el sentido. Con v positiva, x crece y el robot avanza. Con v negativa, x decrece,
+la recta x–t baja y el robot retrocede.
 
 Con dos móviles en la misma recta, cada uno tiene su propia ecuación de posición. Se encuentran
 cuando están en el mismo lugar en el mismo instante. Para hallar ese instante, igualas las dos
 posiciones y despejas t. Con ese t, cualquiera de las dos ecuaciones da el punto de encuentro.
-
-Con los datos del gancho, el robot parte de x₀ = 0 m y la pista mide Δx = 4 m. De Δx = v·Δt,
-tarda Δt = 4/0.4 = 10 s.
 </Concepto>
 
 <Formulas>
@@ -99,18 +98,18 @@ tarda Δt = 4/0.4 = 10 s.
 </Formulas>
 
 <AlRobot>
-La pista del gancho mide D = 4 m. Lo más rápido que tu robot puede recorrerla es a v_max, la
+Piensa en una pista recta de D = 4 m. Lo más rápido que tu robot puede recorrerla es a v<sub>max</sub>, la
 velocidad lineal máxima de tu robot. Aquí es un dato de tu perfil de «Mi robot»; de dónde sale:
-[Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04). Si mantiene v_max constante durante toda
+[Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04). Si mantiene v<sub>max</sub> constante durante toda
 la pista, es un MRU y de Δx = v·Δt sale el tiempo:
 
 <RobotFormula calc="ruta-1/m01-t01/track-time" />
 
-Con el robot de referencia, v_max = 0.670 m/s y recorre la pista en 4/0.670 = 5.97 s. Con otra
-v_max el tiempo cambia en proporción inversa: el doble de velocidad, la mitad de tiempo, como
+Con el robot de referencia, v<sub>max</sub> = 0.670 m/s y recorre la pista en 5.97 s. Con otra
+v<sub>max</sub> el tiempo cambia en proporción inversa: el doble de velocidad, la mitad de tiempo, como
 viste en Explora.
 
-Ese tiempo es un límite inferior. Tu robot parte del reposo y no alcanza v_max al instante: antes
+Ese tiempo es un límite inferior. Tu robot parte del reposo y no alcanza v<sub>max</sub> al instante: antes
 acelera. En el tema siguiente, [Movimiento uniformemente acelerado](/ruta/ruta-1/m01/t02),
 calculas cuánto tarda esa rampa y cuánta pista ocupa.
 </AlRobot>
