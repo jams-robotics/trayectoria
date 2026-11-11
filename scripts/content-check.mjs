@@ -127,6 +127,24 @@ function exerciseKeys(body) {
 }
 
 /**
+ * v1.5 rules: a figure, no underscore subscripts and no platform notes in running text.
+ * @param {string} body
+ * @param {number} bodyOffset
+ * @param {(reason: string) => void} report
+ */
+function checkV15(body, bodyOffset, report) {
+  if (countTag(body, 'Figura') < 1) report('falta una <Figura> en el Concepto');
+  for (const { line, text } of proseLines(body)) {
+    if (/[A-Za-zωηθτΔ]_[A-Za-z0-9{]/.test(text)) {
+      report(`línea ${line + bodyOffset}: subíndice con guion bajo en el texto; usa <sub>`);
+    }
+    for (const note of PLATFORM_NOTES) {
+      if (note.test(text)) report(`línea ${line + bodyOffset}: nota de plataforma dentro de la lección`);
+    }
+  }
+}
+
+/**
  * @param {string} file
  * @param {Finding[]} findings
  */
@@ -158,15 +176,7 @@ function checkTopic(file, findings) {
 
   if (status === 'draft') return;
 
-  if (countTag(body, 'Figura') < 1) report('falta una <Figura> en el Concepto');
-  for (const { line, text } of proseLines(body)) {
-    if (/[A-Za-zωηθτΔ]_[A-Za-z0-9{]/.test(text)) {
-      report(`línea ${line + bodyOffset}: subíndice con guion bajo en el texto; usa <sub>`);
-    }
-    for (const note of PLATFORM_NOTES) {
-      if (note.test(text)) report(`línea ${line + bodyOffset}: nota de plataforma dentro de la lección`);
-    }
-  }
+  checkV15(body, bodyOffset, report);
 
   const experiments = countTag(body, 'Experimento');
   const { experiments: exp, exercises: ex } = LIMITS;

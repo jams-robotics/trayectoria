@@ -261,25 +261,5 @@
     "e3": "Lanzas una pelota a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal, desde una altura h = {{h_m}} m. ¿Cuál es su tiempo de vuelo t_v hasta tocar el suelo, en s?",
     "e4": "Lanzas una pelota a v₀ = {{v0_mps}} m/s con un ángulo α = {{launchAngle_deg}}° sobre la horizontal, desde una altura h = {{h_m}} m. ¿Cuál es su alcance R hasta tocar el suelo, en m?",
     "e5": "Tu robot avanza a 0.6 m/s y suelta una pieza desde su pinza, a 0.25 m del suelo. ¿Cuánto más adelante del punto de suelta cae la pieza, en m?"
-  },
-  "empieza": {
-    "title": "Haz que siga la línea en 10 minutos",
-    "description": "Un robot, una pista y dos controles: haz que dé una vuelta completa sin salirse, y descubre qué temas explican lo que acabas de mover.",
-    "lead": "Tu robot sigue una línea con dos controles: la velocidad base y la ganancia Kp. Sin teoría: mueve, mira y ajusta.",
-    "goalTitle": "Tu meta",
-    "goal": "Da una vuelta completa a la pista sin perder la línea y en menos de 7 s. Cuando la «Última vuelta» baje de 7 s, lo lograste.",
-    "stepsTitle": "Cómo intentarlo",
-    "steps": [
-      "Pulsa reproducir con los valores de partida y mira cuánto tarda la vuelta.",
-      "Sube la velocidad base de a poco. Si el robot oscila o se sale, baja Kp o la velocidad.",
-      "Repite hasta bajar de 7 s sin perder la línea."
-    ],
-    "linksTitle": "Cuando quieras saber por qué",
-    "links": {
-      "speed": "Por qué más velocidad base acorta la vuelta: Rodadura, de la rueda al robot",
-      "sensor": "Cómo sabe el robot dónde está la línea: El sensor de línea",
-      "proportional": "Qué hace Kp y por qué oscila: Control on/off y proporcional",
-      "pid": "Cómo quitar la oscilación y el sesgo en curvas: Control PID"
-    }
   }
 }
