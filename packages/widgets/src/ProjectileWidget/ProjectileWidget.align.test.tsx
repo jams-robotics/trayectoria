@@ -26,8 +26,8 @@ describe('ProjectileWidget · panels A and B aligned (#381)', () => {
     render(<ProjectileWidget mode="launch" initial={{ v0_mps: 4, h_m: 0 }} overlay />);
     const [headerA, headerB] = headers();
     expect(headerA?.className).toBe(headerB?.className);
-    // The toggle is `h-10` inside a 1 px border: the header reserves both.
-    expect(headerA).toHaveClass('min-h-[calc(var(--spacing-10)+2px)]');
+    // The toggle is 44 px inside a 1 px border: the header reserves both.
+    expect(headerA).toHaveClass('min-h-[46px]');
   });
 
   test('with B hidden the toggle keeps its place in the header row of B', async () => {
