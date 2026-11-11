@@ -59,6 +59,12 @@ describe('buildOptions: escalas', () => {
     expect(min).toBeLessThanOrEqual(0);
   });
 
+  it('leaves room above a reference line at the top of the data for its label', () => {
+    const [, plain] = yRangeOf(options([{ y: 0, label: 'Sin error' }]), 0, 10);
+    const [, top] = yRangeOf(options([{ y: 10, label: 'P_max' }]), 0, 10);
+    expect(top).toBeGreaterThan(plain + 1);
+  });
+
   it('never returns a degenerate or non-finite range (uPlot rejects them)', () => {
     expect(yRangeOf(options(), 3, 3)).toEqual([2, 4]);
     expect(yRangeOf(options(), Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY)).toEqual([0, 1]);
@@ -124,6 +130,8 @@ describe('refLinesPlugin', () => {
       lineTo: vi.fn(),
       stroke: vi.fn(),
       fillText: vi.fn(),
+      font: '24px ui-monospace, monospace',
+      measureText: (text: string) => ({ width: text.length * 10 }),
     };
     const chart = {
       ctx: { ...ctx, canvas: { width: 960 } },
@@ -163,11 +171,22 @@ describe('refLinesPlugin', () => {
     const { chart, ctx } = fakeChart();
     // 10 canvas pixels under the top edge: a 24 px (2x) label above the line would be clipped,
     // as `P_max` was in MotorCurveWidget, so it hangs from the line instead.
-    draw(refLinesPlugin([{ y: 1, label: 'P_max = 1.88 W' }], THEME), chart);
+    draw(refLinesPlugin([{ y: 1, label: 'Máximo = 1.88 W' }], THEME), chart);
 
     expect(ctx.moveTo).toHaveBeenCalledWith(0, 10);
-    expect(ctx.fillText).toHaveBeenCalledWith('P_max = 1.88 W', 12, 14);
+    expect(ctx.fillText).toHaveBeenCalledWith('Máximo = 1.88 W', 12, 14);
     expect(ctx.textBaseline).toBe('top');
+  });
+
+  it('composes a subscript of the label: base, smaller dropped group, then the rest', () => {
+    const { chart, ctx } = fakeChart();
+    draw(refLinesPlugin([{ y: 0, label: 'P_max = 9.90 W' }], THEME), chart);
+
+    // 12 canvas px of margin; the fake measures 10 px per character.
+    expect(ctx.fillText).toHaveBeenNthCalledWith(1, 'P', 12, 96);
+    expect(ctx.fillText).toHaveBeenNthCalledWith(2, 'max', 22, 102);
+    expect(ctx.fillText).toHaveBeenNthCalledWith(3, ' = 9.90 W', 52, 96);
+    expect(ctx.font).toBe('24px ui-monospace, monospace');
   });
 
   it('skips a line whose position cannot be computed', () => {
