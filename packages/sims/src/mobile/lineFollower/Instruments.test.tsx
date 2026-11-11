@@ -3,8 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { RingBuffer } from '@trayectoria/widgets';
 
-import { Instruments, MOBILE_PLOT_HEIGHT_PX, PLOT_HEIGHT_PX } from './Instruments';
+import { Instruments, MOBILE_PLOT_HEIGHT_PX, PLOT_HEIGHT_PX, limitsOf } from './Instruments';
 import type { InstrumentBuffers } from './useInstruments';
+import { referenceMobile } from '@trayectoria/robot-spec';
+import type { MobileSpec } from '@trayectoria/robot-spec';
+
+const SPEC = referenceMobile.mobile as MobileSpec;
 
 // F4-03 (#129, decisions 4 and 6): which plots are drawn and at what height. The data itself is
 // drawn by `Plot`, which has its own tests in `packages/widgets`.
@@ -66,18 +70,22 @@ describe('Instruments (F4-03)', () => {
   });
 });
 
-describe('Instruments, escala del error (v1.5)', () => {
-  it('el error se ajusta a los datos por defecto y se puede ver en su rango completo', async () => {
+describe('Instruments, escala y lectura (v1.5)', () => {
+  it('cada gráfica ofrece su rango completo y una línea de cómo leerla', async () => {
     const { default: userEvent } = await import('@testing-library/user-event');
     const user = userEvent.setup();
-    render(<Instruments buffers={buffers()} show={['error', 'v']} />);
-    const fit = screen.getByRole('button', { name: 'Ajustar a los datos' });
-    const full = screen.getByRole('button', { name: 'Rango completo (−1 a 1)' });
-    expect(fit).toHaveAttribute('aria-pressed', 'true');
+    render(<Instruments buffers={buffers()} show={['error', 'v']} spec={SPEC} />);
+    expect(screen.getAllByRole('group', { name: 'Escala del eje vertical' })).toHaveLength(2);
+    const full = screen.getByRole('button', { name: 'Rango completo (-1 a 1)' });
     await user.click(full);
     expect(full).toHaveAttribute('aria-pressed', 'true');
-    expect(fit).toHaveAttribute('aria-pressed', 'false');
-    // Only the error plot has the switch.
-    expect(screen.getAllByRole('group', { name: 'Escala del error' })).toHaveLength(1);
+    expect(screen.getByRole('button', { name: /^Rango completo \(0 a [\d.]+ m\/s\)$/ })).toBeInTheDocument();
+    expect(screen.getAllByText(/^Cómo leerla:/)).toHaveLength(2);
+  });
+
+  it('los límites salen del robot: v = ω_rueda r y ω = 2 v / L', () => {
+    const limits = limitsOf(SPEC);
+    expect(limits.v_mps).toBeCloseTo(limits.wheel_radps * SPEC.wheelRadius_m, 12);
+    expect(limits.omega_radps).toBeCloseTo((2 * limits.v_mps) / SPEC.wheelBase_m, 12);
   });
 });

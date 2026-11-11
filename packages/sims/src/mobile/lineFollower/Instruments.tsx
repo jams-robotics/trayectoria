@@ -1,7 +1,8 @@
-import { useState } from 'react';
 import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
+import { maxWheelSpeed_radps } from '@trayectoria/sim-core';
+import type { MobileSpec } from '@trayectoria/robot-spec';
 import { Plot } from '@trayectoria/widgets';
 import type { PlotSeries, PlotVLine, RingBuffer } from '@trayectoria/widgets';
 
@@ -76,47 +77,32 @@ export interface InstrumentsProps {
   readonly pid?: boolean;
   /** Laps closed so far: each one draws a vertical mark at the time it ended (v1.5). */
   readonly laps?: readonly Lap[];
+  /** The robot, for the full range of `v`, `ω` and the PID terms (v1.5). */
+  readonly spec?: MobileSpec | undefined;
 }
 
-/** Full range of the error: `linePosition` is normalised to `[-1, 1]` (sim-core, lineArray). */
-const ERROR_RANGE = [-1, 1] as const;
+/** The largest values the robot can reach: the physical range of each plot (v1.5). */
+export interface PlotLimits {
+  readonly v_mps: number;
+  readonly omega_radps: number;
+  /** Largest wheel correction of the PID, in rad/s: the wheel speed limit. */
+  readonly wheel_radps: number;
+}
 
-const SEGMENT = 'h-[44px] px-3 text-sm font-semibold transition-colors duration-[120ms]';
+/** The limits of a mobile spec: `ω_max` of the wheel, `v_max = ω_max r`, `ω_max = 2 v_max / L`. */
+export function limitsOf(spec: MobileSpec): PlotLimits {
+  const wheel_radps = maxWheelSpeed_radps(spec);
+  const v_mps = wheel_radps * spec.wheelRadius_m;
+  return { v_mps, omega_radps: (2 * v_mps) / spec.wheelBase_m, wheel_radps };
+}
 
-/**
- * «Ajustar a los datos» or «Rango completo» for the error plot (v1.5): fitted to the data, a
- * wobble of 0.25 fills the plot; at `[-1, 1]` it reads as the near-straight line it is.
- */
-function ErrorScale({
-  full,
-  onFull,
-  t,
-}: {
-  full: boolean;
-  onFull: (full: boolean) => void;
-  t: Translate;
-}): JSX.Element {
-  return (
-    <div
-      role="group"
-      aria-label={t('sims.instruments.errorScale')}
-      className="border-border mb-2 flex w-fit overflow-hidden rounded-sm border"
-    >
-      {[false, true].map((option) => (
-        <button
-          key={String(option)}
-          type="button"
-          className={`${SEGMENT} ${option === full ? 'bg-primary text-primary-fg' : 'bg-bg-raised text-fg'}`}
-          aria-pressed={option === full}
-          onClick={() => {
-            onFull(option);
-          }}
-        >
-          {t(option ? 'sims.instruments.errorScaleFull' : 'sims.instruments.errorScaleFit')}
-        </button>
-      ))}
-    </div>
-  );
+/** Physical range of a plot; the error is the line position, normalised to `[-1, 1]`. */
+function fullRangeOf(id: LineFollowerPlot, limits: PlotLimits | undefined): readonly [number, number] | undefined {
+  if (id === 'error') return [-1, 1];
+  if (limits === undefined) return undefined;
+  if (id === 'v') return [0, Number(limits.v_mps.toFixed(2))];
+  if (id === 'omega') return [-Number(limits.omega_radps.toFixed(1)), Number(limits.omega_radps.toFixed(1))];
+  return [-Number(limits.wheel_radps.toFixed(0)), Number(limits.wheel_radps.toFixed(0))];
 }
 
 /**
@@ -139,11 +125,12 @@ export function Instruments({
   mobile = false,
   pid = false,
   laps = [],
+  spec,
 }: InstrumentsProps): JSX.Element {
   const t = useT();
   const height = mobile ? MOBILE_PLOT_HEIGHT_PX : PLOT_HEIGHT_PX;
   const drawn = PLOTS.filter(({ id }) => show.includes(id) && (id !== 'pid' || pid));
-  const [fullError, setFullError] = useState(false);
+  const limits = spec === undefined ? undefined : limitsOf(spec);
   return (
     // uPlot measures its container and sets a pixel width on the canvas that it then never
     // shrinks again. Placed in a flexible column that feeds back on itself —the plot pushes, the column
@@ -153,15 +140,15 @@ export function Instruments({
     <div className="flex w-full min-w-0 flex-col gap-3" data-testid="line-follower-plots">
       {drawn.map(({ id, buffer, series }) => (
         <div key={id} className="w-0 min-w-full overflow-hidden" data-testid={`plot-${id}`}>
-          {id === 'error' ? <ErrorScale full={fullError} onFull={setFullError} t={t} /> : null}
           <Plot
             x={{ label: t('sims.instruments.time'), unit: 's' }}
             series={series(t)}
             live={{ buffer: buffer(buffers), windowSeconds: PLOT_WINDOW_S }}
             height={height}
             vLines={lapMarks(laps, t)}
-            {...(id === 'error' && fullError ? { yRange: ERROR_RANGE } : {})}
+            fullRange={fullRangeOf(id, limits)}
           />
+          <p className="text-fg-muted mt-2 mb-0 text-sm">{t(`sims.instruments.guide.${id}`)}</p>
         </div>
       ))}
     </div>

@@ -136,9 +136,12 @@
     "termI": "I",
     "termD": "D",
     "lapMark": "V{{n}}",
-    "errorScale": "Escala del error",
-    "errorScaleFit": "Ajustar a los datos",
-    "errorScaleFull": "Rango completo (−1 a 1)",
+    "guide": {
+      "error": "Cómo leerla: dónde está la línea bajo los sensores, de −1 (toda a la izquierda) a 1 (toda a la derecha). Cerca de 0 es seguirla bien; los picos son las curvas.",
+      "v": "Cómo leerla: la velocidad de avance. Plana, el controlador corrige sin frenar; si cae, una rueda llegó a su velocidad máxima y la otra ya no la compensa.",
+      "omega": "Cómo leerla: qué tan rápido gira el robot. Positiva gira a la izquierda; en una recta ronda 0 y en cada curva sube con el signo de la curva.",
+      "pid": "Cómo leerla: cuánto aporta cada término a la corrección de las ruedas. P sigue al error, I es el sesgo que acumula y D reacciona a los cambios bruscos."
+    },
     "lastLap": "Última vuelta",
     "bestLap": "Mejor vuelta",
     "avgSpeed": "Velocidad media",

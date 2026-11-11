@@ -85,4 +85,9 @@ export interface PlotProps {
    * Lets the learner see a small wobble at the scale of the whole quantity.
    */
   yRange?: readonly [number, number];
+  /**
+   * Physical range of the quantity, `[min, max]` (v1.5). With it the chart offers «Ajustar a
+   * los datos» or «Rango completo» and says when the fitted axis magnifies the variation.
+   */
+  fullRange?: readonly [number, number] | undefined;
 }

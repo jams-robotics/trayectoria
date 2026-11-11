@@ -26,7 +26,11 @@
     "readout": "Lectura de la gráfica",
     "readoutValue": "{{label}} {{value}} {{unit}}",
     "markerValue": "{{value}} {{unit}}",
-    "status": "{{count}} series entre {{from}} y {{to}} en el eje horizontal"
+    "status": "{{count}} series entre {{from}} y {{to}} en el eje horizontal",
+    "scale": "Escala del eje vertical",
+    "scaleFit": "Ajustar a los datos",
+    "scaleFull": "Rango completo ({{range}})",
+    "magnified": "Escala ampliada: lo que ves varía un {{share}} % del rango completo."
   },
   "SimControls": {
     "title": "Controles de simulación",
