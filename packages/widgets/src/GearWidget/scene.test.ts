@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { t } from '@trayectoria/i18n';
 
-import { CHAIN_ASPECT, chainLayout } from './chain';
 import { WHEEL_RADIUS_M, pitchRadius_m } from './compute';
 import type { Train } from './compute';
 import { animationScale, directionOf, panelRows, statusOf } from './rows';
 import { applyChange, paramsOf } from './panels';
-import { drawnGears, labelAnchor, sceneCentre, toothPolygon } from './scene';
+import { drawnTeeth, trainLayout } from './train';
 
 /** The «Explora» of T-4.4: the two stage train of the motor of the profile. */
 const TRAIN: Train = {
@@ -19,150 +18,89 @@ const TRAIN: Train = {
   efficiency: 0.6,
 };
 
-/** Labels of the four gears, as the widget hands them to the scene. */
-const LABELS = ['z1 = 12', 'z2 = 60', 'z3 = 10', 'z4 = 50'] as const;
-
 describe('dibujo del tren (F2-08)', () => {
-  it('cada engranaje es un polígono cerrado con z dientes (#91, decisión 3)', () => {
-    const points = toothPolygon([0, 0], 0.012, 12, 0);
+  const dist = (a: readonly number[], b: readonly number[]): number =>
+    Math.hypot((a[0] ?? 0) - (b[0] ?? 0), (a[1] ?? 0) - (b[1] ?? 0));
 
-    // Four vertices per tooth, plus the closing point.
-    expect(points).toHaveLength(12 * 4 + 1);
-    expect(points[points.length - 1]).toEqual(points[0]);
-  });
-
-  it('un engranaje sin dientes sigue dibujando un contorno', () => {
-    expect(toothPolygon([0, 0], 0.012, 0, 0).length).toBeGreaterThan(1);
-  });
-
-  it('los centros están separados por la suma de radios (#91, decisión 3)', () => {
-    const gears = drawnGears(2, TRAIN, 0, LABELS);
+  it('los pares que engranan se tocan justo en el punto de paso: distancia r + r', () => {
+    const { gears } = trainLayout(2, TRAIN, 0);
 
     expect(gears).toHaveLength(4);
-    expect(gears[1]?.centre_m[0]).toBeCloseTo(pitchRadius_m(12) + pitchRadius_m(60), 9);
-    // z3 shares the shaft of z2, so it shares its centre and its angle.
-    expect(gears[2]?.centre_m).toEqual(gears[1]?.centre_m);
-    expect(gears[2]?.angle_rad).toBe(gears[1]?.angle_rad);
-    // The second stage meshes diagonally, but at the exact distance r3 + r4 (#91, decision 3).
-    const dx_m = (gears[3]?.centre_m[0] ?? 0) - (gears[1]?.centre_m[0] ?? 0);
-    const dy_m = (gears[3]?.centre_m[1] ?? 0) - (gears[1]?.centre_m[1] ?? 0);
-    expect(Math.hypot(dx_m, dy_m)).toBeCloseTo(pitchRadius_m(10) + pitchRadius_m(50), 9);
-    expect(dy_m).toBeLessThan(0);
+    expect(dist(gears[0]?.centre_m ?? [], gears[1]?.centre_m ?? [])).toBeCloseTo(pitchRadius_m(12) + pitchRadius_m(60), 9);
+    expect(dist(gears[2]?.centre_m ?? [], gears[3]?.centre_m ?? [])).toBeCloseTo(pitchRadius_m(10) + pitchRadius_m(50), 9);
   });
 
-  it('con z2 = z3 los dos engranajes del eje compartido se distinguen (#348)', () => {
-    const train: Train = { ...TRAIN, z2: 60, z3: 60 };
-    const gears = drawnGears(2, train, 0.3, LABELS);
-    const z2 = gears[1];
-    const z3 = gears[2];
+  it('z3 va en el eje de z2, debajo de ella: coaxiales y sin tocarse', () => {
+    const { gears, shafts } = trainLayout(2, TRAIN, 0);
+    const [, z2, z3] = gears;
     if (z2 === undefined || z3 === undefined) throw new Error('faltan z2 y z3');
 
-    // Same shaft and same speed, but the teeth of z3 fall into the gaps of z2.
-    expect(z3.centre_m).toEqual(z2.centre_m);
-    expect(z3.angle_rad - z2.angle_rad).toBeCloseTo(Math.PI / 60, 9);
-    // z3 carries its own ring and its label on the other side of the anchor, so it does not cover the z2 one.
-    expect(z3.ring).toBe(true);
-    expect(z2.ring).toBe(false);
-    expect(z3.labelAlign).toBe('left');
-    expect(z2.labelAlign).toBe('right');
+    expect(z3.centre_m[0]).toBe(z2.centre_m[0]);
+    expect(z2.centre_m[1] - z3.centre_m[1]).toBeGreaterThan(z2.radius_m + z3.radius_m);
+    expect(shafts).toContainEqual([z2.centre_m, z3.centre_m]);
+    // Same shaft, same turn: both advance the same angle.
+    const later = trainLayout(2, TRAIN, 1).gears;
+    const turned = (index: number): number => (later[index]?.angle_rad ?? 0) - (gears[index]?.angle_rad ?? 0);
+    expect(turned(2)).toBeCloseTo(turned(1), 9);
   });
 
-  it('si z2 y z3 no se solapan, el dibujo no cambia (#348)', () => {
-    const gears = drawnGears(2, TRAIN, 0.3, LABELS);
-
-    expect(gears[2]?.angle_rad).toBe(gears[1]?.angle_rad);
-    gears.forEach((gear) => {
-      expect(gear.ring).toBe(false);
-      expect(gear.labelAlign).toBe('right');
+  it('los engranajes que no engranan no se solapan', () => {
+    [TRAIN, { ...TRAIN, z2: 80, z3: 8, z4: 80 }, { ...TRAIN, z1: 8, z2: 8, z3: 80, z4: 8 }].forEach((train) => {
+      const { gears } = trainLayout(2, train, 0);
+      gears.forEach((a, i) =>
+        gears.forEach((b, j) => {
+          const meshes = (i === 0 && j === 1) || (i === 2 && j === 3);
+          if (j <= i || meshes || (i === 1 && j === 2)) return;
+          expect(dist(a.centre_m, b.centre_m)).toBeGreaterThan(a.radius_m + b.radius_m);
+        }),
+      );
     });
   });
 
-  it('con una etapa solo hay dos engranajes', () => {
-    expect(drawnGears(1, TRAIN, 0, LABELS)).toHaveLength(2);
+  it('con una etapa solo hay dos engranajes y la rueda queda a la altura del de salida', () => {
+    const layout = trainLayout(1, TRAIN, 0);
+
+    expect(layout.gears).toHaveLength(2);
+    expect(layout.wheel.centre_m[1]).toBe(layout.gears[1]?.centre_m[1]);
   });
 
-  it('los ángulos dibujados alternan de signo y van escalados (#91, decisión 4)', () => {
-    const gears = drawnGears(2, TRAIN, 1, LABELS);
-
-    expect(gears[0]?.angle_rad).toBeGreaterThan(0);
-    expect(gears[1]?.angle_rad).toBeLessThan(0);
-    expect(gears[3]?.angle_rad).toBeGreaterThan(0);
-    // 6000 rpm is 100 rev/s, so the input gear makes one drawn turn per second.
-    expect(gears[0]?.angle_rad).toBeCloseTo(2 * Math.PI, 2);
+  it('dibuja menos dientes que los reales, en proporción, y nunca menos de 6', () => {
+    expect(drawnTeeth(60)).toBe(30);
+    expect(drawnTeeth(12)).toBe(6);
+    expect(drawnTeeth(8)).toBe(6);
   });
 
-  it('la cadena va de izquierda a derecha: motor, tren y rueda, con el motor en el eje de z1', () => {
-    const gears = drawnGears(2, TRAIN, 0, LABELS);
-    const layout = chainLayout(gears);
+  it('los giros alternan de signo y van escalados (#91, decisión 4)', () => {
+    const { gears } = trainLayout(2, TRAIN, 1);
+    const start = trainLayout(2, TRAIN, 0).gears;
+    const turned = (index: number): number => (gears[index]?.angle_rad ?? 0) - (start[index]?.angle_rad ?? 0);
+
+    expect(gears.map((gear) => gear.spin)).toEqual([1, -1, -1, 1]);
+    expect(turned(0)).toBeCloseTo(2 * Math.PI, 2);
+    expect(turned(1)).toBeLessThan(0);
+  });
+
+  it('la cadena va de izquierda a derecha y la rueda se apoya en el suelo', () => {
+    const { motor, gears, wheel, ground } = trainLayout(2, TRAIN, 0);
     const input = gears[0];
     const output = gears[3];
     if (input === undefined || output === undefined) throw new Error('falta un engranaje');
 
-    expect(layout.motor.centre_m[0]).toBeLessThan(input.centre_m[0] - input.radius_m);
-    expect(layout.motor.centre_m[1]).toBe(input.centre_m[1]);
-    expect(layout.wheel.centre_m[0]).toBeGreaterThan(output.centre_m[0] + output.radius_m);
-    expect(layout.wheel.centre_m[1]).toBe(output.centre_m[1]);
-    expect(layout.wheel.radius_m).toBe(WHEEL_RADIUS_M);
+    expect(motor.centre_m[0]).toBeLessThan(input.centre_m[0] - input.radius_m);
+    expect(wheel.centre_m[0]).toBeGreaterThan(output.centre_m[0] + output.radius_m);
+    expect(ground.y_m).toBeCloseTo(wheel.centre_m[1] - WHEEL_RADIUS_M, 12);
   });
 
-  it('la rueda se apoya en el suelo y el punto de contacto es el de su borde inferior', () => {
-    const layout = chainLayout(drawnGears(1, TRAIN, 0, LABELS));
+  it('el encuadre deja entrar todo y la fuerza empuja al contrario del contacto', () => {
+    const layout = trainLayout(2, TRAIN, 0);
+    const { view, motor, ground } = layout;
+    const left = view.center_m[0] - view.worldWidth_m / 2;
 
-    expect(layout.contact_m[1]).toBeCloseTo(layout.wheel.centre_m[1] - WHEEL_RADIUS_M, 12);
-    expect(layout.ground.centre_m[1]).toBeLessThan(layout.contact_m[1]);
-    expect(layout.ground.length_m).toBeGreaterThan(2 * WHEEL_RADIUS_M);
-  });
-
-  it('el encuadre deja entrar la cadena entera y una franja libre arriba para los valores', () => {
-    const gears = drawnGears(2, TRAIN, 0, LABELS);
-    const { view, wheel, motor } = chainLayout(gears);
-    const height_m = view.worldWidth_m / CHAIN_ASPECT;
-    const top_m = view.center_m[1] + height_m / 2;
-    const bottom_m = view.center_m[1] - height_m / 2;
-    const chainTop_m = Math.max(
-      motor.centre_m[1] + motor.height_m / 2,
-      ...gears.map(({ centre_m, radius_m }) => centre_m[1] + radius_m),
-    );
-    const chainBottom_m = Math.min(
-      wheel.centre_m[1] - wheel.radius_m,
-      ...gears.map(({ centre_m, radius_m }) => centre_m[1] - radius_m),
-    );
-
-    expect(chainBottom_m).toBeGreaterThan(bottom_m);
-    expect(top_m - chainTop_m).toBeGreaterThan(0.25 * height_m);
-    const left_m = view.center_m[0] - view.worldWidth_m / 2;
-    expect(motor.centre_m[0] - motor.width_m / 2).toBeGreaterThan(left_m);
-    expect(wheel.centre_m[0] + wheel.radius_m).toBeLessThan(left_m + view.worldWidth_m);
-  });
-
-  it('cada etiqueta queda fuera de su corona y alejada del centro de la vista', () => {
-    const gears = drawnGears(2, TRAIN, 0, LABELS);
-    const centre_m = sceneCentre(gears);
-
-    gears.forEach((gear) => {
-      const at_m = labelAnchor(gear, centre_m);
-      const toGear_m = Math.hypot(at_m[0] - gear.centre_m[0], at_m[1] - gear.centre_m[1]);
-      expect(toGear_m).toBeGreaterThan(gear.radius_m);
-      // It moves away from the centre of the view, not towards it.
-      const before_m = Math.hypot(gear.centre_m[0] - centre_m[0], gear.centre_m[1] - centre_m[1]);
-      expect(Math.hypot(at_m[0] - centre_m[0], at_m[1] - centre_m[1])).toBeGreaterThan(before_m);
-    });
-  });
-
-  it('un engranaje en el centro exacto de la vista etiqueta por encima de su corona', () => {
-    const gears = drawnGears(1, TRAIN, 0, LABELS);
-    const gear = gears[0];
-    if (gear === undefined) throw new Error('falta el engranaje de entrada');
-
-    expect(labelAnchor(gear, gear.centre_m)).toEqual([
-      gear.centre_m[0],
-      gear.centre_m[1] + gear.radius_m,
-    ]);
-  });
-
-  it('un tren vacío no deja el mundo en cero', () => {
-    expect(chainLayout([]).view.worldWidth_m).toBeGreaterThan(0);
-    expect(sceneCentre([])).toEqual([0, 0]);
+    expect(motor.centre_m[0] - motor.width_m / 2).toBeGreaterThan(left);
+    expect(ground.toX_m).toBeLessThan(left + view.worldWidth_m);
+    // The output turns counter-clockwise in the two stage train, so the ground pushes to the left.
+    expect(layout.pushDirection).toBe(-1);
+    expect(trainLayout(1, TRAIN, 0).pushDirection).toBe(1);
   });
 
   it('el factor de animación nunca baja de 1', () => {

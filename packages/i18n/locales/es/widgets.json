@@ -328,7 +328,7 @@
     "same": "el mismo que la entrada",
     "opposite": "contrario a la entrada",
     "gearLabel": "z{{index}} = {{z}}",
-    "animationScale": "Dibujo a ×1/{{factor}} de la velocidad real",
+    "animationScale": "Dibujo a ×1/{{factor}} de la velocidad real y con la mitad de los dientes",
     "paramz1": "Dientes del engranaje de entrada",
     "paramz2": "Dientes del segundo engranaje",
     "paramz3": "Dientes del tercer engranaje",

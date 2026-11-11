@@ -149,7 +149,7 @@ describe('GearWidget (F2-08)', () => {
     render(<GearWidget stages={2} initial={TWO_STAGE} />);
 
     // 6000 rpm is 100 rev/s: the drawing runs at ×1/100 so it never exceeds one turn per second.
-    expect(screen.getByText('Dibujo a ×1/100 de la velocidad real')).toBeInTheDocument();
+    expect(screen.getByText('Dibujo a ×1/100 de la velocidad real y con la mitad de los dientes')).toBeInTheDocument();
   });
 
   test('«Paso» adelanta el reloj de la reproducción', async () => {
