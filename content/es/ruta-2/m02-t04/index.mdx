@@ -37,7 +37,16 @@ velocidad base de 10 rad/s. La gráfica muestra el error frente al tiempo, y las
   showPlots={['error']}
 />
 
-<MyRobotWidget mode="form" />
+<MyRobotWidget
+  mode="form"
+  fields={[
+    'lineSensors.forwardOffset_m',
+    'lineSensors.count',
+    'lineSensors.spacing_m',
+    'wheelBase_m',
+    'wheelRadius_m',
+  ]}
+/>
 
 Antes de empezar, anota los valores de tu perfil: al terminar tendrás que restaurarlos, porque
 «Guardar» sobrescribe tu perfil real. Las cifras de abajo son con el perfil de referencia, y cada

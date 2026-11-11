@@ -113,12 +113,13 @@ velocidad necesita conversión: N·m, V y A ya son SI. La potencia eléctrica sa
 </Formulas>
 
 <AlRobot>
-Aquí creas **Mi robot**, el perfil que usan los temas de la ruta. El formulario empieza con los
-datos del robot de referencia; cambia los que no coincidan con tu robot y guarda.
+Aquí creas **Mi robot**, el perfil que usan los temas de la ruta. Por ahora pide un solo dato, la
+velocidad sin carga de tu motor, que viene en su hoja de datos; cada tema siguiente te pide el que
+enseña. Empieza con el valor del robot de referencia: cámbialo si no coincide con tu robot y guarda.
 
 El formulario muestra cada dato de tu robot con su unidad.
 
-<MyRobotWidget mode="form" />
+<MyRobotWidget mode="form" fields={['maxMotorSpeed_rpm']} />
 
 Con tu perfil, la primera conversión de la ruta es la velocidad del motor. La hoja de datos da
 la velocidad sin carga en rpm; en SI es ω<sub>motor</sub>:
