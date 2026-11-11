@@ -7,7 +7,7 @@ import { buildOptions } from './options';
 import type { PlotArea } from './options';
 import { readTheme, sameTheme } from '../shared/theme';
 import type { PlotTheme } from '../shared/theme';
-import type { PlotAxis, PlotLive, PlotProps, PlotRefLine, PlotSegment, PlotSeries } from './types';
+import type { PlotAxis, PlotLive, PlotProps, PlotRefLine, PlotSegment, PlotSeries, PlotVLine } from './types';
 
 /** Plot area before uPlot has reported its first layout (docs/DESIGN.md §5 padding, #104). */
 const INITIAL_PLOT_AREA: PlotArea = { left_px: 0, width_px: 0, top_px: 0, height_px: 0 };
@@ -17,6 +17,7 @@ export const DEFAULT_HEIGHT_PX = 200;
 /** Shared empty lists, so an absent prop keeps the same identity across renders. */
 const NO_REF_LINES: readonly PlotRefLine[] = [];
 const NO_SEGMENTS: readonly PlotSegment[] = [];
+const NO_VLINES: readonly PlotVLine[] = [];
 /** Width used before the container has been measured. */
 const FALLBACK_WIDTH_PX = 480;
 
@@ -77,8 +78,9 @@ function yAxisOf(series: readonly PlotSeries[], t: Translate): PlotAxis {
   const first = series[0];
   if (first === undefined) return { label: t('widgets.Plot.value'), unit: '' };
   const shared = series.every((item) => item.unit === first.unit);
+  // Several series: the title names them all, and the axis carries only the shared unit.
   return {
-    label: series.length === 1 ? first.label : t('widgets.Plot.value'),
+    label: series.length === 1 ? first.label : series.map((item) => item.label).join(', '),
     unit: shared ? first.unit : '',
   };
 }
@@ -141,8 +143,9 @@ function staticWindow(x: PlotAxis, series: readonly PlotSeries[]): Window {
 /** The sliding window of the live buffer: the last `windowSeconds` of samples. */
 function liveWindow(live: PlotLive): Window {
   const last_s = live.buffer.lastTime_s;
-  const from_s = last_s - live.windowSeconds;
-  return { data: live.buffer.toArrays(from_s), xRange: [from_s, last_s] };
+  // Time never goes negative: the axis stays at 0..windowSeconds until the window starts sliding.
+  const from_s = Math.max(0, last_s - live.windowSeconds);
+  return { data: live.buffer.toArrays(from_s), xRange: [from_s, Math.max(last_s, live.windowSeconds)] };
 }
 
 /**
@@ -246,6 +249,7 @@ interface Structure {
   series: readonly PlotSeries[];
   lines: readonly PlotRefLine[];
   marks: readonly PlotSegment[];
+  vLines: readonly PlotVLine[];
   /** Changes whenever a segment moves, so the chart can redraw them. */
   marksKey: string;
 }
@@ -255,15 +259,16 @@ interface Structure {
  * same shape reach the existing one (#338).
  */
 function useStructure(props: PlotProps, t: Translate): Structure {
-  const { x, series, refLines, segments } = props;
+  const { x, series, refLines, segments, vLines } = props;
   const shape = structureKey(x, series);
   const stableX = useStableBy(x, shape);
   const stableSeries = useStableBy(series, shape);
   const lines = useStableBy(refLines ?? NO_REF_LINES, JSON.stringify(refLines ?? NO_REF_LINES));
+  const vl = useStableBy(vLines ?? NO_VLINES, JSON.stringify(vLines ?? NO_VLINES));
   const segmentList = useSegmentList(segments ?? NO_SEGMENTS);
   const marks = segmentList.list.length > 0 ? segmentList.list : NO_SEGMENTS;
   const y = useMemo(() => yAxisOf(stableSeries, t), [stableSeries, t]);
-  return { x: stableX, y, series: stableSeries, lines, marks, marksKey: segmentList.key };
+  return { x: stableX, y, series: stableSeries, lines, vLines: vl, marks, marksKey: segmentList.key };
 }
 
 interface ChartOptionsInput {
@@ -275,6 +280,7 @@ interface ChartOptionsInput {
   height_px: number;
   lines: readonly NonNullable<PlotProps['refLines']>[number][];
   marks: readonly NonNullable<PlotProps['segments']>[number][];
+  vLines: readonly PlotVLine[];
 }
 
 /**
@@ -282,7 +288,7 @@ interface ChartOptionsInput {
  * so that function stays under the line limit of `docs/STANDARDS.md` §4.
  */
 function useChartOptions(input: ChartOptionsInput): { options: UPlot.Options; plotArea: PlotArea } {
-  const { x, y, series, theme, width_px, height_px, lines, marks } = input;
+  const { x, y, series, theme, width_px, height_px, lines, marks, vLines } = input;
   const { plotArea, onPlotArea } = usePlotArea();
   const options = useMemo(
     () =>
@@ -295,9 +301,10 @@ function useChartOptions(input: ChartOptionsInput): { options: UPlot.Options; pl
         height_px,
         refLines: lines,
         segments: marks,
+        vLines,
         onPlotArea,
       }),
-    [x, y, series, theme, width_px, height_px, lines, marks, onPlotArea],
+    [x, y, series, theme, width_px, height_px, lines, marks, vLines, onPlotArea],
   );
   return { options, plotArea };
 }
@@ -307,6 +314,8 @@ export interface ChartState {
   hostRef: RefObject<HTMLDivElement | null>;
   theme: PlotTheme;
   xRange: readonly [number, number];
+  /** The rows on screen, `[xs, ...series]`; the hover readout reads them. */
+  data: AlignedData;
   y: PlotAxis;
   /** Real geometry of uPlot's plot area, in CSS pixels; `MarkerLayer` draws against it (#104). */
   plotArea: PlotArea;
@@ -357,5 +366,5 @@ export function usePlotChart(props: PlotProps, t: Translate): ChartState {
     chartRef.current?.redraw(false);
   }, [chartRef, structure.marksKey]);
 
-  return { cardRef, hostRef, theme, xRange, y: structure.y, plotArea };
+  return { cardRef, hostRef, theme, xRange, data, y: structure.y, plotArea };
 }

@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 import 'uplot/dist/uPlot.min.css';
 import { useT } from '@trayectoria/i18n';
 
+import { HoverReadout } from './HoverReadout';
 import { MarkerLayer } from './MarkerLayer';
 import { seriesColor, SERIES_DASHES } from '../shared/theme';
 import type { PlotTheme } from '../shared/theme';
@@ -57,10 +58,11 @@ function useThrottledStatus(text: string): string {
  * at most once per frame with `requestAnimationFrame`; there is no `setInterval`.
  */
 export function Plot(props: PlotProps): JSX.Element {
-  const { x, series, live, marker } = props;
+  const { x, series, live, marker, readout = true } = props;
   const t = useT();
-  const { cardRef, hostRef, theme, xRange, y, plotArea } = usePlotChart(props, t);
+  const { cardRef, hostRef, theme, xRange, data, y, plotArea } = usePlotChart(props, t);
 
+  const waiting = live !== undefined && (data[0]?.length ?? 0) === 0;
   const status = useThrottledStatus(
     t('widgets.Plot.status', {
       count: series.length,
@@ -79,8 +81,13 @@ export function Plot(props: PlotProps): JSX.Element {
         <span className="text-sm font-semibold">{t('widgets.Plot.title', { label: y.label })}</span>
         <Legend series={series} theme={theme} />
       </figcaption>
-      <div className="relative">
+      {/* A live chart with nothing recorded yet is one line, not an empty grid (v1.5). */}
+      {waiting ? <p className="text-fg-muted m-0 text-sm">{t('widgets.Plot.empty')}</p> : null}
+      <div className="relative" hidden={waiting}>
         <div ref={hostRef} data-testid="plot-canvas" />
+        {readout && !waiting ? (
+          <HoverReadout data={data} xRange={xRange} plotArea={plotArea} series={series} xUnit={x.unit} t={t} />
+        ) : null}
         {marker === undefined ? null : (
           <MarkerLayer marker={marker} xRange={xRange} plotArea={plotArea} unit={x.unit} t={t} />
         )}

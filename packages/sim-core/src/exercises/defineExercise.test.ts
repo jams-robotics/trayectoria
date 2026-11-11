@@ -1,7 +1,8 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, it, test } from 'vitest';
 
 import { createRng } from '../random/SeededRng';
-import { defineExercise } from './defineExercise';
+import { check } from './check';
+import { defineChoiceExercise, defineExercise } from './defineExercise';
 
 describe('F1-10 defineExercise', () => {
   const base = {
@@ -87,5 +88,27 @@ describe('F1-10 defineExercise', () => {
         ],
       }),
     ).toThrow(/tolerance\[1\]/);
+  });
+});
+
+describe('defineChoiceExercise', () => {
+  const definition = {
+    id: 'c1',
+    statement: 'content.x.c1',
+    options: ['a', 'b', 'c'],
+    correct: 1,
+    explanation: 'content.x.c1.why',
+  };
+
+  it('grades the index of the option and keeps the choices', () => {
+    const exercise = defineChoiceExercise(definition);
+    expect(exercise.choices?.options).toEqual(['a', 'b', 'c']);
+    expect(check(exercise, 1, 1).correct).toBe(true);
+    expect(check(exercise, 1, 2).correct).toBe(false);
+  });
+
+  it('rejects a wrong number of options or an index out of range', () => {
+    expect(() => defineChoiceExercise({ ...definition, options: ['a', 'b'] })).toThrow(RangeError);
+    expect(() => defineChoiceExercise({ ...definition, correct: 3 })).toThrow(RangeError);
   });
 });
