@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
@@ -77,6 +78,47 @@ export interface InstrumentsProps {
   readonly laps?: readonly Lap[];
 }
 
+/** Full range of the error: `linePosition` is normalised to `[-1, 1]` (sim-core, lineArray). */
+const ERROR_RANGE = [-1, 1] as const;
+
+const SEGMENT = 'h-[44px] px-3 text-sm font-semibold transition-colors duration-[120ms]';
+
+/**
+ * «Ajustar a los datos» or «Rango completo» for the error plot (v1.5): fitted to the data, a
+ * wobble of 0.25 fills the plot; at `[-1, 1]` it reads as the near-straight line it is.
+ */
+function ErrorScale({
+  full,
+  onFull,
+  t,
+}: {
+  full: boolean;
+  onFull: (full: boolean) => void;
+  t: Translate;
+}): JSX.Element {
+  return (
+    <div
+      role="group"
+      aria-label={t('sims.instruments.errorScale')}
+      className="border-border mb-2 flex w-fit overflow-hidden rounded-sm border"
+    >
+      {[false, true].map((option) => (
+        <button
+          key={String(option)}
+          type="button"
+          className={`${SEGMENT} ${option === full ? 'bg-primary text-primary-fg' : 'bg-bg-raised text-fg'}`}
+          aria-pressed={option === full}
+          onClick={() => {
+            onFull(option);
+          }}
+        >
+          {t(option ? 'sims.instruments.errorScaleFull' : 'sims.instruments.errorScaleFit')}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /**
  * The live plots of the simulator (docs/DESIGN.md §5, Gráfica): 10 s sliding window
  * over the model rings, one sample per frame. On mobile they stack at 120 px each
@@ -101,6 +143,7 @@ export function Instruments({
   const t = useT();
   const height = mobile ? MOBILE_PLOT_HEIGHT_PX : PLOT_HEIGHT_PX;
   const drawn = PLOTS.filter(({ id }) => show.includes(id) && (id !== 'pid' || pid));
+  const [fullError, setFullError] = useState(false);
   return (
     // uPlot measures its container and sets a pixel width on the canvas that it then never
     // shrinks again. Placed in a flexible column that feeds back on itself —the plot pushes, the column
@@ -109,17 +152,15 @@ export function Instruments({
     // the loop: the plot never contributes a minimum width, so it measures the one the column already had.
     <div className="flex w-full min-w-0 flex-col gap-3" data-testid="line-follower-plots">
       {drawn.map(({ id, buffer, series }) => (
-        <div
-          key={id}
-          className="w-0 min-w-full overflow-hidden"
-          data-testid={`plot-${id}`}
-        >
+        <div key={id} className="w-0 min-w-full overflow-hidden" data-testid={`plot-${id}`}>
+          {id === 'error' ? <ErrorScale full={fullError} onFull={setFullError} t={t} /> : null}
           <Plot
             x={{ label: t('sims.instruments.time'), unit: 's' }}
             series={series(t)}
             live={{ buffer: buffer(buffers), windowSeconds: PLOT_WINDOW_S }}
             height={height}
             vLines={lapMarks(laps, t)}
+            {...(id === 'error' && fullError ? { yRange: ERROR_RANGE } : {})}
           />
         </div>
       ))}

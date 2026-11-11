@@ -253,6 +253,9 @@ interface Structure {
   vLines: readonly PlotVLine[];
   /** Changes whenever a segment or a reference line moves, so the chart can redraw them. */
   marksKey: string;
+  /** The fixed y range of the props, as two numbers so a new array literal does not rebuild. */
+  yMin: number | undefined;
+  yMax: number | undefined;
 }
 
 /**
@@ -277,6 +280,8 @@ function useStructure(props: PlotProps, t: Translate): Structure {
     vLines: vl,
     marks,
     marksKey: segmentList.key + lineList.key,
+    yMin: props.yRange?.[0],
+    yMax: props.yRange?.[1],
   };
 }
 
@@ -290,6 +295,8 @@ interface ChartOptionsInput {
   lines: readonly NonNullable<PlotProps['refLines']>[number][];
   marks: readonly NonNullable<PlotProps['segments']>[number][];
   vLines: readonly PlotVLine[];
+  yMin: number | undefined;
+  yMax: number | undefined;
 }
 
 /**
@@ -297,7 +304,7 @@ interface ChartOptionsInput {
  * so that function stays under the line limit of `docs/STANDARDS.md` §4.
  */
 function useChartOptions(input: ChartOptionsInput): { options: UPlot.Options; plotArea: PlotArea } {
-  const { x, y, series, theme, width_px, height_px, lines, marks, vLines } = input;
+  const { x, y, series, theme, width_px, height_px, lines, marks, vLines, yMin, yMax } = input;
   const { plotArea, onPlotArea } = usePlotArea();
   const options = useMemo(
     () =>
@@ -311,9 +318,11 @@ function useChartOptions(input: ChartOptionsInput): { options: UPlot.Options; pl
         refLines: lines,
         segments: marks,
         vLines,
+        yMin,
+        yMax,
         onPlotArea,
       }),
-    [x, y, series, theme, width_px, height_px, lines, marks, vLines, onPlotArea],
+    [x, y, series, theme, width_px, height_px, lines, marks, vLines, yMin, yMax, onPlotArea],
   );
   return { options, plotArea };
 }

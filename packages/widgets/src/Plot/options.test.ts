@@ -326,3 +326,21 @@ describe('segmentsPlugin (F2-04)', () => {
     ).toHaveLength(1);
   });
 });
+
+describe('fixed y range (v1.5)', () => {
+  it('with `yMin` and `yMax` the y axis stops fitting the data', () => {
+    const built = buildOptions({
+      x: X,
+      y: Y,
+      series: SERIES,
+      theme: THEME,
+      width_px: 480,
+      height_px: 200,
+      refLines: [],
+      yMin: -1,
+      yMax: 1,
+    });
+    expect(built.scales?.y?.range).toEqual([-1, 1]);
+    expect(typeof options().scales?.y?.range).toBe('function');
+  });
+});

@@ -65,3 +65,19 @@ describe('Instruments (F4-03)', () => {
     expect(screen.getByTestId('plot-omega')).toHaveTextContent('ω');
   });
 });
+
+describe('Instruments, escala del error (v1.5)', () => {
+  it('el error se ajusta a los datos por defecto y se puede ver en su rango completo', async () => {
+    const { default: userEvent } = await import('@testing-library/user-event');
+    const user = userEvent.setup();
+    render(<Instruments buffers={buffers()} show={['error', 'v']} />);
+    const fit = screen.getByRole('button', { name: 'Ajustar a los datos' });
+    const full = screen.getByRole('button', { name: 'Rango completo (−1 a 1)' });
+    expect(fit).toHaveAttribute('aria-pressed', 'true');
+    await user.click(full);
+    expect(full).toHaveAttribute('aria-pressed', 'true');
+    expect(fit).toHaveAttribute('aria-pressed', 'false');
+    // Only the error plot has the switch.
+    expect(screen.getAllByRole('group', { name: 'Escala del error' })).toHaveLength(1);
+  });
+});

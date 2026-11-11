@@ -121,6 +121,9 @@ export interface BuildOptionsInput {
   vLines?: readonly PlotVLine[];
   /** Fixed x range of the sliding window in live mode; omitted for a static plot. */
   xRange?: readonly [number, number];
+  /** Fixed y range; both or neither, and without them the y axis fits the data (v1.5). */
+  yMin?: number | undefined;
+  yMax?: number | undefined;
   /**
    * Reports the plot area's geometry in CSS pixels whenever it can change: the axis label
    * channel and the padding shift it in from the card's edge, so `MarkerLayer` needs it rather
@@ -162,9 +165,10 @@ function plotAreaPlugin(onPlotArea: (area: PlotArea) => void): uPlot.Plugin {
  */
 export function buildOptions(input: BuildOptionsInput): uPlot.Options {
   const { x, y, series, theme, width_px, height_px, refLines, segments, vLines, xRange, onPlotArea } = input;
+  const { yMin, yMax } = input;
   const scales: uPlot.Scales = {
     x: xRange === undefined ? { time: false } : { time: false, range: [xRange[0], xRange[1]] },
-    y: { range: yRange(refLines) },
+    y: { range: yMin === undefined || yMax === undefined ? yRange(refLines) : [yMin, yMax] },
   };
   const plugins = [
     refLinesPlugin(refLines, theme),

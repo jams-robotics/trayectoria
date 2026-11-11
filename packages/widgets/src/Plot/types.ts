@@ -80,4 +80,9 @@ export interface PlotProps {
    * turns it off.
    */
   readout?: boolean;
+  /**
+   * Fixed range of the vertical axis, `[min, max]`; without it the axis fits the data (v1.5).
+   * Lets the learner see a small wobble at the scale of the whole quantity.
+   */
+  yRange?: readonly [number, number];
 }
