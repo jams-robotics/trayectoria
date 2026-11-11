@@ -114,35 +114,35 @@ positiva, es negativa: el robot gira a la derecha, hacia la línea.
 <Formula latex="u = u_0\,\operatorname{sgn}(e)" />
 
 - `u` · acción de control · rad/s
-- `u_0` · amplitud del control on/off · rad/s
+- <code>u<sub>0</sub></code> · amplitud del control on/off · rad/s
 - `e` · error del controlador · —
 
 <Formula latex="u = K_p\,e" />
 
 - `u` · acción de control · rad/s
-- `K_p` · ganancia proporcional · rad/s
+- <code>K<sub>p</sub></code> · ganancia proporcional · rad/s
 - `e` · error del controlador · —
 
 <Formula latex="\omega_L = \omega_{base} + u,\quad \omega_R = \omega_{base} - u" />
 
-- `ω_L`, `ω_R` · velocidad angular de rueda izquierda y derecha · rad/s
-- `ω_base` · velocidad base de las ruedas · rad/s
+- <code>ω<sub>L</sub></code>, `ω_R` · velocidad angular de rueda izquierda y derecha · rad/s
+- <code>ω<sub>base</sub></code> · velocidad base de las ruedas · rad/s
 - `u` · acción de control · rad/s
 
 <Formula latex="\omega = \frac{(\omega_R - \omega_L)\,r}{L} = -\frac{2ur}{L}" />
 
 - `ω` · velocidad angular del robot · rad/s
-- `ω_L`, `ω_R` · velocidad angular de rueda izquierda y derecha · rad/s
+- <code>ω<sub>L</sub></code>, `ω_R` · velocidad angular de rueda izquierda y derecha · rad/s
 - `r` · radio de rueda · m
 - `L` · distancia entre ruedas · m
 - `u` · acción de control · rad/s
 
 <Formula latex="K_p \le \frac{\omega_{max} - \omega_{base}}{|e|_{max}}" />
 
-- `K_p` · ganancia proporcional · rad/s
-- `ω_max` · velocidad angular máxima de la rueda · rad/s
-- `ω_base` · velocidad base de las ruedas · rad/s
-- `|e|_max` · error máximo considerado · —
+- <code>K<sub>p</sub></code> · ganancia proporcional · rad/s
+- <code>ω<sub>max</sub></code> · velocidad angular máxima de la rueda · rad/s
+- <code>ω<sub>base</sub></code> · velocidad base de las ruedas · rad/s
+- <code>|e|<sub>max</sub></code> · error máximo considerado · —
 </Formulas>
 
 <AlRobot>

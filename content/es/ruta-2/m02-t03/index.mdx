@@ -104,27 +104,27 @@ pide el controlador. La curva más cerrada de la pista fija el límite de ω<sub
 <Formulas>
 <Formula latex="\begin{aligned} u_k = {}& K_p e_k + K_i \sum_{j\le k} e_j\,\Delta t_c\\ &+ K_d\frac{e_k - e_{k-1}}{\Delta t_c} \end{aligned}" />
 
-- `u_k` · acción de control en el paso k · rad/s
-- `K_p` · ganancia proporcional · rad/s
-- `K_i` · ganancia integral · rad/s²
-- `K_d` · ganancia derivativa · rad
-- `e_k` · error del controlador en el paso k · —
-- `e_{k−1}` · error del controlador en el paso anterior · —
-- `e_j` · error del controlador en el paso j · —
-- `Δt_c` · período del lazo de control · s
+- <code>u<sub>k</sub></code> · acción de control en el paso k · rad/s
+- <code>K<sub>p</sub></code> · ganancia proporcional · rad/s
+- <code>K<sub>i</sub></code> · ganancia integral · rad/s²
+- <code>K<sub>d</sub></code> · ganancia derivativa · rad
+- <code>e<sub>k</sub></code> · error del controlador en el paso k · —
+- <code>e<sub>k−1</sub></code> · error del controlador en el paso anterior · —
+- <code>e<sub>j</sub></code> · error del controlador en el paso j · —
+- <code>Δt<sub>c</sub></code> · período del lazo de control · s
 
 <Formula latex="\left|\sum_{j\le k} e_j\,\Delta t_c\right| \le I_{max}" />
 
-- `I_max` · límite de la integral del error (anti-windup) · s
+- <code>I<sub>max</sub></code> · límite de la integral del error (anti-windup) · s
 
 <Formula latex="\begin{aligned} &v_{ext} = v\left(1 + \frac{L}{2R}\right) \le v_{max}\\ &\Rightarrow\; \omega_{base} \le \frac{v_{max}}{r\,(1 + L/2R)} \end{aligned}" />
 
-- `v_ext` · velocidad de la rueda exterior en curva · m/s
+- <code>v<sub>ext</sub></code> · velocidad de la rueda exterior en curva · m/s
 - `v` · velocidad lineal del robot · m/s
 - `L` · distancia entre ruedas · m
 - `R` · radio de giro · m
-- `v_max` · velocidad lineal máxima del robot · m/s
-- `ω_base` · velocidad base de las ruedas · rad/s
+- <code>v<sub>max</sub></code> · velocidad lineal máxima del robot · m/s
+- <code>ω<sub>base</sub></code> · velocidad base de las ruedas · rad/s
 - `r` · radio de rueda · m
 </Formulas>
 

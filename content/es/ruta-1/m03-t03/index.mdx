@@ -116,7 +116,7 @@ La autonomía se calcula con la corriente del punto de trabajo, no con la de blo
 <Formula latex="\tau(\omega) = \tau_s\left(1 - \frac{\omega}{\omega_0}\right)" />
 
 - `τ(ω)` · recta torque–velocidad · N·m
-- `τ_s` · torque de bloqueo · N·m
+- <code>τ<sub>s</sub></code> · torque de bloqueo · N·m
 - `ω` · velocidad angular · rad/s
 - `ω₀` · velocidad sin carga · rad/s
 - `n₀` · velocidad sin carga, la de la hoja de datos (`ω₀ = n₀·2π/60`) · rpm (dato de entrada, no SI)
@@ -126,7 +126,7 @@ La autonomía se calcula con la corriente del punto de trabajo, no con la de blo
 - `ω` · velocidad angular del punto de trabajo · rad/s
 - `ω₀` · velocidad sin carga · rad/s
 - `τ` · torque que pide la carga · N·m
-- `τ_s` · torque de bloqueo · N·m
+- <code>τ<sub>s</sub></code> · torque de bloqueo · N·m
 
 <Formula latex="P = \tau\,\omega" />
 
@@ -136,35 +136,35 @@ La autonomía se calcula con la corriente del punto de trabajo, no con la de blo
 
 <Formula latex="P_{max} = \frac{\tau_s\,\omega_0}{4}" />
 
-- `P_max` · potencia mecánica máxima, en ω = ω₀/2 · W
-- `τ_s` · torque de bloqueo · N·m
+- <code>P<sub>max</sub></code> · potencia mecánica máxima, en ω = ω₀/2 · W
+- <code>τ<sub>s</sub></code> · torque de bloqueo · N·m
 - `ω₀` · velocidad sin carga · rad/s
 
 <Formula latex="I = I_0 + (I_s - I_0)\frac{\tau}{\tau_s}" />
 
 - `I` · corriente · A
 - `I₀` · corriente sin carga · A
-- `I_s` · corriente de bloqueo · A
+- <code>I<sub>s</sub></code> · corriente de bloqueo · A
 - `τ` · torque · N·m
-- `τ_s` · torque de bloqueo · N·m
+- <code>τ<sub>s</sub></code> · torque de bloqueo · N·m
 
 <Formula latex="\eta_{motor} = \frac{P_{mec}}{V I}" />
 
-- `η_motor` · eficiencia del motor · —
-- `P_mec` · potencia mecánica · W
+- <code>η<sub>motor</sub></code> · eficiencia del motor · —
+- <code>P<sub>mec</sub></code> · potencia mecánica · W
 - `V` · voltaje · V
 - `I` · corriente · A
 
 <Formula latex="\omega(t) = \omega_f\left(1 - e^{-t/\tau_m}\right)" />
 
 - `ω(t)` · velocidad angular en el instante t · rad/s
-- `ω_f` · velocidad angular final, la del punto de trabajo · rad/s
+- <code>ω<sub>f</sub></code> · velocidad angular final, la del punto de trabajo · rad/s
 - `t` · tiempo · s
-- `τ_m` · constante de tiempo del motor · s
+- <code>τ<sub>m</sub></code> · constante de tiempo del motor · s
 
 <Formula latex="t_{\text{autonomía}} = \frac{C}{2 V I}" />
 
-- `t_autonomía` · autonomía de dos motores · h
+- <code>t<sub>autonomía</sub></code> · autonomía de dos motores · h
 - `C` · capacidad de batería · Wh
 - `V` · voltaje · V
 - `I` · corriente de cada motor · A
