@@ -1,0 +1,53 @@
+---
+import { t } from '@trayectoria/i18n';
+
+import LineFollowerWidget from '../components/tema/catalog/LineFollowerWidget.astro';
+import Base from '../layouts/Base.astro';
+
+// v1.5: short entry «Haz que siga la línea en 10 minutos». The line follower with few controls,
+// one goal and links to the topics that explain each thing; no theory here.
+const steps = [0, 1, 2].map((i) => t(`content.empieza.steps.${i}`));
+const links = [
+  { href: '/ruta/ruta-1/m01/t04', key: 'speed' },
+  { href: '/ruta/ruta-2/m02/t01', key: 'sensor' },
+  { href: '/ruta/ruta-2/m02/t02', key: 'proportional' },
+  { href: '/ruta/ruta-2/m02/t03', key: 'pid' },
+] as const;
+---
+
+<Base title={t('content.empieza.title')} description={t('content.empieza.description')}>
+  <section class="mx-auto max-w-[1120px] px-5 pt-8 pb-9 md:px-8">
+    <h1 class="text-xl leading-tight md:text-2xl font-semibold">{t('content.empieza.title')}</h1>
+    <p class="text-fg-muted mt-4 max-w-[72ch]">{t('content.empieza.lead')}</p>
+
+    <div class="mt-6">
+      <LineFollowerWidget
+        track="oval"
+        controller="p"
+        initialParams={{ omegaBase_radps: 10, kp: 10 }}
+        showPlots={['error']}
+      />
+    </div>
+
+    <h2 class="mt-8 text-lg font-semibold">{t('content.empieza.goalTitle')}</h2>
+    <p class="mt-2 max-w-[72ch]">{t('content.empieza.goal')}</p>
+
+    <h2 class="mt-8 text-lg font-semibold">{t('content.empieza.stepsTitle')}</h2>
+    <ol class="mt-2 max-w-[72ch] list-decimal pl-5">
+      {steps.map((step) => <li class="mt-1">{step}</li>)}
+    </ol>
+
+    <h2 class="mt-8 text-lg font-semibold">{t('content.empieza.linksTitle')}</h2>
+    <ul class="mt-2 max-w-[72ch] list-disc pl-5">
+      {
+        links.map(({ href, key }) => (
+          <li class="mt-1">
+            <a href={href} class="inline-flex min-h-[44px] items-center">
+              {t(`content.empieza.links.${key}`)}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Base>
