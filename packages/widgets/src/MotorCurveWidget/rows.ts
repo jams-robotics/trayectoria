@@ -6,6 +6,7 @@
 import { format, rpmToRadps } from '@trayectoria/sim-core';
 import type { Translate } from '@trayectoria/i18n';
 
+import { format as formatControl } from '../ParamPanel/ParamPanel';
 import type { ParamPanelParam } from '../ParamPanel/ParamPanel';
 import type { ReadoutRow } from '../shared/ReadoutPanel';
 import {
@@ -18,6 +19,31 @@ import {
   torqueAt_Nm,
 } from './compute';
 import type { Motor, MotorElectrical } from './compute';
+
+/** Below this share of its scale a reading is zero for the learner, not a power of ten (v1.5). */
+const NEGLIGIBLE_SHARE = 1e-3;
+
+/**
+ * `format` for the panel: a value that is a thousandth of its scale or less reads as zero, and
+ * one too small for plain `format` is written in decimals, so the panel never shows
+ * «2.00e-6 N·m» near `n₀` (v1.5).
+ */
+function reading(value: number, scale: number, unit: string): string {
+  if (Math.abs(value) < Math.abs(scale) * NEGLIGIBLE_SHARE) return format(0, unit);
+  if (value !== 0 && Math.abs(value) < PLAIN_MIN) {
+    const text = String(Number(value.toPrecision(3)));
+    return unit === '' ? text : `${text} ${unit}`;
+  }
+  return format(value, unit);
+}
+
+/** Smallest magnitude `format` still writes in plain decimals. */
+const PLAIN_MIN = 1e-3;
+
+/** The speed as the «Velocidad» control writes it, so panel and control show the same number. */
+function speedReading(speed_rpm: number, t: Translate): string {
+  return `${formatControl(speed_rpm)} ${t('widgets.MotorCurveWidget.unitRpm')}`;
+}
 
 /** What the sliders edit: the working point and, when `editable` lists them, the line. */
 export interface MotorState {
@@ -56,18 +82,23 @@ function electricalRows(
   return [
     [
       t('widgets.MotorCurveWidget.current'),
-      format(currentAt_A(motor, electrical, speed_rpm), t('widgets.MotorCurveWidget.unitA')),
+      reading(
+        currentAt_A(motor, electrical, speed_rpm),
+        electrical.stallCurrent_A,
+        t('widgets.MotorCurveWidget.unitA'),
+      ),
     ],
     [
       t('widgets.MotorCurveWidget.electricalPower'),
-      format(
+      reading(
         electricalPowerAt_W(motor, electrical, speed_rpm),
+        electrical.voltage_V * electrical.stallCurrent_A,
         t('widgets.MotorCurveWidget.unitW'),
       ),
     ],
     [
       t('widgets.MotorCurveWidget.efficiency'),
-      format(motorEfficiency(motor, electrical, speed_rpm), ''),
+      reading(motorEfficiency(motor, electrical, speed_rpm), 1, ''),
     ],
   ];
 }
@@ -80,18 +111,22 @@ export function panelRows(
 ): readonly ReadoutRow[] {
   const { motor, speed_rpm } = state;
   return [
-    [t('widgets.MotorCurveWidget.speed'), format(speed_rpm, t('widgets.MotorCurveWidget.unitRpm'))],
+    [t('widgets.MotorCurveWidget.speed'), speedReading(speed_rpm, t)],
     [
       t('widgets.MotorCurveWidget.omega'),
       format(rpmToRadps(speed_rpm), t('widgets.MotorCurveWidget.unitRadps')),
     ],
     [
       t('widgets.MotorCurveWidget.torque'),
-      format(torqueAt_Nm(motor, speed_rpm), t('widgets.MotorCurveWidget.unitNm')),
+      reading(
+        torqueAt_Nm(motor, speed_rpm),
+        motor.stallTorque_Nm,
+        t('widgets.MotorCurveWidget.unitNm'),
+      ),
     ],
     [
       t('widgets.MotorCurveWidget.power'),
-      format(powerAt_W(motor, speed_rpm), t('widgets.MotorCurveWidget.unitW')),
+      reading(powerAt_W(motor, speed_rpm), maxPower_W(motor), t('widgets.MotorCurveWidget.unitW')),
     ],
     ...(electrical === undefined ? [] : electricalRows(state, electrical, t)),
   ];
@@ -156,13 +191,25 @@ export function statusOf(
   t: Translate,
 ): string {
   const values = {
-    speed: format(speed_rpm, t('widgets.MotorCurveWidget.unitRpm')),
-    torque: format(torqueAt_Nm(motor, speed_rpm), t('widgets.MotorCurveWidget.unitNm')),
-    power: format(powerAt_W(motor, speed_rpm), t('widgets.MotorCurveWidget.unitW')),
+    speed: speedReading(speed_rpm, t),
+    torque: reading(
+      torqueAt_Nm(motor, speed_rpm),
+      motor.stallTorque_Nm,
+      t('widgets.MotorCurveWidget.unitNm'),
+    ),
+    power: reading(
+      powerAt_W(motor, speed_rpm),
+      maxPower_W(motor),
+      t('widgets.MotorCurveWidget.unitW'),
+    ),
   };
   if (electrical === undefined) return t('widgets.MotorCurveWidget.status', values);
   return t('widgets.MotorCurveWidget.statusCurrent', {
     ...values,
-    current: format(currentAt_A(motor, electrical, speed_rpm), t('widgets.MotorCurveWidget.unitA')),
+    current: reading(
+      currentAt_A(motor, electrical, speed_rpm),
+      electrical.stallCurrent_A,
+      t('widgets.MotorCurveWidget.unitA'),
+    ),
   });
 }

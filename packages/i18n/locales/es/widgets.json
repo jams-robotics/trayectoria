@@ -6,6 +6,12 @@
     "valueText": "{{value}} {{unit}}",
     "status": "{{label}}: {{value}} {{unit}}"
   },
+  "Experimento": {
+    "apply": "Aplicar al widget"
+  },
+  "ReadoutPanel": {
+    "more": "Más datos"
+  },
   "Formula": {
     "label": "Fórmula",
     "substituted": "Con tus valores"
@@ -412,6 +418,8 @@
     "axisYG": "y global",
     "axisXR": "x del robot",
     "axisYR": "y del robot",
+    "axisXBoth": "x global = x del robot",
+    "axisYBoth": "y global = y del robot",
     "vectorVL": "v izquierda",
     "vectorVR": "v derecha",
     "unitM": "m",
@@ -463,6 +471,12 @@
     "correct": "Correcto",
     "incorrect": "Incorrecto",
     "hint": "Revisa el cálculo y las unidades.",
+    "hintSign": "Tu respuesta tiene el signo contrario: revisa la dirección o el sentido que tomaste como positivo.",
+    "hintBig": "Tu respuesta es unas {{factor}} veces mayor de lo esperado: revisa la conversión de unidades, quizá multiplicaste donde había que dividir.",
+    "hintSmall": "Tu respuesta es unas {{factor}} veces menor de lo esperado: revisa la conversión de unidades, quizá dividiste donde había que multiplicar.",
+    "hintOrderBig": "Tu respuesta es mucho mayor de lo esperado, de otro orden de magnitud: revisa los prefijos (m, cm, k) y las potencias.",
+    "hintOrderSmall": "Tu respuesta es mucho menor de lo esperado, de otro orden de magnitud: revisa los prefijos (m, cm, k) y las potencias.",
+    "solution": "Solución: {{value}}",
     "attempt": "Intento {{n}}",
     "invalid": "Escribe un número.",
     "choices": "Opciones de respuesta",
@@ -496,6 +510,16 @@
     "unitRadps": "rad/s",
     "unitMps": "m/s",
     "unitKg": "kg",
+    "diagram": {
+      "title": "Esquema del robot visto desde arriba, con las medidas del formulario señaladas. El campo enfocado resalta su medida.",
+      "length": "largo",
+      "width": "ancho",
+      "wheelBase": "entre ruedas",
+      "wheelRadius": "radio",
+      "forwardOffset": "adelanto",
+      "spacing": "separación",
+      "footprint": "huella"
+    },
     "labels": {
       "length_m": "Largo",
       "width_m": "Ancho",

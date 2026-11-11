@@ -44,6 +44,9 @@ interface Graded {
   relError: number;
   /** Per-component verdict of the last check, so only the failing fields mark in error (#660). */
   componentCorrect: readonly boolean[] | undefined;
+  /** Expected answer and the numbers the learner gave, for the hint and the solution (v1.5). */
+  expected: number | readonly number[];
+  response: readonly number[];
 }
 
 /** Drafts, validity and outcome of the response row. */
@@ -73,6 +76,8 @@ export interface ExerciseState {
   /** Per-component verdict of the last check; `undefined` before grading or with a shape mismatch,
    * so the whole row falls back to the shared `status` (#660). */
   componentCorrect: readonly boolean[] | undefined;
+  /** What the last graded response was and what it should have been; `null` before grading. */
+  graded: { expected: number | readonly number[]; response: readonly number[] } | null;
   values: readonly string[];
   /** One unit for every field, or one per field (F1-10c). */
   unit: string | readonly string[];
@@ -173,6 +178,17 @@ function invalidResponse(values: readonly string[], attempt: number): Responses 
   return { values, graded: null, attempt, invalid: true, checking: false };
 }
 
+/** The graded outcome kept in the state: the verdict plus what was expected and given. */
+function gradedOf(outcome: ReturnType<typeof check>, response: readonly number[]): Graded {
+  return {
+    correct: outcome.correct,
+    relError: outcome.relError,
+    componentCorrect: outcome.componentCorrect,
+    expected: outcome.expected,
+    response,
+  };
+}
+
 /** Grades the drafts, reports the attempt and moves the row to its next state. */
 function grade<V>(context: Grading<V>): void {
   const { exercise, topicId, seed, count, adapter, responses, values, setResponses } = context;
@@ -185,11 +201,7 @@ function grade<V>(context: Grading<V>): void {
   const attempt = responses.attempt + 1;
   const settled: Responses = {
     values,
-    graded: {
-      correct: outcome.correct,
-      relError: outcome.relError,
-      componentCorrect: outcome.componentCorrect,
-    },
+    graded: gradedOf(outcome, numbers),
     attempt,
     invalid: false,
     checking: false,
@@ -231,6 +243,10 @@ function buildState<V>(
     attempt: responses.attempt,
     invalid: responses.invalid,
     componentCorrect: responses.graded?.componentCorrect,
+    graded:
+      responses.graded === null
+        ? null
+        : { expected: responses.graded.expected, response: responses.graded.response },
     ...rest,
   };
 }

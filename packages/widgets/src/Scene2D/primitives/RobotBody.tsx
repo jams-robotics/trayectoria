@@ -44,6 +44,11 @@ export interface RobotBodyProps {
   pose: RobotPose;
   /** One flag per sensor of the spec, by index: true paints it `--sim-sensor-on`. */
   sensorStates?: readonly boolean[];
+  /**
+   * One reading in [0, 1] per sensor, by index: the dot is `--sim-sensor-off` with
+   * `--sim-sensor-on` over it at that opacity. Wins over `sensorStates` for the sensors it covers (v1.5).
+   */
+  sensorReadings?: readonly number[];
 }
 
 /** Rounded rectangle centred at the origin of the local frame, in canvas pixels. */
@@ -112,6 +117,7 @@ function drawSensors(
   transform: Transform,
   mobile: MobileSpec,
   states: readonly boolean[],
+  readings: readonly number[],
   colors: { on: string; off: string },
 ): void {
   const positions = sensorPositions(mobile);
@@ -121,8 +127,15 @@ function drawSensors(
     const y_px = -lengthToPx(transform, lateral_m);
     ctx.beginPath();
     ctx.arc(x_px, y_px, SENSOR_RADIUS_PX, 0, Math.PI * 2);
-    ctx.fillStyle = states[index] === true ? colors.on : colors.off;
+    const reading = readings[index];
+    ctx.fillStyle = reading === undefined && states[index] === true ? colors.on : colors.off;
     ctx.fill();
+    if (reading !== undefined) {
+      ctx.globalAlpha = Math.min(Math.max(reading, 0), 1);
+      ctx.fillStyle = colors.on;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
   });
 }
 
@@ -132,7 +145,12 @@ function drawSensors(
  * as 5 px dots in `--sim-sensor-on`/`--sim-sensor-off`. Every dimension comes from the spec
  * (#85, decision 3); nothing is painted when the spec carries no mobile profile.
  */
-export function RobotBody({ spec, pose, sensorStates = [] }: RobotBodyProps): JSX.Element {
+export function RobotBody({
+  spec,
+  pose,
+  sensorStates = [],
+  sensorReadings = [],
+}: RobotBodyProps): JSX.Element {
   const mobile = spec.mobile;
   const { x_m, y_m, theta_rad } = pose;
   const draw = useCallback(
@@ -155,13 +173,13 @@ export function RobotBody({ spec, pose, sensorStates = [] }: RobotBodyProps): JS
       ctx.lineWidth = STROKE_PX;
       ctx.stroke();
       drawWheels(ctx, transform, mobile, tokenColor(ctx.canvas, 'color-fg'));
-      drawSensors(ctx, transform, mobile, sensorStates, {
+      drawSensors(ctx, transform, mobile, sensorStates, sensorReadings, {
         on: tokenColor(ctx.canvas, 'sim-sensor-on'),
         off: tokenColor(ctx.canvas, 'sim-sensor-off'),
       });
       ctx.restore();
     },
-    [mobile, x_m, y_m, theta_rad, sensorStates],
+    [mobile, x_m, y_m, theta_rad, sensorStates, sensorReadings],
   );
   useSceneDraw(draw);
   return <></>;

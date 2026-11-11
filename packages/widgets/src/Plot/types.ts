@@ -73,6 +73,8 @@ export interface PlotProps {
   marker?: PlotMarker;
   /** Labelled vertical rules (laps, curves) at given x values (v1.5). */
   vLines?: readonly PlotVLine[];
+  /** Name of the chart in the header; without it, «Gráfica de» and the series names (v1.5). */
+  title?: string;
   /**
    * Value readout under the pointer and with the arrow keys (v1.5). On by default; `false`
    * turns it off.

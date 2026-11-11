@@ -86,6 +86,10 @@ describe('buildOptions: valores de los ejes', () => {
   it('passes the hook straight through `axisValues`, with a blank for a null split', () => {
     expect(axisValues(null as unknown as uPlot, [null, 2])).toEqual(['', '2']);
   });
+
+  it('blanks a split whose text repeats the previous one (v1.5)', () => {
+    expect(axisValues(null as unknown as uPlot, [0.3201, 0.3202, 0.33])).toEqual(['0.32', '', '0.33']);
+  });
 });
 
 /** The canvas calls the draw hook makes, plus the text state it must reset itself. */

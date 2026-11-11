@@ -39,7 +39,14 @@ const AXIS_NUMBER_FORMAT = new Intl.NumberFormat('en-US', { useGrouping: false }
 
 /** uPlot `values` hook of both axes: one label per split, formatted as above. */
 export function axisValues(_self: uPlot, splits: readonly (number | null)[]): string[] {
-  return splits.map((value) => (value === null ? '' : AXIS_NUMBER_FORMAT.format(value)));
+  // A narrow range rounds neighbouring splits to the same text: keep the first of each (v1.5).
+  let previous = '';
+  return splits.map((value) => {
+    const text = value === null ? '' : AXIS_NUMBER_FORMAT.format(value);
+    if (text === previous) return '';
+    previous = text;
+    return text;
+  });
 }
 
 /** Shared axis styling: `--sim-axis` strokes, `--sim-grid` grid, no ticks (docs/DESIGN.md §5). */

@@ -45,7 +45,7 @@ export function FieldRow({
   const error = form.errors[field.key];
   const errorId = `my-robot-error-${field.key.replace(/\./g, '-')}`;
   return (
-    <label className="block" data-field={field.key}>
+    <label className="block scroll-mt-[260px]" data-field={field.key}>
       <span className="text-fg-muted text-xs">{heading}</span>
       <input
         type="text"

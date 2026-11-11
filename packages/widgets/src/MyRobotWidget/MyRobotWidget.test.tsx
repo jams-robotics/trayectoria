@@ -217,3 +217,13 @@ describe('MyRobotWidget fields prop (v1.5)', () => {
     expect(screen.queryByRole('textbox', { name: /nombre/i })).toBeNull();
   });
 });
+
+describe('MyRobotWidget diagram (v1.5)', () => {
+  test('highlights the measure of the field with the focus', () => {
+    render(<MyRobotWidget mode="form" />);
+    expect(screen.getByTestId('robot-diagram')).toBeInTheDocument();
+    fireEvent.focus(field('wheelBase_m'));
+    expect(document.querySelector('[data-dimension="wheelBase"]')).toHaveAttribute('data-active', 'true');
+    expect(document.querySelector('[data-dimension="length"]')).toHaveAttribute('data-active', 'false');
+  });
+});

@@ -28,7 +28,7 @@ describe('DiffDriveWidget odometryRows: velocidad estimada por encoders (#306, T
     expect(valueOf(rows, 'Velocidad lineal estimada')).toBe('0.251 m/s');
   });
 
-  it('las filas de velocidad estimada van junto al avance y el giro del paso, antes de la pose', () => {
+  it('las filas de velocidad estimada van junto al avance y el giro del paso, después de la pose y los errores, tras «Más datos» (v1.5)', () => {
     const terms = odometryRows(READOUT, REAL, t).map(([term]) => term);
     const deltaS = terms.indexOf('Avance del paso Δs');
     const deltaTheta = terms.indexOf('Giro del paso Δθ');
@@ -36,8 +36,8 @@ describe('DiffDriveWidget odometryRows: velocidad estimada por encoders (#306, T
     const vr = terms.indexOf('Velocidad estimada de la rueda derecha');
     const v = terms.indexOf('Velocidad lineal estimada');
     const x = terms.indexOf('Posición x estimada');
-    expect([deltaS, deltaTheta, vl, vr, v, x]).toEqual(
-      [deltaS, deltaTheta, vl, vr, v, x].slice().sort((a, b) => a - b),
+    expect([x, deltaS, deltaTheta, vl, vr, v]).toEqual(
+      [x, deltaS, deltaTheta, vl, vr, v].slice().sort((a, b) => a - b),
     );
     expect(new Set([deltaS, deltaTheta, vl, vr, v, x]).size).toBe(6);
   });

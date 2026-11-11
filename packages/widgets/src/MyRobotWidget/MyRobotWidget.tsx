@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
@@ -7,6 +8,7 @@ import { Toast } from '../shared/Toast';
 import { RobotCard } from './card';
 import { FIELD_GROUPS, omegaMax_radps, vMax_mps } from './fields';
 import type { RobotFieldGroup } from './fields';
+import { RobotDiagram, isDrawn } from './RobotDiagram';
 import { FieldRow } from './rows';
 import { useMyRobotForm } from './state';
 import type { MyRobotFormState } from './state';
@@ -28,7 +30,7 @@ export interface MyRobotWidgetProps {
 }
 
 const BUTTON =
-  'h-11 rounded-md border px-4 text-sm font-semibold transition-colors duration-[120ms]';
+  'h-[44px] rounded-md border px-4 text-sm font-semibold transition-colors duration-[120ms]';
 const PRIMARY = `${BUTTON} border-primary bg-primary text-primary-fg hover:bg-primary-hover`;
 const GHOST = `${BUTTON} text-fg-muted hover:text-fg border-border bg-transparent`;
 
@@ -129,8 +131,69 @@ function Actions({ form, t }: { form: MyRobotFormState; t: Translate }): JSX.Ele
   );
 }
 
+/** The name and the groups of fields the form shows: all of them, or only those in `fields`. */
+function Fields({
+  form,
+  fields,
+  t,
+}: {
+  form: MyRobotFormState;
+  fields: readonly string[] | undefined;
+  t: Translate;
+}): JSX.Element {
+  const groups = FIELD_GROUPS.map((group) => ({
+    ...group,
+    fields: group.fields.filter((field) => fields === undefined || fields.includes(field.key)),
+  })).filter((group) => group.fields.length > 0);
+  return (
+    <div>
+      {fields === undefined ? <NameField form={form} t={t} /> : null}
+      {groups.map((group) => (
+        <Group key={group.id} group={group} form={form} t={t} />
+      ))}
+    </div>
+  );
+}
+
+/** The drawing beside the fields; the field with the focus highlights its measure (v1.5). */
+function Body({
+  form,
+  fields,
+  t,
+}: {
+  form: MyRobotFormState;
+  fields: readonly string[] | undefined;
+  t: Translate;
+}): JSX.Element {
+  const [focusedKey, setFocusedKey] = useState<string | null>(null);
+  const drawn = fields === undefined || fields.some(isDrawn);
+  return (
+    <div
+      onFocus={(event) => {
+        setFocusedKey(event.target.closest<HTMLElement>('[data-field]')?.dataset.field ?? null);
+      }}
+      onBlur={() => {
+        setFocusedKey(null);
+      }}
+    >
+      {drawn ? (
+        <div className="bg-bg-raised sticky top-0 z-10 pb-2">
+          <RobotDiagram focusedKey={focusedKey} t={t} />
+        </div>
+      ) : null}
+      <Fields form={form} fields={fields} t={t} />
+    </div>
+  );
+}
+
 /** The editable form of «Mi robot»: every field of `MobileSpec`, grouped (decision 4). */
-function MyRobotForm({ t, fields }: { t: Translate; fields?: readonly string[] | undefined }): JSX.Element {
+function MyRobotForm({
+  t,
+  fields,
+}: {
+  t: Translate;
+  fields?: readonly string[] | undefined;
+}): JSX.Element {
   const form = useMyRobotForm({
     saved: t('widgets.MyRobotWidget.saved'),
     resetDone: t('widgets.MyRobotWidget.resetDone'),
@@ -146,15 +209,7 @@ function MyRobotForm({ t, fields }: { t: Translate; fields?: readonly string[] |
         form.save();
       }}
     >
-      {fields === undefined ? <NameField form={form} t={t} /> : null}
-      {FIELD_GROUPS.map((group) => ({
-        ...group,
-        fields: group.fields.filter((field) => fields === undefined || fields.includes(field.key)),
-      }))
-        .filter((group) => group.fields.length > 0)
-        .map((group) => (
-          <Group key={group.id} group={group} form={form} t={t} />
-        ))}
+      <Body form={form} fields={fields} t={t} />
       {fields === undefined ? <Derived form={form} t={t} /> : null}
       <Actions form={form} t={t} />
       {form.notice === null ? null : (
@@ -169,7 +224,11 @@ function MyRobotForm({ t, fields }: { t: Translate; fields?: readonly string[] |
  * learner, and the card that summarises it wherever a topic mentions it. Both read the same
  * store, so saving in the form updates every widget on the page (#95, decisions 4 to 6).
  */
-export function MyRobotWidget({ mode, editHref = '/cuenta', fields }: MyRobotWidgetProps): JSX.Element {
+export function MyRobotWidget({
+  mode,
+  editHref = '/cuenta',
+  fields,
+}: MyRobotWidgetProps): JSX.Element {
   const t = useT();
   const robot = useMyRobot();
   if (mode === 'card') return <RobotCard robot={robot} editHref={editHref} t={t} />;

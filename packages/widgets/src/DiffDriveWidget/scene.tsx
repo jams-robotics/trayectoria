@@ -163,34 +163,44 @@ function Icr({
   );
 }
 
+/** The robot triad counts as on top of the global one within this distance (m, and sin θ). */
+const COINCIDENT = 1e-3;
+
 /** The global triad at the origin and the robot triad glued to the chassis (T-5.1). */
 function Frames({ pose, t }: { pose: Pose; t: Translate }): JSX.Element {
   const origin_m: [number, number] = [pose.x_m, pose.y_m];
   const axisX_m = toGlobal(pose, [AXIS_LENGTH_M, 0]);
   const axisY_m = toGlobal(pose, [0, AXIS_LENGTH_M]);
+  // The two triads start on top of each other: one label for both, or the texts overprint (v1.5).
+  const same =
+    Math.hypot(pose.x_m, pose.y_m) < COINCIDENT &&
+    Math.abs(Math.sin(pose.theta_rad)) < COINCIDENT &&
+    Math.cos(pose.theta_rad) > 0;
+  const name = (axis: 'X' | 'Y', frame: 'G' | 'R'): string =>
+    t(`widgets.DiffDriveWidget.axis${axis}${frame}`);
   return (
     <>
       <Vector
         to_m={[AXIS_LENGTH_M, 0]}
         color={AXIS_X_COLOR}
-        label={t('widgets.DiffDriveWidget.axisXG')}
+        label={same ? t('widgets.DiffDriveWidget.axisXBoth') : name('X', 'G')}
       />
       <Vector
         to_m={[0, AXIS_LENGTH_M]}
         color={AXIS_Y_COLOR}
-        label={t('widgets.DiffDriveWidget.axisYG')}
+        label={same ? t('widgets.DiffDriveWidget.axisYBoth') : name('Y', 'G')}
       />
       <Vector
         from_m={origin_m}
         to_m={[axisX_m[0], axisX_m[1]]}
         color={AXIS_X_COLOR}
-        label={t('widgets.DiffDriveWidget.axisXR')}
+        {...(same ? {} : { label: name('X', 'R') })}
       />
       <Vector
         from_m={origin_m}
         to_m={[axisY_m[0], axisY_m[1]]}
         color={AXIS_Y_COLOR}
-        label={t('widgets.DiffDriveWidget.axisYR')}
+        {...(same ? {} : { label: name('Y', 'R') })}
       />
     </>
   );

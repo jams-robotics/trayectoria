@@ -81,6 +81,12 @@ const CLASSES: Readonly<Record<SimLayoutBreakpoint, LayoutClasses>> = {
   },
 };
 
+/** `top` and `valuesScroll` of a layout that is not sticky: no sticky row and no inner scroll. */
+const NOT_STICKY: Readonly<Record<SimLayoutBreakpoint, Pick<LayoutClasses, 'top' | 'valuesScroll'>>> = {
+  md: { top: 'max-md:contents md:grid md:grid-cols-[minmax(0,1fr)_auto] md:gap-4', valuesScroll: 'flex flex-col gap-4' },
+  lg: { top: 'max-lg:contents lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-4', valuesScroll: 'flex flex-col gap-4' },
+};
+
 /** Joins the class names that apply, skipping the empty ones. */
 function cx(...names: ReadonlyArray<string | false>): string {
   return names.filter((name) => name !== false && name !== '').join(' ');
@@ -117,14 +123,20 @@ export function SimLayout({
   params,
   extras = [],
   from = 'lg',
+  sticky = true,
 }: {
   viewer: ReactNode;
   values: ReactNode;
   params?: ReactNode;
   extras?: readonly SimExtra[];
   from?: SimLayoutBreakpoint;
+  /**
+   * `false` for a simulator whose values do not fit beside the viewer: the top row scrolls with
+   * the page and the values column grows to its content instead of scrolling inside (v1.5).
+   */
+  sticky?: boolean;
 }): JSX.Element {
-  const c = CLASSES[from];
+  const c = sticky ? CLASSES[from] : { ...CLASSES[from], top: NOT_STICKY[from].top, valuesScroll: NOT_STICKY[from].valuesScroll };
   const split = extras.some((extra) => extra.mobile === 'afterViewerFirst');
   return (
     <div className="flex flex-col gap-4">

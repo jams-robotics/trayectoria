@@ -62,7 +62,7 @@ describe('MotorCurveWidget (W-MOTOR)', () => {
     render(<MotorCurveWidget initial={REFERENCE} />);
     await typeInto('Velocidad', '0');
 
-    expect(valueOf('Velocidad')).toBe('0.00 rpm');
+    expect(valueOf('Velocidad')).toBe('0 rpm');
     expect(valueOf('Torque')).toBe('0.0120 N·m');
     expect(valueOf('Potencia mecánica')).toBe('0.00 W');
     expect(valueOf('Corriente')).toBe('1.20 A');
@@ -210,5 +210,12 @@ describe('MotorCurveWidget (W-MOTOR)', () => {
     first.unmount();
     render(<MotorCurveWidget initial={REFERENCE} />);
     expect(screen.getByTestId('readout-panel').innerHTML).toBe(html);
+  });
+
+  test('el panel muestra la velocidad como el control y nunca en notación científica (v1.5)', () => {
+    render(<MotorCurveWidget initial={{ ...REFERENCE, speed_rpm: 3976 }} />);
+    expect(valueOf('Velocidad')).toBe('3976 rpm');
+    expect(sliderFor('Velocidad en rpm')).toHaveAttribute('aria-valuenow', '3976');
+    expect(screen.getByTestId('readout-panel').textContent).not.toMatch(/e-\d/);
   });
 });
