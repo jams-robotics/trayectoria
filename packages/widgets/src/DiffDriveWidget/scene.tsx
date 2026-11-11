@@ -22,8 +22,6 @@ const MIN_VIEW_M = 0.8;
 const MAX_VIEW_M = 2.4;
 /** Space the view leaves around what it frames, in metres: the chassis, its axes and their labels. */
 const PAD_M = 0.25;
-/** Share of the gap the odometry view leaves around the two poses. */
-const VIEW_MARGIN = 1.25;
 /** Width over height of the view; the 16/9 strip the other scene widgets use. */
 const ASPECT = 16 / 9;
 /** Taller view for the layouts that are not sticky: they have the room under the viewer. */
@@ -47,6 +45,7 @@ export function fitView(
   pose: Pose,
   points_m: ReadonlyArray<readonly [number, number]>,
   aspect = ASPECT,
+  maxWidth_m = MAX_VIEW_M,
 ): { width_m: number; centre_m: [number, number] } {
   let minX = Math.min(0, pose.x_m);
   let maxX = Math.max(0, pose.x_m);
@@ -59,7 +58,7 @@ export function fitView(
     maxY = Math.max(maxY, y_m);
   }
   const need_m = Math.max(maxX - minX + 2 * PAD_M, (maxY - minY + 2 * PAD_M) * aspect);
-  const width_m = Math.min(Math.max(need_m, MIN_VIEW_M), MAX_VIEW_M);
+  const width_m = Math.min(Math.max(need_m, MIN_VIEW_M), maxWidth_m);
   // Where the box does not fit, keep the robot inside it instead of the middle of the box.
   const keep = (centre_m: number, at_m: number, half_m: number): number =>
     Math.min(Math.max(centre_m, at_m - half_m + PAD_M), at_m + half_m - PAD_M);
@@ -73,31 +72,23 @@ export function fitView(
 }
 
 /**
- * Narrowest view of `mode: 'odometry'`, in metres: wide enough for a stretch of both traces to
- * read beside the two chassis, which `MIN_VIEW_M` alone is not.
- */
-const MIN_ODOMETRY_VIEW_M = 0.9;
-
-/**
- * View of `mode: 'odometry'`: it frames the two poses instead of the ICR, because what the
- * learner compares there is how far the estimate has drifted from the real robot, and a view
- * built around a 1.9 m turning radius leaves the two chassis a handful of pixels apart (#93,
- * decision 3). The drift is centimetres next to a 0.18 m chassis, so the width follows the gap
- * but never closes in past `MIN_ODOMETRY_VIEW_M`, where both traces still read.
+ * View of `mode: 'odometry'`: the two whole traces and both poses, with no cap on the width,
+ * because what the learner compares there is the real path against the estimated one from start
+ * to end; a view that follows the robot shows only the stretch under the chassis (v1.5).
  */
 export function odometryView(
   pose: Pose,
   estimated: Pose,
+  real_m: ReadonlyArray<readonly [number, number]>,
+  estimated_m: ReadonlyArray<readonly [number, number]>,
+  aspect = ASPECT,
 ): { width_m: number; centre_m: [number, number] } {
-  const gap_m = Math.hypot(estimated.x_m - pose.x_m, estimated.y_m - pose.y_m);
-  return {
-    width_m: Math.min(
-      Math.max(4 * VIEW_MARGIN * gap_m * ASPECT, MIN_ODOMETRY_VIEW_M),
-      MAX_VIEW_M,
-    ),
-    centre_m: [(pose.x_m + estimated.x_m) / 2, (pose.y_m + estimated.y_m) / 2],
-  };
+  const points_m = [...real_m, ...estimated_m, [estimated.x_m, estimated.y_m] as const];
+  return fitView(pose, points_m, aspect, Number.POSITIVE_INFINITY);
 }
+
+/** Width of the real trace under the estimated one, so it still shows where both coincide. */
+const REAL_TRACE_PX = 6;
 
 /** Axis colours of a frame: x in `error`, y in `success` (docs/DESIGN.md §2.2 and §6). */
 const AXIS_X_COLOR = 'color-error';
@@ -273,7 +264,9 @@ function WheelVelocities({
 function viewOf(
   { pose, twist, trace_m, show, odometry, aspect }: DiffDriveSceneProps,
 ): { width_m: number; centre_m: [number, number] } {
-  if (odometry !== undefined) return odometryView(pose, odometry.pose);
+  if (odometry !== undefined) {
+    return odometryView(pose, odometry.pose, trace_m, odometry.trace_m, aspect);
+  }
   const icr_m = show.includes('icr') ? icrOf(pose, twist) : null;
   const points_m = [...(show.includes('trace') ? trace_m : []), ...(icr_m === null ? [] : [icr_m])];
   return fitView(pose, points_m, aspect);
@@ -349,7 +342,9 @@ export function DiffDriveScene(props: DiffDriveSceneProps): JSX.Element {
     >
       <Grid />
       <Axes />
-      {has('trace') && trace_m.length > 1 ? <Trace points_m={trace_m} /> : null}
+      {has('trace') && trace_m.length > 1 ? (
+        <Trace points_m={trace_m} {...(odometry === undefined ? {} : { width_px: REAL_TRACE_PX })} />
+      ) : null}
       {odometry === undefined ? null : (
         <Odometry
           pose={odometry.pose}

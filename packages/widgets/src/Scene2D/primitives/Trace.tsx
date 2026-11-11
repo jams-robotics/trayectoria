@@ -16,16 +16,22 @@ export interface TraceProps {
   points_m: ReadonlyArray<readonly [number, number]>;
   /** Palette token name of the stroke. Defaults to `sim-trace`. */
   color?: string;
+  /** Stroke width in CSS pixels. Defaults to 2. */
+  width_px?: number;
 }
 
 /** Path already travelled, dotted 2 px in `--sim-trace` (docs/DESIGN.md §6). */
-export function Trace({ points_m, color = 'sim-trace' }: TraceProps): JSX.Element {
+export function Trace({
+  points_m,
+  color = 'sim-trace',
+  width_px = TRACE_LINE_PX,
+}: TraceProps): JSX.Element {
   const draw = useCallback(
     (ctx: CanvasRenderingContext2D, transform: Transform): void => {
       if (points_m.length < 2) return;
       ctx.save();
       ctx.strokeStyle = tokenColor(ctx.canvas, color);
-      ctx.lineWidth = TRACE_LINE_PX;
+      ctx.lineWidth = width_px;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.setLineDash([...TRACE_DASH_PX]);
@@ -39,7 +45,7 @@ export function Trace({ points_m, color = 'sim-trace' }: TraceProps): JSX.Elemen
       ctx.setLineDash([]);
       ctx.restore();
     },
-    [points_m, color],
+    [points_m, color, width_px],
   );
   useSceneDraw(draw);
   return <></>;

@@ -83,6 +83,29 @@ function sceneOdometry(
   return { pose: odometry.estimated, trace_m: odometry.trace_m };
 }
 
+/** Which trace is which in `mode: 'odometry'`: they coincide with an exact calibration (v1.5). */
+function TraceLegend({ t }: { t: Translate }): JSX.Element {
+  const items = [
+    { key: 'real', label: t('widgets.DiffDriveWidget.legendReal'), swatch: 'h-[6px] bg-[var(--sim-trace)]' },
+    {
+      key: 'estimated',
+      label: t('widgets.DiffDriveWidget.legendEstimated'),
+      swatch: 'h-0 border-t-2 border-dotted border-[var(--color-data-2)]',
+    },
+  ];
+  // Not a list: the topic prose styles every `ul` and `li` under it, widgets included.
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+      {items.map((item) => (
+        <span key={item.key} className="text-fg-muted flex items-center gap-2 font-mono text-xs">
+          <span aria-hidden="true" className={`inline-block w-[18px] ${item.swatch}`} />
+          <span>{item.label}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
 /** Drags the chassis to set `x, y`; absent while the simulation runs (#92, decision 6). */
 function dragHandler(
   timeline: Timeline,
@@ -257,6 +280,7 @@ export function DiffDriveWidget(props: DiffDriveWidgetProps): JSX.Element {
             onDrag={dragHandler(timeline)}
             odometry={sceneOdometry(odometry)}
           />
+          {odometry !== null && show.includes('trace') ? <TraceLegend t={t} /> : null}
           <SimControls {...timeline.driver} {...timeline.controls} t_s={timeline.t_s} />
         </>
       }

@@ -376,6 +376,8 @@
     "framesPanel": "Marcos de referencia",
     "scene": "Robot diferencial sobre el suelo, con su traza, el centro instantáneo de rotación, los marcos de referencia y un vector por rueda",
     "sceneOdometry": "Robot diferencial sobre el suelo, con su pose real y su traza y la pose y la traza estimadas por odometría",
+    "legendReal": "Traza real",
+    "legendEstimated": "Traza estimada (odometría)",
     "poseX": "Posición x",
     "poseY": "Posición y",
     "poseTheta": "Orientación",
