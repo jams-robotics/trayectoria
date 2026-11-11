@@ -59,7 +59,7 @@
   --size-panel-side: 352px;
   --size-form-card: 640px;
   /* Page container: every page, the bar and the footer share it, so their left edges match. */
-  --size-site: 1120px;
+  --size-site: 1200px;
 
   /* shape */
   --radius-sm: 4px;

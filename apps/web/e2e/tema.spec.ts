@@ -317,7 +317,10 @@ for (const topic of ['t01', 't02'] as const) {
 // text, formula cards, experiments, the «Mi robot» form and the exercises have the same width and
 // the same left edge. Only the Explora widgets take the whole content column (checked above).
 const READING_BLOCKS = {
-  formula: '[data-block="true"]',
+  // Since 1.5 the formulas of the section share ONE card: the card is the reading block, and the
+  // formulas inside it are inset by its padding. A formula card outside it (Al robot) still counts.
+  formula:
+    '[data-testid="formulas-card"], [data-block="true"]:not([data-testid="formulas-card"] *)',
   experiment: '[data-testid="experiment"]',
   myRobot: '[data-testid="my-robot-form"]',
   exercise: '[data-testid="exercise"]',
@@ -347,7 +350,9 @@ for (const topic of MODULE_0_TOPICS) {
           return { kind, left, width };
         };
         const paragraphs = [...article.querySelectorAll('[data-section] p')].filter(
-          (paragraph) => paragraph.closest('astro-island, [data-testid="experiment"]') === null,
+          (paragraph) =>
+            // The opening challenge is set apart on purpose (larger, with a left rule): not a reading block.
+            paragraph.closest('astro-island, [data-testid="experiment"], [data-section="gancho"], [data-testid="formulas-card"]') === null,
         );
         return [
           ...paragraphs.map(box('paragraph')),

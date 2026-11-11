@@ -24,9 +24,9 @@ export interface LapGoalTrack {
 
 /** The record key of a track: its preset name, or its length in millimetres when it is custom. */
 export function goalOf(track: TrackJson, resolved: Track): LapGoalTrack {
-  if (typeof track === 'string') {
-    const target_s = TARGET_LAP_S[track];
-    if (target_s !== undefined) return { key: track, target_s };
+  // Own keys only: a track name is outside input and must not reach the prototype of the table.
+  if (typeof track === 'string' && Object.hasOwn(TARGET_LAP_S, track)) {
+    return { key: track, target_s: TARGET_LAP_S[track] };
   }
   return { key: `custom:${String(Math.round(trackLength_m(resolved) * 1000))}` };
 }

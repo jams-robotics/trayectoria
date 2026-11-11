@@ -48,7 +48,7 @@ test.describe('«Nueva pista» y «Editar esta pista» (#190)', () => {
       .poll(async () => Number.parseFloat((await readout(page)).t))
       .toBeGreaterThan(0.2);
     // Sobre una pista de verdad el robot no pierde la línea nada más arrancar.
-    await expect(page.getByTestId('instruments-lost')).toHaveCount(0);
+    await expect(page.getByTestId('instruments-lost')).toBeEmpty();
     await page.getByRole('button', { name: 'Pausa' }).first().click();
   });
 });

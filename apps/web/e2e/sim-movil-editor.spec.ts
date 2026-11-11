@@ -136,15 +136,15 @@ test.describe('editor de pista en la caja del visor (#158, #189)', () => {
     // Un solo acordeón en la columna, el del editor, y abierto: es lo único que la columna tiene.
     const accordions = page.getByTestId('sim-editor-column').getByTestId('sim-accordion');
     await expect(accordions).toHaveCount(1);
-    await expect(accordions.getByRole('button', { name: /Segmento/ }).first()).toHaveAttribute(
+    await expect(accordions.locator('button[aria-expanded]').first()).toHaveAttribute(
       'aria-expanded',
       'true',
     );
     await expect(page.getByTestId('track-editor-panel')).toBeVisible();
 
-    // Al volver, los seis acordeones de la página están de nuevo.
+    // Al volver, los cinco acordeones de la página están de nuevo.
     await page.getByTestId('track-editor-back').click();
-    await expect(page.getByTestId('sim-accordion')).toHaveCount(6);
+    await expect(page.getByTestId('sim-accordion')).toHaveCount(5);
   });
 
   /**

@@ -236,6 +236,7 @@ function Viewer({
         spec={spec}
         pose={{ x_m: robot.x_m, y_m: robot.y_m, theta_rad: robot.theta_rad }}
         sensorStates={sensorStates(api.state)}
+        sensorReadings={api.state.reading.values}
       />
     </Scene2D>
   );

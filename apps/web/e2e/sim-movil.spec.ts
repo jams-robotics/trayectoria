@@ -97,7 +97,7 @@ test.describe('/simuladores/movil (F4-02b)', () => {
     const time = await runOneLap(page);
     expect(Number.parseFloat(time)).toBeLessThanOrEqual(LAP_LIMIT_S);
     // El aviso de línea perdida no aparece en ningún momento de la vuelta.
-    await expect(page.getByTestId('instruments-lost')).toHaveCount(0);
+    await expect(page.getByTestId('instruments-lost')).toBeEmpty();
   });
 
   test('dos cargas con los mismos parámetros muestran el mismo estado tras N pasos', async ({
@@ -197,9 +197,9 @@ test.describe('/simuladores/movil (F4-02b)', () => {
     await page.setViewportSize(MOBILE_VIEWPORT);
     await open(page);
 
-    // Robot, Pista, Controlador, Lecturas, Gráficas (F4-03) y «Guardar y compartir» (F4-05)
+    // Robot, Pista, Controlador, Gráficas (F4-03) y «Guardar y compartir» (F4-05); «Lecturas» salió en la 1.5
     // pasan a acordeones (docs/DESIGN.md §9 punto 8).
-    await expect(page.getByTestId('sim-accordion')).toHaveCount(6);
+    await expect(page.getByTestId('sim-accordion')).toHaveCount(5);
     await expect(page.getByTestId('sim-bottom-bar')).toBeVisible();
     // #531: la barra ya no omite «Paso», con la misma acción y clave i18n de escritorio.
     const bar = page.getByTestId('sim-bottom-bar');

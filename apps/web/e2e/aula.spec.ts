@@ -128,6 +128,8 @@ test('a student sees only the teachers notice, and an anonymous visitor the auth
 
   await openHydrated(page, '/cuenta');
   await page.getByRole('button', { name: auth.account.signOut }).click();
+  // Signing out is asynchronous: wait for the page to show it before leaving, as a person would.
+  await expect(page.getByTestId('auth-gate')).toHaveAttribute('data-auth', 'anonymous');
 
   await openHydrated(page, '/aula');
   await expect(page.getByTestId('auth-gate')).toHaveAttribute('data-auth', 'anonymous');

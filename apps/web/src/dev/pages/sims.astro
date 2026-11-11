@@ -15,7 +15,7 @@ import Base from '../../layouts/Base.astro';
 ---
 
 <Base title={t('sims.playground.title')}>
-  <section class="mx-auto max-w-[1120px] px-5 pt-11 pb-9 md:px-8">
+  <section class="mx-auto max-w-site px-5 pt-11 pb-9 md:px-8">
     <h1 class="text-2xl leading-tight max-w-[72ch] font-semibold">{t('sims.playground.title')}</h1>
     <p class="text-fg-muted mt-4 max-w-[72ch]">{t('sims.playground.lead')}</p>
     <SimsPlayground client:only="react" />

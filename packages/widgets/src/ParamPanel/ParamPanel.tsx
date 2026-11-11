@@ -263,7 +263,7 @@ function useApplyEvent(params: readonly ParamPanelParam[], onChange: ParamChange
       if (typeof values !== 'object' || values === null) return;
       for (const param of latest.current.params) {
         const value: unknown = Object.getOwnPropertyDescriptor(values, param.key)?.value;
-        if (typeof value === 'number') latest.current.onChange(param.key, quantize(value, param));
+        if (typeof value === 'number' && Number.isFinite(value)) latest.current.onChange(param.key, quantize(value, param));
       }
     };
     document.addEventListener(APPLY_EVENT, apply);
