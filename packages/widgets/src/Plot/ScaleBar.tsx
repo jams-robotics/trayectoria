@@ -5,7 +5,9 @@ import type { Translate } from '@trayectoria/i18n';
 /** Below this share of the full range, a fitted axis is flagged as magnified (v1.5). */
 const MAGNIFIED_SHARE = 0.25;
 
-const SEGMENT = 'h-9 px-3 text-sm font-semibold transition-colors duration-[120ms]';
+// No `overflow-hidden` on the group to round the ends: it would clip the focus outline (v1.5).
+const SEGMENT =
+  'h-9 px-3 text-sm font-semibold transition-colors duration-[120ms] first:rounded-l-sm last:rounded-r-sm';
 
 /**
  * Share of `fullRange` the series cover in the drawn window, in `[0, 1]`, or `null` with no data.
@@ -48,7 +50,7 @@ function ScaleSwitch({
 }): JSX.Element {
   const range = { range: `${String(fullRange[0])} a ${String(fullRange[1])}${unit === '' ? '' : ` ${unit}`}` };
   return (
-    <div role="group" aria-label={t('widgets.Plot.scale')} className="border-border flex w-fit overflow-hidden rounded-sm border">
+    <div role="group" aria-label={t('widgets.Plot.scale')} className="border-border flex w-fit rounded-sm border">
       {[false, true].map((option) => (
         <button
           key={String(option)}
