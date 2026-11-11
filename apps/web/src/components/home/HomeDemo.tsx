@@ -90,8 +90,8 @@ export function HomeDemo(): JSX.Element {
   return (
     <figure
       // The widget's lap card reads «—» in its four figures until the first lap closes (about 9 s):
-      // it stays out of the hero until there is a lap to show.
-      className="bg-bg-raised border-border rounded-lg m-0 border p-4 [&_[data-testid=lap-card][data-laps='0']]:hidden"
+      // it keeps its place but stays invisible until there is a lap to show, so nothing below jumps.
+      className="bg-bg-raised border-border rounded-lg m-0 border p-4 [&_[data-testid=lap-card][data-laps='0']]:invisible"
       aria-label={t('home.demo.label')}
       data-testid="home-demo"
     >

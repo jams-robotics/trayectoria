@@ -97,7 +97,7 @@ test.describe('/simuladores/movil (F4-02b)', () => {
     const time = await runOneLap(page);
     expect(Number.parseFloat(time)).toBeLessThanOrEqual(LAP_LIMIT_S);
     // El aviso de línea perdida no aparece en ningún momento de la vuelta.
-    await expect(page.getByTestId('line-follower-lost')).toHaveCount(0);
+    await expect(page.getByTestId('instruments-lost')).toHaveCount(0);
   });
 
   test('dos cargas con los mismos parámetros muestran el mismo estado tras N pasos', async ({
