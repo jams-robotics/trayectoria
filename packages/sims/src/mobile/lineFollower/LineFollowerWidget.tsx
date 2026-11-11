@@ -260,7 +260,7 @@ export function LineFollowerWidget(props: LineFollowerWidgetProps): JSX.Element 
       }
       plots={
         showPlots === undefined ? null : (
-          <Instruments buffers={instruments.buffers} show={showPlots} mobile={mobile} pid={pid} />
+          <Instruments buffers={instruments.buffers} show={showPlots} {...{ mobile, pid }} laps={instruments.timer.laps} />
         )
       }
     />

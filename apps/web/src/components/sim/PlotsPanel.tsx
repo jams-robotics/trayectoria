@@ -70,7 +70,13 @@ function Charts({
   return (
     <div className={mobile ? undefined : DESKTOP_GRID}>
       <Suspense fallback={<p className="text-fg-muted text-sm">{t('sims.mobilePage.loading')}</p>}>
-        <LazyInstruments buffers={instruments.buffers} show={PAGE_PLOTS} mobile={mobile} pid={pid} />
+        <LazyInstruments
+          buffers={instruments.buffers}
+          show={PAGE_PLOTS}
+          mobile={mobile}
+          pid={pid}
+          laps={instruments.timer.laps}
+        />
       </Suspense>
     </div>
   );

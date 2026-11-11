@@ -2,8 +2,9 @@ import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 import { Plot } from '@trayectoria/widgets';
-import type { PlotSeries, RingBuffer } from '@trayectoria/widgets';
+import type { PlotSeries, PlotVLine, RingBuffer } from '@trayectoria/widgets';
 
+import type { Lap } from './metrics';
 import type { LineFollowerPlot } from './plots';
 import { PLOT_WINDOW_S } from './useInstruments';
 import type { InstrumentBuffers } from './useInstruments';
@@ -72,6 +73,8 @@ export interface InstrumentsProps {
    * then, so without it it is omitted even if `show` asks for it.
    */
   readonly pid?: boolean;
+  /** Laps closed so far: each one draws a vertical mark at the time it ended (v1.5). */
+  readonly laps?: readonly Lap[];
 }
 
 /**
@@ -79,7 +82,22 @@ export interface InstrumentsProps {
  * over the model rings, one sample per frame. On mobile they stack at 120 px each
  * (docs/DESIGN.md §9 item 8).
  */
-export function Instruments({ buffers, show, mobile = false, pid = false }: InstrumentsProps): JSX.Element {
+/** One mark per closed lap, at the simulated time it ended: the laps add up from `t = 0`. */
+function lapMarks(laps: readonly Lap[], t: Translate): readonly PlotVLine[] {
+  let end_s = 0;
+  return laps.map((lap, index) => {
+    end_s += lap.lapTime_s;
+    return { x: end_s, label: t('sims.instruments.lapMark', { n: index + 1 }) };
+  });
+}
+
+export function Instruments({
+  buffers,
+  show,
+  mobile = false,
+  pid = false,
+  laps = [],
+}: InstrumentsProps): JSX.Element {
   const t = useT();
   const height = mobile ? MOBILE_PLOT_HEIGHT_PX : PLOT_HEIGHT_PX;
   const drawn = PLOTS.filter(({ id }) => show.includes(id) && (id !== 'pid' || pid));
@@ -101,6 +119,7 @@ export function Instruments({ buffers, show, mobile = false, pid = false }: Inst
             series={series(t)}
             live={{ buffer: buffer(buffers), windowSeconds: PLOT_WINDOW_S }}
             height={height}
+            vLines={lapMarks(laps, t)}
           />
         </div>
       ))}

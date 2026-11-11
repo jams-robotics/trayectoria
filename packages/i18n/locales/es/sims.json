@@ -136,6 +136,7 @@
     "termP": "P",
     "termI": "I",
     "termD": "D",
+    "lapMark": "V{{n}}",
     "lastLap": "Última vuelta",
     "bestLap": "Mejor vuelta",
     "avgSpeed": "Velocidad media",
