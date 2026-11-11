@@ -1,6 +1,7 @@
 import type { JSX } from 'react';
 import type { Translate } from '@trayectoria/i18n';
 
+import { withSubscripts } from '../ExerciseWidget/subscripts';
 import type { ParamPanelParam } from '../ParamPanel/ParamPanel';
 import type { ReadoutRow } from '../shared/ReadoutPanel';
 import type { SensorArrayReading, SensorInput } from './compute';
@@ -39,6 +40,9 @@ export type SliderInput = Omit<SensorInput, 't_s'>;
 
 const ORDER: readonly SensorParam[] = ['offset', 'angle', 'noise', 'threshold'];
 
+/** What the «Explora» of T-6.1 moves: the offset and the noise. The rest sit behind «Más controles». */
+const IN_VIEW: readonly SensorParam[] = ['offset', 'noise'];
+
 /** The four sliders of the widget. */
 export function paramsOf(input: SliderInput, t: Translate): readonly ParamPanelParam[] {
   return ORDER.map((key) => ({
@@ -46,8 +50,18 @@ export function paramsOf(input: SliderInput, t: Translate): readonly ParamPanelP
     label: t(`widgets.LineSensorWidget.param${key}`),
     unit: UNIT_KEYS[key] === '' ? '' : t(UNIT_KEYS[key]),
     value: VALUES[key](input),
+    ...(key === 'offset' ? { description: t('widgets.LineSensorWidget.paramoffsetHint') } : {}),
     ...RANGES[key],
   }));
+}
+
+/** The sliders in view and the folded ones, each in its order. */
+export function splitParams(params: readonly ParamPanelParam[]): {
+  inView: ParamPanelParam[];
+  folded: ParamPanelParam[];
+} {
+  const keep = (param: ParamPanelParam): boolean => IN_VIEW.some((key) => key === param.key);
+  return { inView: params.filter(keep), folded: params.filter((param) => !keep(param)) };
 }
 
 /** Applies one slider change to the input; the widget time is not a slider. */
@@ -125,7 +139,7 @@ function SensorBar({
           aria-label={`${label}: ${reading2(value)}`}
         />
       </div>
-      <span className="text-fg-muted text-xs">{label}</span>
+      <span className="text-fg-muted text-xs">{withSubscripts(label)}</span>
       <span className="text-fg font-mono text-sm tabular-nums" data-testid={`v-${String(k)}`}>
         {reading2(value)}
       </span>
@@ -134,7 +148,7 @@ function SensorBar({
           className="text-fg-muted font-mono text-xs tabular-nums"
           data-testid={`b-${String(k)}`}
         >
-          {t('widgets.LineSensorWidget.binary', { k: String(k), b: String(bit) })}
+          {withSubscripts(t('widgets.LineSensorWidget.binary', { k: String(k), b: String(bit) }))}
         </span>
       )}
     </div>

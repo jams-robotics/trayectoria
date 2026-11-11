@@ -3,14 +3,20 @@ import { degToRad, radToDeg } from '@trayectoria/sim-core';
 import type { MobileSpec } from '@trayectoria/robot-spec';
 import type { Translate } from '@trayectoria/i18n';
 
-import { ParamPanel } from '../ParamPanel/ParamPanel';
 import type { ParamPanelParam } from '../ParamPanel/ParamPanel';
 import { ReadoutPanel } from '../shared/ReadoutPanel';
 import type { ReadoutRow } from '../shared/ReadoutPanel';
 import { maxSpeed_mps, maxWheelSpeed_radps } from './compute';
 import type { DiffDriveMode, Pose, WheelCommand } from './compute';
 import type { Calibration } from './odometry';
-import { ODOMETRY_ESSENTIAL_ROWS, POSE_ESSENTIAL_ROWS, frameRows, odometryRows, poseRows } from './rows';
+import {
+  ODOMETRY_ESSENTIAL_ROWS,
+  POSE_ESSENTIAL_ROWS,
+  frameRows,
+  matrixTerms,
+  odometryRows,
+  poseRows,
+} from './rows';
 import type { OdometryReadout, Readout } from './rows';
 
 export { radiusText, readDiffDrive, statusOf } from './rows';
@@ -104,14 +110,22 @@ export function twistParams(
   ];
 }
 
-/** The slider of the initial orientation `θ₀`, in degrees (#92, decision 6; #371). */
-export function thetaParam(theta0_rad: number, t: Translate): readonly ParamPanelParam[] {
+/**
+ * The slider of the initial orientation `θ₀`, in degrees (#92, decision 6; #371). It is disabled
+ * while the simulation runs and keeps showing `θ₀`.
+ */
+export function thetaParam(
+  theta0_rad: number,
+  t: Translate,
+  disabled = false,
+): readonly ParamPanelParam[] {
   return [
     {
       key: 'theta',
       label: t('widgets.DiffDriveWidget.paramTheta'),
       unit: t('widgets.DiffDriveWidget.unitDeg'),
       value: Math.round(radToDeg(theta0_rad)),
+      disabled,
       ...THETA_RANGE_DEG,
     },
   ];
@@ -212,9 +226,6 @@ export function Notice({ text, tone }: { text: string; tone: 'error' | 'muted' }
   );
 }
 
-/** The four terms of `R(θ)` stay in view; the sensor coordinates sit behind «Más datos» (v1.5). */
-const FRAME_MATRIX_ROWS = 4;
-
 /** Pose rows with the maneuver lines right after the essential ones, so they stay in view. */
 function posePanelRows(
   readout: Readout,
@@ -231,30 +242,78 @@ export interface PosePanelProps {
   readout: Readout;
   spec: MobileSpec;
   withFrames: boolean;
-  /** Initial orientation `θ₀` the slider shows, not the current one of the pose (#371). */
-  theta0_rad: number;
-  /** True while the simulation runs: the slider is disabled and keeps showing `θ₀` (#371). */
-  running: boolean;
-  onTheta: (value_deg: number) => void;
   /** Lines added after the pose ones: the phase and duration of the maneuver (#394), or none. */
   extraRows: readonly ReadoutRow[];
-  /** Rendered right under the pose rows, before the frames and the `θ₀` slider (v1.5). */
+  /** Rendered right under the pose rows, before the frames panel (v1.5). */
   children?: ReactNode;
   t: Translate;
 }
 
+/** One term of `R(θ)`; the matrix is drawn with a bracket on each side. */
+function MatrixCell({ value }: { value: string }): JSX.Element {
+  return <td className="px-2 text-right">{value}</td>;
+}
+
 /**
- * The pose panel: `x, y, θ`, `v, ω, R` and the wheel commands, plus the terms of `R(θ)` and the
+ * `R(θ)` as a 2×2 matrix with its brackets. A `table` named «R(θ), matriz de rotación…» keeps
+ * its rows and columns for a screen reader.
+ */
+function RotationMatrix({ pose, t }: { pose: Pose; t: Translate }): JSX.Element {
+  const [r11, r12, r21, r22] = matrixTerms(pose);
+  return (
+    <div className="flex items-center gap-2 font-mono text-sm tabular-nums">
+      <span aria-hidden="true">{t('widgets.DiffDriveWidget.matrixName')}</span>
+      <div className="border-fg relative px-3 py-1 before:absolute before:inset-y-0 before:left-0 before:w-1.5 before:border-y-2 before:border-l-2 before:border-inherit after:absolute after:inset-y-0 after:right-0 after:w-1.5 after:border-y-2 after:border-r-2 after:border-inherit">
+        <table
+          aria-label={t('widgets.DiffDriveWidget.matrix')}
+          data-testid="rotation-matrix"
+          className="border-separate border-spacing-y-1"
+        >
+          <tbody>
+            <tr>
+              <MatrixCell value={r11} />
+              <MatrixCell value={r12} />
+            </tr>
+            <tr>
+              <MatrixCell value={r21} />
+              <MatrixCell value={r22} />
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/** The frames panel: `R(θ)` as a matrix and the global sensor coordinates behind «Más datos». */
+function FramesPanel({
+  pose,
+  spec,
+  t,
+}: {
+  pose: Pose;
+  spec: MobileSpec;
+  t: Translate;
+}): JSX.Element {
+  return (
+    <ReadoutPanel
+      title={t('widgets.DiffDriveWidget.framesPanel')}
+      rows={frameRows(pose, spec, t)}
+      visibleRows={0}
+      lead={<RotationMatrix pose={pose} t={t} />}
+    />
+  );
+}
+
+/**
+ * The pose panel: `x, y, θ`, `v, ω, R` and the wheel commands, plus the matrix `R(θ)` and the
  * global sensor coordinates when `show` includes `frames` (#92, decision 6). The initial
- * orientation `θ₀` is edited here with a slider, because the scene only drags `x, y` (#371).
+ * orientation `θ₀` is a slider of the controls, because the scene only drags `x, y` (#371).
  */
 export function PosePanel({
   readout,
   spec,
   withFrames,
-  theta0_rad,
-  running,
-  onTheta,
   extraRows,
   children,
   t,
@@ -267,22 +326,7 @@ export function PosePanel({
         visibleRows={POSE_ESSENTIAL_ROWS + extraRows.length}
       />
       {children}
-      {withFrames ? (
-        <ReadoutPanel
-          title={t('widgets.DiffDriveWidget.framesPanel')}
-          rows={frameRows(readout.pose, spec, t)}
-          visibleRows={FRAME_MATRIX_ROWS}
-        />
-      ) : null}
-      {/* A disabled fieldset disables the slider and its field without a prop on ParamPanel. */}
-      <fieldset disabled={running} className="m-0 min-w-0 border-0 p-0">
-        <ParamPanel
-          params={thetaParam(theta0_rad, t)}
-          onChange={(_key, value) => {
-            onTheta(value);
-          }}
-        />
-      </fieldset>
+      {withFrames ? <FramesPanel pose={readout.pose} spec={spec} t={t} /> : null}
     </div>
   );
 }

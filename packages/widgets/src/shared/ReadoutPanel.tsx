@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
 
 /** The `aria-live` region is refreshed at most this often (docs/WIDGETS.md, reglas comunes). */
@@ -21,6 +21,8 @@ export interface ReadoutPanelProps {
    * of 7 rows or more shows the first 5 and shorter ones show everything (v1.5).
    */
   visibleRows?: number;
+  /** Free content between the title and the rows, e.g. a matrix. */
+  lead?: ReactNode;
 }
 
 /** The `dl` of a list of rows. */
@@ -41,7 +43,7 @@ function Rows({ rows }: { rows: readonly ReadoutRow[] }): JSX.Element {
  * Values panel of docs/DESIGN.md §5 («Panel de parámetros»): a card with a `dl` in a
  * `1fr auto` grid, muted terms and mono `tabular-nums` values aligned right.
  */
-export function ReadoutPanel({ title, rows, visibleRows }: ReadoutPanelProps): JSX.Element {
+export function ReadoutPanel({ title, rows, visibleRows, lead }: ReadoutPanelProps): JSX.Element {
   const t = useT();
   const shown = visibleRows ?? (rows.length >= FOLD_FROM_ROWS ? DEFAULT_VISIBLE_ROWS : rows.length);
   const folded = rows.slice(shown);
@@ -52,7 +54,8 @@ export function ReadoutPanel({ title, rows, visibleRows }: ReadoutPanelProps): J
       data-testid="readout-panel"
     >
       <h4 className="mb-3 text-sm font-semibold">{title}</h4>
-      <Rows rows={rows.slice(0, shown)} />
+      {lead}
+      {shown === 0 ? null : <Rows rows={rows.slice(0, shown)} />}
       {folded.length === 0 ? null : (
         <details className="mt-1" data-testid="readout-more">
           <summary className="text-primary min-h-[44px] flex cursor-pointer items-center text-sm font-medium">

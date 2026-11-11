@@ -3,15 +3,46 @@ import type { Translate } from '@trayectoria/i18n';
 
 import { ParamPanel } from '../ParamPanel/ParamPanel';
 import type { ParamPanelParam } from '../ParamPanel/ParamPanel';
+import type { DiffDriveMode, DiffDriveShow } from './compute';
 import { MANEUVER_DISTANCE_RANGE_M, MANEUVER_TURN_RANGE_DEG } from './maneuver';
-import { Notice } from './panels';
+import { Notice, theta0Of, thetaParam } from './panels';
+import type { Timeline } from './timeline';
 import type { ManeuverControls } from './useManeuver';
 
-// Chip version of the segmented control of docs/DESIGN.md §5: container with a `border` and
-// `sm` radius, active in `primary` over `primary-fg`.
-const CHIP = 'h-10 px-3 font-mono text-sm font-semibold transition-colors duration-[120ms]';
-const ACTIVE = `${CHIP} bg-primary text-primary-fg`;
-const INACTIVE = `${CHIP} text-fg-muted hover:text-fg`;
+// The same button as «Paso» and «Reiniciar» of SimControls; pressed, it takes the primary colours.
+const BUTTON =
+  'inline-flex h-9 w-fit items-center rounded-sm border px-3 text-sm font-semibold transition-colors duration-[120ms]';
+const ACTIVE = `${BUTTON} bg-primary text-primary-fg border-primary hover:bg-primary-hover`;
+const INACTIVE = `${BUTTON} bg-bg-raised text-fg border-border hover:border-fg-muted`;
+
+/**
+ * The sliders each topic leaves in view, which are the ones its `Experimento` set: `visibleKeys`
+ * of a mode and its `show`. The rest sit behind «Más controles» (v1.5). `forward` with `frames`
+ * moves the robot by hand and `θ₀`; `odometry` with `frames` is the drift of the calibration
+ * and without them the encoders.
+ */
+export function visibleKeys(mode: DiffDriveMode, show: readonly DiffDriveShow[]): readonly string[] {
+  const frames = show.includes('frames');
+  if (mode === 'odometry') {
+    return frames ? ['believedRadius', 'believedBase'] : ['omegaL', 'omegaR', 'ticksPerRev'];
+  }
+  if (mode === 'inverse') {
+    const twist = ['v', 'omega', 'maneuverTurn', 'maneuverDistance'];
+    return frames ? [...twist, 'theta'] : twist;
+  }
+  return frames ? ['theta'] : ['omegaL', 'omegaR'];
+}
+
+/** The sliders whose key is in `keys`, and the rest, each in its order. */
+function splitParams(
+  all: readonly ParamPanelParam[],
+  keys: readonly string[],
+): { inView: ParamPanelParam[]; folded: ParamPanelParam[] } {
+  return {
+    inView: all.filter((param) => keys.includes(param.key)),
+    folded: all.filter((param) => !keys.includes(param.key)),
+  };
+}
 
 /** The values of the «Giro» and «Avance» sliders of the maneuver. */
 export interface ManeuverValues {
@@ -39,7 +70,7 @@ export function maneuverParams(values: ManeuverValues, t: Translate): readonly P
   ];
 }
 
-/** The «Maniobra en tres movimientos» switch: a single chip with `aria-pressed` (#394). */
+/** The «Maniobra en tres movimientos» switch: a button with `aria-pressed` (#394). */
 export function ManeuverToggle({
   active,
   onToggle,
@@ -50,43 +81,59 @@ export function ManeuverToggle({
   t: Translate;
 }): JSX.Element {
   return (
-    <div className="border-border flex w-fit overflow-hidden rounded-sm border">
-      <button
-        type="button"
-        className={active ? ACTIVE : INACTIVE}
-        aria-pressed={active}
-        onClick={onToggle}
-      >
-        {t('widgets.DiffDriveWidget.toggleManeuver')}
-      </button>
-    </div>
+    <button
+      type="button"
+      className={active ? ACTIVE : INACTIVE}
+      aria-pressed={active}
+      onClick={onToggle}
+    >
+      {t('widgets.DiffDriveWidget.toggleManeuver')}
+    </button>
   );
 }
 
 /**
- * The sliders of the mode, with the maneuver switch (when there is one) and the saturation
- * notice above them (#92, decision 4; #394).
+ * The sliders of the mode across both columns of the parameters, with the maneuver switch (when
+ * there is one) and the saturation notice above them; `folded` sit behind «Más controles»
+ * (#92, decision 4; #394; v1.5).
  */
 export function Sliders({
   toggle,
   params,
+  folded,
   onChange,
   feasible,
   t,
 }: {
   toggle: JSX.Element | null;
   params: readonly ParamPanelParam[];
+  folded: readonly ParamPanelParam[];
   onChange: (key: string, value: number) => void;
   feasible: boolean;
   t: Translate;
 }): JSX.Element {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex min-w-0 flex-col gap-3 lg:col-span-2">
       {toggle}
       {feasible ? null : <Notice text={t('widgets.DiffDriveWidget.saturated')} tone="error" />}
-      <ParamPanel params={params} onChange={onChange} />
+      <ParamPanel params={params} folded={folded} onChange={onChange} layout="grid" />
     </div>
   );
+}
+
+interface ModeSlidersProps {
+  mode: DiffDriveMode;
+  show: readonly DiffDriveShow[];
+  sliders: {
+    params: readonly ParamPanelParam[];
+    onSlider: (key: string, value: number) => void;
+  };
+  sequence: ManeuverControls;
+  timeline: Pick<Timeline, 'restart' | 'setTheta0' | 'theta0_rad'> & {
+    driver: Pick<Timeline['driver'], 'running'>;
+  };
+  feasible: boolean;
+  t: Translate;
 }
 
 /**
@@ -94,35 +141,38 @@ export function Sliders({
  * above them and every change of the maneuver restarts the run (#394).
  */
 export function ModeSliders({
+  mode,
+  show,
   sliders,
   sequence,
   timeline,
   feasible,
   t,
-}: {
-  sliders: {
-    params: readonly ParamPanelParam[];
-    onSlider: (key: string, value: number) => void;
-  };
-  sequence: ManeuverControls;
-  timeline: { restart: () => void };
-  feasible: boolean;
-  t: Translate;
-}): JSX.Element {
-  const toggle = (): void => {
-    sequence.toggle();
-    timeline.restart();
-  };
+}: ModeSlidersProps): JSX.Element {
+  const theta = thetaParam(timeline.theta0_rad, t, timeline.driver.running);
+  const { inView, folded } = splitParams(
+    [...(sequence.active ? sequence.params : sliders.params), ...theta],
+    visibleKeys(mode, show),
+  );
   return (
     <Sliders
       toggle={
         sequence.available ? (
-          <ManeuverToggle active={sequence.active} onToggle={toggle} t={t} />
+          <ManeuverToggle
+            active={sequence.active}
+            onToggle={() => {
+              sequence.toggle();
+              timeline.restart();
+            }}
+            t={t}
+          />
         ) : null
       }
-      params={sequence.active ? sequence.params : sliders.params}
+      params={inView}
+      folded={folded}
       onChange={(key, value) => {
-        if (sequence.change(key, value)) timeline.restart();
+        if (key === 'theta') timeline.setTheta0(theta0Of(value));
+        else if (sequence.change(key, value)) timeline.restart();
         else sliders.onSlider(key, value);
       }}
       feasible={feasible}

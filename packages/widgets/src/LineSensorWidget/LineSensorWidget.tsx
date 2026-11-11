@@ -11,7 +11,7 @@ import { LiveStatus, ReadoutPanel } from '../shared/ReadoutPanel';
 import { SimLayout } from '../shared/SimLayout';
 import { lineSensorsOf, readSensorArray } from './compute';
 import type { SensorArrayReading } from './compute';
-import { SensorBars, applyChange, paramsOf, readoutRows, statusOf } from './panels';
+import { SensorBars, applyChange, paramsOf, readoutRows, splitParams, statusOf } from './panels';
 import type { SliderInput } from './panels';
 import { SensorScene } from './scene';
 import { useWidgetTime } from './timeline';
@@ -51,6 +51,24 @@ function Values({
   );
 }
 
+/** The sliders across both columns of the parameters; the ones the «Explora» does not move are folded. */
+function Controls({
+  sliders,
+  onChange,
+  t,
+}: {
+  sliders: SliderInput;
+  onChange: (key: string, value: number) => void;
+  t: Translate;
+}): JSX.Element {
+  const { inView, folded } = splitParams(paramsOf(sliders, t));
+  return (
+    <div className="min-w-0 lg:col-span-2">
+      <ParamPanel layout="grid" params={inView} folded={folded} onChange={onChange} />
+    </div>
+  );
+}
+
 /**
  * The line sensor array over a straight stretch of line that the learner slides: readings
  * `v_k`, weighted index `k̄`, position `p`, offset `y_línea`, binary readings with threshold `u`
@@ -87,8 +105,9 @@ export function LineSensorWidget({
       }
       values={<Values reading={reading} showBinary={showBinary} t={t} />}
       params={
-        <ParamPanel
-          params={paramsOf(sliders, t)}
+        <Controls
+          sliders={sliders}
+          t={t}
           onChange={(key, value) => {
             setSliders((current) => applyChange(current, key, value));
           }}

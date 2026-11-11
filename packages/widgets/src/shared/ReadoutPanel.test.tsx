@@ -27,3 +27,14 @@ describe('ReadoutPanel (v1.5)', () => {
     expect(screen.getByTestId('readout-more').textContent).toContain('term 2');
   });
 });
+
+describe('ReadoutPanel lead (v1.5)', () => {
+  it('draws the lead under the title and, with no visible rows, keeps every row behind «Más datos»', () => {
+    render(
+      <ReadoutPanel title={TITLE} rows={rows(2)} visibleRows={0} lead={<p data-testid="lead" />} />,
+    );
+    expect(screen.getByTestId('lead')).toBeInTheDocument();
+    expect(screen.getByTestId('readout-more').textContent).toContain('term 1');
+    expect(screen.getByTestId('readout-panel').querySelectorAll(':scope > dl')).toHaveLength(0);
+  });
+});

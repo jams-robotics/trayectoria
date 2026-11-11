@@ -18,6 +18,8 @@ export { TrackLayer } from './primitives/TrackLayer';
 export type { TrackLayerProps } from './primitives/TrackLayer';
 export { Vector } from './primitives/Vector';
 export type { VectorProps } from './primitives/Vector';
+export { fillSubscriptText, subscriptRuns } from './subscriptText';
+export type { TextRun } from './subscriptText';
 export { createTransform, lengthToPx, pxToWorld, worldToPx } from './transform';
 export type { Transform, TransformInput, WorldBounds } from './transform';
 export { createFrameClock, useSimulationDriver } from './useSimulationDriver';
