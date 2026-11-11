@@ -9,6 +9,7 @@ import { AnswerField, ResultLine } from './fields';
 import type { ExerciseStatus } from './fields';
 import { unitAt, useExercise } from './state';
 import type { ExerciseState } from './state';
+import { withSubscripts } from './subscripts';
 
 // Button of docs/DESIGN.md §5, 44 px like its field: primary while the response is pending, ghost
 // once it is correct (#540).
@@ -61,7 +62,7 @@ function Statement({
           {t('widgets.ExerciseWidget.number', { n: index })}
         </span>
       )}
-      <span data-testid="exercise-statement">{t(state.statementKey, state.params)}</span>
+      <span data-testid="exercise-statement">{withSubscripts(t(state.statementKey, state.params))}</span>
       {required ? (
         <span className="text-fg-muted text-xs">{t('widgets.ExerciseWidget.required')}</span>
       ) : null}
@@ -164,7 +165,7 @@ function ChoiceOptions({
               state.edit(0, String(position));
             }}
           />
-          <span>{t(option)}</span>
+          <span>{withSubscripts(t(option))}</span>
         </label>
       ))}
     </fieldset>
@@ -204,7 +205,7 @@ function ChoiceRow({
       ) : null}
       {status === 'correct' || status === 'incorrect' ? (
         <p className="text-fg-muted mt-2 text-sm" data-testid="exercise-explanation">
-          {t(choices.explanation)}
+          {withSubscripts(t(choices.explanation))}
         </p>
       ) : null}
     </div>

@@ -1,5 +1,6 @@
 import type { JSX } from 'react';
 import type { Translate } from '@trayectoria/i18n';
+import { withSubscripts } from './subscripts';
 
 /** Where a response is in its life cycle (docs/DESIGN.md §5, Ejercicio). */
 export type ExerciseStatus = 'pending' | 'checking' | 'correct' | 'incorrect';
@@ -85,7 +86,9 @@ function FieldPrefix({
   count: number;
   t: Translate;
 }): JSX.Element | null {
-  if (name !== undefined) return <span className="text-fg-muted text-xs">{name}</span>;
+  if (name !== undefined) {
+    return <span className="text-fg-muted text-xs">{withSubscripts(name)}</span>;
+  }
   if (count === 1) return null;
   return (
     <span className="text-fg-muted font-mono text-xs">
