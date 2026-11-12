@@ -41,5 +41,5 @@ Elegir qué pendientes entran en la siguiente versión y registrarlos como issue
    - Las etiquetas de fuerzas pequeñas se enciman en el diagrama de cuerpo libre.
    - Las etiquetas de los dos marcos se solapan cuando el robot está casi alineado con el origen.
 7. Verificación en Firefox y Safari.
-9. La excepción de la 1.5 en `CLAUDE.md` (trabajo sin ticket en `v2/integracion`) venció con el merge: hay que quitarla.
-8. Siguen abiertos los PRs de Dependabot de actions, Node 26, Caddy, `@types/node` 26 y TypeScript 6, y el PR de la versión 2 de la pista 3D. Las actualizaciones de seguridad de Dependabot sobre `main` fallaron el 11 nov.
+8. La excepción de la 1.5 en `CLAUDE.md` (trabajo sin ticket en `v2/integracion`) venció con el merge: hay que quitarla.
+9. Siguen abiertos los PRs de Dependabot de actions, Node 26, Caddy, `@types/node` 26 y TypeScript 6, y el PR de la versión 2 de la pista 3D. Las actualizaciones de seguridad de Dependabot sobre `main` fallaron el 11 nov.
