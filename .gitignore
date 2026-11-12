@@ -37,3 +37,6 @@ Thumbs.db
 
 # logs
 *.log
+
+# Local working notes for the agent; not part of the project
+RETOMAR.md

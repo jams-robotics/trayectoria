@@ -76,6 +76,7 @@ function Charts({
           mobile={mobile}
           pid={pid}
           laps={instruments.timer.laps}
+          spec={instruments.spec}
         />
       </Suspense>
     </div>

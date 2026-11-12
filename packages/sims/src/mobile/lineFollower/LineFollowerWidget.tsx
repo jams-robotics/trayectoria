@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import type { JSX, ReactNode, RefObject } from 'react';
 import type { Track } from '@trayectoria/sim-core';
-import type { RobotSpec } from '@trayectoria/robot-spec';
+import type { MobileSpec, RobotSpec } from '@trayectoria/robot-spec';
 import { useMyRobot } from '@trayectoria/widgets';
 
 import { useManualMode } from './ManualControls';
@@ -220,11 +220,14 @@ function useRun(
  */
 function useInstrumentsReport(
   instruments: LiveInstruments,
+  spec: MobileSpec | undefined,
   onInstruments: ((instruments: LiveInstruments) => void) | undefined,
 ): void {
-  const latest = useRef(instruments);
-  latest.current = instruments;
+  const latest = useRef({ ...instruments, spec });
+  latest.current = { ...instruments, spec };
   const { timer, lostAt } = instruments;
+  // `spec` stays out of the deps: a page may rebuild it every render, and another robot restarts
+  // the run anyway, which resets `timer` and publishes again.
   useEffect(() => {
     onInstruments?.(latest.current);
   }, [onInstruments, timer, lostAt]);
@@ -245,7 +248,7 @@ export function LineFollowerWidget(props: LineFollowerWidgetProps): JSX.Element 
   const { spec, resolved, choice, api, drive, manual } = useRun(props, viewerRef);
   const pid = choice.selected === 'pid';
   const instruments = useInstruments({ api, track: resolved, params: choice.params, pid });
-  useInstrumentsReport(instruments, onInstruments);
+  useInstrumentsReport(instruments, spec.mobile, onInstruments);
 
   const viewer = (
     <ViewerColumn

@@ -215,3 +215,21 @@ describe('LineFollowerWidget · renderViewer (#158, enmienda tras auditoría de 
     expect(wrapper.querySelector('[data-testid="line-follower-view"]')).not.toBeNull();
   });
 });
+
+describe('LineFollowerWidget · onInstruments (v1.5)', () => {
+  it('publica el robot, para que la página dé a sus gráficas el rango completo', async () => {
+    const published: unknown[] = [];
+    render(
+      <LineFollowerWidget
+        track="oval"
+        controller="pid"
+        initialParams={PARAMS}
+        robot={ROBOT}
+        onInstruments={(instruments) => published.push(instruments.spec)}
+      />,
+    );
+    await waitFor(() => {
+      expect(published.at(-1)).toBe(ROBOT.mobile);
+    });
+  });
+});
