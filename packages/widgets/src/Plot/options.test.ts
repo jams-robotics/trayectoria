@@ -34,6 +34,7 @@ describe('axisTitle', () => {
   it('reads `label (unit)` (docs/WIDGETS.md, docs/DESIGN.md §5)', () => {
     expect(axisTitle(X)).toBe('t (s)');
     expect(axisTitle({ label: 'v', unit: 'm/s' })).toBe('v (m/s)');
+    expect(axisTitle({ label: 'Error', unit: '' })).toBe('Error');
   });
 });
 
@@ -56,6 +57,12 @@ describe('buildOptions: escalas', () => {
     const [min, max] = yRangeOf(options([{ y: 50, label: 'Límite' }]), 0, 1);
     expect(max).toBeGreaterThanOrEqual(50);
     expect(min).toBeLessThanOrEqual(0);
+  });
+
+  it('leaves room above a reference line at the top of the data for its label', () => {
+    const plain = yRangeOf(options([{ y: 0, label: 'Sin error' }]), 0, 10)[1] ?? 0;
+    const top = yRangeOf(options([{ y: 10, label: 'P_max' }]), 0, 10)[1] ?? 0;
+    expect(top).toBeGreaterThan(plain + 1);
   });
 
   it('never returns a degenerate or non-finite range (uPlot rejects them)', () => {
@@ -85,6 +92,10 @@ describe('buildOptions: valores de los ejes', () => {
   it('passes the hook straight through `axisValues`, with a blank for a null split', () => {
     expect(axisValues(null as unknown as uPlot, [null, 2])).toEqual(['', '2']);
   });
+
+  it('blanks a split whose text repeats the previous one (v1.5)', () => {
+    expect(axisValues(null as unknown as uPlot, [0.3201, 0.3202, 0.33])).toEqual(['0.32', '', '0.33']);
+  });
 });
 
 /** The canvas calls the draw hook makes, plus the text state it must reset itself. */
@@ -99,6 +110,7 @@ interface FakeContext {
   lineTo: ReturnType<typeof vi.fn>;
   stroke: ReturnType<typeof vi.fn>;
   fillText: ReturnType<typeof vi.fn>;
+  font: string;
   textAlign: string;
   textBaseline: string;
 }
@@ -119,6 +131,8 @@ describe('refLinesPlugin', () => {
       lineTo: vi.fn(),
       stroke: vi.fn(),
       fillText: vi.fn(),
+      font: '24px ui-monospace, monospace',
+      measureText: (text: string) => ({ width: text.length * 10 }),
     };
     const chart = {
       ctx: { ...ctx, canvas: { width: 960 } },
@@ -158,11 +172,22 @@ describe('refLinesPlugin', () => {
     const { chart, ctx } = fakeChart();
     // 10 canvas pixels under the top edge: a 24 px (2x) label above the line would be clipped,
     // as `P_max` was in MotorCurveWidget, so it hangs from the line instead.
-    draw(refLinesPlugin([{ y: 1, label: 'P_max = 1.88 W' }], THEME), chart);
+    draw(refLinesPlugin([{ y: 1, label: 'Máximo = 1.88 W' }], THEME), chart);
 
     expect(ctx.moveTo).toHaveBeenCalledWith(0, 10);
-    expect(ctx.fillText).toHaveBeenCalledWith('P_max = 1.88 W', 12, 14);
+    expect(ctx.fillText).toHaveBeenCalledWith('Máximo = 1.88 W', 12, 14);
     expect(ctx.textBaseline).toBe('top');
+  });
+
+  it('composes a subscript of the label: base, smaller dropped group, then the rest', () => {
+    const { chart, ctx } = fakeChart();
+    draw(refLinesPlugin([{ y: 0, label: 'P_max = 9.90 W' }], THEME), chart);
+
+    // 12 canvas px of margin; the fake measures 10 px per character.
+    expect(ctx.fillText).toHaveBeenNthCalledWith(1, 'P', 12, 96);
+    expect(ctx.fillText).toHaveBeenNthCalledWith(2, 'max', 22, 102);
+    expect(ctx.fillText).toHaveBeenNthCalledWith(3, ' = 9.90 W', 52, 96);
+    expect(ctx.font).toBe('24px ui-monospace, monospace');
   });
 
   it('skips a line whose position cannot be computed', () => {
@@ -299,5 +324,23 @@ describe('segmentsPlugin (F2-04)', () => {
         segments: [],
       }).plugins,
     ).toHaveLength(1);
+  });
+});
+
+describe('fixed y range (v1.5)', () => {
+  it('with `yMin` and `yMax` the y axis stops fitting the data', () => {
+    const built = buildOptions({
+      x: X,
+      y: Y,
+      series: SERIES,
+      theme: THEME,
+      width_px: 480,
+      height_px: 200,
+      refLines: [],
+      yMin: -1,
+      yMax: 1,
+    });
+    expect(built.scales?.y?.range).toEqual([-1, 1]);
+    expect(typeof options().scales?.y?.range).toBe('function');
   });
 });

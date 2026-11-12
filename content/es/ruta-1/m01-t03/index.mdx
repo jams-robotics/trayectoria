@@ -18,37 +18,77 @@ seoDescription: "Aprende a medir ángulos en radianes y a relacionar velocidad a
 ---
 
 <Gancho>
-Tu motorreductor gira a 200 rpm. ¿Cuántos radianes por segundo son, cuánto dura una vuelta y
-cuántas vueltas da en 10 s?
+Tu motorreductor gira a 200 rpm, pero tu programa cuenta el tiempo en segundos y no sabe cuántas
+vueltas da la rueda en ese tiempo. Tu reto: con el disco a 200 rpm, averigua cuántas vueltas da en
+1 s y cuánto dura cada una.
 </Gancho>
 
+<Explora>
+El disco gira a la velocidad que eliges en rpm, con un punto marcado en el borde a la distancia r
+del centro. El panel muestra ω en rad/s, el período, la frecuencia, el ángulo girado y las
+vueltas.
+
+<RotationWidget mode="disc" inputUnit="rpm" initial={{ omega_radps: 20.94, r_m: 0.032 }} />
+
+<Experimento
+  cambia="el tiempo: reinicia y reproduce 1 s a 200 rpm"
+  observa="la fila «Vueltas», el contador de vueltas"
+  porque="¿Por qué marca 3.33 vueltas?"
+>
+200 rpm son 200 vueltas en 60 s, es decir, 200/60 = 3.33 vueltas por segundo. En 1 s el ángulo
+girado es θ = 20.94 rad, y 20.94/2π = 3.33 vueltas.
+</Experimento>
+
+<Experimento
+  cambia="la velocidad angular n de 200 rpm a 60 rpm"
+  aplica={{ omega: 60 }}
+  observa="la fila «Período», el período T"
+  porque="¿Por qué T vale exactamente 1 s?"
+>
+60 rpm son 60 vueltas en 60 s: una vuelta por segundo. Por eso T = 60/60 = 1 s, y
+ω = 2π/T = 6.28 rad/s.
+</Experimento>
+
+<Experimento
+  cambia="el radio de la rueda r, sin tocar la velocidad de giro"
+  observa="ω y el período T"
+  porque="¿Por qué no cambian?"
+>
+Todos los puntos del disco giran el mismo ángulo en el mismo tiempo, así que ω y T no dependen de
+r. Solo cambia la rapidez del punto del borde, que recorre más arco en cada vuelta cuanto mayor
+es r. Esa rapidez es el tema de [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04).
+</Experimento>
+</Explora>
+
 <Concepto>
-Un ángulo mide cuánto arco abarca respecto al radio. Si un punto a la distancia r del centro
-recorre un arco s, el ángulo girado es θ = s/r. Es un cociente de dos longitudes: el **radián**
-(rad) es el ángulo cuyo arco mide lo mismo que el radio.
+Viste que a 200 rpm el disco da 3.33 vueltas por segundo y que al cambiar el radio no cambian ni ω
+ni el período. Un ángulo mide cuánto arco abarca respecto al radio: un punto a la distancia r del
+centro que recorre un arco s gira un ángulo igual a s entre r. Es un cociente de dos longitudes: el
+**radián** (rad) es el ángulo cuyo arco mide lo mismo que el radio.
+
+<Figura alt="Un disco con un radio dibujado hasta su borde y un arco resaltado en el borde. El ángulo θ en el centro abarca ese arco s; un radián es el ángulo cuyo arco mide lo mismo que el radio." caption="El ángulo mide el arco que abarca respecto al radio.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><circle class="f-box" cx="100" cy="85" r="58" /><line class="f-line" x1="100" y1="85" x2="158" y2="85" /><line class="f-line" x1="100" y1="85" x2="137.3" y2="40.6" /><circle class="f-fgfill" cx="100" cy="85" r="2.5" /><path class="f-vel" d="M158 85 A58 58 0 0 0 137.3 40.6" /><path class="f-line" d="M126 85 A26 26 0 0 0 116.7 65.1" /><text class="t" x="134" y="76">θ</text><text class="t-v" x="166" y="70">s (arco)</text><text class="t t-c" x="129" y="98">r</text><text class="t-m t-c" x="235" y="100">1 rad: el arco</text><text class="t-m t-c" x="235" y="116">mide lo mismo que r</text></svg>
+</Figura>
 
 Una vuelta completa recorre el perímetro, 2π·r. Por eso una vuelta son 2π rad, unos 6.28 rad.
 
-La **velocidad angular** ω es la razón de cambio del ángulo, ω = dθ/dt, igual que la velocidad
-lineal es la razón de cambio de la posición en
-[La derivada como razón de cambio](/ruta/ruta-1/m00/t03). Se mide en rad/s.
+La **velocidad angular** ω es la razón de cambio del ángulo, igual que la velocidad lineal es la
+razón de cambio de la posición en [La derivada como razón de cambio](/ruta/ruta-1/m00/t03). Se
+mide en rad/s.
 
 Con ω constante, cada vuelta tarda lo mismo. Ese tiempo es el **período** T, en s. La
-**frecuencia** f = 1/T cuenta las vueltas por segundo, en Hz. En una vuelta el ángulo avanza
-2π rad en T segundos, así que ω = 2π/T = 2π·f.
+**frecuencia** f cuenta las vueltas por segundo, en Hz, y es el inverso del período. En una vuelta
+el ángulo avanza 2π rad en T segundos, así que ω es 2π entre T, o 2π por f.
 
-Las hojas de datos de los motores dan la velocidad de giro n en rpm, revoluciones por minuto.
-Para pasarla a rad/s, cada vuelta son 2π rad y cada minuto son 60 s: ω = n·2π/60.
+Las hojas de datos de los motores dan la velocidad de giro n en rpm, revoluciones por minuto. Para
+pasarla a rad/s, cada vuelta son 2π rad y cada minuto son 60 s.
 
-Con ω constante, el ángulo acumulado crece lo mismo en cada segundo: θ = θ₀ + ω·t, con θ₀ el
-ángulo inicial. El ángulo girado dividido entre 2π da el número de vueltas.
+Con ω constante, el ángulo acumulado crece lo mismo en cada segundo, a partir del ángulo inicial
+θ₀. El ángulo girado dividido entre 2π da el número de vueltas.
 
 Todos los puntos del disco giran el mismo ángulo en el mismo tiempo. ω es la misma para un punto
 cerca del centro y para uno del borde. Lo que cambia con la distancia al centro es el arco que
 recorre cada punto.
-
-Con los datos del gancho, n = 200 rpm da ω = 200·2π/60 = 20.94 rad/s. Una vuelta dura
-T = 60/200 = 0.3 s, y en 10 s el eje da 200·10/60 = 33.33 vueltas.
 </Concepto>
 
 <Formulas>
@@ -78,69 +118,33 @@ T = 60/200 = 0.3 s, y en 10 s el eje da 200·10/60 = 33.33 vueltas.
 <Formula latex="\theta = \theta_0 + \omega t" />
 
 - `θ` · ángulo · rad
-- `θ₀` · ángulo inicial · rad
+- <code>θ<sub>0</sub></code> · ángulo inicial · rad
 - `ω` · velocidad angular · rad/s
 - `t` · tiempo · s
 </Formulas>
 
-<Explora>
-El disco gira a la velocidad que eliges en rpm, con un punto marcado en el borde a la distancia r
-del centro. El panel muestra ω en rad/s, el período, la frecuencia, el ángulo girado y las
-vueltas.
-
-<RotationWidget mode="disc" inputUnit="rpm" initial={{ omega_radps: 20.94, r_m: 0.032 }} />
-
-<Experimento
-  cambia="el tiempo: reinicia y reproduce 1 s a 200 rpm"
-  observa="el contador de vueltas"
-  porque="¿Por qué marca 3.33 vueltas?"
->
-200 rpm son 200 vueltas en 60 s, es decir, 200/60 = 3.33 vueltas por segundo. En 1 s el ángulo
-girado es θ = 20.94 rad, y 20.94/2π = 3.33 vueltas.
-</Experimento>
-
-<Experimento
-  cambia="n de 200 rpm a 60 rpm"
-  observa="el período T"
-  porque="¿Por qué T vale exactamente 1 s?"
->
-60 rpm son 60 vueltas en 60 s: una vuelta por segundo. Por eso T = 60/60 = 1 s, y
-ω = 2π/T = 6.28 rad/s.
-</Experimento>
-
-<Experimento
-  cambia="el radio r, sin tocar la velocidad de giro"
-  observa="ω y el período T"
-  porque="¿Por qué no cambian?"
->
-Todos los puntos del disco giran el mismo ángulo en el mismo tiempo, así que ω y T no dependen de
-r. Solo cambia la rapidez del punto del borde, que recorre más arco en cada vuelta cuanto mayor
-es r. Esa rapidez es el tema de [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04).
-</Experimento>
-</Explora>
-
 <AlRobot>
 La rueda de tu robot gira a la velocidad de salida de su motorreductor. Esa velocidad sin carga,
-n_rueda en rpm, es aquí un dato de tu perfil de «Mi robot». Por qué es la del motor dividida por
+n<sub>rueda</sub> en rpm, es aquí un dato de tu perfil de «Mi robot». Por qué es la del motor dividida por
 la reducción lo ves en [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04). Con
-ω = n·2π/60, la velocidad angular de la rueda es:
+la conversión de rpm a rad/s, la velocidad angular de la rueda es:
 
 <RobotFormula calc="ruta-1/m01-t03/omega-wheel" />
 
-Con ω_rueda sale el período, el tiempo que tarda la rueda en dar una vuelta completa:
+Con ω<sub>rueda</sub> sale el período, el tiempo que tarda la rueda en dar una vuelta completa:
 
 <RobotFormula calc="ruta-1/m01-t03/period" />
 
-Con el robot de referencia, n_rueda = 200 rpm: ω_rueda = 20.94 rad/s y T = 0.3 s. Es el disco
-de Explora con los datos del gancho.
+Con el robot de referencia, n<sub>rueda</sub> = 200 rpm: ω<sub>rueda</sub> = 20.94 rad/s y T = 0.3 s. Es el disco
+de Explora con los datos del robot de referencia.
 
-A esa velocidad, en una prueba de 10 s la rueda gira θ = 20.94·10 = 209.4 rad, es decir,
-33.33 vueltas. Es la primera vez que calculas ω_rueda con tu perfil: Rodadura la usa para
+A esa velocidad, en una prueba de 10 s la rueda gira 209.4 rad, es decir,
+33.33 vueltas. Es la primera vez que calculas ω<sub>rueda</sub> con tu perfil: Rodadura la usa para
 obtener la velocidad de avance de tu robot, y los temas siguientes la citan sin recalcularla.
 </AlRobot>
 
 <Verifica
-  ejercicios={['ruta-1/m01-t03/e1', 'ruta-1/m01-t03/e2', 'ruta-1/m01-t03/e3', 'ruta-1/m01-t03/e4']}
+  ejercicios={['ruta-1/m01-t03/e1', 'ruta-1/m01-t03/e2', 'ruta-1/m01-t03/e3', 'ruta-1/m01-t03/e4', 'ruta-1/m01-t03/e5']}
   topicId="ruta-1/m01-t03"
   obligatorios={['e1', 'e2', 'e3']}
 />

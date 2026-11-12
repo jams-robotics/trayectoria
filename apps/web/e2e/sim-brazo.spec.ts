@@ -183,9 +183,9 @@ test.describe('/simuladores/brazo (F5-01b)', () => {
     // «Articulaciones» abierto no repite su título dentro del panel.
     const joints = page.locator('[data-testid="joint-sliders"]');
     await expect(joints.locator('[data-panel-title]')).toBeHidden();
-    // Las etiquetas legibles de la ficha, con el id URDF como texto auxiliar (#535).
+    // Las etiquetas legibles de la ficha, sin el id URDF debajo (1.5: una sola lengua por etiqueta).
     await expect(joints.getByText('Articulación 1', { exact: true })).toBeVisible();
-    await expect(joints.getByText('joint1', { exact: true })).toBeVisible();
+    await expect(joints.getByText('joint1', { exact: true })).toHaveCount(0);
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );

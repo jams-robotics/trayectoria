@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import type { JSX } from 'react';
+import { useId, useState } from 'react';
+import type { JSX, ReactNode } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 
@@ -8,17 +8,19 @@ import { SimControls } from '../SimControls/SimControls';
 import { ParamPanel } from '../ParamPanel/ParamPanel';
 import { LiveStatus } from '../shared/ReadoutPanel';
 import { SimLayout } from '../shared/SimLayout';
-import type { SimExtra } from '../shared/SimLayout';
 import { omegaAt, sampleOmega } from './compute';
 import type { Curve, Rotation, RotationInputUnit, RotationMode } from './compute';
 import {
-  CurvePanel,
+  CurveSliders,
+  CurveValues,
   ResultsPanel,
+  SlipWarning,
   applyChange,
   applyCurveChange,
   paramsOf,
   statusOf,
 } from './panels';
+import { CurveScene } from './curveScene';
 import { RotationScene } from './scene';
 import { UnitToggle } from './UnitToggle';
 import { useTimeline } from './timeline';
@@ -134,40 +136,112 @@ function Sliders({
   );
 }
 
-/**
- * The extras of `angularAccel` (docs/DESIGN.md §6, point 3): the `ω–t` chart, right after the
- * viewer on mobile, and the curve panel, at the end.
- */
-function extrasOf({
-  mode,
+/** Row of a block: the viewer on the left and its values on the right (`w-panel`). */
+const BLOCK_ROW = 'flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_auto]';
+/** The viewer cell, as wide and as centred in both blocks (same cap as the viewer of `SimLayout`). */
+const BLOCK_VIEWER = 'flex min-w-0 flex-col gap-3 lg:mx-auto lg:w-full lg:max-w-[calc(50vh*16/9)]';
+/** The sliders of a block in 3 columns from `lg`, instead of one tall column. */
+const BLOCK_SLIDERS =
+  'flex min-w-0 flex-col gap-4 lg:[&_[data-layout=stack]>div]:grid lg:[&_[data-layout=stack]>div]:grid-cols-3 lg:[&_[data-layout=stack]>div]:items-end lg:[&_[data-layout=stack]>div]:gap-x-8';
+
+/** One of the two sibling blocks of `angularAccel`: a title, then its own viewer, values and sliders. */
+function Block({
+  title,
+  note,
+  children,
+}: {
+  title: string;
+  note?: string;
+  children: ReactNode;
+}): JSX.Element {
+  const id = useId();
+  return (
+    <section aria-labelledby={id} className="flex min-w-0 flex-col gap-4">
+      <div className="flex flex-col gap-1">
+        <h3 id={id} className="m-0 text-base font-semibold">
+          {title}
+        </h3>
+        {note === undefined ? null : <p className="text-fg-muted m-0 text-sm">{note}</p>}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/** The block of the disc: its viewer with the controls, its values, the ω–t chart and its sliders. */
+function DiscBlock({
   rotation,
+  inputUnit,
+  setInputUnit,
+  setRotation,
   t_s,
+  timeline,
+  t,
+}: Omit<PanelsProps, 'mode' | 'curve' | 'setCurve'> & { timeline: Timeline }): JSX.Element {
+  const mode = 'angularAccel';
+  const omega_radps = omegaAt(mode, rotation, t_s);
+  return (
+    <Block title={t('widgets.RotationWidget.blockDisc')}>
+      <div className={BLOCK_ROW}>
+        <div className={BLOCK_VIEWER}>
+          <RotationScene mode={mode} rotation={rotation} omega_radps={omega_radps} t_s={t_s} t={t} />
+          <SimControls {...timeline.driver} {...timeline.controls} t_s={t_s} />
+        </div>
+        <div className="lg:w-panel">
+          <Values mode={mode} rotation={rotation} t_s={t_s} t={t} />
+        </div>
+      </div>
+      <OmegaPlot rotation={rotation} t_s={t_s} t={t} />
+      <div className={BLOCK_SLIDERS}>
+        <Sliders {...{ mode, rotation, inputUnit, setInputUnit, setRotation, t }} />
+      </div>
+    </Block>
+  );
+}
+
+/** The block of the curve: its viewer, its two values and its three sliders. */
+function CurveBlock({
   curve,
   setCurve,
+  t_s,
   t,
-}: Pick<PanelsProps, 'mode' | 'rotation' | 't_s' | 'curve' | 'setCurve' | 't'>): SimExtra[] {
-  if (mode !== 'angularAccel') return [];
-  return [
-    {
-      key: 'omega',
-      mobile: 'afterViewer',
-      node: <OmegaPlot rotation={rotation} t_s={t_s} t={t} />,
-    },
-    {
-      key: 'curve',
-      mobile: 'end',
-      node: (
-        <CurvePanel
+}: Pick<PanelsProps, 'curve' | 'setCurve' | 't_s' | 't'>): JSX.Element {
+  return (
+    <Block title={t('widgets.RotationWidget.blockCurve')} note={t('widgets.RotationWidget.curveClock')}>
+      <SlipWarning curve={curve} t={t} />
+      <div className={BLOCK_ROW}>
+        <div className={BLOCK_VIEWER}>
+          <CurveScene curve={curve} t_s={t_s} t={t} />
+        </div>
+        <div className="lg:w-panel">
+          <CurveValues curve={curve} t={t} />
+        </div>
+      </div>
+      <div className={BLOCK_SLIDERS}>
+        <CurveSliders
           curve={curve}
-          t_s={t_s}
           onChange={(key, value) => {
             setCurve((current) => applyCurveChange(current, key, value));
           }}
           t={t}
         />
-      ),
-    },
-  ];
+      </div>
+    </Block>
+  );
+}
+
+/**
+ * `angularAccel` as two sibling blocks with the same structure, the disc that accelerates and
+ * the robot in a curve (docs/WIDGETS.md, RotationWidget): each has its title, its viewer, its
+ * values beside it and its sliders below. Both move with the clock of the controls of the first.
+ */
+function AccelBlocks(props: Omit<PanelsProps, 'mode'> & { timeline: Timeline }): JSX.Element {
+  return (
+    <div className="flex flex-col gap-8">
+      <DiscBlock {...props} />
+      <CurveBlock {...props} />
+    </div>
+  );
 }
 
 /** The viewer column: the scene and the playback controls. */
@@ -223,6 +297,13 @@ export function RotationWidget({
   const [curve, setCurve] = useState<Curve>(DEFAULT_CURVE);
   const timeline = useTimeline(initialTime_s);
   const { t_s } = timeline;
+  if (mode === 'angularAccel') {
+    return (
+      <AccelBlocks
+        {...{ rotation, inputUnit, setInputUnit, setRotation, curve, setCurve, t_s, timeline, t }}
+      />
+    );
+  }
   return (
     <SimLayout
       viewer={<Viewer mode={mode} rotation={rotation} t_s={t_s} timeline={timeline} t={t} />}
@@ -237,7 +318,6 @@ export function RotationWidget({
           t={t}
         />
       }
-      extras={extrasOf({ mode, rotation, t_s, curve, setCurve, t })}
     />
   );
 }

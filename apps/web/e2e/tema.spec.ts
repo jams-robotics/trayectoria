@@ -12,9 +12,9 @@ const SECTIONS = common.topic.sections;
 /** Las 7 anclas de docs/CONTENT-STANDARDS.md §2, en orden. */
 const SECTION_IDS = [
   'gancho',
+  'explora',
   'concepto',
   'formulas',
-  'explora',
   'al-robot',
   'verifica',
   'profundiza',
@@ -22,10 +22,10 @@ const SECTION_IDS = [
 
 /** Los títulos i18n de esas mismas secciones, en el mismo orden. */
 const SECTION_TITLES = [
-  SECTIONS.gancho,
+  '',
+  SECTIONS.explora,
   SECTIONS.concepto,
   SECTIONS.formulas,
-  SECTIONS.explora,
   SECTIONS.alRobot,
   SECTIONS.verifica,
   SECTIONS.profundiza,
@@ -52,7 +52,10 @@ test('las 7 secciones existen, en el orden del estándar', async ({ page }) => {
   ]);
   // El `h2` lleva el número mono delante del título (docs/design/03-tema-claro.png), así que se
   // comprueba que lo contiene, no que es exactamente igual.
+  // The opening challenge («gancho») has no heading.
+  await expect(page.locator('#gancho h2')).toHaveCount(0);
   for (const [index, id] of SECTION_IDS.entries()) {
+    if (id === 'gancho') continue;
     await expect(page.locator(`#${id} h2`)).toContainText(SECTION_TITLES[index] ?? '');
   }
 });
@@ -63,6 +66,7 @@ test('cada enlace del índice lateral lleva a su sección', async ({ page }) => 
   await expect(outline).toBeVisible();
 
   for (const [index, id] of SECTION_IDS.entries()) {
+    if (id === 'gancho') continue;
     const link = outline.locator(`[data-outline-link="${id}"]`);
     await expect(link).toHaveText(SECTION_TITLES[index] ?? '');
     await link.click();
@@ -114,11 +118,11 @@ test('a 390 px el índice está plegado y se despliega', async ({ page }) => {
   const outline = page.locator('[data-outline="mobile"]');
   await expect(outline).toBeVisible();
   await expect(outline).not.toHaveAttribute('open', '');
-  await expect(outline.locator('[data-outline-link="gancho"]')).toBeHidden();
+  await expect(outline.locator('[data-outline-link="explora"]')).toBeHidden();
 
   await outline.getByText(common.topic.outline).click();
   await expect(outline).toHaveAttribute('open', '');
-  await expect(outline.locator('[data-outline-link="gancho"]')).toBeVisible();
+  await expect(outline.locator('[data-outline-link="explora"]')).toBeVisible();
 });
 
 test('Profundiza resuelve la clave del frontmatter a su referencia completa', async ({ page }) => {
@@ -311,9 +315,12 @@ for (const topic of ['t01', 't02'] as const) {
 
 // #302: everything that is not an Explora simulator shares one reading column (72ch): running
 // text, formula cards, experiments, the «Mi robot» form and the exercises have the same width and
-// the same left edge. Only the Explora widgets take the whole content column (checked above).
+// the same left edge (the experiments only the left edge: from 1024 px they sit in one row). Only the Explora widgets take the whole content column (checked above).
 const READING_BLOCKS = {
-  formula: '[data-block="true"]',
+  // Since 1.5 the formulas of the section share ONE card: the card is the reading block, and the
+  // formulas inside it are inset by its padding. A formula card outside it (Al robot) still counts.
+  formula:
+    '[data-testid="formulas-card"], [data-block="true"]:not([data-testid="formulas-card"] *)',
   experiment: '[data-testid="experiment"]',
   myRobot: '[data-testid="my-robot-form"]',
   exercise: '[data-testid="exercise"]',
@@ -343,7 +350,11 @@ for (const topic of MODULE_0_TOPICS) {
           return { kind, left, width };
         };
         const paragraphs = [...article.querySelectorAll('[data-section] p')].filter(
-          (paragraph) => paragraph.closest('astro-island, [data-testid="experiment"]') === null,
+          (paragraph) =>
+            // The opening challenge is set apart on purpose (larger, with a left rule): not a reading block.
+            paragraph.closest(
+              'astro-island, [data-testid="experiment"], [data-section="gancho"], [data-testid="formulas-card"]',
+            ) === null,
         );
         return [
           ...paragraphs.map(box('paragraph')),
@@ -364,10 +375,11 @@ for (const topic of MODULE_0_TOPICS) {
       ].sort(),
     );
     const { left, width } = blocks[0]!;
+    // Since 1.5 the experiments share one row of cards (DESIGN.md §4): they are not reading blocks.
     const misaligned = blocks.filter(
       (block) =>
-        Math.abs(block.left - left) > EDGE_TOLERANCE_PX ||
-        Math.abs(block.width - width) > EDGE_TOLERANCE_PX,
+        block.kind !== 'experiment' &&
+        Math.max(Math.abs(block.left - left), Math.abs(block.width - width)) > EDGE_TOLERANCE_PX,
     );
     expect(misaligned).toEqual([]);
   });

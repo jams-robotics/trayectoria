@@ -2,8 +2,11 @@ import { useRef, useState } from 'react';
 import type { JSX } from 'react';
 import 'uplot/dist/uPlot.min.css';
 import { useT } from '@trayectoria/i18n';
+import type { Translate } from '@trayectoria/i18n';
 
+import { HoverReadout } from './HoverReadout';
 import { MarkerLayer } from './MarkerLayer';
+import { ScaleBar } from './ScaleBar';
 import { seriesColor, SERIES_DASHES } from '../shared/theme';
 import type { PlotTheme } from '../shared/theme';
 import type { PlotProps, PlotSeries } from './types';
@@ -50,6 +53,15 @@ function useThrottledStatus(text: string): string {
   return status;
 }
 
+/** The state description: how many series and over which x interval. */
+function statusText(count: number, xRange: readonly [number, number], t: Translate): string {
+  return t('widgets.Plot.status', {
+    count,
+    from: xRange[0].toFixed(READOUT_DECIMALS),
+    to: xRange[1].toFixed(READOUT_DECIMALS),
+  });
+}
+
 /**
  * Static or live chart over uPlot (docs/WIDGETS.md, Plot; docs/DESIGN.md §5, Gráfica).
  *
@@ -57,17 +69,14 @@ function useThrottledStatus(text: string): string {
  * at most once per frame with `requestAnimationFrame`; there is no `setInterval`.
  */
 export function Plot(props: PlotProps): JSX.Element {
-  const { x, series, live, marker } = props;
+  const { x, series, live, marker, readout = true, fullRange } = props;
   const t = useT();
-  const { cardRef, hostRef, theme, xRange, y, plotArea } = usePlotChart(props, t);
+  const [full, setFull] = useState(false);
+  const shown = full && fullRange !== undefined ? { ...props, yRange: fullRange } : props;
+  const { cardRef, hostRef, theme, xRange, data, y, plotArea } = usePlotChart(shown, t);
 
-  const status = useThrottledStatus(
-    t('widgets.Plot.status', {
-      count: series.length,
-      from: xRange[0].toFixed(READOUT_DECIMALS),
-      to: xRange[1].toFixed(READOUT_DECIMALS),
-    }),
-  );
+  const waiting = live !== undefined && (data[0]?.length ?? 0) <= 1;
+  const status = useThrottledStatus(statusText(series.length, xRange, t));
 
   return (
     <figure
@@ -76,15 +85,24 @@ export function Plot(props: PlotProps): JSX.Element {
       data-live={live === undefined ? 'false' : 'true'}
     >
       <figcaption className="mb-3 flex flex-wrap items-baseline justify-between gap-3">
-        <span className="text-sm font-semibold">{t('widgets.Plot.title', { label: y.label })}</span>
+        <span className="text-sm font-semibold">{props.title ?? t('widgets.Plot.title', { label: y.label })}</span>
         <Legend series={series} theme={theme} />
       </figcaption>
-      <div className="relative">
+      {fullRange === undefined ? null : (
+        <ScaleBar {...{ fullRange, full, data, t }} unit={y.unit} onFull={setFull} />
+      )}
+      {/* A live chart with nothing recorded yet is one line, not an empty grid (v1.5). */}
+      {waiting ? <p className="text-fg-muted m-0 text-sm">{t('widgets.Plot.empty')}</p> : null}
+      <div className="relative" hidden={waiting}>
         <div ref={hostRef} data-testid="plot-canvas" />
+        {readout && !waiting ? (
+          <HoverReadout data={data} xRange={xRange} plotArea={plotArea} series={series} xUnit={x.unit} t={t} />
+        ) : null}
         {marker === undefined ? null : (
           <MarkerLayer marker={marker} xRange={xRange} plotArea={plotArea} unit={x.unit} t={t} />
         )}
       </div>
+      {props.guide === undefined ? null : <p className="text-fg-muted mt-3 mb-0 text-sm">{props.guide}</p>}
       <p className="sr-only" role="status" aria-live="polite">
         {status}
       </p>

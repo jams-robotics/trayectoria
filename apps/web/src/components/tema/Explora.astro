@@ -6,10 +6,36 @@ import Section from './Section.astro';
 // Section 4 (docs/CONTENT-STANDARDS.md §2): the large widget and 2 to 4 `Experimento`, which the
 // MDX passes as children of this section (#97, decision 2). It is the only `wide` section: the widget
 // takes the whole content column and the text and the experiments stay at 72ch (#302).
+// One column at every width: on large windows the container (`--size-site`) is what grows, so the
+// widget gets a bigger viewer while the text keeps its reading column (v1.5).
 ---
 
-<Section id="explora" title={t('topic.sections.explora')} number={4} wide>
-  <div class="grid gap-5">
+<Section id="explora" title={t('topic.sections.explora')} number={1} wide>
+  <div class="explora-grid grid gap-5">
     <slot />
   </div>
 </Section>
+
+<style>
+  /*
+    From 1024 px the experiments sit side by side, one row of 3 (2 when there are 2 or 4), instead
+    of a tall stack of cards in a column that is mostly empty. Text and widget span the whole row.
+  */
+  @media (min-width: 1024px) {
+    .explora-grid {
+      --experiments-per-row: 3;
+      grid-template-columns: repeat(var(--experiments-per-row), minmax(0, 1fr));
+    }
+    .explora-grid:has(> article:nth-of-type(4)),
+    .explora-grid:has(> article:nth-of-type(2):last-of-type) {
+      --experiments-per-row: 2;
+    }
+    .explora-grid > :global(*) {
+      grid-column: 1 / -1;
+    }
+    .explora-grid > :global(article) {
+      grid-column: auto;
+      max-width: none;
+    }
+  }
+</style>

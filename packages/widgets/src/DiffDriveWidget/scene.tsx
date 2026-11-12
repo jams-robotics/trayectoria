@@ -12,18 +12,15 @@ import { RobotBody } from '../Scene2D/primitives/RobotBody';
 import { Trace } from '../Scene2D/primitives/Trace';
 import { Vector } from '../Scene2D/primitives/Vector';
 import { DragHandle, SceneOverlay } from '../shared/SceneOverlay';
-import { icrOf, toGlobal, turningRadius_m, wheelCentres, wheelSpeed_mps } from './compute';
+import { icrOf, toGlobal, wheelCentres, wheelSpeed_mps } from './compute';
 import type { DiffDriveShow, Pose, Twist, WheelCommand } from './compute';
+import { PlannedPath } from './maneuverView';
+import type { PlannedManeuver } from './maneuverView';
 import { radiusText } from './rows';
+import { ASPECT, fitView, odometryView } from './view';
 
-/** Narrowest view, in metres: about four chassis, so the robot is never lost in the floor. */
-const MIN_VIEW_M = 0.8;
-/** Widest view, in metres: a table-sized patch of floor for a wide turn or a long straight. */
-const MAX_VIEW_M = 3;
-/** Share of the radius the view leaves beyond the ICR, so the marker is not on the edge. */
-const VIEW_MARGIN = 1.25;
-/** Width over height of the view; the same 16/9 strip the other scene widgets use. */
-const ASPECT = 16 / 9;
+/** Taller view for the layouts that are not sticky: they have the room under the viewer. */
+export const TALL_ASPECT = 4 / 3;
 /** Radius of the ICR marker, in metres; a dot next to the 0.18 m chassis. */
 const ICR_RADIUS_M = 0.012;
 /** Length of a frame axis, in metres: half a chassis, so the triad reads next to the robot. */
@@ -33,53 +30,8 @@ const M_PER_MPS = 0.2;
 /** Palette token of everything the odometry estimates (#93, decision 3). */
 const ODOMETRY_COLOR = 'color-data-2';
 
-/**
- * Width of the view in metres. The ICR sits `R` to the side of the robot, so the view has to be
- * that tall: the width is the height times the aspect. It is bounded so a straight path does not
- * zoom out and a pivot does not fill the canvas with the chassis (#92, decision 5).
- */
-export function viewWidthOf(twist: Twist): number {
-  const radius_m = Math.abs(turningRadius_m(twist));
-  if (!Number.isFinite(radius_m)) return MAX_VIEW_M;
-  return Math.min(Math.max(VIEW_MARGIN * radius_m * ASPECT, MIN_VIEW_M), MAX_VIEW_M);
-}
-
-/**
- * Centre of the view: halfway between the robot and its ICR, so both stay inside it while it
- * turns; the robot itself on a straight path, where there is no centre to fit.
- */
-export function viewCentre(pose: Pose, twist: Twist): [number, number] {
-  const icr_m = icrOf(pose, twist);
-  if (icr_m === null) return [pose.x_m, pose.y_m];
-  return [(pose.x_m + icr_m[0]) / 2, (pose.y_m + icr_m[1]) / 2];
-}
-
-/**
- * Narrowest view of `mode: 'odometry'`, in metres: wide enough for a stretch of both traces to
- * read beside the two chassis, which `MIN_VIEW_M` alone is not.
- */
-const MIN_ODOMETRY_VIEW_M = 1.2;
-
-/**
- * View of `mode: 'odometry'`: it frames the two poses instead of the ICR, because what the
- * learner compares there is how far the estimate has drifted from the real robot, and a view
- * built around a 1.9 m turning radius leaves the two chassis a handful of pixels apart (#93,
- * decision 3). The drift is centimetres next to a 0.18 m chassis, so the width follows the gap
- * but never closes in past `MIN_ODOMETRY_VIEW_M`, where both traces still read.
- */
-export function odometryView(
-  pose: Pose,
-  estimated: Pose,
-): { width_m: number; centre_m: [number, number] } {
-  const gap_m = Math.hypot(estimated.x_m - pose.x_m, estimated.y_m - pose.y_m);
-  return {
-    width_m: Math.min(
-      Math.max(4 * VIEW_MARGIN * gap_m * ASPECT, MIN_ODOMETRY_VIEW_M),
-      MAX_VIEW_M,
-    ),
-    centre_m: [(pose.x_m + estimated.x_m) / 2, (pose.y_m + estimated.y_m) / 2],
-  };
-}
+/** Width of the real trace under the estimated one, so it still shows where both coincide. */
+const REAL_TRACE_PX = 6;
 
 /** Axis colours of a frame: x in `error`, y in `success` (docs/DESIGN.md §2.2 and §6). */
 const AXIS_X_COLOR = 'color-error';
@@ -97,6 +49,10 @@ export interface DiffDriveSceneProps {
   trace_m: ReadonlyArray<readonly [number, number]>;
   /** Moves the robot while the simulation is paused; absent while it runs (#92, decision 6). */
   onDrag?: ((point_m: readonly [number, number]) => void) | undefined;
+  /** Width over height of the view. Defaults to 16/9. */
+  aspect?: number;
+  /** The maneuver about to run: its straight stretch and the pose it ends at (v1.5). */
+  planned?: PlannedManeuver | undefined;
   /** Pose the odometry estimates and its trace; absent outside `mode: 'odometry'`. */
   odometry?: { pose: Pose; trace_m: ReadonlyArray<readonly [number, number]> } | undefined;
   t: Translate;
@@ -133,7 +89,7 @@ function Odometry({
   );
 }
 
-/** The ICR dot and the line from the centre of the axle to it, with `R` beside it (T-5.2). */
+/** The ICR dot and the line from the centre of the axle to it, with `R` beside the dot (T-5.2). */
 function Icr({
   pose,
   twist,
@@ -148,49 +104,61 @@ function Icr({
   const icr_m = icrOf(pose, twist);
   if (icr_m === null) return null;
   const centre_m: [number, number] = [pose.x_m, pose.y_m];
-  const mid_m: [number, number] = [
-    (centre_m[0] + icr_m[0]) / 2,
-    (centre_m[1] + icr_m[1]) / 2,
-  ];
   return (
     <>
       <Trace points_m={[centre_m, icr_m]} color="color-data-1" />
       <Circle center_m={[icr_m[0], icr_m[1]]} radius_m={ICR_RADIUS_M} color="color-data-1" filled />
       {withRadius ? (
-        <Label at_m={mid_m} text={radiusText(twist, t)} color="color-data-1" />
+        // On the far side of the dot from the robot, so the text never lands on the chassis.
+        <Label
+          at_m={[icr_m[0], icr_m[1]]}
+          text={radiusText(twist, t)}
+          color="color-data-1"
+          align={pose.x_m >= icr_m[0] ? 'left' : 'right'}
+        />
       ) : null}
     </>
   );
 }
+
+/** The robot triad counts as on top of the global one within this distance (m, and sin θ). */
+const COINCIDENT = 1e-3;
 
 /** The global triad at the origin and the robot triad glued to the chassis (T-5.1). */
 function Frames({ pose, t }: { pose: Pose; t: Translate }): JSX.Element {
   const origin_m: [number, number] = [pose.x_m, pose.y_m];
   const axisX_m = toGlobal(pose, [AXIS_LENGTH_M, 0]);
   const axisY_m = toGlobal(pose, [0, AXIS_LENGTH_M]);
+  // The two triads start on top of each other: one label for both, or the texts overprint (v1.5).
+  const same =
+    Math.hypot(pose.x_m, pose.y_m) < COINCIDENT &&
+    Math.abs(Math.sin(pose.theta_rad)) < COINCIDENT &&
+    Math.cos(pose.theta_rad) > 0;
+  const name = (axis: 'X' | 'Y', frame: 'G' | 'R'): string =>
+    t(`widgets.DiffDriveWidget.axis${axis}${frame}`);
   return (
     <>
       <Vector
         to_m={[AXIS_LENGTH_M, 0]}
         color={AXIS_X_COLOR}
-        label={t('widgets.DiffDriveWidget.axisXG')}
+        label={same ? t('widgets.DiffDriveWidget.axisXBoth') : name('X', 'G')}
       />
       <Vector
         to_m={[0, AXIS_LENGTH_M]}
         color={AXIS_Y_COLOR}
-        label={t('widgets.DiffDriveWidget.axisYG')}
+        label={same ? t('widgets.DiffDriveWidget.axisYBoth') : name('Y', 'G')}
       />
       <Vector
         from_m={origin_m}
         to_m={[axisX_m[0], axisX_m[1]]}
         color={AXIS_X_COLOR}
-        label={t('widgets.DiffDriveWidget.axisXR')}
+        {...(same ? {} : { label: name('X', 'R') })}
       />
       <Vector
         from_m={origin_m}
         to_m={[axisY_m[0], axisY_m[1]]}
         color={AXIS_Y_COLOR}
-        label={t('widgets.DiffDriveWidget.axisYR')}
+        {...(same ? {} : { label: name('Y', 'R') })}
       />
     </>
   );
@@ -237,16 +205,20 @@ function WheelVelocities({
   );
 }
 
-/** The view the scene opens on: around the ICR, or around the two poses in `odometry`. */
+/** The view of the scene: around the two poses in `odometry`, around the run otherwise. */
 function viewOf(
-  pose: Pose,
-  twist: Twist,
-  odometry: DiffDriveSceneProps['odometry'],
+  { pose, twist, trace_m, show, odometry, planned, aspect }: DiffDriveSceneProps,
 ): { width_m: number; centre_m: [number, number] } {
-  if (odometry === undefined) {
-    return { width_m: viewWidthOf(twist), centre_m: viewCentre(pose, twist) };
+  if (odometry !== undefined) {
+    return odometryView(pose, odometry.pose, trace_m, odometry.trace_m, aspect);
   }
-  return odometryView(pose, odometry.pose);
+  const icr_m = show.includes('icr') ? icrOf(pose, twist) : null;
+  const points_m = [
+    ...(show.includes('trace') ? trace_m : []),
+    ...(icr_m === null ? [] : [icr_m]),
+    ...(planned?.path_m ?? []),
+  ];
+  return fitView(pose, points_m, aspect);
 }
 
 /** Description of the scene; `odometry` adds the estimated pose and trace to it (T-5.4). */
@@ -305,31 +277,23 @@ function DragLayer({
  * frames, the trace it leaves and an arrow per wheel (docs/WIDGETS.md, DiffDriveWidget; #92,
  * decision 5). While it is paused the chassis can be dragged to set `x, y` (decision 6).
  */
-export function DiffDriveScene({
-  robot,
-  spec,
-  pose,
-  twist,
-  command,
-  feasible,
-  show,
-  trace_m,
-  onDrag,
-  odometry,
-  t,
-}: DiffDriveSceneProps): JSX.Element {
+export function DiffDriveScene(props: DiffDriveSceneProps): JSX.Element {
+  const { robot, spec, pose, twist, command, feasible, show, trace_m, onDrag, odometry, t } = props;
+  const aspect = props.aspect ?? ASPECT;
   const has = (name: DiffDriveShow): boolean => show.includes(name);
-  const view = viewOf(pose, twist, odometry);
+  const view = viewOf(props);
   return (
     <Scene2D
       worldWidth_m={view.width_m}
       center_m={view.centre_m}
-      aspect={ASPECT}
+      aspect={aspect}
       description={sceneDescription(odometry !== undefined, t)}
     >
       <Grid />
       <Axes />
-      {has('trace') && trace_m.length > 1 ? <Trace points_m={trace_m} /> : null}
+      {has('trace') && trace_m.length > 1 ? (
+        <Trace points_m={trace_m} {...(odometry === undefined ? {} : { width_px: REAL_TRACE_PX })} />
+      ) : null}
       {odometry === undefined ? null : (
         <Odometry
           pose={odometry.pose}
@@ -338,6 +302,7 @@ export function DiffDriveScene({
           withTrace={has('trace')}
         />
       )}
+      {props.planned === undefined ? null : <PlannedPath planned={props.planned} spec={spec} />}
       {has('icr') ? <Icr pose={pose} twist={twist} withRadius={has('radius')} t={t} /> : null}
       <RobotBody spec={robot} pose={pose} />
       <Annotations {...{ pose, spec, command, feasible, show, t }} />

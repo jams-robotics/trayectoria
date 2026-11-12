@@ -1,16 +1,22 @@
-import type { JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
 import { degToRad, radToDeg } from '@trayectoria/sim-core';
 import type { MobileSpec } from '@trayectoria/robot-spec';
 import type { Translate } from '@trayectoria/i18n';
 
-import { ParamPanel } from '../ParamPanel/ParamPanel';
 import type { ParamPanelParam } from '../ParamPanel/ParamPanel';
 import { ReadoutPanel } from '../shared/ReadoutPanel';
 import type { ReadoutRow } from '../shared/ReadoutPanel';
 import { maxSpeed_mps, maxWheelSpeed_radps } from './compute';
 import type { DiffDriveMode, Pose, WheelCommand } from './compute';
 import type { Calibration } from './odometry';
-import { frameRows, odometryRows, poseRows } from './rows';
+import {
+  ODOMETRY_ESSENTIAL_ROWS,
+  POSE_ESSENTIAL_ROWS,
+  frameRows,
+  matrixTerms,
+  odometryRows,
+  poseRows,
+} from './rows';
 import type { OdometryReadout, Readout } from './rows';
 
 export { radiusText, readDiffDrive, statusOf } from './rows';
@@ -104,14 +110,22 @@ export function twistParams(
   ];
 }
 
-/** The slider of the initial orientation `θ₀`, in degrees (#92, decision 6; #371). */
-export function thetaParam(theta0_rad: number, t: Translate): readonly ParamPanelParam[] {
+/**
+ * The slider of the initial orientation `θ₀`, in degrees (#92, decision 6; #371). It is disabled
+ * while the simulation runs and keeps showing `θ₀`.
+ */
+export function thetaParam(
+  theta0_rad: number,
+  t: Translate,
+  disabled = false,
+): readonly ParamPanelParam[] {
   return [
     {
       key: 'theta',
       label: t('widgets.DiffDriveWidget.paramTheta'),
       unit: t('widgets.DiffDriveWidget.unitDeg'),
       value: Math.round(radToDeg(theta0_rad)),
+      disabled,
       ...THETA_RANGE_DEG,
     },
   ];
@@ -187,16 +201,20 @@ export function applyCalibration(
 export function OdometryPanel({
   odometry,
   real,
+  velocityFirst,
   t,
 }: {
   odometry: OdometryReadout;
   real: Pose;
+  /** The topic reads the velocity estimate: its lines come first (v1.5). */
+  velocityFirst: boolean;
   t: Translate;
 }): JSX.Element {
   return (
     <ReadoutPanel
       title={t('widgets.DiffDriveWidget.odometryPanel')}
-      rows={odometryRows(odometry, real, t)}
+      rows={odometryRows(odometry, real, t, velocityFirst)}
+      visibleRows={ODOMETRY_ESSENTIAL_ROWS}
     />
   );
 }
@@ -211,57 +229,112 @@ export function Notice({ text, tone }: { text: string; tone: 'error' | 'muted' }
   );
 }
 
+/** Pose rows with the maneuver lines right after the essential ones, so they stay in view. */
+function posePanelRows(
+  mode: DiffDriveMode,
+  readout: Readout,
+  spec: MobileSpec,
+  extraRows: readonly ReadoutRow[],
+  t: Translate,
+): readonly ReadoutRow[] {
+  const rows = poseRows(readout, spec, t, mode);
+  return [...rows.slice(0, POSE_ESSENTIAL_ROWS), ...extraRows, ...rows.slice(POSE_ESSENTIAL_ROWS)];
+}
+
 export interface PosePanelProps {
   mode: DiffDriveMode;
   readout: Readout;
   spec: MobileSpec;
   withFrames: boolean;
-  /** Initial orientation `θ₀` the slider shows, not the current one of the pose (#371). */
-  theta0_rad: number;
-  /** True while the simulation runs: the slider is disabled and keeps showing `θ₀` (#371). */
-  running: boolean;
-  onTheta: (value_deg: number) => void;
   /** Lines added after the pose ones: the phase and duration of the maneuver (#394), or none. */
   extraRows: readonly ReadoutRow[];
+  /** Rendered right under the pose rows, before the frames panel (v1.5). */
+  children?: ReactNode;
   t: Translate;
 }
 
+/** One term of `R(θ)`; the matrix is drawn with a bracket on each side. */
+function MatrixCell({ value }: { value: string }): JSX.Element {
+  return <td className="px-2 text-right">{value}</td>;
+}
+
 /**
- * The pose panel: `x, y, θ`, `v, ω, R` and the wheel commands, plus the terms of `R(θ)` and the
+ * `R(θ)` as a 2×2 matrix with its brackets. A `table` named «R(θ), matriz de rotación…» keeps
+ * its rows and columns for a screen reader.
+ */
+function RotationMatrix({ pose, t }: { pose: Pose; t: Translate }): JSX.Element {
+  const [r11, r12, r21, r22] = matrixTerms(pose);
+  return (
+    <div className="flex items-center gap-2 font-mono text-sm tabular-nums">
+      <span aria-hidden="true">{t('widgets.DiffDriveWidget.matrixName')}</span>
+      <div className="border-fg relative px-3 py-1 before:absolute before:inset-y-0 before:left-0 before:w-[6px] before:border-y-2 before:border-l-2 before:border-inherit after:absolute after:inset-y-0 after:right-0 after:w-[6px] after:border-y-2 after:border-r-2 after:border-inherit">
+        <table
+          aria-label={t('widgets.DiffDriveWidget.matrix')}
+          data-testid="rotation-matrix"
+          className="border-separate border-spacing-y-1"
+        >
+          <tbody>
+            <tr>
+              <MatrixCell value={r11} />
+              <MatrixCell value={r12} />
+            </tr>
+            <tr>
+              <MatrixCell value={r21} />
+              <MatrixCell value={r22} />
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/** Sensor lines of the frames panel in view: the first one, the one the topics read (v1.5). */
+const FRAMES_ESSENTIAL_ROWS = 1;
+
+/** The frames panel: `R(θ)` as a matrix, the first sensor and the rest behind «Más datos». */
+function FramesPanel({
+  pose,
+  spec,
+  t,
+}: {
+  pose: Pose;
+  spec: MobileSpec;
+  t: Translate;
+}): JSX.Element {
+  return (
+    <ReadoutPanel
+      title={t('widgets.DiffDriveWidget.framesPanel')}
+      rows={frameRows(pose, spec, t)}
+      visibleRows={FRAMES_ESSENTIAL_ROWS}
+      lead={<RotationMatrix pose={pose} t={t} />}
+    />
+  );
+}
+
+/**
+ * The pose panel: `x, y, θ`, `v, ω, R` and the wheel commands, plus the matrix `R(θ)` and the
  * global sensor coordinates when `show` includes `frames` (#92, decision 6). The initial
- * orientation `θ₀` is edited here with a slider, because the scene only drags `x, y` (#371).
+ * orientation `θ₀` is a slider of the controls, because the scene only drags `x, y` (#371).
  */
 export function PosePanel({
+  mode,
   readout,
   spec,
   withFrames,
-  theta0_rad,
-  running,
-  onTheta,
   extraRows,
+  children,
   t,
 }: PosePanelProps): JSX.Element {
   return (
     <div className="flex flex-col gap-4">
       <ReadoutPanel
         title={t('widgets.DiffDriveWidget.panel')}
-        rows={[...poseRows(readout, spec, t), ...extraRows]}
+        rows={posePanelRows(mode, readout, spec, extraRows, t)}
+        visibleRows={POSE_ESSENTIAL_ROWS + extraRows.length}
       />
-      {withFrames ? (
-        <ReadoutPanel
-          title={t('widgets.DiffDriveWidget.framesPanel')}
-          rows={frameRows(readout.pose, spec, t)}
-        />
-      ) : null}
-      {/* A disabled fieldset disables the slider and its field without a prop on ParamPanel. */}
-      <fieldset disabled={running} className="m-0 min-w-0 border-0 p-0">
-        <ParamPanel
-          params={thetaParam(theta0_rad, t)}
-          onChange={(_key, value) => {
-            onTheta(value);
-          }}
-        />
-      </fieldset>
+      {children}
+      {withFrames ? <FramesPanel pose={readout.pose} spec={spec} t={t} /> : null}
     </div>
   );
 }

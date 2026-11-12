@@ -25,4 +25,16 @@ overrides:
   # miniflare (from wrangler 4.141.0, #511) asks for undici 7.29.0, which carries two high advisories
   # (GHSA-rfgv-xxqx-mfg5, GHSA-w293-vg96-wgc3); 7.29.1 fixes them and wrangler only picks it up from
   # 4.143.1. Remove this override once wrangler is at 4.143.1 or later.
-  'undici@7': '7.29.1'
+  'undici@7': '7.30.1'
+  # High advisories that reach us only through dev tooling and astro integrations (#696): undici 8 from
+  # jsdom (vitest), vite 8.3.0 from @astrojs/react and source-map-js 1.2.1 from magicast and postcss.
+  # Remove each line once its parent resolves the patched version by itself.
+  'undici@>=8.0.0 <8.12.2': '8.12.2'
+  'vite@>=8.0.0 <8.3.3': '8.3.6'
+  'source-map-js@<1.2.2': '1.2.2'
+  # pnpm resolves the optional @emnapi/runtime peer of @astrojs/check 0.9.12 to a 2.0.0 beta that does
+  # not match @emnapi/core 1.x, and `astro check` dies loading its wasm binding. Keep the stable line.
+  '@emnapi/runtime': '1.11.3'
+  # GHSA-j22f-vq7h-c4qm (#696): devalue 5.9.2 arrives through astro, @astrojs/react and @astrojs/mdx.
+  # Remove once astro resolves devalue 5.9.3 or later by itself.
+  'devalue@<5.9.3': '5.9.3'

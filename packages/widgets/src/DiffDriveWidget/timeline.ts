@@ -55,8 +55,15 @@ export interface Timeline {
   theta0_rad: number;
   /** Sets `θ₀` and restarts the run from it; ignored while it is running (#371). */
   setTheta0: (theta0_rad: number) => void;
-  /** Pauses and returns to `t = 0` and `(0, 0, θ₀)`: a change of the maneuver (#394). */
+  /**
+   * Pauses and returns to `t = 0`: a change of the maneuver (#394). After a maneuver that has
+   * ended, the next one starts where the robot stopped and keeps its trace (v1.5).
+   */
   restart: () => void;
+  /** Back to `(0, 0, 0)` with an empty trace: the «Valores iniciales» of the maneuver (v1.5). */
+  resetAll: () => void;
+  /** Pose the run starts from: the origin, or where the last maneuver ended (v1.5). */
+  start: Pose;
   /** State of the model, which the odometry of F2-09b reads the encoder angles from. */
   state: SampledState;
   /** States the preroll went through, for an estimator that opens at `initialTime_s`. */
@@ -68,11 +75,13 @@ export interface Timeline {
  * records while the time advances, by playback or by «Paso», and empties itself whenever the
  * time goes back, which is «Reiniciar» (#92, decision 5).
  */
-function useTrace(pose: Pose, t_s: number, preroll: Path): Path {
+function useTrace(pose: Pose, t_s: number, preroll: Path, keep: { current: boolean }): Path {
   const trace = useRef<Array<readonly [number, number]>>([...preroll]);
   const lastAt_s = useRef(t_s);
   if (t_s < lastAt_s.current) {
-    trace.current = [];
+    // A chained maneuver goes back in time but not in space: its trace continues the last one.
+    if (!keep.current) trace.current = [];
+    keep.current = false;
     lastAt_s.current = Number.NEGATIVE_INFINITY;
   } else if (t_s - lastAt_s.current >= TRACE_PERIOD_S) {
     lastAt_s.current = t_s;
@@ -96,10 +105,10 @@ function useTrace(pose: Pose, t_s: number, preroll: Path): Path {
  */
 function startingAt(
   model: Model<DiffDriveState, WheelCommand>,
-  theta0: { readonly current: number },
+  start: { readonly current: Pose },
 ): Model<SampledState, WheelCommand> {
   return {
-    init: (seed) => sampledStart({ ...model.init(seed), theta_rad: theta0.current }),
+    init: (seed) => sampledStart({ ...model.init(seed), ...start.current }),
     step: (state, input, dt_s) => sampledStep(model.step(state, input, dt_s), state.sample, dt_s),
   };
 }
@@ -109,7 +118,7 @@ function useSim(
   clock: FrameClock,
   initialTime_s: number,
   command: WheelCommand,
-  theta0: { readonly current: number },
+  start: { readonly current: Pose },
   plan: { readonly current: ManeuverPlan | null },
 ): { sim: Simulation<SampledState, WheelCommand>; preroll: Path; states: Preroll } {
   // The preroll runs on the command the widget opens with; later ones arrive through `setInput`,
@@ -117,7 +126,7 @@ function useSim(
   const opening = useRef(command);
   return useMemo(() => {
     const sim = new Simulation<SampledState, WheelCommand>(
-      startingAt(maneuverModel(spec, plan), theta0),
+      startingAt(maneuverModel(spec, plan), start),
       {
         dt_s: DT_S,
         seed: 0,
@@ -135,7 +144,7 @@ function useSim(
       states.push(sim.state);
     }
     return { sim, preroll, states };
-  }, [clock, spec, initialTime_s, theta0, plan]);
+  }, [clock, spec, initialTime_s, start, plan]);
 }
 
 /** The pose the model has integrated, without the wheel angles and the twist beside it. */
@@ -148,16 +157,19 @@ function poseOf(state: DiffDriveState): Pose {
  * resets the run to start from it. Ignored while the simulation runs (#371).
  */
 function useTheta0(
-  theta0: { current: number },
+  start: { current: Pose },
   driver: SimulationDriver<SampledState>,
   setManual: (next: (current: Pose | null) => Pose | null) => void,
-): Pick<Timeline, 'theta0_rad' | 'setTheta0'> {
-  const [theta0_rad, setTheta0_rad] = useState(theta0.current);
+): Pick<Timeline, 'theta0_rad' | 'setTheta0'> & { clearTheta0: () => void } {
+  const [theta0_rad, setTheta0_rad] = useState(start.current.theta_rad);
   return {
     theta0_rad,
+    clearTheta0: () => {
+      setTheta0_rad(0);
+    },
     setTheta0: (next_rad) => {
       if (driver.running) return;
-      theta0.current = next_rad;
+      start.current = { ...INITIAL_POSE, theta_rad: next_rad };
       setTheta0_rad(next_rad);
       // A pose dragged while paused keeps its x, y and takes the new orientation.
       setManual((current) => (current === null ? null : { ...current, theta_rad: next_rad }));
@@ -178,26 +190,62 @@ function usePauseAt(
   const stop_s =
     maneuver === null ? duration_s : Math.min(duration_s, maneuverDuration_s(maneuver));
   useEffect(() => {
-    if (driver.running && driver.t_s >= stop_s) driver.pause();
+    if (driver.running && driver.t_s >= stop_s) driver.finish();
   }, [driver, stop_s]);
 }
 
 /**
  * Playback actions that drop the manual pose before handing the time back to the driver;
- * `restart` is the «Reiniciar» a change of the maneuver triggers (#394).
+ * `restart` is the «Reiniciar» a change of the maneuver triggers (#394). Once a maneuver has
+ * ended, «Reproducir» and `restart` start the next one where the robot stopped, while
+ * «Reiniciar» goes back to `(0, 0, θ₀)` (v1.5).
  */
 function liveControls(
   driver: SimulationDriver<SampledState>,
   setManual: (next: Pose | null) => void,
-): Pick<Timeline, 'controls' | 'restart'> {
+  chain: {
+    start: { current: Pose };
+    keep: { current: boolean };
+    theta0_rad: number;
+    clearTheta0: () => void;
+  },
+  maneuver: ManeuverPlan | null,
+): Pick<Timeline, 'controls' | 'restart' | 'resetAll'> {
   const live = (action: () => void) => () => {
     setManual(null);
     action();
   };
+  const fromHere = (action: () => void) =>
+    live(() => {
+      if (maneuver !== null && driver.t_s >= maneuverDuration_s(maneuver)) {
+        chain.start.current = poseOf(driver.state);
+        chain.keep.current = true;
+      }
+      action();
+    });
+  const toStart = live(() => {
+    chain.start.current = { ...INITIAL_POSE, theta_rad: chain.theta0_rad };
+    driver.reset();
+  });
   return {
-    controls: { play: live(driver.play), step: live(driver.step), reset: live(driver.reset) },
-    restart: live(driver.reset),
+    controls: { play: fromHere(driver.play), step: live(driver.step), reset: toStart },
+    restart: fromHere(driver.reset),
+    resetAll: live(() => {
+      chain.clearTheta0();
+      fromOrigin(chain.start, chain.keep, driver);
+    }),
   };
+}
+
+/** Back to `t = 0` at `(0, 0, 0)` with the trace emptied: «Valores iniciales» (v1.5). */
+function fromOrigin(
+  start: { current: Pose },
+  keep: { current: boolean },
+  driver: SimulationDriver<SampledState>,
+): void {
+  start.current = INITIAL_POSE;
+  keep.current = false;
+  driver.reset();
 }
 
 /**
@@ -213,28 +261,30 @@ export function useTimeline(
   maneuver: ManeuverPlan | null,
 ): Timeline {
   const clock = useMemo(() => createFrameClock(), []);
-  const theta0 = useRef(INITIAL_POSE.theta_rad);
+  const start = useRef(INITIAL_POSE);
+  const keep = useRef(false);
   // Pushed in on every render like the command: a change of the maneuver always comes with a
   // `restart`, which pauses the driver, so no step runs on a stale plan.
   const plan = useRef(maneuver);
   plan.current = maneuver;
-  const { sim, preroll, states } = useSim(spec, clock, initialTime_s, command, theta0, plan);
+  const { sim, preroll, states } = useSim(spec, clock, initialTime_s, command, start, plan);
   sim.setInput(command);
 
   const driver = useSimulationDriver(sim, { clock });
   const [manual, setManual] = useState<Pose | null>(null);
-  const initial = useTheta0(theta0, driver, setManual);
+  const initial = useTheta0(start, driver, setManual);
   usePauseAt(driver, duration_s, maneuver);
 
   const integrated = poseOf(driver.state);
   const pose = manual ?? integrated;
-  const trace_m = useTrace(pose, driver.t_s, preroll);
+  const trace_m = useTrace(pose, driver.t_s, preroll, keep);
 
   return {
     pose,
     t_s: driver.t_s,
     driver,
-    ...liveControls(driver, setManual),
+    ...liveControls(driver, setManual, { start, keep, ...initial }, maneuver),
+    start: start.current,
     trace_m,
     state: driver.state,
     preroll: states,
@@ -242,6 +292,7 @@ export function useTimeline(
       if (driver.running) return;
       setManual((current) => next(current ?? integrated));
     },
-    ...initial,
+    theta0_rad: initial.theta0_rad,
+    setTheta0: initial.setTheta0,
   };
 }

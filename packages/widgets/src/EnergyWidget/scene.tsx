@@ -19,13 +19,8 @@ const TRACK_THICKNESS_M = 0.012;
  */
 const ASPECT = 16 / 6;
 
-/** Margin of track drawn past where the body may reach, as a share of the world width. */
-const MARGIN_SHARE = 0.08;
-
-/** Width of the scene in metres: the whole track the body may cover, plus a margin. */
-export function worldWidthOf(ramp: Ramp): number {
-  return trackLength_m(ramp) * (1 + MARGIN_SHARE);
-}
+/** Room above the end of the track, in metres: a body tilted on the ramp rises ~1.4 sides. */
+const TOP_ROOM_M = 1.5 * BODY_SIDE_M;
 
 /** Point of the track at a distance `s` along it, in world metres (#90, decision 3). */
 export function trackPoint(ramp: Ramp, s_m: number): [number, number] {
@@ -35,10 +30,21 @@ export function trackPoint(ramp: Ramp, s_m: number): [number, number] {
   return [FLAT_LENGTH_M + along_m * Math.cos(ramp.slope_rad), heightAt(s_m, ramp.slope_rad)];
 }
 
-/** Centre of the view, so the flat run and the whole climb both stay inside it. */
-export function sceneCentre(ramp: Ramp): [number, number] {
-  const width_m = worldWidthOf(ramp);
-  return [width_m / 2, width_m / ASPECT / 2 - BODY_SIDE_M];
+/**
+ * Width and centre of the view, so the whole track the body may cover — the start, the flat run
+ * and the end of the climb — stays inside it for any slope and speed. The box around the track
+ * sets the width, or its height does when the climb is steep enough to be the limit.
+ */
+export function sceneView(ramp: Ramp): { worldWidth_m: number; center_m: [number, number] } {
+  const [xEnd_m, yEnd_m] = trackPoint(ramp, trackLength_m(ramp));
+  const xMin_m = -BODY_SIDE_M;
+  const xMax_m = xEnd_m + BODY_SIDE_M;
+  const yMin_m = -BODY_SIDE_M / 2;
+  const yMax_m = yEnd_m + TOP_ROOM_M;
+  return {
+    worldWidth_m: Math.max(xMax_m - xMin_m, (yMax_m - yMin_m) * ASPECT),
+    center_m: [(xMin_m + xMax_m) / 2, (yMin_m + yMax_m) / 2],
+  };
 }
 
 /**
@@ -59,7 +65,7 @@ function FlatRun({ length_m }: { length_m: number }): JSX.Element {
 
 /** The ramp: the same strip, rotated by `φ` about its own centre and hinged at the foot. */
 function RampRun({ ramp }: { ramp: Ramp }): JSX.Element {
-  const length_m = worldWidthOf(ramp) - FLAT_LENGTH_M;
+  const length_m = trackLength_m(ramp) - FLAT_LENGTH_M;
   const half_m = length_m / 2;
   return (
     <Rect
@@ -92,14 +98,15 @@ export function EnergyScene({ ramp, state, t }: EnergySceneProps): JSX.Element {
   const [x_m, y_m] = trackPoint(ramp, state.s_m);
   const onSlope = onRamp(state.s_m, ramp.slope_rad);
   const lift_m = BODY_SIDE_M / 2;
+  const view = sceneView(ramp);
   return (
     <Scene2D
-      worldWidth_m={worldWidthOf(ramp)}
-      center_m={sceneCentre(ramp)}
+      worldWidth_m={view.worldWidth_m}
+      center_m={view.center_m}
       aspect={ASPECT}
       description={t(drawRamp ? 'widgets.EnergyWidget.sceneRamp' : 'widgets.EnergyWidget.sceneFlat')}
     >
-      <FlatRun length_m={drawRamp ? FLAT_LENGTH_M : worldWidthOf(ramp)} />
+      <FlatRun length_m={drawRamp ? FLAT_LENGTH_M : trackLength_m(ramp)} />
       {drawRamp ? <RampRun ramp={ramp} /> : null}
       <Rect
         center_m={[

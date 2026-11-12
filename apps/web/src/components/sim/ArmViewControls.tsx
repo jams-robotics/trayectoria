@@ -10,15 +10,16 @@ import type { AccordionGroup } from './accordionGroup';
 // files goes over 300 lines (docs/STANDARDS.md §4). No public API of its own: `ArmSimIsland.tsx`
 // is the only one that imports from here.
 //
-// #537 and #542: «Espacio de trabajo», «Matrices» and «Marcos» are one segmented group in one
-// row (docs/DESIGN.md §5 and §6), all with the same active style, and on mobile the three go
+// #537 and #542: «Espacio de trabajo», «Matrices» and «Marcos» are three independent toggles in one
+// row (docs/DESIGN.md §5 and §6), each with a check box and the same active style, and on mobile the three go
 // inside the «Controles de vista» accordion, whose header shows which layers are on.
 
 /**
- * A segment of the group: 36 px on desktop (§6), 44 px touch target on mobile (§9.3). The focus
- * ring goes inside the segment: the group's `overflow-hidden` would clip the outer one.
+ * A toggle: 40 px on desktop (§6), 44 px touch target on mobile (§9.3). They are independent
+ * switches, not tabs, so each one is its own button with a check box that shows its state.
  */
-const SEGMENT = 'px-3 text-sm transition-colors duration-[120ms] focus-visible:-outline-offset-2';
+const SEGMENT =
+  'border-border inline-flex items-center gap-2 rounded-md border px-3 text-sm transition-colors duration-[120ms]';
 const SEGMENT_ON = 'bg-primary text-primary-fg font-semibold';
 const SEGMENT_OFF = 'bg-bg-raised text-fg-muted hover:text-fg';
 
@@ -49,7 +50,19 @@ export function viewSummary(layers: ViewLayers, t: Translate): string {
   return on.length === 0 ? t('sims.armPage.viewNone') : on.join(' · ');
 }
 
-/** The segmented group with the three view toggles. */
+/** The box in front of a toggle's label: a check when the layer is on. */
+function CheckBox({ on }: { on: boolean }): JSX.Element {
+  return (
+    <span
+      aria-hidden="true"
+      className="border-current inline-flex h-4 w-4 items-center justify-center rounded-sm border text-xs leading-none"
+    >
+      {on ? '✓' : ''}
+    </span>
+  );
+}
+
+/** The three view toggles. */
 function ViewGroup({
   layers,
   onLayer,
@@ -60,10 +73,10 @@ function ViewGroup({
   mobile: boolean;
 }): JSX.Element {
   const t = useT();
-  const height = mobile ? 'h-11' : 'h-9';
+  const height = mobile ? 'h-[44px]' : 'h-[40px]';
   return (
     <div
-      className="border-border divide-border flex w-fit divide-x overflow-hidden rounded-md border"
+      className="flex flex-wrap gap-2"
       role="group"
       aria-label={t('sims.armPage.view')}
       data-testid="view-controls"
@@ -79,6 +92,7 @@ function ViewGroup({
             onLayer(layer.id, !layers[layer.id]);
           }}
         >
+          <CheckBox on={layers[layer.id]} />
           {t(layer.labelKey)}
         </button>
       ))}

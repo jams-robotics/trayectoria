@@ -208,3 +208,22 @@ describe('MyRobotWidget card (F2-11)', () => {
     expect(document.querySelector('[data-card-item="mass_kg"]')).toHaveTextContent('1.4 kg');
   });
 });
+
+describe('MyRobotWidget fields prop (v1.5)', () => {
+  test('shows only the listed fields and hides name and derived values', () => {
+    render(<MyRobotWidget mode="form" fields={['wheelRadius_m', 'maxMotorSpeed_rpm']} />);
+    expect(document.querySelectorAll('[data-field]')).toHaveLength(2);
+    expect(screen.queryByTestId('derived-omegaMax')).toBeNull();
+    expect(screen.queryByRole('textbox', { name: /nombre/i })).toBeNull();
+  });
+});
+
+describe('MyRobotWidget diagram (v1.5)', () => {
+  test('highlights the measure of the field with the focus', () => {
+    render(<MyRobotWidget mode="form" />);
+    expect(screen.getByTestId('robot-diagram')).toBeInTheDocument();
+    fireEvent.focus(field('wheelBase_m'));
+    expect(document.querySelector('[data-dimension="wheelBase"]')).toHaveAttribute('data-active', 'true');
+    expect(document.querySelector('[data-dimension="length"]')).toHaveAttribute('data-active', 'false');
+  });
+});

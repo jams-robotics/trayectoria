@@ -18,37 +18,78 @@ seoDescription: "Aprende a convertir rpm a rad/s y centímetros a metros, y a ve
 ---
 
 <Gancho>
-La hoja de datos de tu motor dice 6000 rpm, 0.012 N·m, 6 V y 1.2 A. ¿Cuántos radianes por
-segundo son 6000 rpm, y cuántos vatios consume?
+Pegas en tu programa la velocidad de la hoja de datos de tu motor, 6000, y la rueda gira casi diez
+veces más rápido de lo que esperabas: el programa pedía radianes por segundo y tú le diste rpm.
+Tu reto: haz que el disco dé exactamente una vuelta por segundo y lee cuánto vale eso en rad/s.
 </Gancho>
 
-<Concepto>
-El **Sistema Internacional (SI)** fija una unidad para cada magnitud: el metro (m) para la
-longitud, el segundo (s) para el tiempo, el kilogramo (kg) para la masa y el radián (rad) para
-los ángulos. La plataforma guarda y calcula todo en SI. Las hojas de datos y los formularios
-usan rpm, mm o minutos, pero cada dato se convierte al entrar, y ninguna fórmula mezcla
-sistemas.
+<Explora>
+El disco gira con la velocidad que eliges en rpm y muestra la misma velocidad en rad/s, junto con
+un punto en el borde a la distancia r del centro. Empieza en 200 rpm (20.94 rad/s), la velocidad
+de la rueda del robot de referencia, con su radio de 32 mm.
 
-Una **magnitud** es un número por una unidad. 0.032 m y 32 mm son la misma magnitud escrita de
-dos formas. El número solo no dice nada.
+<RotationWidget mode="disc" inputUnit="rpm" initial={{ omega_radps: 20.94, r_m: 0.032 }} />
+
+<Experimento
+  cambia="la velocidad angular n de 200 rpm a 400 rpm"
+  aplica={{ omega: 400 }}
+  observa="la fila «Velocidad angular», el valor de ω en rad/s"
+  porque="¿Por qué ω se duplica?"
+>
+La conversión multiplica n por un factor constante, 2π/60. Si n se duplica, ω también: pasa de
+20.94 rad/s a 41.89 rad/s.
+</Experimento>
+
+<Experimento
+  cambia="la velocidad angular n a 60 rpm"
+  aplica={{ omega: 60 }}
+  observa="la fila «Velocidad angular», el valor de ω en rad/s"
+  porque="¿Por qué ω sale cerca de 6.28 rad/s?"
+>
+60 rpm es una vuelta por segundo, y una vuelta son 2π rad. Por eso ω = 2π rad/s ≈ 6.28 rad/s.
+</Experimento>
+
+<Experimento
+  cambia="el radio de la rueda de 32 mm a 64 mm, sin tocar ω"
+  aplica={{ r: 0.064 }}
+  observa="la fila «Velocidad angular», el valor de ω"
+  porque="¿Por qué ω no cambia?"
+>
+ω mide el ángulo que gira el disco en cada segundo, y ese ángulo es el mismo para cualquier
+radio. ω es una propiedad del giro, no del tamaño del disco.
+</Experimento>
+</Explora>
+
+<Concepto>
+Viste que el disco gira a la velocidad que eliges en rpm y que el panel la convierte a rad/s. Esa
+conversión es la razón de que la plataforma use el **Sistema Internacional (SI)**: una unidad para
+cada magnitud, el metro (m) para la longitud, el segundo (s) para el tiempo, el kilogramo (kg) para
+la masa y el radián (rad) para los ángulos. Las hojas de datos y los formularios usan rpm, mm o
+minutos, pero cada dato se convierte al entrar, y ninguna fórmula mezcla sistemas.
+
+<Figura alt="Un disco con una flecha curva que lo rodea una vuelta completa. Una vuelta equivale a 2π radianes, y 60 revoluciones por minuto son una vuelta por segundo." caption="Una vuelta son 2π rad: de ahí sale la conversión de rpm a rad/s.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><circle class="f-box" cx="100" cy="85" r="48" /><line class="f-line" x1="100" y1="85" x2="148" y2="85" /><circle class="f-fgfill" cx="100" cy="85" r="2.5" /><text class="t t-c" x="124" y="79">r</text><path class="f-vel" d="M156.4 64.5 A60 60 0 1 0 156.4 105.5" /><line class="f-vel" x1="156.4" y1="105.5" x2="153.4" y2="111.4" /><polygon class="f-velfill" points="150.3,117.7 156.3,112.8 150.6,110" /><text class="t t-c" x="100" y="160">1 vuelta = 2π rad</text><text class="t t-c" x="225" y="70">60 rpm</text><text class="t-m t-c" x="225" y="88">= 1 vuelta por segundo</text><text class="t-m t-c" x="225" y="106">= 2π rad/s</text></svg>
+</Figura>
+
+Una **magnitud** es un número por una unidad. 0.032 m y 32 mm son la misma magnitud escrita de dos
+formas.
 
 En un robot aparecen siempre tres conversiones:
 
-- De rpm a rad/s: una vuelta son 2π rad y un minuto son 60 s, así que se multiplica por 2π/60.
+- De rpm a rad/s: una vuelta son 2π rad y un minuto son 60 s.
 - De mm a m: se divide entre 1000. Un radio de rueda de 32 mm son 0.032 m.
 - De minutos a s: se multiplica por 60. Una prueba de 2 min dura 120 s.
 
-El **análisis dimensional** es la prueba rápida de una fórmula: las unidades de los dos lados
-tienen que coincidir. Si divides metros entre segundos obtienes m/s, que es una velocidad. Si
-una velocidad te sale en m·s, la fórmula está mal antes de meter ningún número.
+El **análisis dimensional** es la prueba rápida de una fórmula: las unidades de los dos lados tienen
+que coincidir. Si divides metros entre segundos obtienes m/s, que es una velocidad. Si una
+velocidad te sale en m·s, la fórmula está mal antes de meter ningún número.
 
-La hoja de datos de un motor trae cinco números que usarás en toda la ruta. La velocidad sin
-carga, en rpm, es la del eje libre. El torque de bloqueo, en N·m, es el máximo, con el eje
-detenido. No se dan a la vez: con el eje libre el torque es cero, y con el eje detenido la
-velocidad es cero. El voltaje nominal, en V, es el de funcionamiento. La corriente sin carga,
-0.1 A, es la del eje libre; la de bloqueo, 1.2 A, es la máxima, con el eje detenido, y tampoco se
-dan a la vez. Solo la velocidad necesita conversión: N·m, V y A ya son SI. A 6 V y 1.2 A,
-P = 6·1.2 = 7.2 W es lo que consume parado a plena tensión; qué da en marcha lo explica
+La hoja de datos de un motor trae cinco números que usarás en toda la ruta. La velocidad sin carga,
+en rpm, es la del eje libre. El torque de bloqueo, en N·m, es el máximo, con el eje detenido. No se
+dan a la vez: con el eje libre el torque es cero, y con el eje detenido la velocidad es cero. El
+voltaje nominal, en V, es el de funcionamiento. La corriente sin carga, 0.1 A, es la del eje libre;
+la de bloqueo, 1.2 A, es la máxima, con el eje detenido, y tampoco se dan a la vez. Solo la
+velocidad necesita conversión: N·m, V y A ya son SI. La potencia eléctrica sale de voltaje y corriente; qué da el motor en marcha lo explica
 [El motor y la batería](/ruta/ruta-1/m03/t03).
 </Concepto>
 
@@ -74,70 +115,34 @@ P = 6·1.2 = 7.2 W es lo que consume parado a plena tensión; qué da en marcha 
 - `v` · rapidez · m/s
 </Formulas>
 
-<Explora>
-El disco gira con la velocidad que eliges en rpm y muestra la misma velocidad en rad/s, junto
-con un punto en el borde a la distancia r del centro. El control llega a 600 rpm y no alcanza
-las 6000 rpm del gancho, así que el disco empieza en 200 rpm (20.94 rad/s), la velocidad de la
-rueda del robot de referencia, con su radio de 32 mm.
-
-<RotationWidget mode="disc" inputUnit="rpm" initial={{ omega_radps: 20.94, r_m: 0.032 }} />
-
-<Experimento
-  cambia="n de 200 rpm a 400 rpm"
-  observa="el valor de ω en rad/s"
-  porque="¿Por qué ω se duplica?"
->
-La conversión multiplica n por un factor constante, 2π/60. Si n se duplica, ω también: pasa de
-20.94 rad/s a 41.89 rad/s.
-</Experimento>
-
-<Experimento
-  cambia="n a 60 rpm"
-  observa="el valor de ω en rad/s"
-  porque="¿Por qué ω sale cerca de 6.28 rad/s?"
->
-60 rpm es una vuelta por segundo, y una vuelta son 2π rad. Por eso ω = 2π rad/s ≈ 6.28 rad/s.
-</Experimento>
-
-<Experimento
-  cambia="el radio de 32 mm a 64 mm, sin tocar ω"
-  observa="el valor de ω"
-  porque="¿Por qué ω no cambia?"
->
-ω mide el ángulo que gira el disco en cada segundo, y ese ángulo es el mismo para cualquier
-radio. ω es una propiedad del giro, no del tamaño del disco.
-</Experimento>
-</Explora>
-
 <AlRobot>
-Aquí creas **Mi robot**, el perfil que usan los temas de la ruta. El formulario empieza con los
-datos del robot de referencia; cambia los que no coincidan con tu robot y guarda.
-«Mi robot» es un robot móvil de dos ruedas. Cuando la plataforma admita otro tipo de perfil,
-como un brazo, los temas de estas dos rutas calcularán con el robot de referencia.
+Aquí creas **Mi robot**, el perfil que usan los temas de la ruta. Por ahora pide un solo dato, la
+velocidad sin carga de tu motor, que viene en su hoja de datos; cada tema siguiente te pide el que
+enseña. Empieza con el valor del robot de referencia: cámbialo si no coincide con tu robot y guarda.
 
 El formulario muestra cada dato de tu robot con su unidad.
 
-<MyRobotWidget mode="form" />
+<MyRobotWidget mode="form" fields={['maxMotorSpeed_rpm']} />
 
 Con tu perfil, la primera conversión de la ruta es la velocidad del motor. La hoja de datos da
-la velocidad sin carga en rpm; en SI es ω_motor:
+la velocidad sin carga en rpm; en SI es ω<sub>motor</sub>:
 
 <RobotFormula calc="ruta-1/m00-t01/omega-motor" />
 
-Con el robot de referencia, 6000 rpm son 6000 · 2π/60 = 628.3 rad/s en el eje del motor. Si
-cambias la velocidad del motor en el formulario, la fórmula se recalcula con tu dato.
+Con el robot de referencia, 6000 rpm son 628.3 rad/s en el eje del motor. Si cambias la velocidad
+del motor en el formulario, la fórmula se recalcula con tu dato.
 
 El motor no mueve la rueda directamente: entre los dos está la reducción del motorreductor, y la
 rueda gira más despacio que el eje del motor. Cuánto gira la rueda lo calculas en
 [Movimiento circular y velocidad angular](/ruta/ruta-1/m01/t03), y a qué velocidad avanza el
 robot, en [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04).
 
-Fíjate en las unidades: n entra en rpm, que no es SI, y el factor 2π/60 la convierte a rad/s. Es
-el análisis dimensional de este tema aplicado a tu robot.
+Fíjate en las unidades: n entra en rpm, que no es SI, y la fórmula la convierte a rad/s. Es el
+análisis dimensional de este tema aplicado a tu robot.
 </AlRobot>
 
 <Verifica
-  ejercicios={['ruta-1/m00-t01/e1', 'ruta-1/m00-t01/e2', 'ruta-1/m00-t01/e3', 'ruta-1/m00-t01/e4']}
+  ejercicios={['ruta-1/m00-t01/e1', 'ruta-1/m00-t01/e2', 'ruta-1/m00-t01/e3', 'ruta-1/m00-t01/e4', 'ruta-1/m00-t01/e5']}
   topicId="ruta-1/m00-t01"
   obligatorios={['e1', 'e2', 'e3']}
 />

@@ -145,6 +145,15 @@ test('the recovery link opens the new password form with a session', async ({ pa
   await openHydrated(page, `/auth/recuperar${query}`);
   await expect(page.getByLabel(auth.fields.newPassword, { exact: true })).toBeVisible();
   await expect(page).not.toHaveURL(/token_hash/);
+  // The recovery session is stored asynchronously: leave the page once it is there, not before.
+  await expect
+    .poll(async () => {
+      const { origins } = await page.context().storageState();
+      return origins.some((origin) =>
+        origin.localStorage.some(({ name }) => name.endsWith('-auth-token')),
+      );
+    })
+    .toBe(true);
   await openHydrated(page, '/cuenta');
   await expect(page.getByTestId('account-email')).toHaveText(email);
 });

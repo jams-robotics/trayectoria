@@ -30,8 +30,13 @@ const DISC_ASPECT = 16 / 9;
  * wheel is 2 radii tall, so a flatter strip keeps the wheel large instead of lost in the view.
  */
 const ROLLING_ASPECT = 16 / 5;
-/** Largest `r` of the slider, in metres (panels.tsx; docs/WIDGETS.md, RotationWidget). */
-const R_SLIDER_MAX_M = 0.1;
+/**
+ * Radius the scene is sized for, in metres: the disc of the reference robot (0.032 m) takes a
+ * third of the height. A larger one up to `MAX_DRAWN_SHARE` of it is still drawn to scale.
+ */
+const R_SCENE_M = 0.065;
+/** Largest drawn radius, as a share of the radius the scene is sized for. */
+const MAX_DRAWN_SHARE = 1.35;
 /**
  * Reference speed of the arrow scale, in m/s: the largest `v` of the rolling slider, the same
  * in the three modes (docs/WIDGETS.md, RotationWidget; #366).
@@ -43,11 +48,11 @@ const MIN_DRAWN_RADIUS_SHARE = 0.08;
 const TIP_MARGIN = 0.9;
 
 /**
- * Radius the scene is sized for, in metres: the largest of the slider, or the initial radius
+ * Radius the scene is sized for, in metres: the reference one, or the initial radius
  * when that is larger (docs/WIDGETS.md, RotationWidget; #351).
  */
 export function sceneRadiusOf(initialR_m: number): number {
-  return Math.max(R_SLIDER_MAX_M, initialR_m);
+  return Math.max(R_SCENE_M, initialR_m);
 }
 
 /**
@@ -75,9 +80,9 @@ export function sceneCentre(mode: RotationMode, rMax_m: number): [number, number
   return [worldWidthOf(mode, rMax_m) / 2, height_m / 2 - GROUND_DEPTH_FACTOR * rMax_m];
 }
 
-/** Drawn radius in metres: the real `r`, or 8 % of the height of the scene when smaller. */
+/** Drawn radius in metres: the real `r`, kept between 8 % of the height of the scene and `MAX_DRAWN_SHARE` of its radius. */
 export function drawnRadius(mode: RotationMode, r_m: number, rMax_m: number): number {
-  return Math.max(r_m, MIN_DRAWN_RADIUS_SHARE * sceneHeightOf(mode, rMax_m));
+  return Math.min(Math.max(r_m, MIN_DRAWN_RADIUS_SHARE * sceneHeightOf(mode, rMax_m)), MAX_DRAWN_SHARE * rMax_m);
 }
 
 /** Height of the centre of the wheel: the origin for the disc, one radius over the ground. */

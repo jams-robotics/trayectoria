@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 
 import { tokenColor } from '../../shared/theme';
 import { useSceneDraw } from '../context';
+import { fillSubscriptText } from '../subscriptText';
 import { worldToPx } from '../transform';
 import type { Transform } from '../transform';
 
@@ -58,7 +59,8 @@ function tipLabel(
   ctx.font = VECTOR_FONT;
   ctx.textAlign = dx_px < 0 ? 'right' : 'left';
   ctx.textBaseline = dy_px > 0 ? 'top' : 'bottom';
-  ctx.fillText(
+  fillSubscriptText(
+    ctx,
     label,
     x1_px + (dx_px < 0 ? -LABEL_GAP_PX : LABEL_GAP_PX),
     y1_px + (dy_px > 0 ? LABEL_GAP_PX / 2 : -LABEL_GAP_PX / 2),

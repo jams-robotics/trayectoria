@@ -26,6 +26,7 @@ export function ControllerColumn({
       params={choice.params}
       onController={choice.onController}
       onParam={choice.onParam}
+      onReset={choice.onReset}
       renderPanel={renderPanel}
     />
   );

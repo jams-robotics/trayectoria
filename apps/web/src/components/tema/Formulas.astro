@@ -3,12 +3,56 @@ import { t } from '@trayectoria/i18n';
 
 import Section from './Section.astro';
 
-// Section 3 (docs/CONTENT-STANDARDS.md §2): each formula in its `Formula` block followed by the
-// list of variables (symbol, name, SI unit), which the MDX passes as children.
+// Section 3 (docs/CONTENT-STANDARDS.md §2): the formulas of the topic in ONE card, each `Formula`
+// followed by the list of variables (symbol, name, SI unit) that the MDX passes as children.
+// The widget paints its own card (packages/widgets, not ours): inside this one it is flattened to
+// its formula, so several fit in one card without the 100 px of padding each (v1.5, C-1).
 ---
 
 <Section id="formulas" title={t('topic.sections.formulas')} number={3}>
-  <div class="grid gap-6">
+  <div
+    class="formulas bg-bg-raised border-border rounded-lg border px-5 py-2 md:px-6"
+    data-testid="formulas-card"
+  >
     <slot />
   </div>
 </Section>
+
+<style>
+  /* Flatten the widget's own card: the border, radius and fill belong to the section's card. */
+  div.formulas :global(astro-island > div) {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: var(--space-4) 0 var(--space-2);
+  }
+  /* The legend of variables: compact, muted, in columns, once under its formula. */
+  div.formulas :global(ul) {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 var(--space-4);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 0 var(--space-6);
+    color: var(--color-fg-muted);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+  }
+  div.formulas :global(li) {
+    margin: 0;
+  }
+  /*
+    The symbol of the legend is text, not code: it keeps the font and colour of the sentence (Source
+    Code Pro lacks the vector arrow and the subscript letters, which fell back to another font).
+  */
+  div.formulas :global(ul code) {
+    font-family: inherit;
+    font-variant-numeric: normal;
+    color: var(--color-fg);
+  }
+  /* Divider between one formula and the next (`astro-island` is `display: contents`). */
+  div.formulas :global(ul + astro-island > div) {
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--space-5);
+  }
+</style>

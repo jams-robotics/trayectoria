@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest';
 
 import { barShare, barsOf } from './bars';
 import type { Electrical, Mechanical, Ramp } from './compute';
-import { energiesOf } from './model';
+import { energiesOf, trackLength_m } from './model';
 import {
   applyElectricalChange,
   applyMechanicalChange,
@@ -17,7 +17,7 @@ import {
   rampRows,
   rampStatus,
 } from './panels';
-import { sceneCentre, trackPoint, worldWidthOf } from './scene';
+import { sceneView, trackPoint } from './scene';
 
 /** Units this stub translator renders as the real symbol, so the rows read as the panel does. */
 const UNITS: Readonly<Record<string, string>> = {
@@ -157,9 +157,23 @@ describe('energy bars (F2-07)', () => {
 });
 
 describe('ramp scene geometry (F2-07)', () => {
-  test('the view is wider than the track the body may cover', () => {
-    expect(worldWidthOf(RAMP)).toBeGreaterThan(0.3);
-    expect(sceneCentre(RAMP)[0]).toBeCloseTo(worldWidthOf(RAMP) / 2, 12);
+  test('the view holds the start, the foot and the end of the track for any slope and speed', () => {
+    for (let slope_deg = 0; slope_deg <= 45; slope_deg += 1) {
+      for (let v0_mps = 0.1; v0_mps <= 1.5; v0_mps += 0.05) {
+        for (const mu_k of [0, 0.3]) {
+          const ramp = { ...RAMP, v0_mps, mu_k, slope_rad: degToRad(slope_deg) };
+          const { worldWidth_m, center_m } = sceneView(ramp);
+          const halfW_m = worldWidth_m / 2;
+          const halfH_m = worldWidth_m / (16 / 6) / 2;
+          const [xEnd_m, yEnd_m] = trackPoint(ramp, trackLength_m(ramp));
+          // The body at the start, the foot of the ramp and the end of the climb, with a body around.
+          for (const [x_m, y_m] of [[-0.03, 0], [0.3, 0], [xEnd_m + 0.03, yEnd_m + 0.085]]) {
+            expect(Math.abs((x_m ?? 0) - center_m[0])).toBeLessThanOrEqual(halfW_m);
+            expect(Math.abs((y_m ?? 0) - center_m[1])).toBeLessThanOrEqual(halfH_m);
+          }
+        }
+      }
+    }
   });
 
   test('the track is flat up to the foot and then climbs at `φ`', () => {

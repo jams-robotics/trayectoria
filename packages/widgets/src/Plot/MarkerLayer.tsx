@@ -125,7 +125,7 @@ export function MarkerLayer({ marker, xRange, plotArea, unit, t }: MarkerLayerPr
       // A transparent grab zone centred on the line, so a real mouse press near it starts the
       // drag instead of falling through to uPlot's `.u-over` layer (#107). `touch-action: none`
       // keeps the browser from turning the drag into a scroll gesture on a touch screen.
-      className="absolute cursor-ew-resize touch-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus)]"
+      className="group absolute cursor-ew-resize touch-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-focus)]"
       style={grabZoneStyle(left_px, plotArea)}
       onKeyDown={onKeyDown}
       onPointerDown={(event) => {
@@ -146,7 +146,7 @@ export function MarkerLayer({ marker, xRange, plotArea, unit, t }: MarkerLayerPr
       */}
       <span
         aria-hidden="true"
-        className="bg-fg-muted absolute top-0 bottom-0 w-[2px]"
+        className="bg-fg-muted group-hover:bg-primary absolute top-0 bottom-0 w-[2px] transition-colors duration-[120ms]"
         style={{ left: `${String(MARKER_GRAB_PX / 2)}px` }}
       />
     </div>

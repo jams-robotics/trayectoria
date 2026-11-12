@@ -1,6 +1,7 @@
 import type uPlot from 'uplot';
 
-import type { PlotRefLine, PlotSegment, PlotSeries, PlotAxis } from './types';
+import type { PlotRefLine, PlotSegment, PlotVLine, PlotSeries, PlotAxis } from './types';
+import { fillSubscriptText } from '../Scene2D/subscriptText';
 import { SERIES_DASHES, seriesColor } from '../shared/theme';
 import type { PlotTheme } from '../shared/theme';
 
@@ -16,6 +17,8 @@ export const AXIS_LABEL_FONT = AXIS_FONT;
 const REF_LINE_DASH_PX = [6, 4];
 /** Gap between a reference line and its label, in CSS pixels. */
 const REF_LINE_LABEL_GAP_PX = 6;
+/** Share of the y span left above a reference line that sits at the top of the data. */
+const TOP_LINE_HEADROOM_RATIO = 0.3;
 /** Stroke width of a segment, in CSS pixels; as thick as a series (docs/DESIGN.md §5). */
 const SEGMENT_WIDTH_PX = 2;
 /** Palette index a segment takes when it names no token (docs/DESIGN.md §2.2). */
@@ -25,7 +28,8 @@ const SEGMENT_LABEL_GAP_PX = 6;
 
 /** Axis title: label and unit, `t (s)` (docs/WIDGETS.md, docs/DESIGN.md §5). */
 export function axisTitle(axis: PlotAxis): string {
-  return `${axis.label} (${axis.unit})`;
+  if (axis.unit === '') return axis.label;
+  return axis.label === '' ? axis.unit : `${axis.label} (${axis.unit})`;
 }
 
 /**
@@ -38,7 +42,14 @@ const AXIS_NUMBER_FORMAT = new Intl.NumberFormat('en-US', { useGrouping: false }
 
 /** uPlot `values` hook of both axes: one label per split, formatted as above. */
 export function axisValues(_self: uPlot, splits: readonly (number | null)[]): string[] {
-  return splits.map((value) => (value === null ? '' : AXIS_NUMBER_FORMAT.format(value)));
+  // A narrow range rounds neighbouring splits to the same text: keep the first of each (v1.5).
+  let previous = '';
+  return splits.map((value) => {
+    const text = value === null ? '' : AXIS_NUMBER_FORMAT.format(value);
+    if (text === previous) return '';
+    previous = text;
+    return text;
+  });
 }
 
 /** Shared axis styling: `--sim-axis` strokes, `--sim-grid` grid, no ticks (docs/DESIGN.md §5). */
@@ -106,8 +117,13 @@ export interface BuildOptionsInput {
   refLines: readonly PlotRefLine[];
   /** Straight segments drawn over the plot area (#87, decision 5). */
   segments?: readonly PlotSegment[];
+  /** Labelled vertical rules (v1.5). */
+  vLines?: readonly PlotVLine[];
   /** Fixed x range of the sliding window in live mode; omitted for a static plot. */
   xRange?: readonly [number, number];
+  /** Fixed y range; both or neither, and without them the y axis fits the data (v1.5). */
+  yMin?: number | undefined;
+  yMax?: number | undefined;
   /**
    * Reports the plot area's geometry in CSS pixels whenever it can change: the axis label
    * channel and the padding shift it in from the card's edge, so `MarkerLayer` needs it rather
@@ -148,13 +164,15 @@ function plotAreaPlugin(onPlotArea: (area: PlotArea) => void): uPlot.Plugin {
  * reference line above every sample stays visible.
  */
 export function buildOptions(input: BuildOptionsInput): uPlot.Options {
-  const { x, y, series, theme, width_px, height_px, refLines, segments, xRange, onPlotArea } = input;
+  const { x, y, series, theme, width_px, height_px, refLines, segments, vLines, xRange, onPlotArea } = input;
+  const { yMin, yMax } = input;
   const scales: uPlot.Scales = {
     x: xRange === undefined ? { time: false } : { time: false, range: [xRange[0], xRange[1]] },
-    y: { range: yRange(refLines) },
+    y: { range: yMin === undefined || yMax === undefined ? yRange(refLines) : [yMin, yMax] },
   };
   const plugins = [
     refLinesPlugin(refLines, theme),
+    ...(vLines === undefined || vLines.length === 0 ? [] : [vLinesPlugin(vLines, theme)]),
     ...(segments === undefined || segments.length === 0 ? [] : [segmentsPlugin(segments, theme)]),
     ...(onPlotArea === undefined ? [] : [plotAreaPlugin(onPlotArea)]),
   ];
@@ -181,16 +199,17 @@ function yRange(refLines: readonly PlotRefLine[]): uPlot.Range.Function {
     const values = refLines.map((line) => line.y);
     const min = Math.min(dataMin, ...values);
     const max = Math.max(dataMax, ...values);
-    return uPlotRangeFallback(min, max);
+    // A line at the top of the data (a maximum such as `P_max`) gets room for its label above it.
+    const topPadRatio = values.some((value) => value >= dataMax) ? TOP_LINE_HEADROOM_RATIO : 0.1;
+    return uPlotRangeFallback(min, max, topPadRatio);
   };
 }
 
 /** Pads a range and keeps it non-degenerate (uPlot rejects min === max). */
-function uPlotRangeFallback(min: number, max: number): [number, number] {
+function uPlotRangeFallback(min: number, max: number, topPadRatio = 0.1): [number, number] {
   if (!Number.isFinite(min) || !Number.isFinite(max)) return [0, 1];
   if (min === max) return [min - 1, max + 1];
-  const pad = (max - min) * 0.1;
-  return [min - pad, max + pad];
+  return [min - (max - min) * 0.1, max + (max - min) * topPadRatio];
 }
 
 /**
@@ -235,7 +254,46 @@ export function refLinesPlugin(refLines: readonly PlotRefLine[], theme: PlotThem
           // the clip above would cut it (docs/WIDGETS.md, Plot).
           const fitsAbove = y - gap / 3 - fontHeight >= top;
           ctx.textBaseline = fitsAbove ? 'bottom' : 'top';
-          ctx.fillText(line.label, left + gap, fitsAbove ? y - gap / 3 : y + gap / 3);
+          fillSubscriptText(ctx, line.label, left + gap, fitsAbove ? y - gap / 3 : y + gap / 3);
+        }
+        ctx.restore();
+      },
+    },
+  };
+}
+
+/**
+ * Draws the labelled vertical rules at their x (v1.5): dashed like `refLines`, with the label
+ * at the top, to the right of the rule, or to its left when it would run past the plot area.
+ */
+export function vLinesPlugin(vLines: readonly PlotVLine[], theme: PlotTheme): uPlot.Plugin {
+  return {
+    hooks: {
+      draw: (self: uPlot) => {
+        const { ctx } = self;
+        const { left, top, width, height } = self.bbox;
+        const ratio = self.width === 0 ? 1 : self.ctx.canvas.width / self.width;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(left, top, width, height);
+        ctx.clip();
+        ctx.setLineDash(REF_LINE_DASH_PX.map((segment) => segment * ratio));
+        ctx.lineWidth = AXIS_WIDTH_PX * ratio;
+        ctx.strokeStyle = theme.axis;
+        ctx.fillStyle = theme.label;
+        ctx.font = `${AXIS_FONT_SIZE_PX * ratio}px ui-monospace, monospace`;
+        ctx.textBaseline = 'top';
+        const gap = REF_LINE_LABEL_GAP_PX * ratio;
+        for (const line of vLines) {
+          const x = self.valToPos(line.x, 'x', true);
+          if (!Number.isFinite(x) || x < left || x > left + width) continue;
+          ctx.beginPath();
+          ctx.moveTo(x, top);
+          ctx.lineTo(x, top + height);
+          ctx.stroke();
+          const fitsRight = x + gap + ctx.measureText(line.label).width <= left + width;
+          ctx.textAlign = fitsRight ? 'left' : 'right';
+          ctx.fillText(line.label, fitsRight ? x + gap / 2 : x - gap / 2, top + gap / 3);
         }
         ctx.restore();
       },

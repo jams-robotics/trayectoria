@@ -34,7 +34,7 @@ export interface CatalogRobot {
 }
 
 const SELECT =
-  'border-border bg-bg-raised text-fg h-11 rounded-md border px-3 text-sm ' +
+  'border-border bg-bg-raised text-fg h-[44px] rounded-md border px-3 text-sm ' +
   'focus-visible:outline-color-focus focus-visible:outline-2 focus-visible:outline-offset-2';
 
 /** The saved robots of the signed-in learner; empty list while there is no session. */

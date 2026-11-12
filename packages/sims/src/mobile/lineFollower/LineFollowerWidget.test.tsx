@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { t } from '@trayectoria/i18n';
 import {
@@ -139,7 +139,7 @@ describe('LineFollowerWidget (F4-02a)', () => {
     expect(screen.queryByTestId('line-follower-controller')).not.toBeInTheDocument();
   });
 
-  it('ofrece los cuatro controladores y la pestaña «Propio» deshabilitada', () => {
+  it('ofrece los cuatro controladores y el botón de valores iniciales', () => {
     render(
       <LineFollowerWidget track="oval" controller="pid" initialParams={PARAMS} robot={ROBOT} />,
     );
@@ -147,14 +147,8 @@ describe('LineFollowerWidget (F4-02a)', () => {
     for (const label of ['Manual', 'On/off', 'P']) {
       expect(screen.getByRole('button', { name: label })).toHaveAttribute('aria-pressed', 'false');
     }
-    const custom = screen.getByTestId('line-follower-custom');
-    expect(custom).toBeDisabled();
-    expect(custom).toHaveAttribute('aria-disabled', 'true');
-    expect(custom).toHaveTextContent('v2');
-    // #543: it says why, in its title and in the line its description points to.
-    expect(custom).toHaveAttribute('title', t('sims.lineFollower.customTitle'));
-    expect(custom).toHaveAccessibleDescription(t('sims.lineFollower.customHint'));
-    expect(screen.getByTestId('line-follower-custom-hint')).toBeVisible();
+    expect(screen.queryByTestId('line-follower-custom')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: t('widgets.ParamPanel.reset') })).toBeInTheDocument();
   });
 
   it('cambia de controlador y vuelve a sus parámetros por defecto', async () => {
@@ -179,7 +173,7 @@ describe('LineFollowerWidget (F4-02a)', () => {
     expect(screen.getByTestId('line-follower-v')).not.toHaveTextContent('0.000 m/s');
   });
 
-  it('avisa cuando el arreglo pierde la línea', () => {
+  it('avisa con un solo mensaje cuando el robot pierde la línea', async () => {
     // The robot starts at the beginning of the track, but its array is 0.09 m ahead
     // (docs/ROBOT-SPEC.md §3): on a 2 cm track the sensors end up outside it.
     render(
@@ -190,7 +184,10 @@ describe('LineFollowerWidget (F4-02a)', () => {
         robot={ROBOT}
       />,
     );
-    expect(screen.getByTestId('line-follower-lost')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('instruments-lost')).toHaveTextContent(t('sims.instruments.lineLost'));
+    });
+    expect(screen.queryByTestId('line-follower-lost')).not.toBeInTheDocument();
   });
 });
 

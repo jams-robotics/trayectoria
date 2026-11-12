@@ -109,9 +109,23 @@
   width: var(--size-panel-side);
 }
 
+/* Page container width (DESIGN.md §4, Anchos): `max-w-site`, shared by pages, bar and footer. */
+@utility max-w-site {
+  max-width: var(--size-site);
+}
+
 /* Form card width (DESIGN.md §4, Anchos): `max-w-form-card`, sign-up CTA and forms (#548). */
 @utility max-w-form-card {
   max-width: var(--size-form-card);
+}
+
+/*
+  KaTeX paints a few pixels of ink (superscripts, italic correction) past the box of its formula, which
+  made every block formula, however short, scroll sideways. The padding absorbs that overflow; a
+  formula that really is wider than its card still scrolls (v1.5).
+*/
+.trayectoria-formula-scroll {
+  padding-inline: var(--space-1);
 }
 
 /* Latin and Greek subsets (DESIGN.md §3); each file is downloaded only if the page uses its range. */
@@ -218,4 +232,33 @@
   a:hover {
     color: var(--color-primary-hover);
   }
+}
+
+/*
+  Vector arrow over a letter (`<span class="vec">a</span>`): the combining arrow (U+20D7) is in
+  neither of our fonts, so it is drawn. Used by formula legends, topic prose and exercise texts.
+*/
+.vec {
+  position: relative;
+  display: inline-block;
+  padding-top: 0.15em;
+}
+.vec::before {
+  content: '';
+  position: absolute;
+  top: 0.12em;
+  left: 0.05em;
+  right: 0.05em;
+  border-top: 1px solid currentColor;
+}
+.vec::after {
+  content: '';
+  position: absolute;
+  top: 0.12em;
+  right: 0.05em;
+  width: 0.22em;
+  height: 0.22em;
+  border-top: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+  transform: translateY(-50%) rotate(45deg);
 }

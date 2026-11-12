@@ -14,7 +14,9 @@ describe('ExerciseWidget: una sola fila de respuesta (#540)', () => {
     const verify = screen.getByRole('button', { name: 'Comprobar' });
     const regenerate = screen.getByRole('button', { name: 'Nuevos valores' });
 
-    const row = verify.parentElement;
+    // With one field the two groups are `display: contents`: the answer row is their parent.
+    expect(verify.parentElement).toHaveClass('contents');
+    const row = verify.parentElement?.parentElement ?? null;
     expect(row).not.toBeNull();
     expect(row).toContainElement(field);
     expect(row).toContainElement(regenerate);

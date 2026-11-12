@@ -130,11 +130,11 @@ test('anonymous: the closing tally counts the exercises answered right, live and
   // PR #661: a `client:visible` island kept the server «0 de 4» until scrolled to).
   const closingIsland = page.locator('astro-island[component-url*="TopicClosingStatus"]');
   await expect(closingIsland).not.toHaveAttribute('ssr');
-  await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 2 de 4 correctos');
+  await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 2 de 5 correctos');
 
   await page.reload();
   await waitForIslands(page, false);
-  await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 2 de 4 correctos');
+  await expect(page.getByTestId('closing-exercises')).toHaveText('Ejercicios: 2 de 5 correctos');
 });
 
 async function signUp(page: Page, email: string): Promise<void> {

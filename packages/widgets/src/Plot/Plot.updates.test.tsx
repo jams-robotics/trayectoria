@@ -4,7 +4,7 @@ import type { JSX } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { RingBuffer } from './RingBuffer';
-import type { PlotSegment, PlotSeries } from './types';
+import type { PlotRefLine, PlotSegment, PlotSeries } from './types';
 
 /**
  * Regression tests of #338: the charts blinked while a simulation ran because every render of
@@ -112,6 +112,20 @@ describe('Plot: actualizaciones sin reconstruir el gráfico (#338)', () => {
     rerender(<Plot x={X} series={[ERROR]} segments={segment(2)} />);
     await vi.waitFor(() => {
       expect(redraw).toHaveBeenCalled();
+    });
+    expect(calls).toHaveLength(1);
+    expect(destroy).not.toHaveBeenCalled();
+  });
+
+  it('moves a reference line by redrawing the same chart, so it never blanks (motor P_max)', async () => {
+    const line = (y: number): PlotRefLine[] => [{ y, label: `P_max = ${String(y)}` }];
+    const { rerender } = render(<Plot x={X} series={[ERROR]} refLines={line(1)} />);
+    await waitForData();
+    setData.mockClear();
+
+    rerender(<Plot x={X} series={[ERROR]} refLines={line(2)} />);
+    await vi.waitFor(() => {
+      expect(setData).toHaveBeenCalled();
     });
     expect(calls).toHaveLength(1);
     expect(destroy).not.toHaveBeenCalled();

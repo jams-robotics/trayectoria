@@ -7,6 +7,8 @@ import type { RobotSpec } from '@trayectoria/robot-spec';
 import { Circle, RobotBody, Scene2D, SimControls, Trace, TrackLayer } from '@trayectoria/widgets';
 
 import { LapCard } from './LapCard';
+import { LapGoal } from './LapGoal';
+import type { LapGoalTrack } from './goalTrack';
 import type { Instruments } from './useInstruments';
 import { StartPoseHandle, StartPoseMarker } from './StartPoseHandle';
 import type { StartPose } from './StartPoseHandle';
@@ -87,22 +89,30 @@ function sensorStates(state: LineFollowerState): readonly boolean[] {
   return binarize(state.reading.values, DEFAULT_LOST_THRESHOLD).map((bit) => bit === 1);
 }
 
-/** The live readings of the array, mono `xs` (docs/DESIGN.md §6: leyenda arriba-izquierda). */
-function SensorLegend({ state, t }: { state: LineFollowerState; t: Translate }): JSX.Element {
+/**
+ * The live readings of the array as one bar per sensor (docs/DESIGN.md §6): the taller the bar,
+ * the closer that sensor is to the line. The numbers go in the accessible name.
+ */
+function SensorBars({ state, t }: { state: LineFollowerState; t: Translate }): JSX.Element {
+  const { values } = state.reading;
   return (
-    <p
-      className="text-fg-muted font-mono text-xs tabular-nums"
-      data-testid="line-follower-legend"
-      role="status"
-      aria-live="off"
-    >
-      <span>{t('sims.lineFollower.sensors')}</span>{' '}
-      {state.reading.values.map((value, index) => (
-        <span key={index} className="ml-2">
-          {value.toFixed(READING_DECIMALS)}
-        </span>
-      ))}
-    </p>
+    <div className="flex items-end gap-3" data-testid="line-follower-legend">
+      <span className="text-fg-muted text-xs">{t('sims.lineFollower.sensors')}</span>
+      <div
+        role="img"
+        aria-label={`${t('sims.lineFollower.sensors')}: ${values.map((value) => value.toFixed(READING_DECIMALS)).join(' ')}`}
+        className="flex h-8 items-end gap-1"
+      >
+        {values.map((value, index) => (
+          <div key={index} className="bg-border flex h-full w-3 items-end rounded-sm">
+            <div
+              className="bg-primary w-full rounded-sm"
+              style={{ height: `${Math.round(Math.min(1, Math.max(0, value)) * 100)}%` }}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -132,16 +142,6 @@ function Readouts({ state, t }: { state: LineFollowerState; t: Translate }): JSX
   );
 }
 
-/** The warning shown while the array no longer sees the line (docs/DESIGN.md §8: not colour alone). */
-function LostNotice({ lost, t }: { lost: boolean; t: Translate }): JSX.Element | null {
-  if (!lost) return null;
-  return (
-    <p className="text-error text-sm" role="alert" data-testid="line-follower-lost">
-      {t('sims.lineFollower.lost')}
-    </p>
-  );
-}
-
 /** Radius of the marker drawn where the line was lost, in metres (F4-03, #129, decision 5). */
 const LOST_MARKER_RADIUS_M = 0.03;
 
@@ -158,13 +158,12 @@ function LostMarker({ pose }: { pose: Pose | undefined }): JSX.Element | null {
 }
 
 /**
- * The assertive warning of the lost event (F4-03, decision 5). It is a separate live region from
- * `LostNotice`: that one only describes the state of the array, while this one announces the run
- * stopping, which is what a screen reader has to hear the moment it happens.
+ * The single warning of the lost event (F4-03, decision 5): an assertive live region, so a screen
+ * reader hears the run stopping the moment it happens. It says what to change.
  */
 function LostEventNotice({ lost, t }: { lost: boolean; t: Translate }): JSX.Element {
   return (
-    <p className="text-error text-sm" role="alert" aria-live="assertive" data-testid="instruments-lost">
+    <p className="text-error text-sm empty:hidden" role="alert" aria-live="assertive" data-testid="instruments-lost">
       {lost ? t('sims.instruments.lineLost') : ''}
     </p>
   );
@@ -194,6 +193,8 @@ export interface LineFollowerViewProps {
    * the line was lost at. Without it the viewer draws neither, exactly as in F4-02b.
    */
   readonly instruments?: Instruments;
+  /** Record key and target of the track, for the lap-time game; without it there is no game. */
+  readonly goal?: LapGoalTrack;
 }
 
 /**
@@ -235,8 +236,30 @@ function Viewer({
         spec={spec}
         pose={{ x_m: robot.x_m, y_m: robot.y_m, theta_rad: robot.theta_rad }}
         sensorStates={sensorStates(api.state)}
+        sensorReadings={api.state.reading.values}
       />
     </Scene2D>
+  );
+}
+
+/** Under the viewer, not over the track (#536; docs/DESIGN.md §6): laps, game and lost warning. */
+function LapPanel({
+  instruments,
+  goal,
+  lost,
+  t,
+}: {
+  instruments: Instruments;
+  goal: LapGoalTrack | undefined;
+  lost: boolean;
+  t: Translate;
+}): JSX.Element {
+  return (
+    <>
+      <LapCard timer={instruments.timer} />
+      {goal === undefined ? null : <LapGoal timer={instruments.timer} goal={goal} />}
+      <LostEventNotice lost={lost} t={t} />
+    </>
   );
 }
 
@@ -248,6 +271,7 @@ export function LineFollowerView({
   startPose,
   hideControls = false,
   instruments,
+  goal,
 }: LineFollowerViewProps): JSX.Element {
   const t = useT();
   const view = viewOf(track, compact);
@@ -270,18 +294,14 @@ export function LineFollowerView({
       )}
       {hideControls ? null : <SimControls {...api.driver} compact={compact} />}
       {instruments === undefined ? null : (
-        <>
-          {/* #536: under the viewer, not over the track (docs/DESIGN.md §6). */}
-          <LapCard timer={instruments.timer} />
-          <LostEventNotice lost={instruments.lostAt !== undefined} t={t} />
-        </>
+        <LapPanel instruments={instruments} goal={goal} lost={api.state.lineLost} t={t} />
       )}
       <Below state={api.state} compact={compact} t={t} />
     </div>
   );
 }
 
-/** The warning, the sensor legend and the readouts under the viewer. */
+/** The sensor bars and the readouts under the viewer. */
 function Below({
   state,
   compact,
@@ -293,10 +313,9 @@ function Below({
 }): JSX.Element {
   return (
     <>
-      <LostNotice lost={state.lineLost} t={t} />
       {compact ? null : (
         <>
-          <SensorLegend state={state} t={t} />
+          <SensorBars state={state} t={t} />
           <Readouts state={state} t={t} />
         </>
       )}

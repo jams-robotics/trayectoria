@@ -109,6 +109,17 @@ export function shaftSpeeds(stages: GearStages, train: Train): ShaftSpeeds {
   return { omega1_radps, omega2_radps, omega4_radps };
 }
 
+/**
+ * Radius of the wheel at the end of the train, in metres: the one of the reference robot
+ * (`mobile.wheelRadius_m` of `robot-spec`), so the force at the ground is `F = τ_out / r`.
+ */
+export const WHEEL_RADIUS_M = 0.032;
+
+/** Force the ground pushes the wheel with, in N, without slipping: `F = τ_out / r` (T-4.4). */
+export function groundForce_N(stages: GearStages, train: Train): number {
+  return outputTorque_Nm(stages, train) / WHEEL_RADIUS_M;
+}
+
 /** Angle of a gear at `t_s`, in radians: `θ = ω t`, no ramp (T-4.4 runs at constant speed). */
 export function angleAt(omega_radps: number, t_s: number): number {
   return omega_radps * t_s;

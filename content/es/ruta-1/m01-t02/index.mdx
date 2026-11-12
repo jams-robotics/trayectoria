@@ -18,67 +18,14 @@ seoDescription: "Aprende las tres ecuaciones del MRUA para calcular la aceleraci
 ---
 
 <Gancho>
-Tu robot arranca desde el reposo y llega a 0.6 m/s en 1.5 s. ¿Qué aceleración tuvo y cuánto
-avanzó mientras aceleraba?
+Tu robot arranca desde el reposo, llega a 0.6 m/s en 1.5 s y ahora tiene que frenar antes de que
+se acabe la pista. Tu reto: con v₀ = 0.6 m/s, elige la aceleración con la que se detiene antes de
+0.2 m.
 </Gancho>
 
-<Concepto>
-Si la aceleración de tu robot es constante, su velocidad cambia lo mismo en cada segundo. Con
-a = 0.4 m/s², cada segundo gana 0.4 m/s. Ese es el **movimiento uniformemente acelerado**
-(MRUA): movimiento en línea recta con a constante.
-
-Como a = dv/dt no cambia, la gráfica v–t es una recta de pendiente a: v = v₀ + a·t. La posición
-ya no crece al mismo ritmo en cada segundo: la gráfica x–t es una parábola,
-x = x₀ + v₀·t + ½·a·t².
-
-Cada una de las tres ecuaciones del MRUA deja fuera una magnitud. v = v₀ + a·t no usa la
-posición. x = x₀ + v₀·t + ½·a·t² no usa la velocidad final. v² = v₀² + 2·a·Δx no usa el tiempo.
-Elige la que no contiene la magnitud que ni conoces ni te piden.
-
-Frenar es acelerar en sentido contrario al movimiento: con v₀ positiva, a es negativa, y el
-robot se detiene cuando v = 0. Con la tercera ecuación y v = 0, la distancia de frenado es
-Δx = v₀²/(2·|a|).
-
-Esa distancia crece con el cuadrado de la velocidad. Al doble de velocidad, con la misma a, tu
-robot necesita cuatro veces más pista para detenerse.
-
-Un trayecto real de tu robot junta tramos: una rampa acelerada desde el reposo, un crucero a
-velocidad constante y un frenado. Cada tramo es un MRUA, con a = 0 en el crucero, y la posición
-y la velocidad al final de un tramo son x₀ y v₀ del siguiente.
-
-Con los datos del gancho, el robot parte de v₀ = 0 y llega a v = 0.6 m/s en t = 1.5 s. De la
-primera ecuación, a = 0.6/1.5 = 0.4 m/s². De la segunda, mientras acelera avanza
-½·0.4·1.5² = 0.45 m.
-</Concepto>
-
-<Formulas>
-<Formula latex="v = v_0 + a\,t" />
-
-- `v` · velocidad lineal · m/s
-- `v₀` · velocidad inicial · m/s
-- `a` · aceleración · m/s²
-- `t` · tiempo · s
-
-<Formula latex="x = x_0 + v_0\,t + \tfrac12 a\,t^2" />
-
-- `x` · posición · m
-- `x₀` · posición inicial · m
-- `v₀` · velocidad inicial · m/s
-- `a` · aceleración · m/s²
-- `t` · tiempo · s
-
-<Formula latex="v^2 = v_0^2 + 2a\,\Delta x" />
-
-- `v` · velocidad lineal · m/s
-- `v₀` · velocidad inicial · m/s
-- `a` · aceleración · m/s²
-- `Δx` · desplazamiento en un intervalo · m
-</Formulas>
-
 <Explora>
-Una partícula arranca desde el reposo, con x₀ = 0 m, v₀ = 0 m/s y a = 0.4 m/s², durante 4 s: el
-robot del gancho. Las gráficas x–t, v–t y a–t muestran el mismo movimiento con un marcador de
-tiempo común.
+Una partícula arranca desde el reposo con a = 0.4 m/s² durante 4 s: llega a 0.6 m/s en 1.5 s. Las
+gráficas x–t, v–t y a–t muestran el mismo movimiento con un marcador de tiempo común.
 
 <KinematicsWidget
   initial={{ x0_m: 0, v0_mps: 0, a_mps2: 0.4 }}
@@ -88,32 +35,85 @@ tiempo común.
 
 <Experimento
   cambia="la aceleración a al doble, de 0.4 a 0.8 m/s²"
+  aplica={{ a: 0.8 }}
   observa="x en t = 1.5 s, con el marcador de tiempo"
   porque="¿Por qué x se duplica?"
 >
-Con x₀ = 0 y v₀ = 0, la posición es x = ½·a·t². En un mismo instante, x es proporcional a a.
-Por eso en t = 1.5 s pasa de 0.45 m a 0.9 m.
+Con x₀ = 0 y v₀ = 0, la posición en un mismo instante es proporcional a la aceleración. Por eso
+en t = 1.5 s pasa de 0.45 m a 0.9 m.
 </Experimento>
 
 <Experimento
-  cambia="pon v₀ = 0.6 m/s y a = −1.2 m/s²"
+  cambia="pon la velocidad inicial v₀ = 0.6 m/s y la aceleración a = −1.2 m/s²"
+  aplica={{ v0: 0.6, a: -1.2 }}
   observa="el instante en que v–t cruza cero y el valor de x en ese instante"
   porque="¿Por qué el robot se detiene a 0.15 m?"
 >
-El robot frena hasta v = 0 en t = 0.6/1.2 = 0.5 s. Con v² = v₀² + 2·a·Δx y v = 0, avanza
-Δx = 0.6²/(2·1.2) = 0.15 m mientras frena. Ahí la tangente a x–t es horizontal y x alcanza su
-máximo.
+El robot frena hasta v = 0 en 0.5 s y avanza 0.15 m mientras frena. Ahí la tangente a x–t es
+horizontal y x alcanza su máximo.
 </Experimento>
 
 <Experimento
-  cambia="v₀ al doble, de 0.3 a 0.6 m/s, con la misma a = −1.2 m/s²"
+  cambia="v₀ al doble, con la misma a = −1.2 m/s²: «Aplicar» pone v₀ = 0.3 m/s y a = −1.2 m/s²; después súbela a 0.6 m/s"
+  aplica={{ v0: 0.3, a: -1.2 }}
   observa="la distancia de frenado: el máximo de x–t"
   porque="¿Por qué se cuadruplica al duplicar v₀?"
 >
-La distancia de frenado es Δx = v₀²/(2·|a|): depende del cuadrado de v₀. Duplicar v₀ multiplica
-Δx por 2² = 4. Pasa de 0.0375 m a 0.15 m.
+La distancia de frenado depende del cuadrado de v₀. Duplicar v₀ la multiplica por 4: pasa de
+0.0375 m a 0.15 m.
 </Experimento>
 </Explora>
+
+<Concepto>
+Viste que al doble de aceleración la posición se duplica y que frenar es acelerar en sentido
+contrario. Si la aceleración de tu robot es constante, su velocidad cambia lo mismo en cada
+segundo: con a = 0.4 m/s², cada segundo gana 0.4 m/s. Ese es el **movimiento uniformemente
+acelerado** (MRUA): movimiento en línea recta con a constante.
+
+<Figura alt="Una recta inclinada en la gráfica de velocidad contra tiempo que parte de una velocidad inicial. El área bajo la recta está sombreada y representa el desplazamiento. La pendiente es la aceleración." caption="En un MRUA la velocidad crece en línea recta; el área bajo la recta es el desplazamiento.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><polygon class="f-area" points="40,110 250,50 250,145 40,145" /><line class="f-axis" x1="40" y1="145" x2="293" y2="145" /><polygon class="f-mutedfill" points="300,145 293,141.8 293,148.2" /><line class="f-axis" x1="40" y1="145" x2="40" y2="22" /><polygon class="f-mutedfill" points="40,15 36.9,22 43.1,22" /><text class="t" x="302" y="160">t</text><text class="t" x="30" y="22">v</text><line class="f-vel" x1="40" y1="110" x2="250" y2="50" /><text class="t-m t-e" x="32" y="108">v₀</text><line class="f-dash" x1="40" y1="110" x2="250" y2="110" /><line class="f-dash" x1="250" y1="110" x2="250" y2="50" /><text class="t t-c" x="150" y="160">área = desplazamiento</text><text class="t-v" x="60" y="84">pendiente = a</text></svg>
+</Figura>
+
+Como a no cambia, la gráfica v–t es una recta de pendiente a. La posición ya no crece al mismo
+ritmo en cada segundo: la gráfica x–t es una parábola.
+
+Cada una de las tres ecuaciones del MRUA deja fuera una magnitud. La de la velocidad no usa la
+posición. La de la posición no usa la velocidad final. La que relaciona v² con el desplazamiento
+no usa el tiempo. Elige la que no contiene la magnitud que ni conoces ni te piden.
+
+Frenar es acelerar en sentido contrario al movimiento: con v₀ positiva, a es negativa, y el robot
+se detiene cuando v = 0. Con la tercera ecuación y v = 0, la distancia de frenado es el cuadrado
+de v₀ entre el doble del valor absoluto de a. Crece con el cuadrado de la velocidad: al doble de
+velocidad, con la misma a, tu robot necesita cuatro veces más pista para detenerse, como viste.
+
+Un trayecto real de tu robot junta tramos: una rampa acelerada desde el reposo, un crucero a
+velocidad constante y un frenado. Cada tramo es un MRUA, con a = 0 en el crucero, y la posición y
+la velocidad al final de un tramo son x₀ y v₀ del siguiente.
+</Concepto>
+
+<Formulas>
+<Formula latex="v = v_0 + a\,t" />
+
+- `v` · velocidad lineal · m/s
+- <code>v<sub>0</sub></code> · velocidad inicial · m/s
+- `a` · aceleración · m/s²
+- `t` · tiempo · s
+
+<Formula latex="x = x_0 + v_0\,t + \tfrac12 a\,t^2" />
+
+- `x` · posición · m
+- <code>x<sub>0</sub></code> · posición inicial · m
+- <code>v<sub>0</sub></code> · velocidad inicial · m/s
+- `a` · aceleración · m/s²
+- `t` · tiempo · s
+
+<Formula latex="v^2 = v_0^2 + 2a\,\Delta x" />
+
+- `v` · velocidad lineal · m/s
+- <code>v<sub>0</sub></code> · velocidad inicial · m/s
+- `a` · aceleración · m/s²
+- `Δx` · desplazamiento en un intervalo · m
+</Formulas>
 
 <AlRobot>
 Tu robot no arranca de golpe: el simulador lo acelera con una rampa de aceleración
@@ -126,17 +126,16 @@ del motor. Aquí es un dato de tu perfil; de dónde sale:
 Si tu perfil de «Mi robot» no guarda la rampa, el cálculo usa la del robot
 de referencia.
 
-Desde el reposo y con esa a, tu robot acelera hasta su velocidad lineal máxima v_max, también
-dato de tu perfil; de dónde sale: [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04). De
-v = v₀ + a·t con v₀ = 0 sale el tiempo de la rampa, y de v² = v₀² + 2·a·Δx, la distancia Δx que
-avanza en ella:
+Desde el reposo y con esa a, tu robot acelera hasta su velocidad lineal máxima v<sub>max</sub>, también
+dato de tu perfil; de dónde sale: [Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04). Con v₀ = 0
+sale el tiempo de la rampa, y de la tercera ecuación, la distancia Δx que avanza en ella:
 
 <RobotFormula calc="ruta-1/m01-t02/ramp-time" />
 
 <RobotFormula calc="ruta-1/m01-t02/ramp-distance" />
 
-Con el robot de referencia, a = 1.28 m/s² y v_max = 0.670 m/s. Llega a v_max en 0.524 s y
-avanza 0.175 m. Frenar desde v_max con la misma |a| le cuesta otros 0.175 m.
+Con el robot de referencia, a = 1.28 m/s² y v<sub>max</sub> = 0.670 m/s. Llega a v<sub>max</sub> en 0.524 s y
+avanza 0.175 m. Frenar desde v<sub>max</sub> con la misma |a| le cuesta otros 0.175 m.
 
 En una pista recta de 4 m, la rampa y el frenado ocupan 0.35 m. El resto del trayecto es
 crucero a velocidad constante.
@@ -147,8 +146,7 @@ crucero a velocidad constante.
     'ruta-1/m01-t02/e1',
     'ruta-1/m01-t02/e2',
     'ruta-1/m01-t02/e3',
-    'ruta-1/m01-t02/e4',
-  ]}
+    'ruta-1/m01-t02/e4', 'ruta-1/m01-t02/e5']}
   topicId="ruta-1/m01-t02"
   obligatorios={['e1', 'e2', 'e3']}
 />

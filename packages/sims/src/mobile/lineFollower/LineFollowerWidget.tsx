@@ -10,6 +10,7 @@ import { useControllerChoice } from './ControllerPanel';
 import { ControllerColumn, ViewerColumn } from './columns';
 import type { ControllerParams } from './controllers';
 import { Instruments } from './Instruments';
+import { goalOf } from './goalTrack';
 import { LineFollowerView } from './LineFollowerView';
 import type { StartPoseControl } from './LineFollowerView';
 import type { LineFollowerPlot } from './plots';
@@ -75,6 +76,8 @@ export interface LineFollowerWidgetProps {
   onInstruments?: (instruments: LiveInstruments) => void;
   /** Standard deviation of the sensor noise; without it the readings are exact. */
   noiseSigma?: number;
+  /** Lap target of this use of the widget, in seconds; without it, the factory target of the track. */
+  targetLap_s?: number;
   /**
    * Pose the run starts from (F4-02b, #128, decision 2). Without it the robot starts at the
    * beginning of the track, exactly as in F4-02a. Changing it rebuilds the simulation, so the
@@ -137,6 +140,7 @@ function Viewer({
   hideControls,
   handle,
   instruments,
+  goal,
 }: {
   api: LineFollowerApi;
   spec: RobotSpec;
@@ -145,6 +149,7 @@ function Viewer({
   hideControls: boolean;
   handle: StartPoseControl | undefined;
   instruments: LiveInstruments;
+  goal: ReturnType<typeof goalOf>;
 }): JSX.Element {
   return (
     <LineFollowerView
@@ -154,6 +159,7 @@ function Viewer({
       compact={compact}
       hideControls={hideControls}
       instruments={instruments}
+      goal={goal}
       {...(handle === undefined ? {} : { startPose: handle })}
     />
   );
@@ -250,12 +256,13 @@ export function LineFollowerWidget(props: LineFollowerWidgetProps): JSX.Element 
         <Viewer
           {...{ api, spec, compact, hideControls, instruments }}
           track={resolved}
+          goal={goalOf(props.track, resolved, props.targetLap_s)}
           handle={handleOf(props.startPose, props.onStartPoseChange)}
         />
       }
       plots={
         showPlots === undefined ? null : (
-          <Instruments buffers={instruments.buffers} show={showPlots} mobile={mobile} pid={pid} />
+          <Instruments buffers={instruments.buffers} show={showPlots} {...{ mobile, pid }} laps={instruments.timer.laps} spec={spec.mobile} />
         )
       }
     />

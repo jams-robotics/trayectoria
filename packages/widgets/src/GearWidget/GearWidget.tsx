@@ -9,7 +9,7 @@ import { LiveStatus } from '../shared/ReadoutPanel';
 import { SimLayout } from '../shared/SimLayout';
 import type { GearStages, Train } from './compute';
 import { ResultsPanel, animationScale, applyChange, paramsOf, statusOf } from './panels';
-import { GearScene } from './scene';
+import { GearScene } from './chainScene';
 import { useTimeline } from './timeline';
 import type { Timeline } from './timeline';
 
@@ -145,6 +145,7 @@ export function GearWidget({ stages, initial, initialTime_s = 0 }: GearWidgetPro
       viewer={<Viewer stages={stages} train={train} t_s={t_s} timeline={timeline} t={t} />}
       values={<Values stages={stages} train={train} t={t} />}
       params={<Sliders stages={stages} train={train} setTrain={setTrain} t={t} />}
+      sticky={false}
     />
   );
 }

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   MODULE_M,
   angleAt,
+  groundForce_N,
   inputPower_W,
   outputOmega_radps,
   outputPower_W,
@@ -140,5 +141,12 @@ describe('geometría y ángulos (F2-08)', () => {
   it('θ = ω t en cada engranaje', () => {
     closeTo(angleAt(rpmToRadps(6000), 0.5), rpmToRadps(6000) * 0.5);
     expect(angleAt(rpmToRadps(6000), 0)).toBe(0);
+  });
+});
+
+describe('fuerza en el suelo (T-4.4)', () => {
+  it('F = τ_out / r: 0.108 N·m entre 0.032 m son 3.375 N', () => {
+    const train: Train = { z1: 10, z2: 60, z3: 10, z4: 50, nIn_rpm: 3000, torqueIn_Nm: 0.006, efficiency: 0.6 };
+    expect(groundForce_N(2, train)).toBeCloseTo(3.375, 3);
   });
 });

@@ -11,12 +11,14 @@ import { SimLayout } from '../shared/SimLayout';
 import { forwardKinematics, inverseKinematics, mobileOf, saturate } from './compute';
 import type { DiffDriveMode, DiffDriveShow, Pose, WheelCommand } from './compute';
 import { ModeSliders } from './controls';
-import type { Maneuver } from './maneuver';
+import { plannedPath } from './maneuver';
+import type { Maneuver, ManeuverPlan } from './maneuver';
+import { ManeuverLine } from './maneuverView';
+import type { PlannedManeuver } from './maneuverView';
 import {
   OdometryPanel,
   PosePanel,
   applyCalibration,
-  theta0Of,
   applyTwist,
   applyWheel,
   calibrationParams,
@@ -29,7 +31,7 @@ import type { Readout, TwistInput } from './panels';
 import { calibrationOf } from './odometry';
 import type { Calibration } from './odometry';
 import { maneuverRows, maneuverStatusOf, odometryStatusOf } from './rows';
-import { DiffDriveScene } from './scene';
+import { DiffDriveScene, TALL_ASPECT } from './scene';
 import { useTimeline } from './timeline';
 import type { Timeline } from './timeline';
 import { commandNow, useManeuver } from './useManeuver';
@@ -84,6 +86,34 @@ function sceneOdometry(
   return { pose: odometry.estimated, trace_m: odometry.trace_m };
 }
 
+/** Which trace is which in `mode: 'odometry'`: they coincide with an exact calibration (v1.5). */
+function TraceLegend({ t }: { t: Translate }): JSX.Element {
+  const items = [
+    { key: 'real', label: t('widgets.DiffDriveWidget.legendReal'), swatch: 'h-[6px] bg-[var(--sim-trace)]' },
+    {
+      key: 'estimated',
+      label: t('widgets.DiffDriveWidget.legendEstimated'),
+      swatch: 'h-0 border-t-2 border-dotted border-[var(--color-data-2)]',
+    },
+  ];
+  // Not a list: the topic prose styles every `ul` and `li` under it, widgets included.
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+      {items.map((item) => (
+        <span key={item.key} className="text-fg-muted flex items-center gap-2 font-mono text-xs">
+          <span aria-hidden="true" className={`inline-block w-[18px] ${item.swatch}`} />
+          <span>{item.label}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** The maneuver the scene previews: only before it starts, from where the robot is (v1.5). */
+function plannedOf(plan: ManeuverPlan | null, timeline: Timeline): PlannedManeuver | undefined {
+  return plan !== null && timeline.t_s === 0 ? plannedPath(timeline.start, plan) : undefined;
+}
+
 /** Drags the chassis to set `x, y`; absent while the simulation runs (#92, decision 6). */
 function dragHandler(
   timeline: Timeline,
@@ -94,27 +124,22 @@ function dragHandler(
   };
 }
 
-/** Turns the `θ₀` slider of the pose panel into a new initial orientation (#371). */
-function thetaHandler(timeline: Timeline): (value_deg: number) => void {
-  return (value_deg) => {
-    timeline.setTheta0(theta0Of(value_deg));
-  };
-}
-
 /** The odometry panel and its live description; nothing outside `mode: 'odometry'`. */
 function OdometryReadouts({
   odometry,
   real,
+  velocityFirst,
   t,
 }: {
   odometry: Odometry | null;
   real: Pose;
+  velocityFirst: boolean;
   t: Translate;
 }): JSX.Element | null {
   if (odometry === null) return null;
   return (
     <>
-      <OdometryPanel odometry={odometry} real={real} t={t} />
+      <OdometryPanel odometry={odometry} real={real} velocityFirst={velocityFirst} t={t} />
       <LiveStatus text={odometryStatusOf(odometry, real, t)} />
     </>
   );
@@ -126,7 +151,6 @@ function Values({
   readout,
   spec,
   show,
-  timeline,
   odometry,
   maneuver,
   t,
@@ -135,7 +159,6 @@ function Values({
   readout: Readout;
   spec: MobileSpec;
   show: readonly DiffDriveShow[];
-  timeline: Timeline;
   odometry: Odometry | null;
   maneuver: ManeuverReadout | null;
   t: Translate;
@@ -146,14 +169,19 @@ function Values({
         mode={mode}
         readout={readout}
         spec={spec}
-        withFrames={show.includes('frames')}
-        theta0_rad={timeline.theta0_rad}
-        running={timeline.driver.running}
-        onTheta={thetaHandler(timeline)}
+        // The drift of `odometry` does not read the matrix: two panels fill the column, three leave a gap.
+        withFrames={show.includes('frames') && mode !== 'odometry'}
         extraRows={maneuverRows(maneuver, t)}
         t={t}
-      />
-      <OdometryReadouts odometry={odometry} real={readout.pose} t={t} />
+      >
+        {/* Without `frames` the topic is the velocity estimate (T-4.5); with it, the drift of the pose. */}
+        <OdometryReadouts
+          odometry={odometry}
+          real={readout.pose}
+          velocityFirst={!show.includes('frames')}
+          t={t}
+        />
+      </PosePanel>
       <LiveStatus text={maneuverStatusOf(statusOf(readout, t), maneuver?.phase ?? null, t)} />
     </>
   );
@@ -246,24 +274,32 @@ export function DiffDriveWidget(props: DiffDriveWidgetProps): JSX.Element {
     useDiffDrive(props, t);
   return (
     <SimLayout
+      // The values grow to their content, so the row does not stick: it would not fit the window.
+      sticky={false}
       viewer={
         <>
           <DiffDriveScene
             {...{ spec, twist, show, t, robot: applicable }}
+            aspect={TALL_ASPECT}
             command={now.command}
             pose={timeline.pose}
             feasible={readout.feasible}
             trace_m={timeline.trace_m}
             onDrag={dragHandler(timeline)}
             odometry={sceneOdometry(odometry)}
+            planned={plannedOf(sequence.plan, timeline)}
           />
+          {odometry !== null && show.includes('trace') ? <TraceLegend t={t} /> : null}
+          <ManeuverLine plan={sequence.plan} readout={now.maneuver} t_s={timeline.t_s} t={t} />
           <SimControls {...timeline.driver} {...timeline.controls} t_s={timeline.t_s} />
         </>
       }
       values={
-        <Values {...{ mode, readout, spec, show, timeline, odometry, t }} maneuver={now.maneuver} />
+        <Values {...{ mode, readout, spec, show, odometry, t }} maneuver={now.maneuver} />
       }
-      params={<ModeSliders {...{ sliders, sequence, timeline, t }} feasible={readout.feasible} />}
+      params={
+        <ModeSliders {...{ mode, show, sliders, sequence, timeline, t }} feasible={readout.feasible} />
+      }
     />
   );
 }

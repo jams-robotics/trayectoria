@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  alphaAt,
   angleAt,
   angularAccel,
   centripetalAccel,
@@ -113,6 +114,18 @@ describe('aceleración angular y centrípeta (F2-06)', () => {
     closeTo(angleAt('angularAccel', RAMP, 0.5), 0.5 * 41.89 * 0.25);
   });
 
+  it('la aceleración se detiene en 200 rpm y el disco sigue a esa velocidad', () => {
+    closeTo(omegaAt('angularAccel', RAMP, 26), rpmToRadps(200));
+    expect(alphaAt(RAMP, 0.25)).toBe(RAMP.alpha_radps2);
+    expect(alphaAt(RAMP, 0.6)).toBe(0);
+    // 0.5 s de rampa y 1.5 s a velocidad constante.
+    closeTo(angleAt('angularAccel', RAMP, 2), 0.5 * 41.89 * 0.25 + rpmToRadps(200) * 1.5);
+    // Ya por encima de la meta no hay nada que acelerar.
+    const fast: Rotation = { ...RAMP, omega_radps: 30 };
+    expect(omegaAt('angularAccel', fast, 5)).toBe(30);
+    expect(angleAt('angularAccel', fast, 5)).toBe(150);
+  });
+
   it('duplicar α reduce a la mitad el tiempo hasta 200 rpm (experimento 2 de T-4.3)', () => {
     const target_radps = rpmToRadps(200);
     closeTo(timeToOmega(RAMP, target_radps), 0.5);
@@ -141,13 +154,13 @@ describe('aceleración angular y centrípeta (F2-06)', () => {
 });
 
 describe('muestreo de ω–t (F2-06)', () => {
-  it('muestrea [0, 3 s] con ambos extremos incluidos y ω(3) = ω0 + 3α', () => {
+  it('muestrea [0, 3 s] con ambos extremos incluidos y ω(3) = 200 rpm, donde la rampa se detiene', () => {
     const { t_s, omega_radps } = sampleOmega(RAMP, 3, 0.01);
     expect(t_s).toHaveLength(301);
     expect(t_s[0]).toBe(0);
     expect(t_s.at(-1)).toBe(3);
     expect(omega_radps[0]).toBe(0);
-    closeTo(omega_radps.at(-1) ?? 0, 3 * 41.89);
+    closeTo(omega_radps.at(-1) ?? 0, rpmToRadps(200));
   });
 
   it('un intervalo nulo deja al menos un tramo', () => {

@@ -18,76 +18,18 @@ seoDescription: "Aprende a convertir los ticks de un encoder en ángulo, distanc
 ---
 
 <Gancho>
-Tu encoder da 360 ticks por vuelta de rueda. En 0.1 s cuentas 45 ticks. ¿A qué velocidad va el
-robot?
+La velocidad que lee tu robot salta en escalones aunque las ruedas giren parejo: el encoder solo
+cuenta ticks enteros. Tu reto: cambiando solo el deslizador de ticks por vuelta, haz que la
+velocidad estimada siga a la real sin escalones visibles.
 </Gancho>
 
-<Concepto>
-Un **encoder** es un sensor que cuenta fracciones de vuelta del eje. Cada vez que la rueda gira
-una fracción fija, el encoder suma un tick. N_e es el número de ticks que cuenta en una vuelta
-completa de la rueda.
-
-Un tick equivale a un ángulo de 2π/N_e rad: esa es su resolución angular. Sin deslizamiento, la rueda avanza un perímetro 2πr por vuelta, así que un tick
-equivale a una distancia **res** = 2πr/N_e: la resolución lineal. Con r = 0.032 m, res =
-0.0005585 m.
-
-Contar ticks es medir ángulo y distancia. Tras una cuenta de ticks, la rueda giró
-θ = 2π·ticks/N_e y avanzó s = 2πr·ticks/N_e.
-
-Para la velocidad necesitas dos lecturas. Cuentas Δticks en un intervalo Δt y divides:
-v ≈ 2πr·Δticks/(N_e·Δt). Con los datos del gancho, ω ≈ 2π·45/(360·0.1) = 7.854 rad/s y
-v ≈ 7.854·0.032 = 0.2513 m/s.
-
-Esa velocidad es una derivada aproximada: la v = dx/dt de
-[La derivada como razón de cambio](/ruta/ruta-1/m00/t03), estimada con un Δt finito. El encoder
-solo da cuentas enteras, así que la velocidad estimada solo puede valer múltiplos de res/Δt. A
-alta velocidad hay muchos ticks por muestra y el salto de un tick casi no se nota. A baja
-velocidad caen pocos ticks por muestra: la lectura cambia en escalones y oscila alrededor del
-valor real. Ese error por contar en unidades enteras es la **cuantización**.
-
-Esto es lo que hace el simulador con los pulsos de encoder por vuelta de tu perfil: cuenta ticks
-enteros en cada rueda y estima la velocidad con la misma fórmula.
-</Concepto>
-
-<Formulas>
-<Formula latex="\theta = \frac{2\pi\,\text{ticks}}{N_e}" />
-
-- `θ` · ángulo · rad
-- `ticks` · cuenta del encoder · —
-- `N_e` · ticks del encoder por revolución · —
-
-<Formula latex="s = \frac{2\pi r\,\text{ticks}}{N_e}" />
-
-- `s` · distancia recorrida (arco) · m
-- `r` · radio de rueda · m
-- `ticks` · cuenta del encoder · —
-- `N_e` · ticks del encoder por revolución · —
-
-<Formula latex="v \approx \frac{2\pi r\,\Delta\text{ticks}}{N_e\,\Delta t}" />
-
-- `v` · velocidad lineal · m/s
-- `r` · radio de rueda · m
-- `Δticks` · ticks contados en un intervalo · —
-- `N_e` · ticks del encoder por revolución · —
-- `Δt` · intervalo de tiempo · s
-
-<Formula latex="\text{res} = \frac{2\pi r}{N_e}" />
-
-- `res` · resolución lineal del encoder · m
-- `r` · radio de rueda · m
-- `N_e` · ticks del encoder por revolución · —
-</Formulas>
-
 <Explora>
-El robot avanza en línea recta durante 5 s con ω_L = ω_R = 7.85 rad/s, la velocidad del gancho.
-Las dos ruedas giran igual, así que el robot va recto a v = ω·r, como en
-[Rodadura: de la rueda al robot](/ruta/ruta-1/m01/t04), y aquí solo lees la velocidad estimada de
-cada rueda; qué hace el robot cuando sus ruedas giran distinto lo verás en
-[Cinemática directa del robot diferencial](/ruta/ruta-2/m01/t01).
-La vista muestra su trayectoria y la velocidad de cada rueda; el panel de odometría muestra los
-ticks de cada rueda y la velocidad estimada por los encoders junto a la real. La estimada se
-calcula cada Δt = 0.1 s, el intervalo del gancho, que el panel muestra en su fila «Intervalo de
-muestreo».
+El robot avanza en línea recta durante 5 s con las dos ruedas a 7.85 rad/s. Como giran igual, aquí
+solo lees la velocidad estimada de cada rueda; qué hace el robot cuando giran distinto lo verás en
+[Cinemática directa del robot diferencial](/ruta/ruta-2/m01/t01). La vista muestra su trayectoria
+y la velocidad de cada rueda; el panel de odometría muestra los ticks de cada rueda y la velocidad
+estimada por los encoders junto a la real. La estimada se calcula cada 0.1 s, el «Intervalo de
+muestreo» del panel.
 
 <DiffDriveWidget
   mode="odometry"
@@ -97,51 +39,115 @@ muestreo».
 />
 
 <Experimento
-  cambia="la velocidad de las dos ruedas, ω_L y ω_R, a 1 rad/s"
-  observa="la velocidad estimada en el panel de odometría"
+  cambia="las velocidades de las dos ruedas, «Velocidad rueda izquierda» y «Velocidad rueda derecha», a 1 rad/s"
+  aplica={{ omegaL: 1, omegaR: 1 }}
+  observa="la fila «Velocidad lineal estimada» del panel de odometría"
   porque="¿Por qué salta en escalones?"
 >
 A 1 rad/s la rueda gira despacio, así que en cada muestra caen pocos ticks. La
-velocidad estimada solo puede valer múltiplos de res/Δt. Un tick de más o de menos en una muestra
-es un escalón visible.
+velocidad estimada solo puede valer múltiplos de lo que avanza un tick entre el intervalo de
+muestreo. Un tick de más o de menos en una muestra es un escalón visible.
 </Experimento>
 
 <Experimento
   cambia="el deslizador «Ticks por vuelta de rueda» a 20"
-  observa="la velocidad estimada frente a la real"
+  aplica={{ ticksPerRev: 20 }}
+  observa="la «Velocidad lineal estimada» frente a la «Velocidad lineal» real del panel de pose"
   porque="¿Por qué los escalones son enormes?"
 >
-Con N_e = 20, res = 2π·0.032/20 = 0.01005 m, mucho mayor que con 360 ticks. Cada tick es un
-salto de res/Δt en la velocidad estimada. Con tan pocos ticks por muestra, la lectura salta entre
+Con 20 ticks por vuelta, cada tick equivale a 0.01005 m, mucho más que con 360 ticks. Cada tick es
+un salto grande en la velocidad estimada. Con tan pocos ticks por muestra, la lectura salta entre
 valores muy separados.
 </Experimento>
 
 <Experimento
   cambia="el deslizador «Ticks por vuelta de rueda» a 2000"
-  observa="la velocidad estimada frente a la real"
+  aplica={{ ticksPerRev: 2000 }}
+  observa="la «Velocidad lineal estimada» frente a la «Velocidad lineal» real del panel de pose"
   porque="¿Por qué la estimada sigue a la real?"
 >
-Con N_e = 2000, res = 2π·0.032/2000 = 0.0001005 m. En cada muestra caen muchos ticks y un tick de
-diferencia es un error pequeño. La cuantización sigue ahí, pero sus escalones son casi
+Con 2000 ticks por vuelta, cada tick equivale a 0.1005 mm. En cada muestra caen muchos ticks y uno
+de diferencia es un error pequeño. La cuantización sigue ahí, pero sus escalones son casi
 invisibles.
 </Experimento>
 </Explora>
 
+<Concepto>
+Viste que con pocos ticks por vuelta la velocidad estimada salta en escalones y que con muchos casi
+sigue a la real. Un **encoder** es un sensor que cuenta fracciones de vuelta del eje. Cada vez que
+la rueda gira una fracción fija, el encoder suma un tick. N<sub>e</sub> es el número de ticks que cuenta en
+una vuelta completa de la rueda.
+
+<Figura alt="Un disco con marcas igualmente espaciadas en el borde, como las de un encoder, y un sensor fijo arriba que cuenta cada marca que pasa. Cada marca equivale a un arco pequeño del borde." caption="El encoder cuenta marcas: cada tick es una fracción fija de vuelta.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><circle class="f-box" cx="110" cy="85" r="55" /><circle class="f-ticks" cx="110" cy="85" r="62" /><circle class="f-fgfill" cx="110" cy="85" r="2.5" /><rect class="f-fillbox" x="103" y="12" width="14" height="12" rx="3" /><line class="f-line" x1="110" y1="24" x2="110" y2="34" /><text class="t-m" x="128" y="22">sensor</text><text class="t t-c" x="220" y="70">N ticks por vuelta</text><text class="t-m t-c" x="220" y="88">1 tick = 360° / N</text><text class="t-m t-c" x="220" y="106">= un arco pequeño</text></svg>
+</Figura>
+
+Un tick equivale a un ángulo de 2π entre N<sub>e</sub>: esa es su resolución angular. Sin deslizamiento, la
+rueda avanza un perímetro por vuelta, así que un tick equivale a una distancia **res**, el
+perímetro entre N<sub>e</sub>: la resolución lineal. Con r = 0.032 m y 360 ticks, res = 0.0005585 m.
+
+Contar ticks es medir ángulo y distancia: el ángulo girado y la distancia avanzada son
+proporcionales a la cuenta.
+
+Para la velocidad necesitas dos lecturas. Cuentas los ticks de un intervalo Δt y divides la
+distancia que equivalen entre Δt. Con 360 ticks por vuelta, 45 ticks en 0.1 s son una rueda a
+7.854 rad/s y un robot a 0.2513 m/s.
+
+Esa velocidad es una derivada aproximada: la velocidad de
+[La derivada como razón de cambio](/ruta/ruta-1/m00/t03), estimada con un Δt finito. El encoder
+solo da cuentas enteras, así que la velocidad estimada solo puede valer múltiplos de res/Δt. A alta
+velocidad hay muchos ticks por muestra y el salto de un tick casi no se nota. A baja velocidad caen
+pocos ticks por muestra: la lectura cambia en escalones y oscila alrededor del valor real. Ese
+error por contar en unidades enteras es la **cuantización**.
+
+Así mide la velocidad cada rueda de tu robot, con los pulsos de encoder por vuelta de tu perfil:
+cuenta ticks enteros y estima con esa misma fórmula.
+</Concepto>
+
+<Formulas>
+<Formula latex="\theta = \frac{2\pi\,\text{ticks}}{N_e}" />
+
+- `θ` · ángulo · rad
+- `ticks` · cuenta del encoder · —
+- <code>N<sub>e</sub></code> · ticks del encoder por revolución · —
+
+<Formula latex="s = \frac{2\pi r\,\text{ticks}}{N_e}" />
+
+- `s` · distancia recorrida (arco) · m
+- `r` · radio de rueda · m
+- `ticks` · cuenta del encoder · —
+- <code>N<sub>e</sub></code> · ticks del encoder por revolución · —
+
+<Formula latex="v \approx \frac{2\pi r\,\Delta\text{ticks}}{N_e\,\Delta t}" />
+
+- `v` · velocidad lineal · m/s
+- `r` · radio de rueda · m
+- `Δticks` · ticks contados en un intervalo · —
+- <code>N<sub>e</sub></code> · ticks del encoder por revolución · —
+- `Δt` · intervalo de tiempo · s
+
+<Formula latex="\text{res} = \frac{2\pi r}{N_e}" />
+
+- `res` · resolución lineal del encoder · m
+- `r` · radio de rueda · m
+- <code>N<sub>e</sub></code> · ticks del encoder por revolución · —
+</Formulas>
+
 <AlRobot>
 La resolución lineal de tu encoder es la distancia más pequeña que tu robot puede medir con sus
-ruedas. Depende del radio r de la rueda y de los ticks N_e que da tu encoder por vuelta de rueda:
+ruedas. Depende del radio r de la rueda y de los ticks N<sub>e</sub> que da tu encoder por vuelta de rueda:
 
 <RobotFormula calc="ruta-2/m00-t01/encoder-resolution" />
 
 Si tu perfil de «Mi robot» no define los pulsos de encoder por vuelta, el cálculo usa los del
-robot de referencia: N_e = 360.
+robot de referencia: N<sub>e</sub> = 360.
 
-Invirtiendo s = 2πr·ticks/N_e sale cuántos ticks cuenta tu encoder por cada metro que avanza el
+Invirtiendo la fórmula de la distancia sale cuántos ticks cuenta tu encoder por cada metro que avanza el
 robot, con s = 1 m:
 
 <RobotFormula calc="ruta-2/m00-t01/ticks-per-meter" />
 
-Con el robot de referencia, res = 2π·0.032/360 = 0.5585 mm y el encoder cuenta 1790 ticks por
+Con el robot de referencia, res = 0.5585 mm y el encoder cuenta 1790 ticks por
 metro. Una distancia menor que 0.5585 mm no llega a sumar un tick: es el error de cuantización
 de tu robot al medir distancias.
 </AlRobot>
@@ -151,8 +157,7 @@ de tu robot al medir distancias.
     'ruta-2/m00-t01/e1',
     'ruta-2/m00-t01/e2',
     'ruta-2/m00-t01/e3',
-    'ruta-2/m00-t01/e4',
-  ]}
+    'ruta-2/m00-t01/e4', 'ruta-2/m00-t01/e5']}
   topicId="ruta-2/m00-t01"
   obligatorios={['e1', 'e2', 'e3']}
 />

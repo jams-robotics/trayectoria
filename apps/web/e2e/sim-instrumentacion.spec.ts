@@ -146,8 +146,8 @@ test.describe('instrumentación del simulador móvil (F4-03)', () => {
     await page.setViewportSize(MOBILE_VIEWPORT);
     await open(page);
 
-    // Robot, Pista, Controlador, Lecturas, Gráficas y «Guardar y compartir»: seis acordeones.
-    await expect(page.getByTestId('sim-accordion')).toHaveCount(6);
+    // Robot, Pista, Controlador, Gráficas y «Guardar y compartir»: cinco acordeones (sin «Lecturas» desde la 1.5).
+    await expect(page.getByTestId('sim-accordion')).toHaveCount(5);
     await expect(page.getByRole('button', { name: /^Gráficas/ })).toBeVisible();
   });
 });

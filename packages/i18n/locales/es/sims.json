@@ -13,7 +13,7 @@
     "undo": "Deshacer",
     "redo": "Rehacer",
     "save": {
-      "open": "Guardar",
+      "open": "Guardar pista",
       "confirm": "Guardar",
       "name": "Nombre de la pista",
       "placeholder": "Mi pista",
@@ -23,15 +23,15 @@
       "limitReached": "Has llegado al máximo de 50 pistas guardadas; borra una antigua para guardar esta.",
       "saved": "Pista guardada"
     },
-    "exportJson": "Exportar JSON",
-    "importJson": "Importar JSON",
-    "loadInput": "Archivo de pista en JSON",
+    "exportJson": "Descargar archivo",
+    "importJson": "Abrir pista",
+    "loadInput": "Archivo de pista",
     "newTrack": "Nueva",
     "newConfirm": "¿Descartar la pista actual?",
     "newConfirmAccept": "Descartar",
     "newConfirmCancel": "Cancelar",
-    "preset": "Preset",
-    "presetApply": "Aplicar preset",
+    "preset": "Pista",
+    "presetApply": "Aplicar pista",
     "presetName": {
       "empty": "Vacía",
       "oval": "Óvalo",
@@ -39,15 +39,15 @@
       "tightCurves": "Curvas cerradas",
       "crossing": "Cruce"
     },
-    "presetConfirm": "Hay cambios sin guardar. ¿Sustituir la pista por el preset?",
+    "presetConfirm": "Hay cambios sin guardar. ¿Sustituir la pista por la elegida?",
     "presetConfirmAccept": "Sustituir",
     "presetConfirmCancel": "Cancelar",
-    "segment": "Segmento seleccionado",
+    "segment": "Segmentos de la pista",
     "segmentTitle": {
       "line": "Segmento {{index}} · recta",
       "arc": "Segmento {{index}} · arco"
     },
-    "noSegment": "Ningún segmento seleccionado.",
+    "noSegment": "Selecciona un segmento para editarlo.",
     "field": {
       "fromX": "Inicio x (m)",
       "fromY": "Inicio y (m)",
@@ -68,6 +68,9 @@
     "segments": "Segmentos de la pista",
     "segmentLine": "Segmento {{index}}: recta",
     "segmentArc": "Segmento {{index}}: arco",
+    "measureLine": "{{length}} m",
+    "measureArc": "radio {{radius}} m",
+    "totalLength": "Longitud total: {{length}} m",
     "noSegments": "La pista no tiene segmentos.",
     "segmentBar": "Acciones del segmento seleccionado",
     "flipArc": "Invertir sentido",
@@ -79,12 +82,7 @@
   "lineFollower": {
     "scene": "Escena del seguidor de línea: la pista, el robot con sus sensores y la traza recorrida.",
     "sensors": "Sensores",
-    "lost": "El arreglo ha perdido la línea.",
     "controllerGroup": "Controlador",
-    "custom": "Propio",
-    "customBadge": "v2",
-    "customTitle": "Disponible en la versión 2",
-    "customHint": "«Propio», con el código de tu controlador, estará disponible en la versión 2.",
     "controller": {
       "manual": "Manual",
       "onoff": "On/off",
@@ -99,6 +97,15 @@
       "kd": "Kd",
       "iMax": "Límite integral",
       "threshold": "Umbral"
+    },
+    "help": {
+      "omegaBase_radps": "Qué tan rápido avanza el robot en recta. Más rápido, más difícil seguir la curva.",
+      "delta_radps": "Cuánto se acelera una rueda y se frena la otra al corregir.",
+      "kp": "Cuánto corrige según el error de ahora. Muy alto, el robot zigzaguea.",
+      "ki": "Corrige el error que se acumula. Muy alto, se pasa de largo y oscila.",
+      "kd": "Frena la corrección cuando el error cambia rápido. Suaviza el zigzag.",
+      "iMax": "Tope de lo que puede acumular la parte integral.",
+      "threshold": "Lectura del sensor a partir de la cual se considera que ve la línea."
     },
     "unit": {
       "omegaBase_radps": "rad/s",
@@ -128,12 +135,25 @@
     "termP": "P",
     "termI": "I",
     "termD": "D",
+    "lapMark": "V{{n}}",
+    "guide": {
+      "error": "Cómo leerla: dónde está la línea bajo los sensores, de −1 (toda a la izquierda) a 1 (toda a la derecha). Cerca de 0 es seguirla bien; los picos son las curvas.",
+      "v": "Cómo leerla: la velocidad de avance. Plana, el controlador corrige sin frenar; si cae, una rueda llegó a su velocidad máxima y la otra ya no la compensa.",
+      "omega": "Cómo leerla: qué tan rápido gira el robot. Positiva gira a la izquierda; en una recta ronda 0 y en cada curva sube con el signo de la curva.",
+      "pid": "Cómo leerla: cuánto aporta cada término a la corrección de las ruedas. P sigue al error, I es el sesgo que acumula y D reacciona a los cambios bruscos."
+    },
     "lastLap": "Última vuelta",
     "bestLap": "Mejor vuelta",
     "avgSpeed": "Velocidad media",
     "distance": "Distancia recorrida",
-    "lineLost": "El robot ha perdido la línea y la simulación se ha detenido.",
+    "lineLost": "El robot perdió la línea y la simulación se detuvo. Prueba bajar la velocidad base o, con PID, subir Kd.",
     "summary": "Última {{last}} · mejor {{best}}"
+  },
+  "lapGoal": {
+    "recordLabel": "Tu récord en este navegador:",
+    "targetLabel": "Objetivo:",
+    "goal": "¡Objetivo logrado! Vuelta de {{time}} s.",
+    "record": "¡Nuevo récord! Vuelta de {{time}} s."
   },
   "arm": {
     "scene": "Escena 3D del brazo {{name}}: los eslabones, las articulaciones y los marcos de cada eslabón.",
@@ -165,7 +185,9 @@
     "jointShort": "T_art(q)",
     "table": "{{matrix}} del eslabón {{link}}, matriz 4×4",
     "summary": "{{matrix}} del eslabón {{link}}: {{values}}",
-    "baseLink": "base"
+    "baseLink": "base",
+    "legendRotation": "Bloque 3×3 de arriba a la izquierda: rotación",
+    "legendPosition": "columna de la derecha: posición (m)"
   },
   "armPage": {
     "title": "Simulador de brazo 3D",
@@ -191,6 +213,7 @@
   },
   "manual": {
     "pad": "Controles manuales",
+    "instructions": "Tú manejas el robot. Haz clic en el visor y pulsa Reproducir. Con ↑ y ↓ subes o bajas la velocidad base; con ← y → giras mientras mantienes la tecla; Espacio reproduce o pausa. En pantalla táctil usa los botones de flecha bajo el visor.",
     "help": "↑ ↓ velocidad base ±0.5 rad/s · ← → diferencia ±2 rad/s mientras se mantienen · Espacio reproduce o pausa",
     "key": {
       "up": "Subir la velocidad base",
@@ -215,7 +238,7 @@
     "savedError": "No se pudieron leer los robots guardados.",
     "track": "Pista",
     "trackSource": "Origen de la pista",
-    "preset": "Preset",
+    "preset": "Pista",
     "myTracks": {
       "group": "Mis pistas",
       "delete": "Borrar",
@@ -230,20 +253,18 @@
     "newTrack": "Nueva pista",
     "editorTitle": "Editor de pista",
     "editorBack": "Volver a la simulación",
-    "editorPanel": "Segmento",
-    "loadJson": "Cargar JSON",
-    "loadInput": "Archivo de pista en JSON",
+    "editorPanel": "Editar pista",
+    "loadJson": "Abrir pista",
+    "loadInput": "Archivo de pista",
     "loadError": "El archivo no es una pista válida: {{reason}}",
     "emptyTrackKept": "El editor quedó sin segmentos: se conserva la pista anterior.",
     "startPose": "Pose inicial sobre la pista",
     "startS": "Posición s (m)",
     "controller": "Controlador",
-    "readouts": "Lecturas",
     "plots": "Gráficas",
     "controls": "Controles de simulación",
     "expand": "ver",
     "collapse": "ocultar",
-    "summaryLaps": "{{laps}} vueltas · t {{time}} s",
     "readoutsEmpty": "Todavía no hay lecturas; pulsa Reproducir.",
     "loading": "Cargando el simulador…"
   },

@@ -51,11 +51,11 @@ describe('JointSliders (F5-01a)', () => {
     ).toBe(true);
   });
 
-  test('etiqueta legible de la ficha con el id URDF como texto auxiliar (#535)', () => {
+  test('etiqueta legible de la ficha, sin el id URDF al lado (#535)', () => {
     const labels = new Map([['joint1', 'Articulación 1']]);
     const params = jointParams(JOINTS, [0, 0], '°', labels);
     expect(params[0]?.label).toBe('Articulación 1');
-    expect(params[0]?.description).toBe('joint1');
+    expect(params[0]?.description).toBeUndefined();
     // Without a readable label, the URDF id is the label and there is no auxiliary text.
     expect(params[1]?.label).toBe('joint2');
     expect(params[1]?.description).toBeUndefined();

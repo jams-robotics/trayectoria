@@ -2,6 +2,7 @@ import type { RobotSpec } from '@trayectoria/robot-spec';
 import type { Exercise } from '@trayectoria/sim-core';
 
 import { robotCalcs as ruta1M00T01RobotCalcs } from './es/ruta-1/m00-t01/alrobot';
+import { choiceExercises } from './es/opcion-multiple';
 import { exercises as ruta1M00T01Exercises } from './es/ruta-1/m00-t01/ejercicios';
 import { robotCalcs as ruta1M00T02RobotCalcs } from './es/ruta-1/m00-t02/alrobot';
 import { exercises as ruta1M00T02Exercises } from './es/ruta-1/m00-t02/ejercicios';
@@ -134,7 +135,7 @@ function registerById<T extends { readonly id: string }>(
  * exercises of its `content/es/<ruta>/<mNN-tNN>/ejercicios.ts`, or `content/es/reserva/<slug>/` for
  * a topic in the reserve (docs/ARCHITECTURE.md §3.3).
  */
-export const EXERCISES: ReadonlyMap<string, TopicExercise> = registerTopics({
+const NUMERIC_EXERCISES: Readonly<Record<string, readonly TopicExercise[]>> = {
   'ruta-1/m00-t01': ruta1M00T01Exercises,
   'ruta-1/m00-t02': ruta1M00T02Exercises,
   'ruta-1/m00-t03': ruta1M00T03Exercises,
@@ -162,7 +163,16 @@ export const EXERCISES: ReadonlyMap<string, TopicExercise> = registerTopics({
   'ruta-2/m02-t05': ruta2M02T05Exercises,
   'reserva/caida-libre': caidaLibreExercises,
   'reserva/tiro-parabolico': tiroParabolicoExercises,
-});
+};
+
+export const EXERCISES: ReadonlyMap<string, TopicExercise> = registerTopics(
+  Object.fromEntries(
+    Object.entries(NUMERIC_EXERCISES).map(([topicId, list]) => [
+      topicId,
+      [...list, ...(choiceExercises[topicId] ?? [])],
+    ]),
+  ),
+);
 
 /**
  * Every «Al robot» calc, keyed `<topicId>/<calcId>`. Each topic adds one entry here with the

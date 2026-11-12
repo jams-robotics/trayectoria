@@ -1,9 +1,12 @@
 import type { JSX } from 'react';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
+import { maxWheelSpeed_radps } from '@trayectoria/sim-core';
+import type { MobileSpec } from '@trayectoria/robot-spec';
 import { Plot } from '@trayectoria/widgets';
-import type { PlotSeries, RingBuffer } from '@trayectoria/widgets';
+import type { PlotSeries, PlotVLine, RingBuffer } from '@trayectoria/widgets';
 
+import type { Lap } from './metrics';
 import type { LineFollowerPlot } from './plots';
 import { PLOT_WINDOW_S } from './useInstruments';
 import type { InstrumentBuffers } from './useInstruments';
@@ -72,6 +75,34 @@ export interface InstrumentsProps {
    * then, so without it it is omitted even if `show` asks for it.
    */
   readonly pid?: boolean;
+  /** Laps closed so far: each one draws a vertical mark at the time it ended (v1.5). */
+  readonly laps?: readonly Lap[];
+  /** The robot, for the full range of `v`, `ω` and the PID terms (v1.5). */
+  readonly spec?: MobileSpec | undefined;
+}
+
+/** The largest values the robot can reach: the physical range of each plot (v1.5). */
+export interface PlotLimits {
+  readonly v_mps: number;
+  readonly omega_radps: number;
+  /** Largest wheel correction of the PID, in rad/s: the wheel speed limit. */
+  readonly wheel_radps: number;
+}
+
+/** The limits of a mobile spec: `ω_max` of the wheel, `v_max = ω_max r`, `ω_max = 2 v_max / L`. */
+export function limitsOf(spec: MobileSpec): PlotLimits {
+  const wheel_radps = maxWheelSpeed_radps(spec);
+  const v_mps = wheel_radps * spec.wheelRadius_m;
+  return { v_mps, omega_radps: (2 * v_mps) / spec.wheelBase_m, wheel_radps };
+}
+
+/** Physical range of a plot; the error is the line position, normalised to `[-1, 1]`. */
+function fullRangeOf(id: LineFollowerPlot, limits: PlotLimits | undefined): readonly [number, number] | undefined {
+  if (id === 'error') return [-1, 1];
+  if (limits === undefined) return undefined;
+  if (id === 'v') return [0, Number(limits.v_mps.toFixed(2))];
+  if (id === 'omega') return [-Number(limits.omega_radps.toFixed(1)), Number(limits.omega_radps.toFixed(1))];
+  return [-Number(limits.wheel_radps.toFixed(0)), Number(limits.wheel_radps.toFixed(0))];
 }
 
 /**
@@ -79,10 +110,27 @@ export interface InstrumentsProps {
  * over the model rings, one sample per frame. On mobile they stack at 120 px each
  * (docs/DESIGN.md §9 item 8).
  */
-export function Instruments({ buffers, show, mobile = false, pid = false }: InstrumentsProps): JSX.Element {
+/** One mark per closed lap, at the simulated time it ended: the laps add up from `t = 0`. */
+function lapMarks(laps: readonly Lap[], t: Translate): readonly PlotVLine[] {
+  let end_s = 0;
+  return laps.map((lap, index) => {
+    end_s += lap.lapTime_s;
+    return { x: end_s, label: t('sims.instruments.lapMark', { n: index + 1 }) };
+  });
+}
+
+export function Instruments({
+  buffers,
+  show,
+  mobile = false,
+  pid = false,
+  laps = [],
+  spec,
+}: InstrumentsProps): JSX.Element {
   const t = useT();
   const height = mobile ? MOBILE_PLOT_HEIGHT_PX : PLOT_HEIGHT_PX;
   const drawn = PLOTS.filter(({ id }) => show.includes(id) && (id !== 'pid' || pid));
+  const limits = spec === undefined ? undefined : limitsOf(spec);
   return (
     // uPlot measures its container and sets a pixel width on the canvas that it then never
     // shrinks again. Placed in a flexible column that feeds back on itself —the plot pushes, the column
@@ -91,16 +139,15 @@ export function Instruments({ buffers, show, mobile = false, pid = false }: Inst
     // the loop: the plot never contributes a minimum width, so it measures the one the column already had.
     <div className="flex w-full min-w-0 flex-col gap-3" data-testid="line-follower-plots">
       {drawn.map(({ id, buffer, series }) => (
-        <div
-          key={id}
-          className="w-0 min-w-full overflow-hidden"
-          data-testid={`plot-${id}`}
-        >
+        <div key={id} className="w-0 min-w-full overflow-hidden" data-testid={`plot-${id}`}>
           <Plot
             x={{ label: t('sims.instruments.time'), unit: 's' }}
             series={series(t)}
             live={{ buffer: buffer(buffers), windowSeconds: PLOT_WINDOW_S }}
             height={height}
+            vLines={lapMarks(laps, t)}
+            fullRange={fullRangeOf(id, limits)}
+            guide={t(`sims.instruments.guide.${id}`)}
           />
         </div>
       ))}

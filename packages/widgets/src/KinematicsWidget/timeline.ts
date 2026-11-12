@@ -55,7 +55,7 @@ export function useTimeline(duration_s: number, initialTime_s: number): Timeline
 
   const atEnd = driver.state.t_s >= duration_s;
   useEffect(() => {
-    if (atEnd && driver.running) driver.pause();
+    if (atEnd && driver.running) driver.finish();
   }, [atEnd, driver]);
 
   return {

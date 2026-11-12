@@ -46,8 +46,9 @@ describe('ViewControls (#537)', () => {
     const order = [...html.matchAll(/data-testid="([a-z]+-toggle)"/g)].map((match) => match[1]);
     expect(order).toEqual(['workspace-toggle', 'matrices-toggle', 'frames-toggle']);
     const group = html.match(/<div[^>]*role="group"[^>]*>/)?.[0] ?? '';
-    expect(group).toContain('divide-x');
-    expect(group).not.toContain('flex-wrap');
+    // Separate switches with a check box each, not a segmented (tab-like) group.
+    expect(group).not.toContain('divide-x');
+    expect(html.match(/✓/g)).not.toBeNull();
   });
 
   test('an active toggle is filled with `primary`, whichever it is', () => {
@@ -70,6 +71,6 @@ describe('ViewControls (#537)', () => {
     // «Marcos» renders after the header, inside the accordion panel.
     expect(html.indexOf('data-testid="frames-toggle"')).toBeGreaterThan(html.indexOf(header));
     // 44 px touch targets on mobile (docs/DESIGN.md §9.3).
-    expect(buttonTag(html, 'frames-toggle')).toContain('h-11');
+    expect(buttonTag(html, 'frames-toggle')).toContain('h-[44px]');
   });
 });

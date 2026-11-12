@@ -52,6 +52,15 @@ export interface PlotMarker {
   label?: string;
 }
 
+/**
+ * Vertical rule with a label at a given x, such as a lap or a curve (v1.5). Drawn dashed over
+ * the plot area; `label` is caller data and is painted as given.
+ */
+export interface PlotVLine {
+  x: number;
+  label: string;
+}
+
 export interface PlotProps {
   x: PlotAxis;
   series: readonly PlotSeries[];
@@ -62,4 +71,25 @@ export interface PlotProps {
   /** Plot area height in CSS pixels; 200 in a simulator (docs/DESIGN.md §5). */
   height?: number;
   marker?: PlotMarker;
+  /** Labelled vertical rules (laps, curves) at given x values (v1.5). */
+  vLines?: readonly PlotVLine[];
+  /** Name of the chart in the header; without it, «Gráfica de» and the series names (v1.5). */
+  title?: string;
+  /**
+   * Value readout under the pointer and with the arrow keys (v1.5). On by default; `false`
+   * turns it off.
+   */
+  readout?: boolean;
+  /**
+   * Fixed range of the vertical axis, `[min, max]`; without it the axis fits the data (v1.5).
+   * Lets the learner see a small wobble at the scale of the whole quantity.
+   */
+  yRange?: readonly [number, number];
+  /**
+   * Physical range of the quantity, `[min, max]` (v1.5). With it the chart offers «Ajustar a
+   * los datos» or «Rango completo» and says when the fitted axis magnifies the variation.
+   */
+  fullRange?: readonly [number, number] | undefined;
+  /** One line under the chart, inside its card, on how to read it (v1.5). */
+  guide?: string | undefined;
 }

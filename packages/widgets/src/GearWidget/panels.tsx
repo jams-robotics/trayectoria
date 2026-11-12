@@ -77,6 +77,9 @@ export function applyChange(train: Train, key: string, value: number): Train {
   return train;
 }
 
+/** Rows in view: the ratios, the output speed and torque, and the direction (v1.5). */
+const VISIBLE_ROWS: Readonly<Record<GearStages, number>> = { 1: 4, 2: 6 };
+
 /** The values panel of the train: ratios, output speed, torque, powers and direction. */
 export function ResultsPanel({
   stages,
@@ -88,6 +91,10 @@ export function ResultsPanel({
   t: Translate;
 }): JSX.Element {
   return (
-    <ReadoutPanel title={t('widgets.GearWidget.panel')} rows={panelRows(stages, train, t)} />
+    <ReadoutPanel
+      title={t('widgets.GearWidget.panel')}
+      rows={panelRows(stages, train, t)}
+      visibleRows={VISIBLE_ROWS[stages]}
+    />
   );
 }

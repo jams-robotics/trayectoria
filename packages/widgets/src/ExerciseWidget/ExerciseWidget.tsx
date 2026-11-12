@@ -1,12 +1,15 @@
+import { useId } from 'react';
 import type { JSX } from 'react';
-import type { Exercise } from '@trayectoria/sim-core';
+import type { Choices, Exercise } from '@trayectoria/sim-core';
 import { useT } from '@trayectoria/i18n';
 import type { Translate } from '@trayectoria/i18n';
 
+import { hintText, solutionText } from './feedback';
 import { AnswerField, ResultLine } from './fields';
 import type { ExerciseStatus } from './fields';
 import { unitAt, useExercise } from './state';
 import type { ExerciseState } from './state';
+import { withSubscripts } from './subscripts';
 
 // Button of docs/DESIGN.md §5, 44 px like its field: primary while the response is pending, ghost
 // once it is correct (#540).
@@ -34,11 +37,13 @@ function announcement(state: ExerciseState, t: Translate): string {
   if (state.status === 'correct') return t('widgets.ExerciseWidget.correct');
   if (state.status !== 'incorrect') return '';
   const line = t('widgets.ExerciseWidget.incorrect');
-  const hint = t('widgets.ExerciseWidget.hint');
-  return `${line} · ${hint} · ${t('widgets.ExerciseWidget.attempt', { n: state.attempt })}`;
+  const hint = hintText(state, t);
+  const attempt = t('widgets.ExerciseWidget.attempt', { n: state.attempt });
+  const solution = solutionText(state, t);
+  return [line, hint, attempt, ...(solution === null ? [] : [solution])].join(' · ');
 }
 
-/** Statement of the instance, with the `E{n}` prefix and the «obligatorio» tag when they apply. */
+/** Statement of the instance, under one line with the `E{n}` number and «obligatorio» when they apply. */
 function Statement({
   state,
   index,
@@ -50,18 +55,18 @@ function Statement({
   required: boolean;
   t: Translate;
 }): JSX.Element {
+  const number = index === undefined ? null : t('widgets.ExerciseWidget.number', { n: index });
+  const tag = required ? t('widgets.ExerciseWidget.required') : null;
+  const header = [number, tag].filter((part) => part !== null).join(' · ');
   return (
-    <p className="text-fg flex flex-wrap items-baseline gap-2 text-base">
-      {index === undefined ? null : (
-        <span className="text-fg-muted font-mono text-xs">
-          {t('widgets.ExerciseWidget.number', { n: index })}
-        </span>
+    <div className="text-fg flex flex-col gap-1">
+      {header === '' ? null : (
+        <p className="text-fg-muted m-0 font-mono text-xs leading-none">{header}</p>
       )}
-      <span data-testid="exercise-statement">{t(state.statementKey, state.params)}</span>
-      {required ? (
-        <span className="text-fg-muted text-xs">{t('widgets.ExerciseWidget.required')}</span>
-      ) : null}
-    </p>
+      <p className="m-0 text-base" data-testid="exercise-statement">
+        {withSubscripts(t(state.statementKey, state.params))}
+      </p>
+    </div>
   );
 }
 
@@ -92,29 +97,47 @@ function fieldStatus(
 }
 
 /**
- * One numeric field per answer component, «Comprobar», the result and, at the end of the same
- * row, «Nuevos valores» as a tertiary action (docs/DESIGN.md §5, #540).
+ * One numeric field per answer component, «Comprobar», the result and, at the end of the row,
+ * «Nuevos valores» as a tertiary action (docs/DESIGN.md §5, #540). With several fields the actions
+ * always take their own row, so the card looks the same whatever the labels measure (v1.5).
  */
 function AnswerRow({ state, t }: { state: ExerciseState; t: Translate }): JSX.Element {
   const status: ExerciseStatus = state.status;
+  const row = state.values.length > 1 ? 'flex flex-wrap items-center gap-3' : 'contents';
   return (
-    <div className="mt-4 flex flex-wrap items-center gap-3">
-      {state.values.map((value, position) => (
-        <AnswerField
-          key={position}
-          index={position}
-          count={state.values.length}
-          value={value}
-          unit={unitAt(state.unit, position)}
-          label={state.labels?.[position]}
-          status={fieldStatus(status, state.componentCorrect, position)}
-          invalid={state.invalid}
-          t={t}
-          onChange={(next) => {
-            state.edit(position, next);
-          }}
-        />
-      ))}
+    <div
+      className={`mt-4 flex gap-3 ${row === 'contents' ? 'flex-wrap items-center' : 'flex-col'}`}
+    >
+      <div className={row}>
+        {state.values.map((value, position) => (
+          <AnswerField
+            key={position}
+            index={position}
+            count={state.values.length}
+            value={value}
+            unit={unitAt(state.unit, position)}
+            label={state.labels?.[position]}
+            status={fieldStatus(status, state.componentCorrect, position)}
+            invalid={state.invalid}
+            t={t}
+            onChange={(next) => {
+              state.edit(position, next);
+            }}
+          />
+        ))}
+      </div>
+      <div className={row}>
+        <AnswerActions state={state} t={t} />
+      </div>
+    </div>
+  );
+}
+
+/** «Comprobar», the result and, last, «Nuevos valores». */
+function AnswerActions({ state, t }: { state: ExerciseState; t: Translate }): JSX.Element {
+  const status: ExerciseStatus = state.status;
+  return (
+    <>
       <button
         type="button"
         className={status === 'correct' ? GHOST : PRIMARY}
@@ -127,7 +150,102 @@ function AnswerRow({ state, t }: { state: ExerciseState; t: Translate }): JSX.El
       <button type="button" className={TERTIARY} onClick={state.regenerate}>
         {t('widgets.ExerciseWidget.regenerate')}
       </button>
+    </>
+  );
+}
+
+/** The options of a multiple-choice exercise as radios; the selected index is the answer text. */
+function ChoiceOptions({
+  state,
+  choices,
+  t,
+}: {
+  state: ExerciseState;
+  choices: Choices;
+  t: Translate;
+}): JSX.Element {
+  const name = useId();
+  return (
+    <fieldset className="m-0 grid gap-2 border-0 p-0">
+      <legend className="sr-only">{t('widgets.ExerciseWidget.choices')}</legend>
+      {choices.options.map((option, position) => (
+        <label
+          key={option}
+          className="border-border hover:border-fg-muted flex cursor-pointer items-start gap-3 rounded-md border px-3 py-2 text-sm"
+        >
+          <input
+            type="radio"
+            name={name}
+            className="mt-1"
+            checked={state.values[0] === String(position)}
+            disabled={state.status === 'checking'}
+            onChange={() => {
+              state.edit(0, String(position));
+            }}
+          />
+          <span>{withSubscripts(t(option))}</span>
+        </label>
+      ))}
+    </fieldset>
+  );
+}
+
+/**
+ * Multiple-choice exercise: options, «Comprobar», the result and, once answered, the
+ * explanation (v1.5).
+ */
+function ChoiceRow({
+  state,
+  choices,
+  t,
+}: {
+  state: ExerciseState;
+  choices: Choices;
+  t: Translate;
+}): JSX.Element {
+  const status: ExerciseStatus = state.status;
+  return (
+    <div className="mt-4">
+      <ChoiceOptions state={state} choices={choices} t={t} />
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          className={status === 'correct' ? GHOST : PRIMARY}
+          disabled={status === 'checking'}
+          onClick={state.verify}
+        >
+          {t('widgets.ExerciseWidget.verify')}
+        </button>
+        <ResultLine status={status} relativeError={state.relativeError} t={t} />
+      </div>
+      {state.invalid ? (
+        <p className="text-error mt-2 text-sm">{t('widgets.ExerciseWidget.chooseOne')}</p>
+      ) : null}
+      {status === 'correct' || status === 'incorrect' ? (
+        <p className="text-fg-muted mt-2 text-sm" data-testid="exercise-explanation">
+          {withSubscripts(t(choices.explanation))}
+        </p>
+      ) : null}
     </div>
+  );
+}
+
+/** Under a wrong numeric answer: the hint, the attempt and, from the third one, the solution. */
+function Feedback({ state, t }: { state: ExerciseState; t: Translate }): JSX.Element {
+  const solution = solutionText(state, t);
+  return (
+    <p className="text-fg-muted mt-2 text-sm">
+      <span data-testid="exercise-hint">{hintText(state, t)}</span>
+      {' · '}
+      <span data-testid="exercise-attempt">
+        {t('widgets.ExerciseWidget.attempt', { n: state.attempt })}
+      </span>
+      {solution === null ? null : (
+        <span data-testid="exercise-solution" className="text-fg ml-2 font-semibold">
+          {solution}
+        </span>
+      )}
+    </p>
   );
 }
 
@@ -150,25 +268,23 @@ export function ExerciseWidget<V>({
 
   return (
     <section
-      className="bg-bg-raised border-border rounded-lg border p-6"
+      className="bg-bg-raised border-border rounded-lg border px-6 pt-4 pb-6"
       data-testid="exercise"
       data-status={state.status}
       aria-label={t('widgets.ExerciseWidget.title')}
     >
       <Statement state={state} index={index} required={required} t={t} />
-      <PrecisionNote t={t} />
-      <AnswerRow state={state} t={t} />
-      {state.invalid ? (
+      {exercise.choices === undefined ? <PrecisionNote t={t} /> : null}
+      {exercise.choices === undefined ? (
+        <AnswerRow state={state} t={t} />
+      ) : (
+        <ChoiceRow state={state} choices={exercise.choices} t={t} />
+      )}
+      {state.invalid && exercise.choices === undefined ? (
         <p className="text-error mt-2 text-sm">{t('widgets.ExerciseWidget.invalid')}</p>
       ) : null}
-      {state.status === 'incorrect' ? (
-        <p className="text-fg-muted mt-2 text-sm">
-          <span data-testid="exercise-hint">{t('widgets.ExerciseWidget.hint')}</span>
-          {' · '}
-          <span data-testid="exercise-attempt">
-            {t('widgets.ExerciseWidget.attempt', { n: state.attempt })}
-          </span>
-        </p>
+      {state.status === 'incorrect' && exercise.choices === undefined ? (
+        <Feedback state={state} t={t} />
       ) : null}
       <p className="sr-only" role="status" aria-live="polite">
         {announcement(state, t)}

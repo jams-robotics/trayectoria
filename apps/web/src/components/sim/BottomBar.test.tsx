@@ -27,6 +27,7 @@ function createDriver(
     running: false,
     play: vi.fn(),
     pause: vi.fn(),
+    finish: vi.fn(),
     step: vi.fn(),
     reset: vi.fn(),
     speed: 1,

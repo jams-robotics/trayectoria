@@ -15,7 +15,7 @@ import {
   turningRadius_m,
   wheelSpeed_mps,
 } from './compute';
-import type { Pose, Twist, WheelCommand } from './compute';
+import type { DiffDriveMode, Pose, Twist, WheelCommand } from './compute';
 import { VELOCITY_SAMPLE_S, headingError_deg, positionError_m } from './odometry';
 import type { EstimatedVelocity, Step, Ticks } from './odometry';
 import type { ManeuverPhase } from './maneuver';
@@ -46,23 +46,44 @@ export function radiusText(twist: Twist, t: Translate): string {
   return format(radius_m, t('widgets.DiffDriveWidget.unitM'));
 }
 
-/** The pose, the twist, the radius and the wheel commands: the panel of #92, decision 6. */
-export function poseRows(readout: Readout, spec: MobileSpec, t: Translate): readonly ReadoutRow[] {
+/** Rows of the pose panel that stay in view: `x, y, θ` and two more (v1.5). */
+export const POSE_ESSENTIAL_ROWS = 5;
+
+/**
+ * The pose, the twist, the radius and the wheel commands: the panel of #92, decision 6. In
+ * `inverse` the twist is what the sliders set, so the two lines that come out of it, the speed
+ * of each wheel, take the place of `v` and `ω` in view (v1.5).
+ */
+export function poseRows(
+  readout: Readout,
+  spec: MobileSpec,
+  t: Translate,
+  mode: DiffDriveMode = 'forward',
+): readonly ReadoutRow[] {
   const key = (name: string): string => t(`widgets.DiffDriveWidget.${name}`);
   const unitM = key('unitM');
   const unitRadps = key('unitRadps');
+  const twist: ReadoutRow[] = [
+    [key('v'), format(readout.twist.v_mps, key('unitMps'))],
+    [key('omega'), format(readout.twist.omega_radps, unitRadps)],
+  ];
+  const wheels: ReadoutRow[] = [
+    [key('vL'), format(wheelSpeed_mps(readout.command.omegaL_radps, spec), key('unitMps'))],
+    [key('vR'), format(wheelSpeed_mps(readout.command.omegaR_radps, spec), key('unitMps'))],
+  ];
+  const inverse = mode === 'inverse';
   return [
     [key('poseX'), format(readout.pose.x_m, unitM)],
     [key('poseY'), format(readout.pose.y_m, unitM)],
     [key('poseTheta'), format(radToDeg(readout.pose.theta_rad), key('unitDeg'))],
+    ...(inverse ? wheels : twist),
+    // From here on the rows sit behind «Más datos» (`POSE_ESSENTIAL_ROWS`).
+    ...(inverse ? twist : []),
     [key('poseThetaRad'), format(readout.pose.theta_rad, key('unitRad'))],
-    [key('v'), format(readout.twist.v_mps, key('unitMps'))],
-    [key('omega'), format(readout.twist.omega_radps, unitRadps)],
     [key('radius'), radiusText(readout.twist, t)],
     [key('omegaL'), format(readout.command.omegaL_radps, unitRadps)],
     [key('omegaR'), format(readout.command.omegaR_radps, unitRadps)],
-    [key('vL'), format(wheelSpeed_mps(readout.command.omegaL_radps, spec), key('unitMps'))],
-    [key('vR'), format(wheelSpeed_mps(readout.command.omegaR_radps, spec), key('unitMps'))],
+    ...(inverse ? [] : wheels),
   ];
 }
 
@@ -85,30 +106,29 @@ function pointText(point_m: readonly [number, number], t: Translate): string {
   });
 }
 
+/** The four terms of `R(θ)` as text, row by row: `r11, r12, r21, r22` (#92, decision 6). */
+export function matrixTerms(pose: Pose): readonly [string, string, string, string] {
+  const term = (value: number): string => format(snapToZero(value), '');
+  const [r11, r12, r21, r22] = rotationMatrix(pose.theta_rad);
+  return [term(r11), term(r12), term(r21), term(r22)];
+}
+
 /**
- * The extra lines of `show: ['frames']`: the four terms of `R(θ)` and the global coordinates of
- * the sensors of the spec, which come from `forwardOffset_m` and `spacing_m` (#92, decision 6).
+ * The extra lines of `show: ['frames']`: the global coordinates of the sensors of the spec,
+ * which come from `forwardOffset_m` and `spacing_m` (#92, decision 6). `R(θ)` is a matrix, so
+ * `matrixTerms` gives it its own layout.
  */
 export function frameRows(
   pose: Pose,
   spec: MobileSpec,
   t: Translate,
 ): readonly ReadoutRow[] {
-  const [r11, r12, r21, r22] = rotationMatrix(pose.theta_rad);
-  const term = (value: number): string => format(snapToZero(value), '');
-  const sensors = sensorPositions(spec).map(
+  return sensorPositions(spec).map(
     (point_m, index): ReadoutRow => [
       t('widgets.DiffDriveWidget.sensor', { index: String(index + 1) }),
       pointText(toGlobal(pose, point_m), t),
     ],
   );
-  return [
-    [t('widgets.DiffDriveWidget.matrixR11'), term(r11)],
-    [t('widgets.DiffDriveWidget.matrixR12'), term(r12)],
-    [t('widgets.DiffDriveWidget.matrixR21'), term(r21)],
-    [t('widgets.DiffDriveWidget.matrixR22'), term(r22)],
-    ...sensors,
-  ];
 }
 
 /** One sentence with the pose, `v`, `ω` and `R`, for the `aria-live` region (#92, decision 8). */
@@ -168,41 +188,55 @@ export interface OdometryReadout {
 /** Significant figures of the sampling period: `0.1 s`, as the hook of T2-0.1 writes it. */
 const SAMPLE_SIG_FIGS = 1;
 
+/** Rows of the odometry panel that stay in view: the estimated pose and both errors (v1.5). */
+export const ODOMETRY_ESSENTIAL_ROWS = 5;
+
 /**
  * The lines of the odometry panel: `Δs` and `Δθ` of the last step, the fixed `Δt` of the velocity
  * estimate and the velocity the encoders estimate over it (#567), the estimated pose and the two
  * errors against the real one (#93, decision 3; T-4.5). The real pose and the real velocity
  * already have their own panel.
+ *
+ * Five lines stay in view (`ODOMETRY_ESSENTIAL_ROWS`): the estimated pose and the errors, or with
+ * `velocityFirst` (the topic reads the velocity estimate, not the drift) the ticks, `Δt` and the
+ * estimated velocities (v1.5).
  */
 export function odometryRows(
   odometry: OdometryReadout,
   real: Pose,
   t: Translate,
+  velocityFirst = false,
 ): readonly ReadoutRow[] {
   const key = (name: string): string => t(`widgets.DiffDriveWidget.${name}`);
   const unitM = key('unitM');
   const unitMps = key('unitMps');
   const { estimated, step, velocity } = odometry;
-  return [
-    [key('deltaS'), format(step.deltaS_m, unitM)],
-    [key('deltaTheta'), format(step.deltaTheta_rad, key('unitRad'))],
-    [key('sampleDt'), format(VELOCITY_SAMPLE_S, key('unitS'), SAMPLE_SIG_FIGS)],
-    [key('estimatedVL'), format(velocity.left_mps, unitMps)],
-    [key('estimatedVR'), format(velocity.right_mps, unitMps)],
-    [key('estimatedV'), format(velocity.robot_mps, unitMps)],
+  const pose: ReadoutRow[] = [
     [key('estimatedX'), format(estimated.x_m, unitM)],
     [key('estimatedY'), format(estimated.y_m, unitM)],
     [key('estimatedTheta'), format(radToDeg(estimated.theta_rad), key('unitDeg'))],
     [key('positionError'), format(positionError_m(estimated, real), unitM)],
     [key('headingError'), format(headingError_deg(estimated, real), key('unitDeg'))],
-    [
-      key('ticks'),
-      t('widgets.DiffDriveWidget.point', {
-        x: String(odometry.ticks.left),
-        y: `${odometry.ticks.right} ${key('unitTicks')}`,
-      }),
-    ],
   ];
+  const steps: ReadoutRow[] = [
+    [key('deltaS'), format(step.deltaS_m, unitM)],
+    [key('deltaTheta'), format(step.deltaTheta_rad, key('unitRad'))],
+  ];
+  const velocities: ReadoutRow[] = [
+    [key('sampleDt'), format(VELOCITY_SAMPLE_S, key('unitS'), SAMPLE_SIG_FIGS)],
+    [key('estimatedVL'), format(velocity.left_mps, unitMps)],
+    [key('estimatedVR'), format(velocity.right_mps, unitMps)],
+    [key('estimatedV'), format(velocity.robot_mps, unitMps)],
+  ];
+  const ticks: ReadoutRow = [
+    key('ticks'),
+    t('widgets.DiffDriveWidget.point', {
+      x: String(odometry.ticks.left),
+      y: `${odometry.ticks.right} ${key('unitTicks')}`,
+    }),
+  ];
+  if (velocityFirst) return [ticks, ...velocities, ...pose, ...steps];
+  return [...pose, ...steps, ...velocities, ticks];
 }
 
 /** The `aria-live` sentence of `mode: 'odometry'`: the estimated pose and both errors. */

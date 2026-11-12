@@ -18,7 +18,7 @@ import {
   ticksAt,
 } from './odometry';
 import type { Calibration } from './odometry';
-import { odometryView } from './scene';
+import { odometryView } from './view';
 import { DT_S } from './timeline';
 
 /** Absolute tolerance of the golden values of the ticket (#93, decision 2). */
@@ -156,16 +156,22 @@ describe('DiffDriveWidget odometry (F2-09b)', () => {
     expect(positionError_m(estimated, real)).toBe(0);
   });
 
-  it('la vista de odometría se centra entre las dos poses y no se cierra del todo', () => {
-    const real: Pose = { x_m: 1.7, y_m: 2.8, theta_rad: 2 };
-    const estimated: Pose = { x_m: 1.65, y_m: 2.9, theta_rad: 2.1 };
-    const view = odometryView(real, estimated);
-    expect(view.centre_m).toEqual([(1.7 + 1.65) / 2, (2.8 + 2.9) / 2]);
-    // With both poses on top of it the view does not close in on the chassis: it stays at its minimum.
-    expect(odometryView(real, real).width_m).toBe(1.2);
-    // And with a large drift it stops widening at the maximum of the scene.
-    expect(odometryView(real, { ...real, x_m: real.x_m + 5 }).width_m).toBe(3);
-    expect(view.width_m).toBeGreaterThanOrEqual(1.2);
+  it('la vista de odometría encuadra las dos trazas enteras, sin tope de ancho (v1.5)', () => {
+    // A whole lap of 1.9 m radius: wider than the 2.4 m the other modes stop at.
+    const lap_m = Array.from({ length: 64 }, (_, i) => {
+      const a_rad = (i / 63) * 2 * Math.PI;
+      return [1.9 * Math.sin(a_rad), 1.9 * (1 - Math.cos(a_rad))] as const;
+    });
+    const drifted_m = lap_m.map(([x_m, y_m]) => [x_m * 1.03, y_m * 1.03] as const);
+    const real: Pose = { x_m: 0, y_m: 0, theta_rad: 0 };
+    const estimated: Pose = { x_m: 0.1, y_m: 0, theta_rad: 0 };
+    const aspect = 4 / 3;
+    const view = odometryView(real, estimated, lap_m, drifted_m, aspect);
+    for (const [x_m, y_m] of [...lap_m, ...drifted_m]) {
+      expect(Math.abs(x_m - view.centre_m[0])).toBeLessThanOrEqual(view.width_m / 2);
+      expect(Math.abs(y_m - view.centre_m[1])).toBeLessThanOrEqual(view.width_m / aspect / 2);
+    }
+    expect(view.width_m).toBeGreaterThan(2.4);
   });
 });
 

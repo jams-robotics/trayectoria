@@ -16,17 +16,17 @@ const RANGES = {
   mass: { min: 0.1, max: 3, step: 0.01 },
 } as const;
 
-/** The lines of the values panel, in the order of the catalogue entry. */
+/** The lines of the values panel; `P` and `m`, already on the sliders, go last (v1.5). */
 export function panelRows(lift: Lift, t_s: number, t: Translate): readonly ReadoutRow[] {
   const unitJ = t('widgets.PowerWidget.unitJ');
   return [
-    [t('widgets.PowerWidget.power'), format(lift.power_W, t('widgets.PowerWidget.unitW'))],
-    [t('widgets.PowerWidget.mass'), format(lift.mass_kg, t('widgets.PowerWidget.unitKg'))],
     [t('widgets.PowerWidget.speed'), format(liftSpeed(lift), t('widgets.PowerWidget.unitMps'))],
     [t('widgets.PowerWidget.height'), format(heightAt(lift, t_s), t('widgets.PowerWidget.unitM'))],
     [t('widgets.PowerWidget.potential'), format(potentialEnergyAt(lift, t_s), unitJ)],
     [t('widgets.PowerWidget.work'), format(workAt(lift, t_s), unitJ)],
     [t('widgets.PowerWidget.riseTime'), format(riseTime(lift), t('widgets.PowerWidget.unitS'))],
+    [t('widgets.PowerWidget.power'), format(lift.power_W, t('widgets.PowerWidget.unitW'))],
+    [t('widgets.PowerWidget.mass'), format(lift.mass_kg, t('widgets.PowerWidget.unitKg'))],
   ];
 }
 

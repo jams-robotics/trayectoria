@@ -29,22 +29,43 @@ export interface Curve {
 /** A full turn, in radians. */
 const TURN_RAD = 2 * Math.PI;
 
+/** Angular speed the acceleration of `angularAccel` stops at, in rpm (T-4.3: «tiempo hasta 200 rpm»). */
+export const TARGET_RPM = 200;
+
 export { G_MPS2, radpsToRpm, rpmToRadps };
 
-/** Angular speed in rad/s at `t_s`: constant, or `ω0 + α t` in `angularAccel` (T-4.3). */
+/**
+ * Time at which `angularAccel` reaches `TARGET_RPM` and stops accelerating, in seconds: `0` when it
+ * starts at or above it, infinite when `α` is not positive.
+ */
+function accelEnd_s(rotation: Rotation): number {
+  return timeToOmega(rotation, rpmToRadps(TARGET_RPM));
+}
+
+/**
+ * Angular speed in rad/s at `t_s`: constant, or `ω0 + α t` in `angularAccel` (T-4.3), which stops
+ * at the target speed and goes on at that speed.
+ */
 export function omegaAt(mode: RotationMode, rotation: Rotation, t_s: number): number {
   if (mode !== 'angularAccel') return rotation.omega_radps;
-  return rotation.omega_radps + rotation.alpha_radps2 * t_s;
+  return rotation.omega_radps + rotation.alpha_radps2 * Math.min(t_s, accelEnd_s(rotation));
+}
+
+/** Angular acceleration in rad/s² at `t_s`: `α` until the target speed, `0` after it (T-4.3). */
+export function alphaAt(rotation: Rotation, t_s: number): number {
+  return t_s < accelEnd_s(rotation) ? rotation.alpha_radps2 : 0;
 }
 
 /**
  * Angle swept in radians up to `t_s`: `θ = ω t` at constant speed (T-4.1) and
- * `θ = ω0 t + ½ α t²` while it accelerates (T-4.3).
+ * `θ = ω0 t + ½ α t²` while it accelerates (T-4.3), then `ω` times what is left of `t`.
  */
 export function angleAt(mode: RotationMode, rotation: Rotation, t_s: number): number {
-  const constant_rad = rotation.omega_radps * t_s;
-  if (mode !== 'angularAccel') return constant_rad;
-  return constant_rad + 0.5 * rotation.alpha_radps2 * t_s * t_s;
+  if (mode !== 'angularAccel') return rotation.omega_radps * t_s;
+  const accel_s = Math.min(t_s, accelEnd_s(rotation));
+  const accelerated_rad =
+    rotation.omega_radps * accel_s + 0.5 * rotation.alpha_radps2 * accel_s * accel_s;
+  return accelerated_rad + omegaAt(mode, rotation, t_s) * (t_s - accel_s);
 }
 
 /** Turns swept up to `t_s`: the angle over `2π` (T-4.1). */

@@ -123,8 +123,9 @@ export function DragHandle(props: DragHandleProps): JSX.Element {
       aria-label={label}
       data-handle={label}
       className={
-        'border-focus/0 hover:border-focus focus-visible:outline-focus absolute touch-none' +
-        ' cursor-grab rounded-full border-2 focus-visible:outline-2 focus-visible:outline-offset-2'
+        'border-focus/40 hover:border-focus hover:bg-focus/15 focus-visible:outline-focus absolute touch-none' +
+        ' cursor-grab active:cursor-grabbing rounded-full border-2 transition-colors duration-[120ms]' +
+        ' focus-visible:outline-2 focus-visible:outline-offset-2'
       }
       style={handleStyle(transform, [from[0] + value[0], from[1] + value[1]])}
       onKeyDown={onKeyDown}

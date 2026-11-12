@@ -10,6 +10,7 @@ import {
   phaseCommand,
   phaseDurations_s,
   planOf,
+  plannedPath,
 } from './maneuver';
 import type { ManeuverPlan } from './maneuver';
 import { DT_S } from './timeline';
@@ -140,5 +141,20 @@ describe('maniobra en tres movimientos (T-5.5, #394)', () => {
   test('las rapideces por defecto son 1 rad/s y 0.2 m/s', () => {
     expect(T55.omega_radps).toBe(1);
     expect(T55.v_mps).toBe(0.2);
+  });
+});
+
+describe('plannedPath (v1.5)', () => {
+  test('the preview ends where the model ends, from any start pose', () => {
+    const start = { x_m: 0.3, y_m: -0.1, theta_rad: degToRad(30) };
+    const { path_m, end } = plannedPath(start, T55);
+    expect(path_m[0]).toEqual([0.3, -0.1]);
+    expect(end.x_m).toBeCloseTo(0.3 + 0.2 * Math.cos(degToRad(120)), 12);
+    expect(end.y_m).toBeCloseTo(-0.1 + 0.2 * Math.sin(degToRad(120)), 12);
+    expect(end.theta_rad).toBe(start.theta_rad);
+    // From the origin it matches the golden end of T-5.5: (0, 0.2, 0).
+    const fromOrigin = plannedPath({ x_m: 0, y_m: 0, theta_rad: 0 }, T55).end;
+    expect(fromOrigin.x_m).toBeCloseTo(0, TOLERANCE_DIGITS);
+    expect(fromOrigin.y_m).toBeCloseTo(0.2, TOLERANCE_DIGITS);
   });
 });

@@ -18,80 +18,15 @@ seoDescription: "Aprende a describir la pose (x, y, θ) de un robot y a transfor
 ---
 
 <Gancho>
-Tu robot está en (1.2, 0.5) m apuntando a 30°, y su sensor central está 0.09 m delante del eje.
-¿Dónde está el sensor sobre la mesa?
+Tu sensor de línea está delante del eje del robot, y sus coordenadas sobre la mesa cambian cada vez
+que el robot se mueve o gira, aunque el sensor no se despegue de él. Tu reto: pon la orientación
+inicial en 90° y averigua cómo cambian las coordenadas del sensor en la mesa y en el robot.
 </Gancho>
 
-<Concepto>
-Para ubicar algo sobre la mesa necesitas un **marco de referencia**: un origen y dos ejes. El
-**marco global** \{G\} está fijo a la mesa, con X a la derecha e Y hacia arriba. El **marco del
-robot** \{R\} viaja con el robot: su origen está en el punto medio del eje de las ruedas, X apunta
-hacia adelante e Y hacia la izquierda. Los ángulos son antihorarios positivos.
-
-La **pose** del robot es (x, y, θ): la posición del origen de \{R\} en \{G\} más su orientación θ, el
-ángulo del eje X de \{R\} medido desde el eje X de \{G\}.
-
-Un punto fijo al robot, como un sensor, tiene coordenadas constantes en \{R\}: el sensor central
-del gancho está en p⃗_R = (0.09, 0) m. Para pasarlo a \{G\} lo rotas θ y lo trasladas. La rotación
-es la del recuadro de [Vectores](/ruta/ruta-1/m00/t02), por componentes, y la traslación suma la
-posición del robot: p_\{G,x\} = x + p_\{R,x\}·cosθ − p_\{R,y\}·sinθ y
-p_\{G,y\} = y + p_\{R,x\}·sinθ + p_\{R,y\}·cosθ.
-
-Con cos 30° = 0.866 y sin 30° = 0.5, girar (0.09, 0) m da
-(0.09·0.866 − 0·0.5, 0.09·0.5 + 0·0.866) = (0.0779, 0.045) m. Sumando (1.2, 0.5) m, el sensor
-queda en (1.278, 0.545) m.
-
-La **matriz de rotación** R(θ) escribe esas dos ecuaciones de forma compacta:
-p⃗_G = p⃗_\{R,0\} + R(θ)·p⃗_R, con p⃗_\{R,0\} = (x, y). Cada fila multiplica al vector: la
-primera, (0.866, −0.5), da 0.866·0.09 − 0.5·0 = 0.0779, y la segunda, (0.5, 0.866), da
-0.5·0.09 + 0.866·0 = 0.045. Son los mismos números.
-
-La transformación inversa deshace los pasos al revés: restas p⃗_\{R,0\} y rotas con −θ,
-que solo cambia el signo de los senos. Por eso R(−θ) es la traspuesta de R(θ).
-
-El **rumbo** θ_objetivo hacia un objetivo (x_o, y_o) es el ángulo de la recta que va del robot al
-objetivo. Se calcula con atan2, que conserva el cuadrante que la arcotangente simple pierde.
-
-El simulador de brazo usa este mismo mecanismo en 3D, encadenando rotaciones y traslaciones de un
-marco al siguiente.
-</Concepto>
-
-<Formulas>
-<Formula latex="\begin{aligned} p_{G,x} &= x + p_{R,x}\cos\theta - p_{R,y}\sin\theta\\ p_{G,y} &= y + p_{R,x}\sin\theta + p_{R,y}\cos\theta \end{aligned}" />
-
-- `p_{G,x}`, `p_{G,y}` · componentes del punto en \{G\} · m
-- `p_{R,x}`, `p_{R,y}` · componentes del punto en \{R\} · m
-- `x, y` · posición del robot en \{G\} · m
-- `θ` · orientación del robot · rad
-
-<Formula latex="R(\theta) = \begin{pmatrix}\cos\theta & -\sin\theta\\ \sin\theta & \cos\theta\end{pmatrix}" />
-
-- `R(θ)` · matriz de rotación 2D · —
-- `θ` · orientación del robot · rad
-
-<Formula latex="\vec p_G = \vec p_{R,0} + R(\theta)\,\vec p_R" />
-
-- `p⃗_G, p⃗_R` · un punto expresado en \{G\} y en \{R\} · m
-- `p⃗_{R,0}` · origen de \{R\} en \{G\}: el (x, y) de la pose · m
-- `R(θ)` · matriz de rotación 2D · —
-
-<Formula latex="\vec p_R = R(-\theta)\,(\vec p_G - \vec p_{R,0})" />
-
-- `p⃗_R, p⃗_G` · un punto expresado en \{R\} y en \{G\} · m
-- `p⃗_{R,0}` · origen de \{R\} en \{G\}: el (x, y) de la pose · m
-- `R(−θ)` · matriz de rotación 2D con el ángulo −θ · —
-
-<Formula latex="\theta_{objetivo} = \operatorname{atan2}(y_o - y, x_o - x)" />
-
-- `θ_objetivo` · rumbo hacia un objetivo · rad
-- `(x_o, y_o)` · punto objetivo · m
-- `x, y` · posición del robot en \{G\} · m
-</Formulas>
-
 <Explora>
-El robot de tu perfil avanza en curva durante 6 s, con ω_L = 6 rad/s y ω_R = 8 rad/s. El
-simulador dibuja los ejes de \{G\} y de \{R\}, la trayectoria recorrida y un panel de marcos con la
-matriz R(θ) y las coordenadas de los sensores en ambos marcos.
+El robot de tu perfil avanza en curva durante 6 s, con las ruedas a 6 y 8 rad/s. El simulador
+dibuja los ejes de la mesa, \{G\}, y del robot, \{R\}, la trayectoria recorrida y un panel de marcos
+con la matriz de rotación R(θ) y las coordenadas de los sensores en ambos marcos.
 
 <DiffDriveWidget
   mode="forward"
@@ -112,16 +47,17 @@ y no depende de la pose.
 
 <Experimento
   cambia="la posición del robot: arrástralo a otro punto"
-  observa="la fila «Sensor 1» del panel de marcos, el sensor izquierdo extremo"
+  observa="la fila «Sensor 1 en el marco global» del panel de marcos, el sensor izquierdo extremo"
   porque="¿Por qué cambian sus coordenadas en {G} y no las de {R}?"
 >
 El sensor está fijo al robot, así que en \{R\} sus coordenadas son siempre las del perfil:
-(0.09, 0.024) m con el robot de referencia. En \{G\} dependen de la pose, porque
-p⃗_G = p⃗_\{R,0\} + R(θ)·p⃗_R.
+(0.09, 0.024) m con el robot de referencia. En \{G\} dependen de la pose, porque se obtienen girando el punto según la orientación del robot
+y sumando su posición.
 </Experimento>
 
 <Experimento
-  cambia="la orientación inicial θ₀ a 90°"
+  cambia="la «Orientación inicial» θ₀ a 90°"
+  aplica={{ theta: 90 }}
   observa="la matriz R(θ) del panel de marcos"
   porque="¿Por qué la x del robot pasa a ser la y del mundo?"
 >
@@ -131,13 +67,77 @@ es avanzar en y de \{G\}.
 </Experimento>
 </Explora>
 
+<Concepto>
+Viste que los ejes del robot se mueven con él y los de la mesa no, y que el sensor cambia de
+coordenadas en la mesa pero no en el robot. Para ubicar algo sobre la mesa necesitas un **marco de
+referencia**: un origen y dos ejes. El **marco global** \{G\} está fijo a la mesa, con X a la
+derecha e Y hacia arriba. El **marco del robot** \{R\} viaja con el robot: su origen está en el
+punto medio del eje de las ruedas, X apunta hacia adelante e Y hacia la izquierda. Los ángulos son
+antihorarios positivos.
+
+<Figura alt="Dos marcos de referencia. El marco de la mesa, G, tiene sus ejes fijos abajo a la izquierda. El marco del robot, R, está pegado al robot, que está girado un ángulo θ. Una flecha une el origen de G con el robot y un punto marca un sensor delante del robot." caption="La pose ubica el marco del robot dentro del marco de la mesa.">
+<svg viewBox="0 0 320 170" aria-hidden="true" focusable="false"><line class="f-axis" x1="30" y1="150" x2="123" y2="150" /><polygon class="f-mutedfill" points="130,150 123,146.8 123,153.2" /><line class="f-axis" x1="30" y1="150" x2="30" y2="67" /><polygon class="f-mutedfill" points="30,60 26.9,67 33.1,67" /><text class="t-m" x="136" y="154">X</text><text class="t-m" x="34" y="56">Y</text><text class="t-m" x="40" y="142">marco G (mesa)</text><g transform="translate(200 90) rotate(-30)"><rect class="f-fillbox" x="-24" y="-14" width="48" height="28" rx="3" /><line class="f-vel" x1="0" y1="0" x2="39" y2="0" /><polygon class="f-velfill" points="46,0 39,-3.1 39,3.1" /><line class="f-force" x1="0" y1="0" x2="-0" y2="-27" /><polygon class="f-forcefill" points="0,-34 -3.2,-27 3.1,-27" /><circle class="f-d2fill" cx="30" cy="0" r="4" /></g><text class="t-v" x="262" y="70">marco R</text><text class="t-m" x="240" y="136">sensor</text><line class="f-dash" x1="30" y1="150" x2="200" y2="90" /><text class="t-m t-c" x="95" y="108">pose (x, y, θ)</text></svg>
+</Figura>
+
+La **pose** del robot es (x, y, θ): la posición del origen de \{R\} en \{G\} más su orientación θ,
+el ángulo del eje X de \{R\} medido desde el eje X de \{G\}.
+
+Un punto fijo al robot, como un sensor, tiene coordenadas constantes en \{R\}. Para pasarlo a
+\{G\} lo rotas θ y lo trasladas. La rotación es la del recuadro de
+[Vectores](/ruta/ruta-1/m00/t02), por componentes, y la traslación suma la posición del robot.
+
+La **matriz de rotación** R(θ) escribe esas dos ecuaciones de forma compacta: cada fila multiplica
+al vector y da una de las componentes.
+
+La transformación inversa deshace los pasos al revés: restas la posición del robot y rotas con −θ,
+que solo cambia el signo de los senos. Por eso R(−θ) es la traspuesta de R(θ).
+
+El **rumbo** θ<sub>objetivo</sub> hacia un objetivo (x<sub>o</sub>, y<sub>o</sub>) es el ángulo de la recta que va del robot al
+objetivo. Se calcula con atan2, que conserva el cuadrante que la arcotangente simple pierde.
+
+Un brazo serial usa este mismo mecanismo en 3D, encadenando rotaciones y traslaciones de un marco
+al siguiente.
+</Concepto>
+
+<Formulas>
+<Formula latex="\begin{aligned} p_{G,x} &= x + p_{R,x}\cos\theta - p_{R,y}\sin\theta\\ p_{G,y} &= y + p_{R,x}\sin\theta + p_{R,y}\cos\theta \end{aligned}" />
+
+- <code>p<sub>G,x</sub></code>, `p_{G,y}` · componentes del punto en \{G\} · m
+- <code>p<sub>R,x</sub></code>, `p_{R,y}` · componentes del punto en \{R\} · m
+- `x, y` · posición del robot en \{G\} · m
+- `θ` · orientación del robot · rad
+
+<Formula latex="R(\theta) = \begin{pmatrix}\cos\theta & -\sin\theta\\ \sin\theta & \cos\theta\end{pmatrix}" />
+
+- `R(θ)` · matriz de rotación 2D · —
+- `θ` · orientación del robot · rad
+
+<Formula latex="\vec p_G = \vec p_{R,0} + R(\theta)\,\vec p_R" />
+
+- <code><span class="vec">p</span><sub>G</sub>, <span class="vec">p</span><sub>R</sub></code> · un punto expresado en \{G\} y en \{R\} · m
+- <code><span class="vec">p</span><sub>R,0</sub></code> · origen de \{R\} en \{G\}: el (x, y) de la pose · m
+- `R(θ)` · matriz de rotación 2D · —
+
+<Formula latex="\vec p_R = R(-\theta)\,(\vec p_G - \vec p_{R,0})" />
+
+- <code><span class="vec">p</span><sub>R</sub>, <span class="vec">p</span><sub>G</sub></code> · un punto expresado en \{R\} y en \{G\} · m
+- <code><span class="vec">p</span><sub>R,0</sub></code> · origen de \{R\} en \{G\}: el (x, y) de la pose · m
+- `R(−θ)` · matriz de rotación 2D con el ángulo −θ · —
+
+<Formula latex="\theta_{objetivo} = \operatorname{atan2}(y_o - y, x_o - x)" />
+
+- <code>θ<sub>objetivo</sub></code> · rumbo hacia un objetivo · rad
+- <code>(x<sub>o</sub>, y<sub>o</sub>)</code> · punto objetivo · m
+- `x, y` · posición del robot en \{G\} · m
+</Formulas>
+
 <AlRobot>
 Los sensores de línea de tu robot están fijos en \{R\}. Tu perfil de «Mi robot» da su número N, su
-separación e_s y la distancia d del arreglo al eje de las ruedas. El centro del arreglo está en
-(d, 0), y el sensor izquierdo extremo en (d, (N − 1)·e_s/2), porque Y de \{R\} apunta a la
+separación e<sub>s</sub> y la distancia d del arreglo al eje de las ruedas. El centro del arreglo está en
+(d, 0), y el sensor izquierdo extremo en (d, (N − 1)·e<sub>s</sub>/2), porque Y de \{R\} apunta a la
 izquierda. Con N impar, el centro del arreglo es el sensor central.
 
-Con la pose del gancho, (1.2 m, 0.5 m, 30°), el centro del arreglo de tu robot queda en:
+Con el robot en la pose (1.2 m, 0.5 m, 30°), el centro del arreglo de tu robot queda en:
 
 <RobotFormula calc="ruta-2/m00-t02/center-sensor" />
 
@@ -146,12 +146,11 @@ Y su sensor izquierdo extremo, en:
 <RobotFormula calc="ruta-2/m00-t02/left-sensor" />
 
 Si tu perfil no guarda los sensores, el cálculo usa los del robot de referencia: N = 5 sensores
-separados e_s = 0.012 m, con d = 0.09 m.
+separados e<sub>s</sub> = 0.012 m, con d = 0.09 m.
 
-Con el robot de referencia, el sensor central queda en (1.278, 0.545) m, como en el gancho. El
-izquierdo extremo está en (0.09, 0.024) m en \{R\}. Por componentes, girarlo 30° da
-(0.09·0.866 − 0.024·0.5, 0.09·0.5 + 0.024·0.866) = (0.0659, 0.0658) m, y sumando (1.2, 0.5) m
-queda en (1.266, 0.5658) m. En \{R\} los separan 0.024 m, y en \{G\} también: la rotación y la traslación no
+Con el robot de referencia, el sensor central queda en (1.278, 0.545) m. El
+izquierdo extremo está en (0.09, 0.024) m en \{R\}. Por componentes, girarlo 30° y sumar
+(1.2, 0.5) m lo deja en (1.266, 0.5658) m. En \{R\} los separan 0.024 m, y en \{G\} también: la rotación y la traslación no
 cambian distancias.
 
 La pista está dibujada sobre la mesa, no sobre el robot. Para saber si un sensor ve la línea hay
@@ -163,8 +162,7 @@ que conocer su posición en \{G\}, y esa posición cambia con cada pose del robo
     'ruta-2/m00-t02/e1',
     'ruta-2/m00-t02/e2',
     'ruta-2/m00-t02/e3',
-    'ruta-2/m00-t02/e4',
-  ]}
+    'ruta-2/m00-t02/e4', 'ruta-2/m00-t02/e5']}
   topicId="ruta-2/m00-t02"
   obligatorios={['e1', 'e2', 'e3']}
 />

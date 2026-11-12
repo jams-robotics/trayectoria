@@ -7,7 +7,7 @@ import { expect, test } from '@playwright/test';
 // computed here but in T1-1.3 (#565, #574).
 const TOPIC_URL = '/ruta/ruta-1/m00/t01';
 
-test('m00-t01 loads, mounts its widgets and has 4 exercises', async ({ page }) => {
+test('m00-t01 loads, mounts its widgets and has 5 exercises', async ({ page }) => {
   const pageErrors: Error[] = [];
   page.on('pageerror', (error) => pageErrors.push(error));
 
@@ -25,7 +25,7 @@ test('m00-t01 loads, mounts its widgets and has 4 exercises', async ({ page }) =
   );
   await expect(page.locator('[data-robot-formula="ruta-1/m00-t01/omega-rueda"]')).toHaveCount(0);
 
-  await expect(page.getByTestId('exercise')).toHaveCount(4);
+  await expect(page.getByTestId('exercise')).toHaveCount(5);
 
   expect(pageErrors).toEqual([]);
 });

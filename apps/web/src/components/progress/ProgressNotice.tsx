@@ -17,7 +17,7 @@ export function ProgressNotice(): JSX.Element {
   if (!ready || session !== null) return <></>;
   return (
     <p
-      className="bg-bg-raised border-border text-fg-muted rounded-md mb-5 flex flex-wrap items-center gap-2 border px-4 py-3 text-sm"
+      className="bg-bg-raised border-border text-fg-muted rounded-md mt-0! mb-5! flex flex-wrap items-center gap-2 border px-4 py-3 text-sm"
       data-testid="progress-notice"
     >
       {t('progress.notice.anonymous')}

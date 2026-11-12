@@ -28,7 +28,7 @@ const NO_JOINT_LABELS: ReadonlyMap<string, string> = new Map();
 
 /**
  * One `ParamPanel` parameter per joint, with the spec limits converted to degrees. The label is
- * the readable name of the card when it has one, with the URDF id as auxiliary text (#535).
+ * the readable name of the card when it has one, with no URDF id next to it (#535).
  */
 export function jointParams(
   joints: readonly ActuatedJoint[],
@@ -39,7 +39,6 @@ export function jointParams(
   return joints.map((joint, index) => ({
     key: joint.name,
     label: labelOf(labels, joint.name),
-    ...(labels.has(joint.name) ? { description: joint.name } : {}),
     unit: unit_deg,
     min: roundLimitInward_deg(radToDeg(joint.lower_rad), 'lower'),
     max: roundLimitInward_deg(radToDeg(joint.upper_rad), 'upper'),

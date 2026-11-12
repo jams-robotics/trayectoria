@@ -14,11 +14,11 @@ import { SHARE_PARAM, encode, shareLink } from './codec';
 // shown anyway and did not open on the other side.
 
 const BUTTON =
-  'border-border bg-bg-raised text-fg inline-flex h-11 items-center rounded-md border px-3 ' +
+  'border-border bg-bg-raised text-fg inline-flex h-[44px] items-center rounded-md border px-3 ' +
   'text-sm font-semibold hover:border-fg-muted focus-visible:outline-color-focus ' +
   'focus-visible:outline-2 focus-visible:outline-offset-2';
 const FIELD =
-  'border-border bg-bg text-fg-muted h-11 min-w-0 flex-1 rounded-md border px-3 font-mono ' +
+  'border-border bg-bg text-fg-muted h-[44px] min-w-0 flex-1 rounded-md border px-3 font-mono ' +
   'text-xs focus-visible:outline-color-focus focus-visible:outline-2 focus-visible:outline-offset-2';
 
 /** Why the link was not copied, when the reason is not the clipboard. */
