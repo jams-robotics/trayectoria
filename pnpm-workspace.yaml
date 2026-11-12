@@ -20,8 +20,8 @@ verifyDepsBeforeRun: error
 overrides:
   # GHSA-qhr7-859c-m2p7 and GHSA-6j4f-fj2g-mc7p (#642): brace-expansion arrives only through dev tooling
   # (eslint, typescript-eslint, minimatch). Remove once eslint and typescript-eslint ship the patched versions.
-  brace-expansion@<1.1.20: 1.1.20
-  brace-expansion@>=4.0.0 <5.0.11: 5.0.11
+  brace-expansion@<1.1.21: 1.1.21
+  brace-expansion@>=4.0.0 <5.0.12: 5.0.12
   # miniflare (from wrangler 4.141.0, #511) asks for undici 7.29.0, which carries two high advisories
   # (GHSA-rfgv-xxqx-mfg5, GHSA-w293-vg96-wgc3); 7.29.1 fixes them and wrangler only picks it up from
   # 4.143.1. Remove this override once wrangler is at 4.143.1 or later.
@@ -38,3 +38,8 @@ overrides:
   # GHSA-j22f-vq7h-c4qm (#696): devalue 5.9.2 arrives through astro, @astrojs/react and @astrojs/mdx.
   # Remove once astro resolves devalue 5.9.3 or later by itself.
   'devalue@<5.9.3': '5.9.3'
+  # Moderate advisories Dependabot cannot fix on its own because they arrive transitively: fast-uri
+  # through ajv (@astrojs/check, eslint) and minimatch 10 through typescript-eslint and sass-formatter.
+  # Remove each line once its parent resolves the patched version by itself.
+  'fast-uri@<3.1.9': '3.1.9'
+  'minimatch@>=7.0.0 <11.0.1': '11.0.1'
