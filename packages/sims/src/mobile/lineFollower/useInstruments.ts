@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DEFAULT_DT_S, trackLength_m } from '@trayectoria/sim-core';
 import type { PidParams, Track } from '@trayectoria/sim-core';
+import type { MobileSpec } from '@trayectoria/robot-spec';
 import { RingBuffer } from '@trayectoria/widgets';
 
 import { createLapTimer, pidTerms, recordLap } from './metrics';
@@ -38,6 +39,8 @@ export interface Instruments {
   readonly timer: LapTimer;
   /** The pose at which the line was lost, while the warning is still up. */
   readonly lostAt: Pose | undefined;
+  /** The robot, so a page drawing its own plots can give them their full range (v1.5). */
+  readonly spec?: MobileSpec | undefined;
 }
 
 /** New rings for a run: one per plot, with three series in the PID one. */
