@@ -3,7 +3,7 @@
 # Build context: repository root. Usage: docker compose -f infra/docker-compose.yml build
 # Base images are pinned by tag and digest (#525); Dependabot (.github/dependabot.yml) updates both.
 
-FROM node:24.18.0-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS build
+FROM node:26.13.1-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS build
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 RUN corepack enable
 WORKDIR /repo
